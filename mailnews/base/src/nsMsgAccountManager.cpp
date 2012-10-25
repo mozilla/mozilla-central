@@ -1415,7 +1415,8 @@ nsMsgAccountManager::LoadAccounts()
   m_accountsLoaded = true;
   m_haveShutdown = false;
 
-  NS_ENSURE_FALSE(accountList.IsEmpty(), NS_OK);
+  if (accountList.IsEmpty())
+      return NS_OK;
 
   /* parse accountList and run loadAccount on each string, comma-separated */
   nsCOMPtr<nsIMsgAccount> account;

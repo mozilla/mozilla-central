@@ -40,7 +40,7 @@ function run_test() {
   Services.prefs.setCharPref("mail.server.server1.type", "none");
   Services.prefs.setCharPref("mail.server.server1.userName", "nobody");
   Services.prefs.setCharPref("mail.server.server2.directory-rel",
-                             "[ProfD]Mail/invalid");
+                             "[ProfD]News/invalid");
   Services.prefs.setCharPref("mail.server.server2.hostname", "invalid");
   Services.prefs.setCharPref("mail.server.server2.name",
                              "testnntp on localhost");

@@ -178,7 +178,8 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   smtpUrl->SetRequestDSN(aRequestDSN);
   smtpUrl->SetPostMessageFile(aFilePath);
   smtpUrl->SetSenderIdentity(aSenderIdentity);
-  smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);
+  if (aNotificationCallbacks)
+    smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);
   smtpUrl->SetSmtpServer(aSmtpServer);
 
   nsCOMPtr<nsIPrompt> smtpPrompt(do_GetInterface(aNotificationCallbacks));
@@ -197,7 +198,8 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   smtpUrl->SetPrompt(smtpPrompt);            
   smtpUrl->SetAuthPrompt(smtpAuthPrompt);
 
-  url->RegisterListener(aUrlListener);
+  if (aUrlListener)
+    url->RegisterListener(aUrlListener);
   if (aStatusFeedback)
     url->SetStatusFeedback(aStatusFeedback);
 
