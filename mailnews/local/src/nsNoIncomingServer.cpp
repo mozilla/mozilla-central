@@ -204,4 +204,11 @@ nsNoIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswo
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsNoIncomingServer::GetSortOrder(int32_t* aSortOrder)
+{
+  NS_ENSURE_ARG_POINTER(aSortOrder);
+  *aSortOrder = 200000000;
+  return NS_OK;
+}
 

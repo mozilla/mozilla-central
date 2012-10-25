@@ -29,6 +29,7 @@ public:
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
     NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
     NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
+    NS_IMETHOD GetSortOrder(int32_t* aSortOrder);
 
     nsRssIncomingServer();
     virtual ~nsRssIncomingServer();

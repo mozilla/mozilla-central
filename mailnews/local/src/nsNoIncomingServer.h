@@ -30,6 +30,7 @@ public:
   NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
   NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
   NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
+  NS_IMETHOD GetSortOrder(int32_t* aSortOrder);
 };
 
 
