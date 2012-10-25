@@ -12,6 +12,7 @@ Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/attachmentChecker.js");
 
 Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
@@ -3239,34 +3240,7 @@ function ClearIdentityListPopup(popup)
 
 function FillIdentityList(menulist)
 {
-  var mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                      .getService(Components.interfaces.nsIMsgAccountManager);
-  var accounts = toArray(fixIterator(mgr.accounts,
-                                     Components.interfaces.nsIMsgAccount));
-
-  // Ugly hack to work around bug 41133. :-(
-  accounts = accounts.filter(function isNonSuckyAccount(a) { return !!a.incomingServer; });
-  function sortAccounts(a, b) {
-    if (a.key == mgr.defaultAccount.key)
-      return -1;
-    if (b.key == mgr.defaultAccount.key)
-      return 1;
-    var aIsNews = a.incomingServer.type == "nntp";
-    var bIsNews = b.incomingServer.type == "nntp";
-    if (aIsNews && !bIsNews)
-      return 1;
-    if (bIsNews && !aIsNews)
-      return -1;
-
-    var aIsLocal = a.incomingServer.type == "none";
-    var bIsLocal = b.incomingServer.type == "none";
-    if (aIsLocal && !bIsLocal)
-      return 1;
-    if (bIsLocal && !aIsLocal)
-      return -1;
-    return 0;
-  }
-  accounts.sort(sortAccounts);
+  let accounts = allAccountsSorted(true);
 
   let accountHadSeparator = false;
   let firstAccountWithIdentities = true;

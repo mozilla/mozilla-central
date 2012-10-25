@@ -5,6 +5,8 @@
 
 /*  This file contains the js functions necessary to implement view navigation within the 3 pane. */
 
+Components.utils.import("resource:///modules/folderUtils.jsm");
+
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
 function GetSubFoldersInFolderPaneOrder(folder)
@@ -117,55 +119,11 @@ function FindNextFolder()
 
 function GetRootFoldersInFolderPaneOrder()
 {
-  var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"].
-                getService(Components.interfaces.nsIMsgAccountManager);
-  var acctEnum = acctMgr.accounts;
-  var count = acctEnum.Count();
+  var accounts = allAccountsSorted(false);
 
-  var accounts = new Array();
-  for (var i = 0; i < count; i++) {
-    var acct = acctEnum.GetElementAt(i)
-                       .QueryInterface(Components.interfaces.nsIMsgAccount);
-
-    // This is a HACK to work around bug 41133. If we have one of the
-    // dummy "news" accounts there, that account won't have an
-    // incomingServer attached to it, and everything will blow up.
-    if (acct.incomingServer)
-      accounts.push(acct);
-  }
-
-  /**
-   * This is our actual function for sorting accounts.  Accounts go in the
-   * following order: (1) default account (2) other mail accounts (3) Local
-   * Folders (4) news
-   */
-  function accountCompare(a, b) {
-    if (a.key == acctMgr.defaultAccount.key)
-      return -1;
-    if (b.key == acctMgr.defaultAccount.key)
-      return 1;
-    var aIsNews = a.incomingServer.type == "nntp";
-    var bIsNews = b.incomingServer.type == "nntp";
-    if (aIsNews && !bIsNews)
-      return 1;
-    if (bIsNews && !aIsNews)
-      return -1;
-
-    var aIsLocal = a.incomingServer.type == "none";
-    var bIsLocal = b.incomingServer.type == "none";
-    if (aIsLocal && !bIsLocal)
-      return 1;
-    if (bIsLocal && !aIsLocal)
-      return -1;
-    return 0;
-  }
-
-  // sort accounts, so they are in the same order as folder pane
-  accounts.sort(accountCompare)
-
-  var serversMsgFolders = new Array();
-  for each (var acct in accounts)
-    serversMsgFolders.push(acct.incomingServer.rootMsgFolder);
+  var serversMsgFolders = [];
+  for each (var account in accounts)
+    serversMsgFolders.push(account.incomingServer.rootMsgFolder);
 
   return serversMsgFolders;
 }

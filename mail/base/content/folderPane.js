@@ -1186,49 +1186,17 @@ let gFolderTreeView = {
     }
   },
 
-  _sortedAccounts: function ftv_getSortedAccounts()
-  {
-      const Cc = Components.classes;
-      const Ci = Components.interfaces;
-      let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Ci.nsIMsgAccountManager);
-      let accounts = [a for each
-                      (a in fixIterator(acctMgr.accounts, Ci.nsIMsgAccount))];
-      // Bug 41133 workaround
-      accounts = accounts.filter(function fix(a) { return a.incomingServer; });
+  _sortedAccounts: function ftv_getSortedAccounts() {
+    let accounts = allAccountsSorted(true);
 
-      // Don't show deferred pop accounts
-      accounts = accounts.filter(function isNotDeferred(a) {
-        let server = a.incomingServer;
-        return !(server instanceof Ci.nsIPop3IncomingServer &&
-                 server.deferredToAccount);
-      });
+    // Don't show deferred pop accounts.
+    accounts = accounts.filter(function isNotDeferred(a) {
+      let server = a.incomingServer;
+      return !(server instanceof Components.interfaces.nsIPop3IncomingServer &&
+               server.deferredToAccount);
+    });
 
-      // Don't show IM accounts
-      accounts = accounts.filter(function(a) a.incomingServer.type != "im");
-
-      function sortAccounts(a, b) {
-        if (a.key == acctMgr.defaultAccount.key)
-          return -1;
-        if (b.key == acctMgr.defaultAccount.key)
-          return 1;
-        let aIsNews = a.incomingServer.type == "nntp";
-        let bIsNews = b.incomingServer.type == "nntp";
-        if (aIsNews && !bIsNews)
-          return 1;
-        if (bIsNews && !aIsNews)
-          return -1;
-
-        let aIsLocal = a.incomingServer.type == "none";
-        let bIsLocal = b.incomingServer.type == "none";
-        if (aIsLocal && !bIsLocal)
-          return 1;
-        if (bIsLocal && !aIsLocal)
-          return -1;
-        return 0;
-      }
-      accounts.sort(sortAccounts);
-      return accounts;
+    return accounts;
   },
 
   /**
