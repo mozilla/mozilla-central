@@ -162,7 +162,6 @@ function updateReminderDetails() {
 
 var gLastAlarmSelection = 0;
 
-
 function matchCustomReminderToMenuitem(reminder) {
     let defaultAlarmType = getDefaultAlarmType();
     let reminderList = document.getElementById("item-alarm");
@@ -173,7 +172,14 @@ function matchCustomReminderToMenuitem(reminder) {
         // Exactly one reminder thats not absolute, we may be able to match up
         // popup items.
         let relation = (reminder.related == reminder.ALARM_RELATED_START ? "START" : "END");
-        let origin = (reminder.offset.isNegative ? "before" : "after");
+        let origin;
+
+        // If the time duration for offset is 0, means the reminder is '0 minutes before'
+        if (reminder.offset.inSeconds == 0 || reminder.offset.isNegative) {
+            origin = "before";
+        } else {
+            origin = "after";
+        }
 
         let unitMap = {
           days: 86400,
