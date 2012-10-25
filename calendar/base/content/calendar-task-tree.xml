@@ -457,8 +457,10 @@
                   selIndex = this.binding.mTaskArray.length - 1;
               }
 
-              this.tree.view.selection.select(selIndex);
-              this.treebox.ensureRowIsVisible(selIndex);
+              if (selIndex > -1) {
+                  this.tree.view.selection.select(selIndex);
+                  this.treebox.ensureRowIsVisible(selIndex);
+              }
 
               this.treebox.endUpdateBatch();
           },
