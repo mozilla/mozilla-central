@@ -125,7 +125,7 @@ const TOOLKIT_ID                      = "toolkit@mozilla.org";
 
 const BRANCH_REGEXP                   = /^([^\.]+\.[0-9]+[a-z]*).*/gi;
 
-const DB_SCHEMA                       = 11;
+const DB_SCHEMA                       = 12;
 
 #ifdef MOZ_COMPATIBILITY_NIGHTLY
 const PREF_EM_CHECK_COMPATIBILITY = PREF_EM_CHECK_COMPATIBILITY_BASE +
@@ -150,6 +150,14 @@ const DB_BOOL_METADATA   = ["visible", "active", "userDisabled", "appDisabled",
                             "pendingUninstall", "bootstrap", "skinnable",
                             "softDisabled", "isForeignInstall",
                             "hasBinaryComponents", "strictCompatibility"];
+
+// Note: When adding/changing/removing items here, remember to change the
+// DB schema version to ensure changes are picked up ASAP.
+const STATIC_BLOCKLIST_PATTERNS = [
+  { creator: "Mozilla Corp.",
+    level: Ci.nsIBlocklistService.STATE_BLOCKED,
+    blockID: "i162" }
+];
 
 const BOOTSTRAP_REASONS = {
   APP_STARTUP     : 1,
@@ -188,6 +196,21 @@ var gIDTest = /^(\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\
     return this[aName];
   })
 }, this);
+
+
+function findMatchingStaticBlocklistItem(aAddon) {
+  for (let index = 0; index < STATIC_BLOCKLIST_PATTERNS.length; index++) {
+    let item = STATIC_BLOCKLIST_PATTERNS[index];
+    if ("creator" in item && typeof item.creator == "string") {
+      if ((aAddon.defaultLocale && aAddon.defaultLocale.creator == item.creator) ||
+          (aAddon.selectedLocale && aAddon.selectedLocale.creator == item.creator)) {
+        return item;
+      }
+    }
+  }
+  return null;
+}
+
 
 /**
  * A safe way to install a file or the contents of a directory to a new
@@ -7058,12 +7081,22 @@ AddonInternal.prototype = {
   },
 
   get blocklistState() {
+    let staticItem = findMatchingStaticBlocklistItem(this);
+    if (staticItem)
+      return staticItem.level;
+
     let bs = Cc["@mozilla.org/extensions/blocklist;1"].
              getService(Ci.nsIBlocklistService);
     return bs.getAddonBlocklistState(this.id, this.version);
   },
 
   get blocklistURL() {
+    let staticItem = findMatchingStaticBlocklistItem(this);
+    if (staticItem) {
+      let url = Services.urlFormatter.formatURLPref("extensions.blocklist.itemURL");
+      return url.replace(/%blockID%/g, staticItem.blockID);
+    }
+
     let bs = Cc["@mozilla.org/extensions/blocklist;1"].
              getService(Ci.nsIBlocklistService);
     return bs.getAddonBlocklistURL(this.id, this.version);
