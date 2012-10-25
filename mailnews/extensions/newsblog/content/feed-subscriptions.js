@@ -974,7 +974,8 @@ var FeedSubscriptions = {
 
   onKeyPress: function(aEvent)
   {
-    if (aEvent.keyCode == aEvent.DOM_VK_DELETE)
+    if (aEvent.keyCode == aEvent.DOM_VK_DELETE &&
+        aEvent.target.id == "rssSubscriptionsList")
       this.removeFeed(true);
 
     this.clearStatusInfo();
