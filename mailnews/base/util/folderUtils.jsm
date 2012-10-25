@@ -7,10 +7,7 @@
  */
 
 var EXPORTED_SYMBOLS = ["setPropertyAtoms", "getSpecialFolderString",
-                        "getFolderFromUri", "allAccountsSorted"];
-
-Components.utils.import("resource:///modules/mailServices.js");
-Components.utils.import("resource:///modules/iteratorUtils.jsm");
+                        "getFolderFromUri"];
 
 /**
  * Returns a string representation of a folder's "special" type
@@ -109,57 +106,4 @@ function getFolderFromUri(aUri) {
   const Ci = Components.interfaces;
   return Cc["@mozilla.org/mail/folder-lookup;1"].
          getService(Ci.nsIFolderLookupService).getFolderById(aUri);
-}
-
-/**
- * Returns the sort order value based on the server type to be used for sorting.
- * The servers (accounts) go in the following order:
- * (0) default account, (1) other mail accounts, (2) Local Folders,
- * (3) IM accounts, (4) RSS, (5) News, (9) others (no server)
- * This ordering is encoded in the .sortOrder property of each server type.
- *
- * @param aServer  the server object to be tested
- */
-function getServerSortOrder(aServer) {
-  // If there is no server sort this object to the end.
-  if (!aServer)
-    return 999999999;
-
-  // Otherwise get the server sort order from the Account manager.
-  return MailServices.accounts.getSortOrder(aServer);
-}
-
-/**
- * Compares the passed in accounts according to their precedence.
- */
-function compareAccounts(aAccount1, aAccount2) {
-  return getServerSortOrder(aAccount1.incomingServer)
-           - getServerSortOrder(aAccount2.incomingServer);
-}
-
-/**
- * Returns a list of accounts sorted by server type.
- *
- * @param aExcludeIMAccounts  Remove IM accounts from the list?
- */
-function allAccountsSorted(aExcludeIMAccounts) {
-  // Get the account list, and add the proper items.
-  let accountList = toArray(fixIterator(MailServices.accounts.accounts,
-                                        Components.interfaces.nsIMsgAccount));
-
-  // This is a HACK to work around bug 41133. If we have one of the
-  // dummy "news" accounts there, that account won't have an
-  // incomingServer attached to it, and everything will blow up.
-  accountList = accountList.filter(function hasServer(a) {
-    return a.incomingServer;
-  });
-
-  // Remove IM servers.
-  if (aExcludeIMAccounts) {
-    accountList = accountList.filter(function(a) {
-      return a.incomingServer.type != "im";
-    });
-  }
-
-  return accountList.sort(compareAccounts);
 }
