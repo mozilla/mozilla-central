@@ -124,8 +124,23 @@ Conversation.prototype = {
   inReplyToStatusId: null,
   startReply: function(aTweet) {
     this.inReplyToStatusId = aTweet.id_str;
-    this.notifyObservers(null, "replying-to-prompt",
-                         "@" + aTweet.user.screen_name + " ");
+    let entities = aTweet.entities;
+
+    // Twitter replies go to all the users mentioned in the tweet.
+    let nicks = [aTweet.user.screen_name];
+    if ("user_mentions" in entities && Array.isArray(entities.user_mentions)) {
+      nicks = nicks.concat(entities.user_mentions
+                                   .map(function(um) um.screen_name));
+    }
+    // Ignore duplicates and the user's nick.
+    let prompt =
+      nicks.filter(function(aNick, aPos) {
+             return nicks.indexOf(aNick) == aPos && aNick != this._account.name;
+           }, this)
+           .map(function(aNick) "@" + aNick)
+           .join(" ") + " ";
+
+    this.notifyObservers(null, "replying-to-prompt", prompt);
     this.notifyObservers(null, "status-text-changed",
                          _("replyingToStatusText", aTweet.text));
   },
