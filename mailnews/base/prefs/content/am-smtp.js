@@ -154,9 +154,9 @@ var gSmtpServerListWindow =
                          MailServices.smtp.defaultServer);
 
     if (aServerKeyToSelect)
-      this.mServerList.selectItem(this.mServerList.getElementsByAttribute("key", aServerKeyToSelect)[0]);
+      this.setSelectedServer(this.mServerList.getElementsByAttribute("key", aServerKeyToSelect)[0]);
     else // select the default server
-      this.mServerList.selectItem(this.mServerList.getElementsByAttribute("default", "true")[0]);
+      this.setSelectedServer(this.mServerList.getElementsByAttribute("default", "true")[0]);
 
     if (aFocusList)
       this.mServerList.focus();
@@ -222,6 +222,14 @@ var gSmtpServerListWindow =
       this.refreshServerList(aServer ? aServer.key : args.addSmtpServer, true);
 
     return args.result;
+  },
+
+  setSelectedServer: function(aServer)
+  {
+    setTimeout(function(aServerList) {
+      aServerList.ensureElementIsVisible(aServer);
+      aServerList.selectItem(aServer);
+    }, 0, this.mServerList);
   },
 
   getSelectedServer: function()
