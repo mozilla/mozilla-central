@@ -155,6 +155,11 @@ MOZ_ARG_WITH_STRING(gonk-toolchain-prefix,
                           prefix to gonk toolchain commands],
     gonk_toolchain_prefix=$withval)
 
+MOZ_ARG_WITH_STRING(ios-target,
+[  --with-ios-target=SDK
+                     what target sdk to use, defaults to iPhoneSimulator],
+    ios_target=$withval)
+
 if test -n "$gonkdir" ; then
     kernel_name=`uname -s | tr "[[:upper:]]" "[[:lower:]]"`
 
@@ -206,6 +211,8 @@ if test -n "$gonkdir" ; then
     AC_DEFINE(ANDROID)
     AC_DEFINE(GONK)
     CROSS_COMPILE=1
+elif test -n "$ios_target" ; then
+    MOZ_IOS_SDK
 else
     MOZ_ANDROID_NDK
 fi
