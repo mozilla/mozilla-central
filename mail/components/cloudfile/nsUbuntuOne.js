@@ -690,7 +690,7 @@ nsUbuntuOneFileUploader.prototype = {
     fstream.init(this.file, -1, 0, 0);
     let bufStream = Cc["@mozilla.org/network/buffered-input-stream;1"].
       createInstance(Ci.nsIBufferedInputStream);
-    bufStream.init(fstream, this.file.fileSize);
+    bufStream.init(fstream, 4096);
     bufStream = bufStream.QueryInterface(Ci.nsIInputStream);
     this.request = this.ubuntuone._connection.signAndSend(
       url, headers, "PUT", bufStream,

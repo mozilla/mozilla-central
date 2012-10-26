@@ -1072,7 +1072,7 @@ nsYouSendItFileUploader.prototype = {
       this._fstream.init(this._tempFile, -1, 0, 0);
       this._bufStream = Cc["@mozilla.org/network/buffered-input-stream;1"]
                         .createInstance(Ci.nsIBufferedInputStream);
-      this._bufStream.init(this._fstream, this._tempFile.fileSize);
+      this._bufStream.init(this._fstream, 4096);
       // nsIXMLHttpRequest's nsIVariant handling requires that we QI
       // to nsIInputStream.
       req.send(this._bufStream.QueryInterface(Ci.nsIInputStream));
