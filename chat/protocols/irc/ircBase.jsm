@@ -195,6 +195,7 @@ var ircBase = {
       // JOIN ( <channel> *( "," <channel> ) [ <key> *( "," <key> ) ] ) / "0"
       // Add the buddy to each channel
       for each (let channelName in aMessage.params[0].split(",")) {
+        let convAlreadyExists = this.hasConversation(channelName);
         let conversation = this.getConversation(channelName);
         if (this.normalize(aMessage.nickname, this.userPrefixes) ==
             this.normalize(this._nickname)) {
@@ -203,6 +204,14 @@ var ircBase = {
           conversation.removeAllParticipants();
           conversation.left = false;
           conversation.notifyObservers(conversation, "update-conv-chatleft");
+
+          // If the user parted from this room earlier, confirm the rejoin.
+          // If conversation._chatRoomFields is present, the rejoin was due to
+          // an automatic reconnection, for which we already notify the user.
+          if (convAlreadyExists && !conversation._chatRoomFields) {
+            conversation.writeMessage(aMessage.nickname, _("message.rejoined"),
+                                      {system: true});
+          }
 
           // Ensure chatRoomFields information is available for reconnection.
           let nName = this.normalize(channelName);
