@@ -240,8 +240,6 @@ RasterImage::~RasterImage()
              discardable_source_bytes));
   }
 
-  DiscardTracker::Remove(&mDiscardTrackerNode);
-
   // If we have a decoder open, shut it down
   if (mDecoder) {
     nsresult rv = ShutdownDecoder(eShutdownIntent_Interrupted);
@@ -252,6 +250,10 @@ RasterImage::~RasterImage()
   // Total statistics
   num_containers--;
   total_source_bytes -= mSourceData.Length();
+
+  if (DiscardingActive()) {
+    DiscardTracker::Remove(&mDiscardTrackerNode);
+  }
 }
 
 nsresult
