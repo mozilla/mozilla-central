@@ -374,6 +374,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nullptr),
   m_flagState = nullptr;
   m_fetchBodyIdList = nullptr;
   m_isGmailServer = false;
+  m_fetchingWholeMessage = false;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ASSERTION(prefBranch, "FAILED to create the preference service");
@@ -3270,6 +3271,8 @@ void nsImapProtocol::FetchMsgAttribute(const nsCString &messageIds, const nsCStr
     if (NS_SUCCEEDED(rv))
        ParseIMAPandCheckForNewMail(commandString.get());
     GetServerStateParser().SetFetchingFlags(false);
+    // Always clear this flag after every fetch.
+    m_fetchingWholeMessage = false;
 }
 
 // this routine is used to fetch a message or messages, or headers for a
@@ -3304,6 +3307,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
   switch (whatToFetch) {
   case kEveryThingRFC822:
     m_flagChangeCount++;
+    m_fetchingWholeMessage = true;
     if (m_trackingTime)
       AdjustChunkSize();      // we started another segment
     m_startTime = PR_Now();     // save start of download time
@@ -3350,6 +3354,7 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       const char *formatString = "";
       eIMAPCapabilityFlags server_capabilityFlags = GetServerStateParser().GetCapabilityFlag();
 
+      m_fetchingWholeMessage = true;
       if (server_capabilityFlags & kIMAP4rev1Capability)
       {
         // use body[].peek since rfc822.peek is not in IMAP4rev1
@@ -3551,6 +3556,8 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
       ParseIMAPandCheckForNewMail(protocolString);
     PR_Free(protocolString);
     GetServerStateParser().SetFetchingFlags(false);
+    // Always clear this flag after every fetch.
+    m_fetchingWholeMessage = false;
     if (GetServerStateParser().LastCommandSuccessful() && CheckNeeded())
       Check();
   }
@@ -3922,7 +3929,9 @@ void nsImapProtocol::NormalMessageEndDownload()
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
     int32_t updatedMessageSize = -1;
-    if (m_bytesToChannel != GetServerStateParser().SizeOfMostRecentMessage()) {
+    if (m_fetchingWholeMessage &&
+        (m_bytesToChannel != GetServerStateParser().SizeOfMostRecentMessage()))
+    {
       updatedMessageSize = m_bytesToChannel;
 #ifdef DEBUG
       nsAutoCString message("Server's RFC822.SIZE ");

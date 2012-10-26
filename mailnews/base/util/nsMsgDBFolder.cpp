@@ -1717,17 +1717,14 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
        (messageSize - (uint32_t) curStorePos) > (uint32_t) m_numOfflineMsgLines)
     {
        mDatabase->MarkOffline(messageKey, false, nullptr);
-       // we should truncate the offline store at messgeOffset
-       nsCOMPtr <nsIFile> localStore;
-       rv = GetFilePath(getter_AddRefs(localStore));
-       if (NS_SUCCEEDED(rv))
-       {
+       // we should truncate the offline store at messageOffset
+       ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
+       if (msgStore)
+         // this closes the stream
+         msgStore->DiscardNewMessage(m_tempMessageStream, m_offlineHeader);
+       else
          m_tempMessageStream->Close();
-         m_tempMessageStream = nullptr;
-         ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
-         if (msgStore)
-           msgStore->DiscardNewMessage(m_tempMessageStream, m_offlineHeader);
-       }
+       m_tempMessageStream = nullptr;
 #ifdef _DEBUG
        nsAutoCString message("Offline message too small: messageSize=");
        message.AppendInt(messageSize);
@@ -1737,6 +1734,8 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
        message.AppendInt(m_numOfflineMsgLines);
        NS_ERROR(message.get());
 #endif
+       m_offlineHeader = nullptr;
+       return NS_ERROR_FAILURE;
     }
     else
       m_offlineHeader->SetLineCount(m_numOfflineMsgLines);
