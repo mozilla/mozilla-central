@@ -204,7 +204,8 @@ var commands = [
   },
   {
     name: "mode",
-    get helpString() _("command.mode", "mode"),
+    get helpString() _("command.modeUser", "mode") + "\n" +
+                     _("command.modeChannel", "mode"),
     run: function(aMsg, aConv) {
       function isMode(aString) "+-".indexOf(aString[0]) != -1;
       let params = splitInput(aMsg);
@@ -242,8 +243,8 @@ var commands = [
         else if ((!isChannelName && !isOwnNick) || !isMode(params[1]))
           return false;
       }
-      // Otherwise a channel name, new mode and a nick were given or a channel
-      // name and a mode were given. If this is not true, return false.
+      // Otherwise a channel name, new mode, and at least one parameter
+      // was given. If this is not true, return false.
       else if (!(isChannelName && isMode(params[1])))
         return false;
 
