@@ -389,11 +389,9 @@ function teardownImporter(customTeardown) {
 
 /**
  * Create a folder and rebuild the folder tree view.
- * @param aFolderName  A folder name with no support for hierarchy at this time.
- * @param aSpecialFlags An optional list of nsMsgFolderFlags bits to set.
  */
-function create_folder(aFolderName, aSpecialFlags) {
-  let folder = testHelperModule.make_empty_folder(aFolderName, aSpecialFlags);
+function create_folder(aFolderName) {
+  let folder = testHelperModule.make_empty_folder(aFolderName);
   mc.folderTreeView.mode = "all";
   return folder;
 }
