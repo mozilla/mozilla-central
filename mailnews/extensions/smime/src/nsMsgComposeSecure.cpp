@@ -514,7 +514,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
 
   char *s =
   PR_smprintf("Content-Type: " APPLICATION_PKCS7_MIME
-          "; name=\"smime.p7m\"" CRLF
+          "; name=\"smime.p7m\"; smime-type=enveloped-data" CRLF
         "Content-Transfer-Encoding: " ENCODING_BASE64 CRLF
         "Content-Disposition: attachment"
           "; filename=\"smime.p7m\"" CRLF
