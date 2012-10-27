@@ -26,11 +26,11 @@
 	<string>@MAC_APP_NAME@ @MOZ_APP_VERSION@</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
-	<key>CGDisableCoalescedUpdates</key>
-	<true/>
-        <key>LSMinimumSystemVersion</key>
-        <string>10.6.0</string>
-        <key>CFBundleDocumentTypes</key>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.6.0</string>
+	<key>CFBundleDocumentTypes</key>
 	<array>
 	
 	<!--Updated Metadata begins here-->
