@@ -69,9 +69,9 @@
         <hbox>
           <label id="filterListLabel"
                  control="filterList"
-                 value="&filterHeader.label;"
-                 crop="end"
-                 flex="1"/>
+                 flex="1">
+            &filterHeader.label;
+          </label>
           <label id="countBox"/>
         </hbox>
       </row>
