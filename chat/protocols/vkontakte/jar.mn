@@ -1,0 +1,9 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+chat.jar:
+% skin prpl-vkontakte classic/1.0 %skin/classic/prpl/vkontakte/
+	skin/classic/prpl/vkontakte/icon32.png	(icons/prpl-vkontakte-32.png)
+	skin/classic/prpl/vkontakte/icon48.png	(icons/prpl-vkontakte-48.png)
+	skin/classic/prpl/vkontakte/icon.png	(icons/prpl-vkontakte.png)

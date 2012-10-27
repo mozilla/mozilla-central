@@ -1,0 +1,3 @@
+component {0743ab81-8963-1743-7abc-9874823acd56} vkontakte.js
+contract @mozilla.org/chat/vkontakte;1 {0743ab81-8963-1743-7abc-9874823acd56}
+category im-protocol-plugin prpl-vkontakte @mozilla.org/chat/vkontakte;1

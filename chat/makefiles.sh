@@ -14,6 +14,7 @@ chat/protocols/gtalk/Makefile
 chat/protocols/irc/Makefile
 chat/protocols/jsTest/Makefile
 chat/protocols/twitter/Makefile
+chat/protocols/vkontakte/Makefile
 chat/protocols/xmpp/Makefile
 chat/themes/Makefile
 "

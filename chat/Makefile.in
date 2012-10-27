@@ -14,6 +14,7 @@ PROTOCOLS = \
 		gtalk \
 		irc \
 		twitter \
+		vkontakte \
 		xmpp \
 		$(NULL)
 
