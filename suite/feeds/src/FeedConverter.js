@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/debug.js");
 
@@ -258,6 +259,8 @@ FeedConverter.prototype = {
         // Now load the actual XUL document.
         var chromeURI = this._ioSvc.newURI(FEEDHANDLER_URI, null, null);
         chromeChannel = this._ioSvc.newChannelFromURI(chromeURI, null);
+        chromeChannel.owner = Services.scriptSecurityManager
+                                      .getNoAppCodebasePrincipal(chromeURI);
         chromeChannel.originalURI = result.uri;
       }
       else
