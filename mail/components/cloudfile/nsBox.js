@@ -38,7 +38,7 @@ nsBox.prototype = {
 
   get type() "Box",
   get displayName() "Box",
-  get serviceURL() "https://www.box.com",
+  get serviceURL() "https://www.box.com/thunderbird",
   get iconClass() "chrome://messenger/skin/icons/box-logo.png",
   get accountKey() this._accountKey,
   get lastError() this._lastErrorText,
