@@ -33,9 +33,17 @@
   -moz-image-region: rect(1px 71px 17px 55px);
 }
 
+#calendar-add-task-button[disabled="true"] > .toolbarbutton-icon {
+  opacity: 0.4;
+}
+
 #todaypane-new-event-button {
   list-style-image: url(chrome://calendar/skin/toolbar-aero.png) !important;
   -moz-image-region: rect(1px 35px 17px 19px) !important;
+}
+
+#todaypane-new-event-button[disabled="true"] > .toolbarbutton-icon {
+  opacity: 0.4;
 }
 
 #unifinder-search-field,
