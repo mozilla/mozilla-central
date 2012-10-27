@@ -13,9 +13,6 @@
 <!ENTITY prefEnableHTTP11.label              "Use HTTP 1.1">
 <!ENTITY prefEnableHTTP11.accesskey          "E">
 <!ENTITY prefEnableHTTP11Proxy.accesskey     "T">
-<!ENTITY prefEnableKeepAlive.label           "Enable Keep-Alive">
-<!ENTITY prefEnableKeepAlive.accesskey       "K">
-<!ENTITY prefEnableKeepAliveProxy.accesskey  "A">
 <!ENTITY prefEnablePipelining.label          "Enable Pipelining">
 <!ENTITY prefEnablePipelining.accesskey      "P">
 <!ENTITY prefEnablePipeliningProxy.accesskey "N">

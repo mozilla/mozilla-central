@@ -14,20 +14,12 @@
                   name="network.http.version"
                   type="string"
                   onchange="CheckPipelining();"/>
-      <preference id="network.http.keep-alive"
-                  name="network.http.keep-alive"
-                  type="bool"
-                  onchange="CheckPipelining();"/>
       <preference id="network.http.pipelining"
                   name="network.http.pipelining"
                   type="bool"/>
       <preference id="network.http.proxy.version"
                   name="network.http.proxy.version"
                   type="string"
-                  onchange="CheckPipeliningProxy();"/>
-      <preference id="network.http.proxy.keep-alive"
-                  name="network.http.proxy.keep-alive"
-                  type="bool"
                   onchange="CheckPipeliningProxy();"/>
       <preference id="network.http.proxy.pipelining"
                   name="network.http.proxy.pipelining"
@@ -55,11 +47,6 @@
 
           <separator class="thin"/>
 
-          <checkbox id="enableKeepAlive"
-                    label="&prefEnableKeepAlive.label;"
-                    accesskey="&prefEnableKeepAlive.accesskey;" 
-                    preference="network.http.keep-alive"/>
-
           <checkbox id="enablePipelining"
                     label="&prefEnablePipelining.label;"
                     accesskey="&prefEnablePipelining.accesskey;"
@@ -81,11 +68,6 @@
           </radiogroup>
 
           <separator class="thin"/>
-
-          <checkbox id="enableKeepAliveProxy"
-                    label="&prefEnableKeepAlive.label;"
-                    accesskey="&prefEnableKeepAliveProxy.accesskey;" 
-                    preference="network.http.proxy.keep-alive"/>
 
           <checkbox id="enablePipeliningProxy"
                     label="&prefEnablePipelining.label;"

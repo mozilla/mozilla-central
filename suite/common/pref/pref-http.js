@@ -12,17 +12,15 @@ function Startup()
 function CheckPipelining()
 {
   var prefHTTPVersion = document.getElementById("network.http.version");
-  var prefKeepAlive = document.getElementById("network.http.keep-alive");
 
-  var enabled = (prefHTTPVersion.value == "1.1" && prefKeepAlive.value);
+  var enabled = prefHTTPVersion.value == "1.1";
   EnableElementById("enablePipelining", enabled, false);
 }
 
 function CheckPipeliningProxy()
 {
   var prefHTTPVersion = document.getElementById("network.http.proxy.version");
-  var prefKeepAlive = document.getElementById("network.http.proxy.keep-alive");
 
-  var enabled = (prefHTTPVersion.value == "1.1" && prefKeepAlive.value);
+  var enabled = prefHTTPVersion.value == "1.1";
   EnableElementById("enablePipeliningProxy", enabled, false);
 }
