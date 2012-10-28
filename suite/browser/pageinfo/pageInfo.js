@@ -1047,12 +1047,18 @@ function makePreview(row)
 
   var mimeType;
   var numFrames = 0;
-  if (item instanceof HTMLObjectElement ||
-      item instanceof HTMLEmbedElement ||
-      item instanceof HTMLLinkElement)
-    mimeType = item.type;
-  if (!mimeType && item instanceof nsIImageLoadingContent)
-    [mimeType, numFrames] = getContentTypeFromImgRequest(item);
+  if (!isBG) {
+    if (item instanceof nsIImageLoadingContent) {
+      var imageRequest = item.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
+      if (imageRequest)
+        mimeType = imageRequest.mimeType;
+    }
+    if (!mimeType &&
+        (item instanceof HTMLObjectElement ||
+         item instanceof HTMLEmbedElement ||
+         item instanceof HTMLLinkElement))
+      mimeType = item.type;
+  }
   if (!mimeType)
     mimeType = cachedType;
 
@@ -1233,21 +1239,6 @@ function getContentTypeFromHeaders(cacheEntryDescriptor)
 
   return (/^Content-Type:\s*(.*?)\s*(?:\;|$)/mi
           .exec(cacheEntryDescriptor.getMetaDataElement("response-head")))[1];
-}
-
-function getContentTypeFromImgRequest(item)
-{
-  var httpRequest;
-  var numFrames = 0;
-
-  var imageRequest = item.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
-  if (imageRequest) {
-    httpRequest = imageRequest.mimeType;
-    let image = imageRequest.image;
-    if (image)
-      numFrames = image.numFrames;
-  }
-  return [httpRequest, numFrames];
 }
 
 //******** Other Misc Stuff
