@@ -789,8 +789,10 @@
         <parameter name="aURI"/>
         <body>
           <![CDATA[
-            if (this.mFaviconService)
-              this.mFaviconService.addFailedFavicon(aURI);
+            if (this.mFaviconService) {
+              let uri = this.mIOService.newURI(iconURL, null, null);
+              this.mFaviconService.addFailedFavicon(uri);
+            }
           ]]>
         </body>
       </method>
