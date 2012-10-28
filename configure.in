@@ -1978,6 +1978,14 @@ ia64*-hpux*)
         if test $_MSC_VER -ge 1400; then
             LDFLAGS="$LDFLAGS -SAFESEH"
         fi
+
+        if test -n "$GNU_CC"; then
+            CFLAGS="$CFLAGS -mstackrealign -fno-keep-inline-dllexport"
+            CXXFLAGS="$CXXFLAGS -mstackrealign -fno-keep-inline-dllexport"
+        else
+            AC_DEFINE(HAVE_STDCALL)
+        fi
+
     	AC_DEFINE(_X86_)
 	;;
     alpha-*)
