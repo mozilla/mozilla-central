@@ -746,6 +746,9 @@
 #endif
 #endif
 #endif
+#ifdef MOZ_CRASHREPORTER_INJECTOR
+@BINPATH@/breakpadinjector.dll
+#endif
 #endif
 
 ; GNOME hooks

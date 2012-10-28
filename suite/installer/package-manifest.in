@@ -600,7 +600,7 @@
 @BINPATH@/components/layout_debug.xpt
 #endif
 #endif
-; Style Sheets, Graphics and other Resources used by the layout engine. 
+; Style Sheets, Graphics and other Resources used by the layout engine.
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
 @BINPATH@/res/EditorOverride.css
@@ -705,6 +705,9 @@ bin/libfreebl_32int64_3.so
 #endif
 #endif
 @BINPATH@/crashreporter-override.ini
+#ifdef MOZ_CRASHREPORTER_INJECTOR
+@BINPATH@/breakpadinjector.dll
+#endif
 #endif
 
 ; [OS/2]
