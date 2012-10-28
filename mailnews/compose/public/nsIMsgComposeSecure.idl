@@ -12,7 +12,7 @@ interface nsIMsgIdentity;
 interface nsIOutputStream;
 
 /* Security interface */
-[noscript, uuid(245f2adc-410e-4bdb-91e2-a7bb42d61787)]
+[scriptable, uuid(245f2adc-410e-4bdb-91e2-a7bb42d61787)]
 interface nsIMsgComposeSecure : nsISupports 
 {
     // requiresCryptoEncapsulation --> returns true if the current message send requires us to go through
