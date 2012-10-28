@@ -14,6 +14,10 @@
            extends="chrome://global/content/bindings/popup.xml#popup">
     <implementation>
       <constructor><![CDATA[
+        Components.utils.import("resource:///modules/mailServices.js", this);
+        Components.utils.import("resource:///modules/MailUtils.js", this);
+        Components.utils.import("resource:///modules/folderUtils.jsm", this);
+
         // If we are a child of a menulist, and we aren't in a wrapper, we
         // need to build our content right away, otherwise the menulist
         // won't have proper sizing.
@@ -35,19 +39,22 @@
         if (inWrapper)
           this._teardown();
       ]]></constructor>
-      <!-- 
-         - Make sure we remove our listener when the window is being destroyed
-        -->
       <destructor><![CDATA[
-        if (!this._initialized)
-          return;
-
-        const Cc = Components.classes;
-        const Ci = Components.interfaces;
-        var session = Cc["@mozilla.org/messenger/services/session;1"].
-                      getService(Ci.nsIMsgMailSession);
-        session.RemoveFolderListener(this._listener);
+        // Clean up when being destroyed.
+        this._removeListener();
       ]]></destructor>
+      <!--
+         - Make sure we remove our listener when the window is being destroyed
+         - or the widget teared down.
+        -->
+      <method name="_removeListener">
+        <body><![CDATA[
+          if (!this._initialized)
+            return;
+
+          this.MailServices.mailSession.RemoveFolderListener(this._listener);
+        ]]></body>
+      </method>
 
       <!--
          - If non-null, the subFolders of this nsIMsgFolder will be used to
@@ -323,9 +330,8 @@
 
           // Lastly, we add a listener to get notified of changes in the folder
           // structure.
-          var session = Cc["@mozilla.org/messenger/services/session;1"].
-                        getService(Ci.nsIMsgMailSession);
-          session.AddFolderListener(this._listener, Ci.nsIFolderListener.all);
+          this.MailServices.mailSession.AddFolderListener(this._listener,
+                                                          Ci.nsIFolderListener.all);
 
           this._initialized = true;
         ]]></body>
@@ -340,7 +346,6 @@
         <parameter name="aFolders"/>
         <body><![CDATA[
           var folders;
-          Components.utils.import("resource:///modules/MailUtils.js");
           // Extensions and other consumers can add to these modes too, see the
           // above note on the _filters field.
           var mode = this.getAttribute("mode");
@@ -452,7 +457,7 @@
 
           // We need to call this, or hasSubFolders will always return false.
           // Remove this workaround when Bug 502900 is fixed.
-          MailUtils.discoverFolders();
+          this.MailUtils.discoverFolders();
 
           for each (var folder in folders) {
             var node;
@@ -526,9 +531,7 @@
          - allow for easy access.
         -->
       <method name="_buildRecentMenu">
-        <body>
-            <![CDATA[
-          const Cc = Components.classes;
+        <body><![CDATA[
           const Ci = Components.interfaces;
           // Iterate through all folders in all accounts, and check MRM_Time,
           // then take the most current 15.
@@ -583,9 +586,8 @@
 
           // Start iterating at the top of the hierarchy, that is, with the root
           // folders for each incoming server.
-          var servers = Cc["@mozilla.org/messenger/account-manager;1"].
-                        getService(Ci.nsIMsgAccountManager).allServers;
-          var count = servers.Count();
+          let servers = this.MailServices.accounts.allServers;
+          let count = servers.Count();
           for (var i = 0; i < count; i++) {
             var incomingServer = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
             addIfRecent(incomingServer.rootFolder);
@@ -662,9 +664,9 @@
         <parameter name="aFolder"/>
         <parameter name="aMenuNode"/>
         <body><![CDATA[
-          Components.utils.import("resource:///modules/folderUtils.jsm");
+
           // First set the SpecialFolder attribute
-          aMenuNode.setAttribute("SpecialFolder", getSpecialFolderString(aFolder));
+          aMenuNode.setAttribute("SpecialFolder", this.getSpecialFolderString(aFolder));
 
           // Now set the biffState
           let biffStates = ["NewMail", "NoMail", "UnknownMail"];
@@ -733,13 +735,7 @@
             this.removeChild(child);
           }
 
-          if (this._initialized) {
-            const Cc = Components.classes;
-            const Ci = Components.interfaces;
-            var session = Cc["@mozilla.org/messenger/services/session;1"].
-                          getService(Ci.nsIMsgMailSession);
-            session.RemoveFolderListener(this._listener);
-          }
+          this._removeListener();
 
           this._folders = null;
           this._initialized = false;
