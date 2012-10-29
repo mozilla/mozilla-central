@@ -12,13 +12,13 @@
             <true/>
             <key>^Resources/</key>
             <true/>
-            <key>^MacOS/extensions/.*</key><dict>
+            <key>^MacOS/distribution/.*</key><dict>
                 <key>omit</key>
                 <true/>
                 <key>weight</key>
                 <real>10</real>
             </dict>
-            <key>^MacOS/distribution/.*</key><dict>
+            <key>^MacOS/override.ini</key><dict>
                 <key>omit</key>
                 <true/>
                 <key>weight</key>
@@ -37,12 +37,6 @@
                 <real>10</real>
             </dict>
             <key>^MacOS/defaults/.*</key><dict>
-                <key>omit</key>
-                <true/>
-                <key>weight</key>
-                <real>10</real>
-            </dict>
-            <key>^MacOS/mozilla.cfg$</key><dict>
                 <key>omit</key>
                 <true/>
                 <key>weight</key>
