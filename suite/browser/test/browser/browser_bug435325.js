@@ -3,13 +3,21 @@
 
 /* Ensure that clicking the button in the Offline mode neterror page makes the browser go online. See bug 435325. */
 
+var proxyPrefValue;
+
 function test() {
   waitForExplicitFinish();
 
   gBrowser.selectedTab = gBrowser.addTab();
   window.addEventListener("DOMContentLoaded", checkPage, false);
 
-  // Go offline and disable the cache, then try to load the test URL.
+
+  // Tests always connect to localhost, and per bug 87717, localhost is now
+  // reachable in offline mode.  To avoid this, disable any proxy.
+  proxyPrefValue = Services.prefs.getIntPref("network.proxy.type");
+  Services.prefs.setIntPref("network.proxy.type", 0);
+
+  // Go offline and disable the proxy and cache, then try to load the test URL.
   Services.io.offline = true;
   Services.prefs.setBoolPref("browser.cache.disk.enable", false);
   Services.prefs.setBoolPref("browser.cache.memory.enable", false);
@@ -40,6 +48,7 @@ function checkPage() {
 }
 
 registerCleanupFunction(function() {
+  Services.prefs.setIntPref("network.proxy.type", proxyPrefValue);
   Services.prefs.setBoolPref("browser.cache.disk.enable", true);
   Services.prefs.setBoolPref("browser.cache.memory.enable", true);
   Services.io.offline = false;
