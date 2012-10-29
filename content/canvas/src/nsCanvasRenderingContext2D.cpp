@@ -3700,7 +3700,7 @@ nsCanvasRenderingContext2D::DrawWindow(nsIDOMWindow* aWindow, float aX, float aY
                                           nsnull, 0, &bgColor);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsIPresShell* presShell = presContext->PresShell();
+    nsCOMPtr<nsIPresShell> presShell = presContext->PresShell();
     NS_ENSURE_TRUE(presShell, NS_ERROR_FAILURE);
 
     nsRect r(nsPresContext::CSSPixelsToAppUnits(aX),

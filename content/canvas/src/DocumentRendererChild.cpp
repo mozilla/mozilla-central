@@ -95,7 +95,7 @@ DocumentRendererChild::RenderDocument(nsIDOMWindow *window,
     if (NS_FAILED(rv))
         return false;
 
-    nsIPresShell* presShell = presContext->PresShell();
+    nsCOMPtr<nsIPresShell> presShell = presContext->PresShell();
 
     // Draw directly into the output array.
     data.SetLength(renderSize.width * renderSize.height * 4);
