@@ -70,7 +70,6 @@ dnl Set the minimum version of toolkit libs used by mozilla
 dnl ========================================================
 GLIB_VERSION=1.2.0
 PERL_VERSION=5.006
-PYTHON_VERSION=2.5
 CAIRO_VERSION=1.10
 PANGO_VERSION=1.14.0
 GTK2_VERSION=2.10.0
@@ -129,6 +128,30 @@ then
   fi
 fi
 MOZ_BUILD_ROOT=`pwd`
+
+MOZ_PATH_PROGS(PYTHON, $PYTHON python2.7 python2.6 python2.5 python)
+if test -z "$PYTHON"; then
+    AC_MSG_ERROR([python was not found in \$PATH])
+fi
+
+AC_MSG_RESULT([Creating Python environment])
+dnl This verifies our Python version is sane and ensures the Python
+dnl virtualenv is present and up to date. It sanitizes the environment
+dnl for us, so we don't need to clean anything out.
+$PYTHON $_topsrcdir/mozilla/build/virtualenv/populate_virtualenv.py \
+    $_topsrcdir/mozilla $MOZ_BUILD_ROOT/_virtualenv || exit 1
+
+dnl Create a virtualenv where we can install local Python packages
+case "$host_os" in
+mingw*)
+    PYTHON=`cd $MOZ_BUILD_ROOT && pwd -W`/_virtualenv/Scripts/python.exe
+    ;;
+*)
+    PYTHON=$MOZ_BUILD_ROOT/_virtualenv/bin/python
+    ;;
+esac
+
+AC_SUBST(PYTHON)
 
 MOZ_DEFAULT_COMPILER
 
@@ -670,11 +693,6 @@ if test "$_perl_res" != 0; then
     AC_MSG_ERROR([Cannot find Config.pm or \$Config{archlib}.  A full perl installation is required.])
 else
     AC_MSG_RESULT([yes])    
-fi
-
-MOZ_PATH_PROGS(PYTHON, $PYTHON python2.7 python2.6 python2.5 python)
-if test -z "$PYTHON"; then
-    AC_MSG_ERROR([python was not found in \$PATH])
 fi
 
 MOZ_ARG_WITH_BOOL(system-ply,
@@ -1530,17 +1548,6 @@ case "$host" in
     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
     ;;
 esac
-
-dnl We require version 2.5 or newer of Python to build.
-AC_MSG_CHECKING([for minimum required Python version >= $PYTHON_VERSION])
-changequote(,)
-$PYTHON -c "import sys; sys.exit(sys.version[:3] < sys.argv[1])" $PYTHON_VERSION
-_python_res=$?
-changequote([,])
-if test "$_python_res" != 0; then
-    AC_MSG_ERROR([Python $PYTHON_VERSION or higher is required.])
-fi
-AC_MSG_RESULT([yes])
 
 dnl Get version of various core apps from the version files.
 SUNBIRD_VERSION=`cat $topsrcdir/calendar/sunbird/config/version.txt`
@@ -6549,7 +6556,6 @@ dnl win32 options
 AC_SUBST(MOZ_MAPINFO)
 AC_SUBST(MOZ_BROWSE_INFO)
 AC_SUBST(MOZ_TOOLS_DIR)
-AC_SUBST(PYTHON)
 AC_SUBST(MAKENSISU)
 
 dnl Echo the CFLAGS to remove extra whitespace.
