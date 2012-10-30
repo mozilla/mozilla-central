@@ -15,7 +15,6 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var accountManager;
 var defaultIdentity;
 
 function setupModule(module) {
@@ -26,25 +25,57 @@ function setupModule(module) {
   let amh = collector.getModule("account-manager-helpers");
   amh.installInto(module);
 
-  accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                             .getService(Components.interfaces.nsIMsgAccountManager);
+  defaultIdentity = MailServices.accounts.defaultAccount.defaultIdentity;
+}
 
-  defaultIdentity = accountManager.defaultAccount.defaultIdentity;
+/**
+ * Returns the index of the row in account tree corresponding to the wanted
+ * account and its settings pane.
+ *
+ * @param aAccountKey  The key of the account to return.
+ *                     If 'null', the SMTP pane is returned.
+ * @param aPaneId      The ID of the account settings pane to select.
+ */
+function get_account_tree_row(aAccountKey, aPaneId, amc) {
+  let rowIndex = 0;
+  let accountTreeNode = amc.e("account-tree-children");
+
+  for (let i = 0; i < accountTreeNode.childNodes.length; i++) {
+    if ("_account" in accountTreeNode.childNodes[i]) {
+      let accountHead = accountTreeNode.childNodes[i];
+      if (aAccountKey == accountHead._account.key) {
+        // If this is the wanted account, find the wanted settings pane.
+        let accountBlock = accountHead.getElementsByAttribute("PageTag", "*");
+        for (let j = 0; j < accountBlock.length; j++) {
+          if (accountBlock[j].getAttribute("PageTag") == aPaneId)
+            return rowIndex + j + 1;
+        }
+      }
+      // If this is not the wanted account, skip all of its settings panes.
+      rowIndex += accountHead.getElementsByAttribute("PageTag", "*").length;
+    } else {
+      // A row without _account should be the SMTP server.
+      if (aAccountKey == null)
+        return rowIndex;
+    }
+    rowIndex++;
+  }
+
+  // Account not found
+  return -1;
 }
 
 /**
  * Check that the archive options button is enabled or disabled appropriately.
  *
- * @param amc the account options controller
- * @param index the indext of the account to check
- * @param isEnabled true if the button should be enabled, false otherwise
+ * @param amc          the account options controller
+ * @param aAccountKey  key of the account the check
+ * @param isEnabled    true if the button should be enabled, false otherwise
  */
-function subtest_check_archive_options_enabled(amc, index, isEnabled) {
-  // XXX: This is pretty brittle, and assumes 1) that there are 8 items in each
-  // account's tree, and 2) that the order of the accounts is as we expect.
-  // The + 1 when index != 0 is for the line used by the IRC account,
-  // which is at the second position.
-  click_account_tree_row(amc, index * 8 + 2 + (index ? 1 : 0));
+function subtest_check_archive_options_enabled(amc, aAccountKey, isEnabled) {
+  let accountRow = get_account_tree_row(aAccountKey, "am-copies.xul", amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
 
   let iframe = amc.window.document.getElementById("contentFrame");
   let button = iframe.contentDocument.getElementById("archiveHierarchyButton");
@@ -53,15 +84,16 @@ function subtest_check_archive_options_enabled(amc, index, isEnabled) {
 }
 
 function test_archive_options_enabled() {
+  let defaultAccount = MailServices.accounts.defaultAccount;
   // First, create an IMAP server
-  let imapServer = accountManager
+  let imapServer = MailServices.accounts
     .createIncomingServer("nobody", "example.com", "imap")
     .QueryInterface(Components.interfaces.nsIImapIncomingServer);
 
-  let identity = accountManager.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
   identity.email = "tinderbox@example.com";
 
-  let account = accountManager.createAccount();
+  let account = MailServices.accounts.createAccount();
   account.incomingServer = imapServer;
   account.addIdentity(identity);
 
@@ -75,21 +107,21 @@ function test_archive_options_enabled() {
 
   imapServer.isGMailServer = false;
   open_advanced_settings(function(amc) {
-    subtest_check_archive_options_enabled(amc, 1, true);
+    subtest_check_archive_options_enabled(amc, account.key, true);
   });
   open_advanced_settings(function(amc) {
-    subtest_check_archive_options_enabled(amc, 0, true);
+    subtest_check_archive_options_enabled(amc, defaultAccount.key, true);
   });
 
   imapServer.isGMailServer = true;
   open_advanced_settings(function(amc) {
-    subtest_check_archive_options_enabled(amc, 1, false);
+    subtest_check_archive_options_enabled(amc, account.key, false);
   });
   open_advanced_settings(function(amc) {
-    subtest_check_archive_options_enabled(amc, 0, false);
+    subtest_check_archive_options_enabled(amc, defaultAccount.key, false);
   });
 
-  accountManager.removeAccount(account);
+  MailServices.accounts.removeAccount(account);
 }
 
 function subtest_initial_state(identity) {
@@ -106,9 +138,6 @@ function subtest_initial_state(identity) {
 }
 
 function test_open_archive_options() {
-  let accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                 .getService(Components.interfaces.nsIMsgAccountManager);
-
   for (let granularity = 0; granularity < 3; granularity++) {
     defaultIdentity.archiveGranularity = granularity;
     for (let kfs = 0; kfs < 2; kfs++) {

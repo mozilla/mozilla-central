@@ -28,6 +28,7 @@
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/folderUtils.jsm");
 
 var gSmtpHostNameIsIllegal = false;
 // If Local directory has changed the app needs to restart. Once this is set
@@ -1265,36 +1266,9 @@ var gAccountTree = {
                   {string: get("prefPanel-addressing"), src: "am-addressing.xul"},
                   {string: get("prefPanel-junk"), src: "am-junk.xul"}];
 
-    // Get our account list, and add the proper items
-    var mgr = MailServices.accounts;
+    let accounts = allAccountsSorted(false);
 
-    var accounts = [a for each (a in fixIterator(mgr.accounts, Ci.nsIMsgAccount))];
-    // Stupid bug 41133 hack. Grr...
-    accounts = accounts.filter(function fix(a) { return a.incomingServer; });
-
-    function sortAccounts(a, b) {
-      if (a.key == mgr.defaultAccount.key)
-        return -1;
-      if (b.key == mgr.defaultAccount.key)
-        return 1;
-      var aIsNews = a.incomingServer.type == "nntp";
-      var bIsNews = b.incomingServer.type == "nntp";
-      if (aIsNews && !bIsNews)
-        return 1;
-      if (bIsNews && !aIsNews)
-        return -1;
-
-      var aIsLocal = a.incomingServer.type == "none";
-      var bIsLocal = b.incomingServer.type == "none";
-      if (aIsLocal && !bIsLocal)
-        return 1;
-      if (bIsLocal && !aIsLocal)
-        return -1;
-      return 0;
-    }
-    accounts.sort(sortAccounts);
-
-    var mainTree = document.getElementById("account-tree-children");
+    let mainTree = document.getElementById("account-tree-children");
     // Clear off all children...
     while (mainTree.firstChild)
       mainTree.removeChild(mainTree.firstChild);
@@ -1316,7 +1290,7 @@ var gAccountTree = {
 
       // Now add our panels
       var panelsToKeep = [];
-      var idents = mgr.GetIdentitiesForServer(server);
+      let idents = MailServices.accounts.GetIdentitiesForServer(server);
       if (idents.Count()) {
         panelsToKeep.push(panels[0]); // The server panel is valid
         panelsToKeep.push(panels[1]); // also the copies panel
@@ -1378,7 +1352,7 @@ var gAccountTree = {
       treeitem._account = account;
     }
 
-    markDefaultServer(mgr.defaultAccount, null);
+    markDefaultServer(MailServices.accounts.defaultAccount, null);
 
     // Now add the outgoing server node
     var treeitem = document.createElement("treeitem");

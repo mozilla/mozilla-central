@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/folderUtils.jsm");
+
 /**
  * interfaces
  */
@@ -2255,32 +2257,7 @@ function ClearIdentityListPopup(popup)
 
 function FillIdentityList(menulist)
 {
-  var accounts = queryISupportsArray(gAccountManager.accounts,
-                                     Components.interfaces.nsIMsgAccount);
-  // Ugly hack to work around bug 41133. :-(
-  accounts = accounts.filter(function IsNonSuckyAccount(a) {return !!a.incomingServer;});
-  function SortAccounts(a, b)
-  {
-    if (a.key == gAccountManager.defaultAccount.key)
-      return -1;
-    if (b.key == gAccountManager.defaultAccount.key)
-      return 1;
-    var aIsNews = a.incomingServer.type == "nntp";
-    var bIsNews = b.incomingServer.type == "nntp";
-    if (aIsNews && !bIsNews)
-      return 1;
-    if (bIsNews && !aIsNews)
-      return -1;
-
-    var aIsLocal = a.incomingServer.type == "none";
-    var bIsLocal = b.incomingServer.type == "none";
-    if (aIsLocal && !bIsLocal)
-      return 1;
-    if (bIsLocal && !aIsLocal)
-      return -1;
-    return 0;
-  }
-  accounts.sort(SortAccounts);
+  var accounts = allAccountsSorted(true);
 
   for each (let account in accounts)
   {
