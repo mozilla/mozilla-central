@@ -134,6 +134,8 @@ function selectServer(server, selectPageId)
       let account = childrenNode.childNodes[i]._account;
       if (account && server == account.incomingServer) {
         accountNode = childrenNode.childNodes[i];
+        // Make sure all the panes of the account to be selected are shown.
+        accountNode.setAttribute("open", "true");
         break;
       }
     }
@@ -517,8 +519,10 @@ function AddIMAccount()
  * optionally un-highlight the previous one.
  */
 function markDefaultServer(newDefault, oldDefault) {
-  let accountTree = document.getElementById("account-tree-children");
-  for each (let accountNode in accountTree.childNodes) {
+  let accountTreeNodes = document.getElementById("account-tree-children")
+                                 .childNodes;
+  for (let i = 0; i < accountTreeNodes.length; i++) {
+    let accountNode = accountTreeNodes[i];
     if (newDefault == accountNode._account) {
       accountNode.firstChild
                  .firstChild
@@ -1255,6 +1259,36 @@ var gAccountTree = {
   },
   onServerChanged: function at_onServerChanged(aServer) {},
 
+  _rdf: Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                  .getService(Components.interfaces.nsIRDFService),
+  _rdfDataSource: null,
+  _rdfOpenAttribute: null,
+
+  /**
+   * Retrieve from localstore.rdf whether the account should be expanded (open)
+   * in the account tree.
+   *
+   * @param aAccountKey  key of the account to check
+   */
+  _getAccountOpenState: function at_getAccountOpenState(aAccountKey) {
+    // The code for this was ported from
+    // mozilla/browser/components/nsBrowserGlue.js.
+    if (!this._rdfDataSource) {
+      this._rdfDataSource = this._rdf.GetDataSource("rdf:local-store");
+      this._rdfOpenAttribute = this._rdf.GetResource("open");
+    }
+
+    // Retrieve the persisted value from localstore.rdf.
+    // It is stored under the URI of the current document and ID of the XUL element.
+    let resource = this._rdf.GetResource(document.documentURI + "#" + aAccountKey);
+    let target = this._rdfDataSource.GetTarget(resource, this._rdfOpenAttribute, true);
+    if (target instanceof Components.interfaces.nsIRDFLiteral)
+      return target.Value;
+
+    // If there was no value stored, use opened state.
+    return "true";
+  },
+
   _build: function at_build() {
     const Ci = Components.interfaces;
     var bundle = document.getElementById("bundle_prefs");
@@ -1345,7 +1379,12 @@ var gAccountTree = {
           kidtreeitem._account = account;
         }
         treeitem.setAttribute("container", "true");
-        treeitem.setAttribute("open", "true");
+        treeitem.id = account.key;
+        // Load the 'open' state of the account from localstore.rdf.
+        treeitem.setAttribute("open", this._getAccountOpenState(account.key));
+        // Let the localstore.rdf automatically save the 'open' state of the
+        // account when it is changed.
+        treeitem.setAttribute("persist", "open");
       }
       treeitem.setAttribute("PageTag", server ? server.accountManagerChrome
                                               : "am-main.xul");
