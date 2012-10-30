@@ -1,11 +1,11 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gServer;
-var gObserver;
-const Ci = Components.interfaces;
 
 function onInit(aPageId, aServerId) 
 {
@@ -29,9 +29,7 @@ function onPreInit(account, accountValues)
   var type = parent.getAccountValue(account, accountValues, "server", "type", null, false);
   hideShowControls(type);
 
-  gObserver= Components.classes["@mozilla.org/observer-service;1"].
-             getService(Components.interfaces.nsIObserverService);
-  gObserver.notifyObservers(null, "charsetmenu-selected", "other");
+  Services.obs.notifyObservers(null, "charsetmenu-selected", "other");
 
   gServer = account.incomingServer;
 
@@ -159,6 +157,7 @@ function secureSelect(aLoading)
     var portDefault = document.getElementById("defaultPort");
     var prevDefaultPort = portDefault.value;
 
+    const Ci = Components.interfaces;
     if (socketType == Ci.nsMsgSocketType.SSL) {
       portDefault.value = defaultPortSecure;
       if (port.value == "" || (!aLoading && port.value == defaultPort && prevDefaultPort != portDefault.value))

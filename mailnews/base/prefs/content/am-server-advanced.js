@@ -1,14 +1,16 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 // pull stuff out of window.arguments
 var gServerSettings = window.arguments[0];
 
 var serverList;
 
-var gAccountManager;
 var gFirstDeferredAccount;
 // initialize the controls with the "gServerSettings" argument
 
@@ -22,8 +24,8 @@ function getControls()
 
 function getLocalFoldersAccount()
 {
-  var localFoldersServer = gAccountManager.localFoldersServer;
-  return gAccountManager.FindAccountForServer(localFoldersServer);
+  return MailServices.accounts
+    .FindAccountForServer(MailServices.accounts.localFoldersServer);
 }
 
 function onLoad()
@@ -43,13 +45,12 @@ function onLoad()
   {
     var radioGroup = document.getElementById("folderStorage");
     document.getElementById("imapPanel").hidden = true;
-    gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
     gFirstDeferredAccount = gServerSettings.deferredToAccount;
     var localFoldersAccount = getLocalFoldersAccount();
     var folderPopup = document.getElementById("deferedServerPopup");
     if (gFirstDeferredAccount.length)
     {
-      var account = gAccountManager.getAccount(gFirstDeferredAccount);
+      let account = MailServices.accounts.getAccount(gFirstDeferredAccount);
       if (account)
       {
         folderPopup.selectFolder(account.incomingServer.rootFolder);
@@ -112,11 +113,7 @@ function onOk()
 
       var confirmTitle = gPrefsBundle.getString("confirmDeferAccountTitle");
 
-      var promptService =
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"].
-                 getService(Components.interfaces.nsIPromptService);
-      if (!promptService ||
-          !promptService.confirm(window, confirmTitle, confirmDeferAccount))
+      if (!Services.prompt.confirm(window, confirmTitle, confirmDeferAccount))
         return false;
     }
     switch (radioGroup.value)
@@ -128,10 +125,9 @@ function onOk()
         gServerSettings['deferredToAccount'] = "";
         break;
       case "2":
-        picker = document.getElementById("deferedServerFolderPicker");
         var server = document.getElementById("deferedServerFolderPicker")
                              .selectedItem._folder.server;
-        var account = gAccountManager.FindAccountForServer(server);
+        let account = MailServices.accounts.FindAccountForServer(server);
         gServerSettings['deferredToAccount'] = account.key;
         break;
     }

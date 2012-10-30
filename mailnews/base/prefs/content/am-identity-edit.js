@@ -1,7 +1,10 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gIdentity = null;  // the identity we are editing (may be null for a new identity)
 var gAccount = null;   // the account the identity is (or will be) associated with
@@ -104,13 +107,11 @@ function onOk()
     return false;
 
   // if we are adding a new identity, create an identity, set the fields and add it to the
-  // account. 
+  // account.
   if (!gIdentity)
   {
     // ask the account manager to create a new identity for us
-    var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-        .getService(Components.interfaces.nsIMsgAccountManager);
-    gIdentity = accountManager.createIdentity();
+    gIdentity = MailServices.accounts.createIdentity();
 
     // copy in the default identity settings so we inherit lots of stuff like the defaul drafts folder, etc.
     gIdentity.copy(gAccount.defaultIdentity);
@@ -148,10 +149,8 @@ function validEmailAddress()
 
     var prefBundle = document.getElementById("bundle_prefs");
 
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                        .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, prefBundle.getString("identity-edit-req-title"), 
-                        prefBundle.getString("identity-edit-req"));
+    Services.prompt.alert(window, prefBundle.getString("identity-edit-req-title"),
+                          prefBundle.getString("identity-edit-req"));
     return false;
   }
 
@@ -340,12 +339,9 @@ function getAccountForFolderPickerState()
  */
 function loadSMTPServerList()
 {
-  var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"]
-                              .getService(Components.interfaces.nsISmtpService);
-
   var smtpServerList = document.getElementById("identity.smtpServerKey");
-  var servers = smtpService.smtpServers;
-  var defaultServer = smtpService.defaultServer;
+  let servers = MailServices.smtp.smtpServers;
+  let defaultServer = MailServices.smtp.defaultServer;
 
   var smtpPopup = document.getElementById("smtpPopup");
   while (smtpPopup.lastChild.nodeName != "menuseparator")
@@ -365,7 +361,8 @@ function loadSMTPServerList()
       serverName += server.hostname;
 
       if (defaultServer.key == server.key)
-        serverName += " " + document.getElementById("bundle_messenger").getString("defaultServerTag");
+        serverName += " " + document.getElementById("bundle_messenger")
+                                    .getString("defaultServerTag");
 
       smtpServerList.appendItem(serverName, server.key);
     }

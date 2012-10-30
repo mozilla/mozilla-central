@@ -10,7 +10,6 @@ var gDefaultPickerMode = "1";
 var gFccFolderWithDelim, gDraftsFolderWithDelim, gArchivesFolderWithDelim, gTemplatesFolderWithDelim;
 var gAccount;
 var gCurrentServerId;
-var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 
 function onPreInit(account, accountValues)
 {

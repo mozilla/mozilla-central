@@ -277,7 +277,7 @@ function CreateNewAccount()
 
 function CreateNewAccountTB()
 {
-    if (gPrefBranch.getBoolPref("mail.provider.enabled"))
+    if (Services.prefs.getBoolPref("mail.provider.enabled"))
         NewMailAccountProvisioner(null);
     else
         AddMailAccount();

@@ -3,8 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gIdentity = null;
-var gPrefInt = null;
 
 function onLoad()
 {
@@ -48,15 +49,11 @@ function enabling()
     case "true":
       directoriesList.removeAttribute("disabled");
       editButton.removeAttribute("disabled");
-      break;      
+      break;
   }
 
-  if (!gPrefInt) {
-    gPrefInt = Components.classes["@mozilla.org/preferences-service;1"]
-                           .getService(Components.interfaces.nsIPrefBranch);
-  }
-
-  if (gIdentity && gPrefInt.prefIsLocked("mail.identity." + gIdentity.key + ".directoryServer")) {
+  if (gIdentity && Services.prefs.prefIsLocked("mail.identity." + gIdentity.key +
+      ".directoryServer")) {
     directoriesList.setAttribute("disabled", "true");
   }
 }
