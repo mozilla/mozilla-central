@@ -263,7 +263,9 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->SetFollowLinks(true);
 
   m_file->SetNativeLeafName(NS_LITERAL_CSTRING("nstmp"));
-  m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
+  rv = m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
+  NS_ENSURE_SUCCESS(rv, rv);
+
   m_window = aMsgWindow;
   m_keyArray = new nsMsgKeyArray;
   m_size = 0;
