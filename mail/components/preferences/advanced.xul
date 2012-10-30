@@ -182,8 +182,8 @@
                         preference="mail.shell.checkDefaultClient"
                         label="&alwaysCheckDefault.label;"
                         accesskey="&alwaysCheckDefault.accesskey;" flex="1"/>
-              <button id="checkDefaultButton" label="&checkNow.label;"
-                      accesskey="&checkNow.accesskey;"
+              <button id="checkDefaultButton" label="&checkDefaultsNow.label;"
+                      accesskey="&checkDefaultsNow.accesskey;"
                       oncommand="gAdvancedPane.checkDefaultNow();"
                       preference="pref.general.disable_button.default_mail"/>
             </hbox>
