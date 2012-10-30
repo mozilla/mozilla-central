@@ -710,6 +710,12 @@ toolbarbutton.formatting-button {
   border: 1px solid ThreeDDarkShadow;
 }
 
+.color-button[disabled="true"],
+.color-button[disabled="true"]:hover {
+  border: 1px inset ThreeDFace;
+  opacity: 0.5;
+}
+
 #TextColorButton {
   margin-top: 2px;
   margin-bottom: 9px;

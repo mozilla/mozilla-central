@@ -858,6 +858,12 @@ toolbarbutton.formatting-button > .toolbarbutton-menubutton-dropmarker {
   margin: 2px;
 }
 
+.color-button[disabled="true"],
+.color-button[disabled="true"]:hover {
+  border: 1px inset #A0A0A0;
+  opacity: 0.5;
+}
+
 #TextColorButton {
   margin-top: 2px;
   margin-bottom: 9px;

@@ -856,10 +856,11 @@
              observes="cmd_renderedHTMLEnabler">
   <menulist id="ParagraphSelect"
             class="toolbar-focustarget"
+            oncommand="doStatefulCommand('cmd_paragraphState', event.target.value)"
             crop="right">
     <observes element="paragraph-select-container" attribute="disabled"/>
     <observes element="cmd_paragraphState" attribute="state" onbroadcast="onParagraphFormatChange(this.parentNode, 'cmd_paragraphState')"/>
-    <menupopup id="ParagraphPopup" oncommand="doStatefulCommand('cmd_paragraphState', event.target.value)">
+    <menupopup id="ParagraphPopup">
       <menuitem id="toolbarmenu_bodyText" label="&bodyTextCmd.label;" value=""/>
       <menuitem id="toolbarmenu_paragraph" label="&paragraphParagraphCmd.label;" value="p"/>
       <menuitem id="toolbarmenu_h1" label="&heading1Cmd.label;" value="h1"/>
@@ -881,10 +882,11 @@
              observes="cmd_renderedHTMLEnabler">
   <menulist id="FontFaceSelect"
             class="toolbar-focustarget"
+            oncommand="doStatefulCommand('cmd_fontFace', event.target.value)"
             crop="right">
     <observes element="font-face-select-container" attribute="disabled"/>
     <observes element="cmd_fontFace" attribute="state" onbroadcast="onFontFaceChange(this.parentNode, 'cmd_fontFace')"/>
-    <menupopup id="FontFacePopup" oncommand="doStatefulCommand('cmd_fontFace', event.target.value)">
+    <menupopup id="FontFacePopup">
       <menuitem id="toolbarmenu_fontVarWidth" label="&fontVarWidth.label;" value=""/>
       <menuitem id="toolbarmenu_fontFixedWidth" label="&fontFixedWidth.label;" value="tt"/>
       <menuseparator id="toolbarmenuAfterFontFaceFontFixedWidthSeparator"/>
@@ -926,11 +928,13 @@
     <observes element="cmd_fontColor"       attribute="state" onbroadcast="onFontColorChange()"/>
     <observes element="cmd_backgroundColor" attribute="state" onbroadcast="onBackgroundColorChange()"/>
     <box class="color-button" id="BackgroundColorButton"
-          onclick="EditorSelectColor('', event);"
-          tooltiptext="&BackgroundColorButton.tooltip;"/>
+         onclick="if (!gWindowLocked) { EditorSelectColor('', event); }"
+         tooltiptext="&BackgroundColorButton.tooltip;"
+         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */"/>
     <box class="color-button" id="TextColorButton"
-          onclick="EditorSelectColor('Text', event);"
-          tooltiptext="&TextColorButton.tooltip;"/>
+         onclick="if (!gWindowLocked) { EditorSelectColor('Text', event); }"
+         tooltiptext="&TextColorButton.tooltip;"
+         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */"/>
   </stack>
 </toolbaritem>
   <toolbarbutton id="HighlightColorButton"

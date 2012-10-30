@@ -430,7 +430,7 @@ function awDeleteRow(rowToDelete)
 
 function awClickEmptySpace(target, setFocus)
 {
-  if (target == null ||
+  if (document.getElementById("addressCol2#1").disabled || target == null ||
       (target.localName != "listboxbody" &&
       target.localName != "listcell" &&
       target.localName != "listitem"))

@@ -164,22 +164,24 @@ function ReleaseGlobalVariables()
   gMailSession = null;
 }
 
-function disableEditableFields()
+/**
+ * Disables or enables editable elements in the window.
+ * The elements to operate on are marked with the "disableonsend" attribute.
+ * This includes elements like the address list, attachment list, subject
+ * and message body.
+ *
+ * @param aDisable  true = disable items. false = enable items.
+ */
+function updateEditableFields(aDisable)
 {
-  gMsgCompose.editor.flags |= nsIPlaintextEditorMail.eEditorReadonlyMask;
-  var disableElements = document.getElementsByAttribute("disableonsend", "true");
-  for (let i = 0; i < disableElements.length; i++)
-    disableElements[i].setAttribute('disabled', 'true');
+  if (aDisable)
+    gMsgCompose.editor.flags |= nsIPlaintextEditorMail.eEditorReadonlyMask;
+  else
+    gMsgCompose.editor.flags &= ~nsIPlaintextEditorMail.eEditorReadonlyMask;
 
-}
-
-function enableEditableFields()
-{
-  gMsgCompose.editor.flags &= ~nsIPlaintextEditorMail.eEditorReadonlyMask;
-  var enableElements = document.getElementsByAttribute("disableonsend", "true");
-  for (let i = 0; i < enableElements.length; i++)
-    enableElements[i].removeAttribute('disabled');
-
+  let elements = document.getElementsByAttribute("disableonsend", "true");
+  for (let i = 0; i < elements.length; i++)
+    elements[i].disabled = aDisable;
 }
 
 var gComposeRecyclingListener = {
@@ -200,7 +202,7 @@ var gComposeRecyclingListener = {
     SetComposeWindowTitle();
 
     SetContentAndBodyAsUnmodified();
-    disableEditableFields();
+    updateEditableFields(true);
     ReleaseGlobalVariables();
 
     // Clear the focus
@@ -273,9 +275,7 @@ var stateListener = {
   },
 
   ComposeProcessDone: function(aResult) {
-    gWindowLocked = false;
-    enableEditableFields();
-    updateComposeItems();
+    ToggleWindowLock(false);
 
     if (aResult== Components.results.NS_OK)
     {
@@ -868,9 +868,64 @@ function updateComposeItems()
 
     // Options Menu
     goUpdateCommand("cmd_spelling");
+
     // Workaround to update 'Quote' toolbar button. (See bug 609926.)
     goUpdateCommand("cmd_quoteMessage");
   } catch(e) {}
+}
+
+/**
+ * Disables or restores all toolbar items (menus/buttons) in the window.
+ *
+ * @param aDisable  true = disable all items. false = restore items to the state
+ *                  stored before disabling them.
+ */
+function updateAllItems(aDisable)
+{
+  function getDisabledState(aElement) {
+    if ("disabled" in aElement)
+      return aElement.disabled;
+    else
+      return aElement.getAttribute("disabled");
+  }
+
+  function setDisabledState(aElement, aValue) {
+    if ("disabled" in aElement)
+      aElement.disabled = aValue;
+    else
+      aElement.setAttribute("disabled", aValue ? "true" : "false");
+  }
+
+
+  // This array will contain HTMLCollection objects as members.
+  let commandItemCollections = [];
+  commandItemCollections.push(document.getElementsByTagName("menu"));
+  commandItemCollections.push(document.getElementsByTagName("toolbarbutton"));
+  commandItemCollections.push(document.getElementsByAttribute("command", "*"));
+  commandItemCollections.push(document.getElementsByAttribute("oncommand", "*"));
+  for each (let itemCollection in commandItemCollections) {
+    for (let item = 0; item < itemCollection.length; item++) {
+      let commandItem = itemCollection[item];
+      if (aDisable) {
+        // Any element can appear multiple times in the commandItemCollections
+        // list so only act on it if we didn't already set the "stateBeforeSend"
+        // attribute on previous visit.
+        if (!commandItem.hasAttribute("stateBeforeSend")) {
+          commandItem.setAttribute("stateBeforeSend", getDisabledState(commandItem));
+          setDisabledState(commandItem, true);
+        }
+      }
+      else {
+        // Any element can appear multiple times in the commandItemCollections
+        // list so only act on it if it still has the "stateBeforeSend"
+        // attribute.
+        if (commandItem.hasAttribute("stateBeforeSend")) {
+          setDisabledState(commandItem, commandItem.getAttribute("stateBeforeSend") == "true");
+          commandItem.removeAttribute("stateBeforeSend");
+        }
+      }
+    }
+  }
 }
 
 function openEditorContextMenu(popup)
@@ -1803,10 +1858,20 @@ function DoCommandPrint()
   } catch(ex) {dump("#PRINT ERROR: " + ex + "\n");}
 }
 
-function ToggleWindowLock()
+/**
+ * Locks/Unlocks the window widgets while a message is being saved/sent.
+ * Locking means to disable all possible items in the window so that
+ * the user can't click/activate anything.
+ *
+ * @param aDisable  true = lock the window. false = unlock the window.
+ */
+function ToggleWindowLock(aDisable)
 {
-  gWindowLocked = !gWindowLocked;
-  updateComposeItems();
+  gWindowLocked = aDisable;
+  updateAllItems(aDisable);
+  updateEditableFields(aDisable);
+  if (!aDisable)
+    updateComposeItems();
 }
 
 /* This function will go away soon as now arguments are passed to the window using a object of type nsMsgComposeParams instead of a string */
@@ -1889,7 +1954,7 @@ function ComposeFieldsReady()
   }
   CompFields2Recipients(gMsgCompose.compFields);
   SetComposeWindowTitle();
-  enableEditableFields();
+  updateEditableFields(false);
 }
 
 // checks if the passed in string is a mailto url, if it is, generates nsIMsgComposeParams
@@ -2817,13 +2882,11 @@ function GenericSendMessage(msgType)
       throw Components.results.NS_ERROR_ABORT;
 
     gAutoSaving = (msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft);
+
     // disable the ui if we're not auto-saving
     if (!gAutoSaving)
-    {
-      gWindowLocked = true;
-      disableEditableFields();
-      updateComposeItems();
-    }
+      ToggleWindowLock(true);
+
     // If we're auto saving, mark the body as not changed here, and not
     // when the save is done, because the user might change it between now
     // and when the save is done.
@@ -2846,9 +2909,7 @@ function GenericSendMessage(msgType)
   }
   catch (ex) {
     Components.utils.reportError("GenericSendMessage FAILED: " + ex);
-    gWindowLocked = false;
-    enableEditableFields();
-    updateComposeItems();
+    ToggleWindowLock(false);
   }
   if (gMsgCompose && originalCharset != gMsgCompose.compFields.characterSet)
     SetDocumentCharacterSet(gMsgCompose.compFields.characterSet);

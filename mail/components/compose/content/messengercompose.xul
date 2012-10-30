@@ -100,6 +100,7 @@
   <commandset id="composerStyleMenuItems"/>
   <commandset id="composerTableMenuItems"/>
   <commandset id="composerListMenuItems"/>
+
   <!-- File Menu -->
   <command id="cmd_new" oncommand="goDoCommand('cmd_newMessage')"/>
   <command id="cmd_attachFile" oncommand="goDoCommand('cmd_attachFile')"/>
@@ -742,7 +743,7 @@
                    tooltiptext="&pasteButton.tooltip;"/>
 
     <toolbaritem id="priority-button" align="center" pack="center">
-      <label value="&priorityButton.label;"/>
+      <label value="&priorityButton.label;" control="priorityMenu-button"/>
       <menulist id="priorityMenu-button" value="Normal" oncommand="PriorityMenuSelect(event.target);">
         <menupopup id="priorityMenu-buttonPopup">
           <menuitem name="priority" label="&highestPriorityCmd.label;" value="Highest"  id="list_priotity_highest"/>
@@ -797,13 +798,15 @@
             <hbox align="center" pack="end" style="&headersSpace.style;">
               <label value="&fromAddr.label;" accesskey="&fromAddr.accesskey;" control="msgIdentity"/>
             </hbox>
-            <menulist id="msgIdentity" type="description" flex="1" oncommand="LoadIdentity(false);">
+            <menulist id="msgIdentity" type="description" flex="1"
+                      oncommand="LoadIdentity(false);" disableonsend="true">
               <menupopup id="msgIdentityPopup"/>
             </menulist>
           </hbox>
           <listbox id="addressingWidget" flex="1" seltype="multiple" rows="4"
                    onkeydown="awKeyDown(event, this)"
-                   onclick="awClickEmptySpace(event.originalTarget, true)">
+                   onclick="awClickEmptySpace(event.originalTarget, true)"
+                   disableonsend="true">
             <listcols>
               <listcol id="typecol-addressingWidget" style="&headersSpace.style;"/>
               <listcol id="textcol-addressingWidget" flex="1"/>
@@ -858,6 +861,7 @@
             <label id="attachmentBucketSize"/>
           </hbox>
           <attachmentlist orient="vertical" id="attachmentBucket"
+                          disableonsend="true"
                           seltype="multiple" flex="1" height="0"
                           context="msgComposeAttachmentListContext"
                           itemcontext="msgComposeAttachmentItemContext"
