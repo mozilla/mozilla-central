@@ -303,7 +303,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
   // We're a single-folder virtual folder if viewFolder != folder, and that is
   // the only case in which we want to be messing about with a results cache
   // or unread counts.
-  if (m_viewFolder && m_viewFolder != m_folder)
+  if (m_db && m_viewFolder && m_viewFolder != m_folder)
   {
     nsTArray<nsMsgKey> keyArray;
     nsCString searchUri;
