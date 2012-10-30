@@ -26,7 +26,7 @@ interface nsIMsgPluggableStore;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(cf46d3ce-bf1e-40b5-8749-53d1424638b3)]
+[scriptable, uuid(92f4ee31-a14d-48dc-8676-22417caefa83)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -497,6 +497,18 @@ interface nsIMsgIncomingServer : nsISupports {
    * @return                  true if an empty inherited property should be returned
    */
   boolean getForcePropertyEmpty(in string propertyName);
+
+  /**
+   * Return the order in which this server type should appear in the folder pane.
+   * This sort order is a number between 100000000 and 900000000 so that RDF can
+   * use it as a string.
+   * The current return values are these:
+   * 0 = default account,       100000000 = mail accounts (POP3/IMAP4),
+   * 200000000 = Local Folders, 300000000 = IM accounts,
+   * 400000000 = RSS,           500000000 = News
+   * If a new server type is created a TB UI reviewer must decide its sort order.
+   */
+  readonly attribute long sortOrder;
 };
 
 %{C++

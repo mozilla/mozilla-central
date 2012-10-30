@@ -1812,10 +1812,11 @@ NS_IMETHODIMP
 nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server, int32_t* result)
 {
   NS_ENSURE_ARG_POINTER(server);
-  nsresult rv;
+  NS_ENSURE_ARG_POINTER(result);
 
   nsCString key;
-  rv = server->GetKey(key);
+  nsresult rv = server->GetKey(key);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   findServerByKeyEntry findEntry;
   findEntry.key = key;
@@ -3886,4 +3887,47 @@ nsMsgAccountManager::FolderUriForPath(nsIFile *aLocalPath,
     }
   }
   return NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP
+nsMsgAccountManager::GetSortOrder(nsIMsgIncomingServer* aServer, int32_t* aSortOrder)
+{
+  NS_ENSURE_ARG_POINTER(aServer);
+  NS_ENSURE_ARG_POINTER(aSortOrder);
+
+  // If the passed in server is the default, return its sort order as 0 regardless
+  // of its server sort order.
+
+  nsCOMPtr<nsIMsgAccount> defaultAccount;
+  nsresult rv = GetDefaultAccount(getter_AddRefs(defaultAccount));
+  if (NS_SUCCEEDED(rv) && defaultAccount) {
+    nsCOMPtr<nsIMsgIncomingServer> defaultServer;
+    rv = m_defaultAccount->GetIncomingServer(getter_AddRefs(defaultServer));
+    if (NS_SUCCEEDED(rv) && defaultServer && (aServer == defaultServer)) {
+      *aSortOrder = 0;
+      return NS_OK;
+    }
+    // It is OK if there is no default account.
+  }
+
+  // This function returns the sort order by querying the server object for its
+  // sort order value and then incrementing it by the position of the server in
+  // the accounts list. This ensures that even when several accounts have the
+  // same sort order value, the returned value is not the same and keeps
+  // their relative order in the account list when and unstable sort is run
+  // on the returned sort order values.
+  int32_t sortOrder;
+  int32_t serverIndex;
+
+  rv = aServer->GetSortOrder(&sortOrder);
+  if (NS_SUCCEEDED(rv))
+    rv = FindServerIndex(aServer, &serverIndex);
+
+  if (NS_FAILED(rv)) {
+    *aSortOrder = 999999999;
+  } else {
+    *aSortOrder = sortOrder + serverIndex;
+  }
+
+  return NS_OK;
 }

@@ -2272,3 +2272,11 @@ nsMsgIncomingServer::SetForcePropertyEmpty(const char *aPropertyName, bool aValu
  return SetCharValue(nameEmpty.get(),
    aValue ? NS_LITERAL_CSTRING("true") : NS_LITERAL_CSTRING(""));
 }
+
+NS_IMETHODIMP
+nsMsgIncomingServer::GetSortOrder(int32_t* aSortOrder)
+{
+  NS_ENSURE_ARG_POINTER(aSortOrder);
+  *aSortOrder = 100000000;
+  return NS_OK;
+}
