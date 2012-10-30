@@ -25,6 +25,7 @@
 #include "nsIMutableArray.h"
 #include "nsMsgUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "mozilla/Likely.h"
 
 static NS_DEFINE_CID(kCPop3ServiceCID, NS_POP3SERVICE_CID);
 
@@ -623,7 +624,7 @@ NS_IMETHODIMP nsPop3IncomingServer::AddUidlToMark(const char *aUidl, int32_t aMa
   NS_ENSURE_TRUE(uidlEntry, NS_ERROR_OUT_OF_MEMORY);
 
   uidlEntry->uidl = strdup(aUidl);
-  if (NS_UNLIKELY(!uidlEntry->uidl)) {
+  if (MOZ_UNLIKELY(!uidlEntry->uidl)) {
     PR_Free(uidlEntry);
     return NS_ERROR_OUT_OF_MEMORY;
   }
