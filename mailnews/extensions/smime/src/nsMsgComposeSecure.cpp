@@ -25,6 +25,12 @@
 
 #define SMIME_STRBUNDLE_URL "chrome://messenger/locale/am-smime.properties"
 
+// It doesn't make sense to encode the message because the message will be
+// displayed only if the MUA doesn't support MIME.
+// We need to consider what to do in case the server doesn't support 8BITMIME.
+// In short, we can't use non-ASCII characters here.
+static const char crypto_multipart_blurb[] = "This is a cryptographically signed message in MIME format.";
+
 static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
 static int mime_encoder_output_fn(const char *buf, int32_t size, void *closure);
@@ -1021,25 +1027,8 @@ make_multipart_signed_header_string(bool outer_p,
   *header_return = 0;
   *boundary_return = mime_make_separator("ms");
 
-  nsCOMPtr<nsIStringBundleService> bundleSvc =
-    mozilla::services::GetStringBundleService();
-  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
-
-  nsCOMPtr<nsIStringBundle> sMIMEBundle;
-  nsString crypto_multipart_blurb;
-
-  bundleSvc->CreateBundle(SMIME_STRBUNDLE_URL, getter_AddRefs(sMIMEBundle));
-  if (!sMIMEBundle)
-    return NS_ERROR_FAILURE;
-
   if (!*boundary_return)
 	return NS_ERROR_OUT_OF_MEMORY;
-
-  if (outer_p) {
-	  sMIMEBundle->GetStringFromName(NS_LITERAL_STRING("mime_multipartSignedBlurb").get(),
-                                    getter_Copies(crypto_multipart_blurb));
-  }
-  NS_ConvertUTF16toUTF8 multipart_blurb_utf8(crypto_multipart_blurb);
 
   *header_return = PR_smprintf(
         "Content-Type: " MULTIPART_SIGNED "; "
@@ -1051,8 +1040,8 @@ make_multipart_signed_header_string(bool outer_p,
 				"--%s" CRLF,
 
 				*boundary_return,
-				(crypto_multipart_blurb.IsEmpty() ? "" : multipart_blurb_utf8.get()),
-				(crypto_multipart_blurb.IsEmpty() ? "" : CRLF CRLF),
+				(outer_p ? crypto_multipart_blurb : ""),
+				(outer_p ? CRLF CRLF : ""),
 				*boundary_return);
 
   if (!*header_return) {
