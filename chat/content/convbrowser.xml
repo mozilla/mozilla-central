@@ -373,6 +373,7 @@
               let html = getHTMLForMessage(aMsg, this.theme, next, aContext);
               let ruler = doc.getElementById("unread-ruler");
               ruler.nextMsgHtml = html;
+              ruler._originalMsg = aMsg;
 
               // Remember where the Next message(s) would have gone.
               let insert = doc.getElementById("insert");
@@ -451,10 +452,13 @@
               actualInsert.id = "actual-insert";
 
             // Add first message following the ruler as a Next type message.
+            // Replicates the relevant parts of insertHTMLForMessage().
             let range = doc.createRange();
             let moveToParent = moveTo.parentNode;
             range.selectNode(moveToParent);
             let documentFragment = range.createContextualFragment(ruler.nextMsgHtml);
+            for (let root = documentFragment.firstChild; root; root = root.nextSibling)
+              root._originalMsg = ruler._originalMsg;
             moveToParent.insertBefore(documentFragment, moveTo);
 
             // If this added an insert node, insert the next messages there.
