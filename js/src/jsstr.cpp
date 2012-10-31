@@ -48,6 +48,9 @@
  * of rooting things that might lose their newborn root due to subsequent GC
  * allocations in the same native method.
  */
+
+#include "mozilla/CheckedInt.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include "jstypes.h"
@@ -88,6 +91,8 @@ using namespace js;
 using namespace js::gc;
 using namespace js::types;
 using namespace js::unicode;
+
+using mozilla::CheckedInt;
 
 #ifdef JS_TRACER
 
@@ -1797,7 +1802,7 @@ FindReplaceLength(JSContext *cx, RegExpStatics *res, ReplaceData &rdata, size_t 
     }
 
     JSString *repstr = rdata.repstr;
-    size_t replen = repstr->length();
+    CheckedInt<uint32_t> replen = repstr->length();
     for (const jschar *dp = rdata.dollar, *ep = rdata.dollarEnd; dp;
          dp = js_strchr_limit(dp, '$', ep)) {
         JSSubString sub;
@@ -1809,7 +1814,13 @@ FindReplaceLength(JSContext *cx, RegExpStatics *res, ReplaceData &rdata, size_t 
             dp++;
         }
     }
-    *sizep = replen;
+
+    if (!replen.isValid()) {
+        js_ReportAllocationOverflow(cx);
+        return false;
+    }
+
+    *sizep = replen.value();
     return true;
 }
 
@@ -1862,8 +1873,14 @@ ReplaceRegExpCallback(JSContext *cx, RegExpStatics *res, size_t count, void *p)
     if (!FindReplaceLength(cx, res, rdata, &replen))
         return false;
 
-    size_t growth = leftlen + replen;
-    if (!rdata.sb.reserve(rdata.sb.length() + growth))
+    CheckedInt<uint32_t> newlen(rdata.sb.length());
+    newlen += leftlen;
+    newlen += replen;
+    if (!newlen.isValid()) {
+        js_ReportAllocationOverflow(cx);
+        return false;
+    }
+    if (!rdata.sb.reserve(newlen.value()))
         return false;
     rdata.sb.infallibleAppend(left, leftlen); /* skipped-over portion of the search value */
     DoReplace(cx, res, rdata);
