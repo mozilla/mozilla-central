@@ -282,6 +282,8 @@ VPATH		+= \
 EXPORTS_NAMESPACES += mozilla
 
 EXPORTS_mozilla = \
+		Attributes.h \
+		CheckedInt.h \
 		FloatingPoint.h \
 		NullPtr.h \
 		RangedPtr.h \
