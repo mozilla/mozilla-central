@@ -38,7 +38,9 @@ class ImapMailFolderSinkProxy : public nsIImapMailFolderSink
 public:
   ImapMailFolderSinkProxy(nsIImapMailFolderSink* receiver)
     : mReceiver(receiver)
-  { }
+  {
+    NS_ASSERTION(receiver, "Don't allow receiver is nullptr");
+  }
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIIMAPMAILFOLDERSINK

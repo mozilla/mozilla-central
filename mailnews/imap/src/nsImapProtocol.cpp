@@ -588,7 +588,10 @@ nsImapProtocol::SetupSinkProxy()
     {
       nsCOMPtr<nsIImapMailFolderSink> aImapMailFolderSink;
       (void) m_runningUrl->GetImapMailFolderSink(getter_AddRefs(aImapMailFolderSink));
-      m_imapMailFolderSink = new ImapMailFolderSinkProxy(aImapMailFolderSink);
+      if (aImapMailFolderSink)
+      {
+        m_imapMailFolderSink = new ImapMailFolderSinkProxy(aImapMailFolderSink);
+      }
     }
 
     if (!m_imapMessageSink)
