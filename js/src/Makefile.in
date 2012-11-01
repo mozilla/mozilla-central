@@ -282,6 +282,7 @@ VPATH		+= \
 EXPORTS_NAMESPACES += mozilla
 
 EXPORTS_mozilla = \
+		FloatingPoint.h \
 		NullPtr.h \
 		RangedPtr.h \
 		RefPtr.h \
