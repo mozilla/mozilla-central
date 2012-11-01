@@ -1901,6 +1901,18 @@ function CheckValidEmailAddress(aTo, aCC, aBCC)
 function SendMessage()
 {
   let sendInBackground = Services.prefs.getBoolPref("mailnews.sendInBackground");
+  if (sendInBackground && !/Mac/.test(navigator.platform))
+  {
+    let enumerator = Services.wm.getEnumerator(null);
+    let count = 0;
+    while (enumerator.hasMoreElements() && count < 2)
+    {
+      enumerator.getNext();
+      count++;
+    }
+    if (count == 1)
+      sendInBackground = false;
+  }
   GenericSendMessage(sendInBackground ? nsIMsgCompDeliverMode.Background
                                       : nsIMsgCompDeliverMode.Now);
 }
