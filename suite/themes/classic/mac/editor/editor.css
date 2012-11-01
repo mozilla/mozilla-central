@@ -40,7 +40,7 @@
 #content-source,
 #doctype-text {
   font-family: -moz-fixed;
-  font-size: -moz-initial;
+  font-size: initial;
 }
 
 #ContentWindowDeck {
