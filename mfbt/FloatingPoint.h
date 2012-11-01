@@ -8,9 +8,7 @@
 #ifndef mozilla_FloatingPoint_h_
 #define mozilla_FloatingPoint_h_
 
-#include "mozilla/Assertions.h"
-#include "mozilla/Attributes.h"
-#include "mozilla/StandardInteger.h"
+#include "mozilla/Util.h"
 
 /*
  * It's reasonable to ask why we have this header at all.  Don't isnan,
@@ -37,11 +35,13 @@
  * the case.  But we required this in implementations of these algorithms that
  * preceded this header, so we shouldn't break anything if we continue doing so.
  */
-MOZ_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t), "double must be 64 bits");
+#if 0
+MOZ_STATIC_ASSERT(sizeof(double) == sizeof(uint64), "double must be 64 bits");
+#endif
 
 /*
  * Constant expressions in C can't refer to consts, unfortunately, so #define
- * these rather than use |const uint64_t|.
+ * these rather than use |const uint64|.
  */
 #define MOZ_DOUBLE_SIGN_BIT          0x8000000000000000ULL
 #define MOZ_DOUBLE_EXPONENT_BITS     0x7ff0000000000000ULL
@@ -50,6 +50,7 @@ MOZ_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t), "double must be 64 bits");
 #define MOZ_DOUBLE_EXPONENT_BIAS   1023
 #define MOZ_DOUBLE_EXPONENT_SHIFT  52
 
+#if 0
 MOZ_STATIC_ASSERT((MOZ_DOUBLE_SIGN_BIT & MOZ_DOUBLE_EXPONENT_BITS) == 0,
                   "sign bit doesn't overlap exponent bits");
 MOZ_STATIC_ASSERT((MOZ_DOUBLE_SIGN_BIT & MOZ_DOUBLE_SIGNIFICAND_BITS) == 0,
@@ -58,8 +59,9 @@ MOZ_STATIC_ASSERT((MOZ_DOUBLE_EXPONENT_BITS & MOZ_DOUBLE_SIGNIFICAND_BITS) == 0,
                   "exponent bits don't overlap significand bits");
 
 MOZ_STATIC_ASSERT((MOZ_DOUBLE_SIGN_BIT | MOZ_DOUBLE_EXPONENT_BITS | MOZ_DOUBLE_SIGNIFICAND_BITS)
-                  == ~(uint64_t)0,
+                  == ~(uint64)0,
                   "all bits accounted for");
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,10 +75,10 @@ union MozDoublePun {
     /*
      * Every way to pun the bits of a double introduces an additional layer of
      * complexity, across a multitude of platforms, architectures, and ABIs.
-     * Use *only* uint64_t to reduce complexity.  Don't add new punning here
+     * Use *only* uint64 to reduce complexity.  Don't add new punning here
      * without discussion!
      */
-    uint64_t u;
+    uint64 u;
     double d;
 };
 
@@ -130,7 +132,7 @@ MOZ_DOUBLE_IS_NEGATIVE(double d)
   union MozDoublePun pun;
   pun.d = d;
 
-  MOZ_ASSERT(!MOZ_DOUBLE_IS_NaN(d), "NaN does not have a sign");
+  MOZ_ASSERT(!MOZ_DOUBLE_IS_NaN(d));
 
   /* The sign bit is set if the double is negative. */
   return (pun.u & MOZ_DOUBLE_SIGN_BIT) != 0;
@@ -148,7 +150,7 @@ MOZ_DOUBLE_IS_NEGATIVE_ZERO(double d)
 }
 
 /** Returns the exponent portion of the double. */
-static MOZ_ALWAYS_INLINE int_fast16_t
+static MOZ_ALWAYS_INLINE int
 MOZ_DOUBLE_EXPONENT(double d)
 {
   union MozDoublePun pun;
@@ -158,7 +160,7 @@ MOZ_DOUBLE_EXPONENT(double d)
    * The exponent component of a double is an unsigned number, biased from its
    * actual value.  Subtract the bias to retrieve the actual exponent.
    */
-  return (int_fast16_t)((pun.u & MOZ_DOUBLE_EXPONENT_BITS) >> MOZ_DOUBLE_EXPONENT_SHIFT) -
+  return (int)((pun.u & MOZ_DOUBLE_EXPONENT_BITS) >> MOZ_DOUBLE_EXPONENT_SHIFT) -
                         MOZ_DOUBLE_EXPONENT_BIAS;
 }
 
@@ -192,7 +194,7 @@ MOZ_DOUBLE_NEGATIVE_INFINITY()
 
 /** Constructs a NaN value with the specified sign bit and significand bits. */
 static MOZ_ALWAYS_INLINE double
-MOZ_DOUBLE_SPECIFIC_NaN(int signbit, uint64_t significand)
+MOZ_DOUBLE_SPECIFIC_NaN(int signbit, uint64 significand)
 {
   union MozDoublePun pun;
 
@@ -227,14 +229,14 @@ MOZ_DOUBLE_MIN_VALUE()
 }
 
 static MOZ_ALWAYS_INLINE int
-MOZ_DOUBLE_IS_INT32(double d, int32_t* i)
+MOZ_DOUBLE_IS_INT32(double d, int32* i)
 {
   /*
-   * XXX Casting a double that doesn't truncate to int32_t, to int32_t, induces
+   * XXX Casting a double that doesn't truncate to int32, to int32, induces
    *     undefined behavior.  We should definitely fix this (bug 744965), but as
    *     apparently it "works" in practice, it's not a pressing concern now.
    */
-  return !MOZ_DOUBLE_IS_NEGATIVE_ZERO(d) && d == (*i = (int32_t)d);
+  return !MOZ_DOUBLE_IS_NEGATIVE_ZERO(d) && d == (*i = (int32)d);
 }
 
 #ifdef __cplusplus
