@@ -20,6 +20,7 @@ const NS = {
   bind                      : "urn:ietf:params:xml:ns:xmpp-bind",
   session                   : "urn:ietf:params:xml:ns:xmpp-session",
   auth                      : "jabber:iq:auth",
+  auth_feature              : "http://jabber.org/features/iq-auth",
   http_bind                 : "http://jabber.org/protocol/httpbind",
   http_auth                 : "http://jabber.org/protocol/http-auth",
   xbosh                     : "urn:xmpp:xbosh",
@@ -349,8 +350,9 @@ XMPPParser.prototype = {
         return;
       }
 
+      this._listener._streamId = node.attributes["id"];
       if (!("version" in node.attributes))
-        this._listener.startLegacyAuth(node.attributes["id"]);
+        this._listener.startLegacyAuth();
 
       this._node = null;
       return;
