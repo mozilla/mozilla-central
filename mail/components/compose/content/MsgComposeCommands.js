@@ -2941,9 +2941,17 @@ function CheckValidEmailAddress(to, cc, bcc)
 function SendMessage()
 {
   let sendInBackground =
-    Components.classes["@mozilla.org/preferences-service;1"]
-              .getService(Components.interfaces.nsIPrefBranch)
-              .getBoolPref("mailnews.sendInBackground");
+    Services.prefs.getBoolPref("mailnews.sendInBackground");
+  if (sendInBackground && !Application.platformIsMac) {
+    let enumerator = Services.wm.getEnumerator(null);
+    let count = 0;
+    while (enumerator.hasMoreElements() && count < 2) {
+      let win = enumerator.getNext();
+      count++;
+    }
+    if (count == 1)
+      sendInBackground = false;
+  }
 
   GenericSendMessage(sendInBackground ?
                      nsIMsgCompDeliverMode.Background :
