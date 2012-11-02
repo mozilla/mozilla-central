@@ -326,6 +326,7 @@ bool nsTextAddress::GetField(const nsAString &aLine,
     int32_t startPos = pos;
     bool    quoted = false;
     if (aLine[pos] == '"') {
+        startPos++;
         fLen = -1;
         do {
             pos++;
