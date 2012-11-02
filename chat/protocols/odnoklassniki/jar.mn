@@ -1,0 +1,9 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+chat.jar:
+% skin prpl-odnoklassniki classic/1.0 %skin/classic/prpl/odnoklassniki/
+	skin/classic/prpl/odnoklassniki/icon32.png	(icons/prpl-odnoklassniki-32.png)
+	skin/classic/prpl/odnoklassniki/icon48.png	(icons/prpl-odnoklassniki-48.png)
+	skin/classic/prpl/odnoklassniki/icon.png	(icons/prpl-odnoklassniki.png)

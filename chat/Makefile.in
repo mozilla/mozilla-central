@@ -13,6 +13,7 @@ PROTOCOLS = \
 		facebook \
 		gtalk \
 		irc \
+		odnoklassniki \
 		twitter \
 		vkontakte \
 		xmpp \

@@ -1,0 +1,3 @@
+component {29b09a83-81c1-2032-11e2-6d9bc4f8e969} odnoklassniki.js
+contract @mozilla.org/chat/odnoklassniki;1 {29b09a83-81c1-2032-11e2-6d9bc4f8e969}
+category im-protocol-plugin prpl-odnoklassniki @mozilla.org/chat/odnoklassniki;1
