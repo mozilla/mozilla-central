@@ -443,7 +443,8 @@
             {
               case "movemessage":
               case "copymessage":
-                var msgFolder = actionTarget.uri ? GetMsgFolderFromUri(actionTarget.uri) : null;
+                let msgFolder = document.getAnonymousNodes(actionTarget)[0].value ?
+                  GetMsgFolderFromUri(document.getAnonymousNodes(actionTarget)[0].value) : null;
                 if (!msgFolder || !msgFolder.canFileMessages)
                   errorString = "mustSelectFolder";
                 break;
@@ -505,7 +506,7 @@
                 break;
               case nsMsgFilterAction.MoveToFolder:
               case nsMsgFilterAction.CopyToFolder:
-                filterAction.targetFolderUri = actionTarget.uri;
+                filterAction.targetFolderUri = actionItem[0].value;
                 break;
               case nsMsgFilterAction.JunkScore:
                 filterAction.junkScore = actionItem[0].value;
@@ -662,31 +663,36 @@
 
   <binding id="ruleactiontarget-folder" extends="chrome://messenger/content/searchWidgets.xml#ruleactiontarget-base">
     <content>
-      <xul:menulist class="ruleactionitem">
-        <xul:menupopup class="folderTargetPopup"
-                       oncommand="SetFolderPickerElement(
-                                    this.getAttribute('uri'), this.parentNode);
-                                  this.parentNode.setAttribute(
-                                    'value', this.getAttribute('uri'));"/>
+      <xul:menulist class="ruleactionitem"
+                    oncommand="this.parentNode.setPicker(event);">
+        <xul:menupopup type="folder"
+                       mode="filing"
+                       showRecent="true"
+                       recentLabel="&recentfolders.label;"
+                       showFileHereLabel="true"
+                       fileHereLabel="&filemessageschoosethis.label;"/>
       </xul:menulist>
     </content>
 
     <implementation>
-
       <constructor>
         <![CDATA[
-          if (!this.uri)
-          {
-            if (!this.menulist.value)
-              this.menulist.value = this.menulist.firstChild.tree.builderView
-                                        .getResourceAtIndex(0).Value;
-            SetFolderPickerElement(this.menulist.value, this.menulist);
-          }
+          if (!this.menulist.value)
+            this.menulist.value = gFilterList.folder.URI;
+          SetFolderPickerElement(this.menulist.value, this.menulist);
         ]]>
       </constructor>
 
-      <property name="uri" readonly="true" onget="return document.getAnonymousNodes(this)[0].getAttribute('uri');"/>
       <field name="menulist">document.getAnonymousNodes(this)[0]</field>
+      <method name="setPicker">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+            aEvent.currentTarget.value = aEvent.target._folder.URI;
+            SetFolderPickerElement(aEvent.currentTarget.value, aEvent.currentTarget);
+          ]]>
+        </body>
+      </method>
     </implementation>
   </binding>
 
