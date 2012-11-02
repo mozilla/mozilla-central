@@ -9,20 +9,20 @@ Cu.import("resource:///modules/imXPCOMUtils.jsm");
 Cu.import("resource:///modules/jsProtoHelper.jsm");
 
 var gLastUIConvId = 0;
-var gLastPurpleConvId = 0;
+var gLastPrplConvId = 0;
 
 XPCOMUtils.defineLazyGetter(this, "bundle", function()
   Services.strings.createBundle("chrome://chat/locale/conversations.properties")
 );
 
-function UIConversation(aPurpleConversation)
+function UIConversation(aPrplConversation)
 {
-  this._purpleConv = {};
+  this._prplConv = {};
   this.id = ++gLastUIConvId;
   this._observers = [];
   this._messages = [];
-  this.changeTargetTo(aPurpleConversation);
-  let iface = Ci["prplIConv" + (aPurpleConversation.isChat ? "Chat" : "IM")];
+  this.changeTargetTo(aPrplConversation);
+  let iface = Ci["prplIConv" + (aPrplConversation.isChat ? "Chat" : "IM")];
   this._interfaces = this._interfaces.concat(iface);
   let contact = this.contact;
   if (contact) {
@@ -44,19 +44,19 @@ UIConversation.prototype = {
       return target.buddy.buddy.contact;
     return null;
   },
-  get target() this._purpleConv[this._currentTargetId],
-  set target(aPurpleConversation) {
-    this.changeTargetTo(aPurpleConversation);
+  get target() this._prplConv[this._currentTargetId],
+  set target(aPrplConversation) {
+    this.changeTargetTo(aPrplConversation);
   },
   _currentTargetId: 0,
-  changeTargetTo: function(aPurpleConversation) {
-    let id = aPurpleConversation.id;
+  changeTargetTo: function(aPrplConversation) {
+    let id = aPrplConversation.id;
     if (this._currentTargetId == id)
       return;
 
-    if (!(id in this._purpleConv)) {
-      this._purpleConv[id] = aPurpleConversation;
-      aPurpleConversation.addObserver(this.observeConv.bind(this, id));
+    if (!(id in this._prplConv)) {
+      this._prplConv[id] = aPrplConversation;
+      aPrplConversation.addObserver(this.observeConv.bind(this, id));
     }
 
     let shouldNotify = this._currentTargetId;
@@ -67,7 +67,7 @@ UIConversation.prototype = {
         ({statusType: this.statusType, statusText: this.statusText}) = buddy;
     }
     if (shouldNotify) {
-      this.notifyObservers(this, "target-purple-conversation-changed");
+      this.notifyObservers(this, "target-prpl-conversation-changed");
       let target = this.target;
       let params = [target.title, target.account.protocol.name];
       this.systemMessage(bundle.formatStringFromName("targetChanged",
@@ -77,17 +77,17 @@ UIConversation.prototype = {
   // Returns a boolean indicating if the ui-conversation was closed.
   // If the conversation was closed, aContactId.value is set to the contact id
   // or 0 if no contact was associated with the conversation.
-  removeTarget: function(aPurpleConversation, aContactId) {
-    let id = aPurpleConversation.id;
-    if (!(id in this._purpleConv))
-      throw "unknown purple conversation";
+  removeTarget: function(aPrplConversation, aContactId) {
+    let id = aPrplConversation.id;
+    if (!(id in this._prplConv))
+      throw "unknown prpl conversation";
 
-    delete this._purpleConv[id];
+    delete this._prplConv[id];
     if (this._currentTargetId != id)
       return false;
 
-    for (let newId in this._purpleConv) {
-      this.changeTargetTo(this._purpleConv[newId]);
+    for (let newId in this._prplConv) {
+      this.changeTargetTo(this._prplConv[newId]);
       return false;
     }
 
@@ -245,8 +245,8 @@ UIConversation.prototype = {
     if (aTargetId != this._currentTargetId &&
         (aTopic == "new-text" ||
          (aTopic == "update-typing" &&
-          this._purpleConv[aTargetId].typingState == Ci.prplIConvIM.TYPING)))
-      this.target = this._purpleConv[aTargetId];
+          this._prplConv[aTargetId].typingState == Ci.prplIConvIM.TYPING)))
+      this.target = this._prplConv[aTargetId];
     this.notifyObservers(aSubject, aTopic, aData);
     if (aTopic == "new-text") {
       Services.obs.notifyObservers(aSubject, aTopic, aData);
@@ -271,17 +271,17 @@ UIConversation.prototype = {
   get title() this.target.title,
   sendMsg: function (aMsg) { this.target.sendMsg(aMsg); },
   unInit: function() {
-    for each (let conv in this._purpleConv)
+    for each (let conv in this._prplConv)
       gConversationsService.forgetConversation(conv);
     if (this._observedContact) {
       this._observedContact.removeObserver(this);
       delete this._observedContact;
     }
-    this._purpleConv = {}; // Prevent .close from failing.
+    this._prplConv = {}; // Prevent .close from failing.
     delete this._currentTargetId;
   },
   close: function() {
-    for each (let conv in this._purpleConv)
+    for each (let conv in this._prplConv)
       conv.close();
     if (!this.hasOwnProperty("_currentTargetId"))
       return;
@@ -337,7 +337,7 @@ ConversationsService.prototype = {
   initConversations: function() {
     this._uiConv = {};
     this._uiConvByContactId = {};
-    this._purpleConversations = [];
+    this._prplConversations = [];
     Services.obs.addObserver(this, "account-disconnecting", false);
     Services.obs.addObserver(this, "account-connected", false);
   },
@@ -348,9 +348,9 @@ ConversationsService.prototype = {
     delete this._uiConv;
     delete this._uiConvByContactId;
     // This should already be empty, but just to be sure...
-    for each (let purpleConv in this._purpleConversations)
-      purpleConv.unInit();
-    delete this._purpleConversations;
+    for each (let prplConv in this._prplConversations)
+      prplConv.unInit();
+    delete this._prplConversations;
     Services.obs.removeObserver(this, "account-disconnecting");
     Services.obs.removeObserver(this, "account-connected");
   },
@@ -370,18 +370,18 @@ ConversationsService.prototype = {
     }
   },
 
-  addConversation: function(aPurpleConversation) {
+  addConversation: function(aPrplConversation) {
     // Give an id to the new conversation.
-    aPurpleConversation.id = ++gLastPurpleConvId;
-    this._purpleConversations.push(aPurpleConversation);
+    aPrplConversation.id = ++gLastPrplConvId;
+    this._prplConversations.push(aPrplConversation);
 
     // Notify observers.
-    Services.obs.notifyObservers(aPurpleConversation, "new-conversation", null);
+    Services.obs.notifyObservers(aPrplConversation, "new-conversation", null);
 
     // Update or create the corresponding UI conversation.
     let contactId;
-    if (!aPurpleConversation.isChat) {
-      let accountBuddy = aPurpleConversation.buddy;
+    if (!aPrplConversation.isChat) {
+      let accountBuddy = aPrplConversation.buddy;
       if (accountBuddy)
         contactId = accountBuddy.buddy.contact.id;
     }
@@ -389,35 +389,35 @@ ConversationsService.prototype = {
     if (contactId) {
       if (contactId in this._uiConvByContactId) {
         let uiConv = this._uiConvByContactId[contactId];
-        uiConv.target = aPurpleConversation;
-        this._uiConv[aPurpleConversation.id] = uiConv;
+        uiConv.target = aPrplConversation;
+        this._uiConv[aPrplConversation.id] = uiConv;
         return;
       }
     }
 
-    let newUIConv = new UIConversation(aPurpleConversation);
-    this._uiConv[aPurpleConversation.id] = newUIConv;
+    let newUIConv = new UIConversation(aPrplConversation);
+    this._uiConv[aPrplConversation.id] = newUIConv;
     if (contactId)
       this._uiConvByContactId[contactId] = newUIConv;
   },
-  removeConversation: function(aPurpleConversation) {
-    Services.obs.notifyObservers(aPurpleConversation, "conversation-closed", null);
+  removeConversation: function(aPrplConversation) {
+    Services.obs.notifyObservers(aPrplConversation, "conversation-closed", null);
 
-    let uiConv = this.getUIConversation(aPurpleConversation);
+    let uiConv = this.getUIConversation(aPrplConversation);
     let contactId = {};
-    if (uiConv.removeTarget(aPurpleConversation, contactId)) {
-      delete this._uiConv[aPurpleConversation.id];
+    if (uiConv.removeTarget(aPrplConversation, contactId)) {
+      delete this._uiConv[aPrplConversation.id];
       if (contactId.value)
         delete this._uiConvByContactId[contactId.value];
       Services.obs.notifyObservers(uiConv, "ui-conversation-closed", null);
     }
-    this.forgetConversation(aPurpleConversation);
+    this.forgetConversation(aPrplConversation);
   },
-  forgetConversation: function(aPurpleConversation) {
-    aPurpleConversation.unInit();
+  forgetConversation: function(aPrplConversation) {
+    aPrplConversation.unInit();
 
-    this._purpleConversations =
-      this._purpleConversations.filter(function(c) c !== aPurpleConversation);
+    this._prplConversations =
+      this._prplConversations.filter(function(c) c !== aPrplConversation);
   },
 
   getUIConversations: function(aConvCount) {
@@ -425,8 +425,8 @@ ConversationsService.prototype = {
     aConvCount.value = rv.length;
     return rv;
   },
-  getUIConversation: function(aPurpleConversation) {
-    let id = aPurpleConversation.id;
+  getUIConversation: function(aPrplConversation) {
+    let id = aPrplConversation.id;
     if (id in this._uiConv)
       return this._uiConv[id];
     throw "Unknown conversation";
@@ -434,15 +434,15 @@ ConversationsService.prototype = {
   getUIConversationByContactId: function(aId)
     (aId in this._uiConvByContactId) ? this._uiConvByContactId[aId] : null,
 
-  getConversations: function() new nsSimpleEnumerator(this._purpleConversations),
+  getConversations: function() new nsSimpleEnumerator(this._prplConversations),
   getConversationById: function(aId) {
-    for each (let conv in this._purpleConversations)
+    for each (let conv in this._prplConversations)
       if (conv.id == aId)
         return conv;
     return null;
   },
   getConversationByNameAndAccount: function(aName, aAccount, aIsChat) {
-    for each (let conv in this._purpleConversations)
+    for each (let conv in this._prplConversations)
       if (conv.name == aName && conv.account.numericId == aAccount.numericId &&
           conv.isChat == aIsChat)
         return conv;

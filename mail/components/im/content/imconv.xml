@@ -68,7 +68,7 @@
        <parameter name="aData"/>
        <body>
        <![CDATA[
-         if (aTopic == "target-purple-conversation-changed" ||
+         if (aTopic == "target-prpl-conversation-changed" ||
              aTopic == "unread-message-count-changed" ||
              aTopic == "update-conv-title" ||
              aTopic == "update-buddy-status" ||

@@ -1203,7 +1203,7 @@
            this.addPrompt(aData);
            break;
 
-         case "target-purple-conversation-changed":
+         case "target-prpl-conversation-changed":
          case "update-conv-title":
            if (this.tab)
                this.tab.setAttribute("label", this.conv.title);
@@ -1276,7 +1276,7 @@
              throw("Already initialized");
            if (!val) {
              // this conversation has probably been moved to another
-             // tab. Forget the purpleConversation so that it isn't
+             // tab. Forget the prplConversation so that it isn't
              // closed when destroying this binding.
              this._forgetConv();
              return val;
