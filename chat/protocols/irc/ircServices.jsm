@@ -164,13 +164,14 @@ var servicesBase = {
         LOG("Authentication requested by NickServ.");
 
         // Wait one second before showing the message to the user (giving the
-        // the server time to process the PASS command).
+        // the server time to process the log-in).
         this.nickservMessageQueue = [aMessage];
         this.nickservAuthTimeout = setTimeout(function() {
           this.isHandlingQueuedMessages = true;
           this.nickservMessageQueue.every(function(aMessage)
             ircHandlers.handleMessage(this, aMessage), this);
           delete this.isHandlingQueuedMessages;
+          delete this.nickservMessageQueue;
         }.bind(this), 1000);
         return true;
       }
