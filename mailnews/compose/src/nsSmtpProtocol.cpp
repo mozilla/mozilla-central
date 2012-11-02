@@ -37,7 +37,6 @@
 #include "nsIPipe.h"
 #include "nsNetUtil.h"
 #include "nsIPrefService.h"
-#include "nsISignatureVerifier.h"
 #include "nsISSLSocketControl.h"
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
@@ -723,34 +722,35 @@ nsresult nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, uint32_t
         }
         else if (StringBeginsWith(responseLine, NS_LITERAL_CSTRING("AUTH"), nsCaseInsensitiveCStringComparator()))
         {
-            SetFlag(SMTP_AUTH);
+          SetFlag(SMTP_AUTH);
 
-            if (responseLine.Find(NS_LITERAL_CSTRING("GSSAPI"), CaseInsensitiveCompare) >= 0)
-                SetFlag(SMTP_AUTH_GSSAPI_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("GSSAPI"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_GSSAPI_ENABLED);
 
-            nsresult rv;
-            nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-            // this checks if psm is installed...
-            if (NS_SUCCEEDED(rv))
-            {
-                if (responseLine.Find(NS_LITERAL_CSTRING("CRAM-MD5"), CaseInsensitiveCompare) >= 0)
-                    SetFlag(SMTP_AUTH_CRAM_MD5_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("CRAM-MD5"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_CRAM_MD5_ENABLED);
 
-                if (responseLine.Find(NS_LITERAL_CSTRING("NTLM"), CaseInsensitiveCompare) >= 0)
-                    SetFlag(SMTP_AUTH_NTLM_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("NTLM"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_NTLM_ENABLED);
 
-                if (responseLine.Find(NS_LITERAL_CSTRING("MSN"), CaseInsensitiveCompare) >= 0)
-                    SetFlag(SMTP_AUTH_MSN_ENABLED);
-            }
+          if (responseLine.Find(NS_LITERAL_CSTRING("MSN"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_MSN_ENABLED);
 
-            if (responseLine.Find(NS_LITERAL_CSTRING("PLAIN"), CaseInsensitiveCompare) >= 0)
-                SetFlag(SMTP_AUTH_PLAIN_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("PLAIN"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_PLAIN_ENABLED);
 
-            if (responseLine.Find(NS_LITERAL_CSTRING("LOGIN"), CaseInsensitiveCompare) >= 0)
-                SetFlag(SMTP_AUTH_LOGIN_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("LOGIN"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_LOGIN_ENABLED);
 
-            if (responseLine.Find(NS_LITERAL_CSTRING("EXTERNAL"), CaseInsensitiveCompare) >= 0)
-                SetFlag(SMTP_AUTH_EXTERNAL_ENABLED);
+          if (responseLine.Find(NS_LITERAL_CSTRING("EXTERNAL"),
+                                CaseInsensitiveCompare) >= 0)
+            SetFlag(SMTP_AUTH_EXTERNAL_ENABLED);
         }
         else if (StringBeginsWith(responseLine, NS_LITERAL_CSTRING("SIZE"), nsCaseInsensitiveCStringComparator()))
         {

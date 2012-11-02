@@ -39,7 +39,6 @@
 #include "nsIMsgProtocolInfo.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMAPNamespace.h"
-#include "nsISignatureVerifier.h"
 #include "nsArrayUtils.h"
 #include "nsITimer.h"
 #include "nsMsgUtils.h"
@@ -844,8 +843,8 @@ nsImapIncomingServer::CreateProtocolInstance(nsIImapProtocol ** aImapConnection)
     case nsMsgAuthMethod::secure:
     case nsMsgAuthMethod::anything:
       {
-        nsCOMPtr<nsISignatureVerifier> verifier =
-            do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
+        nsCOMPtr<nsISupports> dummyUsedToEnsureNSSIsInitialized =
+          do_GetService("@mozilla.org/psm;1", &rv);
         NS_ENSURE_SUCCESS(rv, rv);
       }
       break;

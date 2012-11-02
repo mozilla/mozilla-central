@@ -34,7 +34,6 @@
 #include "nsIRelativeFilePref.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsISpamSettings.h"
-#include "nsISignatureVerifier.h"
 #include "nsICryptoHash.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsDirectoryServiceUtils.h"

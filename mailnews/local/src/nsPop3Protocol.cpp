@@ -36,7 +36,6 @@
 #include "nsIMsgFolder.h" // TO include biffState enum. Change to bool later...
 #include "nsIDocShell.h"
 #include "nsMsgUtils.h"
-#include "nsISignatureVerifier.h"
 #include "nsISocketTransport.h"
 #include "nsISSLSocketControl.h"
 #include "nsILineInputStream.h"
@@ -1160,14 +1159,8 @@ nsPop3Protocol::WaitForStartOfConnectionResponse(nsIInputStream* aInputStream,
 
     if (m_prefAuthMethods & POP3_HAS_AUTH_APOP)
     {
-        nsresult rv;
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-        {
-          if (NS_SUCCEEDED(GetApopTimestamp()))
-            SetCapFlag(POP3_HAS_AUTH_APOP);
-        }
+      if (NS_SUCCEEDED(GetApopTimestamp()))
+        SetCapFlag(POP3_HAS_AUTH_APOP);
     }
     else
       ClearCapFlag(POP3_HAS_AUTH_APOP);
@@ -1397,26 +1390,11 @@ int32_t nsPop3Protocol::AuthResponse(nsIInputStream* inputStream,
         m_pop3ConData->pause_for_read = false; /* don't pause */
     }
     else if (!PL_strcasecmp (line, "CRAM-MD5"))
-    {
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-            SetCapFlag(POP3_HAS_AUTH_CRAM_MD5);
-    }
+      SetCapFlag(POP3_HAS_AUTH_CRAM_MD5);
     else if (!PL_strcasecmp (line, "NTLM"))
-    {
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-            SetCapFlag(POP3_HAS_AUTH_NTLM);
-    }
+      SetCapFlag(POP3_HAS_AUTH_NTLM);
     else if (!PL_strcasecmp (line, "MSN"))
-    {
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-            SetCapFlag(POP3_HAS_AUTH_NTLM|POP3_HAS_AUTH_MSN);
-    }
+      SetCapFlag(POP3_HAS_AUTH_NTLM|POP3_HAS_AUTH_MSN);
     else if (!PL_strcasecmp (line, "GSSAPI"))
         SetCapFlag(POP3_HAS_AUTH_GSSAPI);
     else if (!PL_strcasecmp (line, "PLAIN"))
@@ -1504,14 +1482,8 @@ int32_t nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
     // see RFC 2595, chapter 4
     if (!PL_strcasecmp(line, "STLS"))
     {
-        nsresult rv;
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-        {
-            SetCapFlag(POP3_HAS_STLS);
-            m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
-        }
+      SetCapFlag(POP3_HAS_STLS);
+      m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
     }
     else
     // see RFC 2449, chapter 6.3
@@ -1529,20 +1501,14 @@ int32_t nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
         if (responseLine.Find("GSSAPI", CaseInsensitiveCompare) >= 0)
             SetCapFlag(POP3_HAS_AUTH_GSSAPI);
 
-        nsresult rv;
-        nsCOMPtr<nsISignatureVerifier> verifier = do_GetService(SIGNATURE_VERIFIER_CONTRACTID, &rv);
-        // this checks if psm is installed...
-        if (NS_SUCCEEDED(rv))
-        {
-            if (responseLine.Find("CRAM-MD5", CaseInsensitiveCompare) >= 0)
-                SetCapFlag(POP3_HAS_AUTH_CRAM_MD5);
+        if (responseLine.Find("CRAM-MD5", CaseInsensitiveCompare) >= 0)
+          SetCapFlag(POP3_HAS_AUTH_CRAM_MD5);
 
-            if (responseLine.Find("NTLM", CaseInsensitiveCompare) >= 0)
-                SetCapFlag(POP3_HAS_AUTH_NTLM);
+        if (responseLine.Find("NTLM", CaseInsensitiveCompare) >= 0)
+          SetCapFlag(POP3_HAS_AUTH_NTLM);
 
-            if (responseLine.Find("MSN", CaseInsensitiveCompare) >= 0)
-                SetCapFlag(POP3_HAS_AUTH_NTLM|POP3_HAS_AUTH_MSN);
-        }
+        if (responseLine.Find("MSN", CaseInsensitiveCompare) >= 0)
+          SetCapFlag(POP3_HAS_AUTH_NTLM|POP3_HAS_AUTH_MSN);
 
         m_pop3Server->SetPop3CapabilityFlags(m_pop3ConData->capability_flags);
     }
