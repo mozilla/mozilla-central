@@ -440,7 +440,7 @@ ircChannel.prototype = {
     _setMode.call(this, addNewMode, channelModes);
 
     // Notify the UI of changes.
-    msg = _("message.mode", this.name, aNewMode[0] + channelModes.join(""),
+    msg = _("message.channelmode", aNewMode[0] + channelModes.join(""),
             aSetter);
     this.writeMessage(aSetter, msg, {system: true});
     this.checkTopicSettable();
@@ -509,8 +509,8 @@ ircParticipant.prototype = {
     _setMode.call(this, aAddNewMode, aNewModes);
 
     // Notify the UI of changes.
-    let msg = _("message.mode", this.name,
-                (aAddNewMode ? "+" : "-") + aNewModes.join(""), aSetter);
+    let msg = _("message.usermode", (aAddNewMode ? "+" : "-") + aNewModes.join(""),
+                this.name, aSetter);
     this._conv.writeMessage(aSetter, msg, {system: true});
     this._conv.notifyObservers(this, "chat-buddy-update");
 
