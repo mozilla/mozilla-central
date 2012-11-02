@@ -27,6 +27,25 @@ const LocalFile = CC("@mozilla.org/file/local;1",
 
 const kLineBreak = "@mozilla.org/windows-registry-key;1" in Cc ? "\r\n" : "\n";
 
+// This function checks names against OS naming conventions and alters them
+// accordingly so that they can be used as file/folder names.
+function encodeName(aName)
+{
+  // Reserved device names by Windows (prefixing "%").
+  var reservedNames = /^(CON|PRN|AUX|NUL|COM\d|LPT\d)$/i;
+  if (reservedNames.test(aName))
+    return "%" + aName;
+
+  // "." and " " must not be at the end of a file or folder name (appending "_").
+  if (/[\. _]/.test(aName.slice(-1)))
+    aName += "_";
+
+  // Reserved characters are replaced by %[hex value]. encodeURIComponent() is
+  // not sufficient, nevertheless decodeURIComponent() can be used to decode.
+  function encodeReservedChars(match) "%" + match.charCodeAt(0).toString(16);
+  return aName.replace(/[<>:"\/\\|?*&%]/g, encodeReservedChars);
+}
+
 function getLogFolderForAccount(aAccount, aCreate)
 {
   let file = logDir.clone();
@@ -37,7 +56,7 @@ function getLogFolderForAccount(aAccount, aCreate)
   createIfNotExists(file);
   file.append(aAccount.protocol.normalizedName);
   createIfNotExists(file);
-  file.append(aAccount.normalizedName);
+  file.append(encodeName(aAccount.normalizedName));
   createIfNotExists(file);
   return file;
 }
@@ -76,7 +95,7 @@ ConversationLog.prototype = {
     let name = this._conv.normalizedName;
     if (convIsRealMUC(this._conv))
       name += ".chat";
-    file.append(name);
+    file.append(encodeName(name));
     if (!file.exists())
       file.create(Ci.nsIFile.DIRECTORY_TYPE, 0777);
     if (Services.prefs.getCharPref("purple.logging.format") == "json")
@@ -556,7 +575,7 @@ Logger.prototype = {
   _enumerateLogs: function logger__enumerateLogs(aAccount, aNormalizedName,
                                                  aGroupByDay) {
     let file = getLogFolderForAccount(aAccount);
-    file.append(aNormalizedName);
+    file.append(encodeName(aNormalizedName));
     if (!file.exists())
       return EmptyEnumerator;
 
@@ -608,7 +627,7 @@ Logger.prototype = {
     aContact.getBuddies().forEach(function (aBuddy) {
       aBuddy.getAccountBuddies().forEach(function (aAccountBuddy) {
         let file = getLogFolderForAccount(aAccountBuddy.account);
-        file.append(aAccountBuddy.normalizedName);
+        file.append(encodeName(aAccountBuddy.normalizedName));
         if (file.exists())
           entries.push(file.directoryEntries);
       });
@@ -619,7 +638,7 @@ Logger.prototype = {
     let entries = [];
     aBuddy.getAccountBuddies().forEach(function (aAccountBuddy) {
       let file = getLogFolderForAccount(aAccountBuddy.account);
-      file.append(aAccountBuddy.normalizedName);
+      file.append(encodeName(aAccountBuddy.normalizedName));
       if (file.exists())
         entries.push(file.directoryEntries);
     });
