@@ -119,6 +119,34 @@ const GenericIRCConversation = {
   sendMsg: function(aMessage) {
     // Split the message by line breaks and send each one individually.
     let messages = aMessage.split(/[\r\n]+/);
+
+    // Build the shortest possible message that could be sent.
+    let baseMessage = this._account._nickname + this._account.prefix +
+                      " " + this._account.buildMessage("PRIVMSG", this.name) +
+                      " :\r\n";
+    let maxLength =
+      this._account.maxMessageLength - this._account.countBytes(baseMessage);
+
+    // Attempt to smartly split a string into multiple lines (based on the
+    // maximum number of characters the message can contain).
+    for (let i = 0; i < messages.length; ++i) {
+      let message = messages[i];
+      let length = this._account.countBytes(message);
+      // The message is short enough.
+      if (length <= maxLength)
+        continue;
+
+      // Find the location of a space before the maximum length.
+      let index = message.lastIndexOf(" ", maxLength);
+
+      // Remove the current message and insert the two new ones. If no space was
+      // found, cut the first message to the maximum length and start the second
+      // message one character after that. If a space was found, exclude it.
+      messages.splice(i, 1, message.substr(0, index == -1 ? maxLength : index),
+                      message.substr((index + 1) || maxLength));
+    }
+
+    // Send each message and display it in the conversation.
     messages.forEach(function (aMessage) {
       if (!aMessage.length)
         return;
@@ -670,6 +698,9 @@ ircAccount.prototype = {
   _accountNickname: null,
   // The nickname that will be used when connecting.
   _requestedNickname: null,
+  // The prefix minus the nick (!user@host) as returned by the server, this is
+  // necessary for guessing message lengths.
+  prefix: null,
 
   get normalizedName() this.normalize(this.name),
 

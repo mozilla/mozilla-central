@@ -345,6 +345,11 @@ var ircBase = {
       // Check if our nick has changed.
       if (aMessage.params[0] != this._nickname)
         this.changeBuddyNick(this._nickname, aMessage.params[0]);
+      // Get our full prefix.
+      this.prefix = aMessage.params[1].slice(
+        aMessage.params[1].lastIndexOf(" ") + 1);
+      // Remove the nick from the prefix.
+      this.prefix = this.prefix.slice(this.prefix.indexOf("!"));
       // If our status is Unavailable, tell the server.
       if (this.imAccount.statusInfo.statusType < Ci.imIStatusInfo.STATUS_AVAILABLE)
         this.observe(null, "status-changed");
