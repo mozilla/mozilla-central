@@ -46,7 +46,7 @@ function FacebookProtocol() {
 FacebookProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get normalizedName() "facebook",
-  get name() "Facebook Chat",
+  get name() _("facebook.chat.name"),
   get iconBaseURI() "chrome://prpl-facebook/skin/",
   getAccount: function(aImAccount) new FacebookAccount(this, aImAccount),
   classID: Components.ID("{1d1d0bc5-610c-472f-b2cb-4b89857d80dc}")
