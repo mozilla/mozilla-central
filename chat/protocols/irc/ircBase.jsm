@@ -342,24 +342,30 @@ var ircBase = {
     "001": function(aMessage) { // RPL_WELCOME
       // Welcome to the Internet Relay Network <nick>!<user>@<host>
       this.reportConnected();
+
       // Check if our nick has changed.
       if (aMessage.params[0] != this._nickname)
         this.changeBuddyNick(this._nickname, aMessage.params[0]);
+
       // Get our full prefix.
       this.prefix = aMessage.params[1].slice(
         aMessage.params[1].lastIndexOf(" ") + 1);
       // Remove the nick from the prefix.
       this.prefix = this.prefix.slice(this.prefix.indexOf("!"));
+
       // If our status is Unavailable, tell the server.
       if (this.imAccount.statusInfo.statusType < Ci.imIStatusInfo.STATUS_AVAILABLE)
         this.observe(null, "status-changed");
+
       // Check if any of our buddies are online!
       this.sendIsOn();
+
       // Reconnect channels if they were not parted by the user.
       for each (let conversation in this._conversations) {
         if (conversation.isChat && conversation._chatRoomFields)
           this.joinChat(conversation._chatRoomFields);
       }
+
       return serverMessage(this, aMessage);
     },
     "002": function(aMessage) { // RPL_YOURHOST
@@ -1133,7 +1139,7 @@ var ircBase = {
     },
     "421": function(aMessage) { // ERR_UNKNOWNCOMMAND
       // <command> :Unknown command
-      // TODO This shouldn't occur
+      // TODO This shouldn't occur.
       return false;
     },
     "422": function(aMessage) { // ERR_NOMOTD
@@ -1220,6 +1226,11 @@ var ircBase = {
     },
     "451": function(aMessage) { // ERR_NOTREGISTERED
       // :You have not registered
+      // If the server doesn't understand CAP it might return this error.
+      if (aMessage.params[0] == "CAP") {
+        LOG("Server doesn't support CAP.");
+        return true;
+      }
       // TODO
       return false;
     },

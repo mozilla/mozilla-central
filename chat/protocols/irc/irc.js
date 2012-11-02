@@ -385,7 +385,8 @@ ircChannel.prototype = {
           // A new channel key was set.
           msg = _("message.channelKeyAdded", aSetter, key);
           newFields += " " + key;
-        } else
+        }
+        else
           msg = _("message.channelKeyRemoved", aSetter);
 
         this.writeMessage(aSetter, msg, {system: true});
@@ -686,6 +687,7 @@ function ircAccount(aProtocol, aImAccount) {
   this.pendingIsOnQueue = [];
   this.whoisInformation = {};
   this._chatRoomFieldsList = {};
+  this._caps = [];
 }
 ircAccount.prototype = {
   __proto__: GenericAccountPrototype,
@@ -694,6 +696,8 @@ ircAccount.prototype = {
   _MODE_INVISIBLE: 1 << 3, // mode 'i'
   get _mode() 0,
 
+  // Whether the user has successfully authenticated with NickServ.
+  isAuthenticated: false,
   // The nickname stored in the account name.
   _accountNickname: null,
   // The nickname that will be used when connecting.
@@ -1071,6 +1075,24 @@ ircAccount.prototype = {
     this._socket.connect(this._server, this._port, this._ssl ? ["ssl"] : []);
   },
 
+  // Functions for keeping track of whether the Client Capabilities is done.
+  // If a cap is to be handled, it should be registered with addCAP, where aCAP
+  // is a "unique" string defining what is being handled. When the cap is done
+  // being handled removeCAP should be called with the same string.
+  _caps: [],
+  _capTimeout: null,
+  addCAP: function(aCAP) {
+    this._caps.push(aCAP);
+  },
+  removeCAP: function(aDoneCAP) {
+    // Remove any reference to the given capability.
+    this._caps = this._caps.filter(function(aCAP) aCAP != aDoneCAP);
+
+    // If no more CAP messages are being handled, notify the server.
+    if (!this._caps.length)
+      this.sendMessage("CAP", "END");
+  },
+
   // Used to wait for a response from the server.
   _quitTimer: null,
   // RFC 2812 Section 3.1.7.
@@ -1264,11 +1286,9 @@ ircAccount.prototype = {
 
   // Implement section 3.1 of RFC 2812
   _connectionRegistration: function() {
-    // Send the password message, if provided (section 3.1.1).
-    if (this.imAccount.password) {
-      this.sendMessage("PASS", this.imAccount.password,
-                       "PASS <password not logged>");
-    }
+    // Send the Client Capabilities list command.
+    this.sendMessage("CAP", "LS");
+
     // Send the nick message (section 3.1.2).
     this.sendMessage("NICK", this._requestedNickname);
 
@@ -1353,17 +1373,20 @@ function ircProtocol() {
   let tempScope = {};
   Cu.import("resource:///modules/ircBase.jsm", tempScope);
   Cu.import("resource:///modules/ircISUPPORT.jsm", tempScope);
+  Cu.import("resource:///modules/ircCAP.jsm", tempScope);
   Cu.import("resource:///modules/ircCTCP.jsm", tempScope);
   Cu.import("resource:///modules/ircDCC.jsm", tempScope);
   Cu.import("resource:///modules/ircServices.jsm", tempScope);
 
   // Extra features.
   Cu.import("resource:///modules/ircNonStandard.jsm", tempScope);
+  Cu.import("resource:///modules/ircSASL.jsm", tempScope);
   Cu.import("resource:///modules/ircWatchMonitor.jsm", tempScope);
 
   // Register default IRC handlers (IRC base, CTCP).
   ircHandlers.registerHandler(tempScope.ircBase);
   ircHandlers.registerHandler(tempScope.ircISUPPORT);
+  ircHandlers.registerHandler(tempScope.ircCAP);
   ircHandlers.registerHandler(tempScope.ircCTCP);
   ircHandlers.registerHandler(tempScope.ircServices);
   // Register default ISUPPORT handler (ISUPPORT base).
@@ -1380,6 +1403,8 @@ function ircProtocol() {
   ircHandlers.registerISUPPORTHandler(tempScope.isupportWATCH);
   ircHandlers.registerHandler(tempScope.ircMONITOR);
   ircHandlers.registerISUPPORTHandler(tempScope.isupportMONITOR);
+  ircHandlers.registerHandler(tempScope.ircSASL);
+  ircHandlers.registerCAPHandler(tempScope.capSASL);
 }
 ircProtocol.prototype = {
   __proto__: GenericProtocolPrototype,

@@ -68,6 +68,32 @@ var ircServices = {
       // If the name is recognized as a service name, add the service name field
       // and run it through the handlers.
       return ircHandlers.handleServicesMessage(this, message);
+    },
+
+    "001": function(aMessage) { // RPL_WELCOME
+      // If SASL authentication failed, attempt IDENTIFY.
+      if (this.imAccount.password && !this.isAuthenticated) {
+        this.sendMessage("IDENTIFY", this.imAccount.password,
+                         "IDENTIFY <password not logged>");
+      }
+      // We always want the RFC 2812 handler to handle 001, so return false.
+      return false;
+    },
+
+    "421": function(aMessage) { // ERR_UNKNOWNCOMMAND
+      // <command> :Unknown command
+      // IDENTIFY failed, try NICKSERV IDENTIFY.
+      if (aMessage.params[1] == "IDENTIFY" && this.imAccount.password &&
+          !this.isAuthenticated) {
+        this.sendMessage("NICKSERV", ["IDENTIFY", this.imAccount.password],
+                         "NICKSERV IDENTIFY <password not logged>");
+        return true;
+      }
+      if (aMessage.params[1] == "NICKSERV") {
+        WARN("NICKSERV command does not exist.");
+        return true;
+      }
+      return false;
     }
   }
 };
@@ -118,6 +144,7 @@ var servicesBase = {
           // Password successfully accepted by NickServ, don't display the
           // queued messages.
           LOG("Successfully authenticated with NickServ.");
+          this.isAuthenticated = true;
           clearTimeout(this.nickservAuthTimeout);
           delete this.nickservAuthTimeout;
           delete this.nickservMessageQueue;
