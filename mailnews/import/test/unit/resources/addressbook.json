@@ -67,6 +67,14 @@
       "PrimaryEmail"     : "名無しの権兵衛@host.invalid"
     }
   ],
+  "quote_csv" :
+  [
+    {
+      "DisplayName"      : "Acer America",
+      "Work Phone"       : "(800) 000-0000",
+      "Organization"     : "Acer America"
+    } 
+  ],
   "vcard_import" :
   [
     {
