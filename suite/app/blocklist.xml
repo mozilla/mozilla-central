@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1349983536000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1351899337000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -7,6 +7,10 @@
                   </emItem>
       <emItem  blockID="i86" id="{45147e67-4020-47e2-8f7a-55464fb535aa}">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i19" id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
+                        <versionRange  minVersion="1.1b1" maxVersion="1.1b1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i41" id="{99079a25-328f-4bd4-be04-00955acaa0a7}">
@@ -47,8 +51,8 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i66" id="youtubeer@youtuber.com">
-                        <versionRange  minVersion="0" maxVersion="*">
+      <emItem  blockID="i168" id="flashX@adobe.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i54" id="applebeegifts@mozilla.doslash.org">
@@ -79,14 +83,20 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i167" id="{b64982b1-d112-42b5-b1e4-d3867c4533f8}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i61" id="youtube@youtube3.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                                 <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
-                        </emItem>
+      <emItem  blockID="i90" id="videoplugin@player.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i63" id="youtube@youtuber.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -99,7 +109,7 @@
                         <versionRange  minVersion=" " maxVersion="6.*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i13" id="{E8E88AB0-7182-11DF-904E-6045E0D72085}">
+      <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
                         </emItem>
       <emItem  blockID="i117" id="{ce7e73df-6a44-4028-8079-5927a588c948}">
                         <versionRange  minVersion="0" maxVersion="1.0.8" severity="1">
@@ -157,8 +167,8 @@
                   </emItem>
       <emItem  blockID="i7" id="{2224e955-00e9-4613-a844-ce69fccaae91}">
                         </emItem>
-      <emItem  blockID="i90" id="videoplugin@player.com">
-                        <versionRange  minVersion="0" maxVersion="*">
+      <emItem  blockID="i174" id="info@thebflix.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i91" id="crossriderapp4926@crossrider.com">
@@ -167,6 +177,14 @@
                   </emItem>
       <emItem  blockID="i84" id="pink@rosaplugin.info">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i172" id="info@bflix.info">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i165" id="{EEF73632-A085-4fd3-A778-ECD82C8CB297}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i67" id="youtube2@youtube2.com">
@@ -263,12 +281,14 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i13" id="{E8E88AB0-7182-11DF-904E-6045E0D72085}">
+                        </emItem>
       <emItem  blockID="i99" id="pfzPXmnzQRXX6@2iABkVe.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i19" id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
-                        <versionRange  minVersion="1.1b1" maxVersion="1.1b1">
+      <emItem  blockID="i66" id="youtubeer@youtuber.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i3" id="langpack-vi-VN@firefox.mozilla.org">
@@ -291,6 +311,10 @@
                         <versionRange  minVersion="0" maxVersion="15.0.5" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i163" id="info@allpremiumplay.info">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i136" id="Adobe@flash.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
@@ -304,41 +328,29 @@
     </emItems>
 
   <pluginItems>
+      <pluginItem  blockID="p28">
+                  <match name="filename" exp="NPFFAddOn.dll" />          </pluginItem>
       <pluginItem  blockID="p29">
-      <match name="name" exp="^Yahoo Application State Plugin$" />      <match name="description" exp="^Yahoo Application State Plugin$" />      <match name="filename" exp="npYState.dll" />                      <versionRange >
-                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
-            </targetApplication>
+      <match name="name" exp="^Yahoo Application State Plugin$" />      <match name="description" exp="^Yahoo Application State Plugin$" />      <match name="filename" exp="npYState.dll" />                                    <versionRange >
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+                          </targetApplication>
                   </versionRange>
                   </pluginItem>
       <pluginItem  blockID="p30">
-      <match name="name" exp="QuickTime Plug-in 7[.]1[.]" />            <match name="filename" exp="npqtplugin.?[.]dll" />                      <versionRange >
-                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
-            </targetApplication>
+      <match name="name" exp="QuickTime Plug-in 7[.]1[.]" />            <match name="filename" exp="npqtplugin.?[.]dll" />                                    <versionRange >
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
+                          </targetApplication>
                   </versionRange>
                   </pluginItem>
-      <pluginItem  blockID="p28">
-                  <match name="filename" exp="NPFFAddOn.dll" />                        </pluginItem>
       <pluginItem  blockID="p31">
-                  <match name="filename" exp="NPMySrch.dll" />                        </pluginItem>
+                  <match name="filename" exp="NPMySrch.dll" />          </pluginItem>
       <pluginItem  blockID="p33">
       <match name="name" exp="[0-6]\.0\.[01]\d{2}\.\d+" />            <match name="filename" exp="npdeploytk.dll" />                      <versionRange  severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p80">
       <match name="name" exp="\(TM\)" />      <match name="description" exp="[^\d\._]((0(\.\d+(\.\d+([_\.]\d+)?)?)?)|(1\.(([0-5](\.\d+([_\.]\d+)?)?)|(6(\.0([_\.](0?\d|1\d|2\d|30))?)?)|(7(\.0([_\.][0-2])?)?))))([^\d\._]|$)" />      <match name="filename" exp="(npjp2\.dll)|(libnpjp2\.so)" />                      <versionRange  severity="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p119">
-      <match name="name" exp="Java\(TM\) Plug-in 1\.(6\.0_(\d|[0-2]\d?|3[0-2])|7\.0(_0?([1-4]))?)([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                      <versionRange  severity="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p125">
-      <match name="name" exp="Java\(TM\) Platform SE ((6( U(\d|([0-2]\d)|3[0-2]))?)|(7(\sU[0-4])?))(\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                      <versionRange  severity="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p132">
-      <match name="name" exp="Java\(TM\) Plug-in 1\.7\.0(_0?([5-6]))?([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                      <versionRange  severity="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p134">
-      <match name="name" exp="Java\(TM\) Platform SE 7 U[5-6](\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                      <versionRange  severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p85">
                   <match name="filename" exp="JavaPlugin2_NPAPI\.plugin" />                      <versionRange  minVersion="0" maxVersion="13.6.0" severity="1"></versionRange>
@@ -355,29 +367,41 @@
       <pluginItem  blockID="p113">
                   <match name="filename" exp="npuplaypc\.dll" />                      <versionRange  minVersion="0" maxVersion="1.0.0.0" severity="1"></versionRange>
                   </pluginItem>
+      <pluginItem  blockID="p119">
+      <match name="name" exp="Java\(TM\) Plug-in 1\.(6\.0_(\d|[0-2]\d?|3[0-2])|7\.0(_0?([1-4]))?)([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                      <versionRange  severity="1"></versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p123">
                   <match name="filename" exp="JavaPlugin2_NPAPI\.plugin" />                      <versionRange  minVersion="0" maxVersion="14.2.0" severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p125">
+      <match name="name" exp="Java\(TM\) Platform SE ((6( U(\d|([0-2]\d)|3[0-2]))?)|(7(\sU[0-4])?))(\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                      <versionRange  severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p129">
                   <match name="filename" exp="Silverlight\.plugin" />                      <versionRange  minVersion="0" maxVersion="5.0.99999" severity="1"></versionRange>
                   </pluginItem>
+      <pluginItem  blockID="p132">
+      <match name="name" exp="Java\(TM\) Plug-in 1\.7\.0(_0?([5-6]))?([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                      <versionRange  severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p134">
+      <match name="name" exp="Java\(TM\) Platform SE 7 U[5-6](\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                      <versionRange  severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p138">
+                  <match name="filename" exp="JavaAppletPlugin\.plugin" />                      <versionRange  minVersion="Java 7 Update 01" maxVersion="Java 7 Update 06" severity="1"></versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p152">
                   <match name="filename" exp="npctrl\.dll" />                      <versionRange  minVersion="0" maxVersion="4.1.10328.0" severity="0" vulnerabilitystatus="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p156">
-                  <match name="filename" exp="nppdf32\.dll" />                      <versionRange  minVersion="0" maxVersion="9.5.1" severity="0" vulnerabilitystatus="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p160">
-                  <match name="filename" exp="NPSWF32\.dll" />                      <versionRange  minVersion="0" maxVersion="10.2.9999" severity="0" vulnerabilitystatus="1"></versionRange>
-                  </pluginItem>
-      <pluginItem  blockID="p158">
-                  <match name="filename" exp="nppdf32\.dll" />                      <versionRange  minVersion="10.0" maxVersion="10.1.3" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p154">
                   <match name="filename" exp="npctrl\.dll" />                      <versionRange  minVersion="5.0" maxVersion="5.1.10410.0" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
-      <pluginItem  blockID="p138">
-                  <match name="filename" exp="JavaAppletPlugin\.plugin" />                      <versionRange  minVersion="Java 7 Update 01" maxVersion="Java 7 Update 06" severity="1"></versionRange>
+      <pluginItem  blockID="p156">
+                  <match name="filename" exp="nppdf32\.dll" />                      <versionRange  minVersion="0" maxVersion="9.5.1" severity="0" vulnerabilitystatus="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p158">
+                  <match name="filename" exp="nppdf32\.dll" />                      <versionRange  minVersion="10.0" maxVersion="10.1.3" severity="0" vulnerabilitystatus="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p160">
+                  <match name="filename" exp="NPSWF32\.dll" />                      <versionRange  minVersion="0" maxVersion="10.2.9999" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
     </pluginItems>
 
@@ -395,6 +419,8 @@
     <gfxBlacklistEntry  blockID="g146">      <os>All</os>      <vendor>0x1022</vendor>            <feature>DIRECT2D</feature>      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>      <driverVersion>8.982.0.0</driverVersion>      <driverVersionComparator>EQUAL</driverVersionComparator>    </gfxBlacklistEntry>
     <gfxBlacklistEntry  blockID="g148">      <os>All</os>      <vendor>0x1022</vendor>            <feature>DIRECT3D_9_LAYERS</feature>      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>      <driverVersion>8.982.0.0</driverVersion>      <driverVersionComparator>EQUAL</driverVersionComparator>    </gfxBlacklistEntry>
     <gfxBlacklistEntry  blockID="g150">      <os>All</os>      <vendor>0x1002</vendor>            <feature>DIRECT3D_9_LAYERS</feature>      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>      <driverVersion>8.982.0.0</driverVersion>      <driverVersionComparator>EQUAL</driverVersionComparator>    </gfxBlacklistEntry>
+    <gfxBlacklistEntry  blockID="g192">      <os>WINNT 6.2</os>      <vendor>0x1002</vendor>            <feature>DIRECT2D</feature>      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>      <driverVersion>9.10.8.0</driverVersion>      <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>    </gfxBlacklistEntry>
+    <gfxBlacklistEntry  blockID="g194">      <os>WINNT 6.2</os>      <vendor>0x1022</vendor>            <feature>DIRECT2D</feature>      <featureStatus>BLOCKED_DRIVER_VERSION</featureStatus>      <driverVersion>9.10.8.0</driverVersion>      <driverVersionComparator>LESS_THAN_OR_EQUAL</driverVersionComparator>    </gfxBlacklistEntry>
     </gfxItems>
 
 
