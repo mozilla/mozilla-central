@@ -2834,11 +2834,13 @@
       <method name="_setupAppmenu">
         <parameter name="event"/>
         <body><![CDATA[
-          let appmenuPopup = document.getElementById("appmenu-popup");
-          if (this.lastChild != appmenuPopup) {
-            this.appendChild(appmenuPopup);
+          if (event.target == this) {
+              let appmenuPopup = document.getElementById("appmenu-popup");
+              if (this.lastChild != appmenuPopup) {
+                this.appendChild(appmenuPopup);
+              }
+              this.open = true;
           }
-          this.open = true;
         ]]></body>
       </method>
     </implementation>
@@ -2847,8 +2849,8 @@
            because any external oncommand handlers might get called before ours,
            and then they would see the incorrect value of checked. Additionally
            a command attribute would redirect the command events anyway.-->
-      <handler event="click" button="0" action="this._setupAppmenu();"/>
-      <handler event="keypress" key=" " action="this._setupAppmenu();"/>
+      <handler event="click" button="0" action="this._setupAppmenu(event);"/>
+      <handler event="keypress" key=" " action="this._setupAppmenu(event);"/>
     </handlers>
   </binding>
 </bindings>
