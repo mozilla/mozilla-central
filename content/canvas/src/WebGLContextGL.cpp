@@ -960,6 +960,11 @@ WebGLContext::CopyTexImage2D(WebGLenum target,
     if (!(maxTextureSize >> level))
         return ErrorInvalidValue("copyTexImage2D: 2^level exceeds maximum texture size");
 
+    WebGLsizei maxTextureSizeForThisLevel = maxTextureSize >> level;
+
+    if (width > maxTextureSizeForThisLevel || height > maxTextureSizeForThisLevel)
+        return ErrorInvalidValue("copyTexImage2D: width or height exceeds maximum texture size for this level");
+
     if (level >= 1) {
         if (!(is_pot_assuming_nonnegative(width) &&
               is_pot_assuming_nonnegative(height)))
@@ -4882,8 +4887,10 @@ WebGLContext::TexImage2D_base(WebGLenum target, WebGLint level, WebGLenum intern
     if (width < 0 || height < 0)
         return ErrorInvalidValue("texImage2D: width and height must be >= 0");
 
-    if (width > maxTextureSize || height > maxTextureSize)
-        return ErrorInvalidValue("texImage2D: width or height exceeds maximum texture size");
+    WebGLsizei maxTextureSizeForThisLevel = maxTextureSize >> level;
+
+    if (width > maxTextureSizeForThisLevel || height > maxTextureSizeForThisLevel)
+        return ErrorInvalidValue("texImage2D: width or height exceeds maximum texture size for this level");
 
     if (level >= 1) {
         if (!(is_pot_assuming_nonnegative(width) &&
