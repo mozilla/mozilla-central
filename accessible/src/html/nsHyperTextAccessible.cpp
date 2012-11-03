@@ -1571,6 +1571,15 @@ nsHyperTextAccessible::GetAssociatedEditor(nsIEditor **aEditor)
 nsresult
 nsHyperTextAccessible::SetSelectionRange(PRInt32 aStartPos, PRInt32 aEndPos)
 {
+  // Before setting the selection range, we need to ensure that the editor
+  // is initialized. (See bug 804927.)
+  // Otherwise, it's possible that lazy editor initialization will override
+  // the selection we set here and leave the caret at the end of the text.
+  // By calling GetAssociatedEditor here, we ensure that editor initialization
+  // is completed before we set the selection.
+  nsCOMPtr<nsIEditor> editor;
+  GetAssociatedEditor(getter_AddRefs(editor));
+
   nsresult rv = TakeFocus();
   NS_ENSURE_SUCCESS(rv, rv);
 

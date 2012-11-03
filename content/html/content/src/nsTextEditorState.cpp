@@ -1184,7 +1184,7 @@ nsTextEditorState::PrepareEditor(const nsAString *aValue)
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Make sure we clear out the non-breaking space before we initialize the editor
-    rv = mBoundFrame->UpdateValueDisplay(false, true);
+    rv = mBoundFrame->UpdateValueDisplay(true, true);
     NS_ENSURE_SUCCESS(rv, rv);
   } else {
     if (aValue || !mEditorInitialized) {
