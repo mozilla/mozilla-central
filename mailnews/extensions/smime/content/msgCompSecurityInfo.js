@@ -212,14 +212,8 @@ function onLoad()
 
 function onSelectionChange(event)
 {
-  if (gListBox.selectedItems.length <= 0)
-  {
-    gViewButton.setAttribute("disabled", "true");
-  }
-  else
-  {
-    gViewButton.removeAttribute("disabled");
-  }
+  gViewButton.disabled = !(gListBox.selectedItems.length == 1 &&
+                           certForRow(gListBox.selectedIndex));
 }
 
 function viewCertHelper(parent, cert) {
@@ -227,17 +221,14 @@ function viewCertHelper(parent, cert) {
   cd.viewCert(parent, cert);
 }
 
+function certForRow(aRowIndex) {
+  return gCerts.value[aRowIndex];
+}
+
 function viewSelectedCert()
 {
-  if (gListBox.selectedItems.length > 0)
-  {
-    var selected = gListBox.selectedIndex;
-    var cert = gCerts.value[selected];
-    if (cert)
-    {
-      viewCertHelper(window, cert);
-    }
-  }
+  if (!gViewButton.disabled)
+    viewCertHelper(window, certForRow(gListBox.selectedIndex));
 }
 
 function doHelpButton()
