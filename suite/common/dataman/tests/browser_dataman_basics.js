@@ -490,8 +490,8 @@ function test_permissions_add(aWin) {
 },
 
 function test_prefs_panel(aWin) {
-  Services.contentPrefs.setPref("my.drumbeat.org", "data_manager.test", "foo");
-  Services.contentPrefs.setPref("drumbeat.org", "data_manager.test", "bar");
+  Services.contentPrefs.setPref("my.drumbeat.org", "data_manager.test", "foo", null);
+  Services.contentPrefs.setPref("drumbeat.org", "data_manager.test", "bar", null);
   is(aWin.gDomains.tree.view.rowCount, kPreexistingDomains + 5,
      "The domain for prefs tests has been added from the list");
   aWin.gDomains.tree.view.selection.select(4);
@@ -688,12 +688,12 @@ function test_idn(aWin) {
      "Permission has correct display host");
 
   // Add pref with decoded IDN name.
-  Services.contentPrefs.setPref(testDomain, "data_manager.test", "foo");
+  Services.contentPrefs.setPref(testDomain, "data_manager.test", "foo", null);
   aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("preferencesTab");
   is(aWin.gTabs.activePanel, "preferencesPanel",
      "Successfully switched to preferences panel for IDN tests");
   // Add pref with encoded IDN name while panel is shown (different code path).
-  Services.contentPrefs.setPref(idnDomain, "data_manager.test2", "bar");
+  Services.contentPrefs.setPref(idnDomain, "data_manager.test2", "bar", null);
   is(aWin.gPrefs.tree.view.getCellText(0, aWin.gPrefs.tree.columns["prefsHostCol"]),
      idnDomain,
      "Correct domain displayed for punycode IDN preference");
