@@ -57,3 +57,11 @@ textbox {
 .ruleaction-type {
   min-width: 15em;
 }
+
+#countBox[filterActive="matches"] {
+  color: #4e9a06;
+}
+
+#countBox[filterActive="nomatches"] {
+  color: #cc0000;
+}

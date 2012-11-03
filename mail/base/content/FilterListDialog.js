@@ -923,10 +923,18 @@ function updateCountBox()
   let sum = gCurrentFilterList.filterCount;
   let len = gFilterListbox.itemCount;
 
-  if (len == sum) // "N items"
+  if (len == sum) {
+    // "N items"
     countBox.value = PluralForm.get(len, gFilterBundle.getString("filterCountItems"))
                                .replace("#1", len);
-  else // "N of M"
+    countBox.removeAttribute("filterActive");
+  } else {
+    // "N of M"
     countBox.value = gFilterBundle.getFormattedString("filterCountVisibleOfTotal",
                                                       [len, sum]);
+    if (len == 0 && sum > 0)
+      countBox.setAttribute("filterActive", "nomatches");
+    else
+      countBox.setAttribute("filterActive", "matches");
+  }
 }
