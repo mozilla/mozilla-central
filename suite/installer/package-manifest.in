@@ -195,6 +195,7 @@
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
+@BINPATH@/components/dom_permissionsettings.xpt
 @BINPATH@/components/dom_power.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_settings.xpt
@@ -442,6 +443,8 @@
 @BINPATH@/components/nsWebHandlerApp.js
 @BINPATH@/components/nsWebHandlerApp.manifest
 @BINPATH@/components/passwordmgr.manifest
+@BINPATH@/components/PermissionSettings.js
+@BINPATH@/components/PermissionSettings.manifest
 @BINPATH@/components/PlacesCategoriesStarter.js
 @BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/SettingsManager.js
