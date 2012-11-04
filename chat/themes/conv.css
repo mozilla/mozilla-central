@@ -36,3 +36,11 @@
   border: none;
   border-top: 1px dashed red;
 }
+
+.ib-nick {
+  font-weight: bold;
+}
+
+.ib-nick[left] {
+  color: grey;
+}
