@@ -70,11 +70,12 @@ function scriptError(aModule, aLevel, aMessage) {
 }
 function initLogModule(aModule, aThis)
 {
-  aThis = Components.utils.getGlobalForObject(aThis);
-  aThis.DEBUG = scriptError.bind(aThis, aModule, DEBUG_MISC);
-  aThis.LOG   = scriptError.bind(aThis, aModule, DEBUG_INFO);
-  aThis.WARN  = scriptError.bind(aThis, aModule, DEBUG_WARNING);
-  aThis.ERROR = scriptError.bind(aThis, aModule, DEBUG_ERROR);
+  let obj = aThis || {};
+  obj.DEBUG = scriptError.bind(obj, aModule, DEBUG_MISC);
+  obj.LOG   = scriptError.bind(obj, aModule, DEBUG_INFO);
+  obj.WARN  = scriptError.bind(obj, aModule, DEBUG_WARNING);
+  obj.ERROR = scriptError.bind(obj, aModule, DEBUG_ERROR);
+  return obj;
 }
 XPCOMUtils.defineLazyGetter(Cu.getGlobalForObject({}), "gLogLevels", function() {
   // This object functions both as an obsever as well as a dict keeping the
