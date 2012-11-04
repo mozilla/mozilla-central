@@ -72,8 +72,8 @@
                   <menuitem label="&resetSync.label;"
                             accesskey="&resetSync.accesskey;"
                             oncommand="gSyncPane.resetSync();"/>
-                  <menuitem label="&deactivateDevice.label;"
-                            accesskey="&deactivateDevice.accesskey;"
+                  <menuitem label="&unlinkDevice.label;"
+                            accesskey="&unlinkDevice.accesskey;"
                             oncommand="gSyncPane.startOver(true);"/>
                   <menuseparator/>
                   <menuitem label="&addDevice.label;"
@@ -150,10 +150,10 @@
                     oncommand="gSyncPane.resetPass(); return false;"
                     id="resetPassButton"/>
           </hbox>
-          <button label="&deactivateDevice.label;"
-                  accesskey="&deactivateDevice.accesskey;"
+          <button label="&unlinkDevice.label;"
+                  accesskey="&unlinkDevice.accesskey;"
                   oncommand="gSyncPane.startOver(true); return false;"
-                  id="deactivateDeviceButton"/>
+                  id="unlinkDeviceButton"/>
         </vbox>
       </deck>
   </prefpane>
