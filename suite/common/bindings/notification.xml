@@ -551,6 +551,12 @@
         <body>
           <![CDATA[
             // XXX just doing (callback)(arg) was giving a same-origin error. bug?
+
+            /* We use event bubbling for the event listeners so that inside a
+               click-to-play plugin we don't activate the plugin when the user
+               clicks on a link in the click-to-play UI (e.g. to check for
+               plugin updates)
+             */
             let callbackArgs = Array.slice(arguments, 2);
             linkNode.addEventListener("click",
                                       function(aEvent) {
@@ -562,7 +568,7 @@
                                           callbackArgs = [ aEvent ];
                                         callback.apply(this, callbackArgs);
                                       }.bind(this),
-                                      true);
+                                      false);
 
             linkNode.addEventListener("keydown",
                                       function(aEvent) {
@@ -576,7 +582,7 @@
                                           callbackArgs = [ aEvent ];
                                         callback.apply(this, callbackArgs);
                                       }.bind(this),
-                                      true);
+                                      false);
           ]]>
         </body>
       </method>
@@ -1036,6 +1042,42 @@
             // Force a style flush, so that we ensure the binding is attached.
             box.clientTop;
             box.appendChild(checkbox);
+          ]]>
+        </body>
+      </method>
+
+      <method name="setupPluginClickToPlay">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            if (this.clickToPlayPluginsActivated) {
+              let objLoadingContent = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+              objLoadingContent.playPlugin();
+              return;
+            }
+
+            // Force a style flush, so that we ensure our binding is attached.
+            pluginElement.clientTop;
+            var doc = pluginElement.ownerDocument;
+            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
+            if (pluginPermission == nsIPermissionManager.DENY_ACTION) {
+              overlay.style.visibility = "hidden";
+              return;
+            }
+
+            this.addLinkClickCallback(overlay, this.activateSinglePlugin, pluginElement);
+
+            if (!this.clickToPlayPromptShown)
+              this.showPluginClickToPlayPrompt();
+
+            let overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+            if (this.isTooSmall(pluginElement, overlay))
+              overlay.style.visibility = "hidden";
           ]]>
         </body>
       </method>
@@ -1822,6 +1864,24 @@
         ]]>
       </handler>
 
+      <handler event="PluginVulnerableNoUpdate" phase="capturing">
+        <![CDATA[
+          this.setupPluginClickToPlay(event.target);
+        ]]>
+      </handler>
+
+      <handler event="PluginVulnerableUpdatable" phase="capturing">
+        <![CDATA[
+          var plugin = event.target;
+          var doc = plugin.ownerDocument;
+
+          var updateLink = doc.getAnonymousElementByAttribute(plugin, "class", "checkForUpdatesLink");
+          this.addLinkClickCallback(updateLink, this.openURLPref, "plugins.update.url");
+
+          this.setupPluginClickToPlay(plugin);
+        ]]>
+      </handler>
+
       <handler event="PluginDisabled" phase="capturing">
         <![CDATA[
           var plugin = event.target;
@@ -1840,32 +1900,7 @@
 
       <handler event="PluginClickToPlay" phase="capturing">
         <![CDATA[
-          var plugin = event.target;
-
-          if (this.clickToPlayPluginsActivated) {
-            let objLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-            objLoadingContent.playPlugin();
-            return;
-          }
-
-          // Force a style flush, so that we ensure our binding is attached.
-          plugin.clientTop;
-          var doc = plugin.ownerDocument;
-          var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
-
-          const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-          var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                             .getService(nsIPermissionManager);
-          var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
-          if (pluginPermission == nsIPermissionManager.DENY_ACTION) {
-            overlay.style.visibility = "hidden";
-            return;
-          }
-
-          this.addLinkClickCallback(overlay, this.activateSinglePlugin, plugin);
-
-          if (!this.clickToPlayPromptShown)
-            this.showPluginClickToPlayPrompt();
+          this.setupPluginClickToPlay(event.target);
         ]]>
       </handler>
 
