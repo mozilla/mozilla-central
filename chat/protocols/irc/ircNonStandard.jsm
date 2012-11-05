@@ -48,6 +48,11 @@ var ircNonStandard = {
       return false;
     },
 
+    "328": function(aMessage) { // RPL_CHANNEL_URL (Bahamut & Austhex)
+      // <channel> :<URL>
+      return true;
+    },
+
     "329": function(aMessage) { // RPL_CREATIONTIME (Bahamut & Unreal)
       // <channel> <creation time>
       return true;
