@@ -1321,6 +1321,9 @@ ircAccount.prototype = {
     clearTimeout(this._isOnTimer);
     delete this._isOnTimer;
 
+    // We must authenticate if we reconnect.
+    delete this.isAuthenticated;
+
     // Clean up each conversation: mark as left and remove participant.
     for each (let conversation in this._conversations) {
       if (conversation.isChat && !conversation.left) {
