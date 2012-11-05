@@ -144,7 +144,7 @@ const XMPPMUCConversationPrototype = {
       from = this.name;
     }
     else if (aStanza.attributes["type"] == "error") {
-      aMsg = _("connection.error.incorrectResponse");
+      aMsg = _("conversation.error.notDelivered", aMsg);
       flags.system = true;
       flags.error = true;
     }
@@ -272,7 +272,7 @@ const XMPPConversationPrototype = {
     this._targetResource = this._account._parseJID(from).resource;
     let flags = {};
     if (aStanza.attributes["type"] == "error") {
-      aMsg = _("connection.error.incorrectResponse");
+      aMsg = _("conversation.error.notDelivered", aMsg);
       flags.system = true;
       flags.error = true;
     }
