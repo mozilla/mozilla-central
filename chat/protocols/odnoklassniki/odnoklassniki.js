@@ -35,7 +35,7 @@ OdnoklassnikiAccount.prototype = {
       }
     }
 
-    this._connection = new XMPPSession("odnoklassniki.ru", 5222,
+    this._connection = new XMPPSession("xmpp.odnoklassniki.ru", 5222,
                                        "require_tls", this._jid,
                                        this.imAccount.password, this);
   }
