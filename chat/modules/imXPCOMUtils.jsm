@@ -57,7 +57,7 @@ function scriptError(aModule, aLevel, aMessage) {
 
   let scriptError =
     Cc["@mozilla.org/scripterror;1"].createInstance(Ci.nsIScriptError);
-  let caller = Components.stack.caller;
+  let caller = Components.stack.caller.caller;
   let sourceLine = aModule || caller.sourceLine;
   if (caller.name) {
     if (sourceLine)
