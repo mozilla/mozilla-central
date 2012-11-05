@@ -42,11 +42,10 @@ var Sanitizer = {
     if (this._prefs.getBoolPref("promptOnSanitize")) {
       var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(Components.interfaces.nsIWindowWatcher);
-#ifdef XP_MACOSX
-      ww.openWindow(null, // make this an app-modal window on Mac
-#else
-      ww.openWindow(aParentWindow,
-#endif
+      // make this an app-modal window on Mac.
+      var win = "nsILocalFileMac" in Components.interfaces ? null
+                                                           : aParentWindow;
+      ww.openWindow(win,
                     "chrome://communicator/content/sanitize.xul", "Sanitize",
                     "chrome,titlebar,centerscreen,dialog,modal", null);
     }
