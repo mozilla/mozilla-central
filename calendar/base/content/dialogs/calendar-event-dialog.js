@@ -2327,7 +2327,9 @@ function updateRepeat(aSuppressDialogs) {
 /**
  * Updates the UI controls related to a task's completion status.
  *
- * @param status                    The item's completion status.
+ * @param status                    The item's completion status or a string
+ *                                  that allows to identify a change in the
+ *                                  percent-complete's textbox.
  * @param passedInCompletedDate     The item's completed date (as a JSDate).
  */
 function updateToDoStatus(status, passedInCompletedDate) {
@@ -2337,21 +2339,36 @@ function updateToDoStatus(status, passedInCompletedDate) {
   // back to COMPLETED). When we go to store this VTODO as .ics the
   // date will get lost.
 
-  var completedDate;
+  // remember the original values
+  let oldPercentComplete = getElementValue("percent-complete-textbox");
+  let oldCompletedDate = getElementValue("completed-date-picker");
+
+  // If the percent completed has changed to 100 or from 100 to another
+  // value, the status must change.
+  if (status == "percent-changed") {
+      let menuItemCompleted = document.getElementById("todo-status").selectedIndex == 3;
+      if (oldPercentComplete == "100") {
+          status = "COMPLETED";
+      } else if (menuItemCompleted) {
+          status = "IN-PROCESS";
+      } else {
+          // Changing to any other value doesn't change the status.
+          return;
+      }
+  }
+
+  let completedDate;
   if (passedInCompletedDate) {
       completedDate = passedInCompletedDate;
   } else {
       completedDate = null;
   }
 
-  // remember the original values
-  var oldPercentComplete = getElementValue("percent-complete-textbox");
-  var oldCompletedDate   = getElementValue("completed-date-picker");
-
   switch (status) {
       case null:
       case "":
       case "NONE":
+          oldPercentComplete = 0;
           document.getElementById("todo-status").selectedIndex = 0;
           disableElement("percent-complete-textbox");
           disableElement("percent-complete-label");
@@ -2383,7 +2400,12 @@ function updateToDoStatus(status, passedInCompletedDate) {
           break;
   }
 
-  if (status == "COMPLETED") {
+  if ((status == "IN-PROCESS" || status == "NEEDS-ACTION") &&
+       oldPercentComplete == "100") {
+      setElementValue("percent-complete-textbox", "0");
+      setElementValue("completed-date-picker", oldCompletedDate);
+      disableElement("completed-date-picker");
+  } else if (status == "COMPLETED") {
       setElementValue("percent-complete-textbox", "100");
       setElementValue("completed-date-picker", completedDate);
       enableElement("completed-date-picker");

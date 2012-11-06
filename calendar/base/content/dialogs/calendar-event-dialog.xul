@@ -868,7 +868,9 @@
                              min="0"
                              max="100"
                              disable-on-readonly="true"
-                             size="3"/>
+                             size="3"
+                             oninput="updateToDoStatus('percent-changed')"
+                             onselect="updateToDoStatus('percent-changed')"/>
                     <label id="percent-complete-label"
                            class="todo-only"
                            disable-on-readonly="true"
