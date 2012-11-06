@@ -2182,6 +2182,7 @@
                                wrap="true"/>
                 </xul:hbox>
                 <xul:stack mousethrough="always">
+                  <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end" />
                   <xul:hbox align="right">
                     <xul:hbox anonid="alarm-icons-box"
                               class="alarm-icons-box"
@@ -2192,7 +2193,6 @@
                                class="item-classification-box"
                                pack="end"/>
                   </xul:hbox>
-                  <xul:calendar-category-box anonid="category-box" xbl:inherits="categories" pack="end" />
                 </xul:stack>
                 <xul:box xbl:inherits="orient">
                   <xul:calendar-event-gripbar anonid="gripbar1"
