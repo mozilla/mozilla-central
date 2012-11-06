@@ -47,7 +47,7 @@ function ircMessage(aData) {
   // (This is for compatibility with Unreal's 432 response, which returns an
   // empty first parameter.) It also allows a trailing space after the
   // <parameter>s when no <last parameter> is present (also occurs with Unreal).
-  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? ?(?::(.*))?$/))) {
+  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? ?(?::([\s\S]*))?$/))) {
     ERROR("Couldn't parse message: \"" + aData + "\"");
     return message;
   }

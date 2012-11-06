@@ -119,6 +119,7 @@ const testData = [
 function run_test() {
   add_test(testRFC2812Messages);
   add_test(testBrokenUnrealMessages);
+  add_test(testNewLinesInMessages);
 
   run_next_test();
 }
@@ -174,7 +175,37 @@ function testBrokenUnrealMessages() {
       command: "MODE",
       params: ["#tckk", "+n"],
       servername: "gravel.mozilla.org"
+    }
+  };
+
+  for (let messageStr in messages)
+    do_check_true(isEqual(messages[messageStr], irc.ircMessage(messageStr)));
+
+  run_next_test();
+}
+
+// After unescaping we can end up with line breaks inside of IRC messages. Test
+// this edge case specifically.
+function testNewLinesInMessages() {
+  let messages = {
+    ":test!Instantbir@host PRIVMSG #instantbird :First line\nSecond line": {
+      rawMessage: ":test!Instantbir@host PRIVMSG #instantbird :First line\nSecond line",
+      command: "PRIVMSG",
+      params: ["#instantbird", "First line\nSecond line"],
+      nickname: "test",
+      user: "Instantbir",
+      host: "host",
+      source: "Instantbir@host"
     },
+    ":test!Instantbir@host PRIVMSG #instantbird :First line\r\nSecond line": {
+      rawMessage: ":test!Instantbir@host PRIVMSG #instantbird :First line\r\nSecond line",
+      command: "PRIVMSG",
+      params: ["#instantbird", "First line\r\nSecond line"],
+      nickname: "test",
+      user: "Instantbir",
+      host: "host",
+      source: "Instantbir@host"
+    }
   };
 
   for (let messageStr in messages)
