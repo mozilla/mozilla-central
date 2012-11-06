@@ -179,7 +179,9 @@ var calendarController = {
                                 this.todo_items_selected &&
                                 this.todo_items_writable;
                 } else {
-                    attendSel = this.item_selected && this.selected_events_invitation;
+                    attendSel = this.item_selected &&
+                                this.selected_events_invitation &&
+                                this.selected_items_writable;
                 }
 
                 // Small hack, we want to hide instead of disable.
@@ -590,8 +592,8 @@ var calendarController = {
     },
 
     /**
-     * Returns a boolean indicating if the items selected in the current view
-     * all have writable calendars.
+     * Returns a boolean indicating that at least one of the items selected
+     * in the current view has a writable calendar.
      */
     get selected_items_writable() {
         return this.writable &&

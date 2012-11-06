@@ -532,6 +532,10 @@ function setContextPartstat(value, scope, items) {
     startBatchTransaction();
     try {
         for each (let oldItem in items) {
+            // Skip this item if its calendar is read only.
+            if (oldItem.calendar.readOnly) {
+                continue;
+            }
             if (scope == "all-occurrences") {
                 oldItem = oldItem.parentItem;
             }
