@@ -138,9 +138,14 @@
   ${SetClientsMail}
   ${SetClientsNews}
   ${ShowShortcuts}
-  WriteRegStr HKLM "Software\Clients\Mail" "" "${ClientsRegName}"
+  ${SetMailClientForMapi}
 !macroend
 !define SetAsDefaultAppGlobal "!insertmacro SetAsDefaultAppGlobal"
+
+!macro SetMailClientForMapi
+  WriteRegStr HKLM "Software\Clients\Mail" "" "${ClientsRegName}"
+!macroend
+!define SetMailClientForMapi "!insertmacro SetMailClientForMapi"
 
 !macro HideShortcuts
   StrCpy $R1 "Software\Clients\Mail\${ClientsRegName}\InstallInfo"
@@ -948,6 +953,12 @@ Function SetAsDefaultMailAppUserHKCU
     ${Unless} ${Errors}
       AppAssocReg::SetAppAsDefaultAll "${AppRegNameMail}"
     ${EndUnless}
+  ${EndIf}
+
+  ; On Windows XP, we need to register HKLM\Software\Clients\Mail
+  ; for Simple MAPI. See bug 390331.
+  ${If} ${IsWinXP}
+    ${SetMailClientForMapi}
   ${EndIf}
 FunctionEnd
 
