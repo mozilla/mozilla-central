@@ -124,11 +124,6 @@ searchterm {
   -moz-binding: url("chrome://messenger/content/searchWidgets.xml#ruleactiontarget-replyto");
 }
 
-.folderTargetPopup {
-  display: -moz-popup;
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderTargetPopup");
-}
-
 .searchPopup {
   display: -moz-popup;
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchpopup");

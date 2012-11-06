@@ -667,6 +667,7 @@
                     oncommand="this.parentNode.setPicker(event);">
         <xul:menupopup type="folder"
                        mode="filing"
+                       class="menulist-menupopup"
                        showRecent="true"
                        recentLabel="&recentfolders.label;"
                        showFileHereLabel="true"

@@ -222,11 +222,6 @@ dummy.usesMailWidgets {
   -moz-user-focus: none;
 }
 
-.folderTargetPopup {
-  display: -moz-popup;
-  -moz-binding: url("chrome://messenger/content/mailWidgets.xml#folderTargetPopup");
-}
-
 .searchPopup {
   display: -moz-popup;
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchpopup");
