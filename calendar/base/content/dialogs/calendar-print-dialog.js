@@ -53,6 +53,8 @@ function loadCalendarPrintDialog() {
 
     opener.setCursor("auto");
 
+    eventsAndTasksOptions("tasks");
+
     refreshHtml();
 
     self.focus();
@@ -292,4 +294,16 @@ function printAndClose() {
 function onDatePick() {
     calRadioGroupSelectItem("view-field", "custom-range");
     setTimeout(refreshHtml, 0);
+}
+
+function eventsAndTasksOptions(targetId) {
+    let checkbox = document.getElementById(targetId);
+    let checked = checkbox.getAttribute("checked") == "true";
+    // Workaround to make the checkbox persistent (bug 15232).
+    checkbox.setAttribute("checked", checked ? "true" : "false");
+
+    if (targetId == "tasks") {
+        setElementValue("tasks-with-no-due-date", !checked, "disabled");
+        setElementValue("completed-tasks", !checked, "disabled");
+    }
 }

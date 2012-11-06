@@ -28,6 +28,7 @@
 
   <script type="application/javascript" src="chrome://calendar/content/calendar-print-dialog.js"/>
   <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
 
   <hbox id="firstHbox" flex="1">
@@ -71,10 +72,12 @@
         <grid id="grid-events-and-tasks">
           <columns id="columns-for-events-and-tasks">
             <column id="column-event">
-              <checkbox id="events" label="&calendar.print.events.label;" checked="true" oncommand="refreshHtml();"/>
+              <checkbox id="events" label="&calendar.print.events.label;" checked="true"
+                        oncommand="eventsAndTasksOptions(this.id); refreshHtml();" persist="checked" autocheck="false"/>
             </column>
             <column id="column-tasks">
-              <checkbox id="tasks" label="&calendar.print.tasks.label;" checked="true" oncommand="refreshHtml();"/>
+              <checkbox id="tasks" label="&calendar.print.tasks.label;" checked="true"
+                        oncommand="eventsAndTasksOptions(this.id); refreshHtml();" persist="checked" autocheck="false"/>
             </column>
           </columns>
         </grid>
