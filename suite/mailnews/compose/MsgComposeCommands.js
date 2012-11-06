@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 /**
  * interfaces
@@ -2251,15 +2252,6 @@ function ToggleAttachVCard(target)
   }
 }
 
-function queryISupportsArray(supportsArray, iid) {
-    var result = new Array;
-    let count = supportsArray.Count();
-    for (let i = 0; i < count; i++)
-      result[i] = supportsArray.QueryElementAt(i, iid);
-
-    return result;
-}
-
 function ClearIdentityListPopup(popup)
 {
   if (popup)
@@ -2271,15 +2263,26 @@ function FillIdentityList(menulist)
 {
   var accounts = allAccountsSorted(true);
 
-  for each (let account in accounts)
+  for (let acc = 0; acc < accounts.length; acc++)
   {
-    let identites = queryISupportsArray(account.identities,
-                                        Components.interfaces.nsIMsgIdentity);
-    for each (let identity in identites)
+    let account = accounts[acc];
+    let identities = toArray(fixIterator(account.identities,
+                                         Components.interfaces.nsIMsgIdentity));
+
+    if (identities.length == 0)
+      continue;
+
+    for (let i = 0; i < identities.length; i++)
     {
+      let identity = identities[i];
       let item = menulist.appendItem(identity.identityName, identity.key,
                                      account.incomingServer.prettyName);
       item.setAttribute("accountkey", account.key);
+      if (i == 0)
+      {
+        // Mark the first identity as default.
+        item.setAttribute("default", "true");
+      }
     }
   }
 }
