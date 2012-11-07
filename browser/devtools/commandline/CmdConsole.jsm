@@ -11,6 +11,8 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 XPCOMUtils.defineLazyModuleGetter(this, "HUDService",
                                   "resource:///modules/HUDService.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "gDevTools",
+                                  "resource:///modules/devtools/gDevTools.jsm");
 
 /**
  * 'console' command
@@ -45,7 +47,7 @@ gcli.addCommand({
   description: gcli.lookup("consolecloseDesc"),
   exec: function Command_consoleClose(args, context) {
     let tab = context.environment.chromeDocument.defaultView.gBrowser.selectedTab
-    HUDService.deactivateHUDForContext(tab);
+    gDevTools.closeToolbox(tab);
   }
 });
 
@@ -57,6 +59,6 @@ gcli.addCommand({
   description: gcli.lookup("consoleopenDesc"),
   exec: function Command_consoleOpen(args, context) {
     let tab = context.environment.chromeDocument.defaultView.gBrowser.selectedTab
-    HUDService.activateHUDForContext(tab);
+    gDevTools.openToolboxForTab(tab, "webconsole");
   }
 });

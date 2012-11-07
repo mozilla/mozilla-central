@@ -11,20 +11,9 @@ const Ci = Components.interfaces;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/devtools/LayoutHelpers.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/devtools/EventEmitter.jsm");
 
 this.EXPORTED_SYMBOLS = ["Highlighter"];
-
-const INSPECTOR_INVISIBLE_ELEMENTS = {
-  "head": true,
-  "base": true,
-  "basefont": true,
-  "isindex": true,
-  "link": true,
-  "meta": true,
-  "script": true,
-  "style": true,
-  "title": true,
-};
 
 const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
   // add ":visited" and ":link" after bug 713106 is fixed
@@ -39,21 +28,8 @@ const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
  * API:
  *
  *   // Constructor and destructor.
- *   // @param aWindow - browser.xul window.
- *   Highlighter(aWindow);
+ *   Highlighter(aTab, aInspector)
  *   void destroy();
- *
- *   // Highlight a node.
- *   // @param aNode - node to highlight
- *   // @param aScroll - scroll to ensure the node is visible
- *   void highlight(aNode, aScroll);
- *
- *   // Get the selected node.
- *   DOMNode getNode();
- *
- *   // Lock and unlock the select node.
- *   void lock();
- *   void unlock();
  *
  *   // Show and hide the highlighter
  *   void show();
@@ -62,21 +38,6 @@ const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
  *
  *   // Redraw the highlighter if the visible portion of the node has changed.
  *   void invalidateSize(aScroll);
- *
- *   // Is a node highlightable.
- *   boolean isNodeHighlightable(aNode);
- *
- *   // Show/hide the outline and the infobar
- *   void showInfobar();
- *   void hideInfobar();
- *   void showOutline();
- *   void hideOutline();
- *
- *   // Add/Remove listeners
- *   // @param aEvent - event name
- *   // @param aListener - function callback
- *   void addListener(aEvent, aListener);
- *   void removeListener(aEvent, aListener);
  *
  * Events:
  *
@@ -88,19 +49,19 @@ const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
  *   "pseudoclasstoggled" - A pseudo-class lock has changed on the selected node
  *
  * Structure:
- *  <stack id="highlighter-container">
- *    <box id="highlighter-outline-container">
- *      <box id="highlighter-outline" locked="true/false"/>
+ *  <stack class="highlighter-container">
+ *    <box class="highlighter-outline-container">
+ *      <box class="highlighter-outline" locked="true/false"/>
  *    </box>
- *    <box id="highlighter-controls">
- *      <box id="highlighter-nodeinfobar-container" position="top/bottom" locked="true/false">
- *        <box class="highlighter-nodeinfobar-arrow" id="highlighter-nodeinfobar-arrow-top"/>
- *        <hbox id="highlighter-nodeinfobar">
- *          <toolbarbutton id="highlighter-nodeinfobar-inspectbutton" class="highlighter-nodeinfobar-button"/>
- *          <hbox id="highlighter-nodeinfobar-text">tagname#id.class1.class2</hbox>
- *          <toolbarbutton id="highlighter-nodeinfobar-menu" class="highlighter-nodeinfobar-button">…</toolbarbutton>
+ *    <box class="highlighter-controls">
+ *      <box class="highlighter-nodeinfobar-container" position="top/bottom" locked="true/false">
+ *        <box class="highlighter-nodeinfobar-arrow highlighter-nodeinfobar-arrow-top"/>
+ *        <hbox class="highlighter-nodeinfobar">
+ *          <toolbarbutton class="highlighter-nodeinfobar-inspectbutton highlighter-nodeinfobar-button"/>
+ *          <hbox class="highlighter-nodeinfobar-text">tagname#id.class1.class2</hbox>
+ *          <toolbarbutton class="highlighter-nodeinfobar-menu highlighter-nodeinfobar-button">…</toolbarbutton>
  *        </hbox>
- *        <box class="highlighter-nodeinfobar-arrow" id="highlighter-nodeinfobar-arrow-bottom"/>
+ *        <box class="highlighter-nodeinfobar-arrow highlighter-nodeinfobar-arrow-bottom"/>
  *      </box>
  *    </box>
  *  </stack>
@@ -111,40 +72,52 @@ const PSEUDO_CLASSES = [":hover", ":active", ":focus"];
 /**
  * Constructor.
  *
- * @param object aWindow
+ * @param aTarget The inspection target.
+ * @param aInspector Inspector panel.
  */
-this.Highlighter = function Highlighter(aWindow)
+this.Highlighter = function Highlighter(aTarget, aInspector)
 {
-  this.chromeWin = aWindow;
-  this.tabbrowser = aWindow.gBrowser;
-  this.chromeDoc = aWindow.document;
-  this.browser = aWindow.gBrowser.selectedBrowser;
-  this.events = {};
+  this.target = aTarget;
+  this.tab = aTarget.tab;
+  this.browser = this.tab.linkedBrowser;
+  this.chromeDoc = this.tab.ownerDocument;
+  this.chromeWin = this.chromeDoc.defaultView;
+  this.inspector = aInspector
+
+  new EventEmitter(this);
 
   this._init();
 }
 
 Highlighter.prototype = {
+  get selection() {
+    return this.inspector.selection;
+  },
+
   _init: function Highlighter__init()
   {
+    this.unlock = this.unlock.bind(this);
+    this.updateInfobar = this.updateInfobar.bind(this);
+    this.highlight = this.highlight.bind(this);
+
     let stack = this.browser.parentNode;
     this.win = this.browser.contentWindow;
     this._highlighting = false;
 
     this.highlighterContainer = this.chromeDoc.createElement("stack");
-    this.highlighterContainer.id = "highlighter-container";
+    this.highlighterContainer.className = "highlighter-container";
 
     this.outline = this.chromeDoc.createElement("box");
-    this.outline.id = "highlighter-outline";
+    this.outline.className = "highlighter-outline";
 
     let outlineContainer = this.chromeDoc.createElement("box");
     outlineContainer.appendChild(this.outline);
-    outlineContainer.id = "highlighter-outline-container";
+    outlineContainer.className = "highlighter-outline-container";
 
     // The controlsBox will host the different interactive
     // elements of the highlighter (buttons, toolbars, ...).
     let controlsBox = this.chromeDoc.createElement("box");
-    controlsBox.id = "highlighter-controls";
+    controlsBox.className = "highlighter-controls";
     this.highlighterContainer.appendChild(outlineContainer);
     this.highlighterContainer.appendChild(controlsBox);
 
@@ -158,8 +131,14 @@ Highlighter.prototype = {
 
     this.unlock();
 
+    this.selection.on("new-node", this.highlight);
+    this.selection.on("new-node", this.updateInfobar);
+    this.selection.on("detached", this.highlight);
+    this.selection.on("pseudoclass", this.updateInfobar);
+    this.selection.on("attribute-changed", this.updateInfobar);
+
     this.hidden = true;
-    this.show();
+    this.highlight();
   },
 
   /**
@@ -167,6 +146,15 @@ Highlighter.prototype = {
    */
   destroy: function Highlighter_destroy()
   {
+    this.inspectButton.removeEventListener("command", this.unlock);
+    this.inspectButton = null;
+
+    this.selection.off("new-node", this.highlight);
+    this.selection.off("new-node", this.updateInfobar);
+    this.selection.off("detached", this.highlight);
+    this.selection.off("pseudoclass", this.updateInfobar);
+    this.selection.off("attribute-changed", this.updateInfobar);
+
     this.detachMouseListeners();
     this.detachPageListeners();
 
@@ -177,7 +165,6 @@ Highlighter.prototype = {
     this._highlightRect = null;
     this._highlighting = false;
     this.outline = null;
-    this.node = null;
     this.nodeInfo = null;
     this.highlighterContainer.parentNode.removeChild(this.highlighterContainer);
     this.highlighterContainer = null;
@@ -187,90 +174,57 @@ Highlighter.prototype = {
     this.chromeWin = null;
     this.tabbrowser = null;
 
-    this.emitEvent("closed");
-    this.removeAllListeners();
+    this.emit("closed");
   },
 
   /**
    * Show the outline, and select a node.
-   * If no node is specified, the previous selected node is highlighted if any.
-   * If no node was selected, the root element is selected.
-   *
-   * @param aNode [optional] - The node to be selected.
-   * @param aScroll [optional] boolean
-   *        Should we scroll to ensure that the selected node is visible.
    */
-  highlight: function Highlighter_highlight(aNode, aScroll)
+  highlight: function Highlighter_highlight()
   {
-    if (this.hidden)
+    if (this.selection.reason != "highlighter") {
+      this.lock();
+    }
+
+    let canHighlightNode = this.selection.isNode() &&
+                          this.selection.isConnected() &&
+                          this.selection.isElementNode();
+
+    if (canHighlightNode) {
       this.show();
-
-    let oldNode = this.node;
-
-    if (!aNode) {
-      if (!this.node)
-        this.node = this.win.document.documentElement;
-    } else {
-      this.node = aNode;
-    }
-
-    if (oldNode !== this.node) {
       this.updateInfobar();
+      this.invalidateSize();
+      if (!this._highlighting &&
+          this.selection.reason != "highlighter") {
+        LayoutHelpers.scrollIntoViewIfNeeded(this.selection.node);
+      }
+    } else {
+      this.hide();
     }
-
-    this.invalidateSize(!!aScroll);
-
-    if (oldNode !== this.node) {
-      this.emitEvent("nodeselected");
-    }
-  },
-
-  /**
-   * Notify that a pseudo-class lock was toggled on the highlighted element
-   *
-   * @param aPseudo - The pseudo-class to toggle, e.g. ":hover".
-   */
-  pseudoClassLockToggled: function Highlighter_pseudoClassLockToggled(aPseudo)
-  {
-    this.emitEvent("pseudoclasstoggled", [aPseudo]);
-    this.updateInfobar();
-    this.moveInfobar();
   },
 
   /**
    * Update the highlighter size and position.
    */
-  invalidateSize: function Highlighter_invalidateSize(aScroll)
+  invalidateSize: function Highlighter_invalidateSize()
   {
-    let rect = null;
+    let canHiglightNode = this.selection.isNode() &&
+                          this.selection.isConnected() &&
+                          this.selection.isElementNode();
 
-    if (this.node && this.isNodeHighlightable(this.node)) {
+    if (!canHiglightNode)
+      return;
 
-      if (aScroll &&
-          this.node.scrollIntoView) { // XUL elements don't have such method
-        this.node.scrollIntoView();
-      }
-      let clientRect = this.node.getBoundingClientRect();
-      rect = LayoutHelpers.getDirtyRect(this.node);
-    }
-
+    let clientRect = this.selection.node.getBoundingClientRect();
+    let rect = LayoutHelpers.getDirtyRect(this.selection.node);
     this.highlightRectangle(rect);
 
     this.moveInfobar();
 
     if (this._highlighting) {
       this.showOutline();
-      this.emitEvent("highlighting");
+      this.emit("highlighting");
     }
-  },
-
-  /**
-   * Returns the selected node.
-   *
-   * @returns node
-   */
-  getNode: function() {
-    return this.node;
   },
 
   /**
@@ -315,7 +269,7 @@ Highlighter.prototype = {
     this.nodeInfo.container.setAttribute("locked", "true");
     this.detachMouseListeners();
     this.locked = true;
-    this.emitEvent("locked");
+    this.emit("locked");
   },
 
   /**
@@ -328,28 +282,12 @@ Highlighter.prototype = {
     this.nodeInfo.container.removeAttribute("locked");
     this.attachMouseListeners();
     this.locked = false;
-    this.showOutline();
-    this.emitEvent("unlocked");
-  },
-
-  /**
-   * Is the specified node highlightable?
-   *
-   * @param nsIDOMNode aNode
-   *        the DOM element in question
-   * @returns boolean
-   *          True if the node is highlightable or false otherwise.
-   */
-  isNodeHighlightable: function Highlighter_isNodeHighlightable(aNode)
-  {
-    if (!LayoutHelpers.isNodeConnected(aNode)) {
-      return false;
+    this.chromeWin.focus();
+    if (this.selection.isElementNode() &&
+        this.selection.isConnected()) {
+      this.showOutline();
     }
-    if (aNode.nodeType != aNode.ELEMENT_NODE) {
-      return false;
-    }
-    let nodeName = aNode.nodeName.toLowerCase();
-    return !INSPECTOR_INVISIBLE_ELEMENTS[nodeName];
+    this.emit("unlocked");
   },
 
   /**
@@ -387,19 +325,19 @@ Highlighter.prototype = {
   /**
    * Build the node Infobar.
    *
-   * <box id="highlighter-nodeinfobar-container">
-   *   <box id="Highlighter-nodeinfobar-arrow-top"/>
-   *   <hbox id="highlighter-nodeinfobar">
-   *     <toolbarbutton class="highlighter-nodeinfobar-button" id="highlighter-nodeinfobar-inspectbutton"/>
-   *     <hbox id="highlighter-nodeinfobar-text">
-   *       <xhtml:span id="highlighter-nodeinfobar-tagname"/>
-   *       <xhtml:span id="highlighter-nodeinfobar-id"/>
-   *       <xhtml:span id="highlighter-nodeinfobar-classes"/>
-   *       <xhtml:span id="highlighter-nodeinfobar-pseudo-classes"/>
+   * <box class="highlighter-nodeinfobar-container">
+   *   <box class="Highlighter-nodeinfobar-arrow-top"/>
+   *   <hbox class="highlighter-nodeinfobar">
+   *     <toolbarbutton class="highlighter-nodeinfobar-button highlighter-nodeinfobar-inspectbutton"/>
+   *     <hbox class="highlighter-nodeinfobar-text">
+   *       <xhtml:span class="highlighter-nodeinfobar-tagname"/>
+   *       <xhtml:span class="highlighter-nodeinfobar-id"/>
+   *       <xhtml:span class="highlighter-nodeinfobar-classes"/>
+   *       <xhtml:span class="highlighter-nodeinfobar-pseudo-classes"/>
    *     </hbox>
-   *     <toolbarbutton class="highlighter-nodeinfobar-button" id="highlighter-nodeinfobar-menu"/>
+   *     <toolbarbutton class="highlighter-nodeinfobar-button highlighter-nodeinfobar-menu"/>
    *   </hbox>
-   *   <box id="Highlighter-nodeinfobar-arrow-bottom"/>
+   *   <box class="Highlighter-nodeinfobar-arrow-bottom"/>
    * </box>
    *
    * @param nsIDOMElement aParent
@@ -408,90 +346,71 @@ Highlighter.prototype = {
   buildInfobar: function Highlighter_buildInfobar(aParent)
   {
     let container = this.chromeDoc.createElement("box");
-    container.id = "highlighter-nodeinfobar-container";
+    container.className = "highlighter-nodeinfobar-container";
     container.setAttribute("position", "top");
     container.setAttribute("disabled", "true");
 
     let nodeInfobar = this.chromeDoc.createElement("hbox");
-    nodeInfobar.id = "highlighter-nodeinfobar";
-
-    nodeInfobar.addEventListener("mousedown", function(aEvent) {
-      this.emitEvent("nodeselected");
-    }.bind(this), true);
+    nodeInfobar.className = "highlighter-nodeinfobar";
 
     let arrowBoxTop = this.chromeDoc.createElement("box");
-    arrowBoxTop.className = "highlighter-nodeinfobar-arrow";
-    arrowBoxTop.id = "highlighter-nodeinfobar-arrow-top";
+    arrowBoxTop.className = "highlighter-nodeinfobar-arrow highlighter-nodeinfobar-arrow-top";
 
     let arrowBoxBottom = this.chromeDoc.createElement("box");
-    arrowBoxBottom.className = "highlighter-nodeinfobar-arrow";
-    arrowBoxBottom.id = "highlighter-nodeinfobar-arrow-bottom";
+    arrowBoxBottom.className = "highlighter-nodeinfobar-arrow highlighter-nodeinfobar-arrow-bottom";
 
     let tagNameLabel = this.chromeDoc.createElementNS("http://www.w3.org/1999/xhtml", "span");
-    tagNameLabel.id = "highlighter-nodeinfobar-tagname";
+    tagNameLabel.className = "highlighter-nodeinfobar-tagname";
 
     let idLabel = this.chromeDoc.createElementNS("http://www.w3.org/1999/xhtml", "span");
-    idLabel.id = "highlighter-nodeinfobar-id";
+    idLabel.className = "highlighter-nodeinfobar-id";
 
     let classesBox = this.chromeDoc.createElementNS("http://www.w3.org/1999/xhtml", "span");
-    classesBox.id = "highlighter-nodeinfobar-classes";
+    classesBox.className = "highlighter-nodeinfobar-classes";
 
     let pseudoClassesBox = this.chromeDoc.createElementNS("http://www.w3.org/1999/xhtml", "span");
-    pseudoClassesBox.id = "highlighter-nodeinfobar-pseudo-classes";
+    pseudoClassesBox.className = "highlighter-nodeinfobar-pseudo-classes";
 
     // Add some content to force a better boundingClientRect down below.
     pseudoClassesBox.textContent = "&nbsp;";
 
     // Create buttons
 
-    let inspect = this.chromeDoc.createElement("toolbarbutton");
-    inspect.id = "highlighter-nodeinfobar-inspectbutton";
-    inspect.className = "highlighter-nodeinfobar-button"
-    let toolbarInspectButton =
-      this.chromeDoc.getElementById("inspector-inspect-toolbutton");
-    inspect.setAttribute("tooltiptext",
-                         toolbarInspectButton.getAttribute("tooltiptext"));
-    inspect.setAttribute("command", "Inspector:Inspect");
+    this.inspectButton = this.chromeDoc.createElement("toolbarbutton");
+    this.inspectButton.className = "highlighter-nodeinfobar-button highlighter-nodeinfobar-inspectbutton"
+    let toolbarInspectButton = this.inspector.panelDoc.getElementById("inspector-inspect-toolbutton");
+    this.inspectButton.setAttribute("tooltiptext", toolbarInspectButton.getAttribute("tooltiptext"));
+    this.inspectButton.addEventListener("command", this.unlock);
 
     let nodemenu = this.chromeDoc.createElement("toolbarbutton");
     nodemenu.setAttribute("type", "menu");
-    nodemenu.id = "highlighter-nodeinfobar-menu";
-    nodemenu.className = "highlighter-nodeinfobar-button"
+    nodemenu.className = "highlighter-nodeinfobar-button highlighter-nodeinfobar-menu"
     nodemenu.setAttribute("tooltiptext",
                           this.strings.GetStringFromName("nodeMenu.tooltiptext"));
 
-    let menu = this.chromeDoc.getElementById("inspector-node-popup");
-    menu = menu.cloneNode(true);
-    menu.id = "highlighter-node-menu";
+    nodemenu.onclick = function() {
+      this.inspector.showNodeMenu(nodemenu, "after_start");
+    }.bind(this);
 
-    let separator = this.chromeDoc.createElement("menuseparator");
-    menu.appendChild(separator);
-
-    menu.addEventListener("popupshowing", function() {
-      let items = menu.getElementsByClassName("highlighter-pseudo-class-menuitem");
-      let i = items.length;
-      while (i--) {
-        menu.removeChild(items[i]);
-      }
-
-      let fragment = this.buildPseudoClassMenu();
-      menu.appendChild(fragment);
-    }.bind(this), true);
-
-    nodemenu.appendChild(menu);
-
-    // <hbox id="highlighter-nodeinfobar-text"/>
+    // <hbox class="highlighter-nodeinfobar-text"/>
     let texthbox = this.chromeDoc.createElement("hbox");
-    texthbox.id = "highlighter-nodeinfobar-text";
+    texthbox.className = "highlighter-nodeinfobar-text";
     texthbox.setAttribute("align", "center");
     texthbox.setAttribute("flex", "1");
+
+    texthbox.addEventListener("mousedown", function(aEvent) {
+      // On click, show the node:
+      if (this.selection.isElementNode()) {
+        LayoutHelpers.scrollIntoViewIfNeeded(this.selection.node);
+      }
+    }.bind(this), true);
 
     texthbox.appendChild(tagNameLabel);
     texthbox.appendChild(idLabel);
     texthbox.appendChild(classesBox);
     texthbox.appendChild(pseudoClassesBox);
 
-    nodeInfobar.appendChild(inspect);
+    nodeInfobar.appendChild(this.inspectButton);
     nodeInfobar.appendChild(texthbox);
     nodeInfobar.appendChild(nodemenu);
 
@@ -511,30 +430,6 @@ Highlighter.prototype = {
       container: container,
       barHeight: barHeight,
     };
-  },
-
-  /**
-   * Create the menuitems for toggling the selection's pseudo-class state
-   *
-   * @returns DocumentFragment. The menuitems for toggling pseudo-classes.
-   */
-  buildPseudoClassMenu: function IUI_buildPseudoClassesMenu()
-  {
-    let fragment = this.chromeDoc.createDocumentFragment();
-    for (let i = 0; i < PSEUDO_CLASSES.length; i++) {
-      let pseudo = PSEUDO_CLASSES[i];
-      let item = this.chromeDoc.createElement("menuitem");
-      item.id = "highlighter-pseudo-class-menuitem-" + pseudo;
-      item.setAttribute("type", "checkbox");
-      item.setAttribute("label", pseudo);
-      item.className = "highlighter-pseudo-class-menuitem";
-      item.setAttribute("checked", DOMUtils.hasPseudoClassLock(this.node,
-                        pseudo));
-      item.addEventListener("command",
-                            this.pseudoClassLockToggled.bind(this, pseudo), false);
-      fragment.appendChild(item);
-    }
-    return fragment;
   },
 
   /**
@@ -599,21 +494,31 @@ Highlighter.prototype = {
    */
   updateInfobar: function Highlighter_updateInfobar()
   {
+    if (!this.selection.isElementNode()) {
+      this.nodeInfo.tagNameLabel.textContent = "";
+      this.nodeInfo.idLabel.textContent = "";
+      this.nodeInfo.classesBox.textContent = "";
+      this.nodeInfo.pseudoClassesBox.textContent = "";
+      return;
+    }
+
+    let node = this.selection.node;
+
     // Tag name
-    this.nodeInfo.tagNameLabel.textContent = this.node.tagName;
+    this.nodeInfo.tagNameLabel.textContent = node.tagName;
 
     // ID
-    this.nodeInfo.idLabel.textContent = this.node.id ? "#" + this.node.id : "";
+    this.nodeInfo.idLabel.textContent = node.id ? "#" + node.id : "";
 
     // Classes
     let classes = this.nodeInfo.classesBox;
 
-    classes.textContent = this.node.classList.length ?
-                            "." + Array.join(this.node.classList, ".") : "";
+    classes.textContent = node.classList.length ?
+                            "." + Array.join(node.classList, ".") : "";
 
     // Pseudo-classes
     let pseudos = PSEUDO_CLASSES.filter(function(pseudo) {
-      return DOMUtils.hasPseudoClassLock(this.node, pseudo);
+      return DOMUtils.hasPseudoClassLock(node, pseudo);
     }, this);
 
     let pseudoBox = this.nodeInfo.pseudoClassesBox;
@@ -695,46 +600,6 @@ Highlighter.prototype = {
       this.win.QueryInterface(Ci.nsIInterfaceRequestor)
       .getInterface(Ci.nsIDOMWindowUtils)
       .fullZoom;
-  },
-
-  /////////////////////////////////////////////////////////////////////////
-  //// Event Emitter Mechanism
-
-  addListener: function Highlighter_addListener(aEvent, aListener)
-  {
-    if (!(aEvent in this.events))
-      this.events[aEvent] = [];
-    this.events[aEvent].push(aListener);
-  },
-
-  removeListener: function Highlighter_removeListener(aEvent, aListener)
-  {
-    if (!(aEvent in this.events))
-      return;
-    let idx = this.events[aEvent].indexOf(aListener);
-    if (idx > -1)
-      this.events[aEvent].splice(idx, 1);
-  },
-
-  emitEvent: function Highlighter_emitEvent(aEvent, aArgv)
-  {
-    if (!(aEvent in this.events))
-      return;
-
-    let listeners = this.events[aEvent];
-    let highlighter = this;
-    listeners.forEach(function(aListener) {
-      try {
-        aListener.apply(highlighter, aArgv);
-      } catch(e) {}
-    });
-  },
-
-  removeAllListeners: function Highlighter_removeAllIsteners()
-  {
-    for (let event in this.events) {
-      delete this.events[event];
-    }
   },
 
   /////////////////////////////////////////////////////////////////////////
@@ -886,8 +751,8 @@ Highlighter.prototype = {
     if (doc && doc != this.chromeDoc) {
       let element = LayoutHelpers.getElementFromPoint(aEvent.target.ownerDocument,
         aEvent.clientX, aEvent.clientY);
-      if (element && element != this.node) {
-        this.highlight(element);
+      if (element && element != this.selection.node) {
+        this.selection.setNode(element, "highlighter");
       }
     }
   },

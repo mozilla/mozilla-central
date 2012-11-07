@@ -6,11 +6,11 @@
 let tempScope = {};
 Cu.import("resource:///modules/devtools/CssLogic.jsm", tempScope);
 Cu.import("resource:///modules/devtools/CssHtmlTree.jsm", tempScope);
-Cu.import("resource:///modules/HUDService.jsm", tempScope);
-let HUDService = tempScope.HUDService;
+Cu.import("resource:///modules/devtools/gDevTools.jsm", tempScope);
 let ConsoleUtils = tempScope.ConsoleUtils;
 let CssLogic = tempScope.CssLogic;
 let CssHtmlTree = tempScope.CssHtmlTree;
+let gDevTools = tempScope.gDevTools;
 
 function log(aMsg)
 {
@@ -135,12 +135,12 @@ function addStyle(aDocument, aString)
 
 function openConsole()
 {
-  HUDService.activateHUDForContext(tab);
+  gDevTools.openToolboxForTab(tab, "webconsole");
 }
 
 function closeConsole()
 {
-  HUDService.deactivateHUDForContext(tab);
+  gDevTools.closeToolbox(tab);
 }
 
 function finishTest()
@@ -151,7 +151,7 @@ function finishTest()
 function tearDown()
 {
   try {
-    HUDService.deactivateHUDForContext(gBrowser.selectedTab);
+    gDevTools.closeToolbox(gBrowser.selectedTab);
   }
   catch (ex) {
     log(ex);

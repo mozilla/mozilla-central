@@ -222,11 +222,8 @@ browser.jar:
   skin/classic/browser/devtools/background-noise-toolbar.png (devtools/background-noise-toolbar.png)
   skin/classic/browser/devtools/inspect-button.png          (devtools/inspect-button.png)
   skin/classic/browser/devtools/dropmarker.png              (devtools/dropmarker.png)
-  skin/classic/browser/devtools/treepanel-button.png        (devtools/treepanel-button.png)
-  skin/classic/browser/devtools/layout-background.png       (devtools/layout-background.png)
   skin/classic/browser/devtools/layout-background-grid.png  (devtools/layout-background-grid.png)
   skin/classic/browser/devtools/layoutview.css              (devtools/layoutview.css)
-  skin/classic/browser/devtools/layout-buttons.png          (devtools/layout-buttons.png)
   skin/classic/browser/devtools/debugger-collapse.png       (devtools/debugger-collapse.png)
   skin/classic/browser/devtools/debugger-expand.png         (devtools/debugger-expand.png)
   skin/classic/browser/devtools/debugger-pause.png          (devtools/debugger-pause.png)
@@ -238,7 +235,11 @@ browser.jar:
   skin/classic/browser/devtools/responsive-vertical-resizer.png (devtools/responsive-vertical-resizer.png)
   skin/classic/browser/devtools/responsive-background.png   (devtools/responsive-background.png)
   skin/classic/browser/devtools/tools-icons-small.png       (devtools/tools-icons-small.png)
+  skin/classic/browser/devtools/dock-bottom.png             (devtools/dock-bottom.png)
+  skin/classic/browser/devtools/dock-side.png               (devtools/dock-side.png)
+  skin/classic/browser/devtools/dock-window.png             (devtools/dock-window.png)
   skin/classic/browser/devtools/floating-scrollbars.css     (devtools/floating-scrollbars.css)
+* skin/classic/browser/devtools/inspector.css               (devtools/inspector.css)
 #ifdef MOZ_SERVICES_SYNC
   skin/classic/browser/sync-throbber.png
   skin/classic/browser/sync-16.png

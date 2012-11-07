@@ -48,6 +48,7 @@ let DebuggerController = {
       return;
     }
     this._isInitialized = true;
+
     window.removeEventListener("load", this._startupDebugger, true);
 
     DebuggerView.initialize(function() {
@@ -157,14 +158,17 @@ let DebuggerController = {
 
     client.connect(function(aType, aTraits) {
       client.listTabs(function(aResponse) {
+        function callback() {
+          window.dispatchEvent("Debugger:Connected");
+        }
+
         if (window._isChromeDebugger) {
           let dbg = aResponse.chromeDebugger;
-          this._startChromeDebugging(client, dbg);
+          this._startChromeDebugging(client, dbg, callback);
         } else {
           let tab = aResponse.tabs[aResponse.selected];
-          this._startDebuggingTab(client, tab);
+          this._startDebuggingTab(client, tab, callback);
         }
-        window.dispatchEvent("Debugger:Connected");
       }.bind(this));
     }.bind(this));
   },
@@ -211,7 +215,8 @@ let DebuggerController = {
    * @param object aTabGrip
    *        The remote protocol grip of the tab.
    */
-  _startDebuggingTab: function DC__startDebuggingTab(aClient, aTabGrip) {
+  _startDebuggingTab: function DC__startDebuggingTab
+      (aClient, aTabGrip, aCallback=function(){}) {
     if (!aClient) {
       Cu.reportError("No client found!");
       return;
@@ -237,6 +242,7 @@ let DebuggerController = {
         this.SourceScripts.connect();
         aThreadClient.resume();
 
+        aCallback();
       }.bind(this));
     }.bind(this));
   },
@@ -249,7 +255,8 @@ let DebuggerController = {
    * @param object aChromeDebugger
    *        The remote protocol grip of the chrome debugger.
    */
-  _startChromeDebugging: function DC__startChromeDebugging(aClient, aChromeDebugger) {
+  _startChromeDebugging: function DC__startChromeDebugging
+      (aClient, aChromeDebugger, aCallback=function(){}) {
     if (!aClient) {
       Cu.reportError("No client found!");
       return;
@@ -268,6 +275,7 @@ let DebuggerController = {
       this.SourceScripts.connect();
       aThreadClient.resume();
 
+      aCallback();
     }.bind(this));
   },
 

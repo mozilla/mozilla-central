@@ -9,6 +9,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/devtools/gDevTools.jsm");
 Cu.import("resource:///modules/devtools/FloatingScrollbars.jsm");
 Cu.import("resource:///modules/devtools/EventEmitter.jsm");
 
@@ -161,7 +162,7 @@ function ResponsiveUI(aWindow, aTab)
   this.buildUI();
   this.checkMenus();
 
-  this.inspectorWasOpen = this.mainWindow.InspectorUI.isInspectorOpen;
+  this.toolboxWasOpen = !!gDevTools.getToolboxForTarget(this.tab);
 
   try {
     if (Services.prefs.getBoolPref("devtools.responsiveUI.rotate")) {
@@ -241,12 +242,12 @@ ResponsiveUI.prototype = {
     if (aEvent.keyCode == this.mainWindow.KeyEvent.DOM_VK_ESCAPE &&
         this.mainWindow.gBrowser.selectedBrowser == this.browser) {
 
-      // If the inspector wasn't open at first but is open now,
+      // If the toolbox wasn't open at first but is open now,
       // we don't want to close the Responsive Mode on Escape.
-      // We let the inspector close first.
+      // We let the toolbox close first.
 
-      let isInspectorOpen = this.mainWindow.InspectorUI.isInspectorOpen;
-      if (this.inspectorWasOpen || !isInspectorOpen) {
+      let isToolboxOpen =  !!gDevTools.getToolboxForTarget(this.tab);
+      if (this.toolboxWasOpen || !isToolboxOpen) {
         aEvent.preventDefault();
         aEvent.stopPropagation();
         this.close();

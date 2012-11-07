@@ -32,7 +32,7 @@ function createDocument()
       div2.textContent = 'nested div';
       iframe2.contentDocument.body.appendChild(div2);
 
-      setupIframeTests();
+      openInspector(runIframeTests);
     }, false);
 
     iframe2.src = 'data:text/html,nested iframe';
@@ -49,43 +49,29 @@ function moveMouseOver(aElement)
     aElement.ownerDocument.defaultView);
 }
 
-function setupIframeTests()
-{
-  Services.obs.addObserver(runIframeTests,
-    InspectorUI.INSPECTOR_NOTIFICATIONS.OPENED, false);
-  InspectorUI.openInspectorUI();
-}
-
 function runIframeTests()
 {
-  Services.obs.removeObserver(runIframeTests,
-    InspectorUI.INSPECTOR_NOTIFICATIONS.OPENED, false);
-
-
-  executeSoon(function() {
-    InspectorUI.highlighter.addListener("nodeselected", performTestComparisons1);
-    moveMouseOver(div1)
-  });
+  getActiveInspector().selection.once("new-node", performTestComparisons1);
+  moveMouseOver(div1)
 }
 
 function performTestComparisons1()
 {
-  InspectorUI.highlighter.removeListener("nodeselected", performTestComparisons1);
-
-  is(InspectorUI.selection, div1, "selection matches div1 node");
+  let i = getActiveInspector();
+  is(i.selection.node, div1, "selection matches div1 node");
   is(getHighlitNode(), div1, "highlighter matches selection");
 
+  i.selection.once("new-node", performTestComparisons2);
   executeSoon(function() {
-    InspectorUI.highlighter.addListener("nodeselected", performTestComparisons2);
     moveMouseOver(div2);
   });
 }
 
 function performTestComparisons2()
 {
-  InspectorUI.highlighter.removeListener("nodeselected", performTestComparisons2);
+  let i = getActiveInspector();
 
-  is(InspectorUI.selection, div2, "selection matches div2 node");
+  is(i.selection.node, div2, "selection matches div2 node");
   is(getHighlitNode(), div2, "highlighter matches selection");
 
   finish();
@@ -105,7 +91,7 @@ function test() {
   content.location = "data:text/html,iframe tests for inspector";
 
   registerCleanupFunction(function () {
-    InspectorUI.closeInspectorUI(true);
+    gDevTools.closeToolbox(gBrowser.selectedTab);
     gBrowser.removeCurrentTab();
   });
 }

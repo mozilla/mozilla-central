@@ -14,22 +14,42 @@ Services.scriptloader.loadSubScript(testDir + "/helpers.js", this);
 // Clear preferences that may be set during the course of tests.
 function clearUserPrefs()
 {
-  Services.prefs.clearUserPref("devtools.inspector.htmlPanelOpen");
   Services.prefs.clearUserPref("devtools.inspector.sidebarOpen");
   Services.prefs.clearUserPref("devtools.inspector.activeSidebar");
 }
 
 registerCleanupFunction(clearUserPrefs);
 
+function openInspector(callback)
+{
+  let tab = gBrowser.selectedTab;
+  let inspector = gDevTools.getPanelForTarget("inspector", tab);
+  if (inspector && inspector.isReady) {
+    callback(inspector);
+  } else {
+    let toolbox = gDevTools.openToolForTab("inspector", tab);
+    toolbox.once("inspector-ready", function(event, panel) {
+      let inspector = gDevTools.getPanelForTarget("inspector", tab);
+      callback(inspector);
+    });
+  }
+}
+
+function getActiveInspector()
+{
+  let tab = gBrowser.selectedTab;
+  return gDevTools.getPanelForTarget("inspector", tab);
+}
+
 function isHighlighting()
 {
-  let outline = InspectorUI.highlighter.outline;
+  let outline = getActiveInspector().highlighter.outline;
   return !(outline.getAttribute("hidden") == "true");
 }
 
 function getHighlitNode()
 {
-  let h = InspectorUI.highlighter;
+  let h = getActiveInspector().highlighter;
   if (!isHighlighting() || !h._contentRect)
     return null;
 
@@ -59,6 +79,7 @@ function midPoint(aPointA, aPointB)
   return pointC;
 }
 
+/* FIXME
 function computedView()
 {
   return InspectorUI.sidebar._toolContext("computedview");
@@ -73,6 +94,8 @@ function ruleView()
 {
   return InspectorUI.sidebar._toolContext("ruleview").view;
 }
+*/
+
 function synthesizeKeyFromKeyTag(aKeyId) {
   let key = document.getElementById(aKeyId);
   isnot(key, null, "Successfully retrieved the <key> node");

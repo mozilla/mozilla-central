@@ -118,13 +118,15 @@ UpdateProcess.prototype = {
  */
 this.CssHtmlTree = function CssHtmlTree(aStyleInspector)
 {
-  this.styleWin = aStyleInspector.iframe;
+  this.styleWindow = aStyleInspector.window;
+  this.styleDocument = aStyleInspector.window.document;
   this.styleInspector = aStyleInspector;
   this.cssLogic = aStyleInspector.cssLogic;
-  this.doc = aStyleInspector.document;
-  this.win = aStyleInspector.window;
-  this.getRTLAttr = this.win.getComputedStyle(this.win.gBrowser).direction;
   this.propertyViews = [];
+
+  let chromeReg = Cc["@mozilla.org/chrome/chrome-registry;1"].
+    getService(Ci.nsIXULChromeRegistry);
+  this.getRTLAttr = chromeReg.isLocaleRTL("global") ? "rtl" : "ltr";
 
   // Create bound methods.
   this.siBoundMenuUpdate = this.computedViewMenuUpdate.bind(this);
@@ -132,9 +134,6 @@ this.CssHtmlTree = function CssHtmlTree(aStyleInspector)
   this.siBoundCopyDeclaration = this.computedViewCopyDeclaration.bind(this);
   this.siBoundCopyProperty = this.computedViewCopyProperty.bind(this);
   this.siBoundCopyPropertyValue = this.computedViewCopyPropertyValue.bind(this);
-
-  // The document in which we display the results (csshtmltree.xul).
-  this.styleDocument = this.styleWin.contentWindow.document;
 
   this.styleDocument.addEventListener("copy", this.siBoundCopy);
 
@@ -266,8 +265,8 @@ CssHtmlTree.prototype = {
       // processed.
       this.refreshSourceFilter();
       this.numVisibleProperties = 0;
-      let fragment = this.doc.createDocumentFragment();
-      this._refreshProcess = new UpdateProcess(this.win, CssHtmlTree.propertyNames, {
+      let fragment = this.styleDocument.createDocumentFragment();
+      this._refreshProcess = new UpdateProcess(this.styleWindow, CssHtmlTree.propertyNames, {
         onItem: function(aPropertyName) {
           // Per-item callback.
           let propView = new PropertyView(this, aPropertyName);
@@ -327,7 +326,7 @@ CssHtmlTree.prototype = {
     this._darkStripe = true;
 
     let display = this.propertyContainer.style.display;
-    this._refreshProcess = new UpdateProcess(this.win, this.propertyViews, {
+    this._refreshProcess = new UpdateProcess(this.styleWindow, this.propertyViews, {
       onItem: function(aPropView) {
         aPropView.refresh();
       }.bind(this),
@@ -347,7 +346,7 @@ CssHtmlTree.prototype = {
    */
   filterChanged: function CssHtmlTree_filterChanged(aEvent)
   {
-    let win = this.styleWin.contentWindow;
+    let win = this.styleWindow;
 
     if (this._filterChangedTimeout) {
       win.clearTimeout(this._filterChangedTimeout);
@@ -397,7 +396,7 @@ CssHtmlTree.prototype = {
 
     // Here we build and cache a list of css properties supported by the browser
     // We could use any element but let's use the main document's root element
-    let styles = this.styleWin.contentWindow.getComputedStyle(this.styleDocument.documentElement);
+    let styles = this.styleWindow.getComputedStyle(this.styleDocument.documentElement);
     let mozProps = [];
     for (let i = 0, numStyles = styles.length; i < numStyles; i++) {
       let prop = styles.item(i);
@@ -468,9 +467,12 @@ CssHtmlTree.prototype = {
    */
   createContextMenu: function SI_createContextMenu()
   {
-    let popupSet = this.doc.getElementById("mainPopupSet");
+    let iframe = this.styleInspector.outerIFrame;
+    let outerDoc = iframe.ownerDocument;
 
-    let menu = this.doc.createElement("menupopup");
+    let popupSet = outerDoc.getElementById("inspectorPopupSet");
+
+    let menu = outerDoc.createElement("menupopup");
     menu.addEventListener("popupshowing", this.siBoundMenuUpdate);
     menu.id = "computed-view-context-menu";
     popupSet.appendChild(menu);
@@ -478,7 +480,7 @@ CssHtmlTree.prototype = {
     // Copy selection
     let label = CssHtmlTree.l10n("style.contextmenu.copyselection");
     let accessKey = CssHtmlTree.l10n("style.contextmenu.copyselection.accesskey");
-    let item = this.doc.createElement("menuitem");
+    let item = outerDoc.createElement("menuitem");
     item.id = "computed-view-copy";
     item.setAttribute("label", label);
     item.setAttribute("accesskey", accessKey);
@@ -488,7 +490,7 @@ CssHtmlTree.prototype = {
     // Copy declaration
     label = CssHtmlTree.l10n("style.contextmenu.copydeclaration");
     accessKey = CssHtmlTree.l10n("style.contextmenu.copydeclaration.accesskey");
-    item = this.doc.createElement("menuitem");
+    item = outerDoc.createElement("menuitem");
     item.id = "computed-view-copy-declaration";
     item.setAttribute("label", label);
     item.setAttribute("accesskey", accessKey);
@@ -498,7 +500,7 @@ CssHtmlTree.prototype = {
     // Copy property name
     label = CssHtmlTree.l10n("style.contextmenu.copyproperty");
     accessKey = CssHtmlTree.l10n("style.contextmenu.copyproperty.accesskey");
-    item = this.doc.createElement("menuitem");
+    item = outerDoc.createElement("menuitem");
     item.id = "computed-view-copy-property";
     item.setAttribute("label", label);
     item.setAttribute("accesskey", accessKey);
@@ -508,14 +510,14 @@ CssHtmlTree.prototype = {
     // Copy property value
     label = CssHtmlTree.l10n("style.contextmenu.copypropertyvalue");
     accessKey = CssHtmlTree.l10n("style.contextmenu.copypropertyvalue.accesskey");
-    item = this.doc.createElement("menuitem");
+    item = outerDoc.createElement("menuitem");
     item.id = "computed-view-copy-property-value";
     item.setAttribute("label", label);
     item.setAttribute("accesskey", accessKey);
     item.addEventListener("command", this.siBoundCopyPropertyValue);
     menu.appendChild(item);
 
-    this.styleWin.setAttribute("context", menu.id);
+    iframe.setAttribute("context", menu.id);
   },
 
   /**
@@ -524,12 +526,13 @@ CssHtmlTree.prototype = {
    */
   computedViewMenuUpdate: function si_computedViewMenuUpdate()
   {
-    let win = this.styleDocument.defaultView;
-    let disable = win.getSelection().isCollapsed;
-    let menuitem = this.doc.querySelector("#computed-view-copy");
+    let disable = this.styleWindow.getSelection().isCollapsed;
+
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    let menuitem = outerDoc.querySelector("#computed-view-copy");
     menuitem.disabled = disable;
 
-    let node = this.doc.popupNode;
+    let node = outerDoc.popupNode;
     if (!node) {
       return;
     }
@@ -542,11 +545,11 @@ CssHtmlTree.prototype = {
       }
     }
     let disablePropertyItems = !node;
-    menuitem = this.doc.querySelector("#computed-view-copy-declaration");
+    menuitem = outerDoc.querySelector("#computed-view-copy-declaration");
     menuitem.disabled = disablePropertyItems;
-    menuitem = this.doc.querySelector("#computed-view-copy-property");
+    menuitem = outerDoc.querySelector("#computed-view-copy-property");
     menuitem.disabled = disablePropertyItems;
-    menuitem = this.doc.querySelector("#computed-view-copy-property-value");
+    menuitem = outerDoc.querySelector("#computed-view-copy-property-value");
     menuitem.disabled = disablePropertyItems;
   },
 
@@ -566,7 +569,8 @@ CssHtmlTree.prototype = {
 
     // Remove any MDN link titles
     text = text.replace(CssHtmlTree.HELP_LINK_TITLE, "");
-    clipboardHelper.copyString(text, this.doc);
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    clipboardHelper.copyString(text, outerDoc);
 
     if (aEvent) {
       aEvent.preventDefault();
@@ -580,7 +584,8 @@ CssHtmlTree.prototype = {
    */
   computedViewCopyDeclaration: function si_computedViewCopyDeclaration(aEvent)
   {
-    let node = this.doc.popupNode;
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    let node = outerDoc.popupNode;
     if (!node) {
       return;
     }
@@ -596,7 +601,7 @@ CssHtmlTree.prototype = {
       let name = node.querySelector(".property-name").textContent;
       let value = node.querySelector(".property-value").textContent;
 
-      clipboardHelper.copyString(name + ": " + value + ";", this.doc);
+      clipboardHelper.copyString(name + ": " + value + ";", outerDoc);
     }
   },
 
@@ -607,7 +612,8 @@ CssHtmlTree.prototype = {
    */
   computedViewCopyProperty: function si_computedViewCopyProperty(aEvent)
   {
-    let node = this.doc.popupNode;
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    let node = outerDoc.popupNode;
     if (!node) {
       return;
     }
@@ -621,7 +627,7 @@ CssHtmlTree.prototype = {
     }
     if (node) {
       node = node.querySelector(".property-name");
-      clipboardHelper.copyString(node.textContent, this.doc);
+      clipboardHelper.copyString(node.textContent, outerDoc);
     }
   },
 
@@ -632,7 +638,8 @@ CssHtmlTree.prototype = {
    */
   computedViewCopyPropertyValue: function si_computedViewCopyPropertyValue(aEvent)
   {
-    let node = this.doc.popupNode;
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    let node = outerDoc.popupNode;
     if (!node) {
       return;
     }
@@ -646,7 +653,7 @@ CssHtmlTree.prototype = {
     }
     if (node) {
       node = node.querySelector(".property-value");
-      clipboardHelper.copyString(node.textContent, this.doc);
+      clipboardHelper.copyString(node.textContent, outerDoc);
     }
   },
 
@@ -668,22 +675,23 @@ CssHtmlTree.prototype = {
     }
 
     // Remove context menu
-    let menu = this.doc.querySelector("#computed-view-context-menu");
+    let outerDoc = this.styleInspector.outerIFrame.ownerDocument;
+    let menu = outerDoc.querySelector("#computed-view-context-menu");
     if (menu) {
       // Copy selected
-      let menuitem = this.doc.querySelector("#computed-view-copy");
+      let menuitem = outerDoc.querySelector("#computed-view-copy");
       menuitem.removeEventListener("command", this.siBoundCopy);
 
       // Copy property
-      menuitem = this.doc.querySelector("#computed-view-copy-declaration");
+      menuitem = outerDoc.querySelector("#computed-view-copy-declaration");
       menuitem.removeEventListener("command", this.siBoundCopyDeclaration);
 
       // Copy property name
-      menuitem = this.doc.querySelector("#computed-view-copy-property");
+      menuitem = outerDoc.querySelector("#computed-view-copy-property");
       menuitem.removeEventListener("command", this.siBoundCopyProperty);
 
       // Copy property value
-      menuitem = this.doc.querySelector("#computed-view-copy-property-value");
+      menuitem = outerDoc.querySelector("#computed-view-copy-property-value");
       menuitem.removeEventListener("command", this.siBoundCopyPropertyValue);
 
       menu.removeEventListener("popupshowing", this.siBoundMenuUpdate);
@@ -703,10 +711,9 @@ CssHtmlTree.prototype = {
 
     // The element that we're inspecting, and the document that it comes from.
     delete this.propertyViews;
-    delete this.styleWin;
+    delete this.styleWindow;
+    delete this.styleDocument;
     delete this.cssLogic;
-    delete this.doc;
-    delete this.win;
     delete this.styleInspector;
   },
 };
@@ -862,7 +869,7 @@ PropertyView.prototype = {
 
   buildMain: function PropertyView_buildMain()
   {
-    let doc = this.tree.doc;
+    let doc = this.tree.styleDocument;
     this.element = doc.createElementNS(HTML_NS, "tr");
     this.element.setAttribute("class", this.propertyHeaderClassName);
 
@@ -917,7 +924,7 @@ PropertyView.prototype = {
 
   buildSelectorContainer: function PropertyView_buildSelectorContainer()
   {
-    let doc = this.tree.doc;
+    let doc = this.tree.styleDocument;
     let element = doc.createElementNS(HTML_NS, "tr");
     element.setAttribute("class", this.propertyContentClassName);
     this.matchedSelectorsContainer = doc.createElementNS(HTML_NS, "td");

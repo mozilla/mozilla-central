@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/shared/common.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/devtools/framework/toolbox.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://browser/content/source-editor-overlay.xul"?>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <notificationbox id="toolbox-notificationbox" flex="1">
+    <toolbar class="devtools-tabbar">
+      <radiogroup id="toolbox-tabs" orient="horizontal">
+      </radiogroup>
+      <hbox flex="1" pack="end">
+        <hbox id="toolbox-buttons"/>
+        <toolbarbutton checked="true" id="toolbox-dock-bottom" class="toolbox-dock-button"
+                       data-position="bottom"></toolbarbutton>
+        <toolbarbutton id="toolbox-dock-side" class="toolbox-dock-button"
+                       data-position="side"></toolbarbutton>
+        <toolbarbutton id="toolbox-dock-window" class="toolbox-dock-button"
+                       data-position="window"></toolbarbutton>
+        <toolbarbutton id="toolbox-close" class="devtools-closebutton"></toolbarbutton>
+      </hbox>
+    </toolbar>
+    <deck id="toolbox-deck" flex="1">
+    </deck>
+  </notificationbox>
+</window>

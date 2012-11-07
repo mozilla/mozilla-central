@@ -22,6 +22,7 @@
         width="800" height="280"
         persist="screenX screenY width height sizemode">
 <xul:script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+<xul:script type="application/javascript" src="StyleEditorPanel.js"/>
 
 <xul:popupset id="style-editor-popups">
   <xul:menupopup id="sourceEditorContextMenu"
@@ -44,17 +45,8 @@
 
 <xul:commandset id="editMenuCommands"/>
 <xul:commandset id="sourceEditorCommands"/>
-<xul:commandset id="style-editor-commandset">
-  <xul:command id="style-editor-cmd-close" oncommand="window.close();"/>
-</xul:commandset>
 
 <xul:keyset id="sourceEditorKeys"/>
-<xul:keyset id="style-editor-keyset">
-  <xul:key id="style-editor-key-close"
-           key="&closeCmd.key;"
-           command="style-editor-cmd-close"
-           modifiers="accel"/>
-</xul:keyset>
 
 <xul:box id="style-editor-chrome" class="splitview-root loading">
   <xul:box class="splitview-controller">
@@ -119,14 +111,4 @@
     </xul:box>
   </div> <!-- #splitview-templates -->
 </xul:box>   <!-- .splitview-root -->
-
-<xul:script type="application/javascript"><![CDATA[
-Components.utils.import("resource:///modules/devtools/StyleEditorChrome.jsm");
-let chromeRoot = document.getElementById("style-editor-chrome");
-let args = window.arguments[0].wrappedJSObject;
-let contentWindow = args.contentWindow;
-let chrome = new StyleEditorChrome(chromeRoot, contentWindow);
-chrome.selectStyleSheet(args.selectedStyleSheet, args.line, args.col);
-window.styleEditorChrome = chrome;
-]]></xul:script>
 </xul:window>

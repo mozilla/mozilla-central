@@ -8,6 +8,9 @@ Cu.import("resource:///modules/HUDService.jsm", tempScope);
 let HUDService = tempScope.HUDService;
 Cu.import("resource://gre/modules/devtools/WebConsoleUtils.jsm", tempScope);
 let WebConsoleUtils = tempScope.WebConsoleUtils;
+Cu.import("resource:///modules/devtools/gDevTools.jsm", tempScope);
+let gDevTools = tempScope.gDevTools;
+
 const WEBCONSOLE_STRINGS_URI = "chrome://browser/locale/devtools/webconsole.properties";
 let WCU_l10n = new WebConsoleUtils.l10n(WEBCONSOLE_STRINGS_URI);
 
@@ -149,7 +152,7 @@ function openConsole(aTab, aCallback)
     Services.obs.addObserver(onWebConsoleOpen, "web-console-created", false);
   }
 
-  HUDService.activateHUDForContext(aTab || tab);
+  gDevTools.openToolboxForTab(aTab || tab, "webconsole");
 }
 
 /**
@@ -178,7 +181,14 @@ function closeConsole(aTab, aCallback)
     Services.obs.addObserver(onWebConsoleClose, "web-console-destroyed", false);
   }
 
-  HUDService.deactivateHUDForContext(aTab || tab);
+  let toolbox = gDevTools.getToolboxes().get(aTab || tab);
+  if (toolbox == null) {
+    // FIXME: fixing tests, but we should check if this is right
+    todo('No toolbox for tab');
+  }
+  else {
+    toolbox.destroy();
+  }
 }
 
 /**
@@ -250,7 +260,7 @@ function finishTest()
 
 function tearDown()
 {
-  HUDService.deactivateHUDForContext(gBrowser.selectedTab);
+  gDevTools.closeToolbox(gBrowser.selectedTab);
   while (gBrowser.tabs.length > 1) {
     gBrowser.removeCurrentTab();
   }

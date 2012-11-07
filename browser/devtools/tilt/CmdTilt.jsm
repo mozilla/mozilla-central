@@ -43,12 +43,6 @@ gcli.addCommand({
     if (Tilt.currentInstance) {
       Tilt.update(args.node);
     } else {
-      let hudId = chromeWindow.HUDConsoleUI.getOpenHUD();
-      let hud = HUDService.getHudReferenceById(hudId);
-
-      if (hud && !hud.consolePanel) {
-        HUDService.deactivateHUDForContext(chromeWindow.gBrowser.selectedTab);
-      }
       InspectorUI.openInspectorUI(args.node);
       Tilt.initialize();
     }

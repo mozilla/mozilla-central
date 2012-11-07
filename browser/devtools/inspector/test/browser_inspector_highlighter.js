@@ -48,56 +48,45 @@ function createDocument()
   doc.body.appendChild(div2);
   doc.body.appendChild(div3);
 
-  setupHighlighterTests();
+  openInspector(setupHighlighterTests);
 }
 
 function setupHighlighterTests()
 {
   h1 = doc.querySelector("h1");
   ok(h1, "we have the header");
-  Services.obs.addObserver(runSelectionTests,
-    InspectorUI.INSPECTOR_NOTIFICATIONS.OPENED, false);
-  InspectorUI.toggleInspectorUI();
-}
 
-function runSelectionTests(subject)
-{
-  Services.obs.removeObserver(runSelectionTests,
-    InspectorUI.INSPECTOR_NOTIFICATIONS.OPENED, false);
-
-  is(subject.wrappedJSObject, InspectorUI,
-     "InspectorUI accessible in the observer");
-
-  InspectorUI.highlighter.outline.setAttribute("disable-transitions", "true");
+  let i = getActiveInspector();
+  i.highlighter.unlock();
+  i.highlighter.outline.setAttribute("disable-transitions", "true");
 
   executeSoon(function() {
-    InspectorUI.highlighter.addListener("nodeselected", performTestComparisons);
+    i.selection.once("new-node", performTestComparisons);
     EventUtils.synthesizeMouse(h1, 2, 2, {type: "mousemove"}, content);
   });
 }
 
 function performTestComparisons(evt)
 {
-  InspectorUI.highlighter.removeListener("nodeselected", performTestComparisons);
-
-  InspectorUI.stopInspecting();
+  let i = getActiveInspector();
+  i.highlighter.lock();
   ok(isHighlighting(), "highlighter is highlighting");
   is(getHighlitNode(), h1, "highlighter matches selection")
-  is(InspectorUI.selection, h1, "selection matches node");
-  is(InspectorUI.selection, getHighlitNode(), "selection matches highlighter");
+  is(i.selection.node, h1, "selection matches node");
+  is(i.selection.node, getHighlitNode(), "selection matches highlighter");
 
 
   div = doc.querySelector("div#checkOutThisWickedSpread");
 
   executeSoon(function() {
-    InspectorUI.highlighter.addListener("nodeselected", finishTestComparisons);
-    InspectorUI.inspectNode(div);
+    i.selection.once("new-node", finishTestComparisons);
+    i.selection.setNode(div);
   });
 }
 
 function finishTestComparisons()
 {
-  InspectorUI.highlighter.removeListener("nodeselected", finishTestComparisons);
+  let i = getActiveInspector();
 
   // get dimensions of div element
   let divDims = div.getBoundingClientRect();
@@ -105,8 +94,7 @@ function finishTestComparisons()
   let divHeight = divDims.height;
 
   // get dimensions of the outline
-  let outlineDims = 
-    InspectorUI.highlighter.outline.getBoundingClientRect();
+  let outlineDims = i.highlighter.outline.getBoundingClientRect();
   let outlineWidth = outlineDims.width;
   let outlineHeight = outlineDims.height;
 
@@ -115,7 +103,7 @@ function finishTestComparisons()
   //is(outlineHeight, divHeight, "outline height matches dimensions of element (no zoom)");
 
   // zoom the page by a factor of 2
-  let contentViewer = InspectorUI.browser.docShell.contentViewer
+  let contentViewer = gBrowser.selectedBrowser.docShell.contentViewer
                              .QueryInterface(Ci.nsIMarkupDocumentViewer);
   contentViewer.fullZoom = 2;
 
@@ -124,7 +112,7 @@ function finishTestComparisons()
 
   window.setTimeout(function() {
     // check what zoom factor we're at, should be 2
-    let zoom = InspectorUI.highlighter.zoom;
+    let zoom = i.highlighter.zoom;
     is(zoom, 2, "zoom is 2?");
 
     // simulate the zoomed dimensions of the div element
@@ -133,8 +121,7 @@ function finishTestComparisons()
     let divHeight = divDims.height * zoom;
 
     // now zoomed, get new dimensions the outline
-    let outlineDims = 
-      InspectorUI.highlighter.outline.getBoundingClientRect();
+    let outlineDims = i.highlighter.outline.getBoundingClientRect();
     let outlineWidth = outlineDims.width;
     let outlineHeight = outlineDims.height;
 
@@ -148,7 +135,7 @@ function finishTestComparisons()
 }
 
 function finishUp() {
-  InspectorUI.closeInspectorUI();
+  gDevTools.closeToolbox(gBrowser.selectedTab);
   gBrowser.removeCurrentTab();
   finish();
 }

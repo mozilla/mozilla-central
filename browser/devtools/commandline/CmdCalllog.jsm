@@ -9,8 +9,8 @@ this.EXPORTED_SYMBOLS = [ ];
 Cu.import("resource:///modules/devtools/gcli.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, "HUDService",
-                                  "resource:///modules/HUDService.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "gDevTools",
+                                  "resource:///modules/devtools/gDevTools.jsm");
 
 XPCOMUtils.defineLazyGetter(this, "Debugger", function() {
   let JsDebugger = {};
@@ -51,7 +51,7 @@ gcli.addCommand({
     debuggers.push(dbg);
 
     let tab = context.environment.chromeDocument.defaultView.gBrowser.selectedTab;
-    HUDService.activateHUDForContext(tab);
+    gDevTools.openToolboxForTab(tab, "webconsole");
 
     return gcli.lookup("calllogStartReply");
   },

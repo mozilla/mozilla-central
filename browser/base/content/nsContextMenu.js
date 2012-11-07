@@ -412,11 +412,17 @@ nsContextMenu.prototype = {
   },
 
   inspectNode: function CM_inspectNode() {
-    if (InspectorUI.isTreePanelOpen) {
-      InspectorUI.inspectNode(this.target);
-      InspectorUI.stopInspecting();
+    let gBrowser = this.browser.ownerDocument.defaultView.gBrowser;
+    let tab = gBrowser.selectedTab;
+    let inspector = gDevTools.getPanelForTarget("inspector", tab);
+    if (inspector && inspector.isReady) {
+      inspector.selection.setNode(this.target);
     } else {
-      InspectorUI.openInspectorUI(this.target);
+      let toolbox = gDevTools.openToolboxForTab(tab, "inspector");
+      toolbox.once("inspector-ready", function(event, panel) {
+        let inspector = gDevTools.getPanelForTarget("inspector", tab);
+        inspector.selection.setNode(this.target, "browser-context-menu");
+      }.bind(this));
     }
   },
 

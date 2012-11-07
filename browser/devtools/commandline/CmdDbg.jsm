@@ -7,6 +7,7 @@ const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 this.EXPORTED_SYMBOLS = [ ];
 
 Cu.import("resource:///modules/devtools/gcli.jsm");
+Cu.import("resource:///modules/devtools/gDevTools.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
@@ -28,17 +29,8 @@ gcli.addCommand({
   exec: function (args, context) {
     let win = context.environment.chromeDocument.defaultView;
     let tab = win.gBrowser.selectedTab;
-    let dbg = win.DebuggerUI.findDebugger();
 
-    if (dbg) {
-      if (dbg.ownerTab !== tab) {
-        win.DebuggerUI.toggleDebugger();
-      }
-
-      return;
-    }
-
-    win.DebuggerUI.toggleDebugger();
+    gDevTools.openToolboxForTab(tab, "jsdebugger");
   }
 });
 
@@ -52,10 +44,10 @@ gcli.addCommand({
   exec: function (args, context) {
     let win = context.environment.chromeDocument.defaultView;
     let tab = win.gBrowser.selectedTab;
-    let dbg = win.DebuggerUI.findDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", tab);
 
-    if (dbg) {
-      dbg.close();
+    if (dbg /* FIXME: and debugger panel is currently active */) {
+      gDevTools.closeToolbox(tab);
     }
   }
 });
@@ -69,10 +61,10 @@ gcli.addCommand({
   params: [],
   exec: function(args, context) {
     let win = context.environment.chromeDocument.defaultView;
-    let dbg = win.DebuggerUI.getDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", win.gBrowser.selectedTab);
 
     if (dbg) {
-      let controller = dbg.contentWindow.DebuggerController;
+      let controller = dbg._controller;
       let thread = controller.activeThread;
       if (!thread.paused) {
         thread.interrupt();
@@ -90,10 +82,10 @@ gcli.addCommand({
   params: [],
   exec: function(args, context) {
     let win = context.environment.chromeDocument.defaultView;
-    let dbg = win.DebuggerUI.getDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", win.gBrowser.selectedTab);
 
     if (dbg) {
-      let controller = dbg.contentWindow.DebuggerController;
+      let controller = dbg._controller;
       let thread = controller.activeThread;
       if (thread.paused) {
         thread.resume();
@@ -122,10 +114,10 @@ gcli.addCommand({
   params: [],
   exec: function(args, context) {
     let win = context.environment.chromeDocument.defaultView;
-    let dbg = win.DebuggerUI.getDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", win.gBrowser.selectedTab);
 
     if (dbg) {
-      let controller = dbg.contentWindow.DebuggerController;
+      let controller = dbg._controller;
       let thread = controller.activeThread;
       if (thread.paused) {
         thread.stepOver();
@@ -143,10 +135,10 @@ gcli.addCommand({
   params: [],
   exec: function(args, context) {
     let win = context.environment.chromeDocument.defaultView;
-    let dbg = win.DebuggerUI.getDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", win.gBrowser.selectedTab);
 
     if (dbg) {
-      let controller = dbg.contentWindow.DebuggerController;
+      let controller = dbg._controller;
       let thread = controller.activeThread;
       if (thread.paused) {
         thread.stepIn();
@@ -164,10 +156,10 @@ gcli.addCommand({
   params: [],
   exec: function(args, context) {
     let win = context.environment.chromeDocument.defaultView;
-    let dbg = win.DebuggerUI.getDebugger();
+    let dbg = gDevTools.getPanelForTarget("jsdebugger", win.gBrowser.selectedTab);
 
     if (dbg) {
-      let controller = dbg.contentWindow.DebuggerController;
+      let controller = dbg._controller;
       let thread = controller.activeThread;
       if (thread.paused) {
         thread.stepOut();
