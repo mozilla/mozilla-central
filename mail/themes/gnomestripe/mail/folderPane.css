@@ -3,6 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /* ::::: Folder Pane ::::: */
+/* reduce the padding set from messenger.css */
+#folderTree treechildren::-moz-tree-cell-text {
+  -moz-padding-start: 2px;
+}
 
 /* this needs a different rule from the tree because otherwise the margin
    applies to the tab */
@@ -238,10 +242,10 @@ treechildren::-moz-tree-twisty(open) {
   -moz-appearance: treetwistyopen;
 }
 
-treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true) {
+#folderTree treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true) {
   font-weight: bold;
   margin-left: -16px;
-  padding-left: 21px;
+  padding-left: 18px;
   background-image: url("chrome://messenger/skin/icons/folder-new-star.png");
   background-repeat: no-repeat;
   background-position: left;
