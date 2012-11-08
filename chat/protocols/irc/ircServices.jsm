@@ -172,7 +172,7 @@ var servicesBase = {
             ircHandlers.handleMessage(this, aMessage), this);
           delete this.isHandlingQueuedMessages;
           delete this.nickservMessageQueue;
-        }.bind(this), 1000);
+        }.bind(this), 10000);
         return true;
       }
 
