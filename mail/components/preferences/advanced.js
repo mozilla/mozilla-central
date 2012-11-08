@@ -53,6 +53,19 @@ var gAdvancedPane = {
       document.getElementById("searchintegration.enable").disabled = true;
     }
 
+#ifdef HAVE_SHELL_SERVICE
+    // If the shell service is not working, disable the "Check now" button
+    // and "perform check at startup" checkbox.
+    try {
+      let shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"]
+                               .getService(Components.interfaces.nsIShellService);
+    } catch (ex) {
+      document.getElementById("alwaysCheckDefault").disabled = true;
+      document.getElementById("alwaysCheckDefault").checked = false;
+      document.getElementById("checkDefaultButton").disabled = true;
+    }
+#endif
+
     this.mInitialized = true;
   },
 
