@@ -1289,6 +1289,11 @@ ircAccount.prototype = {
     // Send the Client Capabilities list command.
     this.sendMessage("CAP", "LS");
 
+    if (this.prefs.prefHasUserValue("serverPassword")) {
+      this.sendMessage("PASS", this.getString("serverPassword"),
+                       "PASS <password not logged>");
+    }
+
     // Send the nick message (section 3.1.2).
     this.sendMessage("NICK", this._requestedNickname);
 
