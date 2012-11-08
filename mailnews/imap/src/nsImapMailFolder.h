@@ -314,6 +314,7 @@ public:
   * This method is used to locate a folder where a msg could be present, not just
   * the folder where the message first arrives, this method searches for the existence
   * of msg in all the folders/labels that we retrieve from X-GM-LABELS also.
+  * overrides nsMsgDBFolder::GetOfflineMsgFolder()
   *  @param msgKey key  of the msg for which we are trying to get the folder;
   *  @param aMsgFolder  required folder;
   */
