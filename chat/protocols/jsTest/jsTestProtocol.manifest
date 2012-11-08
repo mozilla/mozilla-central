@@ -1,6 +1,3 @@
 component {a0774c5a-4aea-458b-9fbc-8d3cbf1a4630} jsTestProtocol.js
 contract @mozilla.org/chat/jstest;1 {a0774c5a-4aea-458b-9fbc-8d3cbf1a4630}
 category im-protocol-plugin prpl-jstest @mozilla.org/chat/jstest;1
-component {88795348-8a4b-4018-890d-5314cb08ec4d} jsTestProtocol.js
-contract @mozilla.org/chat/override;1 {88795348-8a4b-4018-890d-5314cb08ec4d}
-category im-protocol-plugin prpl-override @mozilla.org/chat/override;1
