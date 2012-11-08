@@ -452,7 +452,25 @@
                observes="calendar_new_calendar_command"
                insertafter="appmenu_newAccountMenuItem"/>
   </menupopup>
-
+  <menupopup id="appmenu_FilePopup">
+    <menu id="appmenu_Open"
+          mode="calendar"
+          label="&lightning.menupopup.open.label;"
+          accesskey="&lightning.menupopup.open.accesskey;"
+          insertbefore="appmenu_openMessageFileMenuitem">
+      <menupopup id="appmenu_OpenPopup">
+        <menuitem id="appmenu_OpenMessageFileMenuitem"
+                  label="&lightning.menupopup.open.message.label;"
+                  accesskey="&lightning.menupopup.open.message.accesskey;"
+                  oncommand="MsgOpenFromFile();"/>
+        <menuitem id="appmenu_OpenCalendarFileMenuitem"
+                  label="&lightning.menupopup.open.calendar.label;"
+                  accesskey="&lightning.menupopup.open.calendar.accesskey;"
+                  oncommand="openLocalCalendar();"/>
+      </menupopup>
+    </menu>
+  </menupopup>
+  <menuitem id="appmenu_openMessageFileMenuitem" hidden="true"/>
   <menupopup id="appmenu_View_Popup">
     <menuseparator id="appmenu_ltnViewMenuSeparator"/>
     <menu id="appmenu_ltnTodayPaneMenu"
