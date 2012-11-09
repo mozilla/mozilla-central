@@ -140,7 +140,7 @@ var servicesBase = {
       // If we have a queue of messages, we're waiting for authentication.
       if (this.nickservMessageQueue) {
         if (text == "Password accepted - you are now recognized." || // Anope.
-            text == "You are now identified for \x02" + aMessage.params[0] + "\x02.") { // Atheme.
+            text.slice(0, 28) == "You are now identified for \x02") { // Atheme.
           // Password successfully accepted by NickServ, don't display the
           // queued messages.
           LOG("Successfully authenticated with NickServ.");
