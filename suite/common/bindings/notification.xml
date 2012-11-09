@@ -574,7 +574,7 @@
                                       function(aEvent) {
                                         if (!aEvent.isTrusted)
                                           return;
-                                        if (aEvent.keyCode == aEvent.DOM_VK_RETURN)
+                                        if (aEvent.keyCode != aEvent.DOM_VK_RETURN)
                                           return;
                                         aEvent.preventDefault();
                                         aEvent.stopPropagation();
