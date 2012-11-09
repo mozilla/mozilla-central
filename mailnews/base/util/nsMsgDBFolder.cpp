@@ -5946,28 +5946,4 @@ nsresult nsMsgKeySetU::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
   return hiKeySet->ToMsgKeyArray(aArray);
 }
 
-nsresult nsMsgDBFolder::GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder) {
-  NS_ENSURE_ARG_POINTER(aMsgFolder);
-  nsCOMPtr<nsIMsgFolder> subMsgFolder;
-  GetDatabase();
-  if (!mDatabase)
-    return NS_ERROR_FAILURE;
 
-  nsCOMPtr<nsIMsgDBHdr> hdr;
-  nsresult rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
-  if (NS_FAILED(rv))
-    return rv;
-
-  if (hdr)
-  {
-    uint32_t msgFlags = 0;
-    hdr->GetFlags(&msgFlags);
-    // Check if we already have this message body offline
-    if ((msgFlags & nsMsgMessageFlags::Offline))
-    {
-      NS_IF_ADDREF(*aMsgFolder = this);
-      return NS_OK;
-    }
-  }
-  return NS_OK;
-}
