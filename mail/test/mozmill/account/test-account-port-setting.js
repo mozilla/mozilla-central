@@ -15,8 +15,6 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-// This test expects the first account to be a POP account with port number 110
-// and no security
 const PORT_NUMBERS_TO_TEST =
   [
     "110", // The original port number. We don't input this though.
@@ -28,7 +26,15 @@ const PORT_NUMBERS_TO_TEST =
 var gTestNumber;
 
 function subtest_check_set_port_number(amc, aDontSet) {
-  click_account_tree_row(amc, 1);
+  // This test expects the following POP account to exist by default
+  // with port number 110 and no security.
+  let server = MailServices.accounts
+                           .FindServer("tinderbox", "tinderbox", "pop3");
+  let account = MailServices.accounts.FindAccountForServer(server);
+
+  let accountRow = get_account_tree_row(account.key, "am-server.xul", amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
 
   let iframe = amc.window.document.getElementById("contentFrame");
   let portElem = iframe.contentDocument.getElementById("server.port");

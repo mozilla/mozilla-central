@@ -15,11 +15,10 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-Components.utils.import("resource:///modules/mailServices.js");
-Components.utils.import("resource://gre/modules/Services.jsm");
-
 var gOldWhiteList = null;
 var gKeyString = null;
+
+let gAccount = null;
 
 function setupModule(module) {
   let wh = collector.getModule("window-helpers");
@@ -31,6 +30,7 @@ function setupModule(module) {
 
   let server = MailServices.accounts
                            .FindServer("tinderbox", "tinderbox", "pop3");
+  gAccount = MailServices.accounts.FindAccountForServer(server);
   let serverKey = server.key;
 
   gKeyString = "mail.server." + serverKey + ".whiteListAbURI";
@@ -49,7 +49,10 @@ function teardownModule(module) {
 function subtest_check_whitelist_init_and_save(amc) {
   // Ok, the advanced settings window is open.  Let's choose
   // the junkmail settings.
-  click_account_tree_row(amc, 4);
+  let accountRow = get_account_tree_row(gAccount.key, "am-junk.xul", amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
+
   let doc = amc.window.document.getElementById("contentFrame").contentDocument;
 
   // At this point, we shouldn't have anything checked, but we should have
@@ -73,7 +76,10 @@ function subtest_check_whitelist_init_and_save(amc) {
  * Then, we'll clear the address books and save.
  */
 function subtest_check_whitelist_load_and_clear(amc) {
-  click_account_tree_row(amc, 4);
+  let accountRow = get_account_tree_row(gAccount.key, "am-junk.xul", amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
+
   let doc = amc.window.document.getElementById("contentFrame").contentDocument;
   let list = doc.getElementById("whiteListAbURI");
   let whiteListURIs = Services.prefs.getCharPref(gKeyString).split(" ");
@@ -97,7 +103,10 @@ function subtest_check_whitelist_load_and_clear(amc) {
  * were actually cleared.
  */
 function subtest_check_whitelist_load_cleared(amc) {
-  click_account_tree_row(amc, 4);
+  let accountRow = get_account_tree_row(gAccount.key, "am-junk.xul", amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
+
   let doc = amc.window.document.getElementById("contentFrame").contentDocument;
   let list = doc.getElementById("whiteListAbURI");
   let whiteListURIs = "";
@@ -114,7 +123,7 @@ function subtest_check_whitelist_load_cleared(amc) {
   for (let i = 0; i < list.getRowCount(); i++) {
     let abNode = list.getItemAtIndex(i);
     assert_equals("false", abNode.getAttribute("checked"),
-                 "Should not have been checked");
+                  "Should not have been checked");
     // Also ensure that the address book URI was properly cleared in the
     // prefs
     assert_equals(-1, whiteListURIs.indexOf(abNode.getAttribute("value")));

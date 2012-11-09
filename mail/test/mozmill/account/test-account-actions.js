@@ -8,9 +8,6 @@ const RELATIVE_ROOT = "../shared-modules";
 const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
                          "account-manager-helpers"];
 
-Cu.import("resource:///modules/mailServices.js");
-Cu.import("resource://gre/modules/Services.jsm");
-
 let imapAccount, nntpAccount, originalAccountCount;
 
 function setupModule(module) {
@@ -72,25 +69,9 @@ function teardownModule(module) {
 function subtest_check_account_actions(amc, aAccountKey, aIsSetAsDefaultEnabled,
                                        aIsRemoveEnabled, aIsAddAccountEnabled)
 {
-  let rowIndex = 0; // count which row in the account tree we need to click
-  let accountTreeNode = amc.e("account-tree-children");
-  for (let i = 0; i < accountTreeNode.childNodes.length; i++) {
-    if ("_account" in accountTreeNode.childNodes[i]) {
-      if (aAccountKey == accountTreeNode.childNodes[i]._account.key) {
-        click_account_tree_row(amc, rowIndex);
-        break;
-      }
-      // skip all of this account's setting panes
-      rowIndex += accountTreeNode.childNodes[i].getElementsByAttribute("PageTag", "*").length;
-    } else {
-      // a row without _account should be the SMTP server
-      if (aAccountKey == null) {
-        click_account_tree_row(amc, rowIndex);
-        break;
-      }
-    }
-    rowIndex++;
-  }
+  let accountRow = get_account_tree_row(aAccountKey, null, amc);
+  assert_not_equals(accountRow, -1);
+  click_account_tree_row(amc, accountRow);
 
   // click the Actions Button to bring up the popup with menuitems to test
   amc.click(amc.eid("accountActionsButton"), 5, 5);

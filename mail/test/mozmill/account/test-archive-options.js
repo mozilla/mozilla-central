@@ -29,43 +29,6 @@ function setupModule(module) {
 }
 
 /**
- * Returns the index of the row in account tree corresponding to the wanted
- * account and its settings pane.
- *
- * @param aAccountKey  The key of the account to return.
- *                     If 'null', the SMTP pane is returned.
- * @param aPaneId      The ID of the account settings pane to select.
- */
-function get_account_tree_row(aAccountKey, aPaneId, amc) {
-  let rowIndex = 0;
-  let accountTreeNode = amc.e("account-tree-children");
-
-  for (let i = 0; i < accountTreeNode.childNodes.length; i++) {
-    if ("_account" in accountTreeNode.childNodes[i]) {
-      let accountHead = accountTreeNode.childNodes[i];
-      if (aAccountKey == accountHead._account.key) {
-        // If this is the wanted account, find the wanted settings pane.
-        let accountBlock = accountHead.getElementsByAttribute("PageTag", "*");
-        for (let j = 0; j < accountBlock.length; j++) {
-          if (accountBlock[j].getAttribute("PageTag") == aPaneId)
-            return rowIndex + j + 1;
-        }
-      }
-      // If this is not the wanted account, skip all of its settings panes.
-      rowIndex += accountHead.getElementsByAttribute("PageTag", "*").length;
-    } else {
-      // A row without _account should be the SMTP server.
-      if (aAccountKey == null)
-        return rowIndex;
-    }
-    rowIndex++;
-  }
-
-  // Account not found
-  return -1;
-}
-
-/**
  * Check that the archive options button is enabled or disabled appropriately.
  *
  * @param amc          the account options controller
