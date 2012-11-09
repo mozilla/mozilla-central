@@ -1609,10 +1609,10 @@ bool nsImapProtocol::ProcessCurrentURL()
       }
       else
       {
-        if (m_connectionType.Equals("starttls")
-            && (m_socketType == nsMsgSocketType::trySTARTTLS
-            && (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability))
-          || m_socketType == nsMsgSocketType::alwaysSTARTTLS)
+        if ((m_connectionType.Equals("starttls")
+             && (m_socketType == nsMsgSocketType::trySTARTTLS
+             && (GetServerStateParser().GetCapabilityFlag() & kHasStartTLSCapability)))
+            || m_socketType == nsMsgSocketType::alwaysSTARTTLS)
         {
           StartTLS();
           if (GetServerStateParser().LastCommandSuccessful())
@@ -2582,6 +2582,19 @@ void nsImapProtocol::ProcessSelectedStateURL()
               bool urlOKToFetchByParts = false;
               m_runningUrl->GetMimePartSelectorDetected(&mimePartSelectorDetected);
               m_runningUrl->GetFetchPartsOnDemand(&urlOKToFetchByParts);
+
+#ifdef PR_LOGGING
+              {
+                nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningUrl);
+                nsAutoCString urlSpec;
+                if (mailnewsurl)
+                  mailnewsurl->GetSpec(urlSpec);
+                PR_LOG(IMAP, PR_LOG_DEBUG,
+                       ("SHELL: URL %s, OKToFetchByParts %d, allowedToBreakApart %d, ShouldFetchAllParts %d",
+                        urlSpec.get(), urlOKToFetchByParts, allowedToBreakApart,
+                        GetShouldFetchAllParts()));
+              }
+#endif
 
               if (urlOKToFetchByParts &&
                   allowedToBreakApart &&
@@ -3810,13 +3823,13 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, bool isPartialL
     }
     else  // enforce canonical CRLF linebreaks
     {
-      if (lineLength==0 || lineLength == 1 && cEndOfLine[-1] == '\n')
+      if (lineLength==0 || (lineLength == 1 && cEndOfLine[-1] == '\n'))
       {
         messageLine = CRLF;
         lineLength = 2;
       }
       else if (cEndOfLine[-1] != '\n' || cEndOfLine[-2] != '\r' ||
-               lineLength >=3 && cEndOfLine[-3] == '\r')
+               (lineLength >=3 && cEndOfLine[-3] == '\r'))
       {
         // The line does not end in CRLF (or it ends in CRCRLF).
         // Copy line and leave enough room for two more chars (CR and LF).
@@ -3932,16 +3945,15 @@ void nsImapProtocol::NormalMessageEndDownload()
   if (!GetServerStateParser().GetDownloadingHeaders())
   {
     int32_t updatedMessageSize = -1;
-    if (m_fetchingWholeMessage &&
-        (m_bytesToChannel != GetServerStateParser().SizeOfMostRecentMessage()))
+    if (m_fetchingWholeMessage)
     {
       updatedMessageSize = m_bytesToChannel;
-#ifdef DEBUG
-      nsAutoCString message("Server's RFC822.SIZE ");
-      message.AppendInt(GetServerStateParser().SizeOfMostRecentMessage());
-      message += " actual size ";
-      message.AppendInt(m_bytesToChannel);
-      NS_WARNING(message.get());
+#ifdef PR_LOGGING
+      if (m_bytesToChannel != GetServerStateParser().SizeOfMostRecentMessage()) {
+        PR_LOG(IMAP, PR_LOG_DEBUG, ("STREAM:CLOSE Server's RFC822.SIZE %u, actual size %u",
+                                    GetServerStateParser().SizeOfMostRecentMessage(),
+                                    m_bytesToChannel));
+      }
 #endif
     }
     // need to know if we're downloading for display or not. We'll use action == nsImapMsgFetch for now

@@ -1732,6 +1732,8 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
        message.AppendInt(curStorePos);
        message.Append(" numOfflineMsgLines=");
        message.AppendInt(m_numOfflineMsgLines);
+       message.Append(" bytesAdded=");
+       message.AppendInt(m_bytesAddedToLocalMsg);
        NS_ERROR(message.get());
 #endif
        m_offlineHeader = nullptr;

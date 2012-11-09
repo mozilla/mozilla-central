@@ -438,7 +438,7 @@ nsMimeBaseEmitter::Write(const nsACString &buf, uint32_t *amountWritten)
   printf("%s", buf);
 #endif
 
-  PR_LOG(gMimeEmitterLogModule, PR_LOG_ALWAYS, (PromiseFlatCString(buf).get()));
+  PR_LOG(gMimeEmitterLogModule, PR_LOG_ALWAYS, ("%s", PromiseFlatCString(buf).get()));
   //
   // Make sure that the buffer we are "pushing" into has enough room
   // for the write operation. If not, we have to buffer, return, and get
