@@ -65,7 +65,7 @@ MimeRebuffer::ReduceBuffer(uint32_t numBytes)
     return mSize;
   }
 
-  memcpy(mBuf, mBuf+numBytes, (mSize - numBytes));
+  memmove(mBuf, mBuf + numBytes, (mSize - numBytes)); /* overlapping */
   mSize -= numBytes;
   return mSize;
 }
