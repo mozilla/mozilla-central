@@ -21,7 +21,6 @@ _TEST_FILES =	test_feed_discovery.html \
 		test_registerHandler.html \
 		valid-feed.xml \
 		valid-unsniffable-feed.xml \
-		test_maxSniffing.html \
 		$(NULL)
 
 # test_contextmenu.html is disabled on Linux due to bug 513558
@@ -71,8 +70,15 @@ ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 _BROWSER_FILES += browser_bug462289.js
 endif
 
+_CHROME_FILES = \
+                 test_maxSniffing.html \
+    $(NULL)
+
 libs:: $(addprefix mochitest/, $(_TEST_FILES))
 	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/tests/$(relativesrcdir)
 
 libs:: $(addprefix browser/, $(_BROWSER_FILES))
 	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relativesrcdir)
+
+libs:: $(addprefix chrome/, $(_CHROME_FILES))
+	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/chrome/$(relativesrcdir)
