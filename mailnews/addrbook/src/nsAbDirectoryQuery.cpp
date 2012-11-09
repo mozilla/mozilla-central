@@ -145,6 +145,17 @@ NS_IMETHODIMP nsAbDirectoryQueryArguments::SetTypeSpecificArg(nsISupports* aArg)
     return NS_OK;
 }
 
+NS_IMETHODIMP nsAbDirectoryQueryArguments::GetFilter(nsACString & aFilter)
+{
+    aFilter.Assign(mFilter);
+    return NS_OK;
+}
+
+NS_IMETHODIMP nsAbDirectoryQueryArguments::SetFilter(const nsACString & aFilter)
+{
+    mFilter.Assign(aFilter);
+    return NS_OK;
+}
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbDirectoryQueryPropertyValue, nsIAbDirectoryQueryPropertyValue)
 
