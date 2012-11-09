@@ -290,21 +290,14 @@ nsAbLDAPAutoCompleteSearch.prototype = {
       Components.classes["@mozilla.org/addressbook/directory/query-arguments;1"]
                 .createInstance(Components.interfaces.nsIAbDirectoryQueryArguments);
 
-    var filterTemplate = queryObject.book.getStringValue("autoComplete.filterTemplate", "");
+    // These are hard-coded for now and the _checkEntry function should match
+    // what these statements do.
+    var searchStr = "(or(PrimaryEmail,bw,@V)(DisplayName,bw,@V))";
+    searchStr = searchStr.replace(/@V/g, encodeURIComponent(aSearchString));
 
-    // Use default value when preference is not set or it contains empty string    
-    if (!filterTemplate)
-      filterTemplate = "(|(cn=%v1*%v2-*)(mail=%v1*%v2-*)(sn=%v1*%v2-*))";
-
-    // Create filter from filter template and search string
-    var ldapSvc = Components.classes["@mozilla.org/network/ldap-service;1"]
-                            .getService(Components.interfaces.nsILDAPService);
-    var filter = ldapSvc.createFilter(1024, filterTemplate, "", "", "", aSearchString);
-    if (!filter)
-      throw new Error("Filter string is empty, check if filterTemplate variable is valid in prefs.js.");
+    args.expression = abMgr.convertQueryStringToExpression(searchStr);
     args.typeSpecificArg = queryObject.attributes;
     args.querySubDirectories = true;
-    args.filter = filter;
 
     // Start the actual search
     queryObject.context =

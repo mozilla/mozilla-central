@@ -18,7 +18,7 @@ interface nsIAbDirectory;
  * returned if a match is found from the expression
  *
  */
-[scriptable, uuid(03af3018-2590-4f4c-a88c-1fff6595ef05)]
+[scriptable, uuid(d6fcbedd-d574-4357-abf4-81565d867749)]
 interface nsIAbDirectoryQueryArguments : nsISupports
 {
     /**
@@ -40,11 +40,6 @@ interface nsIAbDirectoryQueryArguments : nsISupports
      * type of addressbook.  
      */
     attribute nsISupports typeSpecificArg;
-
-    /**
-     * A custom search filter which user wants to use in LDAP query.
-     */
-    attribute AUTF8String filter;
 };
 
 
