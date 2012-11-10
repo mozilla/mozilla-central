@@ -115,6 +115,11 @@ FINAL_LINK_COMP_NAMES = $(MOZDEPTH)/config/final-link-comp-names
 MOZ_UNICHARUTIL_LIBS = $(LIBXUL_DIST)/lib/$(LIB_PREFIX)unicharutil_s.$(LIB_SUFFIX)
 MOZ_WIDGET_SUPPORT_LIBS    = $(DIST)/lib/$(LIB_PREFIX)widgetsupport_s.$(LIB_SUFFIX)
 
+ifdef _MSC_VER
+CC_WRAPPER ?= $(PYTHON) -O $(topsrcdir)/mozilla/build/cl.py
+CXX_WRAPPER ?= $(PYTHON) -O $(topsrcdir)/mozilla/build/cl.py
+endif # _MSC_VER
+
 CC := $(CC_WRAPPER) $(CC)
 CXX := $(CXX_WRAPPER) $(CXX)
 MKDIR ?= mkdir
@@ -719,6 +724,8 @@ ifndef MOZ_SYSTEM_PLY
 PLY_INCLUDE = -I$(MOZILLA_DIR)/other-licenses/ply
 endif
  
+export CL_INCLUDES_PREFIX
+
 # autoconf.mk sets OBJ_SUFFIX to an error to avoid use before including
 # this file
 OBJ_SUFFIX := $(_OBJ_SUFFIX)
