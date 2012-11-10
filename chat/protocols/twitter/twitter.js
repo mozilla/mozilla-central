@@ -709,12 +709,27 @@ Account.prototype = {
                        this.openStream, this.onStreamError, this);
     this._streamingRequest.responseType = "moz-chunked-text";
     this._streamingRequest.onprogress = this.onDataAvailable.bind(this);
+    this.resetStreamTimeout();
+  },
+  _streamTimeout: null,
+  resetStreamTimeout: function() {
+    if (this._streamTimeout)
+      clearTimeout(this._streamTimeout);
+    // The twitter Streaming API sends a keep-alive newline every 30 seconds
+    // so if we haven't received anything for 90s, we should disconnect and try
+    // to reconnect.
+    this._streamTimeout = setTimeout(this.onStreamTimeout.bind(this), 90000);
   },
   onStreamError: function(aError) {
     delete this._streamingRequest;
+    // _streamTimeout is cleared by cleanUp called by gotDisconnected.
     this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR, aError);
   },
+  onStreamTimeout: function() {
+    this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR, "timeout");
+  },
   onDataAvailable: function(aRequest) {
+    this.resetStreamTimeout();
     let newText = this._pendingData + aRequest.target.response;
     DEBUG("Received data: " + newText);
     let messages = newText.split(/\r\n?/);
@@ -906,6 +921,10 @@ Account.prototype = {
       for each (let request in this._pendingRequests)
         request.abort();
       delete this._pendingRequests;
+    }
+    if (this._streamTimeout) {
+      clearTimeout(this._streamTimeout);
+      delete this._streamTimeout;
     }
     if (this._streamingRequest) {
       this._streamingRequest.abort();
