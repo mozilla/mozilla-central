@@ -103,7 +103,7 @@
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
                 !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
-              this.missingPlugins = {};
+              this.missingPlugins = null;
               this.crashNotified = false;
               this.clickToPlayPromptShown = false;
               this.clickToPlayPluginsActivated = false;
@@ -336,7 +336,10 @@
         </body>
       </method>
 
-      <field name="missingPlugins">{}</field>
+      <field name="_missingPlugins">null</field>
+      <property name="missingPlugins"
+                onget="return this._missingPlugins || (this._missingPlugins = new Map());"
+                onset="return this._missingPlugins = val;"/>
 
       <field name="CrashSubmit">null</field>
 
@@ -396,7 +399,7 @@
 
             // Save information on the plugin to give to the plugin finder.
             var pluginInfo = this.getPluginInfo(plugin);
-            this.missingPlugins[pluginInfo.mimetype] = pluginInfo;
+            this.missingPlugins.set(pluginInfo.mimetype, pluginInfo);
 
             // Force a style flush, so that we ensure our binding is attached.
             plugin.clientTop;
@@ -1906,7 +1909,7 @@
 
       <handler event="NewPluginInstalled" phase="capturing">
         <![CDATA[
-          this.missingPlugins = {};
+          this.missingPlugins = null;
 
           // clean up the UI after a new plugin has been installed.
           var notification = this.getNotificationWithValue("missing-plugins");
