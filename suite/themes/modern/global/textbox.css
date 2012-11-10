@@ -25,9 +25,10 @@ textbox {
   font: inherit;
 }
 
-html|*.textbox-input:-moz-placeholder,
-html|*.textbox-textarea:-moz-placeholder {
+html|*.textbox-input::-moz-placeholder,
+html|*.textbox-textarea::-moz-placeholder {
   color: #999999;
+  opacity: 1.0;
 }
 
 textbox,

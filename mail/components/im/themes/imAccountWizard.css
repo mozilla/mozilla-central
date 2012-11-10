@@ -73,7 +73,7 @@
 }
 
 %ifdef XP_WIN
-textbox html|*.textbox-input:-moz-placeholder {
+textbox html|*.textbox-input::-moz-placeholder {
   font-style: normal;
 }
 %endif

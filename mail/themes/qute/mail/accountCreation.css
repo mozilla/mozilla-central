@@ -219,7 +219,7 @@ menulist[disabled="true"] {
   color: -moz-DialogText;
 }
 
-textbox.padded html|*.textbox-input:-moz-placeholder {
+textbox.padded html|*.textbox-input::-moz-placeholder {
   font-style: normal;
 }
 
