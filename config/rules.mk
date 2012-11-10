@@ -1245,7 +1245,7 @@ Makefile: Makefile.in
 ifdef SUBMAKEFILES
 # VPATH does not work on some machines in this case, so add $(srcdir)
 $(SUBMAKEFILES): % : $(srcdir)/%.in
-	$(PYTHON) $(DEPTH)/config.status -n --file=$@
+	$(PYTHON) $(DEPTH)/config.status -n --file="$@"
 	@$(TOUCH) $@
 endif
 
