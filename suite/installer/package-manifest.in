@@ -272,6 +272,9 @@
 @BINPATH@/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 #endif
 @BINPATH@/components/parentalcontrols.xpt
+#ifdef MOZ_WEBRTC
+@BINPATH@/components/peerconnection.xpt
+#endif
 @BINPATH@/components/places.xpt
 @BINPATH@/components/plugin.xpt
 @BINPATH@/components/pref.xpt
@@ -444,6 +447,10 @@
 @BINPATH@/components/nsWebHandlerApp.js
 @BINPATH@/components/nsWebHandlerApp.manifest
 @BINPATH@/components/passwordmgr.manifest
+#ifdef MOZ_WEBRTC
+@BINPATH@/components/PeerConnection.js
+@BINPATH@/components/PeerConnection.manifest
+#endif
 @BINPATH@/components/PermissionSettings.js
 @BINPATH@/components/PermissionSettings.manifest
 @BINPATH@/components/PlacesCategoriesStarter.js
