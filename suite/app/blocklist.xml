@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1351899337000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1352136253000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -91,6 +91,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                                 <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i196" id="info@wxdownloadmanager.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i90" id="videoplugin@player.com">
