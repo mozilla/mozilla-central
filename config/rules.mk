@@ -323,15 +323,6 @@ endif
 LIBOBJS			:= $(addprefix \", $(OBJS))
 LIBOBJS			:= $(addsuffix \", $(LIBOBJS))
 
-ifndef MOZ_AUTO_DEPS
-ifneq (,$(OBJS)$(XPIDLSRCS)$(SIMPLE_PROGRAMS))
-MDDEPFILES		= $(addprefix $(MDDEPDIR)/,$(OBJS:.$(OBJ_SUFFIX)=.pp))
-ifndef NO_GEN_XPT
-MDDEPFILES		+= $(addprefix $(MDDEPDIR)/,$(XPIDLSRCS:.idl=.h.pp) $(XPIDLSRCS:.idl=.xpt.pp))
-endif
-endif
-endif
-
 ALL_TRASH = \
 	$(GARBAGE) $(TARGETS) $(OBJS) $(PROGOBJS) LOGS TAGS a.out \
 	$(filter-out $(ASFILES),$(OBJS:.$(OBJ_SUFFIX)=.s)) $(OBJS:.$(OBJ_SUFFIX)=.ii) \
@@ -1093,8 +1084,6 @@ ifdef MOZ_POST_DSO_LIB_COMMAND
 	$(MOZ_POST_DSO_LIB_COMMAND) $@
 endif
 
-ifdef MOZ_AUTO_DEPS
-ifdef COMPILER_DEPEND
 ifeq ($(SOLARIS_SUNPRO_CC),1)
 _MDDEPFILE = $(MDDEPDIR)/$(@F).pp
 
@@ -1111,25 +1100,6 @@ if test -d $(@D); then \
 fi
 endef
 endif # Sun Studio on Solaris
-else # COMPILER_DEPEND
-#
-# Generate dependencies on the fly
-#
-_MDDEPFILE = $(MDDEPDIR)/$(@F).pp
-
-define MAKE_DEPS_AUTO
-if test -d $(@D); then \
-	echo "Building deps for $<"; \
-	$(MKDEPEND) -o'.$(OBJ_SUFFIX)' -f- $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(INCLUDES) $< 2>/dev/null | sed -e "s|^[^ ]*/||" > $(_MDDEPFILE) ; \
-fi
-endef
-
-MAKE_DEPS_AUTO_CC = $(MAKE_DEPS_AUTO)
-MAKE_DEPS_AUTO_CXX = $(MAKE_DEPS_AUTO)
-
-endif # COMPILER_DEPEND
-
-endif # MOZ_AUTO_DEPS
 
 # Rules for building native targets must come first because of the host_ prefix
 host_%.$(OBJ_SUFFIX): %.c $(GLOBAL_DEPS)
@@ -1685,65 +1655,6 @@ REGCHROME_INSTALL = $(PERL) -I$(MOZILLA_DIR)/config $(MOZILLA_DIR)/config/add-ch
 	$(if $(filter gtk2,$(MOZ_WIDGET_TOOLKIT)),-x) \
 	$(if $(CROSS_COMPILE),-o $(OS_ARCH)) $(DESTDIR)$(mozappdir)/chrome/installed-chrome.txt \
 	$(_JAR_REGCHROME_DISABLE_JAR)
-
-
-#############################################################################
-# Dependency system
-#############################################################################
-ifdef COMPILER_DEPEND
-depend::
-	@echo "$(MAKE): No need to run depend target.\
-			Using compiler-based depend." 1>&2
-ifeq ($(GNU_CC)$(GNU_CXX),)
-# Non-GNU compilers
-	@echo "`echo '$(MAKE):'|sed 's/./ /g'`"\
-	'(Compiler-based depend was turned on by "--enable-md".)' 1>&2
-else
-# GNU compilers
-	@space="`echo '$(MAKE): '|sed 's/./ /g'`";\
-	echo "$$space"'Since you are using a GNU compiler,\
-		it is on by default.' 1>&2; \
-	echo "$$space"'To turn it off, pass --disable-md to configure.' 1>&2
-endif
-
-else # ! COMPILER_DEPEND
-
-ifndef MOZ_AUTO_DEPS
-
-define MAKE_DEPS_NOAUTO
-	$(MKDEPEND) -w1024 -o'.$(OBJ_SUFFIX)' -f- $(DEFINES) $(ACDEFINES) $(INCLUDES) $< 2>/dev/null | sed -e "s|^[^ ]*/||" > $@
-endef
-
-$(MDDEPDIR)/%.pp: %.c
-	$(REPORT_BUILD)
-	@$(MAKE_DEPS_NOAUTO)
-
-$(MDDEPDIR)/%.pp: %.cpp
-	$(REPORT_BUILD)
-	@$(MAKE_DEPS_NOAUTO)
-
-$(MDDEPDIR)/%.pp: %.s
-	$(REPORT_BUILD)
-	@$(MAKE_DEPS_NOAUTO)
-
-ifneq (,$(OBJS)$(XPIDLSRCS)$(SIMPLE_PROGRAMS))
-depend:: $(SUBMAKEFILES) $(MAKE_DIRS) $(MDDEPFILES)
-else
-depend:: $(SUBMAKEFILES)
-endif
-	$(LOOP_OVER_PARALLEL_DIRS)
-	$(LOOP_OVER_DIRS)
-	$(LOOP_OVER_TOOL_DIRS)
-
-dependclean:: $(SUBMAKEFILES)
-	$(RM) $(MDDEPFILES)
-	$(LOOP_OVER_PARALLEL_DIRS)
-	$(LOOP_OVER_DIRS)
-	$(LOOP_OVER_TOOL_DIRS)
-
-endif # MOZ_AUTO_DEPS
-
-endif # COMPILER_DEPEND
 
 
 #############################################################################

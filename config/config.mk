@@ -520,15 +520,6 @@ endif # MOZ_OPTIMIZE=2
 endif # MOZ_OPTIMIZE
 endif # OS_ARCH=Darwin
 
-
-ifdef MOZ_NATIVE_MAKEDEPEND
-MKDEPEND_DIR	=
-MKDEPEND	= $(MOZ_NATIVE_MAKEDEPEND)
-else
-MKDEPEND_DIR	= $(CONFIG_TOOLS)/mkdepend
-MKDEPEND	= $(MKDEPEND_DIR)/mkdepend$(BIN_SUFFIX)
-endif
-
 # Set link flags according to whether we want a console.
 ifdef MOZ_WINCONSOLE
 ifeq ($(MOZ_WINCONSOLE),1)
@@ -580,7 +571,7 @@ DEFINES		+= -DOSARCH=$(OS_ARCH)
 
 ######################################################################
 
-GARBAGE		+= $(DEPENDENCIES) $(MKDEPENDENCIES) $(MKDEPENDENCIES).bak core $(wildcard core.[0-9]*) $(wildcard *.err) $(wildcard *.pure) $(wildcard *_pure_*.o) Templates.DB
+GARBAGE		+= $(DEPENDENCIES) core $(wildcard core.[0-9]*) $(wildcard *.err) $(wildcard *.pure) $(wildcard *_pure_*.o) Templates.DB
 
 ifeq ($(OS_ARCH),Darwin)
 ifndef NSDISTMODE
@@ -690,6 +681,9 @@ endif
 OPTIMIZE_JARS_CMD = $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/optimizejars.py)
 
 CREATE_PRECOMPLETE_CMD = $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/createprecomplete.py)
+
+# MDDEPDIR is the subdirectory where dependency files are stored
+MDDEPDIR := .deps
 
 LIBS_DESC_SUFFIX = desc
 EXPAND_LIBS = $(PYTHON) -I$(MOZDEPTH)/config $(MOZILLA_SRCDIR)/config/expandlibs.py
