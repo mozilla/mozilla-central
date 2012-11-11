@@ -1230,6 +1230,32 @@ NS_IMETHODIMP nsMsgDBFolder::HasMsgOffline(nsMsgKey msgKey, bool *result)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder) {
+  NS_ENSURE_ARG_POINTER(aMsgFolder);
+  nsCOMPtr<nsIMsgFolder> subMsgFolder;
+  GetDatabase();
+  if (!mDatabase)
+    return NS_ERROR_FAILURE;
+
+  nsCOMPtr<nsIMsgDBHdr> hdr;
+  nsresult rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
+  if (NS_FAILED(rv))
+    return rv;
+
+  if (hdr)
+  {
+    uint32_t msgFlags = 0;
+    hdr->GetFlags(&msgFlags);
+    // Check if we already have this message body offline
+    if ((msgFlags & nsMsgMessageFlags::Offline))
+    {
+      NS_IF_ADDREF(*aMsgFolder = this);
+      return NS_OK;
+    }
+  }
+  // it's okay to not get a folder. Folder is remain unchanged in that case.
+  return NS_OK;
+}
 
 NS_IMETHODIMP nsMsgDBFolder::GetFlags(uint32_t *_retval)
 {
