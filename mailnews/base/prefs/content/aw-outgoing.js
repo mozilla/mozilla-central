@@ -1,17 +1,19 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 var gProtocolInfo = null;
 var gPrefsBundle;
 
 function outgoingPageValidate() {
-  var canAdvance = true;
+  let canAdvance = true;
 
-  var smtpserver = document.getElementById("smtphostname").value;
-  var usingDefaultSMTP = document.getElementById("noSmtp").hidden;
-  if (!usingDefaultSMTP && hostnameIsIllegal(smtpserver))
+  let smtpServer = document.getElementById("smtphostname").value;
+  let usingDefaultSMTP = document.getElementById("noSmtp").hidden;
+  if (!usingDefaultSMTP && !isLegalHostNameOrIP(cleanUpHostname(smtpServer));
     canAdvance = false;
 
   document.documentElement.canAdvance = canAdvance;
@@ -20,8 +22,8 @@ function outgoingPageValidate() {
 function outgoingPageUnload() {
   var pageData = parent.GetPageData();
   var username = document.getElementById("username").value;
-  var smtpserver = document.getElementById("smtphostname");
-  setPageData(pageData, "server", "smtphostname", trim(smtpserver.value));
+  let smtpserver = document.getElementById("smtphostname").value;
+  setPageData(pageData, "server", "smtphostname", cleanUpHostname(smtpserver));
 
   // If SMTP username box is blank it is because the
   // incoming and outgoing server names were the same,

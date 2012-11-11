@@ -7,6 +7,8 @@
 // gPrefBranch, gBrandBundle, gMessengerBundle should already be defined
 // gatherTextUnder from utilityOverlay.js
 
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
+
 const kPhishingNotSuspicious = 0;
 const kPhishingWithIPAddress = 1;
 const kPhishingWithMismatchedHosts = 2;
@@ -93,8 +95,8 @@ function isPhishingURL(aLinkNode, aSilentMode, aHref)
   // this prevents us from flagging imap and other internally handled urls
   if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
   {
-    var ipAddress = hostNameIsIPAddress(hrefURL.host);
-    if (ipAddress && !isLocalIPAddress(ipAddress))
+    let ipAddress = isLegalIPAddress(hrefURL.host, true);
+    if (ipAddress && !isLegalLocalIPAddress(ipAddress))
       phishingType = kPhishingWithIPAddress;
     else if (misMatchedHostWithLinkText(aLinkNode, hrefURL, linkTextURL))
       phishingType = kPhishingWithMismatchedHosts;
@@ -136,64 +138,6 @@ function misMatchedHostWithLinkText(aLinkNode, aHrefURL, aLinkTextURL)
   return false;
 }
 
-// returns the unobscured host (if there is one), otherwise null
-function hostNameIsIPAddress(aHostName)
-{
-  // TODO: Add Support for IPv6
-
-  var index;
-
-  // scammers frequently obscure the IP address by encoding each component as octal, hex
-  // or in some cases a mix match of each. The IP address could also be represented as a DWORD.
-
-  // break the IP address down into individual components.
-  var ipComponents = aHostName.split(".");
-
-  // if we didn't find at least 4 parts to our IP address it either isn't a numerical IP
-  // or it is encoded as a dword
-  if (ipComponents.length < 4)
-  {
-    // Convert to a binary to test for possible DWORD.
-    var binaryDword = parseInt(aHostName).toString(2);
-    if (isNaN(binaryDword))
-      return null;
-
-    // convert the dword into its component IP parts.
-    ipComponents =
-    [
-      (aHostName >> 24) & 255,
-      (aHostName >> 16) & 255,
-      (aHostName >>  8) & 255,
-      (aHostName & 255)
-    ];
-  }
-  else
-  {
-    for (index = 0; index < ipComponents.length; ++index)
-    {
-      // by leaving the radix parameter blank, we can handle IP addresses
-      // where one component is hex, another is octal, etc.
-      ipComponents[index] = parseInt(ipComponents[index]);
-    }
-  }
-
-  // make sure each part of the IP address is in fact a number
-  for (index = 0; index < ipComponents.length; ++index)
-    if (isNaN(ipComponents[index])) // if any part of the IP address is not a number, then we can safely return
-      return null;
-
-  // only return unobscured host name if we are looking at an IPv4 host name
-  var hostName = ipComponents.join(".");
-  return isIPv4HostName(hostName) ? hostName : null;
-}
-
-function isIPv4HostName(aHostName)
-{
-  var ipv4HostRegExp = new RegExp(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);  // IPv4
-  // treat 0.0.0.0 as an invalid IP address
-  return ipv4HostRegExp.test(aHostName) && aHostName != '0.0.0.0';
-}
-
 // returns true if the user confirms the URL is a scam
 function confirmSuspiciousURL(aPhishingType, aSuspiciousHostName)
 {
@@ -214,15 +158,4 @@ function confirmSuspiciousURL(aPhishingType, aSuspiciousHostName)
   var buttons = Services.prompt.STD_YES_NO_BUTTONS +
                 Services.prompt.BUTTON_POS_1_DEFAULT;
   return Services.prompt.confirmEx(window, titleMsg, dialogMsg, buttons, "", "", "", "", {}); /* the yes button is in position 0 */
-}
-
-// returns true if the IP address is a local address.
-function isLocalIPAddress(unobscuredHostName)
-{
-  var ipComponents = unobscuredHostName.split(".");
-
-  return ipComponents[0] == 10 ||
-         (ipComponents[0] == 192 && ipComponents[1] == 168) ||
-         (ipComponents[0] == 169 && ipComponents[1] == 254) ||
-         (ipComponents[0] == 172 && ipComponents[1] >= 16 && ipComponents[1] < 32);
 }

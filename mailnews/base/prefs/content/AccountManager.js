@@ -30,7 +30,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 
-var gSmtpHostNameIsIllegal = false;
 // If Local directory has changed the app needs to restart. Once this is set
 // a restart will be attempted at each attempt to close the Account manager with OK.
 var gRestartNeeded = false;
@@ -208,11 +207,6 @@ function onAccept(aDoChecks) {
     // Check if user/host have been modified correctly.
     if (!checkUserServerChanges(true))
       return false;
-
-    if (gSmtpHostNameIsIllegal) {
-      gSmtpHostNameIsIllegal = false;
-      return false;
-    }
   }
 
   if (!onSave())
@@ -335,18 +329,6 @@ function checkUserServerChanges(showAlert) {
   const prefBundle = document.getElementById("bundle_prefs");
   const alertTitle = prefBundle.getString("prefPanel-server");
   var alertText = null;
-  if (MailServices.smtp.defaultServer) {
-    try {
-      var smtpHostName = top.frames["contentFrame"]
-                            .document.getElementById("smtp.hostname");
-      if (smtpHostName && hostnameIsIllegal(smtpHostName.value)) {
-        alertText = prefBundle.getString("enterValidHostname");
-        Services.prompt.alert(window, alertTitle, alertText);
-        gSmtpHostNameIsIllegal = true;
-      }
-    }
-    catch (ex) {}
-  }
 
   var accountValues = getValueArrayFor(currentAccount);
   if (!accountValues)
@@ -858,12 +840,6 @@ function onAccountTreeSelect(pageId, account)
       changeView = true;
       account = currentAccount;
       pageId = currentPageId;
-    }
-
-    if (gSmtpHostNameIsIllegal) {
-      gSmtpHostNameIsIllegal = false;
-      selectServer(currentAccount.incomingServer, currentPageId);
-      return true;
     }
 
     if (gRestartNeeded)

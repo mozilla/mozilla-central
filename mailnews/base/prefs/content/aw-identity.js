@@ -10,7 +10,7 @@ function identityPageValidate()
 {
   var canAdvance = false;
   var name = document.getElementById("fullName").value;
-  var email = trim(document.getElementById("email").value);
+  let email = document.getElementById("email").value.trim();
 
   if (name && email) {
     canAdvance = gCurrentDomain ? emailNameIsLegal(email) : emailNameAndDomainAreLegal(email);
@@ -36,7 +36,7 @@ function identityPageUnload()
 {
   var pageData = parent.GetPageData();
   var name = document.getElementById("fullName").value;
-  var email = trim(document.getElementById("email").value);
+  let email = document.getElementById("email").value.trim();
   setPageData(pageData, "identity", "fullName", name);
   setPageData(pageData, "identity", "email", email);
 

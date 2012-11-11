@@ -1,37 +1,30 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 var gOnMailServersPage;
 var gOnNewsServerPage;
 var gHideIncoming;
 var gProtocolInfo = null;
 
-function hostnameIsIllegal(hostname)
-{
-  // XXX TODO do a complete check.
-  // this only checks for illegal characters in the hostname
-  // but hostnames like "...." and "_" and ".111" will get by
-  // my test.  
-  hostname = trim(hostname);
-  return !hostname || /[^A-Za-z0-9.-]/.test(hostname);
-}
-
 function incomingPageValidate()
 {
   var canAdvance = true;
 
   if (gOnMailServersPage) {
-    var incomingServerName = document.getElementById("incomingServer").value;
-    if (!gHideIncoming && hostnameIsIllegal(incomingServerName))
+    let incomingServerName = document.getElementById("incomingServer").value;
+    if (!gHideIncoming && !isLegalHostNameOrIP(cleanUpHostname(incomingServerName)))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
-    var newsServerName = document.getElementById("newsServer").value;
-    if (hostnameIsIllegal(newsServerName))
+    let newsServerName = document.getElementById("newsServer").value;
+    if (!isLegalHostNameOrIP(cleanUpHostname(newsServerName)))
       canAdvance = false;
   }
+
   if (canAdvance) {
     var pageData = parent.GetPageData();
     var serverType = parent.getCurrentServerType(pageData);
@@ -59,7 +52,7 @@ function incomingPageUnload()
     // to set the server to an empty value here
     if (!gHideIncoming) {
       var incomingServerName = document.getElementById("incomingServer");
-      setPageData(pageData, "server", "hostname", trim(incomingServerName.value));
+      setPageData(pageData, "server", "hostname", cleanUpHostname(incomingServerName.value));
     }
     var serverport = document.getElementById("serverPort").value;
     setPageData(pageData, "server", "port", serverport);
@@ -68,7 +61,7 @@ function incomingPageUnload()
   }
   else if (gOnNewsServerPage) {
     var newsServerName = document.getElementById("newsServer");
-    setPageData(pageData, "newsserver", "hostname", trim(newsServerName.value));
+    setPageData(pageData, "newsserver", "hostname", cleanUpHostname(newsServerName.value));
   }
 
   return true;
