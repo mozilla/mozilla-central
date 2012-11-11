@@ -66,7 +66,29 @@ XMPPSession.prototype = {
   /* for the socket.jsm helper */
   __proto__: Socket,
   connectTimeout: 60,
-  readWriteTimeout: 0,
+  readWriteTimeout: 300,
+  _pingTimer: null,
+  resetPingTimer: function() {
+    if (this._pingTimer)
+      clearTimeout(this._pingTimer);
+    // send an iq ping every 2 minutes if there's no traffic on the socket.
+    this._pingTimer = setTimeout(this.sendPing.bind(this), 120000);
+  },
+  _disconnectTimer: null,
+  sendPing: function() {
+    delete this._pingTimer;
+    this.sendStanza(Stanza.iq("get", null, null,
+                              Stanza.node("ping", Stanza.NS.ping)),
+                    this.cancelDisconnectTimer, this);
+    this._disconnectTimer =
+      setTimeout(this.onConnectionTimedOut.bind(this), 30000);
+  },
+  cancelDisconnectTimer: function() {
+    if (!this._disconnectTimer)
+      return;
+    clearTimeout(this._disconnectTimer);
+    delete this._disconnectTimer;
+  },
 
   _security: null,
   _encrypted: false,
@@ -81,6 +103,11 @@ XMPPSession.prototype = {
       this._parser.destroy();
       delete this._parser;
     }
+    if (this._pingTimer) {
+      clearTimeout(this._pingTimer);
+      delete this._pingTimer;
+    }
+    this.cancelDisconnectTimer();
   },
 
   /* Report errors to the account */
@@ -171,6 +198,8 @@ XMPPSession.prototype = {
 
   /* When incoming data is available to be parsed */
   onDataReceived: function(aData) {
+    if (this.onXmppStanza == this.stanzaListeners.accountListening)
+      this.resetPingTimer();
     let istream = Cc["@mozilla.org/io/string-input-stream;1"]
                     .createInstance(Ci.nsIStringInputStream);
     istream.setData(aData, aData.length);
@@ -481,6 +510,7 @@ XMPPSession.prototype = {
       this.sendStanza(s);
     },
     sessionStarted: function(aStanza) {
+      this.resetPingTimer();
       this._account.onConnection();
       this.onXmppStanza = this.stanzaListeners.accountListening;
     },
