@@ -420,18 +420,25 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   // nsAbLDAPCard::SetMetaProperties
   rv = url->AddAttribute(NS_LITERAL_CSTRING("objectClass"));
 
-  // Get the filter
-  nsCOMPtr<nsISupports> supportsExpression;
-  rv = aArguments->GetExpression (getter_AddRefs (supportsExpression));
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  nsCOMPtr<nsIAbBooleanExpression> expression (do_QueryInterface (supportsExpression, &rv));
   nsAutoCString filter;
-  
-  // figure out how we map attribute names to addressbook fields for this
-  // query
-  rv = nsAbBoolExprToLDAPFilter::Convert(map, expression, filter);
+
+  // Get filter from arguments if set:
+  rv = aArguments->GetFilter(filter);
   NS_ENSURE_SUCCESS(rv, rv);
+  
+  if (filter.IsEmpty()) {
+    // Get the filter
+    nsCOMPtr<nsISupports> supportsExpression;
+    rv = aArguments->GetExpression(getter_AddRefs(supportsExpression));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIAbBooleanExpression> expression(do_QueryInterface(supportsExpression, &rv));
+
+    // figure out how we map attribute names to addressbook fields for this
+    // query
+    rv = nsAbBoolExprToLDAPFilter::Convert(map, expression, filter);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   /*
    * Mozilla itself cannot arrive here with a blank filter

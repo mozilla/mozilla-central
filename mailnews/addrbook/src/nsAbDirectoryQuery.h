@@ -41,6 +41,7 @@ protected:
     nsCOMPtr<nsISupports> mExpression;
     nsCOMPtr<nsISupports> mTypeSpecificArg;
     bool mQuerySubDirectories;
+    nsCString mFilter;
 };
 
 
