@@ -52,8 +52,16 @@ _BROWSER_FILES = \
                  browser_pageInfo.js \
                  feed_tab.html \
                  browser_pluginnotification.js \
+                 plugin_alternate_content.html \
+                 plugin_bug743421.html \
+                 plugin_bug749455.html \
+                 plugin_clickToPlayAllow.html \
+                 plugin_hidden_to_visible.html \
                  plugin_unknown.html \
                  plugin_test.html \
+                 plugin_test2.html \
+                 plugin_test3.html \
+                 plugin_two_types.html \
                  plugin_both.html \
                  plugin_both2.html \
                  browser_popupNotification.js \
