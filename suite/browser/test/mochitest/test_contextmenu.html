@@ -859,6 +859,7 @@ function startTest() {
     image_in_iframe = subwindow.document.getElementById("test-image-in-iframe").contentDocument.getElementsByTagName("img")[0];
     textarea   = subwindow.document.getElementById("test-textarea");
     contenteditable = subwindow.document.getElementById("test-contenteditable");
+    contenteditable.focus(); // content editable needs to be focused to enable spellcheck
     inputspell = subwindow.document.getElementById("test-input-spellcheck");
     pagemenu = subwindow.document.getElementById("test-pagemenu");
 
