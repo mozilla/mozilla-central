@@ -45,13 +45,13 @@
 
 // this platform specific junk is so the newsrc filenames we create
 // will resemble the migrated newsrc filenames.
-#if defined(XP_UNIX) || defined(XP_BEOS)
+#if defined(XP_UNIX)
 #define NEWSRC_FILE_PREFIX "newsrc-"
 #define NEWSRC_FILE_SUFFIX ""
 #else
 #define NEWSRC_FILE_PREFIX ""
 #define NEWSRC_FILE_SUFFIX ".rc"
-#endif /* XP_UNIX || XP_BEOS */
+#endif /* XP_UNIX */
 
 // ###tw  This really ought to be the most
 // efficient file reading size for the current

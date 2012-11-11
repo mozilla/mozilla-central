@@ -79,10 +79,6 @@ endif
 CONFIG_TOOLS	= $(MOZ_BUILD_ROOT)/mozilla/config
 AUTOCONF_TOOLS	= $(MOZILLA_SRCDIR)/build/autoconf
 
-ifeq ($(OS_ARCH),BeOS)
-BEOS_ADDON_WORKAROUND	= 1
-endif
-
 #
 # Strip off the excessively long version numbers on these platforms,
 # but save the version to allow multiple versions of the same base

@@ -354,23 +354,6 @@ ifeq ($(SOLARIS_SUNPRO_CXX),1)
 GARBAGE_DIRS += SunWS_cache
 endif
 
-ifeq ($(OS_ARCH),OpenVMS)
-GARBAGE			+= $(wildcard *.*_defines)
-ifdef SHARED_LIBRARY
-VMS_SYMVEC_FILE		= $(SHARED_LIBRARY:$(DLL_SUFFIX)=_symvec.opt)
-ifdef MOZ_DEBUG
-VMS_SYMVEC_FILE_MODULE	= $(MOZILLA_SRCDIR)/build/unix/vms/$(notdir $(SHARED_LIBRARY:$(DLL_SUFFIX)=_dbg_symvec.opt))
-else
-VMS_SYMVEC_FILE_MODULE	= $(MOZILLA_SRCDIR)/build/unix/vms/$(notdir $(SHARED_LIBRARY:$(DLL_SUFFIX)=_symvec.opt))
-endif
-VMS_SYMVEC_FILE_COMP	= $(MOZILLA_SRCDIR)/build/unix/vms/component_symvec.opt
-GARBAGE			+= $(VMS_SYMVEC_FILE)
-ifdef IS_COMPONENT
-DSO_LDOPTS := $(filter-out -auto_symvec,$(DSO_LDOPTS)) $(VMS_SYMVEC_FILE)
-endif
-endif
-endif
-
 XPIDL_GEN_DIR		= _xpidlgen
 
 ifdef MOZ_UPDATE_XTERM
@@ -760,9 +743,6 @@ ifndef NO_COMPONENTS_MANIFEST
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/components.manifest"
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/components.manifest "binary-component $(SHARED_LIBRARY)"
 endif
-ifdef BEOS_ADDON_WORKAROUND
-	( cd $(FINAL_TARGET)/components && $(CC) -nostart -o $(SHARED_LIBRARY).stub $(SHARED_LIBRARY) )
-endif
 else # ! IS_COMPONENT
 ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
 ifndef NO_INSTALL_IMPORT_LIBRARY
@@ -772,9 +752,6 @@ else
 	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(DIST)/lib)
 endif
 	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET))
-ifdef BEOS_ADDON_WORKAROUND
-	( cd $(FINAL_TARGET) && $(CC) -nostart -o $(SHARED_LIBRARY).stub $(SHARED_LIBRARY) )
-endif
 endif # IS_COMPONENT
 endif # SHARED_LIBRARY
 ifdef PROGRAM
@@ -893,12 +870,6 @@ endif
 ifdef MOZ_POST_PROGRAM_COMMAND
 	$(MOZ_POST_PROGRAM_COMMAND) $@
 endif
-ifeq ($(OS_ARCH),BeOS)
-ifdef BEOS_PROGRAM_RESOURCE
-	xres -o $@ $(BEOS_PROGRAM_RESOURCE)
-	mimeset $@
-endif
-endif # BeOS
 
 $(HOST_PROGRAM): $(HOST_PROGOBJS) $(HOST_LIBS_DEPS) $(HOST_EXTRA_DEPS) $(GLOBAL_DEPS)
 ifeq (_WINNT,$(GNU_CC)_$(HOST_OS_ARCH))
@@ -1028,20 +999,6 @@ $(SHARED_LIBRARY): $(OBJS) $(LOBJS) $(DEF_FILE) $(RESFILE) $(LIBRARY) $(EXTRA_DE
 ifndef INCREMENTAL_LINKER
 	rm -f $@
 endif
-ifeq ($(OS_ARCH),OpenVMS)
-	@if test ! -f $(VMS_SYMVEC_FILE); then \
-	  if test -f $(VMS_SYMVEC_FILE_MODULE); then \
-	    echo Creating specific component options file $(VMS_SYMVEC_FILE); \
-	    cp $(VMS_SYMVEC_FILE_MODULE) $(VMS_SYMVEC_FILE); \
-	  fi; \
-	fi
-ifdef IS_COMPONENT
-	@if test ! -f $(VMS_SYMVEC_FILE); then \
-	  echo Creating generic component options file $(VMS_SYMVEC_FILE); \
-	  cp $(VMS_SYMVEC_FILE_COMP) $(VMS_SYMVEC_FILE); \
-	fi
-endif
-endif # OpenVMS
 ifdef DTRACE_LIB_DEPENDENT
 ifndef XP_MACOSX
 	dtrace -G -C -s $(MOZILLA_DTRACE_SRC) -o  $(DTRACE_PROBE_OBJ) $(shell $(EXPAND_LIBS) $(MOZILLA_PROBE_LIBS))

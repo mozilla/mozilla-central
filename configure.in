@@ -990,9 +990,6 @@ solaris*)
 BSD_386)
     HOST_OS_ARCH=BSD
     ;;
-*OpenVMS*)
-    HOST_OS_ARCH=OpenVMS
-    ;;
 OS_2)
     HOST_OS_ARCH=OS2
     ;;
@@ -1036,11 +1033,6 @@ AIX)
     ;;
 BSD_386)
     OS_ARCH=BSD
-    ;;
-*OpenVMS*)
-    OS_ARCH=OpenVMS
-    OS_RELEASE=`uname -v`
-    OS_TEST=`uname -p`
     ;;
 OS_2)
     OS_ARCH=OS2
@@ -1385,12 +1377,6 @@ dnl ========================================================
 dnl System overrides of the defaults for host
 dnl ========================================================
 case "$host" in
-*-beos*)
-    HOST_CFLAGS="$HOST_CFLAGS -DXP_BEOS -DBeOS -DBEOS -D_POSIX_SOURCE -DNO_X11"
-    HOST_NSPR_MDCPUCFG='\"md/_beos.cfg\"'
-    HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O3}"
-    ;;
-
 *mingw*)
     if test -n "$_WIN32_MSVC"; then
         HOST_AR=lib
@@ -1514,24 +1500,6 @@ ld.])
         AC_CHECK_HEADERS(sys/inttypes.h)
     fi
     AC_DEFINE(NSCAP_DISABLE_DEBUG_PTR_TYPES)
-    ;;
-
-*-beos*)
-    no_x=yes
-    MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_LDOPTS) -Wl,-h,$@ -o $@'
-    _PLATFORM_DEFAULT_TOOLKIT="cairo-beos"
-    DSO_LDOPTS='-nostart'
-    TK_LIBS='-lbe -lroot'
-    LIBS="$LIBS -lbe"
-    if test "$COMPILE_ENVIRONMENT"; then
-        AC_CHECK_LIB(bind,main,LIBS="$LIBS -lbind")
-        AC_CHECK_LIB(zeta,main,LIBS="$LIBS -lzeta")
-    fi
-    _WARNINGS_CFLAGS="${_WARNINGS_CFLAGS} -Wno-multichar"
-    _WARNINGS_CXXFLAGS="${_WARNINGS_CXXFLAGS} -Wno-multichar"
-    _MOZ_USE_RTTI=1
-    USE_DEPENDENT_LIBS=
-    MOZ_USER_DIR="Mozilla"
     ;;
 
 *-bsdi*)
@@ -1916,25 +1884,6 @@ ia64*-hpux*)
     fi
     ;;
 
-*-openvms*) 
-    AC_DEFINE(NO_PW_GECOS)
-    AC_DEFINE(NO_UDSOCK)
-    AC_DEFINE(POLL_WITH_XCONNECTIONNUMBER)
-    USE_PTHREADS=1
-    MKSHLIB_FORCE_ALL='-all'
-    MKSHLIB_UNFORCE_ALL='-none'
-    AS='as'
-    AS_DASH_C_FLAG='-Wc/names=as_is'
-    AR_FLAGS='c $@'
-    DSO_LDOPTS='-shared -auto_symvec'
-    DSO_PIC_CFLAGS=
-    MOZ_DEBUG_LDFLAGS='-g'
-    COMPAQ_CXX=1
-    CC_VERSION=`$CC -V 2>&1 | awk '/ C / { print $3 }'`
-    CXX_VERSION=`$CXX -V 2>&1 | awk '/ C\+\+ / { print $3 }'`
-    ;;
-
-
 *-os2*)
     MKSHLIB='$(CXX) $(CXXFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
     MKCSHLIB='$(CC) $(CFLAGS) $(DSO_PIC_CFLAGS) $(DSO_LDOPTS) -o $@'
@@ -2122,9 +2071,6 @@ case "$target" in
     NO_LD_ARCHIVE_FLAGS=
     ;;
 *-aix4.3*|*-aix5*)
-    NO_LD_ARCHIVE_FLAGS=
-    ;;
-*-openvms*)
     NO_LD_ARCHIVE_FLAGS=
     ;;
 *-mingw*)
@@ -2612,15 +2558,13 @@ case $target in
 esac
 
 dnl We don't want to link with libdl even if it's present on OS X, since
-dnl it's not used and not part of the default installation.
-dnl The same goes for BeOS. OS/2 has dlfcn in libc.
+dnl it's not used and not part of the default installation. OS/2 has dlfcn
+dnl in libc.
 dnl We don't want to link against libm or libpthread on Darwin since
 dnl they both are just symlinks to libSystem and explicitly linking
 dnl against libSystem causes issues when debugging (see bug 299601).
 case $target in
 *-darwin*)
-    ;;
-*-beos*)
     ;;
 *-os2*)
     ;;
@@ -2953,7 +2897,7 @@ if test "$ac_cv_func_gnu_get_libc_version" = "yes"; then
 fi
 
 case $target_os in
-    os2*|mingw*|darwin*|beos*)
+    os2*|mingw*|darwin*)
         ;;
     *)
     
@@ -4007,7 +3951,6 @@ MOZ_ARG_HEADER(Toolkit Options)
 	[  --enable-default-toolkit=TK
                           Select default toolkit
                           Platform specific defaults:
-                            BeOS - cairo-beos
                             Mac OS X - cairo-cocoa
                             OS/2 - cairo-os2
                             Win32/WinCE - cairo-windows
@@ -4022,7 +3965,6 @@ MOZ_ARG_HEADER(Toolkit Options)
         -o "$_DEFAULT_TOOLKIT" = "cairo-gtk2-dfb" \
         -o "$_DEFAULT_TOOLKIT" = "cairo-gtk2-x11" \
         -o "$_DEFAULT_TOOLKIT" = "cairo-qt" \
-        -o "$_DEFAULT_TOOLKIT" = "cairo-beos" \
         -o "$_DEFAULT_TOOLKIT" = "cairo-os2" \
         -o "$_DEFAULT_TOOLKIT" = "cairo-cocoa"
     then
@@ -4083,12 +4025,6 @@ cairo-qt)
     TK_CFLAGS='$(MOZ_QT_CFLAGS)'
     TK_LIBS='$(MOZ_QT_LIBS)'
     AC_DEFINE(MOZ_WIDGET_QT)
-    ;;
-
-cairo-beos)
-    MOZ_WIDGET_TOOLKIT=beos
-    TK_CFLAGS='$(MOZ_CAIRO_CFLAGS)'
-    TK_LIBS='$(MOZ_CAIRO_LIBS)'
     ;;
 
 cairo-os2)
@@ -5804,11 +5740,7 @@ dnl ========================================================
 MOZ_ARG_HEADER(Build dependencies)
 
 if test "$GNU_CC" -a "$GNU_CXX"; then
-  if test "$OS_ARCH" = "OpenVMS"; then
-    _DEPEND_CFLAGS='$(subst =, ,$(filter-out %/.pp,-MM=-MD=-MF=$(MDDEPDIR)/$(basename $(@F)).pp))'
-  else
-    _DEPEND_CFLAGS='$(filter-out %/.pp,-MD -MF $(MDDEPDIR)/$(basename $(@F)).pp)'
-  fi
+  _DEPEND_CFLAGS='$(filter-out %/.pp,-MD -MF $(MDDEPDIR)/$(basename $(@F)).pp)'
 dnl Sun Studio on Solaris use -xM instead of -MD, see config/rules.mk
 elif test "$SOLARIS_SUNPRO_CC"; then
   _DEPEND_CFLAGS=
@@ -5908,9 +5840,6 @@ AC_CHECK_HEADERS(stdint.h inttypes.h sys/int_types.h)
 if test "$MOZ_TREE_CAIRO"; then
     if test "$MOZ_WIDGET_TOOLKIT" = "os2"; then
         CAIRO_FT_LIBS="-L${MZFTCFGFT2}/lib -lmozft -lmzfntcfg"
-    fi
-    if test "$MOZ_WIDGET_TOOLKIT" = "beos"; then
-        PKG_CHECK_MODULES(CAIRO_FT, fontconfig freetype2)
     fi
 
     MOZ_CAIRO_LIBS='$(call EXPAND_LIBNAME_PATH,mozcairo,$(DEPTH)/mozilla/gfx/cairo/cairo/src) $(call EXPAND_LIBNAME_PATH,mozlibpixman,$(DEPTH)/mozilla/gfx/cairo/libpixman/src)'" $CAIRO_FT_LIBS"
@@ -6408,15 +6337,10 @@ fi # COMPILE_ENVIRONMENT
 dnl Set various defines and substitutions
 dnl ========================================================
 
-if test "$OS_ARCH" = "BeOS"; then
-  AC_DEFINE(XP_BEOS)
-  MOZ_MOVEMAIL=1
-elif test "$OS_ARCH" = "Darwin"; then
+if test "$OS_ARCH" = "Darwin"; then
   AC_DEFINE(XP_UNIX)
   AC_DEFINE(UNIX_ASYNC_DNS)
   MOZ_MOVEMAIL=1
-elif test "$OS_ARCH" = "OpenVMS"; then
-  AC_DEFINE(XP_UNIX)
 elif test "$OS_ARCH" != "WINNT" -a "$OS_ARCH" != "OS2"; then
   AC_DEFINE(XP_UNIX)
   AC_DEFINE(UNIX_ASYNC_DNS)
