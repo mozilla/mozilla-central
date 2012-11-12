@@ -341,12 +341,12 @@ function checkUserServerChanges(showAlert) {
   // Get the new username, hostname and type from the page
   var newUser, newHost, newType, oldUser, oldHost;
   var uIndx, hIndx;
-  for (var i = 0; i < pageElements.length; i++) {
+  for (let i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
-      var vals = pageElements[i].id.split(".");
+      let vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
-        var type = vals[0];
-        var slot = vals[1];
+        let type = vals[0];
+        let slot = pageElements[i].id.slice(type.length + 1);
 
         // if this type doesn't exist (just removed) then return.
         if (!(type in accountValues) || !accountValues[type]) return true;
@@ -933,12 +933,12 @@ function savePage(account)
     return;
 
   // store the value in the account
-  for (var i = 0; i < pageElements.length; i++) {
+  for (let i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
-      var vals = pageElements[i].id.split(".");
+      let vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
-        var type = vals[0];
-        var slot = vals[1];
+        let type = vals[0];
+        let slot = pageElements[i].id.slice(type.length + 1);
 
         setAccountValue(accountValues,
                         type, slot,
@@ -1042,12 +1042,13 @@ function restorePage(pageId, account)
     return;
 
   // restore the value from the account
-  for (var i = 0; i < pageElements.length; i++) {
+  for (let i = 0; i < pageElements.length; i++) {
     if (pageElements[i].id) {
-      var vals = pageElements[i].id.split(".");
+      let vals = pageElements[i].id.split(".");
       if (vals.length >= 2) {
-        var type = vals[0];
-        var slot = vals[1];
+        let type = vals[0];
+        let slot = pageElements[i].id.slice(type.length + 1);
+
         // buttons are lockable, but don't have any data so we skip that part.
         // elements that do have data, we get the values at poke them in.
         if (pageElements[i].localName != "button") {
