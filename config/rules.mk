@@ -104,6 +104,7 @@ xpcshell-tests:
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
 	  --tests-root-dir=$(testxpcobjdir) \
+	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
 	  --xunit-file=$(testxpcobjdir)/$(relativesrcdir)/results.xml \
 	  --xunit-suite-name=xpcshell \
 	  $(EXTRA_TEST_ARGS) \
@@ -120,6 +121,7 @@ check-interactive:
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
 	  --test-path=$(SOLO_FILE) \
+	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
 	  --profile-name=$(MOZ_APP_NAME) \
 	  --interactive \
 	  $(LIBXUL_DIST)/bin/xpcshell \
@@ -1271,6 +1273,28 @@ libs:: $(FINAL_TARGET)/$(PREF_DIR) $(PREF_JS_EXPORTS)
 	  $(RM) -f $$dest; \
 	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
 	done
+endif
+endif
+
+################################################################################
+# Copy testing-only JS modules to appropriate destination.
+#
+# For each file defined in TESTING_JS_MODULES, copy it to
+# objdir/_tests/modules/. If TESTING_JS_MODULE_DIR is defined, that path
+# wlll be appended to the output directory.
+
+ifdef ENABLE_TESTS
+ifdef TESTING_JS_MODULES
+testmodulesdir = $(MOZDEPTH)/_tests/modules/$(TESTING_JS_MODULE_DIR)
+
+libs::
+	$(NSINSTALL) -D $(testmodulesdir)
+
+libs:: $(TESTING_JS_MODULES)
+ifndef NO_DIST_INSTALL
+	$(INSTALL) $(IFLAGS) $^ $(testmodulesdir)
+endif
+
 endif
 endif
 
