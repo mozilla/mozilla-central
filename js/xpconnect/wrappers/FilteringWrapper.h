@@ -51,6 +51,8 @@ class FilteringWrapper : public Base {
     FilteringWrapper(uintN flags);
     virtual ~FilteringWrapper();
 
+    virtual bool getPropertyDescriptor(JSContext *cx, JSObject *wrapper, jsid id, bool set, js::PropertyDescriptor *desc);
+    virtual bool getOwnPropertyDescriptor(JSContext *cx, JSObject *wrapper, jsid id, bool set, js::PropertyDescriptor *desc);
     virtual bool getOwnPropertyNames(JSContext *cx, JSObject *wrapper, js::AutoIdVector &props);
     virtual bool enumerate(JSContext *cx, JSObject *wrapper, js::AutoIdVector &props);
     virtual bool keys(JSContext *cx, JSObject *wrapper, js::AutoIdVector &props);
