@@ -1178,6 +1178,8 @@ const BrowserSearch = {
    * the sidebar and selected, null otherwise.
    */
   get searchSidebar() {
+    if (sidebarObj.never_built)
+      return null;
     var panel = sidebarObj.panels.get_panel_from_id("urn:sidebar:panel:search");
     return panel && isElementVisible(panel.get_iframe()) &&
            panel.get_iframe()
