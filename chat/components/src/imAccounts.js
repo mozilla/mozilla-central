@@ -203,7 +203,7 @@ imAccount.prototype = {
         if (this.timeOfNextReconnect - Date.now() > 1000) {
           // This is a manual reconnection, reset the auto-reconnect stuff
           this.timeOfLastConnect = 0;
-          this.cancelReconnection();
+          this._cancelReconnection();
         }
       }
       if (this.firstConnectionState != Ci.imIAccount.FIRST_CONNECTION_OK)
@@ -539,7 +539,7 @@ imAccount.prototype = {
   },
   unInit: function() {
     // remove any pending reconnection timer.
-    this.cancelReconnection();
+    this._cancelReconnection();
 
     // remove any pending autologin preference used for crash detection.
     this._finishedAutoLogin();
@@ -601,7 +601,7 @@ imAccount.prototype = {
           if (statusType == Ci.imIStatusInfo.STATUS_OFFLINE) {
             if (this.connected || this.connecting)
               this.prplAccount.disconnect();
-            this.cancelReconnection();
+            this._cancelReconnection();
           }
           else if (statusType > Ci.imIStatusInfo.STATUS_OFFLINE &&
                    this.disconnected)
@@ -633,13 +633,23 @@ imAccount.prototype = {
   get connecting() this.connectionState == Ci.imIAccount.STATE_CONNECTING,
   get disconnecting() this.connectionState == Ci.imIAccount.STATE_DISCONNECTING,
 
-  cancelReconnection: function() {
+  _cancelReconnection: function() {
     if (this._reconnectTimer) {
       clearTimeout(this._reconnectTimer);
       delete this._reconnectTimer;
     }
     delete this.reconnectAttempt;
     delete this.timeOfNextReconnect;
+  },
+  cancelReconnection: function() {
+    if (!this.disconnected)
+      throw Cr.NS_ERROR_UNEXPECTED;
+
+    // Ensure we don't keep a status observer that could re-enable the
+    // auto-reconnect timers.
+    this.disconnect();
+
+    this._cancelReconnection();
   },
   createConversation: function(aName)
     this._ensurePrplAccount.createConversation(aName),
