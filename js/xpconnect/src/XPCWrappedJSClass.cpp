@@ -1178,7 +1178,7 @@ class ContextPrincipalGuard
 
 NS_IMETHODIMP
 nsXPCWrappedJSClass::CallMethod(nsXPCWrappedJS* wrapper, uint16 methodIndex,
-                                const XPTMethodDescriptor* info,
+                                const XPTMethodDescriptor* info_,
                                 nsXPTCMiniVariant* nativeParams)
 {
     jsval* sp = nsnull;
@@ -1192,6 +1192,7 @@ nsXPCWrappedJSClass::CallMethod(nsXPCWrappedJS* wrapper, uint16 methodIndex,
     JSBool readyToDoTheCall = JS_FALSE;
     nsID  param_iid;
     JSObject* obj;
+    const nsXPTMethodInfo* info = static_cast<const nsXPTMethodInfo*>(info_);
     const char* name = info->name;
     jsval fval;
     JSBool foundDependentParam;
@@ -1213,6 +1214,17 @@ nsXPCWrappedJSClass::CallMethod(nsXPCWrappedJS* wrapper, uint16 methodIndex,
 
     if (!cx || !xpcc || !IsReflectable(methodIndex))
         return NS_ERROR_FAILURE;
+
+    // [implicit_jscontext] and [optional_argc] have a different calling
+    // convention, which we don't support for JS-implemented components.
+    if (info->WantsOptArgc() || info->WantsContext()) {
+        const char *str = "IDL methods marked with [implicit_jscontext] "
+                          "or [optional_argc] may not be implemented in JS";
+        // Throw and warn for good measure.
+        JS_ReportError(cx, str);
+        NS_WARNING(str);
+        return NS_ERROR_FAILURE;
+    }
 
     obj = thisObj = wrapper->GetJSObject();
 
