@@ -167,9 +167,9 @@ void AsyncAuthMigrator::EnqueuePrompt()
 
 nsMsgNewsFolder::nsMsgNewsFolder(void) :
      mExpungedBytes(0), mGettingNews(false),
-    mInitialized(false),
-    m_downloadMessageForOfflineUse(false), m_downloadingMultipleMessages(false),
-    mReadSet(nullptr)
+     mInitialized(false),
+     m_downloadMessageForOfflineUse(false), m_downloadingMultipleMessages(false),
+     mReadSet(nullptr), mSortOrder(kNewsSortOffset)
 {
   MOZ_COUNT_CTOR(nsNewsFolder); // double count these for now.
 }
