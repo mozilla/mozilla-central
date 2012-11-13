@@ -361,7 +361,7 @@ static GfxDriverInfo gDriverInfo[] = {
   // Block all ATI cards from using MSAA, except for two devices that have
   // special exceptions in the GetFeatureStatusImpl() function.
   IMPLEMENT_MAC_DRIVER_BLOCKLIST(DRIVER_OS_ALL,
-    GfxDriverInfo::vendorATI, GfxDriverInfo::allDevices,
+    GfxDriverInfo::allAdapterVendors, GfxDriverInfo::allDevices,
     nsIGfxInfo::FEATURE_WEBGL_MSAA, nsIGfxInfo::FEATURE_BLOCKED_OS_VERSION)
 
   GfxDriverInfo()
