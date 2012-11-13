@@ -46,9 +46,9 @@ function SelectSound(aSoundUrlPref)
     fp.displayDirectory = file.parent;
 
   var filterExts = "*.wav; *.wave";
-  // On Mac, allow AIFF files too.
+  // On Mac, allow AIFF and CAF files too.
   if (/Mac/.test(navigator.platform))
-    filterExts += "; *.aif; *.aiff";
+    filterExts += "; *.aif; *.aiff; *.caf";
   fp.appendFilter(prefutilitiesBundle.getString("SoundFiles"), filterExts);
   fp.appendFilters(nsIFilePicker.filterAll);
 
