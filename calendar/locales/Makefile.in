@@ -61,12 +61,12 @@ clobber-%:
 
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
-	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$*
 ifdef MOZ_SUNBIRD
-	@$(MAKE) -C ../sunbird/locales libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
+	@$(MAKE) -C ../sunbird/locales libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
 endif
-	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
-	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
+	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$*
 
 ifneq (,$(filter cocoa,$(MOZ_WIDGET_TOOLKIT)))
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore

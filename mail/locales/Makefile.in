@@ -79,13 +79,13 @@ install:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
-	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../chat/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
-	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$*
+	@$(MAKE) -C ../../chat/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
+	@$(MAKE) -C $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/locales AB_CD=$* XPI_NAME=locale-$*
 
 
 # Note the funny extra "../" in SFX_HEADER is because the repackage-zip command

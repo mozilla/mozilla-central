@@ -145,18 +145,18 @@ clobber-%:
 
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
-	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../mozilla/services/sync/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$*
+	@$(MAKE) -C ../../mozilla/services/sync/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../editor/ui/locales AB_CD=$* XPI_NAME=locale-$*
 	@if test -d ../../mozilla/extensions/irc; then \
 	  $(MAKE) -C ../../mozilla/extensions/irc/locales libs-$*; \
 	fi
 	@if test -d ../../mozilla/extensions/venkman; then \
 	  $(MAKE) -C ../../mozilla/extensions/venkman/locales libs-$*; \
 	fi
-	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$* BOTH_MANIFESTS=1
-	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref BOTH_MANIFESTS=1
+	@$(MAKE) -C ../../mozilla/extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) -C ../../mozilla/intl/locales AB_CD=$* XPI_NAME=locale-$*
+	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
 
 repackage-win32-installer: WIN32_INSTALLER_OUT="$(_ABS_DIST)/$(PKG_INST_PATH)$(PKG_INST_BASENAME).exe"
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
