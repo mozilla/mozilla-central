@@ -7550,7 +7550,11 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessa
                         mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
-  command += " lsub \"\" \"";
+  if (GetServerStateParser().GetCapabilityFlag() & kHasListExtendedCapability)
+    command += " list (subscribed)";
+  else
+    command += " lsub";
+  command += " \"\" \"";
   command += escapedPattern;
   command += "\"" CRLF;
 
@@ -7558,7 +7562,7 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessa
 
   nsresult rv = SendData(command.get());
   if (NS_SUCCEEDED(rv))
-    ParseIMAPandCheckForNewMail();
+    ParseIMAPandCheckForNewMail(command.get(), true);
 }
 
 void nsImapProtocol::List(const char *mailboxPattern, bool addDirectoryIfNecessary,

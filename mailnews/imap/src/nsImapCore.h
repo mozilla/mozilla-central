@@ -37,6 +37,11 @@ typedef uint16_t imapMessageFlagsType;
 #define kImapInbox 0x4000 /* XLIST says this is the INBOX folder */
 #define kImapAllMail 0x8000 /* XLIST says this is AllMail (GMail) */
 #define kImapXListTrash 0x10000 /* XLIST says this is the trash */
+#define kNonExistent 0x20000 /* RFC 5258, LIST-EXTENDED */
+#define kSubscribed 0x40000 /* RFC 5258, LIST-EXTENDED */
+#define kRemote 0x80000 /* RFC 5258, LIST-EXTENDED */
+#define kHasChildren 0x100000 /* RFC 5258, LIST-EXTENDED */
+#define kHasNoChildren 0x200000 /* RFC 5258, LIST-EXTENDED */
 
 /* flags for individual messages */
 /* currently the ui only offers \Seen and \Flagged */
@@ -138,7 +143,7 @@ const eIMAPCapabilityFlag kHasAuthExternalCapability = 0x20000000;  /* RFC 2222 
 const eIMAPCapabilityFlag kHasMoveCapability = 0x40000000;  /* Proposed MOVE RFC */
 const eIMAPCapabilityFlag kHasHighestModSeqCapability = 0x80000000;  /* Subset of RFC 3551 */
 // above are 32bit; below start the uint64_t bits 33-64
-const eIMAPCapabilityFlag kHasExtendedListCapability = 0x100000000LL;  /* RFC 5258 */
+const eIMAPCapabilityFlag kHasListExtendedCapability = 0x100000000LL;  /* RFC 5258 */
 const eIMAPCapabilityFlag kHasSpecialUseCapability = 0x200000000LL;  /* RFC 6154: Sent, Draft etc. folders */
 
 
