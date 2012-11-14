@@ -45,6 +45,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "mozilla/Services.h"
+#include "nsIMsgFilter.h"
 
 #define PORT_NOT_SET -1
 

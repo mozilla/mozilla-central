@@ -4,6 +4,10 @@
 
 #include "nsMsgFilterCore.idl"
 
+interface nsIArray;
+interface nsIMsgCopyServiceListener;
+interface nsIMsgWindow;
+
 /**
  * describes a custom action added to a message filter
  */

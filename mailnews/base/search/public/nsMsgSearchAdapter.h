@@ -7,7 +7,8 @@
 #define _nsMsgSearchAdapter_H_
 
 #include "nsMsgSearchCore.h"
-
+#include "nsCOMPtr.h"
+#include "nsStringGlue.h"
 #include "nsIMsgSearchAdapter.h"
 #include "nsIMsgSearchValidityTable.h"
 #include "nsIMsgSearchValidityManager.h"

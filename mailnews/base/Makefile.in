@@ -12,9 +12,7 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbase
 
-PARALLEL_DIRS	= public src util ispdata
-
-DIRS		= search/public
+PARALLEL_DIRS	= public src util ispdata search/public search/src
 
 ifdef ENABLE_TESTS
 TOOL_DIRS += test

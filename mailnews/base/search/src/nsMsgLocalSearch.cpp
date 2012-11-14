@@ -23,6 +23,7 @@
 #include "nsIMsgFilterPlugin.h"
 #include "nsMsgMessageFlags.h"
 #include "nsMsgUtils.h"
+#include "nsIMsgFolder.h"
 
 extern "C"
 {

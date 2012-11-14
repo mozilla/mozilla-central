@@ -14,6 +14,7 @@
 #include "nsIFile.h"
 #include "nsComponentManagerUtils.h"
 #include "mozilla/Services.h"
+#include "nsIMsgFilter.h"
 
 #define kDefaultViewPeopleIKnow "People I Know"
 #define kDefaultViewRecent "Recent Mail"

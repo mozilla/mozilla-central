@@ -68,6 +68,7 @@
 #include "nsDirectoryServiceUtils.h"
 #include "mozilla/Services.h"
 #include "nsMimeTypes.h"
+#include "nsIMsgFilter.h"
 
 static PRTime gtimeOfLastPurgeCheck;    //variable to know when to check for purge_threshhold
 

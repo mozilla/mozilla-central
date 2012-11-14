@@ -15,12 +15,13 @@ MODULE       = mailnews
 # If adding to these, consider if you need to add to XPCSHELL_TEST_DIRS below.
 PARALLEL_DIRS	+= \
 	addrbook \
-	base/search/src \
+	base \
 	compose \
 	db/gloda \
 	db/msgdb \
 	extensions\
 	imap \
+	import \
 	local \
 	mime \
 	news \
@@ -38,7 +39,7 @@ PARALLEL_DIRS += mapi/mapiDLL mapi/mapihook
 endif
 endif
 
-DIRS += import build
+DIRS += build
 
 PREF_JS_EXPORTS = $(srcdir)/mailnews.js
 

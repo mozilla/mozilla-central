@@ -24,7 +24,7 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsINntpIncomingServer.h"
 #include "nsMsgBaseCID.h"
-
+#include "nsIMsgFilter.h"
 #include "nsNNTPNewsgroupList.h"
 
 #include "nsINNTPArticleList.h"

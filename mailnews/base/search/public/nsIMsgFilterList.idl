@@ -4,11 +4,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsISupports.idl"
-#include "nsMsgFilterCore.idl"
-#include "nsIMsgFilter.idl"
 #include "nsIMsgFilterHitNotify.idl"
+#include "nsMsgFilterCore.idl"
 
+interface nsIFile;
 interface nsIOutputStream;
+interface nsIMsgFilter;
+interface nsIMsgFolder;
 
 ///////////////////////////////////////////////////////////////////////////////
 // The Msg Filter List is an interface designed to make accessing filter lists

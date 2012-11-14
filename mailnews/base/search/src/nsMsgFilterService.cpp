@@ -39,6 +39,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgSearchCustomTerm.h"
 #include "nsAutoPtr.h"
+#include "nsIMsgFilter.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 

@@ -20,7 +20,7 @@
 #include "nsIMsgAccountManager.h"
 #include "nsIStringBundle.h"
 #include "mozilla/Services.h"
-
+#include "nsIMsgfilter.h"
 #include "nsEudoraFilters.h"
 #include "nsEudoraStringBundle.h"
 

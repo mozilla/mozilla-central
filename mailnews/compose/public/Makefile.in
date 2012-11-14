@@ -42,5 +42,6 @@ XPIDLSRCS	= \
 include $(topsrcdir)/config/rules.mk
 
 XPIDL_FLAGS += \
+  -I$(topsrcdir)/mailnews/base/public \
   -I$(topsrcdir)/mailnews/mime/public \
   $(NULL)

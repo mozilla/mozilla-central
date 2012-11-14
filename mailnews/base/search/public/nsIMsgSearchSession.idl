@@ -4,7 +4,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsISupports.idl"
-#include "nsMsgSearchCore.idl"
 #include "nsIMsgSearchValue.idl"
 
 interface nsIMsgSearchAdapter;
@@ -12,6 +11,9 @@ interface nsIMsgSearchTerm;
 interface nsIMsgSearchNotify;
 interface nsIMsgHdr;
 interface nsIMsgDatabase;
+interface nsISupportsArray;
+interface nsIMsgWindow;
+interface nsIInputStream;
 
 //////////////////////////////////////////////////////////////////////////////
 // The Msg Search Session is an interface designed to make constructing

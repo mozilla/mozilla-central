@@ -4,8 +4,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsISupports.idl"
-#include "nsMsgFilterCore.idl"
-#include "nsIMsgFilter.idl"
+
+interface nsIMsgFilter;
 interface nsIMsgWindow;
 
 ///////////////////////////////////////////////////////////////////////////////

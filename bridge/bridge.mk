@@ -14,6 +14,5 @@ APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/db/mork
 endif
 
 APP_LIBXUL_DIRS += \
-  $(DEPTH)$(SUBDIR)/mailnews/base \
   $(DEPTH)$(SUBDIR)/mailnews \
   $(NULL)

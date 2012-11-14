@@ -5,7 +5,9 @@
 
 #include "MailNewsTypes.h"
 #include "nsMsgSearchValue.h"
+#include "nsIMsgFolder.h"
 #include "nsISupportsObsolete.h"
+#include "nsStringGlue.h"
 
 nsMsgSearchValueImpl::nsMsgSearchValueImpl(nsMsgSearchValue *aInitialValue)
 {

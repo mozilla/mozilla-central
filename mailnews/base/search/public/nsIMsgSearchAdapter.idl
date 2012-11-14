@@ -5,7 +5,6 @@
 
 
 #include "nsISupports.idl"
-#include "nsMsgSearchCore.idl"
 #include "nsIMsgSearchScopeTerm.idl"
 
 [ptr] native nsMsgResultElement(nsMsgResultElement);

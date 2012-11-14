@@ -8,10 +8,12 @@
 
 // inherit interface here
 #include "nsIMsgSearchAdapter.h"
+#include "nsIUrlListener.h"
 
 // inherit base implementation
 #include "nsMsgSearchAdapter.h"
 #include "nsISimpleEnumerator.h"
+
 
 class nsIMsgDBHdr;
 class nsIMsgSearchScopeTerm;

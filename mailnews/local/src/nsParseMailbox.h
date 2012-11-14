@@ -22,7 +22,7 @@
 #include "nsIMsgWindow.h"
 #include "nsImapMoveCoalescer.h"
 #include "nsAutoPtr.h"
-
+#include "nsStringGlue.h"
 #include "nsIMsgFilterList.h"
 #include "nsIMsgFilterHitNotify.h"
 #include "nsIMsgFolderNotificationService.h"

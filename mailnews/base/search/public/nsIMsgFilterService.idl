@@ -14,6 +14,7 @@ interface nsIFile;
 interface nsIMsgFolder;
 interface nsISupportsArray;
 interface nsIMsgSearchCustomTerm;
+interface nsIArray;
 
 [scriptable, uuid(C1A5F1BB-4D6C-447a-B70F-A12BE767DC0A)]
 interface nsIMsgFilterService : nsISupports {
