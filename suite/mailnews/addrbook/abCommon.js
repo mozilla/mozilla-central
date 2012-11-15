@@ -245,21 +245,29 @@ function AbDelete()
   if (types == kNothingSelected)
     return;
 
-  // If at least one mailing list is selected then prompt users for deletion.
-  if (types != kCardsOnly)
+  var confirmDeleteMessage;
+
+  if (types == kCardsOnly)
   {
-    var confirmDeleteMessage;
+    if (gAbView && gAbView.selection.count < 2)
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteContact");
+    else 
+      confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteContacts");
+  }
+  // If at least one mailing list is selected then prompt users for deletion.
+  else
+  {   
     if (types == kListsAndCards)
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteListsAndContacts");
     else if (types == kMultipleListsOnly)
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingLists");
-    else
+    else if (types == kSingleListOnly)
       confirmDeleteMessage = gAddressBookBundle.getString("confirmDeleteMailingList");
-    if (!Services.prompt.confirm(window, null, confirmDeleteMessage))
-      return;
   }
 
-  gAbView.deleteSelectedCards();
+  if (confirmDeleteMessage &&
+      Services.prompt.confirm(window, null, confirmDeleteMessage))
+    gAbView.deleteSelectedCards();
 }
 
 function AbNewCard()
