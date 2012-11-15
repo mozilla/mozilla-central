@@ -630,7 +630,7 @@ calDateTime::SetJsDate(JSContext* aCx, const JS::Value& aDate)
         return NS_OK;
     }
 
-    JSObject* dobj = js::UnwrapObjectChecked(aCx, JSVAL_TO_OBJECT(aDate));
+    JSObject* dobj = js::UnwrapObjectChecked(JSVAL_TO_OBJECT(aDate));
     JSAutoCompartment ac(aCx, dobj);
 
     if (!JS_ObjectIsDate(aCx, dobj) || !js_DateIsValid(dobj)) {
