@@ -12,7 +12,15 @@ OBJDIR = $(OBJDIR_ARCH_1)
 endif
 
 topsrcdir = $(TOPSRCDIR)
-include $(OBJDIR)/config/autoconf.mk
+DEPTH = $(OBJDIR)
+
+include $(DEPTH)/config/autoconf.mk
+include $(topsrcdir)/mozilla/toolkit/mozapps/installer/package-name.mk
+
+LIGHTNING_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
+XPI_PKGNAME = lightning-$(LIGHTNING_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
+
+include $(TOPSRCDIR)/config/config.mk
 
 postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
@@ -35,4 +43,4 @@ postflight_all:
 		$(DIST_ARCH_1)/xpi-stage/lightning \
 		$(DIST_ARCH_2)/xpi-stage/lightning \
 		> $(DIST_UNI)/xpi-stage/lightning/install.rdf
-	cd $(DIST_UNI)/xpi-stage/lightning && $(ZIP) -qr ../lightning.xpi *
+	cd $(DIST_UNI)/xpi-stage/lightning && $(ZIP) -qr ../$(XPI_PKGNAME).xpi *

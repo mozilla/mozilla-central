@@ -129,7 +129,7 @@ recreate-platformini: $(LIBXUL_DIST)/bin/platform.ini
 
 stage_upload:
 	$(NSINSTALL) -D $(DIST)/$(MOZ_PKG_PLATFORM)
-	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/$(XPI_PKGNAME).xpi $(DIST)/$(MOZ_PKG_PLATFORM)
+	$(INSTALL) $(IFLAGS1) $(DIST)/$(UNIVERSAL_PATH)/xpi-stage/$(XPI_PKGNAME).xpi $(DIST)/$(MOZ_PKG_PLATFORM)
 	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/$(GDATA_XPI_PKGNAME).xpi $(DIST)/$(MOZ_PKG_PLATFORM)
 
 # Lightning uses Thunderbird's build machinery, so we need to hack the post
