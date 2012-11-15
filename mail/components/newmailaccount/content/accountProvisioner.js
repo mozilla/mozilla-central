@@ -22,7 +22,7 @@ let stringBundle = new StringBundle("chrome://messenger/locale/newmailaccount/ac
 let isOSX = (Services.appinfo.OS == 'Darwin');
 
 const RETRY_TIMEOUT = 5000; // 5 seconds
-const CONNECTION_TIMEOUT = 10000; // 10 seconds
+const CONNECTION_TIMEOUT = 15000; // 15 seconds
 
 function isAccel (event) (isOSX && event.metaKey || event.ctrlKey)
 
