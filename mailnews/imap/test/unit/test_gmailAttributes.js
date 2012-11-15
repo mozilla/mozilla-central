@@ -31,15 +31,10 @@ const gXGmMsgid = "1278455344230334865";
 const gXGmThrid = "1266894439832287888";
 const gXGmLabels = '(\\Inbox \\Sent Important "Muy Importante" foo)';
 
+var gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
+  .createInstance(Ci.nsIMsgWindow);
+
 setupIMAPPump("GMail");
-
-gIMAPMailbox.specialUseFlag = "\\Inbox";
-gIMAPMailbox.subscribed = true;
-
-// need all mail folder to identify this as gmail server.
-gIMAPDaemon.createMailbox("[Gmail]", {flags : ["\\NoSelect"] });
-gIMAPDaemon.createMailbox("[Gmail]/All Mail", {subscribed : true,
-                                               specialUseFlag : "\\AllMail"});
 
 // Definition of tests
 var tests = [
@@ -54,7 +49,7 @@ var tests = [
 function loadImapMessage()
 {
   let message = new imapMessage(specForFileName(gMessage),
-                                gIMAPMailbox.uidnext++, []);
+                          gIMAPMailbox.uidnext++, []);
   message.xGmMsgid = gXGmMsgid;
   message.xGmThrid = gXGmThrid;
   message.xGmLabels = gXGmLabels;

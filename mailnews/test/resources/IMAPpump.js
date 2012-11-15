@@ -100,9 +100,11 @@ function setupIMAPPump(extensions)
   imapAccount.incomingServer = gIMAPIncomingServer;
 
   // The server doesn't support more than one connection
-  Services.prefs.setIntPref("mail.server.default.max_cached_connections", 1);
+  Services.prefs.setIntPref("mail.server.default.max_cached_connections",
+                            1);
   // We aren't interested in downloading messages automatically
-  Services.prefs.setBoolPref("mail.server.default.download_on_biff", false);
+  Services.prefs.setBoolPref("mail.server.default.download_on_biff",
+                             false);
   Services.prefs.setBoolPref("mail.biff.play_sound", false);
   Services.prefs.setBoolPref("mail.biff.show_alert", false);
   Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
