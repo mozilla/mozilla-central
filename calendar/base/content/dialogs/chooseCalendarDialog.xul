@@ -62,7 +62,7 @@
                     selectedIndex = i;
                 }
             }
-            document.getElementById("prompt").value = window.arguments[0].promptText;
+            document.getElementById("prompt").textContent = window.arguments[0].promptText;
 
             if (calendars.length) {
                 listbox.ensureIndexIsVisible(selectedIndex);
@@ -81,7 +81,7 @@
     ]]></script>
 
     <vbox id="dialog-box" flex="1">
-        <textbox id="prompt" class="plain" readonly="true" multiline="true" rows="2"/>
+        <label id="prompt" control="calendar-list"/>
         <listbox id="calendar-list" rows="5" flex="1" seltype="single">
             <listcols>
                 <listcol/>
