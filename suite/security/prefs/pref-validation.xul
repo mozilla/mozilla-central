@@ -21,13 +21,8 @@
                   type="bool"/>
       <preference id="security.OCSP.enabled"
                   name="security.OCSP.enabled"
-                  type="int"/>
-      <preference id="security.OCSP.URL"
-                  name="security.OCSP.URL"
-                  type="string"/>
-      <preference id="security.OCSP.signingCA"
-                  name="security.OCSP.signingCA"
-                  type="string"/>
+                  type="int"
+                  onchange="DoEnabling(this.value);"/>
       <preference id="security.OCSP.require"
                   name="security.OCSP.require"
                   type="bool"/>
@@ -50,48 +45,8 @@
       <checkbox id="enableOCSPBox"
                 label="&enableOCSP.label;"
                 accesskey="&enableOCSP.accesskey;"
-                onsyncfrompreference="return this.pane.SyncToOCSPBox();"
-                onsynctopreference="return this.pane.SyncFromOCSPBox(this.checked);"
+                onsynctopreference="return +this.checked;"
                 preference="security.OCSP.enabled"/>
-      <!-- Prefs -->
-      <radiogroup id="securityOCSPEnabled"
-                  preference="security.OCSP.enabled">
-          <radio value="0"
-                 hidden="true"/>
-          <radio value="1"
-                 label="&certOCSP2.label;"
-                 accesskey="&certOCSP2.accesskey;"/>
-          <radio value="2"
-                 label="&proxyOCSP2.label;"
-                 accesskey="&proxyOCSP2.accesskey;"/>
-
-          <grid class="indent" flex="1">
-            <columns>
-              <column/>
-              <column flex="1"/>
-            </columns>
-
-            <rows>
-              <row align="center">
-                <label value="&signingCA.label;"
-                       accesskey="&signingCA.accesskey;"
-                       control="signingCA"/>
-                <menulist id="signingCA"
-                          preference="security.OCSP.signingCA"
-                          oncommand="ChangeURL(this)">
-                  <menupopup/>
-                </menulist>
-              </row>
-              <row align="center">
-                <label value="&serviceURL.label;"
-                       accesskey="&serviceURL.accesskey;"
-                       control="serviceURL"/>
-                <textbox id="serviceURL"
-                         preference="security.OCSP.URL"/>
-              </row>
-           </rows>
-         </grid>
-      </radiogroup>
       <separator class="thin"/>
       <checkbox id="requireWorkingOCSP"
                 label="&validation.requireOCSP.description;"
