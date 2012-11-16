@@ -97,7 +97,7 @@ ifeq ($(OS_ARCH),WINNT)
 mailtoolbar = $(topsrcdir)/mail/themes/qute/mail/icons/mail-toolbar-aero.png
 # Each icon is 18x18 in the toolbar, and we want a 16x16 icon here, so we cut
 # off a pixel at each end.
-libs::
+embedded-icons::
 	$(call png2ico,$(mailtoolbar),19,1,16,write-message.ico)
 	$(call png2ico,$(mailtoolbar),37,1,16,address-book.ico)
 
@@ -120,6 +120,9 @@ endif
 include $(topsrcdir)/config/rules.mk
 
 ifeq ($(OS_ARCH),WINNT)
+
+$(RESFILE): embedded-icons
+
 #
 # Control the default heap size.
 # This is the heap returned by GetProcessHeap().
