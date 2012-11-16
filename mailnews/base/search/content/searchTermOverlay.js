@@ -475,37 +475,30 @@ function saveSearchTerms(searchTerms, termOwner)
 {
     var matchAll = gSearchBooleanRadiogroup.value == 'matchAll';
     var i;
+    for (i = 0; i < gSearchRemovedTerms.length; i++)
+        searchTerms.RemoveElement(gSearchRemovedTerms[i]);
+
     for (i = 0; i<gSearchTerms.length; i++) {
         try {
-            var searchTerm = gSearchTerms[i].obj.searchTerm;
-
-            // the term might be an offscreen one we haven't initialized yet
-            // if so, don't bother saving it.
-            if (!searchTerm && !gSearchTerms[i].initialized) {
-                // is an existing term, but not initialize, so skip saving
-                continue;
-            }
             gSearchTerms[i].obj.matchAll = matchAll;
+            var searchTerm = gSearchTerms[i].obj.searchTerm;
             if (searchTerm)
                 gSearchTerms[i].obj.save();
+            else if (!gSearchTerms[i].initialized)
+                // the term might be an offscreen one we haven't initialized yet
+                searchTerm = gSearchTerms[i].searchTerm;
             else {
                 // need to create a new searchTerm, and somehow save it to that
                 searchTerm = termOwner.createTerm();
                 gSearchTerms[i].obj.saveTo(searchTerm);
+                // this might not be the right place for the term,
+                // but we need to make the array longer anyway
                 termOwner.appendTerm(searchTerm);
             }
+            searchTerms.SetElementAt(i, searchTerm);
         } catch (ex) {
             dump("** Error saving element " + i + ": " + ex + "\n");
         }
-    }
-
-    // now remove the queued elements
-    for (i=0; i<gSearchRemovedTerms.length; i++) {
-        // this is so nasty, we have to iterate through
-        // because GetIndexOf is acting funny
-        var searchTermSupports =
-            gSearchRemovedTerms[i].QueryInterface(Components.interfaces.nsISupports);
-        searchTerms.RemoveElement(searchTermSupports);
     }
 }
 
