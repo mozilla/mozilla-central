@@ -166,7 +166,6 @@
 @BINPATH@/components/content_htmldoc.xpt
 @BINPATH@/components/content_html.xpt
 @BINPATH@/components/content_xslt.xpt
-@BINPATH@/components/content_xtf.xpt
 @BINPATH@/components/cookie.xpt
 #ifdef MOZ_ENABLE_DBUS
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
