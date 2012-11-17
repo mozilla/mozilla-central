@@ -3125,19 +3125,10 @@ function OnMsgParsed(aUrl)
 
 function OnMsgLoaded(aUrl)
 {
-  if (!aUrl)
+  if (!aUrl || gMessageDisplay.isDummy)
     return;
-
-  // nsIMsgMailNewsUrl.folder throws an error when opening .eml files.
-  var folder;
-  try {
-    folder = aUrl.folder;
-  }
-  catch (ex) {}
 
   var msgHdr = gMessageDisplay.displayedMessage;
-  if (!folder || !msgHdr)
-    return;
 
   var wintype = document.documentElement.getAttribute('windowtype');
 
