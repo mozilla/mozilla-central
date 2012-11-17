@@ -117,7 +117,7 @@ var chatTabType = {
     }
 
     gChatTab = aTab;
-    aTab.tabNode.setAttribute("image", "chrome://chat/skin/chat-16.png");
+    aTab.tabNode.setAttribute("type", "chat");
     this._handleArgs(aArgs);
     chatHandler._updateSelectedConversation();
     chatHandler.updateTitle();

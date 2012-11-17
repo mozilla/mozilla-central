@@ -186,3 +186,9 @@ richlistitem[state="disconnected"] .accountStateIcon {
 #imAccountsStatus .menu-iconic-icon {
   visibility: visible;
 }
+
+.tabmail-tab[type="chat"],
+.alltabs-item[type="chat"] {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 240px 16px 224px);
+}
