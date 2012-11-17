@@ -422,7 +422,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 }
 
 #threadTree > treechildren::-moz-tree-row(odd) {
-  background-color: -moz-oddtreerow;
+  background-color: transparent;
 }
 
 #threadTree > treechildren::-moz-tree-row(selected) {
