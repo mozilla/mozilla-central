@@ -13,27 +13,22 @@ var gProtocolInfo = null;
 function incomingPageValidate()
 {
   var canAdvance = true;
+  var hostName;
 
   if (gOnMailServersPage) {
-    let incomingServerName = document.getElementById("incomingServer").value;
-    if (!gHideIncoming && !isLegalHostNameOrIP(cleanUpHostname(incomingServerName)))
+    hostName = document.getElementById("incomingServer").value;
+    if (!gHideIncoming && !isLegalHostNameOrIP(cleanUpHostname(hostName)))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
-    let newsServerName = document.getElementById("newsServer").value;
-    if (!isLegalHostNameOrIP(cleanUpHostname(newsServerName)))
+    hostName = document.getElementById("newsServer").value;
+    if (!isLegalHostNameOrIP(cleanUpHostname(hostName)))
       canAdvance = false;
   }
 
   if (canAdvance) {
     var pageData = parent.GetPageData();
     var serverType = parent.getCurrentServerType(pageData);
-    var hostName;
-    if (gOnMailServersPage)
-      hostName = incomingServerName;
-    else if (gOnNewsServerPage)
-      hostName = newsServerName;
-
     var username = document.getElementById("username").value;
     if (gProtocolInfo && gProtocolInfo.requiresUsername && !username ||
         parent.AccountExists(username, hostName, serverType))

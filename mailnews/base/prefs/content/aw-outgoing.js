@@ -13,7 +13,7 @@ function outgoingPageValidate() {
 
   let smtpServer = document.getElementById("smtphostname").value;
   let usingDefaultSMTP = document.getElementById("noSmtp").hidden;
-  if (!usingDefaultSMTP && !isLegalHostNameOrIP(cleanUpHostname(smtpServer));
+  if (!usingDefaultSMTP && !isLegalHostNameOrIP(cleanUpHostname(smtpServer)))
     canAdvance = false;
 
   document.documentElement.canAdvance = canAdvance;
