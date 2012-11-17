@@ -1111,7 +1111,7 @@ function setFromBuddyIcon(email)
   }
   if (myScreenName)
   {
-    var card = getCardForAddress(email);
+    var card = GetCardForEmail(email).card;
     if (card)
     {
       // For now, retrieve the screen name only.
