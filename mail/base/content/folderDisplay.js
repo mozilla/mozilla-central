@@ -2032,7 +2032,7 @@ FolderDisplayWidget.prototype = {
    * @return true if all the selected messages can be archived, false otherwise.
    */
   get canArchiveSelectedMessages() {
-    if (!this.view.dbView)
+    if (!this.view.dbView || this.messageDisplay.isDummy)
       return false;
 
     if (this.selectedCount == 0)
