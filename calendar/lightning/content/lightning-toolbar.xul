@@ -10,6 +10,7 @@
   <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd"> %lightningDTD;
   <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" > %calendarDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://lightning/locale/lightning-toolbar.dtd" > %toolbarDTD;
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" > %brandDTD;
 ]>
 
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
@@ -112,7 +113,7 @@
       <toolbarbutton id="calendar-appmenu-button"
                      class="toolbarbutton-1 button-appmenu"
                      label="&lightning.toolbar.appmenuButton.label;"
-                     tooltiptext="&lightning.toolbar.appmenuButton.tooltip;"/>
+                     tooltiptext="&lightning.toolbar.appmenuButton1.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="calendar-toolbar2" class="inline-toolbar chromeclass-toolbar"
@@ -166,7 +167,7 @@
       <toolbarbutton id="task-appmenu-button"
                      class="toolbarbutton-1 button-appmenu"
                      label="&lightning.toolbar.appmenuButton.label;"
-                     tooltiptext="&lightning.toolbar.appmenuButton.tooltip;"/>
+                     tooltiptext="&lightning.toolbar.appmenuButton1.tooltip;"/>
     </toolbarpalette>
 
     <toolbar id="task-toolbar2" class="inline-toolbar chromeclass-toolbar"

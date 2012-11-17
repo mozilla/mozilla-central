@@ -3216,7 +3216,7 @@
     <toolbarbutton id="button-appmenu"
                    class="toolbarbutton-1 button-appmenu"
                    label="&appmenuButton.label;"
-                   tooltiptext="&appmenuButton.tooltip;"/>
+                   tooltiptext="&appmenuButton1.tooltip;"/>
   </toolbarpalette>
 
   <!-- If changes are made to the default set of toolbar buttons, you may need to rev the id

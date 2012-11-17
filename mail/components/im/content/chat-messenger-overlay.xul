@@ -182,7 +182,7 @@
           <toolbarbutton id="button-chat-appmenu"
                          class="toolbarbutton-1 button-appmenu"
                          label="&appmenuButton.label;"
-                         tooltiptext="&appmenuButton.tooltip;"/>
+                         tooltiptext="&appmenuButton1.tooltip;"/>
         </toolbarpalette>
         <toolbarset id="customChatToolbars" context="chat-toolbar-context-menu"/>
       </toolbox>
