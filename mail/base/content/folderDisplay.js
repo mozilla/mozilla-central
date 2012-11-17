@@ -454,30 +454,16 @@ FolderDisplayWidget.prototype = {
   },
 
   /**
-   * Track whether we know the columns are dirty.  If we know they are dirty we
-   *  have kicked off a timer event that will persist things.
-   */
-  _columnsDirty: false,
-
-  /**
    * Let us know that the state of the columns has changed.  This is either due
    *  to a re-ordering or hidden-ness being toggled.
    *
    * This method should only be called on (the active) gFolderDisplay.
    */
   hintColumnsChanged: function FolderDisplayWidget_hintColumnsChanged() {
-    // ignore this if we are the ones doing things or we already are handling it
-    if (this._touchingColumns || this._columnsDirty)
+    // ignore this if we are the ones doing things
+    if (this._touchingColumns)
       return;
-    this._columnsDirty = true;
-    let dis = this;
-    // Since DOM manipulations come in batches, use a timer so that we persist
-    //  things after the DOM manipulating code has finished its business.
-    window.setTimeout(function () {
-                        dis._persistColumnStates(dis.getColumnStates());
-                        dis._columnsDirty = false;
-                      },
-                      0);
+    this._persistColumnStates(this.getColumnStates());
   },
 
   /**

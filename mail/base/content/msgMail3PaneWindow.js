@@ -926,22 +926,16 @@ function UpgradeProfileAndBeUglyAboutIt()
 
 function OnLoadThreadPane()
 {
-  // Register a listener on the columns element so that we get a notification
-  //  whenever attributes on the columns change.  Because of the XBL bindings
-  //  I think we also get the column picker too, but our filtering to only the
-  //  attributes we care about takes care of that.
-  document.getElementById("threadCols").addEventListener(
-    "DOMAttrModified",
-    function(aEvent) {
-      // we only care about hidden status and ordinal
-      if (aEvent.attrName != "hidden" &&
-          aEvent.attrName != "ordinal")
-        return;
-      if (gFolderDisplay)
-        gFolderDisplay.hintColumnsChanged();
-    },
-    true);
-
+  // Use an observer to watch the columns element so that we get a notification
+  // whenever attributes on the columns change.
+  let observer = new MutationObserver(function handleMutations(mutations) {
+    gFolderDisplay.hintColumnsChanged();
+  });
+  observer.observe(document.getElementById("threadCols"), {
+    attributes: true,
+    subtree: true,
+    attributeFilter: ["hidden", "ordinal"]
+  });
   UpgradeProfileAndBeUglyAboutIt();
 }
 
