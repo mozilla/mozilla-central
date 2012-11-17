@@ -2366,8 +2366,11 @@
 
   <binding id="tabmail-alltabs-popup"
            extends="chrome://global/content/bindings/popup.xml#popup">
-    <implementation implements="nsIDOMEventListener">
+    <implementation implements="nsIDOMEventListener,nsIMutationObserverCallback">
       <field name="_xulWindow">
+        null
+      </field>
+      <field name="_mutationObserver">
         null
       </field>
 
@@ -2384,6 +2387,7 @@
                   .getInterface(Components.interfaces.nsIXULWindow);
         }
         catch(ex) { }
+        this._mutationObserver = new MutationObserver(this);
       ]]></constructor>
 
       <method name="_menuItemOnCommand">
@@ -2392,31 +2396,6 @@
           var tabcontainer = document.getElementById('tabmail')
                                      .tabContainer;
           tabcontainer.selectedItem = aEvent.target.tab;
-        ]]></body>
-      </method>
-
-      <method name="_tabOnAttrModified">
-        <parameter name="aEvent"/>
-        <body><![CDATA[
-          var menuItem = aEvent.target.mCorrespondingMenuitem;
-          if (menuItem) {
-            var attrName = aEvent.attrName;
-            switch (attrName) {
-              case "label":
-              case "crop":
-              case "busy":
-                // With busy status changes the tab icon
-                let style = window.getComputedStyle(aEvent.target, null);
-                menuItem.style.listStyleImage = style.listStyleImage;
-                menuItem.style.MozImageRegion = style.MozImageRegion;
-              case "image":
-              case "selected":
-                if (aEvent.attrChange == aEvent.REMOVAL)
-                  menuItem.removeAttribute(attrName);
-                else
-                  menuItem.setAttribute(attrName, aEvent.newValue);
-            }
-          }
         ]]></body>
       </method>
 
@@ -2439,9 +2418,6 @@
             case "command":
               this._menuItemOnCommand(aEvent);
               break;
-            case "DOMAttrModified":
-              this._tabOnAttrModified(aEvent);
-              break;
             case "TabClose":
               this._tabOnTabClose(aEvent);
               break;
@@ -2452,6 +2428,18 @@
               this._updateTabsVisibilityStatus();
               break;
           }
+        ]]></body>
+      </method>
+
+      <method name="handleMutations">
+        <parameter name="aMutationRecords"/>
+        <parameter name="aObserver"/>
+        <body><![CDATA[
+          aMutationRecords.forEach(function(mutation) {
+            let menuItem = mutation.target.mCorrespondingMenuitem;
+            if (menuItem)
+              this._setMenuitemAttributes(menuItem, mutation.target);
+          });
         ]]></body>
       </method>
 
@@ -2481,36 +2469,51 @@
             "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", 
             "menuitem");
 
-          menuItem.setAttribute("class", "menuitem-iconic alltabs-item");
+          menuItem.setAttribute("class", "menuitem-iconic alltabs-item menuitem-with-favicon");
 
-          menuItem.setAttribute("label", aTab.label);
-          menuItem.setAttribute("crop", aTab.getAttribute("crop"));
-
-          if (aTab.hasAttribute("image")) {
-            menuItem.setAttribute("image", aTab.getAttribute("image"));
-          } else {
-            // Get the tabicon and set it here
-            let style = window.getComputedStyle(aTab, null);
-            menuItem.style.listStyleImage = style.listStyleImage;
-            menuItem.style.MozImageRegion = style.MozImageRegion;
-          }
-          if (aTab.hasAttribute("busy")) {
-            menuItem.setAttribute("busy", aTab.getAttribute("busy"));
-            menuItem.removeAttribute("image");
-          }
-          if (aTab.selected)
-            menuItem.setAttribute("selected", "true");
+          this._setMenuitemAttributes(menuItem, aTab);
 
           // Keep some attributes of the menuitem in sync with its
           // corresponding tab (e.g. the tab label)
           aTab.mCorrespondingMenuitem = menuItem;
-          aTab.addEventListener("DOMAttrModified", this, false);
           aTab.addEventListener("TabClose", this, false);
           menuItem.tab = aTab;
           menuItem.addEventListener("command", this, false);
 
           this.appendChild(menuItem);
           return menuItem;
+        ]]></body>
+      </method>
+
+      <method name="_setMenuitemAttributes">
+        <parameter name="aMenuitem"/>
+        <parameter name="aTab"/>
+        <body><![CDATA[
+          aMenuitem.setAttribute("label", aTab.label);
+          aMenuitem.setAttribute("crop", aTab.getAttribute("crop"));
+
+          if (aTab.hasAttribute("busy")) {
+            aMenuitem.setAttribute("busy", aTab.getAttribute("busy"));
+            aMenuitem.removeAttribute("image");
+          } else {
+            aMenuitem.setAttribute("image", aTab.getAttribute("image"));
+            aMenuitem.removeAttribute("busy");
+          }
+
+          // Change the tab icon accordingly.
+          let style = window.getComputedStyle(aTab, null);
+          aMenuitem.style.listStyleImage = style.listStyleImage;
+          aMenuitem.style.MozImageRegion = style.MozImageRegion;
+
+          if (aTab.hasAttribute("pending"))
+            aMenuitem.setAttribute("pending", aTab.getAttribute("pending"));
+          else
+            aMenuitem.removeAttribute("pending");
+
+          if (aTab.selected)
+            aMenuitem.setAttribute("selected", "true");
+          else
+            aMenuitem.removeAttribute("selected");
         ]]></body>
       </method>
     </implementation>
@@ -2524,6 +2527,12 @@
         var tabs = tabcontainer.childNodes;
 
         // Listen for changes in the tab bar.
+        this._mutationObserver.observe(tabcontainer, {
+          attributes: true,
+          subtree: true,
+          attributeFilter: ["label", "crop", "busy", "image", "selected"]
+        });
+
         tabmail.addEventListener("TabOpen", this, false);
         tabcontainer.mTabstrip.addEventListener("scroll", this, false);
 
@@ -2543,11 +2552,12 @@
         while (this.hasChildNodes()) {
           var menuItem = this.lastChild;
           menuItem.removeEventListener("command", this, false);
-          menuItem.tab.removeEventListener("DOMAttrModified", this, false);
           menuItem.tab.removeEventListener("TabClose", this, false);
           menuItem.tab.mCorrespondingMenuitem = null;
           this.removeChild(menuItem);
         }
+        this._mutationObserver.disconnect();
+
         var tabcontainer = document.getElementById('tabmail').tabContainer;
         tabcontainer.mTabstrip.removeEventListener("scroll", this, false);
         tabcontainer.tabmail.removeEventListener("TabOpen", this, false);
