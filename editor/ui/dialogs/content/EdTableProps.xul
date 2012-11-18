@@ -151,8 +151,23 @@
               </menupopup>
             </menulist>
             <hbox flex="1">
-              <button id="PreviousButton" label="&cellSelectPrevious.label;" accesskey="&cellSelectPrevious.accessKey;" oncommand="MoveSelection(0)" flex="1"/>
-              <button id="NextButton" class="align-right" label="&cellSelectNext.label;" accesskey="&cellSelectNext.accessKey;" oncommand="MoveSelection(1)" flex="1"/>
+              <button id="PreviousButton"
+                      oncommand="MoveSelection(0)"
+                      flex="1">
+                <image/>
+                <label value="&cellSelectPrevious.label;"
+                       accesskey="&cellSelectPrevious.accessKey;"
+                       control="PreviousButton"/>
+              </button>
+              <button id="NextButton"
+                      oncommand="MoveSelection(1)"
+                      class="align-right"
+                      flex="1">
+                <image/>
+                <label value="&cellSelectNext.label;"
+                       accesskey="&cellSelectNext.accessKey;"
+                       control="NextButton"/>
+              </button>
             </hbox>
           </vbox>
           <spacer class="bigspacer"/>
