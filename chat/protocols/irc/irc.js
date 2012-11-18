@@ -1143,7 +1143,9 @@ ircAccount.prototype = {
     let key = aComponents.getValue("password");
     if (key)
       params.push(key);
-    this._chatRoomFieldsList[this.normalize(channel)] = aComponents;
+    let defaultName = key ? channel + " " + key : channel;
+    this._chatRoomFieldsList[this.normalize(channel)] =
+      this.getChatRoomDefaultFieldValues(defaultName);
     // Send the join command, but don't log the channel key.
     this.sendMessage("JOIN", params,
                      "JOIN " + channel + (key ? " <key not logged>" : ""));
