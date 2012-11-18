@@ -675,9 +675,9 @@ function ircAccount(aProtocol, aImAccount) {
   this._conversations = {};
 
   // Split the account name into usable parts.
-  let splitter = aImAccount.name.lastIndexOf("@");
-  this._accountNickname = aImAccount.name.slice(0, splitter);
-  this._server = aImAccount.name.slice(splitter + 1);
+  let splitter = this.name.lastIndexOf("@");
+  this._accountNickname = this.name.slice(0, splitter);
+  this._server = this.name.slice(splitter + 1);
 
   this._nickname = this._accountNickname;
   this._requestedNickname = this._nickname;
