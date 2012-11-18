@@ -337,7 +337,7 @@ CoreService.prototype = {
     try {
       proto.init(aPrplId);
     } catch (e) {
-      Cu.reportError(e);
+      Cu.reportError("Could not initialize protocol " + aPrplId + ": " + e);
       return null;
     }
 
