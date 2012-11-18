@@ -36,7 +36,7 @@ var ircSASL = {
       // btoa for Unicode, see https://developer.mozilla.org/en-US/docs/DOM/window.btoa
       let base64Data = btoa(unescape(encodeURIComponent(data)));
       this.sendMessage("AUTHENTICATE", base64Data,
-                       "AUTHENTICATE <base64 encoded password, not logged>");
+                       "AUTHENTICATE <base64 encoded nick, user and password not logged>");
       return true;
     },
 
