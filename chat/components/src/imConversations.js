@@ -279,6 +279,7 @@ UIConversation.prototype = {
     }
     this._prplConv = {}; // Prevent .close from failing.
     delete this._currentTargetId;
+    this.notifyObservers(this, "ui-conversation-destroyed");
   },
   close: function() {
     for each (let conv in this._prplConv)
