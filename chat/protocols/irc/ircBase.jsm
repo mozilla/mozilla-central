@@ -142,6 +142,16 @@ function tryNewNick(aAccount, aMessage) {
   // Append the digits.
   newNick += newDigits;
 
+  if (aAccount.normalize(newNick) == aAccount.normalize(aAccount._nickname)) {
+    // The nick we were about to try next is our current nick. This means
+    // the user attempted to change to a version of the nick with a lower or
+    // absent number suffix, and this failed.
+    let msg = _("message.nick.fail", aAccount._nickname);
+    for each (let conversation in aAccount._conversations)
+      conversation.writeMessage(aAccount._nickname, msg, {system: true});
+    return true;
+  }
+
   LOG(aMessage.params[1] + " is already in use, trying " + newNick);
   aAccount.sendMessage("NICK", newNick); // Nick message.
   return true;
