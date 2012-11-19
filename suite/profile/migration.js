@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const nsISuiteProfileMigrator = Components.interfaces.nsISuiteProfileMigrator;
 const nsIProfileStartup       = Components.interfaces.nsIProfileStartup;
 const nsISupportsString       = Components.interfaces.nsISupportsString;
@@ -407,14 +409,10 @@ var MigrationWizard = {
     if (!targetPrefsFile.exists())
       return false;
 
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefService);
-    prefSvc.resetPrefs();
+    Services.prefs.resetPrefs();
 
-    prefSvc.readUserPrefs(targetPrefsFile);
+    Services.prefs.readUserPrefs(targetPrefsFile);
 
-    var prefBranch = prefSvc.getBranch(null);
-
-    return prefBranch.prefHasUserValue("browser.startup.homepage");
+    return Services.prefs.prefHasUserValue("browser.startup.homepage");
   }
 };

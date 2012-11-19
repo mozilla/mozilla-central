@@ -4,6 +4,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gMozAppsBundle;
 var gProfileBundle;
 var gBrandBundle;
@@ -45,9 +47,7 @@ function StartUp()
   }
 
   var autoSelect = document.getElementById("autoSelect");
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-  if (prefs.getBoolPref("profile.manage_only_at_launch"))
+  if (Services.prefs.getBoolPref("profile.manage_only_at_launch"))
     autoSelect.hidden = true;
   else
     autoSelect.checked = gProfileService.startWithLastProfile;
