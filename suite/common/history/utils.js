@@ -73,10 +73,8 @@ var PlacesUIUtils = {
 
   get ellipsis() {
     delete this.ellipsis;
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-    return this.ellipsis = pref.getComplexValue("intl.ellipsis",
-                                                Components.interfaces.nsIPrefLocalizedString).data;
+    return this.ellipsis =
+      Services.prefs.getComplexValue("intl.ellipsis", Components.interfaces.nsIPrefLocalizedString).data;
   },
 
   /**
@@ -202,13 +200,10 @@ var PlacesUIUtils = {
    * Gives the user a chance to cancel loading lots of tabs at once
    */
   _confirmOpenInTabs: function PU__confirmOpenInTabs(numTabsToOpen) {
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-
     const kWarnOnOpenPref = "browser.tabs.warnOnOpen";
     var reallyOpen = true;
-    if (pref.getBoolPref(kWarnOnOpenPref)) {
-      if (numTabsToOpen >= pref.getIntPref("browser.tabs.maxOpenBeforeWarn")) {
+    if (Services.prefs.getBoolPref(kWarnOnOpenPref)) {
+      if (numTabsToOpen >= Services.prefs.getIntPref("browser.tabs.maxOpenBeforeWarn")) {
         var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                       .getService(Components.interfaces.nsIPromptService);
 
@@ -235,7 +230,7 @@ var PlacesUIUtils = {
         reallyOpen = (buttonPressed == 0);
         // don't set the pref unless they press OK and it's false
         if (reallyOpen && !warnOnOpen.value)
-          pref.setBoolPref(kWarnOnOpenPref, false);
+          Services.prefs.setBoolPref(kWarnOnOpenPref, false);
       }
     }
     return reallyOpen;

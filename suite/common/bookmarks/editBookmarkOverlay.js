@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const LAST_USED_ANNO = "bookmarkPropertiesDialog/folderLastUsed";
 const MAX_FOLDER_ITEM_IN_MENU_LIST = 5;
 
@@ -463,9 +465,7 @@ var gEditItemOverlay = {
     this._firstEditedField = aNewField;
 
     // set the pref
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch);
-    prefs.setCharPref("browser.bookmarks.editDialog.firstEditField", aNewField);
+    Services.prefs.setCharPref("browser.bookmarks.editDialog.firstEditField", aNewField);
   },
 
   _updateMultipleTagsForItems: function EIO__updateMultipleTagsForItems() {
