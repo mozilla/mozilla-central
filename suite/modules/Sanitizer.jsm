@@ -5,12 +5,12 @@
 
 var EXPORTED_SYMBOLS = ["Sanitizer"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var Sanitizer = {
   get _prefs() {
     delete this._prefs;
-    return this._prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                                   .getService(Components.interfaces.nsIPrefService)
-                                   .getBranch("privacy.sanitize.");
+    return this._prefs = Services.prefs.getBranch("privacy.sanitize.");
   },
 
   /**
@@ -31,9 +31,7 @@ var Sanitizer = {
   },
 
   readSettings: function(aParentWindow) {
-    var itemPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService)
-                              .getBranch("privacy.item.");
+    var itemPrefs = Services.prefs.getBranch("privacy.item.");
     for (var itemName in this.items) {
       var item = this.items[itemName];
       if ("clear" in item)
@@ -159,11 +157,8 @@ var Sanitizer = {
         Sanitizer._clearPluginData("FLAG_CLEAR_ALL");
 
         // clear any network geolocation provider sessions
-        var psvc = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefService);
         try {
-          var branch = psvc.getBranch("geo.wifi.access_token.");
-          branch.deleteBranch("");
+          Services.prefs.deleteBranch("geo.wifi.access_token.");
         } catch (e) {}
       },
 
@@ -194,10 +189,8 @@ var Sanitizer = {
     urlbar: {
       clear: function() {
         // Clear last URL of the Open Web Location dialog
-        var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch);
         try {
-          prefs.clearUserPref("general.open_location.last_url");
+          Services.prefs.clearUserPref("general.open_location.last_url");
         } catch(ex) {}
 
         // Clear URLbar history (see also pref-history.js)
@@ -210,10 +203,8 @@ var Sanitizer = {
       },
 
       get canClear() {
-        var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch);
-        if (!prefs.prefIsLocked("general.open_location.last_url") &&
-            prefs.prefHasUserValue("general.open_location.last_url"))
+        if (!Services.prefs.prefIsLocked("general.open_location.last_url") &&
+            Services.prefs.prefHasUserValue("general.open_location.last_url"))
           return true;
 
         var file = Components.classes["@mozilla.org/file/directory_service;1"]
