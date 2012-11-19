@@ -6,6 +6,7 @@ const kSpace = " ".charCodeAt(0);
 const kSlash = "/".charCodeAt(0);
 const kApostrophe = "'".charCodeAt(0);
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function findTypeController(aTypeAheadFind, aWindow)
@@ -76,9 +77,7 @@ typeAheadFind.prototype = {
   observe: function(aSubject, aTopic, aData) {
     if (aTopic == "app-startup") {
       // It's now safe to get our pref branch.
-      this.mPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService)
-                              .getBranch("accessibility.typeaheadfind.");
+      this.mPrefs = Services.prefs.getBranch("accessibility.typeaheadfind.");
       // We need to add our event listeners to all windows.
       Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                 .getService(Components.interfaces.nsIWindowWatcher)

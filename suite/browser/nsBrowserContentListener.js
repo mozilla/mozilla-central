@@ -84,9 +84,9 @@ nsBrowserContentListener.prototype =
     {
         // forward the doContent to our content area webshell
         var docShell = this.contentWindow.docShell;
-        if (pref.getIntPref("browser.link.open_external") == nsIBrowserDOMWindow.OPEN_NEWTAB) {
+        if (Services.prefs.getIntPref("browser.link.open_external") == nsIBrowserDOMWindow.OPEN_NEWTAB) {
             var newTab = gBrowser.loadOneTab("about:blank", {
-                                         inBackground: pref.getBoolPref("browser.tabs.loadDivertedInBackground")});
+                                         inBackground: Services.prefs.getBoolPref("browser.tabs.loadDivertedInBackground")});
             docShell = gBrowser.getBrowserForTab(newTab).docShell;
         }
 
@@ -107,7 +107,7 @@ nsBrowserContentListener.prototype =
 
     isPreferred: function(contentType, desiredContentType)
     {
-        if (pref.getIntPref("browser.link.open_external") == nsIBrowserDOMWindow.OPEN_NEWWINDOW)
+        if (Services.prefs.getIntPref("browser.link.open_external") == nsIBrowserDOMWindow.OPEN_NEWWINDOW)
             return false;
 
         try {

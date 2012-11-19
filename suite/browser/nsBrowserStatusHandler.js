@@ -160,7 +160,7 @@ nsBrowserStatusHandler.prototype =
 
   onLinkIconAvailable : function(aHref)
   {
-    if (gProxyFavIcon && pref.getBoolPref("browser.chrome.site_icons")) {
+    if (gProxyFavIcon && Services.prefs.getBoolPref("browser.chrome.site_icons")) {
       var browser = getBrowser();
       if (browser.userTypedValue === null)
         gProxyFavIcon.setAttribute("src", aHref);
