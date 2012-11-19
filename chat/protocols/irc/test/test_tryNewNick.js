@@ -41,6 +41,7 @@ function test_tryNewNick() {
   for (let currentNick in testData) {
     let account = {
       maxNicknameLength: 9,
+      normalize: function(aStr) aStr,
       sendMessage: function(aCommand, aNewNick) {
         do_check_eq(aNewNick, testData[currentNick]);
       }
