@@ -225,17 +225,17 @@ function OnLoadMsgHeaderPane()
 
   // load any preferences that at are global with regards to
   // displaying a message...
-  gCollectIncoming = pref.getBoolPref("mail.collect_email_address_incoming");
-  gCollectNewsgroup = pref.getBoolPref("mail.collect_email_address_newsgroup");
-  gCollectOutgoing = pref.getBoolPref("mail.collect_email_address_outgoing");
-  gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
-  gShowUserAgent = pref.getBoolPref("mailnews.headers.showUserAgent");
-  gShowOrganization = pref.getBoolPref("mailnews.headers.showOrganization");
-  gShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
-  gShowMessageId = pref.getBoolPref("mailnews.headers.showMessageId");
-  gExtraExpandedHeaders = pref.getCharPref("mailnews.headers.extraExpandedHeaders");
+  gCollectIncoming = Services.prefs.getBoolPref("mail.collect_email_address_incoming");
+  gCollectNewsgroup = Services.prefs.getBoolPref("mail.collect_email_address_newsgroup");
+  gCollectOutgoing = Services.prefs.getBoolPref("mail.collect_email_address_outgoing");
+  gShowCondensedEmailAddresses = Services.prefs.getBoolPref("mail.showCondensedAddresses");
+  gShowUserAgent = Services.prefs.getBoolPref("mailnews.headers.showUserAgent");
+  gShowOrganization = Services.prefs.getBoolPref("mailnews.headers.showOrganization");
+  gShowReferences = Services.prefs.getBoolPref("mailnews.headers.showReferences");
+  gShowMessageId = Services.prefs.getBoolPref("mailnews.headers.showMessageId");
+  gExtraExpandedHeaders = Services.prefs.getCharPref("mailnews.headers.extraExpandedHeaders");
 
-  pref.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
+  Services.prefs.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
 
   initializeHeaderViewTables();
 
@@ -257,7 +257,7 @@ function OnLoadMsgHeaderPane()
 
 function OnUnloadMsgHeaderPane()
 {
-  pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
+  Services.prefs.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
 
   Components.classes["@mozilla.org/abmanager;1"]
             .getService(Components.interfaces.nsIAbManager)
@@ -277,7 +277,7 @@ const MsgHdrViewObserver =
     {
       if (prefName == "mail.showCondensedAddresses")
       {
-        gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
+        gShowCondensedEmailAddresses = Services.prefs.getBoolPref("mail.showCondensedAddresses");
         ReloadMessage();
       }
     }
@@ -348,7 +348,7 @@ var messageHeaderSink = {
       }
 
       // every time we start to redisplay a message, check the view all headers pref....
-      var showAllHeadersPref = pref.getIntPref("mail.show_headers");
+      var showAllHeadersPref = Services.prefs.getIntPref("mail.show_headers");
       if (showAllHeadersPref == 2)
       {
         gViewAllHeaders = true;
@@ -516,8 +516,8 @@ var messageHeaderSink = {
       catch (ex) {}
       if (contentType == "text/x-vcard")
       {
-        var inlineAttachments = pref.getBoolPref("mail.inline_attachments");
-        var displayHtmlAs = pref.getIntPref("mailnews.display.html_as");
+        var inlineAttachments = Services.prefs.getBoolPref("mail.inline_attachments");
+        var displayHtmlAs = Services.prefs.getIntPref("mailnews.display.html_as");
         if (inlineAttachments && !displayHtmlAs)
           return;
       }
@@ -1112,7 +1112,7 @@ function setFromBuddyIcon(email)
   var myScreenName = null;
   try {
     // TODO: Cache this.
-    myScreenName = pref.getCharPref("aim.session.screenname");
+    myScreenName = Services.prefs.getCharPref("aim.session.screenname");
   }
   catch (ex) {
     // No screenname preference.

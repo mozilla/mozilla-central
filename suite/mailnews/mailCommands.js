@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function GetNewMessages(selectedFolders, server)
 {
   if (!selectedFolders.length)
@@ -448,9 +450,7 @@ function confirmToProceed(commandName)
   // default to ask user if the pref is not set
   var dontAskAgain = false;
   try {
-    var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-    dontAskAgain = pref.getBoolPref(kDontAskAgainPref);
+    dontAskAgain = Services.prefs.getBoolPref(kDontAskAgainPref);
   } catch (ex) {}
 
   if (!dontAskAgain)
@@ -466,7 +466,7 @@ function confirmToProceed(commandName)
                    checkbox);
     try {
       if (checkbox.value)
-        pref.setBoolPref(kDontAskAgainPref, true);
+        Services.prefs.setBoolPref(kDontAskAgainPref, true);
     } catch (ex) {}
 
     if (choice != 0)

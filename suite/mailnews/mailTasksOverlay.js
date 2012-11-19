@@ -178,10 +178,7 @@ function MailTasksOnLoad(aEvent)
 
   // Performing biff here will mean performing it for all new windows opened!
   // This might make non-users of mailnews unhappy...
-  const kPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefService)
-                                .getBranch(null);
-  if (!kPrefBranch.getBoolPref("mail.biff.on_new_window"))
+  if (!Services.prefs.getBoolPref("mail.biff.on_new_window"))
     return;
 
   // The MailNews main window will perform biff later in its onload handler,

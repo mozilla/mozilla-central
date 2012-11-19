@@ -37,7 +37,6 @@ const kMsgForwardInline = 2;
 
 var gMessengerBundle;
 var gOfflineManager;
-var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
                              .getService(Components.interfaces.nsIMsgCopyService);
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
@@ -46,7 +45,7 @@ var gTimelineService = null;
 var gTimelineEnabled = ("@mozilla.org;timeline-service;1" in Components.classes);
 if (gTimelineEnabled) {
   try {
-    gTimelineEnabled = gPrefBranch.getBoolPref("mailnews.timeline_is_enabled");
+    gTimelineEnabled = Services.prefs.getBoolPref("mailnews.timeline_is_enabled");
     if (gTimelineEnabled) {
       gTimelineService = 
         Components.classes["@mozilla.org;timeline-service;1"].getService(Components.interfaces.nsITimelineService);
@@ -71,7 +70,7 @@ function menu_new_init()
     gMessengerBundle = document.getElementById("bundle_messenger");
 
   var newAccountItem = document.getElementById('newAccountMenuItem');
-  if (gPrefBranch.prefIsLocked("mail.disable_new_account_addition"))
+  if (Services.prefs.prefIsLocked("mail.disable_new_account_addition"))
     newAccountItem.setAttribute("disabled","true");
 
   // Change New Folder... menu according to the context
@@ -174,7 +173,7 @@ function view_init()
   var viewRssMenuItemIds = ["bodyFeedGlobalWebPage",
                             "bodyFeedGlobalSummary",
                             "bodyFeedPerFolderPref"];
-  var checked = gPrefBranch.getIntPref("rss.show.summary");
+  var checked = Services.prefs.getIntPref("rss.show.summary");
   document.getElementById(viewRssMenuItemIds[checked])
           .setAttribute("checked", true);
 
@@ -186,7 +185,7 @@ function view_init()
   }
 
   // Initialize the Display Attachments Inline menu.
-  var viewAttachmentInline = pref.getBoolPref("mail.inline_attachments");
+  var viewAttachmentInline = Services.prefs.getBoolPref("mail.inline_attachments");
   document.getElementById("viewAttachmentsInlineMenuitem").setAttribute("checked", viewAttachmentInline ? "true" : "false");
 
   document.commandDispatcher.updateCommands('create-menu-view');
@@ -194,7 +193,7 @@ function view_init()
 
 function InitViewLayoutStyleMenu(event)
 {
-  var paneConfig = pref.getIntPref("mail.pane_config.dynamic");
+  var paneConfig = Services.prefs.getIntPref("mail.pane_config.dynamic");
   var layoutStyleMenuitem = event.target.childNodes[paneConfig];
   if (layoutStyleMenuitem)
     layoutStyleMenuitem.setAttribute("checked", "true");
@@ -397,7 +396,7 @@ function InitViewHeadersMenu()
   var headerchoice = 1;
   try 
   {
-    headerchoice = pref.getIntPref("mail.show_headers");
+    headerchoice = Services.prefs.getIntPref("mail.show_headers");
   }
   catch (ex) 
   {
@@ -438,15 +437,15 @@ function InitViewBodyMenu()
   {
     // Get prefs
     if (isFeed) {
-      prefer_plaintext = pref.getBoolPref("rss.display.prefer_plaintext");
-      html_as = pref.getIntPref("rss.display.html_as");
-      disallow_classes = pref.getIntPref("rss.display.disallow_mime_handlers");
+      prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
+      html_as = Services.prefs.getIntPref("rss.display.html_as");
+      disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
     }
     else {
-      prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
-      html_as = pref.getIntPref("mailnews.display.html_as");
+      prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
+      html_as = Services.prefs.getIntPref("mailnews.display.html_as");
       disallow_classes =
-                    pref.getIntPref("mailnews.display.disallow_mime_handlers");
+                    Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
     }
 
     if (disallow_classes > 0)
@@ -465,7 +464,7 @@ function InitViewBodyMenu()
   if (!isFeed) {
     AllBodyParts_menuitem = document.getElementById(menuIDs[3]);
     AllBodyParts_menuitem.hidden =
-      !pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+      !Services.prefs.getBoolPref("mailnews.display.show_all_body_parts_menu");
   }
 
   if (!prefer_plaintext && !html_as && !disallow_classes &&
@@ -973,7 +972,7 @@ function MsgDeleteMessage(aReallyDelete)
   // we should mark it as read (unless the user changed the pref). This
   // ensures that we clear the biff indicator from the system tray when
   // the user deletes the new message.
-  if (pref.getBoolPref("mailnews.ui.deleteMarksRead"))
+  if (Services.prefs.getBoolPref("mailnews.ui.deleteMarksRead"))
     MarkSelectedMessagesRead(true);
   SetNextMessageAfterDelete();
 
@@ -1605,12 +1604,12 @@ function MsgOpenSelectedMessages()
   // mailnews.reuse_message_window values:
   //    false: open new standalone message window for each message
   //    true : reuse existing standalone message window for each message
-  if (gPrefBranch.getBoolPref("mailnews.reuse_message_window") &&
+  if (Services.prefs.getBoolPref("mailnews.reuse_message_window") &&
       numMessages == 1 &&
       MsgOpenSelectedMessageInExistingWindow())
     return;
     
-  var openWindowWarning = gPrefBranch.getIntPref("mailnews.open_window_warning");
+  var openWindowWarning = Services.prefs.getIntPref("mailnews.open_window_warning");
   if ((openWindowWarning > 1) && (numMessages >= openWindowWarning)) {
     InitPrompts();
     if (!gMessengerBundle)
@@ -1886,44 +1885,44 @@ function MsgApplyFiltersToSelection()
 
 function ChangeMailLayout(newLayout)
 {
-  gPrefBranch.setIntPref("mail.pane_config.dynamic", newLayout);
+  Services.prefs.setIntPref("mail.pane_config.dynamic", newLayout);
 }
 
 function MsgViewAllHeaders()
 {
-    gPrefBranch.setIntPref("mail.show_headers",2);
+    Services.prefs.setIntPref("mail.show_headers",2);
     ReloadMessage();
     return true;
 }
 
 function MsgViewNormalHeaders()
 {
-    gPrefBranch.setIntPref("mail.show_headers",1);
+    Services.prefs.setIntPref("mail.show_headers",1);
     ReloadMessage();
     return true;
 }
 
 function MsgViewBriefHeaders()
 {
-    gPrefBranch.setIntPref("mail.show_headers",0);
+    Services.prefs.setIntPref("mail.show_headers",0);
     ReloadMessage();
     return true;
 }
 
 function MsgBodyAllowHTML()
 {
-    gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-    gPrefBranch.setIntPref("mailnews.display.html_as", 0);
-    gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
+    Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+    Services.prefs.setIntPref("mailnews.display.html_as", 0);
+    Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers", 0);
     ReloadMessage();
     return true;
 }
 
 function MsgBodySanitized()
 {
-    gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-    gPrefBranch.setIntPref("mailnews.display.html_as", 3);
-    gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
+    Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+    Services.prefs.setIntPref("mailnews.display.html_as", 3);
+    Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers",
                            disallow_classes_no_html);
     ReloadMessage();
     return true;
@@ -1931,9 +1930,9 @@ function MsgBodySanitized()
 
 function MsgBodyAsPlaintext()
 {
-    gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", true);
-    gPrefBranch.setIntPref("mailnews.display.html_as", 1);
-    gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
+    Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", true);
+    Services.prefs.setIntPref("mailnews.display.html_as", 1);
+    Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers",
                            disallow_classes_no_html);
     ReloadMessage();
     return true;
@@ -1941,18 +1940,18 @@ function MsgBodyAsPlaintext()
 
 function MsgBodyAllParts()
 {
-  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-  gPrefBranch.setIntPref("mailnews.display.html_as", 4);
-  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+  Services.prefs.setIntPref("mailnews.display.html_as", 4);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers", 0);
   ReloadMessage();
   return true;
 }
 
 function MsgFeedBodyRenderPrefs(plaintext, html, mime)
 {
-  gPrefBranch.setBoolPref("rss.display.prefer_plaintext", plaintext);
-  gPrefBranch.setIntPref("rss.display.html_as", html);
-  gPrefBranch.setIntPref("rss.display.disallow_mime_handlers", mime);
+  Services.prefs.setBoolPref("rss.display.prefer_plaintext", plaintext);
+  Services.prefs.setIntPref("rss.display.html_as", html);
+  Services.prefs.setIntPref("rss.display.disallow_mime_handlers", mime);
   // Reload only if showing rss summary; menuitem hidden if web page..
   ReloadMessage();
 }
@@ -1960,12 +1959,12 @@ function MsgFeedBodyRenderPrefs(plaintext, html, mime)
 //How to load message with content-base url on enter in threadpane
 function GetFeedOpenHandler()
 {
-  return gPrefBranch.getIntPref("rss.show.content-base");
+  return Services.prefs.getIntPref("rss.show.content-base");
 }
 
 function ChangeFeedOpenHandler(val)
 {
-  gPrefBranch.setIntPref("rss.show.content-base", val);
+  Services.prefs.setIntPref("rss.show.content-base", val);
 }
 
 //Current state: load web page if 0, show summary if 1
@@ -1974,14 +1973,14 @@ var gShowFeedSummaryToggle = false;
 
 function ChangeFeedShowSummaryPref(val)
 {
-  pref.setIntPref("rss.show.summary", val);
+  Services.prefs.setIntPref("rss.show.summary", val);
   ReloadMessage();
 }
 
 function ToggleInlineAttachment(target)
 {
-    var viewAttachmentInline = !pref.getBoolPref("mail.inline_attachments");
-    pref.setBoolPref("mail.inline_attachments", viewAttachmentInline)
+    var viewAttachmentInline = !Services.prefs.getBoolPref("mail.inline_attachments");
+    Services.prefs.setBoolPref("mail.inline_attachments", viewAttachmentInline)
     target.setAttribute("checked", viewAttachmentInline ? "true" : "false");
     
     ReloadMessage();
@@ -2206,14 +2205,14 @@ function SpaceHit(event)
     // if at the start of the message, go to the previous one
     if (contentWindow.scrollY > 0)
       contentWindow.scrollByPages(-1);
-    else if (pref.getBoolPref("mail.advance_on_spacebar"))
+    else if (Services.prefs.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_previousUnreadMsg");
   }
   else {
     // if at the end of the message, go to the next one
     if (contentWindow.scrollY < contentWindow.scrollMaxY)
       contentWindow.scrollByPages(1);
-    else if (pref.getBoolPref("mail.advance_on_spacebar"))
+    else if (Services.prefs.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_nextUnreadMsg");
   }
 }
@@ -2239,7 +2238,7 @@ function DoGetNewMailWhenOffline()
     if (this.CheckForUnsentMessages != undefined && CheckForUnsentMessages())
     {
       sendUnsent =
-        gPrefBranch.getIntPref("offline.send.unsent_messages") == 1 ||
+        Services.prefs.getIntPref("offline.send.unsent_messages") == 1 ||
         Services.prompt.confirmEx(
           window,
           gOfflinePromptsBundle.getString('sendMessagesOfflineWindowTitle'),
@@ -2453,7 +2452,7 @@ function HandleJunkStatusChanged(folder)
     // We may be forcing junk mail to be rendered with sanitized html.
     // In that scenario, we want to reload the message if the status has just
     // changed to not junk.
-    var sanitizeJunkMail = gPrefBranch.getBoolPref("mail.spam.display.sanitize");
+    var sanitizeJunkMail = Services.prefs.getBoolPref("mail.spam.display.sanitize");
 
     // Only bother doing this if we are modifying the html for junk mail...
     if (sanitizeJunkMail)
@@ -2791,20 +2790,20 @@ function OnMsgLoaded(aUrl)
     var msgHdr = msgHdrForCurrentMessage();
     gMessageNotificationBar.setJunkMsg(msgHdr);
 
-    var markReadAutoMode = gPrefBranch.getBoolPref("mailnews.mark_message_read.auto");
+    var markReadAutoMode = Services.prefs.getBoolPref("mailnews.mark_message_read.auto");
 
     // We just finished loading a message. If messages are to be marked as read
     // automatically, set a timer to mark the message is read after n seconds
     // where n can be configured by the user.
     if (msgHdr && !msgHdr.isRead && markReadAutoMode)
     {
-      let markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
+      let markReadOnADelay = Services.prefs.getBoolPref("mailnews.mark_message_read.delay");
       // Only use the timer if viewing using the 3-pane preview pane and the
       // user has set the pref.
       if (markReadOnADelay && wintype == "mail:3pane") // 3-pane window
       {
         ClearPendingReadTimer();
-        let markReadDelayTime = gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval");
+        let markReadDelayTime = Services.prefs.getIntPref("mailnews.mark_message_read.delay.interval");
         if (markReadDelayTime == 0)
           MarkMessageAsRead(msgHdr);
         else
@@ -2910,9 +2909,9 @@ function MsgSearchMessages()
 function MsgJunkMailInfo(aCheckFirstUse)
 {
   if (aCheckFirstUse) {
-    if (!pref.getBoolPref("mailnews.ui.junk.firstuse"))
+    if (!Services.prefs.getBoolPref("mailnews.ui.junk.firstuse"))
       return;
-    pref.setBoolPref("mailnews.ui.junk.firstuse", false);
+    Services.prefs.setBoolPref("mailnews.ui.junk.firstuse", false);
 
     // check to see if this is an existing profile where the user has started using
     // the junk mail feature already
@@ -2976,7 +2975,7 @@ function FeedCheckContentFormat()
   // a summary - notify user.
   var rssIframe = contentWindowDoc.getElementById('_mailrssiframe');
   if (rssIframe) {
-    if (gShowFeedSummaryToggle || pref.getIntPref("rss.show.summary") == 1)
+    if (gShowFeedSummaryToggle || Services.prefs.getIntPref("rss.show.summary") == 1)
       gShowFeedSummaryToggle = false;
     return false;
   }
@@ -3006,7 +3005,7 @@ function FeedSetContentView(val)
     // Not passed a value, so generic select unless in toggle mode
     if (!gShowFeedSummaryToggle)
       // Not in toggle mode, get prefs
-      val = pref.getIntPref("rss.show.summary");
+      val = Services.prefs.getIntPref("rss.show.summary");
     else {
       // Coming in again from toggle, summary already 'reloadMessage'ed,
       // just need to set display for summary on.

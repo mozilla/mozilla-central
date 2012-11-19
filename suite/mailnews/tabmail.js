@@ -3,18 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// common pref object for all windows using tabmail
-// alas, it's a legacy name without a 'g' prefix
-var pref = null;
-
-function GetPrefService()
-{
-  if (!pref)
-    pref = Components.classes["@mozilla.org/preferences-service;1"]
-                     .getService(Components.interfaces.nsIPrefBranch);
-  return pref;
-}
-
 // Traditionally, mailnews tabs come in two flavours: "folder" and
 // "message" tabs. But these modes are just mere default settings on tab
 // creation, defining layout, URI to load, etc.
@@ -566,12 +554,12 @@ function MsgCloseCurrentTab()
 
 function AllowOpenTabOnMiddleClick()
 {
-  return GetPrefService().getBoolPref("browser.tabs.opentabfor.middleclick");
+  return Services.prefs.getBoolPref("browser.tabs.opentabfor.middleclick");
 }
 
 function AllowOpenTabOnDoubleClick()
 {
-  return GetPrefService().getBoolPref("browser.tabs.opentabfor.doubleclick");
+  return Services.prefs.getBoolPref("browser.tabs.opentabfor.doubleclick");
 }
 
 //
@@ -755,8 +743,7 @@ function UpdateLayoutVisibility()
   var onlyOnePane = onlyFolderPane || onlyMessagePane || onlyDisplayDeck;
   var showFolderSplitter  = false;
   var showMessageSplitter = false;
-  var layout = pref.getIntPref("mail.pane_config.dynamic");
-  switch (layout)
+  switch (Services.prefs.getIntPref("mail.pane_config.dynamic"))
   {
     case kClassicMailLayout:
       // if only the folderpane is visible it has to flex,

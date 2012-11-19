@@ -141,7 +141,7 @@ function CrossFolderNavigation(type)
       type == nsMsgNavigationType.nextUnreadThread)
   {
     
-    var nextMode = pref.getIntPref("mailnews.nav_crosses_folders");
+    var nextMode = Services.prefs.getIntPref("mailnews.nav_crosses_folders");
     // 0: "next" goes to the next folder, without prompting
     // 1: "next" goes to the next folder, and prompts (the default)
     // 2: "next" does nothing when there are no unread messages
@@ -204,7 +204,7 @@ function ScrollToMessage(type, wrap, selectMessage)
 
     let elidedFlag = Components.interfaces.nsMsgMessageFlags.Elided;
     let summarizeSelection =
-      gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads");
+      Services.prefs.getBoolPref("mail.operate_on_msgs_in_collapsed_threads");
 
     // if we're doing next unread, and a collapsed thread is selected, and
     // the top level message is unread, just set the result manually to

@@ -73,9 +73,9 @@ function SelectAndScrollToKey(aMsgKey)
 // could be the last displayed message, etc.)
 function ScrollToMessageAfterFolderLoad(folder)
 {
-  var scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
+  var scrolled = Services.prefs.getBoolPref("mailnews.scroll_to_new_message") &&
       ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
-  if (!scrolled && folder && pref.getBoolPref("mailnews.remember_selected_message"))
+  if (!scrolled && folder && Services.prefs.getBoolPref("mailnews.remember_selected_message"))
   {
     // If we failed to scroll to a new message,
     // reselect the last selected message
@@ -624,7 +624,7 @@ var gThreePaneIncomingServerListener = {
 
 function UpdateMailPaneConfig() {
   const dynamicIds = ["messagesBox", "mailContent", "messengerBox"];
-  var desiredId = dynamicIds[pref.getIntPref("mail.pane_config.dynamic")];
+  var desiredId = dynamicIds[Services.prefs.getIntPref("mail.pane_config.dynamic")];
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();
@@ -653,9 +653,9 @@ const MailPrefObserver = {
         UpdateMailPaneConfig();
       } else if (prefName == "mail.showCondensedAddresses") {
         let currentDisplayNameVersion =
-              pref.getIntPref("mail.displayname.version");
-        pref.setIntPref("mail.displayname.version",
-                        ++currentDisplayNameVersion);
+              Services.prefs.getIntPref("mail.displayname.version");
+        Services.prefs.setIntPref("mail.displayname.version",
+                                  ++currentDisplayNameVersion);
 
         // Refresh the thread pane.
         GetThreadTree().treeBoxObject.invalid();
@@ -669,8 +669,8 @@ function OnLoadMessenger()
 {
   AddMailOfflineObserver();
   CreateMailWindowGlobals();
-  pref.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
-  pref.addObserver("mail.showCondensedAddresses", MailPrefObserver, false);
+  Services.prefs.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  Services.prefs.addObserver("mail.showCondensedAddresses", MailPrefObserver, false);
   UpdateMailPaneConfig();
   Create3PaneGlobals();
   verifyAccounts(null, false);
@@ -780,8 +780,8 @@ function HandleAppCommandEvent(evt)
 
 function OnUnloadMessenger()
 {
-  pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver, false);
-  pref.removeObserver("mail.showCondensedAddresses", MailPrefObserver, false);
+  Services.prefs.removeObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  Services.prefs.removeObserver("mail.showCondensedAddresses", MailPrefObserver, false);
   window.removeEventListener("AppCommand", HandleAppCommandEvent, true);
   Services.obs.removeObserver(MailWindowIsClosing,
                               "quit-application-requested");
@@ -808,7 +808,7 @@ function MailWindowIsClosing(aCancelQuit, aTopic, aData)
   let numtabs = GetTabMail().tabInfo.length;
   if (numtabs > 1)
   {
-    let shouldPrompt = pref.getBoolPref("browser.tabs.warnOnClose");
+    let shouldPrompt = Services.prefs.getBoolPref("browser.tabs.warnOnClose");
     if (shouldPrompt)
     {
       // default to true: if it were false, we wouldn't get this far
@@ -827,7 +827,7 @@ function MailWindowIsClosing(aCancelQuit, aTopic, aData)
       reallyClose = (buttonPressed == 0);
       // don't set the pref unless OK was pressed and it's false
       if (reallyClose && !warnOnClose.value)
-        pref.setBoolPref("browser.tabs.warnOnClose", false);
+        Services.prefs.setBoolPref("browser.tabs.warnOnClose", false);
     }
   }
 
@@ -866,9 +866,9 @@ function loadStartFolder(initialUri)
             // Enable check new mail once by turning checkmail pref 'on' to bring
             // all users to one plane. This allows all users to go to Inbox. User can
             // always go to server settings panel and turn off "Check for new mail at startup"
-            if (!pref.getBoolPref(kMailCheckOncePrefName))
+            if (!Services.prefs.getBoolPref(kMailCheckOncePrefName))
             {
-                pref.setBoolPref(kMailCheckOncePrefName, true);
+                Services.prefs.setBoolPref(kMailCheckOncePrefName, true);
                 defaultServer.loginAtStartUp = true;
             }
 
@@ -912,7 +912,7 @@ function loadStartFolder(initialUri)
         InitPrompts();
         InitServices();
 
-        var sendUnsentWhenGoingOnlinePref = pref.getIntPref("offline.send.unsent_messages");
+        var sendUnsentWhenGoingOnlinePref = Services.prefs.getIntPref("offline.send.unsent_messages");
         if (sendUnsentWhenGoingOnlinePref == 0) // pref is "ask"
         {
           var buttonPressed = Services.prompt.confirmEx(window,
@@ -984,7 +984,7 @@ function UpgradeFolderPaneUI()
 {
   // placeholder in case any new columns get added to the folder pane
   // note that this function fails to notice a pane layout switch
-  // var folderPaneUIVersion = pref.getIntPref("mail.ui.folderpane.version");
+  // var folderPaneUIVersion = Services.prefs.getIntPref("mail.ui.folderpane.version");
 }
 
 function OnLoadFolderPane()
@@ -1010,8 +1010,8 @@ function UpgradeThreadPaneUI()
 {
   try
   {
-    if (pref.getIntPref("mailnews.ui.threadpane.version") < 6)
-      pref.setIntPref("mailnews.ui.threadpane.version", 6);
+    if (Services.prefs.getIntPref("mailnews.ui.threadpane.version") < 6)
+      Services.prefs.setIntPref("mailnews.ui.threadpane.version", 6);
   }
   catch (ex) 
   {
@@ -1446,7 +1446,7 @@ function GetFolderResource(tree, index)
 // of those settings from the default account.
 function MigrateJunkMailSettings()
 {
-  var junkMailSettingsVersion = pref.getIntPref("mail.spam.version");
+  var junkMailSettingsVersion = Services.prefs.getIntPref("mail.spam.version");
   if (!junkMailSettingsVersion)
   {
     // Get the default account, check to see if we have values for our
@@ -1461,16 +1461,16 @@ function MigrateJunkMailSettings()
     {
       // we only care about
       var prefix = "mail.server." + defaultAccount.incomingServer.key + ".";
-      if (pref.prefHasUserValue(prefix + "manualMark"))
-        pref.setBoolPref("mail.spam.manualMark", pref.getBoolPref(prefix + "manualMark"));
-      if (pref.prefHasUserValue(prefix + "manualMarkMode"))
-        pref.setIntPref("mail.spam.manualMarkMode", pref.getIntPref(prefix + "manualMarkMode"));
-      if (pref.prefHasUserValue(prefix + "spamLoggingEnabled"))
-        pref.setBoolPref("mail.spam.logging.enabled", pref.getBoolPref(prefix + "spamLoggingEnabled"));
-      if (pref.prefHasUserValue(prefix + "markAsReadOnSpam"))
-        pref.setBoolPref("mail.spam.markAsReadOnSpam", pref.getBoolPref(prefix + "markAsReadOnSpam"));
+      if (Services.prefs.prefHasUserValue(prefix + "manualMark"))
+        Services.prefs.setBoolPref("mail.spam.manualMark", Services.prefs.getBoolPref(prefix + "manualMark"));
+      if (Services.prefs.prefHasUserValue(prefix + "manualMarkMode"))
+        Services.prefs.setIntPref("mail.spam.manualMarkMode", Services.prefs.getIntPref(prefix + "manualMarkMode"));
+      if (Services.prefs.prefHasUserValue(prefix + "spamLoggingEnabled"))
+        Services.prefs.setBoolPref("mail.spam.logging.enabled", Services.prefs.getBoolPref(prefix + "spamLoggingEnabled"));
+      if (Services.prefs.prefHasUserValue(prefix + "markAsReadOnSpam"))
+        Services.prefs.setBoolPref("mail.spam.markAsReadOnSpam", Services.prefs.getBoolPref(prefix + "markAsReadOnSpam"));
     }
     // bump the version so we don't bother doing this again.
-    pref.setIntPref("mail.spam.version", 1);
+    Services.prefs.setIntPref("mail.spam.version", 1);
   }
 }

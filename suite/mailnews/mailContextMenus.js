@@ -545,7 +545,7 @@ function OpenMessageForMessageId(messageId)
   // if message id was found open corresponding message
   // else show error message
   if (messageHeader)
-    OpenMessageByHeader(messageHeader, pref.getBoolPref("mailnews.messageid.openInNewWindow"));
+    OpenMessageByHeader(messageHeader, Services.prefs.getBoolPref("mailnews.messageid.openInNewWindow"));
   else
   {
     var messageIdStr = "<" + messageId + ">";

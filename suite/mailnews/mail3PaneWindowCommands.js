@@ -372,7 +372,7 @@ var DefaultController =
       case "cmd_goForward":
         return gDBView && gDBView.navigateStatus(nsMsgNavigationType.forward);
       case "cmd_goStartPage":
-        return pref.getBoolPref("mailnews.start_page.enabled") && !IsMessagePaneCollapsed();
+        return Services.prefs.getBoolPref("mailnews.start_page.enabled") && !IsMessagePaneCollapsed();
       case "cmd_markAllRead":
         return IsFolderSelected() && gDBView && gDBView.msgFolder.getNumUnread(false) > 0;
       case "cmd_markReadByDate":

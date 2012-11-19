@@ -184,7 +184,7 @@ function HandleDeleteOrMoveMsgCompleted(folder)
     {
       var nextMstKey = gDBView.getKeyAt(gNextMessageViewIndexAfterDelete);
       if (nextMstKey != nsMsgKey_None &&
-          !pref.getBoolPref("mail.close_message_window.on_delete"))
+          !Services.prefs.getBoolPref("mail.close_message_window.on_delete"))
         LoadMessageByViewIndex(gNextMessageViewIndexAfterDelete);
       else
         window.close();
