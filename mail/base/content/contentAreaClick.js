@@ -46,11 +46,11 @@
   function messagePaneOnResize(aEvent)
   {
     // scale any overflowing images
-    var messagepane = document.getElementById("messagepane");
-    var doc = messagepane.contentDocument;
-    var imgs = doc.images;
-    for each (var img in imgs)
+    let doc = document.getElementById("messagepane").contentDocument;
+    let imgs = doc.images;
+    for (let i = 0; i < imgs.length; i++)
     {
+      let img = imgs[i];
       if (img.className == "moz-attached-image")
       {
         if (img.naturalWidth <= doc.body.clientWidth)

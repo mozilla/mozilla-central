@@ -509,7 +509,7 @@ var DefaultController =
       case "button_compact":
       {
         let folders = gFolderTreeView.getSelectedFolders();
-        function canCompact(folder) {
+        let canCompact = function canCompact(folder) {
           return !folder.isServer &&
             !(folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
             (folder.server.type != "imap" || folder.server.canCompactFoldersOnServer) &&
@@ -520,7 +520,7 @@ var DefaultController =
       case "cmd_compactFolder":
       {
         let folders = gFolderTreeView.getSelectedFolders();
-        function canCompactAll(folder) {
+        let canCompactAll = function canCompactAll(folder) {
           return (folder.server.type != "imap" ||
                   folder.server.canCompactFoldersOnServer) &&
                   folder.isCommandEnabled("cmd_compactFolder") ;

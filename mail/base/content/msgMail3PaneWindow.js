@@ -855,11 +855,10 @@ function loadStartFolder(initialUri)
 
       // If appropriate, send unsent messages. This may end up prompting the user,
       // so we need to get it out of the flow of the normal load sequence.
-      function checkUnsent() {
+      setTimeout(function checkUnsent() {
         if (MailOfflineMgr.shouldSendUnsentMessages())
           SendUnsentMessages();
-      }
-      setTimeout(checkUnsent, 0);
+      }, 0);
     }
 }
 

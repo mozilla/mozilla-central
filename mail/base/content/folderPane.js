@@ -811,6 +811,25 @@ let gFolderTreeView = {
     this._toggleRow(aIndex, true);
   },
 
+  recursivelyAddToMap: function ftv_recursivelyAddToMap(aChild, aNewIndex) {
+    // When we add sub-children, we're going to need to increase our index
+    // for the next add item at our own level.
+    let count = 0;
+    if (aChild.children.length && aChild.open) {
+      for (let [i, child] in Iterator(this._rowMap[aNewIndex].children)) {
+        count++;
+        let index = Number(aNewIndex) + Number(i) + 1;
+        this._rowMap.splice(index, 0, child);
+
+        let kidsAdded = this.recursivelyAddToMap(child, index);
+        count += kidsAdded;
+        // Somehow the aNewIndex turns into a string without this.
+        aNewIndex = Number(aNewIndex) + kidsAdded;
+      }
+    }
+    return count;
+  },
+
   _toggleRow: function toggleRow(aIndex, aExpandServer)
   {
     // Ok, this is a bit tricky.
@@ -847,26 +866,7 @@ let gFolderTreeView = {
       // Note that these children may have been open when we were last closed,
       // and if they are, we also have to add those grandchildren to the map
       let oldCount = this._rowMap.length;
-      function recursivelyAddToMap(aChild, aNewIndex, tree) {
-        // When we add sub-children, we're going to need to increase our index
-        // for the next add item at our own level
-        let count = 0;
-        if (aChild.children.length && aChild.open) {
-          for (let [i, child] in Iterator(tree._rowMap[aNewIndex].children)) {
-            count++;
-            var index = Number(aNewIndex) + Number(i) + 1;
-            tree._rowMap.splice(index, 0, child);
-
-            let kidsAdded = recursivelyAddToMap(child, index, tree);
-            count += kidsAdded;
-            // Somehow the aNewIndex turns into a string without this
-            aNewIndex = Number(aNewIndex) + kidsAdded;
-          }
-        }
-        return count;
-      }
-      // work around bug 658534 by passing in "this" instead of let tree = this;
-      recursivelyAddToMap(this._rowMap[aIndex], aIndex, this);
+      this.recursivelyAddToMap(this._rowMap[aIndex], aIndex);
 
       // Add this folder to the persist map
       if (!this._persistOpenMap[this.mode])

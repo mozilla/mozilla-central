@@ -393,7 +393,7 @@ function openAddonsMgr(aView)
     let emWindow;
     let browserWindow;
 
-    function receivePong(aSubject, aTopic, aData) {
+    let receivePong = function receivePong(aSubject, aTopic, aData) {
       let browserWin = aSubject.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
         .getInterface(Components.interfaces.nsIWebNavigation)
         .QueryInterface(Components.interfaces.nsIDocShellTreeItem)

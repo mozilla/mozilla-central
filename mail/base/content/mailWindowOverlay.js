@@ -3109,10 +3109,11 @@ function OnMsgParsed(aUrl)
   observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
 
   // scale any overflowing images
-  var doc = document.getElementById("messagepane").contentDocument;
-  var imgs = doc.getElementsByTagName("img");
-  for each (var img in imgs)
+  let doc = document.getElementById("messagepane").contentDocument;
+  let imgs = doc.images;
+  for (let i = 0; i < imgs.length; i++)
   {
+    let img = imgs[i];
     if (img.className == "moz-attached-image" && img.naturalWidth > doc.body.clientWidth)
     {
       if (img.hasAttribute("shrinktofit"))

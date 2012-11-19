@@ -23,7 +23,7 @@
         // won't have proper sizing.
         let inWrapper = false;
         let node = this;
-        while (node) {
+        while (node instanceof XULElement) {
           if (/wrapper-.*/.test(node.id)) {
             inWrapper = true;
             break;
