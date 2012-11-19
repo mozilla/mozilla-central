@@ -4,7 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // Dependencies:
-// gPrefBranch, gBrandBundle, gMessengerBundle should already be defined
+// gBrandBundle, gMessengerBundle should already be defined
 // gatherTextUnder from utilityOverlay.js
 
 Components.utils.import("resource:///modules/hostnameUtils.jsm");
@@ -22,7 +22,7 @@ const kPhishingWithMismatchedHosts = 2;
 function isMsgEmailScam(aUrl)
 {
   var isEmailScam = false; 
-  if (!aUrl || !gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
+  if (!aUrl || !Services.prefs.getBoolPref("mail.phishing.detection.enabled"))
     return isEmailScam;
 
   try {
@@ -78,7 +78,7 @@ function isMsgEmailScam(aUrl)
 
 function isPhishingURL(aLinkNode, aSilentMode, aHref)
 {
-  if (!gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
+  if (!Services.prefs.getBoolPref("mail.phishing.detection.enabled"))
     return false;
 
   var phishingType = kPhishingNotSuspicious;

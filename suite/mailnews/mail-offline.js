@@ -3,7 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var gMailOfflinePrefs = null;
 var gOfflinePromptsBundle;
 var gOfflineManager;
 
@@ -16,25 +15,6 @@ function MailOfflineStateChanged(goingOffline)
 function MsgSettingsOffline()
 {
     window.parent.MsgAccountManager('am-offline.xul');
-}
-
-// Init PrefsService
-function GetMailOfflinePrefs()
-{
-  // Store the prefs object
-  try {
-    var prefsService = Components.classes["@mozilla.org/preferences-service;1"];
-    if (prefsService)
-    prefsService = prefsService.getService();
-    if (prefsService)
-    gMailOfflinePrefs = prefsService.QueryInterface(Components.interfaces.nsIPrefBranch);
-
-    if (!gMailOfflinePrefs)
-    dump("failed to get prefs service!\n");
-  }
-  catch(ex) {
-    dump("failed to get prefs service!\n");
-  }
 }
 
 // Check for unsent messages
@@ -72,12 +52,12 @@ function PromptSendMessages()
       checkValue);
   switch (buttonPressed) {
     case 0:
-      gMailOfflinePrefs.setIntPref("offline.send.unsent_messages", !checkValue.value);
+      Services.prefs.setIntPref("offline.send.unsent_messages", !checkValue.value);
       gOfflineManager.goOnline(true, true, msgWindow);
       return true;
 
     case 2:
-      gMailOfflinePrefs.setIntPref("offline.send.unsent_messages", 2*!checkValue.value);
+      Services.prefs.setIntPref("offline.send.unsent_messages", 2*!checkValue.value);
       gOfflineManager.goOnline(false, true, msgWindow);
       return true;
   }
@@ -104,12 +84,12 @@ function PromptDownloadMessages()
     checkValue);
   switch (buttonPressed) {
     case 0:
-      gMailOfflinePrefs.setIntPref("offline.download.download_messages", !checkValue.value);
+      Services.prefs.setIntPref("offline.download.download_messages", !checkValue.value);
       gOfflineManager.synchronizeForOffline(true, true, false, true, msgWindow);
       return true;
 
     case 2:
-      gMailOfflinePrefs.setIntPref("offline.download.download_messages", 2*!checkValue.value);
+      Services.prefs.setIntPref("offline.download.download_messages", 2*!checkValue.value);
       gOfflineManager.synchronizeForOffline(false, false, false, true, msgWindow);
       return true;
   }
@@ -119,9 +99,6 @@ function PromptDownloadMessages()
 // Init Pref Service & Offline Manager
 function InitServices()
 {
-  if (!gMailOfflinePrefs) 
-    GetMailOfflinePrefs();
-
   if (!gOfflineManager) 
     GetOfflineMgrService();
 }
@@ -141,11 +118,9 @@ function MailCheckBeforeOfflineChange()
 {
   InitServices();
 
-  var prefSendUnsentMessages = gMailOfflinePrefs.getIntPref("offline.send.unsent_messages");
-  var prefDownloadMessages   = gMailOfflinePrefs.getIntPref("offline.download.download_messages");
 
   if (Services.io.offline) {
-    switch(prefSendUnsentMessages) { 
+    switch(Services.prefs.getIntPref("offline.send.unsent_messages")) {
     case 0:
       if(CheckForUnsentMessages()) { 
         if(! PromptSendMessages()) 
@@ -170,7 +145,7 @@ function MailCheckBeforeOfflineChange()
   }
   else {
     // going offline
-    switch(prefDownloadMessages) {	
+    switch(Services.prefs.getIntPref("offline.download.download_messages")) {
       case 0:
         if(! PromptDownloadMessages()) return false;
       break;

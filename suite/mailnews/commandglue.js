@@ -9,6 +9,7 @@
  */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 //NOTE: gMessengerBundle and gBrandBundle must be defined and set
 //      for this Overlay to work properly
@@ -1024,7 +1025,7 @@ function OnLeavingFolder(aFolder)
     // Mark all messages of aFolder as read:
     // We can't use the command controller, because it is already tuned in to the
     // new folder, so we just mimic its behaviour wrt goDoCommand('cmd_markAllRead').
-    if (gDBView && gPrefBranch.getBoolPref("mailnews.mark_message_read." + aFolder.server.type))
+    if (gDBView && Services.prefs.getBoolPref("mailnews.mark_message_read." + aFolder.server.type))
     {
       gDBView.doCommand(nsMsgViewCommandType.markAllRead);
     }
