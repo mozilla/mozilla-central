@@ -71,9 +71,6 @@ public:
     MSG_X_TEMPLATE_HEADER_ID,
     MSG_DRAFT_ID_HEADER_ID,
     MSG_TEMPORARY_FILES_HEADER_ID,
-    MSG_SENDERREPLY_HEADER_ID,
-    MSG_ALLREPLY_HEADER_ID,
-    MSG_LISTREPLY_HEADER_ID,
 
     MSG_MAX_HEADERS   //Must be the last one.
   } MsgHeaderID;
@@ -137,15 +134,6 @@ public:
 
   nsresult SetOtherRandomHeaders(const char *value) {return SetAsciiHeader(MSG_OTHERRANDOMHEADERS_HEADER_ID, value);}
   const char* GetOtherRandomHeaders() {return GetAsciiHeader(MSG_OTHERRANDOMHEADERS_HEADER_ID);}
-
-  nsresult SetSenderReply(const char *value) {return SetAsciiHeader(MSG_SENDERREPLY_HEADER_ID, value);}
-  const char* GetSenderReply() {return GetAsciiHeader(MSG_SENDERREPLY_HEADER_ID);}
-
-  nsresult SetAllReply(const char *value) {return SetAsciiHeader(MSG_ALLREPLY_HEADER_ID, value);}
-  const char* GetAllReply() {return GetAsciiHeader(MSG_ALLREPLY_HEADER_ID);}
-
-  nsresult SetListReply(const char *value) {return SetAsciiHeader(MSG_LISTREPLY_HEADER_ID, value);}
-  const char* GetListReply() {return GetAsciiHeader(MSG_LISTREPLY_HEADER_ID);}
 
   const char* GetNewspostUrl() {return GetAsciiHeader(MSG_NEWSPOSTURL_HEADER_ID);}
 

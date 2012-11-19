@@ -166,6 +166,7 @@ private:
     bool						        mHeadersOnly;
     nsCOMPtr<nsIMimeHeaders>	mHeaders;
     nsCOMPtr<nsIMsgIdentity>  mIdentity;
+    nsCOMPtr<nsIMsgDBHdr>     mOrigMsgHdr;
     nsString                  mCiteReference;
     nsCOMPtr<nsIMimeConverter> mMimeConverter;
     nsCOMPtr<nsIUnicodeDecoder> mUnicodeDecoder;

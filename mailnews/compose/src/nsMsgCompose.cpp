@@ -2014,127 +2014,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             subject.Insert(NS_LITERAL_STRING("Re: "), 0);
             m_compFields->SetSubject(subject);
 
-            nsCString author, authorEmailAddress;
-            msgHdr->GetAuthor(getter_Copies(author));
-
-            nsCString recipients, recipientsEmailAddresses;
-            msgHdr->GetRecipients(getter_Copies(recipients));
-
-            nsCString ccList, ccListEmailAddresses;
-            msgHdr->GetCcList(getter_Copies(ccList));
-
-            nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
-            if (parser) {
-              // convert to UTF8 before passing to MakeFullAddress
-              rv = parser->ExtractHeaderAddressMailboxes(author,
-                                                         authorEmailAddress);
-              NS_ENSURE_SUCCESS(rv,rv);
-
-              rv = parser->ExtractHeaderAddressMailboxes(recipients,
-                                                         recipientsEmailAddresses);
-              NS_ENSURE_SUCCESS(rv,rv);
-
-              rv = parser->ExtractHeaderAddressMailboxes(ccList,
-                                                         ccListEmailAddresses);
-              NS_ENSURE_SUCCESS(rv,rv);
-            }
-
-            bool replyToSelfCheckAll = false;
-            prefs->GetBoolPref("mailnews.reply_to_self_check_all_ident",
-                               &replyToSelfCheckAll);
-
-            nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-            NS_ENSURE_SUCCESS(rv,rv);
-
-            nsCOMPtr<nsISupportsArray> identities;
-            nsCString accountKey;
-            msgHdr->GetAccountKey(getter_Copies(accountKey));
-            if(replyToSelfCheckAll)
-            {
-              // check all avaliable identities if the pref was set
-              accountManager->GetAllIdentities(getter_AddRefs(identities));
-            }
-            else if (!accountKey.IsEmpty())
-            {
-               // check headers to see which account the message came in from (only works for pop3)
-              nsCOMPtr<nsIMsgAccount> account;
-              accountManager->GetAccount(accountKey, getter_AddRefs(account));
-
-              if(account)
-                account->GetIdentities(getter_AddRefs(identities));
-            }
-            else
-            {
-              // check identities only for the server of the folder that the message is in
-              nsCOMPtr <nsIMsgFolder> msgFolder;
-              rv = msgHdr->GetFolder(getter_AddRefs(msgFolder));
-
-              if (NS_SUCCEEDED(rv) && msgFolder){
-                nsCOMPtr<nsIMsgIncomingServer> nsIMsgIncomingServer;
-                rv = msgFolder->GetServer(getter_AddRefs(nsIMsgIncomingServer));
-
-                if(NS_SUCCEEDED(rv) && nsIMsgIncomingServer)
-                  accountManager->GetIdentitiesForServer(nsIMsgIncomingServer, getter_AddRefs(identities));
-              }
-            }
-
-            bool isReplyToOwnMsg = false;
-            if(identities)
-            {
-              // go through the identities to see if any of them is the author of the email
-              nsCOMPtr<nsIMsgIdentity> lookupIdentity;
-
-              uint32_t count = 0;
-              identities->Count(&count);
-
-              for (uint32_t i = 0; i < count; i++)
-              {
-                rv = identities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),
-                                          getter_AddRefs(lookupIdentity));
-                if (NS_FAILED(rv))
-                  continue;
-
-                nsCString curIdentityEmail;
-                lookupIdentity->GetEmail(curIdentityEmail);
-
-                // See if it's a reply to own message, but not a reply between identities.
-                if (curIdentityEmail.Equals(authorEmailAddress))
-                {
-                  isReplyToOwnMsg = true;
-                  // For a true reply-to-self, none of your identities are in To or CC.
-                  for (uint32_t j = 0; j < count; j++)
-                  {
-                    nsCOMPtr<nsIMsgIdentity> lookupIdentity2;
-                    rv = identities->QueryElementAt(j, NS_GET_IID(nsIMsgIdentity),
-                                                    getter_AddRefs(lookupIdentity2));
-                    if (NS_FAILED(rv))
-                      continue;
-
-                    nsCString curIdentityEmail2;
-                    lookupIdentity2->GetEmail(curIdentityEmail2);
-                    if (recipientsEmailAddresses.Find(curIdentityEmail2) != kNotFound ||
-                        ccListEmailAddresses.Find(curIdentityEmail2) != kNotFound)
-                    {
-                      // An identity among the recipients -> not reply-to-self.
-                      isReplyToOwnMsg = false;
-                      break;
-                    }
-                  }
-                  break;
-                }
-              }
-            }
-
-            nsCString toField;
-            if (isReplyToOwnMsg)
-              msgHdr->GetRecipients(getter_Copies(toField));
-            else
-              toField.Assign(author);
-
-            ConvertRawBytesToUTF8(toField, originCharset.get(), decodedCString);
-            m_compFields->SetSenderReply(decodedCString.get());
-            m_compFields->SetTo(decodedCString.get());
-
             // Setup quoting callbacks for later...
             mWhatHolder = 1;
             break;
@@ -2325,6 +2204,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
   mQuoteHeaders = quoteHeaders;
   mHeadersOnly = headersOnly;
   mIdentity = identity;
+  mOrigMsgHdr = originalMsgHdr;
   mUnicodeBufferCharacterLength = 0;
   mUnicodeConversionBuffer = nullptr;
   mQuoteOriginal = quoteOriginal;
@@ -2559,376 +2439,479 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
   }
 
   nsCOMPtr<nsIMsgCompose> compose = do_QueryReferent(mWeakComposeObj);
-  if (compose)
+  NS_ENSURE_TRUE(compose, NS_ERROR_NULL_POINTER);
+
+  MSG_ComposeType type;
+  compose->GetType(&type);
+
+  // Assign cite information if available...
+  if (!mCiteReference.IsEmpty())
+    compose->SetCiteReference(mCiteReference);
+
+  if (mHeaders && (type == nsIMsgCompType::Reply ||
+                   type == nsIMsgCompType::ReplyAll ||
+                   type == nsIMsgCompType::ReplyToList ||
+                   type == nsIMsgCompType::ReplyToSender ||
+                   type == nsIMsgCompType::ReplyToGroup ||
+                   type == nsIMsgCompType::ReplyToSenderAndGroup) &&
+      mQuoteOriginal)
   {
-    MSG_ComposeType type;
-    compose->GetType(&type);
-
-    // Assign cite information if available...
-    if (!mCiteReference.IsEmpty())
-      compose->SetCiteReference(mCiteReference);
-
-    if (mHeaders && (type == nsIMsgCompType::Reply ||
-                     type == nsIMsgCompType::ReplyAll ||
-                     type == nsIMsgCompType::ReplyToList ||
-                     type == nsIMsgCompType::ReplyToSender ||
-                     type == nsIMsgCompType::ReplyToGroup ||
-                     type == nsIMsgCompType::ReplyToSenderAndGroup) &&
-        mQuoteOriginal)
+    nsCOMPtr<nsIMsgCompFields> compFields;
+    compose->GetCompFields(getter_AddRefs(compFields));
+    if (compFields)
     {
-      nsCOMPtr<nsIMsgCompFields> compFields;
-      compose->GetCompFields(getter_AddRefs(compFields));
-      if (compFields)
+      aCharset.AssignLiteral("UTF-8");
+      nsAutoString from;
+      nsAutoString to;
+      nsAutoString cc;
+      nsAutoString replyTo;
+      nsAutoString mailReplyTo;
+      nsAutoString mailFollowupTo;
+      nsAutoString newgroups;
+      nsAutoString followUpTo;
+      nsAutoString messageId;
+      nsAutoString references;
+      nsAutoString listPost;
+
+      nsCString outCString; // Temp helper string.
+
+      bool needToRemoveDup = false;
+      if (!mMimeConverter)
       {
-        aCharset.AssignLiteral("UTF-8");
-        nsAutoString recipient;
-        nsAutoString cc;
-        nsAutoString replyTo;
-        nsAutoString mailReplyTo;
-        nsAutoString mailFollowupTo;
-        nsAutoString newgroups;
-        nsAutoString followUpTo;
-        nsAutoString messageId;
-        nsAutoString references;
-        nsAutoString listPost;
-        nsAutoString replyCompValue;
-        nsCString outCString;
-        bool needToRemoveDup = false;
-        if (!mMimeConverter)
-        {
-          mMimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
-          NS_ENSURE_SUCCESS(rv, rv);
+        mMimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+      nsCString charset;
+      compFields->GetCharacterSet(getter_Copies(charset));
+
+      mHeaders->ExtractHeader(HEADER_FROM, true, getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), from);
+
+      mHeaders->ExtractHeader(HEADER_TO, true, getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), to);
+
+      mHeaders->ExtractHeader(HEADER_CC, true, getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), cc);
+
+      mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, true,
+                              getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
+
+      mHeaders->ExtractHeader(HEADER_REPLY_TO, false, getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), replyTo);
+
+      mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, true, getter_Copies(outCString));
+      ConvertRawBytesToUTF16(outCString, charset.get(), mailReplyTo);
+
+      mHeaders->ExtractHeader(HEADER_NEWSGROUPS, false, getter_Copies(outCString));
+      if (!outCString.IsEmpty())
+        mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                         false, true, newgroups);
+
+      mHeaders->ExtractHeader(HEADER_FOLLOWUP_TO, false, getter_Copies(outCString));
+      if (!outCString.IsEmpty())
+        mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                         false, true, followUpTo);
+
+      mHeaders->ExtractHeader(HEADER_MESSAGE_ID, false, getter_Copies(outCString));
+      if (!outCString.IsEmpty())
+        mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                         false, true, messageId);
+
+      mHeaders->ExtractHeader(HEADER_REFERENCES, false, getter_Copies(outCString));
+      if (!outCString.IsEmpty())
+        mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                         false, true, references);
+
+      nsCOMPtr<nsIMsgHeaderParser> parser =
+        do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCString fromEmailAddress;
+      rv = parser->ExtractHeaderAddressMailboxes(NS_ConvertUTF16toUTF8(from),
+                                                 fromEmailAddress);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      nsCString toEmailAddresses;
+      rv = parser->ExtractHeaderAddressMailboxes(NS_ConvertUTF16toUTF8(to),
+                                                 toEmailAddresses);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      nsCString  ccEmailAddresses;
+      rv = parser->ExtractHeaderAddressMailboxes(NS_ConvertUTF16toUTF8(cc),
+                                                 ccEmailAddresses);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      nsCOMPtr<nsIPrefBranch> prefs (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+      bool replyToSelfCheckAll = false;
+      prefs->GetBoolPref("mailnews.reply_to_self_check_all_ident",
+                         &replyToSelfCheckAll);
+
+      nsCOMPtr<nsIMsgAccountManager> accountManager =
+        do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv,rv);
+
+      nsCOMPtr<nsISupportsArray> identities;
+      nsCString accountKey;
+      mOrigMsgHdr->GetAccountKey(getter_Copies(accountKey));
+      if (replyToSelfCheckAll)
+      {
+        // Check all avaliable identities if the pref was set.
+        accountManager->GetAllIdentities(getter_AddRefs(identities));
+      }
+      else if (!accountKey.IsEmpty())
+      {
+         // Check headers to see which account the message came in from
+         // (only works for pop3).
+        nsCOMPtr<nsIMsgAccount> account;
+        accountManager->GetAccount(accountKey, getter_AddRefs(account));
+
+        if (account)
+          account->GetIdentities(getter_AddRefs(identities));
+      }
+      else
+      {
+        // Check identities only for the server of the folder that the message
+        // is in.
+        nsCOMPtr <nsIMsgFolder> msgFolder;
+        rv = mOrigMsgHdr->GetFolder(getter_AddRefs(msgFolder));
+
+        if (NS_SUCCEEDED(rv) && msgFolder){
+          nsCOMPtr<nsIMsgIncomingServer> nsIMsgIncomingServer;
+          rv = msgFolder->GetServer(getter_AddRefs(nsIMsgIncomingServer));
+
+          if (NS_SUCCEEDED(rv) && nsIMsgIncomingServer)
+            accountManager->GetIdentitiesForServer(nsIMsgIncomingServer, getter_AddRefs(identities));
         }
-        nsCString charset;
-        compFields->GetCharacterSet(getter_Copies(charset));
+      }
 
-        // Populate the AllReply compField.
-        mHeaders->ExtractHeader(HEADER_TO, true, getter_Copies(outCString));
-        ConvertRawBytesToUTF16(outCString, charset.get(), recipient);
+      bool isReplyToSelf = false;
+      if (identities)
+      {
+        // Go through the identities to see if any of them is the author of
+        // the email.
+        nsCOMPtr<nsIMsgIdentity> lookupIdentity;
 
-        mHeaders->ExtractHeader(HEADER_CC, true, getter_Copies(outCString));
-        ConvertRawBytesToUTF16(outCString, charset.get(), cc);
+        uint32_t count = 0;
+        identities->Count(&count);
 
-        mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, true,
-                                getter_Copies(outCString));
-        ConvertRawBytesToUTF16(outCString, charset.get(), mailFollowupTo);
-        if (! mailFollowupTo.IsEmpty())
+        for (uint32_t i = 0; i < count; i++)
         {
-          // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
-          compFields->SetAllReply(mailFollowupTo);
-        }
-        else
-        {
-          // default behaviour for messages without Mail-Followup-To
-          compFields->GetTo(replyCompValue);
-          if (!replyCompValue.IsEmpty() && !recipient.IsEmpty())
-            replyCompValue.AppendLiteral(", ");
-          replyCompValue.Append(recipient);
-          if (!replyCompValue.IsEmpty() && !cc.IsEmpty())
-            replyCompValue.AppendLiteral(", ");
-          replyCompValue.Append(cc);
-          compFields->SetAllReply(replyCompValue);
-        }
+          rv = identities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),
+                                    getter_AddRefs(lookupIdentity));
+          if (NS_FAILED(rv))
+            continue;
 
-        if (type == nsIMsgCompType::ReplyAll)
-        {
-          // preserve BCC for the reply-to-self case
-          mHeaders->ExtractHeader(HEADER_BCC, true, getter_Copies(outCString));
-          if (!outCString.IsEmpty())
+          nsCString curIdentityEmail;
+          lookupIdentity->GetEmail(curIdentityEmail);
+
+          // See if it's a reply to own message, but not a reply between identities.
+          if (curIdentityEmail.Equals(fromEmailAddress))
           {
-            nsAutoString bcc;
-            ConvertRawBytesToUTF16(outCString, charset.get(), bcc);
-            compFields->SetBcc(bcc);
+            isReplyToSelf = true;
+            // For a true reply-to-self, none of your identities are in To or CC.
+            for (uint32_t j = 0; j < count; j++)
+            {
+              nsCOMPtr<nsIMsgIdentity> lookupIdentity2;
+              rv = identities->QueryElementAt(j, NS_GET_IID(nsIMsgIdentity),
+                                              getter_AddRefs(lookupIdentity2));
+              if (NS_FAILED(rv))
+                continue;
+
+              nsCString curIdentityEmail2;
+              lookupIdentity2->GetEmail(curIdentityEmail2);
+              if (toEmailAddresses.Find(curIdentityEmail2) != kNotFound ||
+                  ccEmailAddresses.Find(curIdentityEmail2) != kNotFound)
+              {
+                // An identity among the recipients -> not reply-to-self.
+                isReplyToSelf = false;
+                break;
+              }
+            }
+            break;
           }
+        }
+      }
 
-          if (! mailFollowupTo.IsEmpty())
+      if (type == nsIMsgCompType::ReplyToSender || type == nsIMsgCompType::Reply)
+      {
+        if (isReplyToSelf)
+        {
+          compFields->SetTo(to);
+        }
+        else if (!mailReplyTo.IsEmpty())
+        {
+          // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
+          compFields->SetTo(mailReplyTo);
+          needToRemoveDup = true;
+        }
+        else if (!replyTo.IsEmpty())
+        {
+          // default behaviour for messages without Mail-Reply-To
+          compFields->SetTo(replyTo);
+          needToRemoveDup = true;
+        }
+        else {
+          compFields->SetTo(from);
+        }
+      }
+      else if (type == nsIMsgCompType::ReplyAll)
+      {
+        if (isReplyToSelf)
+        {
+          compFields->SetTo(to);
+         compFields->SetCc(cc);
+        }
+        else if (mailFollowupTo.IsEmpty()) {
+          // default behaviour for messages without Mail-Followup-To
+
+          nsAutoString allTo;
+          if (!replyTo.IsEmpty())
           {
-            // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
-            compFields->SetTo(mailFollowupTo);
+            // default behaviour for messages without Mail-Reply-To
+            allTo.Assign(replyTo);
+            needToRemoveDup = true;
           }
           else
           {
-            // default behaviour for messages without Mail-Followup-To
-            nsAutoString outCCListString;
-            compFields->GetCc(outCCListString);
-
-            if (!replyCompValue.IsEmpty() && !outCCListString.IsEmpty())
-              replyCompValue.AppendLiteral(", ");
-
-            replyCompValue.Append(outCCListString);
-            compFields->SetCc(replyCompValue);
+            allTo.Assign(from);
           }
+
+          allTo.AppendLiteral(", ");
+          allTo.Append(to);
+          compFields->SetTo(allTo);
+
+          nsAutoString allCc;
+          compFields->GetCc(allCc); // auto-cc
+          if (!allCc.IsEmpty())
+            allCc.AppendLiteral(", ");
+          allCc.Append(cc);
+          compFields->SetCc(allCc);
 
           needToRemoveDup = true;
         }
-
-        mHeaders->ExtractHeader(HEADER_LIST_POST, true, getter_Copies(outCString));
-        if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
-                                           false, true, listPost);
-
-        if (!listPost.IsEmpty())
+        else
         {
-          int32_t startPos = listPost.Find("<mailto:");
-          int32_t endPos = listPost.FindChar('>', startPos);
-          // Extract the e-mail address.
-          if (endPos > startPos)
+          // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
+
+          compFields->SetTo(mailFollowupTo);
+          compFields->SetCc(EmptyString());
+        }
+
+        // Preserve BCC for the reply-to-self case (can be known if replying
+        // from the Sent folder).
+        mHeaders->ExtractHeader(HEADER_BCC, true, getter_Copies(outCString));
+        if (!outCString.IsEmpty())
+        {
+          nsAutoString bcc;
+          ConvertRawBytesToUTF16(outCString, charset.get(), bcc);
+          compFields->SetBcc(bcc);
+        }
+      }
+      else if (type == nsIMsgCompType::ReplyToList)
+      {
+        if (isReplyToSelf)
+        {
+          compFields->SetTo(to);
+        }
+        else {
+          mHeaders->ExtractHeader(HEADER_LIST_POST, true, getter_Copies(outCString));
+          if (!outCString.IsEmpty())
+            mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                             false, true, listPost);
+
+          if (!listPost.IsEmpty())
           {
-            const uint32_t mailtoLen = strlen("<mailto:");
-            listPost = Substring(listPost, startPos + mailtoLen, endPos - (startPos + mailtoLen));
-            compFields->SetListReply(listPost);
-            if (type == nsIMsgCompType::ReplyToList)
+            int32_t startPos = listPost.Find("<mailto:");
+            int32_t endPos = listPost.FindChar('>', startPos);
+            // Extract the e-mail address.
+            if (endPos > startPos)
+            {
+              const uint32_t mailtoLen = strlen("<mailto:");
+              listPost = Substring(listPost, startPos + mailtoLen, endPos - (startPos + mailtoLen));
               compFields->SetTo(listPost);
+            }
           }
         }
+      }
 
-        mHeaders->ExtractHeader(HEADER_REPLY_TO, false, getter_Copies(outCString));
-        ConvertRawBytesToUTF16(outCString, charset.get(), replyTo);
-        mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, true, getter_Copies(outCString));
-        ConvertRawBytesToUTF16(outCString, charset.get(), mailReplyTo);
+      if (!newgroups.IsEmpty())
+      {
+        if ((type != nsIMsgCompType::Reply) && (type != nsIMsgCompType::ReplyToSender))
+          compFields->SetNewsgroups(newgroups);
+        if (type == nsIMsgCompType::ReplyToGroup)
+          compFields->SetTo(EmptyString());
+      }
 
-        mHeaders->ExtractHeader(HEADER_NEWSGROUPS, false, getter_Copies(outCString));
-        if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
-                                           false, true, newgroups);
-
-        mHeaders->ExtractHeader(HEADER_FOLLOWUP_TO, false, getter_Copies(outCString));
-        if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
-                                           false, true, followUpTo);
-
-        mHeaders->ExtractHeader(HEADER_MESSAGE_ID, false, getter_Copies(outCString));
-        if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
-                                           false, true, messageId);
-
-        mHeaders->ExtractHeader(HEADER_REFERENCES, false, getter_Copies(outCString));
-        if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
-                                           false, true, references);
-
-        if (! mailReplyTo.IsEmpty())
+      if (!followUpTo.IsEmpty())
+      {
+        // Handle "followup-to: poster" magic keyword here
+        if (followUpTo.EqualsLiteral("poster"))
         {
-          // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
-          compFields->SetSenderReply(mailReplyTo);
-          needToRemoveDup = true;
-        }
-        else if (! replyTo.IsEmpty())
-        {
-          // default behaviour for messages without Mail-Reply-To
-          compFields->SetSenderReply(replyTo);
-        }
+          nsCOMPtr<nsIDOMWindow> composeWindow;
+          nsCOMPtr<nsIPrompt> prompt;
+          compose->GetDomWindow(getter_AddRefs(composeWindow));
+          if (composeWindow)
+            composeWindow->GetPrompter(getter_AddRefs(prompt));
+          nsMsgDisplayMessageByName(prompt, NS_LITERAL_STRING("followupToSenderMessage"));
 
-        if (! ((type == nsIMsgCompType::ReplyAll) && ! mailFollowupTo.IsEmpty()) &&
-            ! ((type == nsIMsgCompType::ReplyToList) && ! listPost.IsEmpty()))
-        {
-          if (! mailReplyTo.IsEmpty())
+          if (!replyTo.IsEmpty())
           {
-            // handle Mail-Reply-To (http://cr.yp.to/proto/replyto.html)
-            compFields->SetTo(mailReplyTo);
-            needToRemoveDup = true;
-          }
-          else if (! replyTo.IsEmpty())
-          {
-            // default behaviour for messages without Mail-Reply-To
             compFields->SetTo(replyTo);
-            needToRemoveDup = true;
           }
-        }
-
-        if (! newgroups.IsEmpty())
-        {
-          if ((type != nsIMsgCompType::Reply) && (type != nsIMsgCompType::ReplyToSender))
-            compFields->SetNewsgroups(newgroups);
-          if (type == nsIMsgCompType::ReplyToGroup)
+          else
           {
-            compFields->SetSenderReply(EmptyString());
+            // If reply-to is empty, use the From header to fetch the original
+            // sender's email.
+            compFields->SetTo(from);
+          }
+
+          // Clear the newsgroup: header field, because followup-to: poster
+          // only follows up to the original sender
+          if (!newgroups.IsEmpty())
+            compFields->SetNewsgroups(EmptyString());
+        }
+        else // Process "followup-to: newsgroup-content" here
+        {
+          if (type != nsIMsgCompType::ReplyToSender)
+            compFields->SetNewsgroups(followUpTo);
+          if (type == nsIMsgCompType::Reply)
+          {
             compFields->SetTo(EmptyString());
           }
         }
+      }
 
-        if (! followUpTo.IsEmpty())
-        {
-          // Handle "followup-to: poster" magic keyword here
-          if (followUpTo.EqualsLiteral("poster"))
-          {
-            nsCOMPtr<nsIDOMWindow> composeWindow;
-            nsCOMPtr<nsIPrompt> prompt;
-            compose->GetDomWindow(getter_AddRefs(composeWindow));
-            if (composeWindow)
-              composeWindow->GetPrompter(getter_AddRefs(prompt));
-            nsMsgDisplayMessageByName(prompt, NS_LITERAL_STRING("followupToSenderMessage"));
+      if (!references.IsEmpty())
+        references.Append(PRUnichar(' '));
+      references += messageId;
+      compFields->SetReferences(NS_LossyConvertUTF16toASCII(references).get());
 
-            // If reply-to is empty, use the from header to fetch
-            // the original sender's email
-            if (!replyTo.IsEmpty())
-            {
-              compFields->SetSenderReply(replyTo);
-              compFields->SetTo(replyTo);
-            }
-            else
-            {
-              mHeaders->ExtractHeader(HEADER_FROM, false, getter_Copies(outCString));
-              if (!outCString.IsEmpty())
-              {
-                nsAutoString from;
-                ConvertRawBytesToUTF16(outCString, charset.get(), from);
-                compFields->SetSenderReply(from);
-                compFields->SetTo(from);
-              }
-            }
+      // Remove my address from Reply fields.
+      nsAutoCString resultStr;
 
-            // Clear the newsgroup: header field, because followup-to: poster
-            // only follows up to the original sender
-            if (! newgroups.IsEmpty())
-              compFields->SetNewsgroups(EmptyString());
-          }
-          else // Process "followup-to: newsgroup-content" here
-          {
-            if (type != nsIMsgCompType::ReplyToSender)
-              compFields->SetNewsgroups(followUpTo);
-            if (type == nsIMsgCompType::Reply)
-            {
-              compFields->SetSenderReply(EmptyString());
-              compFields->SetTo(EmptyString());
-            }
-          }
+      // Cast interface to concrete class that has direct field getters etc.
+      nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());
+      if (mIdentity)
+      {
+        nsCString email;
+        mIdentity->GetEmail(email);
+        // We need to remove dups for the Reply fields.
+
+        // If it's a reply to self, self should not be removed.
+        if (NS_ConvertUTF16toUTF8(from).Find(email) == kNotFound) {
+          parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
+                                           email, resultStr);
+          _compFields->SetTo(resultStr.get());
         }
 
-        if (! references.IsEmpty())
-          references.Append(PRUnichar(' '));
-        references += messageId;
-        compFields->SetReferences(NS_LossyConvertUTF16toASCII(references).get());
+        parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
+                                         email, resultStr);
+        _compFields->SetCc(resultStr.get());
+      }
 
-        // Remove my address from Reply fields.
-        nsCString resultStr;
-        nsCOMPtr<nsIMsgHeaderParser> parser =
-          do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());  // XXX what is this?
+      // Remove duplicate addresses between TO && CC
+      if (needToRemoveDup)
+      {
+        nsCString addressToBeRemoved(_compFields->GetTo());
+        // Remove my own address if using Mail-Followup-To (see bug 325429)
         if (mIdentity)
         {
-          nsCString email;
-          mIdentity->GetEmail(email);
-          // We always need to remove dups for the Reply fields.
-          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetSenderReply()),
-                                                email, resultStr);
-          if (NS_SUCCEEDED(rv))
-            _compFields->SetSenderReply(resultStr.get());
-          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetAllReply()),
-                                                email, resultStr);
-          if (NS_SUCCEEDED(rv))
-            _compFields->SetAllReply(resultStr.get());
-          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetListReply()),
-                                                email, resultStr);
-          if (NS_SUCCEEDED(rv))
-            _compFields->SetListReply(resultStr.get());
-        }
+          bool removeMyEmailInCc = true;
+          nsCString myEmail;
+          mIdentity->GetEmail(myEmail);
 
-        // Remove duplicate addresses between TO && CC
-        if (needToRemoveDup)
-        {
-          nsCString addressToBeRemoved(_compFields->GetTo());
-          // Remove my own address if using Mail-Followup-To (see bug 325429)
-          if (mIdentity)
+          // Remove own address from CC unless we want it in there
+          // through the automatic-CC-to-self (see bug 584962). There are
+          // three cases:
+          // - user has no automatic CC
+          // - user has automatic CC but own email is not in it
+          // - user has automatic CC and own email in it
+          // Only in the last case do we want our own email address to stay
+          // in the CC list.
+          bool automaticCc;
+          mIdentity->GetDoCc(&automaticCc);
+          if (automaticCc)
           {
-            bool removeMyEmailInCc = true;
-            nsCString myEmail;
-            mIdentity->GetEmail(myEmail);
-
-            // Remove own address from CC unless we want it in there
-            // through the automatic-CC-to-self (see bug 584962). There are
-            // three cases:
-            // - user has no automatic CC
-            // - user has automatic CC but own email is not in it
-            // - user has automatic CC and own email in it
-            // Only in the last case do we want our own email address to stay
-            // in the CC list.
-            bool automaticCc;
-            mIdentity->GetDoCc(&automaticCc);
-            if (automaticCc)
-            {
-              nsCString ccList, ccListEmailAddresses;
-              mIdentity->GetDoCcList(ccList);
-              rv = parser->ExtractHeaderAddressMailboxes(ccList,
-                                                         ccListEmailAddresses);
-              if (NS_SUCCEEDED(rv) &&
-                  ccListEmailAddresses.Find(myEmail) != kNotFound)
-                removeMyEmailInCc = false;
-            }
-
-            if (removeMyEmailInCc)
-            {
-              addressToBeRemoved.AppendLiteral(", ");
-              addressToBeRemoved.Append(myEmail);
-            }
-
-            rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                                  myEmail, resultStr);
-            if (NS_SUCCEEDED(rv))
-            {
-              if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
-                _compFields->SetTo(resultStr.get());
-            }
+            nsCString ccList, ccEmailAddresses;
+            mIdentity->GetDoCcList(ccList);
+            rv = parser->ExtractHeaderAddressMailboxes(ccList,
+                                                       ccEmailAddresses);
+            if (NS_SUCCEEDED(rv) &&
+                ccEmailAddresses.Find(myEmail) != kNotFound)
+              removeMyEmailInCc = false;
           }
-          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
-                                                addressToBeRemoved, resultStr);
-          if (NS_SUCCEEDED(rv))
-            _compFields->SetCc(resultStr.get());
-        }
 
+          if (removeMyEmailInCc)
+          {
+            addressToBeRemoved.AppendLiteral(", ");
+            addressToBeRemoved.Append(myEmail);
+          }
+
+          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
+                                                myEmail, resultStr);
+          if (NS_SUCCEEDED(rv))
+          {
+            if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
+              _compFields->SetTo(resultStr.get());
+          }
+        }
+        rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
+                                              addressToBeRemoved, resultStr);
+        if (NS_SUCCEEDED(rv))
+          _compFields->SetCc(resultStr.get());
       }
     }
-
-#ifdef MSGCOMP_TRACE_PERFORMANCE
-    nsCOMPtr<nsIMsgComposeService> composeService (do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID));
-    composeService->TimeStamp("Done with MIME. Now we're updating the UI elements", false);
-#endif
-
-    if (mQuoteOriginal)
-      compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeFieldsReady, NS_OK);
-
-#ifdef MSGCOMP_TRACE_PERFORMANCE
-    composeService->TimeStamp("Addressing widget, window title and focus are now set, time to insert the body", false);
-#endif
-
-    if (! mHeadersOnly)
-      mMsgBody.AppendLiteral("</html>");
-
-    // Now we have an HTML representation of the quoted message.
-    // If we are in plain text mode, we need to convert this to plain
-    // text before we try to insert it into the editor. If we don't, we
-    // just get lots of HTML text in the message...not good.
-    //
-    // XXX not m_composeHTML? /BenB
-    bool composeHTML = true;
-    compose->GetComposeHTML(&composeHTML);
-    if (!composeHTML)
-    {
-      // Downsampling. The charset should only consist of ascii.
-
-      bool formatflowed =
-        UseFormatFlowed(NS_LossyConvertUTF16toASCII(aCharset).get());
-      ConvertToPlainText(formatflowed);
-    }
-
-    compose->ProcessSignature(mIdentity, true, &mSignature);
-
-    nsCOMPtr<nsIEditor> editor;
-    if (NS_SUCCEEDED(compose->GetEditor(getter_AddRefs(editor))) && editor)
-    {
-      if (mQuoteOriginal)
-        compose->ConvertAndLoadComposeWindow(mCitePrefix,
-                                             mMsgBody, mSignature,
-                                             true, composeHTML);
-      else
-        InsertToCompose(editor, composeHTML);
-    }
-
-    if (mQuoteOriginal)
-      compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeBodyReady, NS_OK);
   }
+
+#ifdef MSGCOMP_TRACE_PERFORMANCE
+  nsCOMPtr<nsIMsgComposeService> composeService (do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID));
+  composeService->TimeStamp("Done with MIME. Now we're updating the UI elements", false);
+#endif
+
+  if (mQuoteOriginal)
+    compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeFieldsReady, NS_OK);
+
+#ifdef MSGCOMP_TRACE_PERFORMANCE
+  composeService->TimeStamp("Addressing widget, window title and focus are now set, time to insert the body", false);
+#endif
+
+  if (! mHeadersOnly)
+    mMsgBody.AppendLiteral("</html>");
+
+  // Now we have an HTML representation of the quoted message.
+  // If we are in plain text mode, we need to convert this to plain
+  // text before we try to insert it into the editor. If we don't, we
+  // just get lots of HTML text in the message...not good.
+  //
+  // XXX not m_composeHTML? /BenB
+  bool composeHTML = true;
+  compose->GetComposeHTML(&composeHTML);
+  if (!composeHTML)
+  {
+    // Downsampling. The charset should only consist of ascii.
+
+    bool formatflowed =
+      UseFormatFlowed(NS_LossyConvertUTF16toASCII(aCharset).get());
+    ConvertToPlainText(formatflowed);
+  }
+
+  compose->ProcessSignature(mIdentity, true, &mSignature);
+
+  nsCOMPtr<nsIEditor> editor;
+  if (NS_SUCCEEDED(compose->GetEditor(getter_AddRefs(editor))) && editor)
+  {
+    if (mQuoteOriginal)
+      compose->ConvertAndLoadComposeWindow(mCitePrefix,
+                                           mMsgBody, mSignature,
+                                           true, composeHTML);
+    else
+      InsertToCompose(editor, composeHTML);
+  }
+
+  if (mQuoteOriginal)
+    compose->NotifyStateListeners(nsIMsgComposeNotificationType::ComposeBodyReady, NS_OK);
   return rv;
 }
 

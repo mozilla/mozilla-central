@@ -25,8 +25,7 @@ function setupModule(module) {
 };
 
 function setupComposeWin(aCwc, toAddr, subj, body) {
-  aCwc.type(aCwc.a("addressingWidget",
-           {class: "addressingWidgetCell", crazyDeck: 1}), toAddr);
+  aCwc.type(null, toAddr);
   aCwc.type(aCwc.eid("msgSubject"), subj)
   aCwc.type(aCwc.eid("content-frame"), body);
 }

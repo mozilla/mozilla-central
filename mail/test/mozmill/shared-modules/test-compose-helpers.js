@@ -40,6 +40,7 @@ function installInto(module) {
   // Now copy helper functions
   module.open_compose_new_mail = open_compose_new_mail;
   module.open_compose_with_reply = open_compose_with_reply;
+  module.open_compose_with_reply_to_all = open_compose_with_reply_to_all;
   module.open_compose_with_reply_to_list = open_compose_with_reply_to_list;
   module.open_compose_with_forward = open_compose_with_forward;
   module.open_compose_with_forward_as_attachments = open_compose_with_forward_as_attachments;
@@ -92,6 +93,23 @@ function open_compose_with_reply(aController) {
 
   windowHelper.plan_for_new_window("msgcompose");
   aController.keypress(null, "r", {shiftKey: false, accelKey: true});
+
+  return wait_for_compose_window();
+}
+
+/**
+ * Opens the compose window by replying to all for a selected message and waits
+ * for it to load.
+ *
+ * @return The loaded window of type "msgcompose" wrapped in a MozmillController
+ *         that is augmented using augment_controller.
+ */
+function open_compose_with_reply_to_all(aController) {
+  if (aController === undefined)
+    aController = mc;
+
+  windowHelper.plan_for_new_window("msgcompose");
+  aController.keypress(null, "R", {shiftKey: true, accelKey: true});
 
   return wait_for_compose_window();
 }
