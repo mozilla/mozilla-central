@@ -423,15 +423,12 @@ function Restore()
     }
   }
   // add default items (no ordinal strings for those)
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  var prefColor       = prefService.getDefaultBranch("mailnews.labels.color.");
   for (var i = 1; i <= 5; ++i)
   {
     // create default tags from the former label defaults
     var key   = "$label" + i;
     var tag   = GetLocalizedStringPref("mailnews.labels.description." + i);
-    var color = prefColor.getCharPref(i);
+    var color = Services.prefs.getDefaultBranch("mailnews.labels.color.").getCharPref(i);
     var tagInfo = {tag:     tag,
                    key:     key,
                    color:   color,
