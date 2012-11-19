@@ -35,6 +35,7 @@ _TEST_FILES += \
 endif
 
 _BROWSER_FILES = \
+                 head.js \
                  browser_bug329212.js \
                  browser_bug413915.js \
                  browser_bug427559.js \
@@ -52,6 +53,7 @@ _BROWSER_FILES = \
                  browser_pageInfo.js \
                  feed_tab.html \
                  browser_pluginnotification.js \
+                 browser_pluginplaypreview.js \
                  plugin_alternate_content.html \
                  plugin_bug743421.html \
                  plugin_bug749455.html \

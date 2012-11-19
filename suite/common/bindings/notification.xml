@@ -545,6 +545,17 @@
         </body>
       </method>
 
+      <method name="canActivatePlugin">
+        <parameter name="objLoadingContent"/>
+        <body>
+          <![CDATA[
+            var nsIObjectLoadingContent = Components.interfaces.nsIObjectLoadingContent;
+            return !objLoadingContent.activated &&
+                   objLoadingContent.pluginFallbackType !== nsIObjectLoadingContent.PLUGIN_PLAY_PREVIEW;
+          ]]>
+        </body>
+      </method>
+
       <method name="activatePlugins">
         <body>
           <![CDATA[
@@ -552,7 +563,7 @@
             var plugins = this.contentWindowUtils.plugins;
             for (let plugin of plugins) {
               let objLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-              if (!objLoadingContent.activated)
+              if (this.canActivatePlugin(objLoadingContent))
                 objLoadingContent.playPlugin();
             }
             this.removePluginClickToPlayPrompt();
@@ -565,7 +576,7 @@
         <body>
           <![CDATA[
             var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-            if (!objLoadingContent.activated)
+            if (this.canActivatePlugin(objLoadingContent))
               objLoadingContent.playPlugin();
         
             var haveUnplayedPlugins = this.contentWindowUtils.plugins.some(function(plugin) {
@@ -576,6 +587,23 @@
               this.removePluginClickToPlayPrompt();
               this.clickToPlayPromptShown = false;
             }
+          ]]>
+        </body>
+      </method>
+
+      <method name="stopPlayPreview">
+        <parameter name="aPlugin"/>
+        <parameter name="aPlayPlugin"/>
+        <body>
+          <![CDATA[
+            var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+            if (objLoadingContent.activated)
+              return;
+
+            if (aPlayPlugin)
+              objLoadingContent.playPlugin();
+            else
+              objLoadingContent.cancelPlayPreview();
           ]]>
         </body>
       </method>
@@ -770,6 +798,31 @@
             this.addLinkClickCallback(link, this.openHelpPage);
             var description = notification.ownerDocument.getAnonymousElementByAttribute(notification, "anonid", "messageText");
             description.appendChild(link);
+          ]]>
+        </body>
+      </method>
+
+      <method name="handleEvent">
+        <parameter name="aEvent"/>
+        <body>
+          <![CDATA[
+          if (!aEvent.isTrusted)
+            return;
+
+          if (aEvent.type != "MozPlayPlugin")
+            return;
+
+          var previewContent = aEvent.currentTarget;
+          previewContent.removeEventListener("MozPlayPlugin", this, true);
+
+          var pluginElement = previewContent.ownerDocument.getBindingParent(previewContent);
+          var playPlugin = !aEvent.detail;
+          this.stopPlayPreview(pluginElement, playPlugin);
+
+          // cleaning up: removes overlay iframe from the DOM
+          var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
+          if (iframe)
+            previewContent.removeChild(iframe);
           ]]>
         </body>
       </method>
@@ -1183,6 +1236,41 @@
             let overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
             if (this.isTooSmall(pluginElement, overlay))
               overlay.style.visibility = "hidden";
+          ]]>
+        </body>
+      </method>
+
+      <method name="handlePlayPreviewEvent">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            var doc = pluginElement.ownerDocument;
+            var previewContent = doc.getAnonymousElementByAttribute(pluginElement, "class", "previewPluginContent");
+            if (!previewContent) {
+            // If the XBL binding is not attached (element is display:none),
+            // fallback to click-to-play logic.
+              this.stopPlayPreview(pluginElement, false);
+              return;
+            }
+
+            var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
+            if (!iframe) {
+              // lazy initialization of the iframe
+              iframe = doc.createElementNS("http://www.w3.org/1999/xhtml", "iframe");
+              iframe.className = "previewPluginContentFrame";
+              previewContent.appendChild(iframe);
+
+              // Force a style flush, so that we ensure our binding is attached.
+              pluginElement.clientTop;
+            }
+
+            var pluginInfo = this.getPluginInfo(pluginElement);
+            var playPreviewUri = "data:application/x-moz-playpreview;," + pluginInfo.mimetype;
+            iframe.src = playPreviewUri;
+
+            // The MozPlayPlugin event can be dispatched from the extension chrome
+            // code to replace the preview content with the native plugin.
+            previewContent.addEventListener("MozPlayPlugin", this, true);
           ]]>
         </body>
       </method>
@@ -2013,6 +2101,12 @@
         ]]>
       </handler>
 
+      <handler event="PluginPlayPreview" phase="capturing">
+        <![CDATA[
+          this.handlePlayPreviewEvent(event.target);
+        ]]>
+      </handler>
+
       <handler event="NewPluginInstalled" phase="capturing">
         <![CDATA[
           this.missingPlugins = null;
@@ -2059,8 +2153,8 @@
 
           var pluginNeedsActivation = this.contentWindowUtils.plugins.some(function(aPlugin) {
             var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-            return !objLoadingContent.activated;
-          });
+            return this.canActivatePlugin(objLoadingContent);
+          }, this);
           if (pluginNeedsActivation)
             this.showPluginClickToPlayPrompt();
         ]]>
