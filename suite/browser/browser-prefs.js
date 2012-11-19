@@ -767,6 +767,10 @@ pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
 
 // Name of alternate about: page for certificate errors (when undefined, defaults to about:neterror)
 pref("security.alternate_certificate_error_page", "certerror");
+pref("security.warn_entering_secure", false);
+pref("security.warn_leaving_secure", false);
+pref("security.warn_submit_insecure", true);
+pref("security.warn_viewing_mixed", false);
 
 // FAQ URLs
 pref("browser.geolocation.warning.infoURL", "http://www.seamonkey-project.org/doc/2.0/geolocation");

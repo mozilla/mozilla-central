@@ -16,7 +16,7 @@
 
   <binding id="browser-notificationbox"
            extends="chrome://global/content/bindings/notification.xml#notificationbox">
-    <implementation implements="nsIObserver, nsIWebProgressListener, nsIWebProgressListener2, nsIDOMEventListener">
+    <implementation implements="nsIObserver, nsIFormSubmitObserver, nsIWebProgressListener, nsIWebProgressListener2, nsIDOMEventListener">
       <field name="_stringBundle" readonly="true">
         <![CDATA[
           Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -85,10 +85,51 @@
           <![CDATA[
             if (this.activeBrowser && !this._addedProgressListener) {
               this.activeBrowser.webProgress
-                  .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION |
+                  .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_SECURITY |
+                                             Components.interfaces.nsIWebProgress.NOTIFY_LOCATION |
                                              Components.interfaces.nsIWebProgress.NOTIFY_REFRESH);
               this._addedProgressListener = true;
             }
+          ]]>
+        </body>
+      </method>
+
+      <field name="lastPrefix">"LeaveSecure"</field>
+
+      <method name="onSecurityChange">
+        <parameter name="aWebProgress"/>
+        <parameter name="aRequest"/>
+        <parameter name="aState"/>
+        <body>
+          <![CDATA[
+            const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
+            var pref = "security.warn_leaving_secure";
+            var prefix = "LeaveSecure";
+            if (aState & nsIWebProgressListener.STATE_IS_SECURE) {
+              pref = "security.warn_entering_secure";
+              prefix = "EnterSecure";
+            } else if (aState & nsIWebProgressListener.STATE_IS_BROKEN) {
+              pref = "security.warn_viewing_mixed";
+              prefix = "MixedContent";
+            }
+
+            if (this.lastPrefix == prefix)
+              return;
+
+            this.lastPrefix = prefix;
+
+            if (!this._prefs.getBoolPref(pref))
+              return;
+
+            var warn = { value: true };
+            var prompt = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+            prompt.confirmEx(
+              this.activeBrowser.contentWindow,
+              this._stringBundle.GetStringFromName("SecurityTitle"),
+              this._stringBundle.GetStringFromName(prefix + "Message"),
+              prompt.BUTTON_TITLE_OK * prompt.BUTTON_POS_0, null, null, null,
+              this._stringBundle.GetStringFromName(prefix + "ShowAgain"), warn);
+            this._prefs.setBoolPref(pref, warn.value);
           ]]>
         </body>
       </method>
@@ -166,6 +207,67 @@
               return false;
             }
             return true;
+          ]]>
+        </body>
+      </method>
+
+      <method name="notify">
+        <parameter name="aFormElement"/>
+        <parameter name="aWindow"/>
+        <parameter name="aActionURI"/>
+        <parameter name="aCancel"/>
+        <body>
+          <![CDATA[
+            aCancel.value = false;
+            if (!aFormElement || !aWindow || !aActionURI)
+              return;
+
+            var browser = this.activeBrowser;
+
+            // inactive sidebar panel:
+            if (!browser || !browser.docShell || !browser.docShell.securityUI)
+              return;
+
+            // not our window:
+            if (aWindow.top != browser.contentWindow)
+              return;
+
+            // pref disabled:
+            if (!this._prefs.getBoolPref("security.warn_submit_insecure"))
+              return;
+
+            // HTTPS uninteresting:
+            if (aActionURI.schemeIs("https"))
+              return;
+
+            // javascript doesn't hit the network:
+            if (aActionURI.schemeIs("javascript"))
+              return;
+
+            // PSM handles HTTPS source:
+            var uri;
+            try {
+              uri = aFormElement.nodePrincipal.URI;
+            } catch (e) {}
+            if (!uri)
+              uri = aFormElement.ownerDocument.documentURIObject;
+            if (uri.schemeIs("https"))
+              return;
+
+            var warn = { value: true };
+            var prompt = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
+            aCancel.value = prompt.confirmEx(
+              aWindow,
+              this._stringBundle.GetStringFromName("SecurityTitle"),
+              this._stringBundle.GetStringFromName("PostToInsecureFromInsecureMessage"),
+              prompt.BUTTON_TITLE_IS_STRING * prompt.BUTTON_POS_0 +
+              prompt.BUTTON_TITLE_CANCEL * prompt.BUTTON_POS_1,
+              this._stringBundle.GetStringFromName("PostToInsecureContinue"),
+              null, null,
+              this._stringBundle.GetStringFromName("PostToInsecureFromInsecureShowAgain"),
+              warn) != 0;
+            if (!aCancel.value)
+              this._prefs.setBoolPref("security.warn_submit_insecure", warn.value);
           ]]>
         </body>
       </method>
@@ -1464,6 +1566,7 @@
           os.addObserver(this, "addon-install-started", false);
           os.addObserver(this, "offline-cache-update-completed", false);
           os.addObserver(this, "perm-changed", false);
+          os.addObserver(this, "formsubmit", false);
 
           this._prefs.addObserver("plugins.hide_infobar_for_outdated_plugin", this, false);
           this._prefs.addObserver("plugins.hide_infobar_for_carbon_failure_plugin", this, false);
@@ -1532,6 +1635,9 @@
             } catch (ex) {}
             try {
               os.removeObserver(this, "perm-changed");
+            } catch (ex) {}
+            try {
+              os.removeObserver(this, "formsubmit");
             } catch (ex) {}
 
             try {
