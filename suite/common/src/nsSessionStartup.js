@@ -56,19 +56,15 @@ SessionStartup.prototype = {
    * Initialize the component
    */
   init: function sss_init() {
-    let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefService)
-                               .getBranch("browser.");
-
     // get file references
     let sessionFile = Services.dirsvc.get("ProfD",
                                           Components.interfaces.nsILocalFile);
     sessionFile.append("sessionstore.json");
 
-    let doResumeSession = prefBranch.getBoolPref("sessionstore.resume_session_once") ||
-                          prefBranch.getIntPref("startup.page") == 3;
+    let doResumeSession = Services.prefs.getBoolPref("browser.sessionstore.resume_session_once") ||
+                          Services.prefs.getIntPref("browser.startup.page") == 3;
 
-    var resumeFromCrash = prefBranch.getBoolPref("sessionstore.resume_from_crash");
+    var resumeFromCrash = Services.prefs.getBoolPref("browser.sessionstore.resume_from_crash");
 
     // only continue if the session file exists
     if (!sessionFile.exists())

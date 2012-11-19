@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gStateObject;
 var gTreeData;
 
@@ -107,9 +109,7 @@ function restoreSession() {
 }
 
 function startNewSession() {
-  if (Components.classes["@mozilla.org/preferences-service;1"]
-                .getService(Components.interfaces.nsIPrefBranch)
-                .getIntPref("browser.startup.page") == 1)
+  if (Services.prefs.getIntPref("browser.startup.page") == 1)
     getBrowserWindow().BrowserHome();
   else
     getBrowserWindow().getBrowser().loadURI("about:blank");
@@ -198,8 +198,7 @@ function restoreSingleTab(aIx, aShifted) {
   ss.setTabState(newTab, JSON.stringify(tabState));
 
   // respect the preference as to whether to select the tab (the Shift key inverses)
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-  if (prefBranch.getBoolPref("browser.tabs.loadInBackground") != !aShifted)
+  if (Services.prefs.getBoolPref("browser.tabs.loadInBackground") != !aShifted)
     tabbrowser.selectedTab = newTab;
 }
 
