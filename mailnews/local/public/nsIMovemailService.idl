@@ -4,9 +4,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsISupports.idl"
-#include "nsIUrlListener.idl"
-#include "nsIMovemailIncomingServer.idl"
-#include "nsIMsgFolder.idl"
+
+interface nsIMsgWindow;
+interface nsIMsgFolder;
+interface nsIMovemailIncomingServer;
+interface nsIUrlListener;
+interface nsIURI;
 
 [scriptable, uuid(4c7786a4-1dd2-11b2-9fbe-c59d742de59b)]
 interface nsIMovemailService : nsISupports {

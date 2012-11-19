@@ -10,7 +10,6 @@
  */
 
 #include "nsISupports.idl"
-#include "nsIMsgSend.idl"
 
 interface nsIImportModule;
 interface nsIImportMailboxDescriptor;
@@ -21,6 +20,9 @@ interface nsIMsgSendListener;
 interface nsIMsgCompFields;
 interface nsIMsgSendListener;
 interface nsIArray;
+interface nsIMsgIdentity;
+interface nsIMsgCompFields;
+interface nsISupportsArray;
 
 [scriptable, uuid(376fc4c2-76d3-4b47-8095-406260cb9b1f)]
 interface nsIImportService : nsISupports
