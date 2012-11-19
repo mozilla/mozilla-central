@@ -82,11 +82,8 @@ function getPrefReaderForType(t) {
 }
 
 function LOG(str) {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
   try {
-    if (prefs.getBoolPref("feeds.log"))
+    if (Services.prefs.getBoolPref("feeds.log"))
       dump("*** Feeds: " + str + "\n");
   }
   catch (ex) {
@@ -94,10 +91,8 @@ function LOG(str) {
 }
 
 function safeGetCharPref(pref, defaultValue) {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
   try {
-    return prefs.getCharPref(pref);
+    return Services.prefs.getCharPref(pref);
   }
   catch (e) {
   }
@@ -360,17 +355,14 @@ FeedResultService.prototype = {
    * See nsIFeedResultService.idl
    */
   addToClientReader: function addToClientReader(spec, title, subtitle, feedType) {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-
     var handler = safeGetCharPref(getPrefActionForType(feedType), "reader");
     if (handler == "ask" || handler == "reader")
       handler = safeGetCharPref(getPrefReaderForType(feedType), "messenger");
 
     switch (handler) {
     case "client":
-      var clientApp = prefs.getComplexValue(getPrefAppForType(feedType),
-                                            Components.interfaces.nsILocalFile);
+      var clientApp = Services.prefs.getComplexValue(getPrefAppForType(feedType),
+                                                     Components.interfaces.nsILocalFile);
 
       // For the benefit of applications that might know how to deal with more
       // URLs than just feeds, send feed: URLs in the following format:

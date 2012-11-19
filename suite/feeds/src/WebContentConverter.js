@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const WCCR_CONTRACTID = "@mozilla.org/embeddor.implemented/web-content-handler-registrar;1";
@@ -28,11 +29,8 @@ const NS_ERROR_MODULE_DOM = 0x80530000;
 const NS_ERROR_DOM_SYNTAX_ERR = NS_ERROR_MODULE_DOM + 12;
 
 function LOG(str) {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
   try {
-    if (prefs.getBoolPref("feeds.log"))
+    if (Services.prefs.getBoolPref("feeds.log"))
       dump("*** Feeds: " + str + "\n");
   }
   catch (ex) {
@@ -185,15 +183,13 @@ WebContentConverterRegistrar.prototype = {
     contentType = this._resolveContentType(contentType);
     this._setAutoHandler(contentType, handler);
 
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService);
-    var autoBranch = prefs.getBranch(PREF_CONTENTHANDLERS_AUTO);
+    var autoBranch = Services.prefs.getBranch(PREF_CONTENTHANDLERS_AUTO);
     if (handler)
       autoBranch.setCharPref(contentType, handler.uri);
     else if (autoBranch.prefHasUserValue(contentType))
       autoBranch.clearUserPref(contentType);
 
-    prefs.savePrefFile(null);
+    Services.prefs.savePrefFile(null);
   },
 
   /**
@@ -325,10 +321,8 @@ WebContentConverterRegistrar.prototype = {
 
     // We also reject handlers registered from a different host (see bug 402287)
     // The pref allows us to test the feature
-    var pb = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(Components.interfaces.nsIPrefBranch);
-    if ((!pb.prefHasUserValue(PREF_ALLOW_DIFFERENT_HOST) ||
-         !pb.getBoolPref(PREF_ALLOW_DIFFERENT_HOST)) &&
+    if ((!Services.prefs.prefHasUserValue(PREF_ALLOW_DIFFERENT_HOST) ||
+         !Services.prefs.getBoolPref(PREF_ALLOW_DIFFERENT_HOST)) &&
         aContentWindow.location.hostname != uri.host)
       throw("Permission denied to add " + uri.spec + " as a content or protocol handler");
 
@@ -399,14 +393,12 @@ WebContentConverterRegistrar.prototype = {
     }
 
     // check if it is in the black list
-    var pb = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(Components.interfaces.nsIPrefBranch);
     var allowed;
     try {
-      allowed = pb.getBoolPref(PREF_HANDLER_EXTERNAL_PREFIX + "." + aProtocol);
+      allowed = Services.prefs.getBoolPref(PREF_HANDLER_EXTERNAL_PREFIX + "." + aProtocol);
     }
     catch (e) {
-      allowed = pb.getBoolPref(PREF_HANDLER_EXTERNAL_PREFIX + "-default");
+      allowed = Services.prefs.getBoolPref(PREF_HANDLER_EXTERNAL_PREFIX + "-default");
     }
     if (!allowed) {
       // XXX this should be a "security exception" according to spec
@@ -578,12 +570,10 @@ WebContentConverterRegistrar.prototype = {
    *    browser.contentHandlers.title0 = Foo 2.0alphr
    */
   _saveContentHandlerToPrefs: function saveContentHandlerToPrefs(contentType, uri, title) {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService);
     var i = 0;
     var typeBranch = null;
     while (true) {
-      typeBranch = prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH + i + ".");
+      typeBranch = Services.prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH + i + ".");
       try {
         typeBranch.getCharPref("type");
         ++i;
@@ -604,7 +594,7 @@ WebContentConverterRegistrar.prototype = {
       typeBranch.setComplexValue("title",
                                  Components.interfaces.nsIPrefLocalizedString, pls);
 
-      prefs.savePrefFile(null);
+      Services.prefs.savePrefFile(null);
     }
   },
 
@@ -658,16 +648,14 @@ WebContentConverterRegistrar.prototype = {
     if (contentType == TYPE_MAYBE_FEED) {
       // Make the new handler the last-selected reader in the preview page
       // and make sure the preview page is shown the next time a feed is visited
-      var pb = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefService).getBranch(null);
-      pb.setCharPref(PREF_SELECTED_READER, "web");
+      Services.prefs.setCharPref(PREF_SELECTED_READER, "web");
 
       var supportsString = Components.classes["@mozilla.org/supports-string;1"]
                                      .createInstance(Components.interfaces.nsISupportsString);
       supportsString.data = uri;
-      pb.setComplexValue(PREF_SELECTED_WEB, Components.interfaces.nsISupportsString,
-                         supportsString);
-      pb.setCharPref(PREF_SELECTED_ACTION, "ask");
+      Services.prefs.setComplexValue(PREF_SELECTED_WEB, Components.interfaces.nsISupportsString,
+                                     supportsString);
+      Services.prefs.setCharPref(PREF_SELECTED_ACTION, "ask");
       this._setAutoHandler(TYPE_MAYBE_FEED, null);
     }
   },
@@ -760,11 +748,8 @@ WebContentConverterRegistrar.prototype = {
    * preferences.
    */
   _init: function init() {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefService);
-
-    var kids = prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH)
-                    .getChildList("");
+    var kids = Services.prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH)
+                             .getChildList("");
     // first get the numbers of the providers by getting all ###.uri prefs
     var nums = [];
     for (let i = 0; i < kids.length; i++) {
@@ -776,14 +761,14 @@ WebContentConverterRegistrar.prototype = {
     nums.sort(function(a, b) {return a - b;});
     // now register them
     for (let i = 0; i < nums.length; i++) {
-      let branch = prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH + nums[i] + ".");
+      let branch = Services.prefs.getBranch(PREF_CONTENTHANDLERS_BRANCH + nums[i] + ".");
       this._registerContentHandlerWithBranch(branch);
     }
 
     // We need to do this _after_ registering all of the available handlers,
     // so that getWebContentHandlerByURI can return successfully.
     try {
-      var autoBranch = prefs.getBranch(PREF_CONTENTHANDLERS_AUTO);
+      var autoBranch = Services.prefs.getBranch(PREF_CONTENTHANDLERS_AUTO);
       var childPrefs = autoBranch.getChildList("");
       for (let i = 0; i < childPrefs.length; ++i) {
         let type = childPrefs[i];

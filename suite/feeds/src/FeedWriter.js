@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const FEEDWRITER_CID = Components.ID("{49bb6593-3aff-4eb3-a068-2712c28bd58e}");
@@ -90,11 +91,8 @@ function getPrefReaderForType(t) {
 }
 
 function LOG(str) {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
   try {
-    if (prefs.getBoolPref("feeds.log"))
+    if (Services.prefs.getBoolPref("feeds.log"))
       dump("*** Feeds: " + str + "\n");
   }
   catch (ex) {
@@ -102,10 +100,8 @@ function LOG(str) {
 }
 
 function safeGetCharPref(pref, defaultValue) {
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
   try {
-    return prefs.getCharPref(pref);
+    return Services.prefs.getCharPref(pref);
   }
   catch (e) {
   }
@@ -829,15 +825,13 @@ FeedWriter.prototype = {
   },
 
   _setSelectedHandler: function setSelectedHandler(feedType) {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
     var handler = safeGetCharPref(getPrefReaderForType(feedType), "messenger");
 
     switch (handler) {
       case "web":
         if (this._handlersMenuList) {
-          var url = prefs.getComplexValue(getPrefWebForType(feedType),
-                                          Components.interfaces.nsISupportsString).data;
+          var url = Services.prefs.getComplexValue(getPrefWebForType(feedType),
+                                                   Components.interfaces.nsISupportsString).data;
           var handlers = this._handlersMenuList.getElementsByAttribute("webhandlerurl", url);
           if (handlers.length == 0) {
             LOG("FeedWriter._setSelectedHandler: selected web handler isn't in the menulist");
@@ -850,8 +844,8 @@ FeedWriter.prototype = {
       case "client":
         try {
           this._selectedApp =
-            prefs.getComplexValue(getPrefAppForType(feedType),
-                                  Components.interfaces.nsILocalFile);
+            Services.prefs.getComplexValue(getPrefAppForType(feedType),
+                                           Components.interfaces.nsILocalFile);
         }
         catch(ex) {
           this._selectedApp = null;
@@ -919,10 +913,8 @@ FeedWriter.prototype = {
     menuItem.className = "menuitem-iconic selectedAppMenuItem";
     menuItem.setAttribute("handlerType", "client");
     try {
-      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-      this._selectedApp = prefs.getComplexValue(getPrefAppForType(feedType),
-                                                Components.interfaces.nsILocalFile);
+      this._selectedApp = Services.prefs.getComplexValue(getPrefAppForType(feedType),
+                                                         Components.interfaces.nsILocalFile);
 
       if (this._selectedApp.exists())
         this._initMenuItemWithFile(menuItem, this._selectedApp);
@@ -1027,7 +1019,7 @@ FeedWriter.prototype = {
     // first-run ui
     var showFirstRunUI = true;
     try {
-      showFirstRunUI = prefs.getBoolPref(PREF_SHOW_FIRST_RUN_UI);
+      showFirstRunUI = Services.prefs.getBoolPref(PREF_SHOW_FIRST_RUN_UI);
     }
     catch (ex) {
     }
@@ -1058,7 +1050,7 @@ FeedWriter.prototype = {
                 "feedinfo2.textContent = feedinfo2Str; " +
                 "header.setAttribute('firstrun', 'true');";
       Components.utils.evalInSandbox(codeStr, this._contentSandbox);
-      prefs.setBoolPref(PREF_SHOW_FIRST_RUN_UI, false);
+      Services.prefs.setBoolPref(PREF_SHOW_FIRST_RUN_UI, false);
     }
   },
 
@@ -1108,21 +1100,19 @@ FeedWriter.prototype = {
 
     // Set up the subscription UI
     this._initSubscriptionUI();
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-    prefs.addObserver(PREF_SELECTED_ACTION, this, false);
-    prefs.addObserver(PREF_SELECTED_READER, this, false);
-    prefs.addObserver(PREF_SELECTED_WEB, this, false);
-    prefs.addObserver(PREF_SELECTED_APP, this, false);
-    prefs.addObserver(PREF_VIDEO_SELECTED_ACTION, this, false);
-    prefs.addObserver(PREF_VIDEO_SELECTED_READER, this, false);
-    prefs.addObserver(PREF_VIDEO_SELECTED_WEB, this, false);
-    prefs.addObserver(PREF_VIDEO_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_SELECTED_READER, this, false);
+    Services.prefs.addObserver(PREF_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_SELECTED_READER, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_SELECTED_APP, this, false);
 
-    prefs.addObserver(PREF_AUDIO_SELECTED_ACTION, this, false);
-    prefs.addObserver(PREF_AUDIO_SELECTED_READER, this, false);
-    prefs.addObserver(PREF_AUDIO_SELECTED_WEB, this, false);
-    prefs.addObserver(PREF_AUDIO_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_SELECTED_READER, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_SELECTED_APP, this, false);
 
     this._window.addEventListener("load", this, false);
     this._window.addEventListener("unload", this, false);
@@ -1156,21 +1146,19 @@ FeedWriter.prototype = {
         .removeEventListener("command", this, false);
     this._document = null;
     this._window = null;
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-    prefs.removeObserver(PREF_SELECTED_ACTION, this);
-    prefs.removeObserver(PREF_SELECTED_READER, this);
-    prefs.removeObserver(PREF_SELECTED_WEB, this);
-    prefs.removeObserver(PREF_SELECTED_APP, this);
-    prefs.removeObserver(PREF_VIDEO_SELECTED_ACTION, this);
-    prefs.removeObserver(PREF_VIDEO_SELECTED_READER, this);
-    prefs.removeObserver(PREF_VIDEO_SELECTED_WEB, this);
-    prefs.removeObserver(PREF_VIDEO_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_SELECTED_READER, this);
+    Services.prefs.removeObserver(PREF_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_VIDEO_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_VIDEO_SELECTED_READER, this);
+    Services.prefs.removeObserver(PREF_VIDEO_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_VIDEO_SELECTED_APP, this);
 
-    prefs.removeObserver(PREF_AUDIO_SELECTED_ACTION, this);
-    prefs.removeObserver(PREF_AUDIO_SELECTED_READER, this);
-    prefs.removeObserver(PREF_AUDIO_SELECTED_WEB, this);
-    prefs.removeObserver(PREF_AUDIO_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_AUDIO_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_AUDIO_SELECTED_READER, this);
+    Services.prefs.removeObserver(PREF_AUDIO_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_AUDIO_SELECTED_APP, this);
 
     this._removeFeedFromCache();
     this.__faviconService = null;
@@ -1192,8 +1180,6 @@ FeedWriter.prototype = {
     var feedType = this._getFeedType();
 
     // Subscribe to the feed using the selected handler and save prefs
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
     var defaultHandler = "reader";
     var useAsDefault = this._getUIElement("alwaysUse").getAttribute("checked");
 
@@ -1210,13 +1196,13 @@ FeedWriter.prototype = {
 
     if (selectedItem.hasAttribute("webhandlerurl")) {
       var webURI = selectedItem.getAttribute("webhandlerurl");
-      prefs.setCharPref(getPrefReaderForType(feedType), "web");
+      Services.prefs.setCharPref(getPrefReaderForType(feedType), "web");
 
       var supportsString = Components.classes["@mozilla.org/supports-string;1"]
                                      .createInstance(Components.interfaces.nsISupportsString);
       supportsString.data = webURI;
-      prefs.setComplexValue(getPrefWebForType(feedType), Components.interfaces.nsISupportsString,
-                            supportsString);
+      Services.prefs.setComplexValue(getPrefWebForType(feedType), Components.interfaces.nsISupportsString,
+                                     supportsString);
 
       var wccr = Components.classes["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"]
                            .getService(Components.interfaces.nsIWebContentConverterService);
@@ -1231,22 +1217,22 @@ FeedWriter.prototype = {
     else {
       switch (selectedItem.getAttribute("anonid")) {
         case "selectedAppMenuItem":
-          prefs.setComplexValue(getPrefAppForType(feedType), Components.interfaces.nsILocalFile,
-                                this._selectedApp);
-          prefs.setCharPref(getPrefReaderForType(feedType), "client");
+          Services.prefs.setComplexValue(getPrefAppForType(feedType), Components.interfaces.nsILocalFile,
+                                         this._selectedApp);
+          Services.prefs.setCharPref(getPrefReaderForType(feedType), "client");
           break;
         case "defaultHandlerMenuItem":
-          prefs.setComplexValue(getPrefAppForType(feedType), Components.interfaces.nsILocalFile,
-                                this._defaultSystemReader);
-          prefs.setCharPref(getPrefReaderForType(feedType), "client");
+          Services.prefs.setComplexValue(getPrefAppForType(feedType), Components.interfaces.nsILocalFile,
+                                         this._defaultSystemReader);
+          Services.prefs.setCharPref(getPrefReaderForType(feedType), "client");
           break;
         case "liveBookmarksMenuItem":
           defaultHandler = "bookmarks";
-          prefs.setCharPref(getPrefReaderForType(feedType), "bookmarks");
+          Services.prefs.setCharPref(getPrefReaderForType(feedType), "bookmarks");
           break;
         case "messengerFeedsMenuItem":
           defaultHandler = "messenger";
-          prefs.setCharPref(getPrefReaderForType(feedType), "messenger");
+          Services.prefs.setCharPref(getPrefReaderForType(feedType), "messenger");
           break;
       }
       var feedService = Components.classes["@mozilla.org/browser/feeds/result-service;1"]
@@ -1263,9 +1249,9 @@ FeedWriter.prototype = {
     // or to "messenger" (if the messenger feeds option is selected).
     // Otherwise, we should set it to "ask"
     if (useAsDefault)
-      prefs.setCharPref(getPrefActionForType(feedType), defaultHandler);
+      Services.prefs.setCharPref(getPrefActionForType(feedType), defaultHandler);
     else
-      prefs.setCharPref(getPrefActionForType(feedType), "ask");
+      Services.prefs.setCharPref(getPrefActionForType(feedType), "ask");
   },
 
   // nsIObserver
