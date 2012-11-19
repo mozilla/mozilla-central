@@ -11,6 +11,8 @@
 <!ENTITY newsgroups.label "Newsgroups">
 <!ENTITY feeds.label "Feeds">
 
+<!ENTITY unsetDefault.tooltip "It is not possible to unset &brandShortName; as the default client within &brandShortName;. To make another application the default you must use its 'Set as default' dialog.">
+
 <!ENTITY checkOnStartup.label "Always perform this check when starting &brandShortName;">
 <!ENTITY checkOnStartup.accesskey "A">
 

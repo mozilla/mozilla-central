@@ -41,17 +41,24 @@ let gSystemIntegrationDialog = {
       // As an optimization, if we aren't already the default mail client,
       // then pre-check that option for the user. We'll leave News and RSS alone.
       // Do this only if we are not called from the Preferences (Options) dialog.
-      // In that case, the user may want just to check what the current state is.
+      // In that case, the user may want to just check what the current state is.
       this._mailCheckbox.checked = true;
     } else {
-      this._newsCheckbox.checked = this._newsCheckbox.disabled;
+      this._mailCheckbox.checked = this._mailCheckbox.disabled;
     }
+
+    if (!this._mailCheckbox.disabled)
+      this._mailCheckbox.removeAttribute("tooltiptext");
 
     this._newsCheckbox.checked = this._newsCheckbox.disabled =
       this._shellSvc.isDefaultClient(false, this._shellSvc.NEWS);
+    if (!this._newsCheckbox.disabled)
+      this._newsCheckbox.removeAttribute("tooltiptext");
 
     this._rssCheckbox.checked  = this._rssCheckbox.disabled  =
       this._shellSvc.isDefaultClient(false, this._shellSvc.RSS);
+    if (!this._rssCheckbox.disabled)
+      this._rssCheckbox.removeAttribute("tooltiptext");
 
     // read the raw pref value and not shellSvc.shouldCheckDefaultMail
     this._startupCheckbox.checked =
