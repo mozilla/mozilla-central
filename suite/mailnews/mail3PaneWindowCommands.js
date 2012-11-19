@@ -112,8 +112,9 @@ var DefaultController =
       case "cmd_archive":
 			case "cmd_reply":
 			case "button_reply":
-			case "cmd_replySender":
+			case "cmd_replyList":
 			case "cmd_replyGroup":
+			case "cmd_replySender":
 			case "cmd_replyall":
 			case "button_replyall":
       case "cmd_replySenderAndGroup":
@@ -266,8 +267,9 @@ var DefaultController =
           return false;   // else fall thru
       case "cmd_reply":
       case "button_reply":
-      case "cmd_replySender":
+      case "cmd_replyList":
       case "cmd_replyGroup":
+      case "cmd_replySender":
       case "cmd_replyall":
       case "button_replyall":
       case "cmd_replySenderAndGroup":
@@ -472,11 +474,14 @@ var DefaultController =
 			case "cmd_reply":
 				MsgReplyMessage(null);
 				break;
-			case "cmd_replySender":
-				MsgReplySender(null);
+			case "cmd_replyList":
+				MsgReplyList(null);
 				break;
 			case "cmd_replyGroup":
 				MsgReplyGroup(null);
+				break;
+			case "cmd_replySender":
+				MsgReplySender(null);
 				break;
 			case "cmd_replyall":
 				MsgReplyToAllMessage(null);

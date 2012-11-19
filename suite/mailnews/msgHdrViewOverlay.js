@@ -431,6 +431,8 @@ var messageHeaderSink = {
             this.mDummyMsgHeader.replyTo = header.headerValue;
           else if (lowerCaseHeaderName == "message-id")
             this.mDummyMsgHeader.messageId = header.headerValue;
+          else if (lowerCaseHeaderName == "list-post")
+            this.mDummyMsgHeader.listPost = header.headerValue;
           else if (lowerCaseHeaderName == "date")
             this.mDummyMsgHeader.date = Date.parse(header.headerValue) * 1000;
         }
@@ -984,6 +986,14 @@ function ClearCurrentHeaders()
 {
   currentHeaderData = {};
   currentAttachments = new Array();
+}
+
+function IsListPost()
+{
+  if ("list-post" in currentHeaderData)
+    return /<mailto:.+@.+>/.test(currentHeaderData["list-post"].headerValue);
+
+  return false;
 }
 
 function ShowMessageHeaderPane()
@@ -1971,6 +1981,7 @@ nsDummyMsgHeader.prototype =
   get mime2DecodedSubject() { return this.subject; },  
   ccList : null,
   messageId : null,
+  listPost : null,
   date : 0,
   accountKey : "",
   folder : null

@@ -294,6 +294,11 @@ function InitMessageMenu()
       replyNewsgroupMenuItem.setAttribute("hidden", isNews ? "" : "true");
   }
 
+  // We show Reply to List only for list posts.
+  var replyListMenuItem = document.getElementById("replyListMainMenu");
+  if (replyListMenuItem)
+    replyListMenuItem.hidden = isNews || !IsListPost();
+
   //For mail messages we say reply. For news we say ReplyToSender.
   var replyMenuItem = document.getElementById("replyMainMenu");
   if(replyMenuItem)
@@ -559,6 +564,17 @@ function InitNewMsgMenu(aPopup)
   const kIDs = {true: "button-newMsgHTML", false: "button-newMsgPlain"};
   document.getElementById(kIDs[composeHTML]).setAttribute("default", "true");
   document.getElementById(kIDs[!composeHTML]).removeAttribute("default");
+}
+
+function InitMessageReply(aPopup)
+{
+  var isNews = gFolderDisplay.selectedMessageIsNews;
+  //For mail messages we say reply. For news we say ReplyToSender.
+  // We show Reply to Newsgroups only for news messages.
+  aPopup.childNodes[0].hidden = isNews; // Reply
+  aPopup.childNodes[1].hidden = isNews || !IsListPost(); // Reply to List
+  aPopup.childNodes[2].hidden = !isNews; // Reply to Newsgroup
+  aPopup.childNodes[3].hidden = !isNews; // Reply to Sender Only
 }
 
 function InitMessageForward(aPopup)
@@ -1057,14 +1073,19 @@ function MsgReplyMessage(aEvent)
     MsgReplySender(aEvent);
 }
 
-function MsgReplySender(aEvent)
+function MsgReplyList(aEvent)
 {
-  ComposeMsgByType(msgComposeType.ReplyToSender, aEvent);
+  ComposeMsgByType(msgComposeType.ReplyToList, aEvent);
 }
 
 function MsgReplyGroup(aEvent)
 {
   ComposeMsgByType(msgComposeType.ReplyToGroup, aEvent);
+}
+
+function MsgReplySender(aEvent)
+{
+  ComposeMsgByType(msgComposeType.ReplyToSender, aEvent);
 }
 
 function MsgReplyToAllMessage(aEvent)
@@ -2123,7 +2144,6 @@ function IsCompactFolderEnabled()
 }
 
 var gReplyAllButton = null;
-var gReplyButton = null;
 var gDeleteButton = null;
 
 function SetUpToolbarButtons(uri)
@@ -2135,17 +2155,14 @@ function SetUpToolbarButtons(uri)
     var forNews = isNewsURI(uri);
 
     if(!gDeleteButton) gDeleteButton = document.getElementById("button-delete");
-    if (!gReplyButton) gReplyButton = document.getElementById("button-reply");
     if (!gReplyAllButton) gReplyAllButton = document.getElementById("button-replyall");
 
     gDeleteButton.hidden = forNews;
     if (forNews) {
-        gReplyButton.setAttribute("type", "menu-button");
         gReplyAllButton.setAttribute("type", "menu-button");
         gReplyAllButton.setAttribute("tooltiptext", gReplyAllButton.getAttribute("tooltiptextnews"));
     }
     else {
-        gReplyButton.removeAttribute("type");
         gReplyAllButton.removeAttribute("type");
         gReplyAllButton.setAttribute("tooltiptext", gReplyAllButton.getAttribute("tooltiptextmail"));
     }

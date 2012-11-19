@@ -130,18 +130,20 @@ function FillMailContextMenu(aTarget)
 
   ShowMenuItem("mailContext-editAsNew", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-replySender", showMailItems && single);
+  ShowMenuItem("mailContext-replyList",
+               showMailItems && single && !isNewsgroup && IsListPost());
   ShowMenuItem("mailContext-replyNewsgroup",
                showMailItems && single && isNewsgroup);
   ShowMenuItem("mailContext-replySenderAndNewsgroup",
                showMailItems && single && isNewsgroup);
-  ShowMenuItem("mailContext-archive", showMailItems && oneOrMore &&
-               gFolderDisplay.canArchiveSelectedMessages);
   ShowMenuItem("mailContext-replyAll", showMailItems && single);
   ShowMenuItem("mailContext-forward", showMailItems && single);
   ShowMenuItem("mailContext-forwardAsAttachment",
                showMailItems && (numSelected > 1));
   ShowMenuItem("mailContext-copyMessageUrl",
                showMailItems && single && isNewsgroup);
+  ShowMenuItem("mailContext-archive", showMailItems && oneOrMore &&
+               gFolderDisplay.canArchiveSelectedMessages);
 
   // Set up the move menu. We can't move from newsgroups.
   // Disable move if we can't delete message(s) from this folder.
