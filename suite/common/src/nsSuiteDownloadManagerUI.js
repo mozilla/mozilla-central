@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,10 +36,8 @@ nsDownloadManagerUI.prototype = {
       if (aUsePrivateUI)
         behavior = 1;
       else try {
-        var prefs = Cc["@mozilla.org/preferences-service;1"].
-                    getService(Ci.nsIPrefBranch);
-        behavior = prefs.getIntPref(PREF_DM_BEHAVIOR);
-        if (prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
+        behavior = Services.prefs.getIntPref(PREF_DM_BEHAVIOR);
+        if (Services.prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
           behavior = 0; //We are forcing toolkit UI, force manager behavior
       } catch (e) { }
     }
@@ -62,12 +61,10 @@ nsDownloadManagerUI.prototype = {
     if (!window)
       throw Cr.NS_ERROR_UNEXPECTED;
 
-    var prefs = Cc["@mozilla.org/preferences-service;1"].
-                getService(Ci.nsIPrefBranch);
     // This preference may not be set, so defaulting to two.
     var flashCount = 2;
     try {
-      flashCount = prefs.getIntPref(PREF_FLASH_COUNT);
+      flashCount = Services.prefs.getIntPref(PREF_FLASH_COUNT);
     } catch (e) { }
 
     window.getAttentionWithCycleCount(flashCount);
@@ -119,9 +116,7 @@ nsDownloadManagerUI.prototype = {
 
     var manager = DOWNLOAD_MANAGER_URL;
     try {
-      let prefs = Cc["@mozilla.org/preferences-service;1"].
-                  getService(Ci.nsIPrefBranch);
-      if (prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
+      if (Services.prefs.getBoolPref(PREF_FORCE_TOOLKIT_UI))
         manager = TOOLKIT_MANAGER_URL;
     } catch(ex) {}
 

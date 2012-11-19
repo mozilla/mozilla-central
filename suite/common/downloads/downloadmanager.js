@@ -14,8 +14,6 @@ var gDownloadManager = Components.classes["@mozilla.org/download-manager;1"]
 var gDownloadStatus;
 var gDownloadListener;
 var gSearchBox;
-var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
 var gDMUI = Components.classes["@mozilla.org/download-manager-ui;1"]
                       .getService(Components.interfaces.nsIDownloadManagerUI);
 
@@ -161,7 +159,7 @@ function openDownload(aDownload)
                               .getService(Components.interfaces.nsIPropertyBag2);
       if (/^Windows/.test(sysInfo.getProperty("name")) &&
           (parseFloat(sysInfo.getProperty("version")) >= 6 &&
-          gPrefService.getBoolPref("browser.download.manager.scanWhenDone")))
+          Services.prefs.getBoolPref("browser.download.manager.scanWhenDone")))
         alertOnEXEOpen = false;
     } catch (ex) { }
 
@@ -175,7 +173,7 @@ function openDownload(aDownload)
       var checkbox = { value: false };
       if (!Services.prompt.confirmCheck(window, title, message, dontAsk, checkbox))
         return;
-      gPrefService.setBoolPref("browser.download.manager.alertOnEXEOpen", !checkbox.value);
+      Services.prefs.setBoolPref("browser.download.manager.alertOnEXEOpen", !checkbox.value);
     }
   }
 

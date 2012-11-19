@@ -52,7 +52,7 @@ function progressStartup() {
   if (gDownload.isPrivate)
     gCloseWhenDone.hidden = true;
   else
-    gCloseWhenDone.checked = gPrefService.getBoolPref("browser.download.progress.closeWhenDone");
+    gCloseWhenDone.checked = Services.prefs.getBoolPref("browser.download.progress.closeWhenDone");
 
   switch (gDownload.state) {
     case nsIDownloadManager.DOWNLOAD_NOTSTARTED:
@@ -101,8 +101,8 @@ function progressShutdown() {
   gDownloadManager.removeListener(gDownloadListener);
   window.controllers.removeController(ProgressDlgController);
   if (!gCloseWhenDone.hidden)
-    gPrefService.setBoolPref("browser.download.progress.closeWhenDone",
-                             gCloseWhenDone.checked);
+    Services.prefs.setBoolPref("browser.download.progress.closeWhenDone",
+                               gCloseWhenDone.checked);
 }
 
 function updateDownload() {
