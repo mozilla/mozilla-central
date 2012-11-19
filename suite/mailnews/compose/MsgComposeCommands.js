@@ -30,9 +30,6 @@ var sMsgComposeService = Components.classes["@mozilla.org/messengercompose;1"].g
 var sComposeMsgsBundle;
 var sBrandBundle;
 
-var sPrefs = null;
-var sPrefBranchInternal = null;
-
 var sRDF = null;
 var sNameProperty = null;
 var sDictCount = 0;
@@ -746,54 +743,52 @@ var directoryServerObserver = {
 
 function AddDirectoryServerObserver(flag) {
   if (flag) {
-    sPrefBranchInternal.addObserver("ldap_2.autoComplete.useDirectory",
-                                    directoryServerObserver, false);
-    sPrefBranchInternal.addObserver("ldap_2.autoComplete.directoryServer",
-                                    directoryServerObserver, false);
+    Services.prefs.addObserver("ldap_2.autoComplete.useDirectory",
+                               directoryServerObserver, false);
+    Services.prefs.addObserver("ldap_2.autoComplete.directoryServer",
+                               directoryServerObserver, false);
   }
   else
   {
     var prefstring = "mail.identity." + gCurrentIdentity.key + ".overrideGlobal_Pref";
-    sPrefBranchInternal.addObserver(prefstring, directoryServerObserver, false);
+    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
     prefstring = "mail.identity." + gCurrentIdentity.key + ".directoryServer";
-    sPrefBranchInternal.addObserver(prefstring, directoryServerObserver, false);
+    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
   }
 }
 
 function RemoveDirectoryServerObserver(prefstring)
 {
   if (!prefstring) {
-    sPrefBranchInternal.removeObserver("ldap_2.autoComplete.useDirectory", directoryServerObserver);
-    sPrefBranchInternal.removeObserver("ldap_2.autoComplete.directoryServer", directoryServerObserver);
+    Services.prefs.removeObserver("ldap_2.autoComplete.useDirectory", directoryServerObserver);
+    Services.prefs.removeObserver("ldap_2.autoComplete.directoryServer", directoryServerObserver);
   }
   else
   {
     var str = prefstring + ".overrideGlobal_Pref";
-    sPrefBranchInternal.removeObserver(str, directoryServerObserver);
+    Services.prefs.removeObserver(str, directoryServerObserver);
     str = prefstring + ".directoryServer";
-    sPrefBranchInternal.removeObserver(str, directoryServerObserver);
+    Services.prefs.removeObserver(str, directoryServerObserver);
   }
 }
 
 function AddDirectorySettingsObserver()
 {
-  sPrefBranchInternal.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver, false);
+  Services.prefs.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver, false);
 }
 
 function RemoveDirectorySettingsObserver(prefstring)
 {
-  sPrefBranchInternal.removeObserver(prefstring, directoryServerObserver);
+  Services.prefs.removeObserver(prefstring, directoryServerObserver);
 }
 
 function setupLdapAutocompleteSession()
 {
-    var autocompleteLdap = false;
     var autocompleteDirectory = null;
     var prevAutocompleteDirectory = gCurrentAutocompleteDirectory;
 
-    autocompleteLdap = sPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
-    if (autocompleteLdap)
-        autocompleteDirectory = sPrefs.getCharPref(
+    if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
+        autocompleteDirectory = Services.prefs.getCharPref(
             "ldap_2.autoComplete.directoryServer");
 
     if(gCurrentIdentity.overrideGlobalPref) {
@@ -836,7 +831,7 @@ function setupLdapAutocompleteSession()
         // fill in the session params if there is a session
         //
         if (LDAPSession) {
-            let url = sPrefs.getComplexValue(autocompleteDirectory +".uri",
+            let url = Services.prefs.getComplexValue(autocompleteDirectory +".uri",
               Components.interfaces.nsISupportsString).data;
 
             LDAPSession.serverURL =
@@ -846,7 +841,7 @@ function setupLdapAutocompleteSession()
             // get the login to authenticate as, if there is one
             //
             try {
-                LDAPSession.login = sPrefs.getComplexValue(
+                LDAPSession.login = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".auth.dn",
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
@@ -854,7 +849,7 @@ function setupLdapAutocompleteSession()
             }
             
             try {
-                LDAPSession.saslMechanism = sPrefs.getComplexValue(
+                LDAPSession.saslMechanism = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".auth.saslmech",
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
@@ -864,8 +859,8 @@ function setupLdapAutocompleteSession()
             // set the LDAP protocol version correctly
             var protocolVersion;
             try {
-                protocolVersion = sPrefs.getCharPref(autocompleteDirectory +
-                                                      ".protocolVersion");
+                protocolVersion = Services.prefs.getCharPref(autocompleteDirectory +
+                                                             ".protocolVersion");
             } catch (ex) {
                 // if we don't have this pref, no big deal
             }
@@ -877,7 +872,7 @@ function setupLdapAutocompleteSession()
             // don't search on non-CJK strings shorter than this
             //
             try {
-                LDAPSession.minStringLength = sPrefs.getIntPref(
+                LDAPSession.minStringLength = Services.prefs.getIntPref(
                     autocompleteDirectory + ".autoComplete.minStringLength");
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -887,7 +882,7 @@ function setupLdapAutocompleteSession()
             // don't search on CJK strings shorter than this
             //
             try {
-                LDAPSession.cjkMinStringLength = sPrefs.getIntPref(
+                LDAPSession.cjkMinStringLength = Services.prefs.getIntPref(
                   autocompleteDirectory + ".autoComplete.cjkMinStringLength");
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -905,9 +900,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 ldapFormatter.nameFormat =
-                    sPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.nameFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                                                   ".autoComplete.nameFormat",
+                                                   Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
                 // nsAbLDAPAutoCompFormatter use its default.
@@ -917,9 +912,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 ldapFormatter.addressFormat =
-                    sPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.addressFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                                                   ".autoComplete.addressFormat",
+                                                   Components.interfaces.nsISupportsString).data;
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
                 // nsAbLDAPAutoCompFormatter use its default.
@@ -933,15 +928,13 @@ function setupLdapAutocompleteSession()
                 // 2 = other per-addressbook format
                 //
                 var showComments = 0;
-                showComments = sPrefs.getIntPref(
-                    "mail.autoComplete.commentColumn");
 
-                switch (showComments) {
+                switch (Services.prefs.getIntPref("mail.autoComplete.commentColumn")) {
 
                 case 1:
                     // use the name of this directory
                     //
-                    ldapFormatter.commentFormat = sPrefs.getComplexValue(
+                    ldapFormatter.commentFormat = Services.prefs.getComplexValue(
                                 autocompleteDirectory + ".description",
                                 Components.interfaces.nsISupportsString).data;
                     break;
@@ -951,9 +944,9 @@ function setupLdapAutocompleteSession()
                     //
                     try {
                         ldapFormatter.commentFormat =
-                            sPrefs.getComplexValue(autocompleteDirectory +
-                                        ".autoComplete.commentFormat",
-                                        Components.interfaces.nsISupportsString).data;
+                            Services.prefs.getComplexValue(autocompleteDirectory +
+                                                           ".autoComplete.commentFormat",
+                                                           Components.interfaces.nsISupportsString).data;
                     } catch (innerException) {
                         // if nothing has been specified, use the ldap
                         // organization field
@@ -981,9 +974,9 @@ function setupLdapAutocompleteSession()
             //
             try {
                 LDAPSession.outputFormat =
-                    sPrefs.getComplexValue(autocompleteDirectory +
-                                      ".autoComplete.outputFormat",
-                                      Components.interfaces.nsISupportsString).data;
+                    Services.prefs.getComplexValue(autocompleteDirectory +
+                                                   ".autoComplete.outputFormat",
+                                                   Components.interfaces.nsISupportsString).data;
 
             } catch (ex) {
                 // if this pref isn't there, no big deal.  just let
@@ -993,7 +986,7 @@ function setupLdapAutocompleteSession()
             // override default search filter template?
             //
             try {
-                LDAPSession.filterTemplate = sPrefs.getComplexValue(
+                LDAPSession.filterTemplate = Services.prefs.getComplexValue(
                     autocompleteDirectory + ".autoComplete.filterTemplate",
                     Components.interfaces.nsISupportsString).data;
 
@@ -1009,7 +1002,7 @@ function setupLdapAutocompleteSession()
                 // but there's no UI for that yet
                 //
                 LDAPSession.maxHits =
-                    sPrefs.getIntPref(autocompleteDirectory + ".maxHits");
+                    Services.prefs.getIntPref(autocompleteDirectory + ".maxHits");
             } catch (ex) {
                 // if this pref isn't there, or is out of range, no big deal.
                 // just let nsLDAPAutoCompleteSession use its default.
@@ -1478,13 +1471,6 @@ function ComposeLoad()
 {
   sComposeMsgsBundle = document.getElementById("bundle_composeMsgs");
   sBrandBundle = document.getElementById("brandBundle");
-
-  // XXX: Get the preferences service. Remove this once LDAP autocomplete has
-  // been moved to toolkit interfaces.
-  sPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-                     .getService(Components.interfaces.nsIPrefService)
-                     .QueryInterface(Components.interfaces.nsIPrefBranch);
-  sPrefBranchInternal = sPrefs;
 
   var otherHeaders = getPref("mail.compose.other.header");
 
