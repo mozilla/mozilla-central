@@ -38,6 +38,7 @@
     <li>&about.buildconfig.beforeTheLink;<a href="about:buildconfig">&about.buildconfig.linkTitle;</a>&about.buildconfig.afterTheLink;</li>
     <script type="application/javascript">
       // get release notes URL and vendor URL from prefs
+
       var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                                 .getService(Components.interfaces.nsIURLFormatter);
       var releaseNotesURL = formatter.formatURLPref("app.releaseNotesURL");
@@ -89,11 +90,7 @@
 
       // Determine and display current channel.
       try {
-        var updateChannel =
-            Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService)
-                      .getDefaultBranch("")
-                      .getCharPref("app.update.channel");
+        var updateChannel = Services.prefs.getDefaultBranch("").getCharPref("app.update.channel");
         document.getElementById("currentChannel").textContent = updateChannel;
       } catch (ex) {}
     </script>

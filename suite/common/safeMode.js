@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function restartApp() {
   var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
@@ -11,9 +12,7 @@ function restartApp() {
 }
 
 function clearAllPrefs() {
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  prefService.resetUserPrefs();
+  Services.prefs.resetUserPrefs();
 
   // Remove the pref-overrides dir, if it exists.
   try {
@@ -29,9 +28,7 @@ function clearAllPrefs() {
 }
 
 function restoreDefaultBookmarks() {
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-  prefBranch.setBoolPref("browser.bookmarks.restore_default_bookmarks", true);
+  Services.prefs.setBoolPref("browser.bookmarks.restore_default_bookmarks", true);
 }
 
 function deleteLocalstore() {

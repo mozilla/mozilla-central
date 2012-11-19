@@ -36,8 +36,6 @@ function onAccept()
   // for each checked item, if we aren't already the default, make us the default.
   var shellSvc = Components.classes["@mozilla.org/suite/shell-service;1"]
                            .getService(nsIShellService);
-  var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(nsIPrefBranch);
   var appTypes = 0;
   var appTypesCheck = 0;
   var defaultList = document.getElementById("defaultList");

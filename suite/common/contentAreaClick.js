@@ -9,10 +9,6 @@
  *    - gatherTextUnder
  */
 
-  var pref = null;
-  pref = Components.classes["@mozilla.org/preferences-service;1"]
-                   .getService(Components.interfaces.nsIPrefBranch);
-
   function hrefAndLinkNodeForClickEvent(event)
   {
     var href = "";
@@ -83,9 +79,9 @@
       return true;
     }
 
-    if (pref && !isKeyCommand && event.button == 1 &&
-        pref.getBoolPref("middlemouse.contentLoadURL") &&
-        !pref.getBoolPref("general.autoScroll")) {
+    if (!isKeyCommand && event.button == 1 &&
+        Services.prefs.getBoolPref("middlemouse.contentLoadURL") &&
+        !Services.prefs.getBoolPref("general.autoScroll")) {
       middleMousePaste(event);
     }
 
@@ -95,14 +91,14 @@
   function openNewTabOrWindow(event, href, doc)
   {
     // should we open it in a new tab?
-    if (pref && pref.getBoolPref("browser.tabs.opentabfor.middleclick")) {
+    if (Services.prefs.getBoolPref("browser.tabs.opentabfor.middleclick")) {
       openNewTabWith(href, doc, null, event);
       event.stopPropagation();
       return true;
     }
 
     // should we open it in a new window?
-    if (pref && pref.getBoolPref("middlemouse.openNewWindow")) {
+    if (Services.prefs.getBoolPref("middlemouse.openNewWindow")) {
       openNewWindowWith(href, doc);
       event.stopPropagation();
       return true;
@@ -179,12 +175,12 @@
           gURLBar.value = url;
       }
       tab.linkedBrowser.loadURI(url);
-      if (event.shiftKey != (pref && pref.getBoolPref("browser.tabs.loadInBackground")))
+      if (event.shiftKey != (Services.prefs.getBoolPref("browser.tabs.loadInBackground")))
         browser.selectedTab = tab;
     }
     else if (event.target == browser) {
       tab = browser.addTab(url);
-      if (event.shiftKey != (pref && pref.getBoolPref("browser.tabs.loadInBackground")))
+      if (event.shiftKey != (Services.prefs.getBoolPref("browser.tabs.loadInBackground")))
         browser.selectedTab = tab;
     }
     else {

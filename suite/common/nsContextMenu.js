@@ -451,9 +451,7 @@ nsContextMenu.prototype = {
       return;
     }
 
-    this.autoDownload = Components.classes["@mozilla.org/preferences-service;1"]
-                                  .getService(Components.interfaces.nsIPrefBranch)
-                                  .getBoolPref("browser.download.useDownloadDir");
+    this.autoDownload = Services.prefs.getBoolPref("browser.download.useDownloadDir");
 
     // if the document is editable, show context menu like in text inputs
     var win = this.target.ownerDocument.defaultView;
@@ -1019,9 +1017,7 @@ nsContextMenu.prototype = {
     }
 
     // fallback to the old way if we don't see the headers quickly
-    var timeToWait = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch)
-                               .getIntPref("browser.download.saveLinkAsFilenameTimeout");
+    var timeToWait = Services.prefs.getIntPref("browser.download.saveLinkAsFilenameTimeout");
     var timer = setTimeout(timerCallback, timeToWait);
 
     // kick off the channel with our proxy object as the listener
