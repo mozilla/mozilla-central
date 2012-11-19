@@ -25,8 +25,6 @@ const nsIPropertyBag = Components.interfaces.nsIPropertyBag;
 // global services
 var handlerSvc = Components.classes["@mozilla.org/uriloader/handler-service;1"]
                            .getService(Components.interfaces.nsIHandlerService);
-var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
 var categoryMgr = Components.classes["@mozilla.org/categorymanager;1"]
                             .getService(Components.interfaces.nsICategoryManager);
 var mimeSvc = Components.classes["@mozilla.org/mime;1"]
@@ -358,8 +356,8 @@ HandlerInfoWrapper.prototype = {
   _getDisabledPluginTypes: function() {
     var types = "";
 
-    if (prefSvc.prefHasUserValue(PREF_DISABLED_PLUGIN_TYPES))
-      types = prefSvc.getCharPref(PREF_DISABLED_PLUGIN_TYPES);
+    if (Services.prefs.prefHasUserValue(PREF_DISABLED_PLUGIN_TYPES))
+      types = Services.prefs.getCharPref(PREF_DISABLED_PLUGIN_TYPES);
 
     // Only split if the string isn't empty so we don't end up with an array
     // containing a single empty string.
@@ -372,8 +370,8 @@ HandlerInfoWrapper.prototype = {
     if (disabledPluginTypes.indexOf(this.type) == -1)
       disabledPluginTypes.push(this.type);
 
-    prefSvc.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
-                              disabledPluginTypes.join(","));
+    Services.prefs.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
+                               disabledPluginTypes.join(","));
 
     // Update the category manager so existing browser windows update.
     categoryMgr.deleteCategoryEntry("Gecko-Content-Viewers",
@@ -387,8 +385,8 @@ HandlerInfoWrapper.prototype = {
     var type = this.type;
     disabledPluginTypes = disabledPluginTypes.filter(function(v) v != type);
 
-    prefSvc.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
-                              disabledPluginTypes.join(","));
+    Services.prefs.setCharPref(PREF_DISABLED_PLUGIN_TYPES,
+                               disabledPluginTypes.join(","));
 
     // Update the category manager so existing browser windows update.
     categoryMgr.
@@ -828,19 +826,19 @@ var gApplicationsPane = {
 
     // Observe preferences that influence what we display so we can rebuild
     // the view when they change.
-    prefSvc.addObserver(PREF_SHOW_PLUGINS_IN_LIST, this, false);
-    prefSvc.addObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this, false);
-    prefSvc.addObserver(PREF_FEED_SELECTED_APP, this, false);
-    prefSvc.addObserver(PREF_FEED_SELECTED_WEB, this, false);
-    prefSvc.addObserver(PREF_FEED_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_SHOW_PLUGINS_IN_LIST, this, false);
+    Services.prefs.addObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this, false);
+    Services.prefs.addObserver(PREF_FEED_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_FEED_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_FEED_SELECTED_ACTION, this, false);
 
-    prefSvc.addObserver(PREF_VIDEO_FEED_SELECTED_APP, this, false);
-    prefSvc.addObserver(PREF_VIDEO_FEED_SELECTED_WEB, this, false);
-    prefSvc.addObserver(PREF_VIDEO_FEED_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_FEED_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_FEED_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_VIDEO_FEED_SELECTED_ACTION, this, false);
 
-    prefSvc.addObserver(PREF_AUDIO_FEED_SELECTED_APP, this, false);
-    prefSvc.addObserver(PREF_AUDIO_FEED_SELECTED_WEB, this, false);
-    prefSvc.addObserver(PREF_AUDIO_FEED_SELECTED_ACTION, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_FEED_SELECTED_APP, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_FEED_SELECTED_WEB, this, false);
+    Services.prefs.addObserver(PREF_AUDIO_FEED_SELECTED_ACTION, this, false);
 
     // Listen for window unload so we can remove our preference observers.
     window.addEventListener("unload", this, false);
@@ -875,19 +873,19 @@ var gApplicationsPane = {
     this._list.removeEventListener("command", this, false);
     this._list.removeEventListener("select", this, false);
     window.removeEventListener("unload", this, false);
-    prefSvc.removeObserver(PREF_SHOW_PLUGINS_IN_LIST, this);
-    prefSvc.removeObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this);
-    prefSvc.removeObserver(PREF_FEED_SELECTED_APP, this);
-    prefSvc.removeObserver(PREF_FEED_SELECTED_WEB, this);
-    prefSvc.removeObserver(PREF_FEED_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_SHOW_PLUGINS_IN_LIST, this);
+    Services.prefs.removeObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this);
+    Services.prefs.removeObserver(PREF_FEED_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_FEED_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_FEED_SELECTED_ACTION, this);
 
-    prefSvc.removeObserver(PREF_VIDEO_FEED_SELECTED_APP, this);
-    prefSvc.removeObserver(PREF_VIDEO_FEED_SELECTED_WEB, this);
-    prefSvc.removeObserver(PREF_VIDEO_FEED_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_VIDEO_FEED_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_VIDEO_FEED_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_VIDEO_FEED_SELECTED_ACTION, this);
 
-    prefSvc.removeObserver(PREF_AUDIO_FEED_SELECTED_APP, this);
-    prefSvc.removeObserver(PREF_AUDIO_FEED_SELECTED_WEB, this);
-    prefSvc.removeObserver(PREF_AUDIO_FEED_SELECTED_ACTION, this);
+    Services.prefs.removeObserver(PREF_AUDIO_FEED_SELECTED_APP, this);
+    Services.prefs.removeObserver(PREF_AUDIO_FEED_SELECTED_WEB, this);
+    Services.prefs.removeObserver(PREF_AUDIO_FEED_SELECTED_ACTION, this);
   },
 
 
@@ -1062,9 +1060,9 @@ var gApplicationsPane = {
     this._visibleTypeDescriptionCount = {};
 
     // Get the preferences that help determine what types to show.
-    var showPlugins = prefSvc.getBoolPref(PREF_SHOW_PLUGINS_IN_LIST);
+    var showPlugins = Services.prefs.getBoolPref(PREF_SHOW_PLUGINS_IN_LIST);
     var hidePluginsWithoutExtensions =
-        prefSvc.getBoolPref(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS);
+        Services.prefs.getBoolPref(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS);
 
     for (let type in this._handledTypes) {
       let handlerInfo = this._handledTypes[type];
@@ -1700,7 +1698,7 @@ var gApplicationsPane = {
     if (aHandlerApp instanceof nsILocalHandlerApp)
       return this._getIconURLForFile(aHandlerApp.executable);
 
-    if (prefSvc.getBoolPref("browser.chrome.favicons")) { // q.v. Bug 514671
+    if (Services.prefs.getBoolPref("browser.chrome.favicons")) { // q.v. Bug 514671
       if (aHandlerApp instanceof nsIWebHandlerApp)
         return this._getIconURLForWebApp(aHandlerApp.uriTemplate);
 
