@@ -204,36 +204,29 @@ function securityOnLoad() {
   }
 
   /* Set the Technical Detail section messages */
-  const pkiBundle = document.getElementById("pkiBundle");
   var hdr;
   var msg1;
   var msg2;
 
   if (info.isBroken) {
-    hdr = pkiBundle.getString("pageInfo_MixedContent");
-    msg1 = pkiBundle.getString("pageInfo_Privacy_Mixed1");
-    msg2 = pkiBundle.getString("pageInfo_Privacy_None2");
+    hdr = pageInfoBundle.getString("securityMixedContent");
+    msg1 = pageInfoBundle.getString("securityMixed1");
+    msg2 = pageInfoBundle.getString("securityNone2");
   }
-  else if (info.encryptionStrength >= 90) {
-    hdr = pkiBundle.getFormattedString("pageInfo_StrongEncryptionWithBits",
-                                       [info.encryptionAlgorithm, info.encryptionStrength + ""]);
-    msg1 = pkiBundle.getString("pageInfo_Privacy_Strong1");
-    msg2 = pkiBundle.getString("pageInfo_Privacy_Strong2");
+  else if (info.encryptionStrength) {
+    hdr = pageInfoBundle.getFormattedString("securityEncryptionWithBits",
+                         [info.encryptionAlgorithm, info.encryptionStrength]);
+    msg1 = pageInfoBundle.getString("securityEncryption1");
+    msg2 = pageInfoBundle.getString("securityEncryption2");
     security._cert = info.cert;
   }
-  else if (info.encryptionStrength > 0) {
-    hdr  = pkiBundle.getFormattedString("pageInfo_WeakEncryptionWithBits",
-                                        [info.encryptionAlgorithm, info.encryptionStrength + ""]);
-    msg1 = pkiBundle.getFormattedString("pageInfo_Privacy_Weak1", [info.hostName]);
-    msg2 = pkiBundle.getString("pageInfo_Privacy_Weak2");
-  }
   else {
-    hdr = pkiBundle.getString("pageInfo_NoEncryption");
-    if (info.hostName != null)
-      msg1 = pkiBundle.getFormattedString("pageInfo_Privacy_None1", [info.hostName]);
+    hdr = pageInfoBundle.getString("securityNoEncryption");
+    if (info.hostName)
+      msg1 = pageInfoBundle.getFormattedString("securityNone1", [info.hostName]);
     else
-      msg1 = pkiBundle.getString("pageInfo_Privacy_None3");
-    msg2 = pkiBundle.getString("pageInfo_Privacy_None2");
+      msg1 = pageInfoBundle.getString("securityNone3");
+    msg2 = pageInfoBundle.getString("securityNone2");
   }
   setText("security-technical-shortform", hdr);
   setText("security-technical-longform1", msg1);

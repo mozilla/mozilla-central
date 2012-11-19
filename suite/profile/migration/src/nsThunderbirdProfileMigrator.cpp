@@ -460,7 +460,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("security.enable_tls",                     Bool),
   MAKESAMETYPEPREFTRANSFORM("security.password_lifetime",              Int),
   MAKESAMETYPEPREFTRANSFORM("security.warn_entering_secure",           Bool),
-  MAKESAMETYPEPREFTRANSFORM("security.warn_entering_weak",             Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_leaving_secure",            Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_submit_insecure",           Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_viewing_mixed",             Bool),

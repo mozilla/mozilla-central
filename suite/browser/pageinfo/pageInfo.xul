@@ -32,7 +32,6 @@
 
   <stringbundleset id="pageinfobundleset">
     <stringbundle id="pageinfobundle" src="chrome://navigator/locale/pageInfo.properties"/>
-    <stringbundle id="pkiBundle" src="chrome://pippki/locale/pippki.properties"/>
   </stringbundleset>
 
   <commandset id="pageInfoCommandSet">

@@ -26,9 +26,6 @@
       <preference id="security.warn_entering_secure"
                   name="security.warn_entering_secure"
                   type="bool"/>
-      <preference id="security.warn_entering_weak"
-                  name="security.warn_entering_weak"
-                  type="bool"/>
       <preference id="security.warn_leaving_secure"
                   name="security.warn_leaving_secure"
                   type="bool"/>
@@ -63,10 +60,6 @@
                 label="&warn.enteringsecure;"
                 accesskey="&warn.enteringsecure.accesskey;"
                 preference="security.warn_entering_secure"/>
-      <checkbox id="warnEnteringWeak"
-                label="&warn.enteringweak;"
-                accesskey="&warn.enteringweak.accesskey;"
-                preference="security.warn_entering_weak"/>
       <checkbox id="warnLeavingSecure"
                 label="&warn.leavingsecure;"
                 accesskey="&warn.leavingsecure.accesskey;"

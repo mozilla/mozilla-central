@@ -900,7 +900,6 @@ pref("services.sync.prefs.sync.security.default_personal_cert", true);
 pref("services.sync.prefs.sync.security.enable_ssl3", true);
 pref("services.sync.prefs.sync.security.enable_tls", true);
 pref("services.sync.prefs.sync.security.warn_entering_secure", true);
-pref("services.sync.prefs.sync.security.warn_entering_weak", true);
 pref("services.sync.prefs.sync.security.warn_leaving_secure", true);
 pref("services.sync.prefs.sync.security.warn_submit_insecure", true);
 pref("services.sync.prefs.sync.security.warn_viewing_mixed", true);

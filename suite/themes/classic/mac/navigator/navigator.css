@@ -218,15 +218,13 @@ toolbar[mode="text"] > #window-controls > toolbarbutton > .toolbarbutton-icon {
   padding-bottom: 1px;
 }
 
-#urlbar[level="high"] > .autocomplete-textbox-container,
-#urlbar[level="low"] > .autocomplete-textbox-container {
+#urlbar[level="high"] > .autocomplete-textbox-container {
   -moz-appearance: none;
   background-color: InfoBackground;
   color: InfoText;
 }
 
-#urlbar[level="high"] > .autocomplete-history-dropmarker,
-#urlbar[level="low"] > .autocomplete-history-dropmarker {
+#urlbar[level="high"] > .autocomplete-history-dropmarker {
   background-color: InfoBackground !important;
 }
 
@@ -439,9 +437,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://communicator/skin/icons/lock-insecure.png");
 }
 
-/* |high| and |low| styles could be different, to better reflect the secure level... */
-#security-button[level="high"] > .statusbarpanel-contentbox,
-#security-button[level="low"] > .statusbarpanel-contentbox {
+#security-button[level="high"] > .statusbarpanel-contentbox {
   list-style-image: url("chrome://communicator/skin/icons/lock-secure.png");
   background-color: #E8DB99;
 }
@@ -462,8 +458,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 }
 
 /* make same background-color translucent on lwthemes */
-#security-button[level="high"] > .statusbarpanel-contentbox:-moz-lwtheme,
-#security-button[level="low"] > .statusbarpanel-contentbox:-moz-lwtheme {
+#security-button[level="high"] > .statusbarpanel-contentbox:-moz-lwtheme {
   background-color: rgba(232, 219, 153, .8);
 }
 

@@ -366,23 +366,15 @@ nsBrowserStatusHandler.prototype =
     const wpl = Components.interfaces.nsIWebProgressListener;
     const wpl_security_bits = wpl.STATE_IS_SECURE |
                               wpl.STATE_IS_BROKEN |
-                              wpl.STATE_IS_INSECURE |
-                              wpl.STATE_SECURE_HIGH |
-                              wpl.STATE_SECURE_MED |
-                              wpl.STATE_SECURE_LOW;
+                              wpl.STATE_IS_INSECURE;
 
     /* aState is defined as a bitmask that may be extended in the future.
      * We filter out any unknown bits before testing for known values.
      */
     switch (aState & wpl_security_bits) {
-      case wpl.STATE_IS_SECURE | wpl.STATE_SECURE_HIGH:
+      case wpl.STATE_IS_SECURE:
         this.securityButton.setAttribute("level", "high");
         this.urlBar.setAttribute("level", "high");
-        break;
-      case wpl.STATE_IS_SECURE | wpl.STATE_SECURE_MED:
-      case wpl.STATE_IS_SECURE | wpl.STATE_SECURE_LOW:
-        this.securityButton.setAttribute("level", "low");
-        this.urlBar.setAttribute("level", "low");
         break;
       case wpl.STATE_IS_BROKEN:
         this.securityButton.setAttribute("level", "broken");

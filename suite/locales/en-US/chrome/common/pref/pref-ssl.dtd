@@ -15,8 +15,6 @@
 <!ENTITY warn.description                   "&brandShortName; can alert you to the security status of the web page you are viewing. Set &brandShortName; to show a warning and ask permission before:">
 <!ENTITY warn.enteringsecure                "Loading a page that supports encryption">
 <!ENTITY warn.enteringsecure.accesskey      "L">
-<!ENTITY warn.enteringweak                  "Loading a page that uses low-grade encryption">
-<!ENTITY warn.enteringweak.accesskey        "o">
 <!ENTITY warn.insecurepost                  "Sending form data from an unencrypted page to an unencrypted page">
 <!ENTITY warn.insecurepost.accesskey        "S">
 <!ENTITY warn.leavingsecure                 "Leaving a page that supports encryption">
