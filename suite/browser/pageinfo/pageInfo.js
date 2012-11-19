@@ -1046,12 +1046,15 @@ function makePreview(row)
   setItemValue("imagesizetext", sizeText);
 
   var mimeType;
-  var numFrames = 0;
+  var typeString = "mediaImageType";
   if (!isBG) {
     if (item instanceof nsIImageLoadingContent) {
       var imageRequest = item.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
-      if (imageRequest)
+      if (imageRequest) {
         mimeType = imageRequest.mimeType;
+        if (imageRequest != imageRequest.getStaticRequest())
+          typeString = "mediaAnimatedType";
+      }
     }
     if (!mimeType &&
         (item instanceof HTMLObjectElement ||
@@ -1075,11 +1078,7 @@ function makePreview(row)
     let imageMimeType = /^image\/(.*)/.exec(mimeType);
     if (imageMimeType) {
       imageType = imageMimeType[1].toUpperCase();
-      if (numFrames > 1)
-        imageType = gBundle.getFormattedString("mediaAnimatedImageType",
-                                               [imageType, numFrames]);
-      else
-        imageType = gBundle.getFormattedString("mediaImageType", [imageType]);
+      imageType = gBundle.getFormattedString(typeString, [imageType]);
     }
     else {
       // the MIME type doesn't begin with image/, display the raw type
