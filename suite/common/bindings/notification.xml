@@ -581,8 +581,8 @@
         
             var haveUnplayedPlugins = this.contentWindowUtils.plugins.some(function(plugin) {
               var hupObjLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-              return plugin != aPlugin && !hupObjLoadingContent.activated;
-            });
+              return plugin != aPlugin && this.canActivatePlugin(hupObjLoadingContent);
+            }, this);
             if (!haveUnplayedPlugins) {
               this.removePluginClickToPlayPrompt();
               this.clickToPlayPromptShown = false;
