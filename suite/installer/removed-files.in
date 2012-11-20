@@ -550,6 +550,7 @@ searchplugins/yandex.png
 searchplugins/yandex.src
 searchplugins/zoznam-sk.png
 searchplugins/zoznam-sk.src
+@DLL_PREFIX@soundtouch@DLL_SUFFIX@
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
 #ifndef MOZ_CRASHREPORTER
 #ifdef XP_UNIX
