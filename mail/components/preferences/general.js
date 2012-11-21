@@ -111,6 +111,8 @@ var gGeneralPane = {
     var soundFilesText = bundlePrefs.getString("soundFilesDescription");
     if (Application.platformIsMac)
       fp.appendFilter(soundFilesText, "*.wav; *.aif; *.aiff; *.caf");
+    else if (Application.platformIsLinux)
+      fp.appendFilter(soundFilesText, "*.wav; *.ogg");
     else
       fp.appendFilter(soundFilesText, "*.wav");
 

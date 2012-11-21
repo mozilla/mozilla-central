@@ -54,7 +54,8 @@ Application.prototype = {
 				    flags: Ci.nsIClassInfo.SINGLETON}),
 
   // for steelIApplication
-  platformIsMac: "nsILocalFileMac" in Components.interfaces
+  platformIsMac: "nsILocalFileMac" in Components.interfaces,
+  platformIsLinux: "@mozilla.org/gnome-gconf-service;1" in Components.classes
 };
 
 #include ../../mozilla/toolkit/components/exthelper/extApplication.js

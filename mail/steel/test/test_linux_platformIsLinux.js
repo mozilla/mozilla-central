@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * Mac specific version of testing the platformIsMac part of
+ * Linux specific version of testing the platformIsLinux part of
  * steelIApplication.
  */
 
@@ -24,7 +24,7 @@ var XULAppInfo = {
   logConsoleErrors: true,
   OS: "XPCShell",
   XPCOMABI: "noarch-spidermonkey",
-  
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIXULAppInfo, Ci.nsIXULRuntime,
 					 Ci.nsISupports])
 };
@@ -44,5 +44,5 @@ function run_test() {
 			     XULAppInfoFactory);
 
   do_check_true(Cc["@mozilla.org/steel/application;1"]
-                  .getService(Ci.steelIApplication).platformIsMac);
+                   .getService(Ci.steelIApplication).platformIsLinux);
 }

@@ -18,13 +18,7 @@ EXTRA_PP_COMPONENTS = steelApplication.js \
                       steelApplication.manifest
 
 ifdef ENABLE_TESTS
-# These tests directories are explicitly done this way to ensure that we get
-# the correct result for platformIsMac.
-ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
-XPCSHELL_TESTS = mac
-else
-XPCSHELL_TESTS = notmac
-endif
+XPCSHELL_TESTS = test
 
 # Uncomment this when we need it for more general tests.
 #XPCSHELL_TESTS += unit
