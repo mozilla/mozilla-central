@@ -62,20 +62,17 @@ function formatURL(aFormat, aIsPref) {
 
 var gPluginHandler = {
   addEventListeners: function ph_addEventListeners(browser) {
-    browser.addEventListener("PluginNotFound", gPluginHandler, true);
-    browser.addEventListener("PluginCrashed", gPluginHandler, true);
-    browser.addEventListener("PluginBlocklisted", gPluginHandler, true);
-    browser.addEventListener("PluginOutdated", gPluginHandler, true);
-    browser.addEventListener("PluginDisabled", gPluginHandler, true);
-    browser.addEventListener("NewPluginInstalled", gPluginHandler, true);
+    // Note that the XBL binding is untrusted
+    browser.addEventListener("PluginBindingAttached", gPluginHandler, true, true);
+    browser.addEventListener("PluginCrashed",         gPluginHandler, true);
+    browser.addEventListener("PluginOutdated",        gPluginHandler, true);
+    browser.addEventListener("NewPluginInstalled",    gPluginHandler, true);
   },
 
   removeEventListeners: function ph_removeEventListeners(browser) {
-    browser.removeEventListener("PluginNotFound", gPluginHandler);
+    browser.removeEventListener("PluginBindingAttached", gPluginHandler);
     browser.removeEventListener("PluginCrashed", gPluginHandler);
-    browser.removeEventListener("PluginBlocklisted", gPluginHandler);
     browser.removeEventListener("PluginOutdated", gPluginHandler);
-    browser.removeEventListener("PluginDisabled", gPluginHandler);
     browser.removeEventListener("NewPluginInstalled", gPluginHandler);
   },
 
@@ -135,6 +132,36 @@ var gPluginHandler = {
                               true);
   },
 
+  // Helper to get the binding handler type from a plugin object
+  _getBindingType : function(plugin) {
+    let Ci = Components.interfaces;
+
+    if (!(plugin instanceof Ci.nsIObjectLoadingContent))
+      return null;
+
+    switch (plugin.pluginFallbackType) {
+      case Ci.nsIObjectLoadingContent.PLUGIN_UNSUPPORTED:
+        return "PluginNotFound";
+      case Ci.nsIObjectLoadingContent.PLUGIN_DISABLED:
+        return "PluginDisabled";
+      case Ci.nsIObjectLoadingContent.PLUGIN_BLOCKLISTED:
+        return "PluginBlocklisted";
+      case Ci.nsIObjectLoadingContent.PLUGIN_OUTDATED:
+        return "PluginOutdated";
+      case Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY:
+        return "PluginClickToPlay";
+      case Ci.nsIObjectLoadingContent.PLUGIN_VULNERABLE_UPDATABLE:
+        return "PluginVulnerableUpdatable";
+      case Ci.nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE:
+        return "PluginVulnerableNoUpdate";
+      case Ci.nsIObjectLoadingContent.PLUGIN_PLAY_PREVIEW:
+        return "PluginPlayPreview";
+      default:
+        // Not all states map to a handler
+        return null;
+    }
+  },
+
   handleEvent : function ph_handleEvent(event) {
     let self = gPluginHandler;
     let plugin = event.target;
@@ -144,10 +171,26 @@ var gPluginHandler = {
     if (!(plugin instanceof Components.interfaces.nsIObjectLoadingContent))
       return;
 
-    // Force a style flush, so that we ensure our binding is attached.
-    plugin.clientTop;
+    let eventType = event.type;
+    if (eventType == "PluginBindingAttached") {
+      // The plugin binding fires this event when it is created.
+      // As an untrusted event, ensure that this object actually has a binding
+      // and make sure we don't handle it twice
+      let overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+      if (!overlay || overlay._bindingHandled) {
+        return;
+      }
+      overlay._bindingHandled = true;
 
-    switch (event.type) {
+      // Lookup the handler for this binding
+      eventType = self._getBindingType(plugin);
+      if (!eventType) {
+        // Not all bindings have handlers
+        return;
+      }
+    }
+
+    switch (eventType) {
       case "PluginCrashed":
         self.pluginInstanceCrashed(plugin, event);
         break;
@@ -173,7 +216,7 @@ var gPluginHandler = {
 #ifdef XP_MACOSX
       case "npapi-carbon-event-model-failure":
 #endif
-        self.pluginUnavailable(plugin, event.type);
+        self.pluginUnavailable(plugin, eventType);
         break;
 
       case "PluginDisabled":
@@ -183,7 +226,7 @@ var gPluginHandler = {
     }
 
     // Hide the in-content UI if it's too big. The crashed plugin handler already did this.
-    if (event.type != "PluginCrashed") {
+    if (eventType != "PluginCrashed") {
       let overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
       if (self.isTooSmall(plugin, overlay))
           overlay.style.visibility = "hidden";
@@ -478,6 +521,10 @@ var gPluginHandler = {
     //
     // Configure the crashed-plugin placeholder.
     //
+
+
+    // Force a layout flush so the binding is attached.
+    plugin.clientTop;
     let doc = plugin.ownerDocument;
     let overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
     let statusDiv = doc.getAnonymousElementByAttribute(plugin, "class", "submitStatus");
