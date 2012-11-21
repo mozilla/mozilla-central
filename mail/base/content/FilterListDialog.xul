@@ -46,6 +46,7 @@
               ServerType="none"
               oncommand="onFilterFolderClick(event.target._folder);">
       <menupopup id="serverMenuPopup" type="folder" mode="filters"
+                 class="menulist-menupopup"
                  expandFolders="nntp" headlabels="&choosethisnewsserver.label;"/>
     </menulist>
     <textbox id="searchBox"
@@ -134,6 +135,7 @@
             <menulist id="runFiltersFolder" disabled="true" flex="1"
                       oncommand="onTargetSelect(event);">
               <menupopup id="runFiltersPopup"
+                         class="menulist-menupopup"
                          type="folder"
                          showFileHereLabel="true"
                          fileHereLabel="&filemessageschoosethis.label;"/>

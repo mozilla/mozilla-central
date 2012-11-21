@@ -570,6 +570,7 @@
           menu.setAttribute("label", this.getAttribute("recentLabel"));
           menu.setAttribute("accesskey", this.getAttribute("recentAccessKey"));
           var popup = document.createElement("menupopup");
+          popup.setAttribute("class", this.getAttribute("class"));
           popup.setAttribute("generated", "true");
           menu.appendChild(popup);
 
