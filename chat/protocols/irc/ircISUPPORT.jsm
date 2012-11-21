@@ -20,7 +20,7 @@ Cu.import("resource:///modules/ircHandlers.jsm");
 Cu.import("resource:///modules/ircUtils.jsm");
 
 /*
- * Parses a individual token from a ISUPPORT message of the form:
+ * Parses an ircMessage into an ISUPPORT message for each token of the form:
  *   <parameter>=<value> or -<value>
  * The isupport field is added to the message and it has the following fields:
  *   parameter  What is being configured by this ISUPPORT token.
@@ -29,14 +29,19 @@ Cu.import("resource:///modules/ircUtils.jsm");
  *   value      The new value for the parameter.
  */
 function isupportMessage(aMessage, aToken) {
+  // Seperate the ISUPPORT parameters.
+  let tokens = aMessage.params.slice(1, -1);
+
   let message = aMessage;
   message.isupport = {};
-  message.isupport.useDefault = aToken[0] == "-";
 
-  let token = message.isupport.useDefault ? aToken.slice(1) : aToken;
-  [message.isupport.parameter, message.isupport.value] = token.split("=");
-
-  return message;
+  return tokens.map(function(aToken) {
+    let newMessage = JSON.parse(JSON.stringify(message));
+    newMessage.isupport.useDefault = aToken[0] == "-";
+    [newMessage.isupport.parameter, newMessage.isupport.value] =
+      (newMessage.isupport.useDefault ? aToken.slice(1) : aToken).split("=");
+    return newMessage;
+  });
 }
 
 var ircISUPPORT = {
@@ -49,17 +54,11 @@ var ircISUPPORT = {
     // RPL_ISUPPORT
     // [-]<parameter>[=<value>] :are supported by this server
     "005": function(aMessage) {
-      if (!("ISUPPORT" in this))
-        this.ISUPPORT = {};
-
-      // Seperate the ISUPPORT parameters.
-      let tokens = aMessage.params.slice(1, -1);
+      let messages = isupportMessage(aMessage);
 
       let handled = true;
-      for each (let token in tokens) {
-        let message = isupportMessage(aMessage, token);
+      for each (let message in messages)
         handled &= ircHandlers.handleISUPPORTMessage(this, message);
-      }
 
       return handled;
     }
