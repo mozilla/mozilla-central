@@ -51,6 +51,12 @@ var ircServices = {
   name: "IRC Services",
   priority: ircHandlers.HIGH_PRIORITY,
   isEnabled: function() true,
+  sendIdentify: function(aAccount) {
+    if (aAccount.imAccount.password && !aAccount.isAuthenticated) {
+      aAccount.sendMessage("IDENTIFY", aAccount.imAccount.password,
+                           "IDENTIFY <password not logged>");
+    }
+  },
 
   commands: {
     // If we automatically reply to a NOTICE message this does not abide by RFC
@@ -70,12 +76,26 @@ var ircServices = {
       return ircHandlers.handleServicesMessage(this, message);
     },
 
+    "NICK": function(aMessage) {
+      let newNick = aMessage.params[0];
+      // We only auto-authenticate for the account nickname.
+      if (this.normalize(newNick) != this.normalize(this._accountNickname))
+        return false;
+
+      // We may still be authenticated, but we try to authenticate with the
+      // new nick anyway, since there is no good way to tell if we are still
+      // authenticated.
+      delete this.isAuthenticated;
+      ircServices.sendIdentify(this);
+
+      // We always want the RFC 2812 handler to handle NICK, so return false.
+      return false;
+    },
+
     "001": function(aMessage) { // RPL_WELCOME
       // If SASL authentication failed, attempt IDENTIFY.
-      if (this.imAccount.password && !this.isAuthenticated) {
-        this.sendMessage("IDENTIFY", this.imAccount.password,
-                         "IDENTIFY <password not logged>");
-      }
+      ircServices.sendIdentify(this);
+
       // We always want the RFC 2812 handler to handle 001, so return false.
       return false;
     },
@@ -173,6 +193,14 @@ var servicesBase = {
           delete this.isHandlingQueuedMessages;
           delete this.nickservMessageQueue;
         }.bind(this), 10000);
+        return true;
+      }
+
+      if (!this.isAuthenticated &&
+          (text == "You are already identified." || // Anope.
+           text.slice(0, 30) == "You are already logged in as \x02")) { // Atheme.
+        // Do not show the message if caused by the automatic reauthentication.
+        this.isAuthenticated = true;
         return true;
       }
 
