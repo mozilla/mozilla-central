@@ -13,6 +13,8 @@
 // class as appropriate.
 //
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /**
  * Abtracts the checking of user/browser actions for signs of
  * phishing. 
@@ -160,7 +162,10 @@ PROT_ListWarden.prototype.isEvilURL = function(msgURI, aFailsStaticTests, url, c
  */
 function MultiTableQuerier(url, whiteTables, blackTables, callback) {
   this.debugZone = "multitablequerier";
-  this.url_ = url;
+
+  let uri = Services.io.newURI(url, null, null);
+  this.principal_ = Services.scriptSecurityManager
+                            .getNoAppCodebasePrincipal(uri);
 
   this.whiteTables_ = {};
   for (var i = 0; i < whiteTables.length; i++) {
@@ -179,7 +184,7 @@ function MultiTableQuerier(url, whiteTables, blackTables, callback) {
 
 MultiTableQuerier.prototype.run = function() {
   /* ask the dbservice for all the tables to which this URL belongs */
-  this.listManager_.safeLookup(this.url_,
+  this.listManager_.safeLookup(this.principal_,
                                BindToObject(this.lookupCallback_, this));
 }
 
