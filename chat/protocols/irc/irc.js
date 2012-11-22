@@ -43,11 +43,11 @@ function ircMessage(aData) {
   // See http://joshualuckers.nl/2010/01/10/regular-expression-to-match-raw-irc-messages/
   // Note that this expression is slightly more aggressive in matching than RFC
   // 2812 would allow. It allows for empty parameters (besides the last
-  // parameter, which can always be empty), by allowing two spaces in a row.
+  // parameter, which can always be empty), by allowing multiple spaces.
   // (This is for compatibility with Unreal's 432 response, which returns an
   // empty first parameter.) It also allows a trailing space after the
   // <parameter>s when no <last parameter> is present (also occurs with Unreal).
-  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? ?(?::([\s\S]*))?$/))) {
+  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? *(?::([\s\S]*))?$/))) {
     ERROR("Couldn't parse message: \"" + aData + "\"");
     return message;
   }

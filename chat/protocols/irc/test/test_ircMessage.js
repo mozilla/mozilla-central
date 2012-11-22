@@ -170,11 +170,17 @@ function testBrokenUnrealMessages() {
       params: ["", "#momo", "Erroneous Nickname: Illegal characters"],
       servername: "gravel.mozilla.org"
     },
-    ":gravel.mozilla.org MODE #tckk +n ":  {
+    ":gravel.mozilla.org MODE #tckk +n ": {
       rawMessage: ":gravel.mozilla.org MODE #tckk +n ",
       command: "MODE",
       params: ["#tckk", "+n"],
       servername: "gravel.mozilla.org"
+    },
+    ":services.esper.net MODE #foo-bar +o foobar  ": {
+      rawMessage: ":services.esper.net MODE #foo-bar +o foobar  ",
+      command: "MODE",
+      params: ["#foo-bar", "+o", "foobar"],
+      servername: "services.esper.net"
     }
   };
 
