@@ -7,6 +7,7 @@
 #define nsMovemailService_h___
 
 #include "nscore.h"
+#include "nsCOMPtr.h"
 
 #include "nsIMovemailService.h"
 #include "nsIMsgProtocolInfo.h"
