@@ -696,6 +696,8 @@ ircAccount.prototype = {
   _MODE_INVISIBLE: 1 << 3, // mode 'i'
   get _mode() 0,
 
+  // Whether to attempt authenticating with NickServ.
+  shouldAuthenticate: true,
   // Whether the user has successfully authenticated with NickServ.
   isAuthenticated: false,
   // The nickname stored in the account name.

@@ -25,6 +25,29 @@ var ircNonStandard = {
   isEnabled: function() true,
 
   commands: {
+    "NOTICE": function(aMessage) {
+      // NOTICE <msgtarget> <text>
+      // If we receive a ZNC error message requesting a password, the
+      // serverPassword preference was not set by the user. Attempt to log into
+      // ZNC using the account password.
+      if (aMessage.params[0] != "AUTH" ||
+          aMessage.params[1] != "*** You need to send your password. Try /quote PASS <username>:<password>")
+        return false;
+
+      if (this.imAccount.password) {
+        // Send the password now, if it is available.
+        this.shouldAuthenticate = false;
+        this.sendMessage("PASS", this.imAccount.password,
+                         "PASS <password not logged>");
+      }
+      else {
+        // Otherwise, put the account in an error state.
+        this.gotDisconnected(Ci.prplIAccount.ERROR_AUTHENTICATION_IMPOSSIBLE,
+                             _("connection.error.passwordRequired"));
+      }
+      return true;
+    },
+
     "307": function(aMessage) {
       // TODO RPL_SUSERHOST (AustHex)
       // TODO RPL_USERIP (Undernet)

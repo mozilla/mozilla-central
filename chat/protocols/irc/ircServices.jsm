@@ -52,7 +52,8 @@ var ircServices = {
   priority: ircHandlers.HIGH_PRIORITY,
   isEnabled: function() true,
   sendIdentify: function(aAccount) {
-    if (aAccount.imAccount.password && !aAccount.isAuthenticated) {
+    if (aAccount.imAccount.password && this.shouldAuthenticate &&
+        !aAccount.isAuthenticated) {
       aAccount.sendMessage("IDENTIFY", aAccount.imAccount.password,
                            "IDENTIFY <password not logged>");
     }
@@ -104,7 +105,7 @@ var ircServices = {
       // <command> :Unknown command
       // IDENTIFY failed, try NICKSERV IDENTIFY.
       if (aMessage.params[1] == "IDENTIFY" && this.imAccount.password &&
-          !this.isAuthenticated) {
+          this.shouldAuthenticate && !this.isAuthenticated) {
         this.sendMessage("NICKSERV", ["IDENTIFY", this.imAccount.password],
                          "NICKSERV IDENTIFY <password not logged>");
         return true;

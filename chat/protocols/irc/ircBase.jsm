@@ -1261,8 +1261,9 @@ var ircBase = {
     },
     "464": function(aMessage) { // ERR_PASSWDMISMATCH
       // :Password incorrect
-      // TODO prompt user for new password
-      return false;
+      this.gotDisconnected(Ci.prplIAccount.ERROR_AUTHENTICATION_FAILED,
+                           _("connection.error.invalidPassword"));
+      return true;
     },
     "465": function(aMessage) { // ERR_YOUREBANEDCREEP
       // :You are banned from this server
