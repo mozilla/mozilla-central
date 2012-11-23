@@ -325,12 +325,8 @@ var chatHandler = {
 
   setStatusMenupopupCommand: function(aEvent) {
     let target = aEvent.originalTarget;
-    if (target.getAttribute("id") == "imStatusShowAccounts") {
-      openIMAccountMgr();
-      return;
-    }
-
-    if (target.getAttribute("id") == "appmenu_imStatusShowAccounts") {
+    if (target.getAttribute("id") == "imStatusShowAccounts" ||
+        target.getAttribute("id") == "appmenu_imStatusShowAccounts") {
       openIMAccountMgr();
       return;
     }
@@ -976,7 +972,8 @@ var chatHandler = {
     if (!Services.prefs.getBoolPref("mail.chat.enabled")) {
       ["button-chat", "menu_goChat", "goChatSeparator",
        "imAccountsStatus", "joinChatMenuItem", "newIMAccountMenuItem",
-       "newIMContactMenuItem", "appmenu_joinChatMenuItem",
+       "newIMContactMenuItem", "appmenu_joinChatMenuItem", "appmenu_afterChatSeparator",
+       "appmenu_goChat", "appmenu_imAccountsStatus", "appmenu_goChatSeparator",
        "appmenu_newIMAccountMenuItem", "appmenu_newIMContactMenuItem"].forEach(function(aId) {
          let elt = document.getElementById(aId);
          if (elt)
