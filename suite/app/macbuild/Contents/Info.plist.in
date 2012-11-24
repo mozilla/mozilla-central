@@ -32,9 +32,6 @@
 	<string>10.6.0</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
-	
-	<!--Updated Metadata begins here-->
-			
 			<dict>
 				<key>CFBundleTypeName</key>
 				<string>Text Document</string>
@@ -56,94 +53,8 @@
 					<string>log</string>
 					</array>
 				<key>CFBundleTypeIconFile</key>
-				<string>text.icns</string>
+				<string>document.icns</string>
 			</dict>
-
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>@MOZ_APP_DISPLAYNAME@ Preferences File</string>
-				<key>CFBundleTypeRole</key>
-				<string>None</string>
-				<key>CFBundleTypeOSTypes</key>
-				<array>
-					<string>pref</string>
-				</array>
-				<key>CFBundleTypeIconFile</key>
-				<string>pref.icns</string>
-			</dict>
-			
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>@MOZ_APP_DISPLAYNAME@ Plugin</string>
-				<key>CFBundleTypeRole</key>
-				<string>None</string>
-				<key>CFBundleTypeOSTypes</key>
-				<array>
-					<string>NSPL</string>
-					<string>IEPL</string> 
-					<string>BRPL</string>
-				</array>
-				<key>CFBundleTypeExtensions</key>
-				<array>
-					<string>plugin</string>
-				</array>
-				<key>CFBundleTypeIconFile</key>
-				<string>plugin.icns</string>
-			</dict>
-			
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>@MOZ_APP_DISPLAYNAME@ Command Line File</string>
-				<key>CFBundleTypeRole</key>
-				<string>Viewer</string>
-				<key>CFBundleTypeOSTypes</key>
-				<array>
-					<string>CMDL</string>
-				</array>
-				<key>CFBundleTypeIconFile</key>
-				<string>command.icns</string>
-			</dict>	
-			
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>@MOZ_APP_DISPLAYNAME@ Shared Library</string>
-				<key>CFBundleTypeRole</key>
-				<string>None</string>
-				<key>CFBundleTypeOSTypes</key>
-				<array>
-					<string>shlb</string>
-				</array>
-				<key>CFBundleTypeExtensions</key>
-				<array>
-					<string>shlb</string>
-					<string>dylib</string>
-					</array>
-				<key>CFBundleTypeIconFile</key>
-				<string>component.icns</string>
-			</dict>
-
-			<dict>
-				<key>CFBundleTypeName</key>
-				<string>@MOZ_APP_DISPLAYNAME@ Binary File</string>
-				<key>CFBundleTypeRole</key>
-				<string>None</string>
-				<key>CFBundleTypeOSTypes</key>
-				<array>
-					<string>BiNA</string>
-				</array>
-				<key>CFBundleTypeExtensions</key>
-				<array>
-					<string>mab</string>
-					<string>bag</string>
-					<string>na2</string>
-					<string>msf</string>
-					<string>sbd</string>
-					<string>regs</string>
-				</array>
-				<key>CFBundleTypeIconFile</key>
-				<string>component.icns</string>
-			</dict>
-			
 			<dict>
 				<key>CFBundleTypeName</key>
 				<string>HTML Document</string>
@@ -162,9 +73,8 @@
 					<string>xhtml</string>
 					</array>
 				<key>CFBundleTypeIconFile</key>
-				<string>html.icns</string>
+				<string>document.icns</string>
 			</dict>
-
 			<dict>
 				<key>CFBundleTypeName</key>
 				<string>@MOZ_APP_DISPLAYNAME@ E-mail</string>
@@ -179,10 +89,9 @@
 				<array>
 					<string>eml</string>
 				</array>
+				<key>CFBundleTypeIconFile</key>
+				<string>document.icns</string>
 			</dict>
-			
-	<!--Image Icon image.icns does not yet exist, but associating Images with the application here-->
-			
 			<dict>
 				<key>CFBundleTypeName</key>
 				<string>Image Document</string>
@@ -209,18 +118,85 @@
 					<string>ppm6</string>
 				</array>
 				<key>CFBundleTypeIconFile</key>
-				<string>image.icns</string>
+				<string>document.icns</string>
 			</dict>
-			
-	<!--Updated Metadata ends here-->
-
-
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>SVG document</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+			        <string>TEXT</string>
+			</array>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+			        <string>svg</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>document.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+			        <string>image/svg+xml</string>
+			</array>
+			<key>NSDocumentClass</key>
+			<string>BrowserDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>HTML5 Audio (Ogg)</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>oga</string>
+				<string>ogg</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>document.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>audio/ogg</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>HTML5 Video (Ogg)</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>ogv</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>document.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>video/ogg</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>HTML5 Video (WebM)</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>webm</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>document.icns</string>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>video/webm</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLIconFile</key>
-			<string>fileHtml.icns</string>
+			<string>document.icns</string>
 			<key>CFBundleURLName</key>
 			<string>http URL</string>
 			<key>CFBundleURLSchemes</key>
@@ -230,7 +206,7 @@
 		</dict>
 		<dict>
 			<key>CFBundleURLIconFile</key>
-			<string>fileHtml.icns</string>
+			<string>document.icns</string>
 			<key>CFBundleURLName</key>
 			<string>https URL</string>
 			<key>CFBundleURLSchemes</key>

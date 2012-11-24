@@ -97,14 +97,8 @@ endif
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 	$(NSINSTALL) -D $(DIST)/branding
 	$(NSINSTALL) -D $(DIST)/branding/icons
-	cp $(srcdir)/icons/mac/command.icns           $(DIST)/branding/icons/command.icns
-	cp $(srcdir)/icons/mac/component.icns         $(DIST)/branding/icons/component.icns
-	cp $(srcdir)/icons/mac/html.icns              $(DIST)/branding/icons/html.icns
-	cp $(srcdir)/icons/mac/mozilla.icns           $(DIST)/branding/icons/mozilla.icns
-	cp $(srcdir)/icons/mac/plugin.icns            $(DIST)/branding/icons/plugin.icns
-	cp $(srcdir)/icons/mac/pref.icns              $(DIST)/branding/icons/pref.icns
+	cp $(srcdir)/icons/mac/document.icns          $(DIST)/branding/icons/document.icns
 	cp $(srcdir)/icons/mac/seamonkey.icns         $(DIST)/branding/icons/seamonkey.icns
-	cp $(srcdir)/icons/mac/text.icns              $(DIST)/branding/icons/text.icns
 	cp $(srcdir)/package/mac/dsstore              $(DIST)/branding/dsstore
 	cp $(srcdir)/package/mac/background.png       $(DIST)/branding/background.png
 	cp $(srcdir)/package/mac/disk.icns            $(DIST)/branding/disk.icns
