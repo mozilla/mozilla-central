@@ -118,7 +118,7 @@ function AddAddressFromComposeWindow(addresses, prefix)
     var emails = {};
     var names = {};
     var fullNames = {};
-    var numAddresses = gHeaderParser.parseHeadersWithArray(addresses, emails, names, fullNames);
+    var numAddresses = MailServices.headerParser.parseHeadersWithArray(addresses, emails, names, fullNames);
 
     for ( var index = 0; index < numAddresses; index++ )
     {
