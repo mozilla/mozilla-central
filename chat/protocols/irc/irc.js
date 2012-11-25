@@ -47,10 +47,8 @@ function ircMessage(aData) {
   // (This is for compatibility with Unreal's 432 response, which returns an
   // empty first parameter.) It also allows a trailing space after the
   // <parameter>s when no <last parameter> is present (also occurs with Unreal).
-  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? *(?::([\s\S]*))?$/))) {
-    ERROR("Couldn't parse message: \"" + aData + "\"");
-    return message;
-  }
+  if (!(temp = aData.match(/^(?::([^ ]+) )?([^ ]+)((?: +[^: ][^ ]*)*)? *(?::([\s\S]*))?$/)))
+    throw "Couldn't parse message: \"" + aData + "\"";
 
   // Assume message is from the server if not specified
   prefix = temp[1];
@@ -612,9 +610,16 @@ ircSocket.prototype = {
     aRawMessage = aRawMessage.replace(/\x10./g,
       function(aStr) lowDequote[aStr[1]] || aStr[1]);
 
-    // If nothing handled the message, throw an error.
-    if (!ircHandlers.handleMessage(this._account, new ircMessage(aRawMessage)))
-      WARN("Unhandled IRC message: " + aRawMessage);
+    try {
+      // If nothing handled the message, throw a warning.
+      if (!ircHandlers.handleMessage(this._account, new ircMessage(aRawMessage)))
+        WARN("Unhandled IRC message: " + aRawMessage);
+    } catch (e) {
+      // Catch the error, display it and hope the connection can continue with
+      // this message in error. Errors are also caught inside of handleMessage,
+      // but we expect to handle message parsing errors here.
+      ERROR(e);
+    }
   },
   onConnection: function() {
     this._account._connectionRegistration.call(this._account);
