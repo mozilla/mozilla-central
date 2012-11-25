@@ -1313,15 +1313,6 @@ function GetSelectedIndices(dbView)
   }
 }
 
-function GetSelectedMessages()
-{
-  if (!GetDBView())
-    return null;
-
-  var messageArray = GetDBView().getURIsForSelection({});
-  return messageArray.length ? messageArray : null;
-}
-
 function GetLoadedMsgFolder()
 {
     if (!gDBView) return null;

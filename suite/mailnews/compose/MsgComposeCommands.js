@@ -554,14 +554,8 @@ function QuoteSelectedMessage()
 
 function GetSelectedMessages()
 {
-  if (gMsgCompose) {
-    var mailWindow = Services.wm.getMostRecentWindow("mail:3pane");
-    if (mailWindow) {
-      return mailWindow.GetSelectedMessages();
-    }
-  }
-
-  return null;
+  var mailWindow = gMsgCompose && Services.wm.getMostRecentWindow("mail:3pane");
+  return mailWindow && mailWindow.gFolderDisplay.selectedMessageUris;
 }
 
 function SetupCommandUpdateHandlers()

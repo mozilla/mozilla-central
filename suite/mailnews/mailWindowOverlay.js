@@ -96,15 +96,11 @@ function menu_new_init()
 
 function goUpdateMailMenuItems(commandset)
 {
-//  dump("Updating commands for " + commandset.id + "\n");
-
   for (var i = 0; i < commandset.childNodes.length; i++)
   {
     var commandID = commandset.childNodes[i].getAttribute("id");
     if (commandID)
-    {
       goUpdateCommand(commandID);
-    }
   }
 }
 
@@ -503,8 +499,8 @@ function SetMenuItemLabel(menuItemId, customLabel)
 
 function RemoveAllMessageTags()
 {
-  var selectedMsgUris = GetSelectedMessages();
-  if (!selectedMsgUris.length)
+  var selectedMessages = gFolderDisplay.selectedMessages;
+  if (!selectedMessages.length)
     return;
 
   var messages = Components.classes["@mozilla.org/array;1"]
@@ -514,7 +510,7 @@ function RemoveAllMessageTags()
   var tagArray = tagService.getAllTags({});
 
   var allKeys = "";
-  for (j = 0; j < tagArray.length; ++j)
+  for (let j = 0; j < tagArray.length; ++j)
   {
     if (j)
       allKeys += " ";
@@ -528,10 +524,10 @@ function RemoveAllMessageTags()
   // but nsIMsgDBView doesn't handle commands with arguments, and untag takes a
   // key argument. Furthermore, we only delete legacy labels and known tags,
   // keeping other keywords like (non)junk intact.
-  var j;
-  for (var i = 0; i < selectedMsgUris.length; ++i)
+
+  for (let i = 0; i < selectedMessages.length; ++i)
   {
-    var msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+    var msgHdr = selectedMessages[i];
     msgHdr.label = 0; // remove legacy label
     if (prevHdrFolder != msgHdr.folder)
     {
@@ -634,7 +630,7 @@ function ToggleMessageTag(key, addKey)
                            .createInstance(Components.interfaces.nsIMutableArray);
   var msg = Components.classes["@mozilla.org/array;1"]
                           .createInstance(Components.interfaces.nsIMutableArray);
-  var selectedMsgUris = GetSelectedMessages();
+  var selectedMessages = gFolderDisplay.selectedMessages;
   var toggler = addKey ? "addKeywordsToMessages" : "removeKeywordsFromMessages";
   var prevHdrFolder = null;
   // this crudely handles cross-folder virtual folders with selected messages
@@ -642,9 +638,9 @@ function ToggleMessageTag(key, addKey)
   // that happen to be in the same folder. nsMsgSearchDBView does this
   // better, but nsIMsgDBView doesn't handle commands with arguments,
   // and (un)tag takes a key argument.
-  for (var i = 0; i < selectedMsgUris.length; ++i)
+  for (let i = 0; i < selectedMessages.length; ++i)
   {
-    var msgHdr = messenger.msgHdrFromURI(selectedMsgUris[i]);
+    var msgHdr = selectedMessages[i];
     if (msgHdr.label)
     {
       // Since we touch all these messages anyway, migrate the label now.
@@ -1039,30 +1035,22 @@ function MsgMoveMessage(destFolder)
  *
  * @param aCompType  The nsIMsgCompType to pass to the function.
  * @param aEvent (optional) The event that triggered the call.
+ * @param aFormat (optional) Override the message format.
  */
-function ComposeMsgByType(aCompType, aEvent)
+function ComposeMsgByType(aCompType, aEvent, aFormat)
 {
-  var format = (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
+  var format = aFormat || (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
 
   ComposeMessage(aCompType,
                  format,
                  GetFirstSelectedMsgFolder(),
-                 GetSelectedMessages());
+                 gFolderDisplay ? gFolderDisplay.selectedMessageUris : null);
 }
 
 function MsgNewMessage(aEvent)
 {
-  var format;
-  var mode = aEvent && aEvent.target.getAttribute("mode");
-  if (mode)
-    format = msgComposeFormat[mode];
-  else
-    format = (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
-
-  ComposeMessage(msgComposeType.New,
-                 format,
-                 GetFirstSelectedMsgFolder(),
-                 GetSelectedMessages());
+  ComposeMsgByType(msgComposeType.New, aEvent,
+                   aEvent && aEvent.target.getAttribute("mode"));
 }
 
 function MsgReplyMessage(aEvent)
@@ -1384,41 +1372,22 @@ function MsgForwardMessage(event)
 
 function MsgForwardAsAttachment(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  //dump("\nMsgForwardAsAttachment from XUL\n");
-  ComposeMessage(msgComposeType.ForwardAsAttachment,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);  
+  ComposeMsgByType(msgComposeType.ForwardAsAttachment, event);
 }
 
 function MsgForwardAsInline(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  //dump("\nMsgForwardAsInline from XUL\n");
-  ComposeMessage(msgComposeType.ForwardInline,
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);  
+  ComposeMsgByType(msgComposeType.ForwardInline, event);
 }
 
 function MsgEditMessageAsNew()
 {
-    var loadedFolder = GetLoadedMsgFolder();
-    var messageArray = GetSelectedMessages();
-    ComposeMessage(msgComposeType.Template, msgComposeFormat.Default, loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.Template);
 }
 
 function MsgComposeDraftMessage()
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
-                 Components.interfaces.nsIMsgCompFormat.Default,
-                 loadedFolder, messageArray);
+  ComposeMsgByType(msgComposeType.Draft, null, msgComposeFormat.Default);
 }
 
 function MsgCreateFilter()
@@ -1551,7 +1520,7 @@ function MsgUnsubscribe()
 
 function MsgSaveAsFile()
 {
-  SaveAsFile(GetSelectedMessages());
+  SaveAsFile(gFolderDisplay.selectedMessageUris);
 }
 
 function MsgSaveAsTemplate()
@@ -1791,8 +1760,7 @@ function MsgMarkThreadAsRead()
 
 function MsgViewPageSource()
 {
-    var messages = GetSelectedMessages();
-    ViewPageSource(messages);
+    ViewPageSource(gFolderDisplay.selectedMessageUris);
 }
 
 var gFindInstData;
@@ -2043,31 +2011,31 @@ function MsgSendUnsentMsgs()
   }
 }
 
-function PrintEnginePrintInternal(messageList, numMessages, doPrintPreview, msgType)
+function PrintEnginePrintInternal(aDoPrintPreview, aMsgType)
 {
-    if (numMessages == 0) {
-        dump("PrintEnginePrint(): No messages selected.\n");
-        return false;
-    }
+  var messageList = gFolderDisplay.selectedMessageUris;
+  if (!messageList)
+  {
+    dump("PrintEnginePrint(): No messages selected.\n");
+    return false;
+  }
 
-    printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
-                                          "",
-                                          "chrome,dialog=no,all,centerscreen",
-                                          numMessages, messageList, statusFeedback, doPrintPreview, msgType, window);
-    return true;
+  window.openDialog("chrome://messenger/content/msgPrintEngine.xul", "",
+                    "chrome,dialog=no,all,centerscreen",
+                    messageList.length, messageList, statusFeedback,
+                    aDoPrintPreview, aMsgType, window);
+  return true;
 
 }
 
 function PrintEnginePrint()
 {
-    var messageList = GetSelectedMessages();
-    return PrintEnginePrintInternal(messageList, messageList.length, false, Components.interfaces.nsIMsgPrintEngine.MNAB_PRINT_MSG);
+  return PrintEnginePrintInternal(false, Components.interfaces.nsIMsgPrintEngine.MNAB_PRINT_MSG);
 }
 
 function PrintEnginePrintPreview()
 {
-    var messageList = GetSelectedMessages();
-    return PrintEnginePrintInternal(messageList, 1, true, Components.interfaces.nsIMsgPrintEngine.MNAB_PRINTPREVIEW_MSG);
+  return PrintEnginePrintInternal(true, Components.interfaces.nsIMsgPrintEngine.MNAB_PRINTPREVIEW_MSG);
 }
 
 function IsMailFolderSelected()

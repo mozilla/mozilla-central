@@ -188,11 +188,8 @@ function ThreadPaneDoubleClick()
   }
   else if(IsSpecialFolderSelected(nsMsgFolderFlags.Templates, true))
   {
-    var loadedFolder = GetLoadedMsgFolder();
-    var messageArray = GetSelectedMessages();
-    ComposeMessage(Components.interfaces.nsIMsgCompType.Template,
-                   Components.interfaces.nsIMsgCompFormat.Default,
-                   loadedFolder, messageArray);
+    ComposeMsgByType(Components.interfaces.nsIMsgCompType.Template, null,
+                     Components.interfaces.nsIMsgCompFormat.Default);
   }
   else if (AllowOpenTabOnDoubleClick() &&
            document.documentElement.id != "searchMailWindow")

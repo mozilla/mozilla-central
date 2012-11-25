@@ -432,16 +432,6 @@ function GetNumSelectedMessages()
   return (gCurrentMessageUri) ? 1 : 0;
 }
 
-function GetSelectedMessages()
-{
-	var messageArray = new Array(1);
-	var message = GetLoadedMessage();
-	if (message)
-		messageArray[0] = message;	
-
-	return messageArray;
-}
-
 function GetSelectedIndices(dbView)
 {
   try {
