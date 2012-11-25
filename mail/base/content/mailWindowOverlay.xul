@@ -957,6 +957,7 @@
             <menupopup id="appmenu_newMenupopup">
               <menuitem id="newNewMsgCmd"
                         label="&newNewMsgCmd.label;"
+                        key="key_newMessage2"
                         oncommand="MsgNewMessage(null);"/>
               <menuitem id="appmenu_newFolder"
                         label="&newFolderCmd.label;"
@@ -1054,13 +1055,16 @@
           <menupopup id="appmenu_FindPopup">
             <menuitem id="appmenu_findCmd"
                       label="&findCmd.label;"
+                      key="key_find"
                       command="cmd_find"/>
             <menuitem id="appmenu_findAgainCmd"
                       label="&findAgainCmd.label;"
+                      key="key_findAgain"
                       command="cmd_findAgain"/>
             <menuseparator id="appMenuAfterFindSeparator"/>
             <menuitem id="appmenu_searchMailCmd"
                       label="&searchMailCmd.label;"
+                      key="key_searchMail"
                       command="cmd_search"/>
             <menuitem id="appmenu_searchAddressesCmd"
                       label="&searchAddressesCmd.label;"
@@ -1076,8 +1080,8 @@
               <menuitem id="appmenu_print_popup"
                         class="menuitem-iconic"
                         label="&printCmd.label;"
-                        command="cmd_print"
-                        key="printKb"/>
+                        key="key_print"
+                        command="cmd_print"/>
               <menuitem id="appmenu_printPreview"
                         label="&printPreviewCmd.label;"
                         command="cmd_printpreview"/>
@@ -1244,6 +1248,7 @@
                 <menuitem id="appmenu_showMessage"
                           type="checkbox"
                           label="&showMessageCmd.label;"
+                          key="key_toggleMessagePane"
                           command="cmd_toggleMessagePane"/>
               </menupopup>
             </menu>
@@ -1259,6 +1264,7 @@
                       oncommand="MsgOpenFromFile();"/>
             <menuitem id="appmenu_close"
                       label="&closeCmd.label;"
+                      key="key_close"
                       command="cmd_close"/>
             <menuseparator id="appmenu_fileMenuAfterCloseSeparator"/>
             <menu id="appmenu_getNewMsgFor"
@@ -1270,9 +1276,11 @@
                          expandFolders="false">
                 <menuitem id="appmenu_getnewmsgs_all_accounts"
                           label="&getAllNewMsgCmdPopupMenu.label;"
+                          key="key_getAllNewMessages"
                           command="cmd_getMsgsForAuthAccounts"/>
                 <menuitem id="appmenu_getnewmsgs_current_account"
                           label="&getNewMsgCurrentAccountCmdPopupMenu.label;"
+                          key="key_getNewMessages"
                           command="cmd_getNewMessages"/>
                 <menuseparator/>
               </menupopup>
@@ -1292,6 +1300,7 @@
                       command="cmd_deleteFolder"/>
             <menuitem id="appmenu_renameFolder"
                       label="&renameFolder.label;"
+                      key="key_renameFolder"
                       command="cmd_renameFolder"/>
             <menuseparator id="appmenu_fileMenuAfterRenameSeparator"/>
             <menuitem id="appmenu_compactFolder"
@@ -1504,10 +1513,12 @@
                 <menuseparator id="appmenu_threadsAfterIgnoredSeparator"/>
                 <menuitem id="appmenu_expandAllThreads"
                           label="&expandAllThreadsCmd.label;"
+                          key="key_expandAllThreads"
                           disabled="true"
                           command="cmd_expandAllThreads"/>
                 <menuitem id="appmenu_collapseAllThreads"
                           label="&collapseAllThreadsCmd.label;"
+                          key="key_collapseAllThreads"
                           disabled="true"
                           command="cmd_collapseAllThreads"/>
               </menupopup>
@@ -1606,13 +1617,16 @@
               <menupopup id="appmenu_viewFullZoomPopupMenu">
                 <menuitem id="appmenu_fullZoomEnlarge"
                           label="&fullZoomEnlargeCmd.label;"
+                          key="key_fullZoomEnlarge"
                           command="cmd_fullZoomEnlarge"/>
                 <menuitem id="appmenu_fullZoomReduce"
                           label="&fullZoomReduceCmd.label;"
+                          key="key_fullZoomReduce"
                           command="cmd_fullZoomReduce"/>
                 <menuseparator id="appmenu_fullZoomAfterReduceSeparator"/>
                 <menuitem id="appmenu_fullZoomReset"
                           label="&fullZoomResetCmd.label;"
+                          key="key_fullZoomReset"
                           command="cmd_fullZoomReset"/>
                 <menuseparator id="appmenu_fullZoomAfterResetSeparator"/>
                 <menuitem id="appmenu_fullZoomToggle"
@@ -1748,6 +1762,7 @@
             <menuseparator id="appmenu_viewAfterCharsetSeparator"/>
             <menuitem id="appmenu_pageSourceMenuItem"
                       label="&pageSourceCmd.label;"
+                      key="key_viewPageSource"
                       command="cmd_viewPageSource"/>
           </menupopup>
         </menu>
@@ -1760,9 +1775,11 @@
               <menupopup id="appmenu_GoNextPopup">
                 <menuitem id="appmenu_nextMsg"
                           label="&nextMsgCmd.label;"
+                          key="key_nextMsg"
                           command="cmd_nextMsg"/>
                 <menuitem id="appmenu_nextUnreadMsg"
                           label="&nextUnreadMsgCmd.label;"
+                          key="key_nextUnreadMsg"
                           command="cmd_nextUnreadMsg"/>
                 <menuitem id="appmenu_nextFlaggedMsg"
                           label="&nextStarredMsgCmd.label;"
@@ -1770,6 +1787,7 @@
                 <menuseparator id="appmenu_goNextAfterFlaggedSeparator"/>
                 <menuitem id="appmenu_nextUnreadThread"
                           label="&nextUnreadThread.label;"
+                          key="key_nextUnreadThread"
                           command="cmd_nextUnreadThread"/>
               </menupopup>
             </menu>
@@ -1778,9 +1796,11 @@
               <menupopup id="appmenu_GoPreviousPopup">
                 <menuitem id="appmenu_prevMsg"
                           label="&prevMsgCmd.label;"
+                          key="key_previousMsg"
                           command="cmd_previousMsg"/>
                 <menuitem id="appmenu_prevUnreadMsg"
                           label="&prevUnreadMsgCmd.label;"
+                          key="key_previousUnreadMsg"
                           command="cmd_previousUnreadMsg"/>
                 <menuitem id="appmenu_prevFlaggedMsg"
                           label="&prevStarredMsgCmd.label;"
@@ -1789,13 +1809,16 @@
             </menu>
             <menuitem id="appmenu_goForward"
                       label="&goForwardCmd.label;"
+                      key="key_goForward"
                       command="cmd_goForward"/>
             <menuitem id="appmenu_goBack"
                       label="&goBackCmd.label;"
+                      key="key_goBack"
                       command="cmd_goBack"/>
             <menuseparator id="appmenu_goNextSeparator"/>
             <menuitem id="appmenu_goChat"
                       label="&goChatCmd.label;"
+                      key="key_goChat"
                       command="cmd_chat"/>
             <menuseparator id="appmenu_goChatSeparator"/>
             <menu id="appmenu_goFolderMenu"
@@ -1817,6 +1840,7 @@
             <menuseparator id="appmenu_goRecentlyClosedTabsSeparator"/>
             <menuitem id="appmenu_goStartPage"
                       label="&startPageCmd.label;"
+                      key="key_goStartPage"
                       command="cmd_goStartPage"/>
           </menupopup>
         </menu>
@@ -1827,24 +1851,30 @@
                      onpopupshowing="InitAppMessageMenu();">
             <menuitem id="appmenu_newMsgCmd"
                       label="&newMsgCmd.label;"
+                      key="key_newMessage2"
                       oncommand="MsgNewMessage(null);"/>
             <menuitem id="appmenu_replyMainMenu"
                       label="&replyMsgCmd.label;"
+                      key="key_reply"
                       command="cmd_reply"/>
             <menuitem id="appmenu_replyNewsgroupMainMenu"
                       label="&replyNewsgroupCmd2.label;"
+                      key="key_reply"
                       command="cmd_replyGroup"/>
             <menuitem id="appmenu_replySenderMainMenu"
                       label="&replySenderCmd.label;"
                       command="cmd_replySender"/>
             <menuitem id="appmenu_replyToAll"
                       label="&replyToAllMsgCmd.label;"
+                      key="key_replyall"
                       command="cmd_replyall"/>
             <menuitem id="appmenu_replyToList"
                       label="&replyToListMsgCmd.label;"
+                      key="key_replylist"
                       command="cmd_replylist"/>
             <menuitem id="appmenu_forwardMsg"
                       label="&forwardMsgCmd.label;"
+                      key="key_forward"
                       command="cmd_forward"/>
             <menu id="appmenu_forwardAsMenu"
                   label="&forwardAsMenu.label;">
@@ -1859,13 +1889,16 @@
             </menu>
             <menuitem id="appmenu_editMsgAsNew"
                       label="&editMsgAsNewCmd.label;"
+                      key="key_editAsNew"
                       command="cmd_editAsNew"/>
             <menuseparator id="appmenu_messageMenuAfterCompositionCommandsSeparator"/>
             <menuitem id="appmenu_openMessageWindowMenuitem"
                       label="&openMessageWindowCmd.label;"
+                      key="key_openMessage"
                       command="cmd_openMessage"/>
             <menuitem id="appmenu_openConversationMenuitem"
                       label="&openConversationCmd.label;"
+                      key="key_openConversation"
                       command="cmd_openConversation"/>
             <menu id="appmenu_openFeedMessage"
                   label="&openFeedMessage.label;">
@@ -1917,24 +1950,30 @@
                           command="cmd_markAsUnread"/>
                 <menuitem id="appmenu_markThreadAsRead"
                           label="&markThreadAsReadCmd.label;"
+                          key="key_markThreadAsRead"
                           command="cmd_markThreadAsRead"/>
                 <menuitem id="appmenu_markReadByDate"
                           label="&markReadByDateCmd.label;"
+                          key="key_markReadByDate"
                           command="cmd_markReadByDate"/>
                 <menuitem id="appmenu_markAllRead"
                           label="&markAllReadCmd.label;"
+                          key="key_markAllRead"
                           command="cmd_markAllRead"/>
                 <menuseparator id="markMenuAfterAllReadSeparator"/>
                 <menuitem id="appmenu_markFlaggedMenuItem"
                           type="checkbox"
                           label="&markStarredCmd.label;"
+                          key="key_toggleFlagged"
                           command="cmd_markAsFlagged"/>
                 <menuseparator id="markMenuAfterFlaggedSeparator"/>
                 <menuitem id="appmenu_markAsJunk"
                           label="&markAsJunkCmd.label;"
+                          key="key_markJunk"
                           command="cmd_markAsJunk"/>
                 <menuitem id="appmenu_markAsNotJunk"
                           label="&markAsNotJunkCmd.label;"
+                          key="key_markNotJunk"
                           command="cmd_markAsNotJunk"/>
                 <menuitem id="appmenu_recalculateJunkScore"
                           label="&recalculateJunkScoreCmd.label;"
@@ -1944,6 +1983,7 @@
             <menuseparator id="appmenu_messageMenuAfterMarkSeparator"/>
             <menuitem id="appmenu_archiveMainMenu"
                       label="&archiveMsgCmd.label;"
+                      key="key_archive"
                       command="cmd_archive"/>
             <menuitem id="appmenu_cancel"
                       command="cmd_cancel"
@@ -1970,6 +2010,7 @@
             </menu>
             <menuitem id="appmenu_moveToFolderAgain"
                       command="cmd_moveToFolderAgain"
+                      key="key_moveToFolderAgain"
                       label="&moveToFolderAgain.label;"/>
             <menuseparator id="appmenu_messageMenuAfterMoveCommandsSeparator"/>
             <menuitem id="appmenu_createFilter"
@@ -1978,12 +2019,15 @@
             <menuseparator id="appmenu_threadItemsSeparator"/>
             <menuitem label="&killThreadMenu.label;"
                       id="appmenu_killThread"
+                      key="key_killThread"
                       command="cmd_killThread"/>
             <menuitem label="&killSubthreadMenu.label;"
                       id="appmenu_killSubthread"
+                      key="key_killSubthread"
                       command="cmd_killSubthread"/>
             <menuitem label="&watchThreadMenu.label;"
                       id="appmenu_watchThread"
+                      key="key_watchThread"
                       command="cmd_watchThread"/>
           </menupopup>
         </menu>
@@ -1995,13 +2039,16 @@
                       id="appmenu_tasksMenuMail"
                       class="menuitem-iconic menu-iconic"
                       label="&messengerCmd.label;"
+                      key="key_mail"
                       oncommand="toMessengerWindow();"/>
             <menuitem id="appmenu_addressBook"
                       label="&addressBookCmd.label;"
+                      key="key_addressbook"
                       oncommand="toOpenWindowByType('mail:addressbook', 'chrome://messenger/content/addressbook/addressbook.xul');"/>
             <menuseparator id="devToolsSeparator"/>
             <menuitem id="appmenu_openSavedFilesWnd"
                       label="&savedFiles.label;"
+                      key="key_savedFiles"
                       oncommand="openSavedFilesWnd();"/>
             <menu id="appmenu_imAccountsStatus"
                   label="&imAccountsStatus.label;"
@@ -2041,6 +2088,7 @@
                       oncommand="toImport();"/>
             <menuitem id="appmenu_javascriptConsole"
                       label="&errorConsoleCmd.label;"
+                      key="key_errorConsole"
                       oncommand="toJavaScriptConsole();"/>
             <menuitem id="appmenu_sanitizeHistory"
                       label="&clearRecentHistory.label;"
@@ -2053,8 +2101,9 @@
                    oncommand="openSupportURL();">
             <menupopup id="appmenu_helpMenupopup">
               <menuitem id="appmenu_openHelp"
-                  label="&openHelp.label;"
-                  oncommand="openSupportURL();"/>
+                        label="&openHelp.label;"
+                        key="key_openHelp"
+                        oncommand="openSupportURL();"/>
               <menuitem id="appmenu_whatsNew"
                         label="&whatsNewCmd.label;"
                         oncommand="openWhatsNew();"/>
