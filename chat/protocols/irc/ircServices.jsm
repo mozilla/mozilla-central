@@ -52,7 +52,7 @@ var ircServices = {
   priority: ircHandlers.HIGH_PRIORITY,
   isEnabled: function() true,
   sendIdentify: function(aAccount) {
-    if (aAccount.imAccount.password && this.shouldAuthenticate &&
+    if (aAccount.imAccount.password && aAccount.shouldAuthenticate &&
         !aAccount.isAuthenticated) {
       aAccount.sendMessage("IDENTIFY", aAccount.imAccount.password,
                            "IDENTIFY <password not logged>");
