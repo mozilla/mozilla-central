@@ -495,10 +495,12 @@ function ircParticipant(aName, aConv) {
   this._account = aConv._account;
   this._modes = [];
 
-  if (this._name[0] in this._account.userPrefixToModeMap) {
-    this._modes.push(this._account.userPrefixToModeMap[this._name[0]]);
-    this._name = this._name.slice(1);
-  }
+  // Handle multi-prefix modes.
+  let i;
+  for (i = 0; i < this._name.length &&
+              this._name[i] in this._account.userPrefixToModeMap; ++i)
+    this._modes.push(this._account.userPrefixToModeMap[this._name[i]]);
+  this._name = this._name.slice(i);
 }
 ircParticipant.prototype = {
   __proto__: GenericConvChatBuddyPrototype,
@@ -735,12 +737,16 @@ ircAccount.prototype = {
   // Handle Scandanavian lower case (optionally remove status indicators).
   // See Section 2.2 of RFC 2812: the characters {}|^ are considered to be the
   // lower case equivalents of the characters []\~, respectively.
+  normalizeExpression: /[\x41-\x5E]/g,
   normalize: function(aStr, aPrefixes) {
     let str = aStr;
-    if (aPrefixes && aPrefixes.indexOf(aStr[0]) != -1)
-      str = str.slice(1);
 
-    return str.replace(/[\x41-\x5E]/g,
+    if (aPrefixes) {
+      while (aPrefixes.indexOf(str[0]) != -1)
+        str = str.slice(1);
+    }
+
+    return str.replace(this.normalizeExpression,
                        function(c) String.fromCharCode(c.charCodeAt(0) + 0x20));
   },
 
@@ -1396,6 +1402,7 @@ function ircProtocol() {
   Cu.import("resource:///modules/ircServices.jsm", tempScope);
 
   // Extra features.
+  Cu.import("resource:///modules/ircMultiPrefix.jsm", tempScope);
   Cu.import("resource:///modules/ircNonStandard.jsm", tempScope);
   Cu.import("resource:///modules/ircSASL.jsm", tempScope);
   Cu.import("resource:///modules/ircWatchMonitor.jsm", tempScope);
@@ -1415,6 +1422,8 @@ function ircProtocol() {
   ircHandlers.registerServicesHandler(tempScope.servicesBase);
 
   // Register extra features.
+  ircHandlers.registerISUPPORTHandler(tempScope.isupportNAMESX);
+  ircHandlers.registerCAPHandler(tempScope.capMultiPrefix);
   ircHandlers.registerHandler(tempScope.ircNonStandard);
   ircHandlers.registerHandler(tempScope.ircWATCH);
   ircHandlers.registerISUPPORTHandler(tempScope.isupportWATCH);

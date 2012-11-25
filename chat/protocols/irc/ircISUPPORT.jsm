@@ -72,19 +72,9 @@ function setSimpleNumber(aAccount, aField, aMessage, aDefaultValue) {
   return true;
 }
 
-// Generates a function that will set the ASCII range of aStart-aEnd as the
-// uppercase of (aStart-aEnd) + 0x20.
-function generateNormalize(aStart, aEnd) {
-  const exp = new RegExp("[\\x" + aStart.toString(16) + "-\\x" +
-                         aEnd.toString(16) + "]", "g");
-  return function(aStr, aPrefixes) {
-    let str = aStr;
-    if (aPrefixes && aPrefixes.indexOf(aStr[0]) != -1)
-      str = str.slice(1);
-    return str.replace(exp,
-                       function(c) String.fromCharCode(c.charCodeAt(0) + 0x20));
-  };
-}
+// Generates an expression to search for the ASCII range of a-b.
+function generateNormalize(a, b)
+  new RegExp("[\\x" + a.toString(16) + "-\\x" + b.toString(16) + "]", "g");
 
 var isupportBase = {
   name: "ISUPPORT",
@@ -106,17 +96,17 @@ var isupportBase = {
       if (value == "ascii") {
         // The ASCII characters 97 to 122 (decimal) are the lower-case
         // characters of ASCII 65 to 90 (decimal).
-        this.normalize = generateNormalize(65, 90);
+        this.normalizeExpression = generateNormalize(65, 90);
       }
       else if (value == "rfc1493") {
         // The ASCII characters 97 to 126 (decimal) are the lower-case
         // characters of ASCII 65 to 94 (decimal).
-        this.normalize = generateNormalize(65, 94);
+        this.normalizeExpression = generateNormalize(65, 94);
       }
       else if (value == "strict-rfc1459") {
         // The ASCII characters 97 to 125 (decimal) are the lower-case
         // characters of ASCII 65 to 93 (decimal).
-        this.normalize = generateNormalize(65, 93);
+        this.normalizeExpression = generateNormalize(65, 93);
       }
       return true;
     },

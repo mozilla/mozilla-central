@@ -22,6 +22,7 @@ EXTRA_JS_MODULES = \
 		ircDCC.jsm \
 		ircHandlers.jsm \
 		ircISUPPORT.jsm \
+		ircMultiPrefix.jsm \
 		ircNonStandard.jsm \
 		ircSASL.jsm \
 		ircServices.jsm \
