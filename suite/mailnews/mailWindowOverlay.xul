@@ -515,7 +515,7 @@
     <menuitem id="mailContext-replyList"
               label="&contextReplyList.label;"
               accesskey="&contextReplyList.accesskey;"
-              oncommand="MsgReplyGroup(event);"/>
+              oncommand="MsgReplyList(event);"/>
     <menuitem id="mailContext-replyNewsgroup"
               label="&contextReplyNewsgroup.label;"
               accesskey="&contextReplyNewsgroup.accesskey;"
