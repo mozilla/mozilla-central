@@ -1064,7 +1064,7 @@
             var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel) ||
                          (/(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
                           !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel) &&
-                          /^application\/(?:atom|rss)\+xml$/i.test(type));
+                          /^\s*application\/(?:atom|rss)\+xml\s*$/i.test(type));
 
             if (!isIcon && !isFeed)
               return;
