@@ -94,15 +94,24 @@ ltnMimeConverter.prototype = {
                                               "lightning");
                     break;
                 case "REPLY": {
-                    // Generate proper body from my participation status
-                    let sender = cal.getInvitedAttendee(item);
-                    let statusString = (sender.participationStatus == "DECLINED" ?
-                        "itipReplyBodyDecline": "itipReplyBodyAccept");
+                    // This is a reply received from someone else, there should
+                    // be just one attendee, the attendee that replied. If
+                    // there is more than one attendee, just take the first so
+                    // code doesn't break here.
+                    let attendees = item.getAttendees({});
+                    if (attendees && attendees.length >= 1) {
+                        let sender = attendees[0];
+                        let statusString = (sender.participationStatus == "DECLINED" ?
+                                            "itipReplyBodyDecline" :
+                                            "itipReplyBodyAccept");
 
-                    header = cal.calGetString("lightning",
-                                              statusString,
-                                              [sender],
-                                              "lightning");
+                        header = cal.calGetString("lightning",
+                                                  statusString,
+                                                  [sender.toString()],
+                                                  "lightning");
+                    } else {
+                        header = "";
+                    }
                     break;
                 }
             }
