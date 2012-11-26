@@ -229,6 +229,12 @@ nsMsgContentPolicy::ShouldLoad(uint32_t          aContentType,
     }
     break;
 
+  case nsIContentPolicy::TYPE_CSP_REPORT:
+    // We cannot block CSP reports.
+    *aDecision = nsIContentPolicy::ACCEPT;
+    return NS_OK;
+    break;
+
   default:
     break;
   }
