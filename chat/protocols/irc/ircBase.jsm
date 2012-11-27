@@ -109,14 +109,6 @@ function serverErrorMessage(aAccount, aMessage, aError) {
   return writeMessage(aAccount, aMessage, aError, "error")
 }
 
-function conversationErrorMessage(aAccount, aMessage, aError) {
-  let conv = aAccount.getConversation(aMessage.params[1]);
-  conv.writeMessage(aMessage.servername, _(aError, aMessage.params[1]),
-                    {error: true, system: true});
-  delete conv._pendingMessage;
-  return true;
-}
-
 // Try a new nick if the previous tried nick is already in use.
 function tryNewNick(aAccount, aMessage) {
   let nickParts = /^(.+?)(\d*)$/.exec(aMessage.params[1]);
@@ -274,8 +266,9 @@ var ircBase = {
       }
 
       // Otherwise the user's own mode is being returned to them.
-      // TODO
-      return false;
+      return this.setUserMode(aMessage.params[0], aMessage.params[1],
+                              aMessage.nickname || aMessage.servername,
+                              !this._userModeReceived);
     },
     "NICK": function(aMessage) {
       // NICK <nickname>
@@ -352,6 +345,11 @@ var ircBase = {
     "001": function(aMessage) { // RPL_WELCOME
       // Welcome to the Internet Relay Network <nick>!<user>@<host>
       this.reportConnected();
+      this._currentServerName = aMessage.servername;
+
+      // Clear user mode.
+      this._modes = [];
+      this._userModeReceived = false;
 
       // Check if our nick has changed.
       if (aMessage.params[0] != this._nickname)
@@ -491,8 +489,8 @@ var ircBase = {
 
     "221": function(aMessage) { // RPL_UMODEIS
       // <user mode string>
-      // TODO track and update the UI accordingly.
-      return false;
+      return this.setUserMode(aMessage.params[0], aMessage.params[1],
+                              aMessage.servername, true);
     },
 
     /*

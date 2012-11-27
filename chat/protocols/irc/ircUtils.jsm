@@ -3,7 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const EXPORTED_SYMBOLS = ["DEBUG", "LOG", "WARN", "ERROR", "_",
-                          "ctcpFormatToText", "ctcpFormatToHTML"];
+                          "ctcpFormatToText", "ctcpFormatToHTML",
+                          "conversationErrorMessage"];
 
 const {classes: Cc, interfaces: Ci} = Components;
 
@@ -211,4 +212,12 @@ function mIRCColoring(aStack, aInput) {
   }
 
   return [stack, output, length];
+}
+
+function conversationErrorMessage(aAccount, aMessage, aError) {
+  let conv = aAccount.getConversation(aMessage.params[1]);
+  conv.writeMessage(aMessage.servername, _(aError, aMessage.params[1]),
+                    {error: true, system: true});
+  delete conv._pendingMessage;
+  return true;
 }

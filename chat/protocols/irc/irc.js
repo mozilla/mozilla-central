@@ -703,6 +703,8 @@ ircAccount.prototype = {
   _MODE_INVISIBLE: 1 << 3, // mode 'i'
   get _mode() 0,
 
+  // The name of the server we last connected to.
+  _currentServerName: null,
   // Whether to attempt authenticating with NickServ.
   shouldAuthenticate: true,
   // Whether the user has successfully authenticated with NickServ.
@@ -788,6 +790,43 @@ ircAccount.prototype = {
     }
     else if (type == Ci.imIStatusInfo.STATUS_AVAILABLE && this.isAway)
       this.sendMessage("AWAY"); // Mark as back.
+  },
+
+  // The user's user mode.
+  _modes: [],
+  _userModeReceived: false,
+  setUserMode: function(aNick, aNewModes, aSetter, aDisplayFullMode) {
+    if (this.normalize(aNick) != this.normalize(this._nickname)) {
+      WARN("Received unexpected mode for " + aNick);
+      return false;
+    }
+
+    // Are modes being added or removed?
+    let addNewMode = aNewModes[0] == "+";
+    if (!addNewMode && aNewModes[0] != "-") {
+      WARN("Invalid mode string: " + aNewModes);
+      return false;
+    }
+    _setMode.call(this, addNewMode, aNewModes.slice(1));
+
+    // The server informs us of the user's mode when connecting.
+    // We should not report this initial mode message as a mode change
+    // initiated by the user, but instead display the full mode
+    // and then remember we have done so.
+    this._userModeReceived = true;
+
+    if (this._showServerTab) {
+      let msg;
+      if (aDisplayFullMode)
+        msg = _("message.yourmode", this._modes.join(""));
+      else {
+        msg = _("message.usermode", aNewModes, aNick,
+                aSetter || this._currentServerName);
+      }
+      this.getConversation(this._currentServerName)
+          .writeMessage(this._currentServerName, msg, {system: true});
+    }
+    return true;
   },
 
   // The whois information: nicks are used as keys and refer to a map of field

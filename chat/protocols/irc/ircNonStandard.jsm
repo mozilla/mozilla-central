@@ -102,6 +102,11 @@ var ircNonStandard = {
       return this.setWhois(aMessage.params[1], {host: host, ip: ip});
     },
 
+    "499": function(aMessage) { // ERR_CHANOWNPRIVNEEDED (Unreal)
+      // <channel> :You're not the channel owner (status +q is needed)
+      return conversationErrorMessage(this, aMessage, "error.notChannelOwner");
+    },
+
     "671": function(aMessage) { // RPL_WHOISSECURE (Unreal & Charybdis)
       // <nick> :is using a Secure connection
       return this.setWhois(aMessage.params[1], {secure: true});
