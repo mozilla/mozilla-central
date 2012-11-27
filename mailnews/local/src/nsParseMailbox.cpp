@@ -1462,7 +1462,7 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
         ret = m_HeaderAddressParser->ParseHeaderAddresses(recipient->value,
                                                           &names, &addresses,
                                                           &numAddresses);
-        if (ret == NS_OK)
+        if (NS_SUCCEEDED(ret))
         {
           m_newMsgHdr->SetRecipientsArray(names, addresses, numAddresses);
           PR_Free(addresses);

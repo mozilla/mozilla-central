@@ -8724,7 +8724,7 @@ nsresult nsImapMockChannel::NotifyStartEndReadFromCache(bool start)
                                    mailUrl, start, false, m_cancelStatus);
 
       // Required for killing ImapProtocol thread
-      if (m_cancelStatus != NS_OK && imapProtocol)
+      if (NS_FAILED(m_cancelStatus) && imapProtocol)
         imapProtocol->TellThreadToDie(false);
     }
   }

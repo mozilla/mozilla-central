@@ -58,7 +58,7 @@ nsresult nsByteArray::AppendBuffer(const char *buffer, uint32_t length)
   nsresult ret = NS_OK;
   if (m_bufferPos + length > m_bufferSize)
     ret = GrowBuffer(m_bufferPos + length, 1024);
-  if (ret == NS_OK)
+  if (NS_SUCCEEDED(ret))
   {
     memcpy(m_buffer + m_bufferPos, buffer, length);
     m_bufferPos += length;

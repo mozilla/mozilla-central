@@ -3668,7 +3668,7 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(bool deleteStorage, nsIMsgWindow *m
   }
 
   // now delete the disk storage for _this_
-  if (deleteStorage && status == NS_OK)
+  if (deleteStorage && NS_SUCCEEDED(status))
   {
     // All delete commands use deleteStorage = true, and local moves use false.
     // IMAP moves use true, leaving this here in the hope that bug 439108
