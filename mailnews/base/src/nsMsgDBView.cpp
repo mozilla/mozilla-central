@@ -537,7 +537,7 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
   nsCOMPtr<nsIMsgIncomingServer> server;
   if (!accountKey.IsEmpty())
     rv = accountManager->GetAccount(accountKey, getter_AddRefs(account));
-    
+
   if (account)
   {
     account->GetIncomingServer(getter_AddRefs(server));
@@ -1744,7 +1744,7 @@ void nsMsgDBView::InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr,
   m_levels.InsertElementAt(index, level);
 }
 
-void nsMsgDBView::SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index, 
+void nsMsgDBView::SetMsgHdrAt(nsIMsgDBHdr *hdr, nsMsgViewIndex index,
                               nsMsgKey msgKey, uint32_t flags, uint32_t level)
 {
   m_keys[index] = msgKey;
@@ -1921,7 +1921,7 @@ NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCusto
   for (uint32_t i = 0; i < m_sortColumns.Length(); i++)
   {
     MsgViewSortColumnInfo &sortInfo = m_sortColumns[i];
-    if (sortInfo.mSortType == nsMsgViewSortType::byCustom && 
+    if (sortInfo.mSortType == nsMsgViewSortType::byCustom &&
           sortInfo.mCustomColumnName.Equals(column))
       sortInfo.mColHandler = handler;
   }
@@ -1945,7 +1945,7 @@ NS_IMETHODIMP nsMsgDBView::RemoveColumnHandler(const nsAString& aColID)
     for (uint32_t i = 0; i < m_sortColumns.Length(); i++)
     {
       MsgViewSortColumnInfo &sortInfo = m_sortColumns[i];
-      if (sortInfo.mSortType == nsMsgViewSortType::byCustom && 
+      if (sortInfo.mSortType == nsMsgViewSortType::byCustom &&
             sortInfo.mCustomColumnName.Equals(aColID))
         sortInfo.mColHandler = nullptr;
     }
@@ -2474,7 +2474,7 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(uint32_t *length, char ***uris)
 
   NS_ENSURE_ARG_POINTER(length);
   *length = 0;
-  
+
   NS_ENSURE_ARG_POINTER(uris);
   *uris = nullptr;
 
@@ -2507,7 +2507,7 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(uint32_t *length, char ***uris)
     *next = ToNewCString(tmpUri);
     if (!*next)
       return NS_ERROR_OUT_OF_MEMORY;
-    
+
     next++;
   }
 
@@ -2756,12 +2756,12 @@ NS_IMETHODIMP nsMsgDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, b
 }
 
 // This method needs to be overridden by the various view classes
-// that have different kinds of threads. For example, in a 
+// that have different kinds of threads. For example, in a
 // threaded quick search db view, we'd only want to include children
 // of the thread that fit the view (IMO). And when we have threaded
 // cross folder views, we would include all the children of the
 // cross-folder thread.
-nsresult nsMsgDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex, 
+nsresult nsMsgDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
                                             nsIMutableArray *messageArray)
 {
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -2838,7 +2838,7 @@ nsresult nsMsgDBView::GetHeadersFromSelection(uint32_t *indices,
     if (NS_SUCCEEDED(rv) && msgHdr)
     {
       rv = messageArray->AppendElement(msgHdr, false);
-      if (NS_SUCCEEDED(rv) && includeCollapsedMsgs && 
+      if (NS_SUCCEEDED(rv) && includeCollapsedMsgs &&
           viewIndexFlags & nsMsgMessageFlags::Elided &&
           viewIndexFlags & MSG_VIEW_FLAG_HASCHILDREN &&
           m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
@@ -3514,7 +3514,7 @@ nsMsgDBView::PerformActionsOnJunkMsgs(bool msgsAreJunk)
         // Unfortunately the DeleteMessages in this case is interpreted by IMAP as
         //  a delete toggle. So what we have to do is to assemble a new delete
         //  array, keeping only those that are not deleted.
-        // 
+        //
         nsCOMPtr<nsIMutableArray> hdrsToDelete = do_CreateInstance("@mozilla.org/array;1", &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         uint32_t cnt;
@@ -3725,7 +3725,7 @@ void nsMsgDBView::ReverseSort()
     nsCOMArray<nsIMsgFolder> *folders = GetFolders();
 
     // go up half the array swapping values
-    for (uint32_t bottomIndex = 0; bottomIndex < --topIndex; bottomIndex++) 
+    for (uint32_t bottomIndex = 0; bottomIndex < --topIndex; bottomIndex++)
     {
         // swap flags
         uint32_t tempFlags = m_flags[bottomIndex];
@@ -3830,6 +3830,13 @@ const int kMaxLocationKey = 160;  // also used for account
 const int kMaxAuthorKey = 160;
 const int kMaxRecipientKey = 80;
 
+//
+// There are cases when pFieldType is not set:
+// one case returns NS_ERROR_UNEXPECTED;
+// the other case now return NS_ERROR_NULL_POINTER (this is only when
+// colHandler below is null, but is very unlikely).
+// The latter case used to return NS_OK, which was incorrect.
+//
 nsresult nsMsgDBView::GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType, uint16_t *pMaxLen, eFieldType *pFieldType)
 {
     NS_ENSURE_ARG_POINTER(pMaxLen);
@@ -3889,10 +3896,20 @@ nsresult nsMsgDBView::GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType,
               *pMaxLen = 0;
             }
           }
+          else
+          {
+            NS_WARNING("colHandler is null. *pFieldType is not set.");
+            return NS_ERROR_NULL_POINTER;
+          }
           break;
         }
         default:
-            return NS_ERROR_UNEXPECTED;
+        {
+           nsAutoCString message("unexpected switch value: sortType=");
+           message.AppendInt(sortType);
+           NS_WARNING(message.get());
+           return NS_ERROR_UNEXPECTED;
+        }
     }
 
     return NS_OK;
@@ -4057,7 +4074,7 @@ MsgViewSortColumnInfo::MsgViewSortColumnInfo(const MsgViewSortColumnInfo &other)
 
 bool MsgViewSortColumnInfo::operator== (const MsgViewSortColumnInfo& other) const
 {
-  return (mSortType == nsMsgViewSortType::byCustom) ? 
+  return (mSortType == nsMsgViewSortType::byCustom) ?
     mCustomColumnName.Equals(other.mCustomColumnName) : mSortType == other.mSortType;
 }
 
@@ -4246,7 +4263,7 @@ nsresult nsMsgDBView::SaveSortInfo(nsMsgViewSortTypeValue sortType, nsMsgViewSor
       // save off sort type and order, view type and flags
       folderInfo->SetSortType(sortType);
       folderInfo->SetSortOrder(sortOrder);
-      
+
       nsString sortColumnsString;
       rv = EncodeColumnSort(sortColumnsString);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -4258,12 +4275,12 @@ nsresult nsMsgDBView::SaveSortInfo(nsMsgViewSortTypeValue sortType, nsMsgViewSor
 
 int32_t  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsgKey key2, nsISupports *supports2, viewSortInfo *comparisonContext)
 {
-  
+
   // we need to make sure that in the case of the secondary sort field also matching,
-  // we don't recurse 
+  // we don't recurse
   if (comparisonContext->isSecondarySort)
     return key1 > key2;
-  
+
   nsCOMPtr<nsIMsgFolder> folder1, folder2;
   nsCOMPtr <nsIMsgDBHdr> hdr1, hdr2;
   folder1 = do_QueryInterface(supports1);
@@ -4280,14 +4297,20 @@ int32_t  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   eFieldType fieldType;
   nsMsgViewSortTypeValue sortType = comparisonContext->view->m_secondarySort;
   nsMsgViewSortOrderValue sortOrder = comparisonContext->view->m_secondarySortOrder;
+  // The following may leave fieldType undefined.
+  // In this case, we can return 0 right away since
+  // it is the value returned in the default case of
+  // switch (fieldType) statement below.
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
+  NS_ENSURE_SUCCESS(rv, 0);
+
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
-  
+
   int (* comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nullptr;
   int retStatus = 0;
   hdr1->GetMessageKey(&EntryInfo1.id);
   hdr2->GetMessageKey(&EntryInfo2.id);
-  
+
   //check if a custom column handler exists. If it does then grab it and pass it in
   //to either GetCollationKey or GetLongField - we need the custom column handler for
   // the previous sort, if any.
@@ -4296,7 +4319,7 @@ int32_t  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
       comparisonContext->view->m_sortColumns.Length() > 1)
     colHandler = comparisonContext->view->m_sortColumns[1].mColHandler;
 
-  
+
   switch (fieldType)
   {
     case kCollationKey:
@@ -4327,11 +4350,11 @@ int32_t  nsMsgDBView::SecondarySort(nsMsgKey key1, nsISupports *supports1, nsMsg
   {
     if (sortType == nsMsgViewSortType::byId)
       EntryInfo2.dword = EntryInfo2.id;
-    else 
+    else
       GetLongField(hdr2, sortType, &EntryInfo2.dword, colHandler);
   }
   retStatus = (*comparisonFun)(&pValue1, &pValue2, comparisonContext);
-  
+
   comparisonContext->isSecondarySort = false;
   comparisonContext->ascendingSort = saveAscendingSort;
 
@@ -4351,7 +4374,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     // same as it ever was.  do nothing
     if (m_sortOrder == sortOrder)
       return NS_OK;
-    
+
     // for secondary sort, remember the sort order on a per column basis.
     if (m_sortColumns.Length())
       m_sortColumns[0].mSortOrder = sortOrder;
@@ -4382,7 +4405,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 
     PushSort(sortColumnInfo);
   }
-  
+
   if (m_sortColumns.Length() > 1)
   {
     m_secondarySort = m_sortColumns[1].mSortType;
@@ -4393,6 +4416,8 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   uint16_t maxLen;
   eFieldType fieldType;
 
+  // If we did not obtain proper fieldType, it needs to be checked
+  // because the subsequent code does not handle it very well.
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -4457,6 +4482,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 
     // could be a problem here if the ones that appear here are different than the ones already in the array
     uint32_t actualFieldLen = 0;
+
     if (fieldType == kCollationKey)
     {
       rv = GetCollationKey(msgHdr, sortType, &keyValue, &actualFieldLen, colHandler);
@@ -4641,7 +4667,7 @@ nsMsgViewIndex nsMsgDBView::GetThreadIndex(nsMsgViewIndex msgIndex)
 }
 
 nsMsgViewIndex
-nsMsgDBView::ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr, 
+nsMsgDBView::ThreadIndexOfMsgHdr(nsIMsgDBHdr *msgHdr,
                                  nsMsgViewIndex msgIndex,
                                  int32_t *pThreadCount,
                                  uint32_t *pFlags)
@@ -4867,7 +4893,7 @@ nsresult nsMsgDBView::ToggleExpansion(nsMsgViewIndex index, uint32_t *numChanged
     rv = ExpandByIndex(threadIndex, numChanged);
   else
     rv = CollapseByIndex(threadIndex, numChanged);
-    
+
   // if we collaps/uncollapse a thread, this changes the selected URIs
   SelectionChanged();
   return rv;
@@ -5074,12 +5100,12 @@ NS_IMETHODIMP nsMsgDBView::GetThreadContainingIndex(nsMsgViewIndex index, nsIMsg
   return GetThreadContainingMsgHdr(msgHdr, resultThread);
 }
 
-nsMsgViewIndex 
+nsMsgViewIndex
 nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
 {
   // Take advantage of the fact that we're already sorted
   // and find the insert index via a binary search, though expanded threads
-  // make that tricky.  
+  // make that tricky.
 
   nsMsgViewIndex highIndex = m_keys.Length();
   nsMsgViewIndex lowIndex = 0;
@@ -5090,7 +5116,13 @@ nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
   nsresult rv;
   uint16_t  maxLen;
   eFieldType fieldType;
+  // The following may leave fieldType undefined.
+  // In this case, we can return highIndex right away since
+  // it is the value returned in the default case of
+  // switch (fieldType) statement below.
   rv = GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  NS_ENSURE_SUCCESS(rv, highIndex);
+
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
   int retStatus = 0;
@@ -5138,7 +5170,7 @@ nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *msgHdr)
     EntryInfo2.id = m_keys[tryIndex];
     GetFolderForViewIndex(tryIndex, &EntryInfo2.folder);
     EntryInfo2.folder->Release();
-    
+
     nsCOMPtr <nsIMsgDBHdr> tryHdr;
     nsCOMPtr <nsIMsgDatabase> db;
     // ### this should get the db from the folder...
@@ -5205,7 +5237,13 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
   nsresult rv;
   uint16_t  maxLen;
   eFieldType fieldType;
+  // The following may leave fieldType undefined.
+  // In this case, we can return highIndex right away since
+  // it is the value returned in the default case of
+  // switch (fieldType) statement below.
   rv = GetFieldTypeAndLenForSort(sortType, &maxLen, &fieldType);
+  NS_ENSURE_SUCCESS(rv, highIndex);
+
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
   int (* comparisonFun) (const void *pItem1, const void *pItem2, void *privateData) = nullptr;
@@ -5246,7 +5284,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<n
     nsMsgViewIndex tryIndex = (lowIndex + highIndex - 1) / 2;
     EntryInfo2.id = keys[tryIndex];
     EntryInfo2.folder = folders ? folders->ObjectAt(tryIndex) : m_folder.get();
-    
+
     nsCOMPtr <nsIMsgDBHdr> tryHdr;
     EntryInfo2.folder->GetMessageHeader(EntryInfo2.id, getter_AddRefs(tryHdr));
     if (!tryHdr)
@@ -5468,8 +5506,8 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
 bool nsMsgDBView::InsertEmptyRows(nsMsgViewIndex viewIndex, int32_t numRows)
 {
   return m_keys.InsertElementsAt(viewIndex, numRows, 0) &&
-         m_flags.InsertElementsAt(viewIndex, numRows, 0) && 
-         m_levels.InsertElementsAt(viewIndex, numRows, 1); 
+         m_flags.InsertElementsAt(viewIndex, numRows, 0) &&
+         m_levels.InsertElementsAt(viewIndex, numRows, 1);
 }
 
 void nsMsgDBView::RemoveRows(nsMsgViewIndex viewIndex, int32_t numRows)
@@ -5609,7 +5647,7 @@ int32_t nsMsgDBView::FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex start
 }
 
 // ### Can this be combined with GetIndexForThread??
-nsMsgViewIndex 
+nsMsgViewIndex
 nsMsgDBView::GetThreadRootIndex(nsIMsgDBHdr *msgHdr)
 {
   if (!msgHdr)
@@ -5630,7 +5668,13 @@ nsMsgDBView::GetThreadRootIndex(nsIMsgDBHdr *msgHdr)
   nsresult rv;
   uint16_t maxLen;
   eFieldType fieldType;
+  // The following may leave fieldType undefined.
+  // In this case, we can return highIndex right away since
+  // it is the value returned in the default case of
+  // switch (fieldType) statement below.
   rv = GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  NS_ENSURE_SUCCESS(rv, highIndex);
+
   const void *pValue1 = &EntryInfo1, *pValue2 = &EntryInfo2;
 
   int retStatus = 0;
@@ -5678,7 +5722,7 @@ nsMsgDBView::GetThreadRootIndex(nsIMsgDBHdr *msgHdr)
     EntryInfo2.id = m_keys[tryIndex];
     GetFolderForViewIndex(tryIndex, &EntryInfo2.folder);
     EntryInfo2.folder->Release();
-    
+
     nsCOMPtr<nsIMsgDBHdr> tryHdr;
     nsCOMPtr<nsIMsgDatabase> db;
     // ### this should get the db from the folder...
@@ -5757,7 +5801,9 @@ void nsMsgDBView::InitEntryInfoForIndex(nsMsgViewIndex i, IdKeyPtr &EntryInfo)
   nsresult rv;
   uint16_t maxLen;
   eFieldType fieldType;
+  // The following may leave fieldType undefined.
   rv = GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  NS_ASSERTION(NS_SUCCEEDED(rv),"failed to obtain fieldType");
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   GetMsgHdrForViewIndex(i, getter_AddRefs(msgHdr));
@@ -5796,7 +5842,13 @@ void nsMsgDBView::ValidateSort()
 
   uint16_t  maxLen;
   eFieldType fieldType;
-  GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  // It is not entirely clear what we should do since,
+  // if fieldType is not available, there is no way to know
+  // how to compare the field to check for sorting.
+  // So we bomb out here. It is OK since this is debug code
+  // inside  #ifdef DEBUG_David_Bienvenu
+  rv = GetFieldTypeAndLenForSort(m_sortType, &maxLen, &fieldType);
+  NS_ASSERTION(NS_SUCCEEDED(rv),"failed to obtain fieldType");
 
   viewSortInfo comparisonContext;
   comparisonContext.view = this;
@@ -5959,7 +6011,7 @@ NS_IMETHODIMP nsMsgDBView::OnHdrAdded(nsIMsgDBHdr *aHdrChanged, nsMsgKey aParent
 }
 
 NS_IMETHODIMP
-nsMsgDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, uint32_t *aStatus, 
+nsMsgDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, uint32_t *aStatus,
                                  nsIDBChangeListener * aInstigator)
 {
   if (aPreChange)
@@ -6917,7 +6969,7 @@ nsresult nsMsgDBView::SetSubthreadKilled(nsIMsgDBHdr *header, nsMsgViewIndex msg
 
   rv = m_db->MarkHeaderKilled(header, ignored, this);
   NS_ENSURE_SUCCESS(rv, rv);
- 
+
   if (ignored)
   {
     nsCOMPtr <nsIMsgThread> thread;
@@ -6945,10 +6997,10 @@ nsresult nsMsgDBView::SetSubthreadKilled(nsIMsgDBHdr *header, nsMsgViewIndex msg
     {
        nsCOMPtr <nsIMsgDBHdr> nextHdr;
        bool isKilled;
-       
+
        thread->GetChildHdrAt(current, getter_AddRefs(nextHdr));
        nextHdr->GetIsKilled(&isKilled);
-       
+
        // Ideally, the messages should stop processing here.
        // However, the children are ordered not by thread...
        if (isKilled)
@@ -7034,7 +7086,7 @@ NS_IMETHODIMP nsMsgDBView::GetNumMsgsInView(int32_t *aNumMsgs)
                     NS_ERROR_FAILURE;
 }
 /**
- * @note For the IMAP delete model, this applies to both deleting and 
+ * @note For the IMAP delete model, this applies to both deleting and
  *       undeleting a message.
  */
 NS_IMETHODIMP
@@ -7064,7 +7116,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
       rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      // save off the first range in case we need it later 
+      // save off the first range in case we need it later
       if (i == 0) {
         startFirstRange = startRange;
         endFirstRange = endRange;
@@ -7072,7 +7124,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
         // If the tree selection is goofy (eg adjacent or overlapping ranges),
         // complain about it, but don't try and cope.  Just live with the fact
         // that one of the deleted messages is going to end up selected.
-        NS_WARN_IF_FALSE(endFirstRange != startRange, 
+        NS_WARN_IF_FALSE(endFirstRange != startRange,
                          "goofy tree selection state: two ranges are adjacent!");
       }
       *msgToSelectAfterDelete = NS_MIN(*msgToSelectAfterDelete,
@@ -7256,7 +7308,7 @@ bool nsMsgDBView::OfflineMsgSelected(nsMsgViewIndex * indices, int32_t numIndice
 bool nsMsgDBView::NonDummyMsgSelected(nsMsgViewIndex * indices, int32_t numIndices)
 {
   bool includeCollapsedMsgs = OperateOnMsgsInCollapsedThreads();
-  
+
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
     uint32_t flags = m_flags[indices[index]];
