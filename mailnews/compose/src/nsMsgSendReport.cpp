@@ -170,7 +170,7 @@ NS_IMETHODIMP nsMsgSendReport::SetError(int32_t process, nsresult newError, bool
 
   nsresult currError = NS_OK;
   mProcessReport[process]->GetError(&currError);
-  if (overwriteError || currError == NS_OK)
+  if (overwriteError || NS_SUCCEEDED(currError))
     return mProcessReport[process]->SetError(newError);
   else
     return NS_OK;

@@ -3722,7 +3722,7 @@ nsMsgComposeAndSend::DeliverFileAsNews()
 NS_IMETHODIMP
 nsMsgComposeAndSend::Fail(nsresult failure_code, const PRUnichar * error_msg, nsresult *_retval)
 {
-  NS_ENSURE_ARG(_retval);
+  NS_ENSURE_ARG_POINTER(_retval);
   *_retval = failure_code;
 
   if (NS_FAILED(failure_code))
@@ -3743,7 +3743,7 @@ nsMsgComposeAndSend::Fail(nsresult failure_code, const PRUnichar * error_msg, ns
     }
   }
 
-  if (m_status == NS_OK)
+  if (NS_SUCCEEDED(m_status))
     m_status = NS_ERROR_BUT_DONT_SHOW_ALERT;
 
   //Stop any pending process...
