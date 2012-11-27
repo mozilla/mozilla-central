@@ -21,6 +21,7 @@
                    flex="1">
         <xul:listcols>
           <xul:listcol/>
+          <xul:listcol/>
           <xul:listcol flex="1"/>
         </xul:listcols>
         <xul:listitem anonid="item" class="addressingWidgetItem" allowevents="true">
@@ -28,7 +29,10 @@
             <xul:image id="attendeeCol1#1" anonid="rolestatus-icon"/>
           </xul:listcell>
           <xul:listcell class="addressingWidgetCell">
-            <xul:textbox id="attendeeCol2#1"
+              <xul:image id="attendeeCol2#1" anonid="usertype-icon" class="usertype-icon" onclick="this.parentNode.select();"/>
+          </xul:listcell>
+          <xul:listcell class="addressingWidgetCell">
+            <xul:textbox id="attendeeCol3#1"
                          anonid="input"
                          class="plain textbox-addressingWidget uri-element"
                          type="autocomplete"
@@ -42,7 +46,6 @@
                          onblur="if (this.localName == 'textbox') document.getBindingParent(this).onBlurInput(event);"
                          ignoreblurwhilesearching="true"
                          oninput="this.setAttribute('dirty', 'true');">
-              <xul:image id="attendeeCol3#1" anonid="usertype-icon" class="usertype-icon" onclick="this.parentNode.select();"/>
             </xul:textbox>
           </xul:listcell>
         </xul:listitem>
@@ -274,8 +277,8 @@
           var rowNumber = this.mMaxAttendees;
           if (rowNumber >= 0) {
               roleStatusIcon.setAttribute("id", "attendeeCol1#" + rowNumber);
-              input.setAttribute("id", "attendeeCol2#" + rowNumber);
-              userTypeIcon.setAttribute("id", "attendeeCol3#" + rowNumber);
+              userTypeIcon.setAttribute("id", "attendeeCol2#" + rowNumber);
+              input.setAttribute("id", "attendeeCol3#" + rowNumber);
           }
 
           if (!aAttendee) {
@@ -389,8 +392,8 @@
               var rowNumber = this.mMaxAttendees;
               if (rowNumber >= 0) {
                   roleStatusIcon.setAttribute("id", "attendeeCol1#" + rowNumber);
-                  input.setAttribute("id", "attendeeCol2#" + rowNumber);
-                  userTypeIcon.setAttribute("id", "attendeeCol3#" + rowNumber);
+                  userTypeIcon.setAttribute("id", "attendeeCol2#" + rowNumber);
+                  input.setAttribute("id", "attendeeCol3#" + rowNumber);
               }
 
               input.value = null;
@@ -422,7 +425,7 @@
 
               // this copies the autocomplete sessions list from first attendee
               if (this.mLDAPSession && this.mSessionAdded) {
-                  input.syncSessions(document.getAnonymousElementByAttribute(this, "id", 'attendeeCol2#1'));
+                  input.syncSessions(document.getAnonymousElementByAttribute(this, "id", 'attendeeCol3#1'));
               }
 
               // focus on new input widget
@@ -692,10 +695,10 @@
             let newAttendee = this.createAttendee(entry);
             let input = document.getAnonymousElementByAttribute(listitem, "anonid", "input");
             input.removeAttribute("disabled");
-            input.setAttribute("id", "attendeeCol2#" + rowNumber);
+            input.setAttribute("id", "attendeeCol3#" + rowNumber);
 
             if (this.mLDAPSession && this.mSessionAdded) {
-                input.syncSessions(document.getElementById('attendeeCol2#1'));
+                input.syncSessions(document.getElementById('attendeeCol3#1'));
             }
 
             input.attendee = newAttendee;
@@ -714,7 +717,7 @@
 
             let userTypeIcon = document.getAnonymousElementByAttribute(listitem, "anonid", "userstatus-icon");
             userTypeIcon.removeAttribute("disabled");
-            userTypeIcon.setAttribute("id", "attendeeCol3#" + rowNumber);
+            userTypeIcon.setAttribute("id", "attendeeCol2#" + rowNumber);
             userTypeIcon.setAttribute("cutype", newAttendee.userType);
           ]]></body>
     </method>
@@ -748,10 +751,10 @@
                               roleStatusIcon.setAttribute("id", "attendeeCol1#" + i);
 
                               let userTypeIcon = document.getAnonymousElementByAttribute(row, "anonid", "usertype-icon");
-                              userTypeIcon.setAttribute("id", "attendeeCol3#" + i);
+                              userTypeIcon.setAttribute("id", "attendeeCol2#" + i);
 
                               let input = document.getAnonymousElementByAttribute(row, "anonid", "input");
-                              input.setAttribute("id", "attendeeCol2#" + i);
+                              input.setAttribute("id", "attendeeCol3#" + i);
                               input.setAttribute("dirty", "true");
                           }
                       }
@@ -1003,7 +1006,7 @@
       <method name="getInputElement">
         <parameter name="aRow"/>
         <body><![CDATA[
-          return document.getAnonymousElementByAttribute(this, "id", "attendeeCol2#" + aRow);
+          return document.getAnonymousElementByAttribute(this, "id", "attendeeCol3#" + aRow);
         ]]></body>
       </method>
 
@@ -1024,7 +1027,7 @@
       <method name="getUserTypeElement">
         <parameter name="aRow"/>
         <body><![CDATA[
-          return document.getAnonymousElementByAttribute(this, "id", "attendeeCol3#" + aRow);
+          return document.getAnonymousElementByAttribute(this, "id", "attendeeCol2#" + aRow);
         ]]></body>
       </method>
 
