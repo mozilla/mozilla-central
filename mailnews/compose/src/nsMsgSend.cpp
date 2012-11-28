@@ -3497,29 +3497,6 @@ nsMsgComposeAndSend::DeliverMessage()
   return NS_OK;
 }
 
-// strip out non-printable characters
-static void
-strip_nonprintable(char *string)
-{
-  char *dest, *src;
-
-  if ( (!string) || (!*string) ) return;
-  dest=src=string;
-  while (*src)
-  {
-    if  ( (isprint(*src)) && (*src != ' ') )
-    {
-      (*dest)=(*src);
-      src++; dest++;
-    }
-    else
-    {
-      src++;
-    }
-  }
-
-  (*dest)='\0';
-}
 
 nsresult
 nsMsgComposeAndSend::DeliverFileAsMail()
@@ -3620,8 +3597,6 @@ nsMsgComposeAndSend::DeliverFileAsMail()
     buf = convbuf;
   }
 
-  strip_nonprintable(buf);
-
   nsCString escaped_buf;
   MsgEscapeString(nsDependentCString(buf), nsINetUtil::ESCAPE_URL_PATH, escaped_buf);
 
@@ -3663,11 +3638,13 @@ nsMsgComposeAndSend::DeliverFileAsMail()
                                       callbacks, mCompFields->GetDSN(),
                                       getter_AddRefs(runningUrl),
                                       getter_AddRefs(mRunningRequest));
-
     // set envid on the returned URL
-    nsCOMPtr<nsISmtpUrl> smtpUrl(do_QueryInterface(runningUrl, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-    smtpUrl->SetDsnEnvid(nsDependentCString(mCompFields->GetMessageId()));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsISmtpUrl> smtpUrl(do_QueryInterface(runningUrl, &rv));
+      if (NS_SUCCEEDED(rv))
+        smtpUrl->SetDsnEnvid(nsDependentCString(mCompFields->GetMessageId()));
+    }
   }
 
   PR_FREEIF(buf); // free the buf because we are done with it....

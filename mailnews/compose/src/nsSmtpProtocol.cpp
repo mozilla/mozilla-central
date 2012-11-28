@@ -43,6 +43,7 @@
 #include "nsMsgCompUtils.h"
 #include "nsIMsgWindow.h"
 #include "MailNewsTypes2.h" // for nsMsgSocketType and nsMsgAuthMethod
+#include "nsIIDNService.h"
 #include "mozilla/Services.h"
 
 #ifndef XP_UNIX
@@ -90,6 +91,13 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, nsresult code, ...)
 
   switch (code)
   {
+    case NS_ERROR_ILLEGAL_LOCALPART:
+      bundle->GetStringFromName(
+        NS_LITERAL_STRING("errorIllegalLocalPart").get(),
+        getter_Copies(eMsg));
+      msg = nsTextFormatter::vsmprintf(eMsg.get(), args);
+      break;
+
       case NS_ERROR_SMTP_SERVER_ERROR:
       case NS_ERROR_TCP_READ_ERROR:
       case NS_ERROR_SMTP_TEMP_SIZE_EXCEEDED:
@@ -1716,32 +1724,107 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 
   if (postMessage)
   {
-    nsCString addrs1;
-    char *addrs2 = 0;
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
 
-    // Remove duplicates from the list, to prevent people from getting
-    // more than one copy (the SMTP host may do this too, or it may not.)
-    // This causes the address list to be parsed twice; this probably
-    // doesn't matter.
-    nsCString addresses;
     nsCOMPtr<nsIMsgHeaderParser> parser =
       do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-
-    m_runningURL->GetRecipients(getter_Copies(addresses));
-
     if (parser)
     {
-      parser->RemoveDuplicateAddresses(addresses, EmptyCString(), addrs1);
+      // compile a minimal list of valid target addresses by
+      // - looking only at mailboxes
+      // - dropping addresses with invalid localparts (until we implement RfC 5336)
+      // - using ACE for IDN domainparts
+      // - stripping duplicates
+      nsCString addresses;
+      m_runningURL->GetRecipients(getter_Copies(addresses));
 
-      // Extract just the mailboxes from the full RFC822 address list.
-      // This means that people can post to mailto: URLs which contain
-      // full RFC822 address specs, and we will still send the right
-      // thing in the SMTP RCPT command.
+      nsCString mailboxes;
+      parser->ExtractHeaderAddressMailboxes(addresses, mailboxes);
+
+      nsCOMPtr<nsIIDNService> converter = do_GetService(NS_IDNSERVICE_CONTRACTID);
+      addresses.Truncate();
+      const char *i = mailboxes.get();
+      const char *start = i;           // first character of the current address
+      const char *lastAt = nullptr;    // last @ character in the current address
+      const char *firstEvil = nullptr; // first illegal character in the current address
+      bool done = !*i;
+      while (!done)
+      {
+        done = !*i; // eos?
+        if (done || *i == ',')
+        {
+          // validate the just parsed address
+          if (firstEvil)
+          {
+            // Fortunately, we will always have an @ in each mailbox address.
+            // We try to fix illegal character in the domain part by converting
+            // that to ACE. Illegal characters in the local part are not fixable
+            // (which charset would it be anyway?), hence we error out in that
+            // case as well.
+            nsresult rv = NS_ERROR_FAILURE; // anything but NS_OK
+            if (firstEvil > lastAt)
+            {
+              // illegal char in the domain part, hence use ACE
+              nsAutoCString domain;
+              domain.Assign(lastAt + 1, i - lastAt - 1);
+              rv = converter->ConvertUTF8toACE(domain, domain);
+              if (NS_SUCCEEDED(rv))
+              {
+                addresses.Append(start, lastAt - start + 1);
+                addresses.Append(domain);
+                if (!done)
+                  addresses.Append(',');
+              }
+            }
+            if (NS_FAILED(rv))
+            {
+              // throw an error, including the broken address
+              m_nextState = SMTP_ERROR_DONE;
+              ClearFlag(SMTP_PAUSE_FOR_READ);
+              addresses.Assign(start, i - start + 1);
+              // Unfortunately, nsExplainErrorDetails will show the error above
+              // the mailnews main window, because we don't necessarily get
+              // passed down a compose window - we might be sending in the
+              // background!
+              rv = nsExplainErrorDetails(m_runningURL, NS_ERROR_ILLEGAL_LOCALPART, addresses.get());
+              NS_ASSERTION(NS_SUCCEEDED(rv), "failed to explain illegal localpart");
+              m_urlErrorState = NS_ERROR_BUT_DONT_SHOW_ALERT;
+              return NS_ERROR_BUT_DONT_SHOW_ALERT;
+            }
+          }
+          else
+          {
+            // no invalid characters, so just copy the address
+            addresses.Append(start, i - start + 1);
+          }
+          // reset parsing
+          start = i + 1;
+          lastAt = nullptr;
+          firstEvil = nullptr;
+        }
+        else if (*i == '@')
+        {
+          // always remember the last one
+          lastAt = i;
+        }
+        else if (!firstEvil)
+        {
+          // check for first illegal character
+          // strictly adhering to RfC 5322, we deny everything but 0x09,0x20-0x7e
+          if ((*i < ' ' || *i > '~') && (*i != '\t'))
+            firstEvil = i;
+        }
+        ++i;
+      }
+
+      // final cleanup
+      nsCString addrs1;
+      char *addrs2 = nullptr;
+      m_addressesLeft = 0;
+      parser->RemoveDuplicateAddresses(addresses, EmptyCString(), addrs1);
       if (!addrs1.IsEmpty())
-        parser->ParseHeaderAddresses(addrs1.get(), nullptr, &addrs2,
-                                     &m_addressesLeft);
+        parser->ParseHeaderAddresses(addrs1.get(), nullptr, &addrs2, &m_addressesLeft);
 
       // hmm no addresses to send message to...
       if (m_addressesLeft == 0 || !addrs2)
@@ -1752,7 +1835,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         return NS_MSG_NO_RECIPIENTS;
       }
 
-      m_addressCopy = addrs2;
+      m_addressCopy = addrs2; // zero-delimited list of mailboxes
       m_addresses = m_addressCopy;
     } // if parser
   } // if post message
