@@ -170,7 +170,7 @@ nsBulletFrame::DidSetStyleContext(nsStyleContext* aOldStyleContext)
         if (same) {
           needNewRequest = false;
         } else {
-          mImageRequest->Cancel(NS_ERROR_FAILURE);
+          mImageRequest->CancelAndForgetObserver(NS_ERROR_FAILURE);
           mImageRequest = nsnull;
         }
       }
@@ -182,7 +182,7 @@ nsBulletFrame::DidSetStyleContext(nsStyleContext* aOldStyleContext)
   } else {
     // No image request on the new style context
     if (mImageRequest) {
-      mImageRequest->Cancel(NS_ERROR_FAILURE);
+      mImageRequest->CancelAndForgetObserver(NS_ERROR_FAILURE);
       mImageRequest = nsnull;
     }
   }
