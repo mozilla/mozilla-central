@@ -29,7 +29,7 @@ Cu.import("resource:///modules/socket.jsm");
  *              irc.mozilla.org) or an IPv4 address (e.g. 1.2.3.4) or IPv6
  *              address (e.g. 3ffe:1900:4545:3:200:f8ff:fe21:67cf).
  */
-function ircMessage(aData) {
+function ircMessage(aData, aAccount) {
   let message = {rawMessage: aData};
   let temp, prefix;
 
@@ -287,8 +287,8 @@ ircChannel.prototype = {
         return;
     }
     else if (!isParticipant) {
-      ERROR("Trying to rename nick that doesn't exist! " + aOldNick + " to " +
-            aNewNick);
+      this.ERROR("Trying to rename nick that doesn't exist! " + aOldNick +
+                 " to " + aNewNick);
       return;
     }
 
@@ -335,7 +335,7 @@ ircChannel.prototype = {
     function getNextParam() {
       // If there's no next parameter, throw a warning.
       if (!aModeParams.length) {
-        WARN("Mode parameter expected!");
+        this.WARN("Mode parameter expected!");
         return undefined;
       }
       return aModeParams.pop();
@@ -349,7 +349,7 @@ ircChannel.prototype = {
 
     // Are modes being added or removed?
     if (aNewMode[0] != "+" && aNewMode[0] != "-") {
-      WARN("Invalid mode string: " + aNewMode);
+      this.WARN("Invalid mode string: " + aNewMode);
       return;
     }
     let addNewMode = aNewMode[0] == "+";
@@ -425,7 +425,7 @@ ircChannel.prototype = {
     }
 
     if (aModeParams.length)
-      WARN("Unused mode parameters: " + aModeParams.join(", "));
+      this.WARN("Unused mode parameters: " + aModeParams.join(", "));
 
     // Update the mode of each participant.
     for (let nick in userModes)
@@ -585,20 +585,20 @@ ircSocket.prototype = {
       this._converter.charset = this._account._encoding;
     } catch (e) {
       delete this._converter;
-      ERROR("Failed to set character set to: " + this._account._encoding + " for " +
-            this._account.name + ".");
+      this.ERROR("Failed to set character set to: " + this._account._encoding +
+                 " for " + this._account.name + ".");
     }
   },
 
   // Implement Section 5 of RFC 2812.
   onDataReceived: function(aRawMessage) {
-    DEBUG(aRawMessage);
+    this.DEBUG(aRawMessage);
     if (this._converter) {
       try {
         aRawMessage = this._converter.ConvertToUnicode(aRawMessage);
       } catch (e) {
-        WARN("This message doesn't seem to be " + this._account._encoding +
-             " encoded: " + aRawMessage);
+        this.WARN("This message doesn't seem to be " + this._account._encoding +
+                  " encoded: " + aRawMessage);
         // Unfortunately, if the unicode converter failed once,
         // it will keep failing so we need to reinitialize it.
         this._initCharsetConverter();
@@ -614,8 +614,9 @@ ircSocket.prototype = {
 
     try {
       // If nothing handled the message, throw a warning.
-      if (!ircHandlers.handleMessage(this._account, new ircMessage(aRawMessage)))
-        WARN("Unhandled IRC message: " + aRawMessage);
+    if (!ircHandlers.handleMessage(this._account,
+                                   new ircMessage(aRawMessage, this._account)))
+      this.WARN("Unhandled IRC message: " + aRawMessage);
     } catch (e) {
       // Catch the error, display it and hope the connection can continue with
       // this message in error. Errors are also caught inside of handleMessage,
@@ -633,26 +634,30 @@ ircSocket.prototype = {
         this._account.disconnected)
       return;
 
-    ERROR("Connection closed by server.");
+    this.ERROR("Connection closed by server.");
     this._account.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                                   _("connection.error.lost"));
   },
   onConnectionReset: function () {
-    ERROR("Connection reset.");
+    this.ERROR("Connection reset.");
     this._account.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                                   _("connection.error.lost"));
   },
   onConnectionTimedOut: function() {
-    ERROR("Connection timed out.");
+    this.ERROR("Connection timed out.");
     this._account.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                                   _("connection.error.timeOut"));
   },
   onBadCertificate: function(aNSSErrorMessage) {
-    ERROR("bad certificate: " + aNSSErrorMessage);
+    this.ERROR("bad certificate: " + aNSSErrorMessage);
     this._account.gotDisconnected(Ci.prplIAccount.ERROR_CERT_OTHER_ERROR,
                                   aNSSErrorMessage);
   },
-  log: LOG
+
+  get DEBUG() this._account.DEBUG,
+  get LOG() this._account.LOG,
+  get WARN() this._account.WARN,
+  get ERROR() this._account.ERROR
 };
 
 function ircAccountBuddy(aAccount, aBuddy, aTag, aUserName) {
@@ -764,7 +769,7 @@ ircAccount.prototype = {
       return;
 
     let {statusType: type, statusText: text} = this.imAccount.statusInfo;
-    DEBUG("New status received:\ntype = " + type + "\ntext = " + text);
+    this.DEBUG("New status received:\ntype = " + type + "\ntext = " + text);
 
     // Tell the server to mark us as away.
     if (type < Ci.imIStatusInfo.STATUS_AVAILABLE) {
@@ -1188,7 +1193,7 @@ ircAccount.prototype = {
   joinChat: function(aComponents) {
     let channel = aComponents.getValue("channel");
     if (!channel) {
-      ERROR("joinChat called without a channel name.");
+      this.ERROR("joinChat called without a channel name.");
       return;
     }
     let params = [channel];
@@ -1240,13 +1245,13 @@ ircAccount.prototype = {
   // This builds the message string that will be sent to the server.
   buildMessage: function(aCommand, aParams) {
     if (!aCommand) {
-      ERROR("IRC messages must have a command.");
+      this.ERROR("IRC messages must have a command.");
       return null;
     }
 
     // Ensure a command is only characters or numbers.
     if (!/^[A-Z0-9]+$/i.test(aCommand)) {
-      ERROR("IRC command invalid: " + aCommand);
+      this.ERROR("IRC command invalid: " + aCommand);
       return null;
     }
 
@@ -1256,7 +1261,7 @@ ircAccount.prototype = {
     let params = !aParams ? [] : Array.isArray(aParams) ? aParams : [aParams];
     if (params.length) {
       if (params.slice(0, -1).some(function(p) p.contains(" "))) {
-        ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
+        this.ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
         return null;
       }
       // Join the parameters with spaces. There are three cases in which the
@@ -1296,19 +1301,19 @@ ircAccount.prototype = {
     let length = this.countBytes(aMessage) + 2;
     if (length > this.maxMessageLength) {
       // Log if the message is too long, but try to send it anyway.
-      WARN("Message length too long (" + length + " > " +
-           this.maxMessageLength + "\n" + aMessage);
+      this.WARN("Message length too long (" + length + " > " +
+                this.maxMessageLength + "\n" + aMessage);
     }
 
     try {
       this._socket.sendString(aMessage, this._encoding, aLoggedData);
     } catch (e) {
       try {
-        WARN("Failed to convert " + aMessage + " from Unicode to " +
-             this._encoding + ".");
+        this.WARN("Failed to convert " + aMessage + " from Unicode to " +
+                  this._encoding + ".");
         this._socket.sendData(aMessage, aLoggedData);
       } catch(e) {
-        ERROR("Socket error: " + e);
+        this.ERROR("Socket error: " + e);
         this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                              _("connection.error.lost"));
       }

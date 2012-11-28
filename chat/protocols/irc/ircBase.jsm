@@ -144,7 +144,7 @@ function tryNewNick(aAccount, aMessage) {
     return true;
   }
 
-  LOG(aMessage.params[1] + " is already in use, trying " + newNick);
+  aAccount.LOG(aMessage.params[1] + " is already in use, trying " + newNick);
   aAccount.sendMessage("NICK", newNick); // Nick message.
   return true;
 }
@@ -165,7 +165,8 @@ var ircBase = {
       if (!this.disconnecting) {
         // We received an ERROR message when we weren't expecting it, this is
         // probably the server giving us a ping timeout.
-        ERROR("Received unexpected ERROR response:\n" + aMessage.params[0]);
+        this.ERROR("Received unexpected ERROR response:\n" +
+                   aMessage.params[0]);
         this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                              _("connection.error.lost"));
       }
@@ -184,7 +185,8 @@ var ircBase = {
       if (Services.prefs.getIntPref("messenger.conversations.autoAcceptChatInvitations") == 1) {
         // Auto-accept the invite.
         this.joinChat(this.getChatRoomDefaultFieldValues(aMessage.params[1]));
-        LOG("Received invite for " + aMessage.params[1] + ", auto-accepting.");
+        this.LOG("Received invite for " + aMessage.params[1] +
+                 ", auto-accepting.");
       }
       // Otherwise, just notify the user.
       this.getConversation(aMessage.params[1])
@@ -222,7 +224,8 @@ var ircBase = {
             delete this._chatRoomFieldsList[nName];
           }
           else {
-            WARN("Opening a MUC without storing its prplIChatRoomFieldValues first.");
+            this.WARN("Opening a MUC without storing its " +
+                      "prplIChatRoomFieldValues first.");
             conversation._chatRoomFields =
               this.getChatRoomDefaultFieldValues(channelName);
           }
@@ -1017,7 +1020,7 @@ var ircBase = {
     },
     "383": function(aMessage) { // RPL_YOURESERVICE
       // You are service <servicename>
-      WARN("Received \"You are a service\" message.");
+      this.WARN("Received \"You are a service\" message.");
       return true;
     },
 
@@ -1117,32 +1120,32 @@ var ircBase = {
     "411": function(aMessage) { // ERR_NORECIPIENT
       // :No recipient given (<command>)
       // If this happens a real error with the protocol occurred.
-      ERROR("ERR_NORECIPIENT: No recipient given for PRIVMSG.");
+      this.ERROR("ERR_NORECIPIENT: No recipient given for PRIVMSG.");
       return true;
     },
     "412": function(aMessage) { // ERR_NOTEXTTOSEND
       // :No text to send
       // If this happens a real error with the protocol occurred: we should
       // always block the user from sending empty messages.
-      ERROR("ERR_NOTEXTTOSEND: No text to send for PRIVMSG.");
+      this.ERROR("ERR_NOTEXTTOSEND: No text to send for PRIVMSG.");
       return true;
     },
     "413": function(aMessage) { // ERR_NOTOPLEVEL
       // <mask> :No toplevel domain specified
       // If this response is received, a real error occurred in the protocol.
-      ERROR("ERR_NOTOPLEVEL: Toplevel domain not specified.");
+      this.ERROR("ERR_NOTOPLEVEL: Toplevel domain not specified.");
       return true;
     },
     "414": function(aMessage) { // ERR_WILDTOPLEVEL
       // <mask> :Wildcard in toplevel domain
       // If this response is received, a real error occurred in the protocol.
-      ERROR("ERR_WILDTOPLEVEL: Wildcard toplevel domain specified.");
+      this.ERROR("ERR_WILDTOPLEVEL: Wildcard toplevel domain specified.");
       return true;
     },
     "415": function(aMessage) { // ERR_BADMASK
       // <mask> :Bad Server/host mask
       // If this response is received, a real error occurred in the protocol.
-      ERROR("ERR_BADMASK: Bad server/host mask specified.");
+      this.ERROR("ERR_BADMASK: Bad server/host mask specified.");
       return true;
     },
     "421": function(aMessage) { // ERR_UNKNOWNCOMMAND
@@ -1176,8 +1179,8 @@ var ircBase = {
       serverErrorMessage(this, aMessage, msg);
       if (this._requestedNickname == this._accountNickname) {
         // The account has been set up with an illegal nickname.
-        ERROR("Erroneous nickname " + aMessage.params[1] + ": " +
-              aMessage.params[2]);
+        this.ERROR("Erroneous nickname " + aMessage.params[1] + ": " +
+                   aMessage.params[2]);
         this.gotDisconnected(Ci.prplIAccount.ERROR_INVALID_USERNAME, msg);
       }
       else {
@@ -1208,8 +1211,8 @@ var ircBase = {
     },
     "442": function(aMessage) { // ERR_NOTONCHANNEL
       // <channel> :You're not on that channel
-      ERROR("A command affecting " + aMessage.params[1] +
-            " failed because you aren't in that channel.");
+      this.ERROR("A command affecting " + aMessage.params[1] +
+                 " failed because you aren't in that channel.");
       return true;
     },
     "443": function(aMessage) { // ERR_USERONCHANNEL
@@ -1236,7 +1239,7 @@ var ircBase = {
       // :You have not registered
       // If the server doesn't understand CAP it might return this error.
       if (aMessage.params[0] == "CAP") {
-        LOG("Server doesn't support CAP.");
+        this.LOG("Server doesn't support CAP.");
         return true;
       }
       // TODO

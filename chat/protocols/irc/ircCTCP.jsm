@@ -127,8 +127,8 @@ var ctcpBase = {
 
     // Used when an error needs to be replied with.
     "ERRMSG": function(aMessage) {
-      WARN(aMessage.nickname + " failed to handle CTCP message: " +
-           aMessage.ctcp.param);
+      this.WARN(aMessage.nickname + " failed to handle CTCP message: " +
+                aMessage.ctcp.param);
       return true;
     },
 
@@ -143,8 +143,8 @@ var ctcpBase = {
       if (aMessage.command == "PRIVMSG") {
         // PING timestamp
         // Received PING request, send PING response.
-        LOG("Received PING request from " + aMessage.nickname +
-            ". Sending PING response: \"" + aMessage.ctcp.param + "\".");
+        this.LOG("Received PING request from " + aMessage.nickname +
+                 ". Sending PING response: \"" + aMessage.ctcp.param + "\".");
         this.sendCTCPMessage("PING", aMessage.ctcp.param, aMessage.nickname,
                               true);
       }
@@ -155,9 +155,9 @@ var ctcpBase = {
 
         // The received timestamp is invalid
         if (isNaN(sentTime)) {
-          WARN(aMessage.nickname +
-               " returned an invalid timestamp from a CTCP PING: " +
-               aMessage.ctcp.param);
+          this.WARN(aMessage.nickname +
+                    " returned an invalid timestamp from a CTCP PING: " +
+                    aMessage.ctcp.param);
           return false;
         }
 
@@ -184,8 +184,8 @@ var ctcpBase = {
         // TIME
         // Received a TIME request, send a human readable response.
         let now = (new Date()).toString();
-        LOG("Received TIME request from " + aMessage.nickname +
-            ". Sending TIME response: \"" + now + "\".");
+        this.LOG("Received TIME request from " + aMessage.nickname +
+                 ". Sending TIME response: \"" + now + "\".");
         this.sendCTCPMessage("TIME", ":" + now, aMessage.nickname, true);
       }
       else {
@@ -210,8 +210,8 @@ var ctcpBase = {
         // VERSION
         // Received VERSION request, send VERSION response.
         let version = Services.appinfo.name + " " + Services.appinfo.version;
-        LOG("Received VERSION request from " + aMessage.nickname +
-            ". Sending VERSION response: \"" + version + "\".");
+        this.LOG("Received VERSION request from " + aMessage.nickname +
+                 ". Sending VERSION response: \"" + version + "\".");
         this.sendCTCPMessage("VERSION", version, aMessage.nickname, true);
       }
       else if (aMessage.command == "NOTICE" && aMessage.ctcp.param.length) {

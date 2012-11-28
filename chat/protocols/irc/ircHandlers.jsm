@@ -41,11 +41,13 @@ var ircHandlers = {
   _registerHandler: function(aArray, aHandler) {
     // Protect ourselves from adding broken handlers.
     if (!("commands" in aHandler)) {
-      ERROR("IRC handlers must have a \"commands\" property: " + aHandler.name);
+      Cu.reportError(new Error("IRC handlers must have a \"commands\" " +
+                               "property: " + aHandler.name));
       return false;
     }
     if (!("isEnabled" in aHandler)) {
-      ERROR("IRC handlers must have a \"isEnabled\" property: " + aHandler.name);
+      Cu.reportError(new Error("IRC handlers must have a \"isEnabled\" " +
+                               "property: " + aHandler.name));
       return false;
     }
 
@@ -99,14 +101,15 @@ var ircHandlers = {
         if (handler.isEnabled.call(aAccount) &&
             hasOwnProperty(handler.commands, aCommand) &&
             handler.commands[aCommand].call(aAccount, aMessage)) {
-          DEBUG(JSON.stringify(aMessage));
+          aAccount.DEBUG(JSON.stringify(aMessage));
           return true;
         }
       } catch (e) {
-        // We want to catch an error here because one of our handlers are broken,
-        // if we don't catch the error, the whole IRC plug-in will die.
-        ERROR("Error running command " + aCommand + " with handler " +
-              handler.name + ":\n" + JSON.stringify(aMessage) + "\n" + e);
+        // We want to catch an error here because one of our handlers are
+        // broken, if we don't catch the error, the whole IRC plug-in will die.
+        aAccount.ERROR("Error running command " + aCommand + " with handler " +
+                       handler.name + ":\n" + JSON.stringify(aMessage) + "\n" +
+                       e);
       }
     }
 

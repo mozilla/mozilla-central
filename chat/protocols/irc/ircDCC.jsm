@@ -20,11 +20,11 @@ Cu.import("resource:///modules/jsProtoHelper.jsm");
 // Parse a CTCP message into a DCC message. A DCC message is a CTCP message of
 // the form:
 //   DCC <type> <argument> <address> <port> [<size>]
-function DCCMessage(aMessage) {
+function DCCMessage(aMessage, aAccount) {
   let message = aMessage;
   let params = message.ctcp.param.split(" ");
   if (params.length < 4) {
-    ERROR("Not enough DCC parameters:\n" + JSON.stringify(aMessage));
+    aAccount.ERROR("Not enough DCC parameters:\n" + JSON.stringify(aMessage));
     return null;
   }
 
@@ -41,7 +41,8 @@ function DCCMessage(aMessage) {
       furtherArguments: params.length > 5 ? params.slice(5) : []
     };
   } catch (e) {
-    ERROR("Error parsing DCC parameters:\n" + JSON.stringify(aMessage));
+    aAccount.ERROR("Error parsing DCC parameters:\n" +
+                   JSON.stringify(aMessage));
     return null;
   }
 
@@ -63,7 +64,7 @@ var ctcpDCC = {
         return false;
 
       // Parse the message and attempt to handle it.
-      return ircHandlers.handleDCCMessage(this, DCCMessage(aMessage));
+      return ircHandlers.handleDCCMessage(this, DCCMessage(aMessage, aAccount));
     }
   }
 };

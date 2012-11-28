@@ -164,12 +164,12 @@ var isupportBase = {
       let matches = /\(([a-z]*)\)(.*)/i.exec(value);
       if (!matches) {
         // The pattern doesn't match.
-        WARN("Invalid PREFIX value: " + value);
+        this.WARN("Invalid PREFIX value: " + value);
         return false;
       }
       if (matches[1].length != matches[2].length) {
-        WARN("Invalid PREFIX value, does not provide one-to-one mapping:" +
-             value);
+        this.WARN("Invalid PREFIX value, does not provide one-to-one mapping:" +
+                  value);
         return false;
       }
 
@@ -182,7 +182,7 @@ var isupportBase = {
     "STD": function(aMessage) {
       // This was never updated as the RFC was never formalized.
       if (aMessage.isupport.value != "rfcnnnn")
-        WARN("Unknown ISUPPORT numeric form: " + aMessage.isupport.value);
+        this.WARN("Unknown ISUPPORT numeric form: " + aMessage.isupport.value);
       return true;
     },
     "TARGMAX": function(aMessage) {
@@ -198,7 +198,7 @@ var isupportBase = {
         let [command, limitStr] = commands[i].split("=");
         let limit = limitStr ? new Number(limit) : Infinity;
         if (isNaN(limit)) {
-          WARN("Invalid maximum number of targets: " + limitStr);
+          this.WARN("Invalid maximum number of targets: " + limitStr);
           continue;
         }
         this.maxTargets[command] = limit;

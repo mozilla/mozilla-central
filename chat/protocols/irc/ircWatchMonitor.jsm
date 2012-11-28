@@ -50,8 +50,8 @@ function trackBuddyWatch(aNicks) {
 
   let newWatchLength = this.watchLength + nicks.length;
   if (newWatchLength > this.maxWatchLength) {
-    WARN("Attempting to WATCH " + newWatchLength + " nicks; maximum size is " +
-         this.maxWatchLength + ".");
+    this.WARN("Attempting to WATCH " + newWatchLength +
+              " nicks; maximum size is " + this.maxWatchLength + ".");
     // TODO We should trim the list and add the extra users to an ISON queue,
     // but that's not currently implemented, so just hope the server doesn't
     // enforce it's own limit.
@@ -171,7 +171,8 @@ var ircWATCH = {
 
     "512": function(aMessage) { // ERR_TOOMANYWATCH
       // Maximum size for WATCH-list is <watchlimit> entries
-      ERROR("Maximum size for WATCH list exceeded (" + this.watchLength + ").");
+      this.ERROR("Maximum size for WATCH list exceeded (" + this.watchLength +
+                 ").");
       return true;
     },
 
@@ -280,8 +281,8 @@ function trackBuddyMonitor(aNicks) {
 
   let newMonitorLength = this.monitorLength + nicks.length;
   if (newMonitorLength > this.maxMonitorLength) {
-    WARN("Attempting to MONITOR " + newMonitorLength +
-         " nicks; maximum size is " + this.maxMonitorLength + ".");
+    this.WARN("Attempting to MONITOR " + newMonitorLength +
+              " nicks; maximum size is " + this.maxMonitorLength + ".");
     // TODO We should trim the list and add the extra users to an ISON queue,
     // but that's not currently implemented, so just hope the server doesn't
     // enforce it's own limit.
@@ -371,7 +372,8 @@ var ircMONITOR = {
 
     "734": function(aMessage) { // ERR_MONLISTFULL
       // :<server> 734 <nick> <limit> <nicks> :Monitor list is full.
-      ERROR("Maximum size for MONITOR list exceeded (" + this.params[1] + ").");
+      this.ERROR("Maximum size for MONITOR list exceeded (" + this.params[1] +
+                 ").");
       return true;
     }
   }

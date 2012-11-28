@@ -111,7 +111,7 @@ var ircServices = {
         return true;
       }
       if (aMessage.params[1] == "NICKSERV") {
-        WARN("NICKSERV command does not exist.");
+        this.WARN("NICKSERV command does not exist.");
         return true;
       }
       return false;
@@ -164,7 +164,7 @@ var servicesBase = {
             text.slice(0, 28) == "You are now identified for \x02") { // Atheme.
           // Password successfully accepted by NickServ, don't display the
           // queued messages.
-          LOG("Successfully authenticated with NickServ.");
+          this.LOG("Successfully authenticated with NickServ.");
           this.isAuthenticated = true;
           clearTimeout(this.nickservAuthTimeout);
           delete this.nickservAuthTimeout;
@@ -182,7 +182,7 @@ var servicesBase = {
       if (text == "This nick is owned by someone else.  Please choose another." || // Anope.
           text == "This nickname is registered and protected.  If it is your" || // Anope (SECURE enabled).
           text == "This nickname is registered. Please choose a different nickname, or identify via \x02/msg NickServ identify <password>\x02.") { // Atheme.
-        LOG("Authentication requested by NickServ.");
+        this.LOG("Authentication requested by NickServ.");
 
         // Wait one second before showing the message to the user (giving the
         // the server time to process the log-in).

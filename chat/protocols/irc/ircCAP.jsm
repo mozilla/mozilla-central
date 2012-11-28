@@ -78,7 +78,7 @@ var ircCAP = {
 
     "410": function(aMessage) { // ERR_INVALIDCAPCMD
       // <unrecognized subcommand> :Invalid CAP subcommand
-      WARN("Invalid subcommand: " + aMessage.params[1]);
+      this.WARN("Invalid subcommand: " + aMessage.params[1]);
       return true;
     }
   }

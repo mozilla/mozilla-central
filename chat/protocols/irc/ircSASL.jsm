@@ -24,8 +24,8 @@ var ircSASL = {
       // Expect an empty response, if something different is received abort.
       if (aMessage.params[0] != "+") {
         this.sendMessage("AUTHENTICATE", "*");
-        WARN("Aborting SASL authentication, unexpected message received:\n" +
-             aMessage.rawMessage);
+        this.WARN("Aborting SASL authentication, unexpected message " +
+                  "received:\n" + aMessage.rawMessage);
         return true;
       }
 
@@ -43,7 +43,7 @@ var ircSASL = {
     "900": function(aMessage) {
       // Now logged in.
       this.isAuthenticated = true;
-      LOG("SASL authentication successful.");
+      this.LOG("SASL authentication successful.");
       this.removeCAP("sasl");
       return true;
     },
@@ -56,20 +56,20 @@ var ircSASL = {
     "904": function(aMessage) {
       // AUTHENTICATE message failed.
       // Only PLAIN is currently supported, so fail here.
-      WARN("The server does not support SASL PLAIN authentication.");
+      this.WARN("The server does not support SASL PLAIN authentication.");
       this.removeCAP("sasl");
       return true;
     },
 
     "905": function(aMessage) {
-      ERROR("Authentication with SASL failed.");
+      this.ERROR("Authentication with SASL failed.");
       this.removeCAP("sasl");
       return true;
     },
 
     "906": function(aMessage) {
       // The client completed registration before SASL authentication completed.
-      ERROR("Registration completed before SASL authentication completed.");
+      this.ERROR("Registration completed before SASL authentication completed.");
       this.removeCAP("sasl");
       return true;
     },
@@ -77,7 +77,7 @@ var ircSASL = {
     "907": function(aMessage) {
       // Response if client attempts to AUTHENTICATE after successful
       // authentication.
-      ERROR("Attempting SASL authentication twice?!");
+      this.ERROR("Attempting SASL authentication twice?!");
       this.removeCAP("sasl");
       return true;
     }
