@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
@@ -153,20 +154,15 @@ calItipEmailTransport.prototype = {
         this.mHasXpcomMail = true;
 
         try {
-            let smtpSvc = Components.classes["@mozilla.org/messengercompose/smtp;1"]
-                                    .getService(Components.interfaces.nsISmtpService);
-            this.mDefaultSmtpServer = smtpSvc.defaultServer;
-
-            let accountMgrSvc = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                          .getService(Components.interfaces.nsIMsgAccountManager);
-            this.mDefaultAccount = accountMgrSvc.defaultAccount;
+            this.mDefaultSmtpServer = MailServices.smtp.defaultServer;
+            this.mDefaultAccount = MailServices.accounts.defaultAccount;
             this.mDefaultIdentity = this.mDefaultAccount.defaultIdentity;
 
             if (!this.mDefaultIdentity) {
                 // If there isn't a default identity (i.e Local Folders is your
                 // default identity, then go ahead and use the first available
                 // identity.
-                let allIdentities = accountMgrSvc.allIdentities;
+                let allIdentities = MailServices.accounts.allIdentities;
                 if (allIdentities.Count() > 0) {
                     this.mDefaultIdentity = allIdentities.GetElementAt(0)
                                                          .QueryInterface(Components.interfaces.nsIMsgIdentity);
@@ -287,14 +283,13 @@ calItipEmailTransport.prototype = {
                 return convertFromUnicode("UTF-8", text).replace(/(\r\n)|\n/g, "\r\n");
             }
             function encodeMimeHeader(header) {
-                let mimeConverter = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
-                                              .createInstance(Components.interfaces.nsIMimeConverter);
                 let fieldNameLen = (header.indexOf(": ") + 2);
-                return mimeConverter.encodeMimePartIIStr_UTF8(header,
-                                                              false,
-                                                              "UTF-8",
-                                                              fieldNameLen,
-                                                              Components.interfaces.nsIMimeConverter.MIME_ENCODED_WORD_SIZE);
+                return MailServices.mimeConverter
+                                   .encodeMimePartIIStr_UTF8(header,
+                                                             false,
+                                                             "UTF-8",
+                                                             fieldNameLen,
+                                                             Components.interfaces.nsIMimeConverter.MIME_ENCODED_WORD_SIZE);
             }
 
             let itemList = aItem.getItemList({});

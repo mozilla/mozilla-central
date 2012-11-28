@@ -7,6 +7,7 @@
  * that loading this file twice in the same scope will throw errors.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 function _calIcalCreator(cid, iid) {
@@ -46,12 +47,6 @@ function createRecurrenceInfo(aItem) {
            createInstance(Components.interfaces.calIRecurrenceInfo);
     recInfo.item = aItem;
     return recInfo;
-}
-
-/* Shortcut to the account manager service */
-function getAccountManager() {
-    return Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Components.interfaces.nsIMsgAccountManager);
 }
 
 /* Shortcut to the calendar-manager service */
@@ -1280,51 +1275,20 @@ calListenerBag.prototype = {
 };
 
 function sendMailTo(aRecipient, aSubject, aBody) {
+    let msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
+                              .createInstance(Components.interfaces.nsIMsgComposeParams);
+    let composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                                  .createInstance(Components.interfaces.nsIMsgCompFields);
 
-    if (Components.classes["@mozilla.org/messengercompose;1"]) {
-        // We are in Thunderbird, we can use the compose interface directly
-        var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
-                                .getService(Components.interfaces.nsIMsgComposeService);
-        var msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
-                        .createInstance(Components.interfaces.nsIMsgComposeParams);
-        var composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
-                            .createInstance(Components.interfaces.nsIMsgCompFields);
+    composeFields.to = aRecipient;
+    composeFields.subject = aSubject;
+    composeFields.body = aBody;
 
-        composeFields.to = aRecipient;
-        composeFields.subject = aSubject;
-        composeFields.body = aBody;
+    msgParams.type = Components.interfaces.nsIMsgCompType.New;
+    msgParams.format = Components.interfaces.nsIMsgCompFormat.Default;
+    msgParams.composeFields = composeFields;
 
-        msgParams.type = Components.interfaces.nsIMsgCompType.New;
-        msgParams.format = Components.interfaces.nsIMsgCompFormat.Default;
-        msgParams.composeFields = composeFields;
-
-        msgComposeService.OpenComposeWindowWithParams(null, msgParams);
-    } else {
-        // We are in a place without a composer. Use the external protocol
-        // service.
-        var protoSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
-                       .getService(Components.interfaces.nsIExternalProtocolService);
-
-        var uriString = "mailto:";
-        var uriParams = [];
-        if (aRecipient) {
-            uriString += aRecipient;
-        }
-
-        if (aSubject) {
-            uriParams.push("subject=" + encodeURIComponent(aSubject));
-        }
-
-        if (aBody) {
-            uriParams.push("body=" + encodeURIComponent(aSubject));
-        }
-
-        if (uriParams.length > 0) {
-            uriString += "?" + uriParams.join("&");
-        }
-
-        protoSvc.loadUrl(makeURL(uriString));
-    }
+    MailServices.compose.OpenComposeWindowWithParams(null, msgParams);
 }
 
 /**
@@ -1774,7 +1738,7 @@ calPropertyBagEnumerator.prototype = {
  * If the called function returns false, iteration is stopped.
  */
 function calIterateEmailIdentities(func) {
-    var accounts = getAccountManager().accounts;
+    var accounts = MailServices.accounts.accounts;
     for (var i = 0; i < accounts.Count(); ++i) {
         var account = accounts.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgAccount);
         var identities = account.identities;

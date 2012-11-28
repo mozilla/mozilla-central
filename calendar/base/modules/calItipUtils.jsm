@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
@@ -310,7 +311,7 @@ cal.itip = {
         }
 
         let identities;
-        let actMgr = cal.getAccountManager();
+        let actMgr = MailServices.accounts;
         if (aMsgHdr.accountKey) {
             // First, check if the message has an account key. If so, we can use the
             // account identities to find the correct recipient
@@ -348,8 +349,7 @@ cal.itip = {
             }
         }
 
-        let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                  .getService(Components.interfaces.nsIMsgHeaderParser);
+        let hdrParser = MailServices.headerParser;
         let emails = {};
 
         // First check the recipient list

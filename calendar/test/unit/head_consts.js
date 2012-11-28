@@ -8,9 +8,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 (function load_lightning_manifest() {
-  let bindir = Components.classes["@mozilla.org/file/directory_service;1"]
-                         .getService(Components.interfaces.nsIProperties)
-                         .get("CurProcD", Components.interfaces.nsIFile);
+  let bindir = Services.dirsvc.get("CurProcD", Components.interfaces.nsIFile);
   bindir.append("extensions");
   bindir.append("{e2fda1a4-762b-4020-b5ad-a41df1933103}");
   bindir.append("chrome.manifest");
@@ -75,9 +73,7 @@ function getMemoryCal() {
 }
 
 function getStorageCal() {
-    var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIProperties);
-    var db = dirSvc.get("TmpD", Ci.nsIFile);
+    var db = Services.dirsvc.get("TmpD", Ci.nsIFile);
     db.append("test_storage.sqlite");
 
     // create URI

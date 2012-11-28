@@ -56,7 +56,6 @@
       <field name="mNumColumns">0</field>
       <field name="mIOService">null</field>
       <field name="mDirectoryServerObserver">null</field>
-      <field name="mHeaderParser">null</field>
       <field name="mPrefs">null</field>
       <field name="mIsOffline">0</field>
       <field name="mLDAPSession">null</field>
@@ -96,11 +95,6 @@
         }
 
         this.mDirectoryServerObserver = observer;
-
-        var component = Components.classes["@mozilla.org/messenger/headerparser;1"];
-        if (component) {
-            this.mHeaderParser = component.getService(Components.interfaces.nsIMsgHeaderParser);
-        }
 
         // First get the preferences service
         try {
@@ -291,7 +285,7 @@
           // construct the display string from common name and/or email address.
           var inputValue = aAttendee.commonName;
           var regexp = new RegExp("^mailto:(.*)", "i");
-          if (inputValue && this.mHeaderParser) {
+          if (inputValue) {
               // Make the commonName appear in quotes if it
               // contains a comma or semicolon.
               if (inputValue.search(/[,;]/) != -1) {
@@ -443,15 +437,16 @@
 
       <property name="attendees">
         <getter><![CDATA[
-          var attendees = [];
+          Components.utils.import("resource:///modules/mailServices.js");
+          let attendees = [];
+          let inputField;
 
-          var inputField;
-          for (var i = 1; inputField = this.getInputElement(i); i++) {
-              var fieldValue = inputField.value;
+          for (let i = 1; inputField = this.getInputElement(i); i++) {
+              let fieldValue = inputField.value;
               if (fieldValue != "") {
                   // the inputfield already has a reference to the attendee
                   // object, we just need to fill in the name.
-                  var attendee = inputField.attendee.clone();
+                  let attendee = inputField.attendee.clone();
 
                   attendee.role = this.getRoleElement(i).getAttribute("role");
                   //attendee.participationStatus = this.getStatusElement(i).getAttribute("status");
@@ -459,25 +454,20 @@
                   attendee.userType = (userType == "INDIVIDUAL" ? null : userType) // INDIVIDUAL is the default
 
                   // break the list of potentially many attendees back into individual names
-                  var emailAddresses = {};
-                  var names = {};
-                  var fullNames = {};
+                  let emailAddresses = {};
+                  let names = {};
+                  let fullNames = {};
 
-                  if (this.mHeaderParser) {
-                      this.mHeaderParser.parseHeadersWithArray(fieldValue,
-                                                               emailAddresses,
-                                                               names,
-                                                               fullNames);
-                  } else {
-                      emailAddresses.value = [ fieldValue ];
-                      names.value = [];
-                  }
+                  MailServices.headerParser.parseHeadersWithArray(fieldValue,
+                                                                  emailAddresses,
+                                                                  names,
+                                                                  fullNames);
 
                   if (emailAddresses.value.length > 0) {
                       // If the new address has no 'mailto'-prefix but seems
                       // to look like an email-address, we prepend the prefix.
                       // This also allows for non-email-addresses.
-                      var email = emailAddresses.value[0];
+                      let email = emailAddresses.value[0];
                       if (email.toLowerCase().indexOf("mailto:") != 0) {
                           if (email.indexOf("@") >= 0) {
                               email = "MAILTO:" + email;
@@ -502,13 +492,15 @@
 
       <property name="organizer">
         <getter><![CDATA[
-          var inputField;
-          for (var i = 1; inputField = this.getInputElement(i); i++) {
-              var fieldValue = inputField.value;
+          Components.utils.import("resource:///modules/mailServices.js");
+
+          let inputField;
+          for (let i = 1; inputField = this.getInputElement(i); i++) {
+              let fieldValue = inputField.value;
               if (fieldValue != "") {
                   // The inputfield already has a reference to the attendee
                   // object, we just need to fill in the name.
-                  var attendee = inputField.attendee.clone();
+                  let attendee = inputField.attendee.clone();
 
                   //attendee.role = this.getRoleElement(i).getAttribute("role");
                   attendee.participationStatus = this.getStatusElement(i).getAttribute("status");
@@ -516,25 +508,20 @@
                   attendee.userType = null;
 
                   // break the list of potentially many attendees back into individual names
-                  var emailAddresses = {};
-                  var names = {};
-                  var fullNames = {};
+                  let emailAddresses = {};
+                  let names = {};
+                  let fullNames = {};
 
-                  if (this.mHeaderParser) {
-                      this.mHeaderParser.parseHeadersWithArray(fieldValue,
-                                                               emailAddresses,
-                                                               names,
-                                                               fullNames);
-                  } else {
-                      emailAddresses.value = [ fieldValue ];
-                      names.value = [];
-                  }
+                  MailServices.headerParser.parseHeadersWithArray(fieldValue,
+                                                                  emailAddresses,
+                                                                  names,
+                                                                  fullNames);
 
                   if (emailAddresses.value.length > 0) {
                       // if the new address has no 'mailto'-prefix but seems
                       // to look like an email-address, we prepend the prefix.
                       // this also allows for non-email-addresses.
-                      var email = emailAddresses.value[0];
+                      let email = emailAddresses.value[0];
                       if (email.toLowerCase().indexOf("mailto:") != 0) {
                           if (email.indexOf("@") >= 0) {
                               email = "MAILTO:" + email;
@@ -559,24 +546,23 @@
       <method name="onBlurInput">
         <parameter name="event"/>
         <body><![CDATA[
-          if (this.mHeaderParser) {
-              var emailAddresses = {};
-              var names = {};
-              var fullNames = {};
-              this.mHeaderParser.parseHeadersWithArray(
-                    event.target.value,
-                    emailAddresses,
-                    names,
-                    fullNames);
-              if (emailAddresses.value.length > 1) {
-                  let firstFullName = fullNames.value.shift();
-                  event.target.value = firstFullName;
-                  let insertAfterItem = this.getListItem(this.getRowByInputElement(event.target));
-                  for each (let full in fullNames.value) {
-                      insertAfterItem = this.appendNewRow(false, insertAfterItem);
-                      let textinput = this.getInputFromListitem(insertAfterItem);
-                      textinput.value = full;
-                  }
+          Components.utils.import("resource:///modules/mailServices.js");
+
+          let emailAddresses = {};
+          let names = {};
+          let fullNames = {};
+          MailServices.headerParser.parseHeadersWithArray(event.target.value,
+                                                          emailAddresses,
+                                                          names,
+                                                          fullNames);
+          if (emailAddresses.value.length > 1) {
+              let firstFullName = fullNames.value.shift();
+              event.target.value = firstFullName;
+              let insertAfterItem = this.getListItem(this.getRowByInputElement(event.target));
+              for each (let full in fullNames.value) {
+                  insertAfterItem = this.appendNewRow(false, insertAfterItem);
+                  let textinput = this.getInputFromListitem(insertAfterItem);
+                  textinput.value = full;
               }
           }
         ]]></body>
@@ -585,31 +571,28 @@
       <method name="_resolveListByName">
         <parameter name="value"/>
         <body><![CDATA[
-            if (this.mHeaderParser) {
-              let emailAddresses = {};
-              let names = {};
-              let fullNames = {};
-              this.mHeaderParser.parseHeadersWithArray(value,
-                                                       emailAddresses,
-                                                       names,
-                                                       fullNames);
+            Components.utils.import("resource:///modules/mailServices.js");
 
-              let abManager = Components.classes["@mozilla.org/abmanager;1"]
-                                        .getService(Components.interfaces.nsIAbManager);
+            let emailAddresses = {};
+            let names = {};
+            let fullNames = {};
+            MailServices.headerParser.parseHeadersWithArray(value,
+                                                            emailAddresses,
+                                                            names,
+                                                            fullNames);
 
-              let abDir=this._findListInAddrBooks(abManager, names.value[0]);
+            let abDir = this._findListInAddrBooks(names.value[0]);
 
-              return abDir;
-            }
-            return null;
+            return abDir;
           ]]></body>
     </method>
 
     <method name="_findListInAddrBooks">
-        <parameter name="abManager"/>
         <parameter name="entryname"/>
         <body><![CDATA[
-            let allAddressBooks = abManager.directories;
+            Components.utils.import("resource:///modules/mailServices.js");
+
+            let allAddressBooks = MailServices.ab.directories;
 
             while (allAddressBooks.hasMoreElements()) {
               let abDir = null;
@@ -646,7 +629,6 @@
         <parameter name="attendees"/>
         <parameter name="allListsUri"/>
         <body><![CDATA[
-
             function in_list(aList, listid) {
               for (var l=0;l<aList.length;l++){
                 if (aList[l]===listid) return true;
@@ -654,12 +636,9 @@
               return false;
             }
 
-            let abManager = Components.classes["@mozilla.org/abmanager;1"]
-                                      .getService(Components.interfaces.nsIAbManager);
-
-            let addressLists=mailingList.addressLists;
+            let addressLists = mailingList.addressLists;
             for (var i=0;i<addressLists.length;i++) {
-              let abCard=addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
+              let abCard = addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
               let thisId = abCard.primaryEmail;
               if (abCard.displayName.length > 0) {
                   let rCn = abCard.displayName;
@@ -671,7 +650,7 @@
               if (in_list(attendees, thisId)) continue;
 
               if (abCard.displayName.length > 0) {
-                let ml=this._findListInAddrBooks(abManager, abCard.displayName);
+                let ml = this._findListInAddrBooks(abCard.displayName);
                 if (null!=ml){
                   if (in_list(allListsUri, ml.URI)) continue;
                   allListsUri.push(ml.URI);
@@ -783,28 +762,24 @@
 
       <method name="onModify">
         <body><![CDATA[
-          var list = [];
-          for (var i = 1; i <= this.mMaxAttendees; i++) {
+          Components.utils.import("resource:///modules/mailServices.js");
+
+          let list = [];
+          for (let i = 1; i <= this.mMaxAttendees; i++) {
               // retrieve the string from the appropriate row
-              var input = this.getInputElement(i);
-              var fieldValue = input.value;
+              let input = this.getInputElement(i);
+              let fieldValue = input.value;
 
               // parse the string to break this down to individual names and addresses
-              var email = "";
-              var emailAddresses = {};
-              var names = {};
-              var fullNames = {};
+              let email = "";
+              let emailAddresses = {};
+              let names = {};
+              let fullNames = {};
 
-              if (this.mHeaderParser) {
-                  this.mHeaderParser.parseHeadersWithArray(
-                      fieldValue,
-                      emailAddresses,
-                      names,
-                      fullNames);
-              } else {
-                  emailAddresses.value = [ fieldValue ];
-                  names.value = [];
-              }
+              MailServices.headerParser.parseHeadersWithArray(fieldValue,
+                                                              emailAddresses,
+                                                              names,
+                                                              fullNames);
 
               if (emailAddresses.value.length > 0) {
                   // if the new address has no 'mailto'-prefix but seems
@@ -818,19 +793,19 @@
                   }
               }
 
-              var isdirty = false;
+              let isdirty = false;
               if (input.hasAttribute("dirty")) {
                   isdirty = input.getAttribute("dirty");
               }
               input.removeAttribute("dirty");
-              var entry = {
+              let entry = {
                   dirty: isdirty,
                   calid: email
               };
               list.push(entry);
           }
 
-          var event = document.createEvent('Events');
+          let event = document.createEvent('Events');
           event.initEvent('modify', true, false);
           event.details = list;
           this.dispatchEvent(event);

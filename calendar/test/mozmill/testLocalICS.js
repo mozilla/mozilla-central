@@ -29,9 +29,7 @@ var setupModule = function(module) {
   calendar = time;
   title = time;
   
-  file = Components.classes["@mozilla.org/file/directory_service;1"]
-                   .getService(Components.interfaces.nsIProperties)
-                   .get("TmpD", Components.interfaces.nsIFile);
+  file = Services.dirsvc.get("TmpD", Components.interfaces.nsIFile);
   file.append(calendar + ".ics");
   let fileURI = Services.io.newFileURI(file);
   uri = fileURI.prePath + fileURI.path;

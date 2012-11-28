@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
@@ -51,7 +52,7 @@ function ltnInitMailIdentitiesRow() {
     if (gCalendar && gCalendar.aclEntry && gCalendar.aclEntry.hasAccessControl) {
         identities = gCalendar.aclEntry.getOwnerIdentities({});
     } else {
-        identities = cal.getAccountManager().allIdentities;
+        identities = MailServices.accounts.allIdentities;
     }
     for each (let identity in fixIterator(identities, Components.interfaces.nsIMsgIdentity)) {
         addMenuItem(menuPopup, identity.identityName, identity.key);

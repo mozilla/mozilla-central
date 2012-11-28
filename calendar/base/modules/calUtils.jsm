@@ -15,8 +15,6 @@ let cal = {
     // and more code should be moved from calUtils.js into this object to avoid
     // clashes with other extensions
 
-    getIOService: generateServiceAccessor("@mozilla.org/network/io-service;1",
-                                          Components.interfaces.nsIIOService2),
     getDragService: generateServiceAccessor("@mozilla.org/widget/dragservice;1",
                                                 Components.interfaces.nsIDragService),
 
@@ -28,8 +26,6 @@ let cal = {
      * @param baseDir     base dir; defaults to calendar-js/
      */
     loadScripts: function cal_loadScripts(scriptNames, scope, baseDir) {
-        let ioService = cal.getIOService();
-
         if (!baseDir) {
             baseDir = __LOCATION__.parent.parent.clone();
             baseDir.append("calendar-js");
@@ -42,7 +38,7 @@ let cal = {
             }
             let scriptFile = baseDir.clone();
             scriptFile.append(script);
-            let scriptUrlSpec = ioService.newFileURI(scriptFile).spec;
+            let scriptUrlSpec = Services.io.newFileURI(scriptFile).spec;
             try {
                 Services.scriptloader.loadSubScript(scriptUrlSpec, scope);
             } catch (exc) {
@@ -648,7 +644,7 @@ function shutdownCleanup(obj, prop) {
 }
 
 // local to this module;
-// will be used to generate service accessor functions, getIOService()
+// will be used to generate service accessor functions
 function generateServiceAccessor(id, iface) {
     return function this_() {
         if (!("mService" in this_)) {

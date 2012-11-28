@@ -5,6 +5,7 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 try {
     Components.utils.import("resource:///modules/cloudFileAccounts.js");
@@ -1252,15 +1253,13 @@ function openNewTask() {
  * Open a new Thunderbird compose window.
  */
 function openNewMessage() {
-    var msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
-                            .getService(Components.interfaces.nsIMsgComposeService);
-    msgComposeService.OpenComposeWindow(null,
-                                        null,
-                                        null,
-                                        Components.interfaces.nsIMsgCompType.New,
-                                        Components.interfaces.nsIMsgCompFormat.Default,
-                                        null,
-                                        null);
+    MailServices.compose.OpenComposeWindow(null,
+                                           null,
+                                           null,
+                                           Components.interfaces.nsIMsgCompType.New,
+                                           Components.interfaces.nsIMsgCompFormat.Default,
+                                           null,
+                                           null);
 }
 
 /**

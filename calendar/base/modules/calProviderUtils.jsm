@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAuthUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
@@ -262,11 +263,11 @@ cal.getEmailIdentityOfCalendar = function calGetEmailIdentityOfCalendar(aCalenda
         return identity;
     } else { // take default account/identity:
 
-        let accounts = cal.getAccountManager().accounts;
+        let accounts = MailServices.accounts.accounts;
         let account = null;
         let identity = null;
         try {
-            account = cal.getAccountManager().defaultAccount;
+            account = MailServices.accounts.defaultAccount;
         } catch (exc) {}
 
         for (let i = 0; accounts && (i < accounts.Count()) && (!account || !identity); ++i) {
