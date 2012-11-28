@@ -407,13 +407,18 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 
 /* ..... Draw in titlebar ..... */
 
+#messengerWindow[tabsintitlebar]:-moz-window-inactive {
+  background-color: InactiveCaption;
+}
+
+#messengerWindow[tabsintitlebar]:-moz-system-metric(windows-classic)
+  menubar > menu:-moz-window-inactive {
+  color: -moz-dialogtext;
+}
+
 @media (-moz-windows-default-theme) {
   #messengerWindow[tabsintitlebar] {
     background-color: ActiveCaption;
-  }
-
-  #messengerWindow[tabsintitlebar]:-moz-window-inactive {
-    background-color: InactiveCaption;
   }
 }
 
