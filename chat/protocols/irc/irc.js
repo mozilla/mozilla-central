@@ -621,7 +621,7 @@ ircSocket.prototype = {
       // Catch the error, display it and hope the connection can continue with
       // this message in error. Errors are also caught inside of handleMessage,
       // but we expect to handle message parsing errors here.
-      ERROR(e);
+      this.ERROR(e);
     }
   },
   onConnection: function() {
