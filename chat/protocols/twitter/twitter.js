@@ -930,6 +930,7 @@ Account.prototype = {
       this._streamingRequest.abort();
       delete this._streamingRequest;
     }
+    delete this._pendingData;
     delete this.token;
     delete this.tokenSecret;
   },
