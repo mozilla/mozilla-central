@@ -41,8 +41,6 @@ function scriptError(aModule, aLevel, aMessage) {
   if (logLevel > aLevel && (!"imAccount" in this))
     return;
 
-  dump(aModule + ": " + aMessage + "\n");
-
   let flag = Ci.nsIScriptError.warningFlag;
   if (aLevel >= Ci.imIDebugMessage.LEVEL_ERROR)
     flag = Ci.nsIScriptError.errorFlag;
@@ -59,6 +57,7 @@ function scriptError(aModule, aLevel, aMessage) {
   scriptError.init(aMessage, caller.filename, sourceLine, caller.lineNumber,
                    null, flag, "component javascript");
   if (logLevel <= aLevel) {
+    dump(aModule + ": " + aMessage + "\n");
     if (aLevel == Ci.imIDebugMessage.LEVEL_LOG && logLevel == aLevel)
       Services.console.logStringMessage(aMessage);
     else
