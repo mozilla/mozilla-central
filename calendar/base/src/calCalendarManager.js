@@ -154,7 +154,9 @@ calCalendarManager.prototype = {
                             // The provider may choose to explicitly disable the
                             // rewriting, for example if all calendars on a
                             // domain have the same credentials
-                            authHeader = authHeader.replace(/realm="(.*)"/, 'realm="$1 (' + calendar.name + ')"');
+                            let escapedName = calendar.name.replace('\\', '\\\\', 'g')
+                                                           .replace('"','\\"', 'g');
+                            authHeader = appendToRealm(authHeader, "(" + escapedName + ")");
                             channel.setResponseHeader("WWW-Authenticate", authHeader, false);
                         }
                     }
@@ -1109,3 +1111,24 @@ var gCalendarManagerAddonListener = {
         return args.shouldUninstall;
     }
 };
+
+function appendToRealm(authHeader, appendStr) {
+    let isEscaped = false;
+    let idx = authHeader.search(/realm="(.*?)(\\*)"/);
+    if (idx > -1) {
+        let remain = authHeader.substr(idx + 7); idx += 7;
+        while (remain.length && !isEscaped) {
+            let m = remain.match(/(.*?)(\\*)"/);
+            idx += m[0].length;
+
+            isEscaped = ((m[2].length % 2) == 0);
+            if (!isEscaped) {
+                remain = remain.substr(m[0].length);
+            }
+        }
+        return authHeader.substr(0, idx - 1) + " " +
+                appendStr + authHeader.substr(idx - 1);
+    } else {
+        return authHeader;
+    }
+}
