@@ -251,6 +251,21 @@ imAccount.prototype = {
     this._sendNotification(aTopic, aData);
   },
 
+  _debugMessages: null,
+  logDebugMessage: function(aMessage, aLevel) {
+    if (!this._debugMessages)
+      this._debugMessages = [];
+    if (this._debugMessages.length >= 50)
+      this._debugMessages.shift();
+    this._debugMessages.push({logLevel: aLevel, message: aMessage});
+  },
+  getDebugMessages: function(aCount) {
+    let messages = this._debugMessages || [];
+    if (aCount)
+      aCount.value = messages.length;
+    return messages;
+  },
+
   _observedStatusInfo: null,
   get observedStatusInfo() this._observedStatusInfo,
   _statusObserver: null,

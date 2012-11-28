@@ -12,6 +12,7 @@ interface imIAccountBuddy;
 interface imIAccount;
 interface prplIProtocol;
 interface purpleIProxyInfo;
+interface nsIScriptError;
 
 /*
  * Used to join chat rooms.
@@ -162,6 +163,17 @@ interface prplIAccount: nsISupports {
   readonly attribute long maxMessageLength;
 };
 
+
+[scriptable, uuid(488959b4-992e-4626-ae96-beaf6adc4a77)]
+interface imIDebugMessage: nsISupports {
+  const short LEVEL_DEBUG   = 1;
+  const short LEVEL_LOG     = 2;
+  const short LEVEL_WARNING = 3;
+  const short LEVEL_ERROR   = 4;
+  readonly attribute short logLevel; // One of the above constants.
+  readonly attribute nsIScriptError message;
+};
+
 /* This interface should be implemented by the im core. It inherits
 from prplIAccount and in most cases will forward the calls for the
 inherited members to a prplIAccount account instance implemented by
@@ -246,6 +258,12 @@ interface imIAccount: prplIAccount {
   readonly attribute boolean connected;
   readonly attribute boolean connecting;
   readonly attribute boolean disconnecting;
+
+  void logDebugMessage(in nsIScriptError aMessage, in short aLevel);
+
+  /* Get an array of the 50 most recent debug messages. */
+  void getDebugMessages([optional] out unsigned long aCount,
+                        [retval, array, size_is(aCount)] out imIDebugMessage aMessages);
 
   /* The imIUserStatusInfo instance this account should observe for
      status changes. When this is null (the default value), the

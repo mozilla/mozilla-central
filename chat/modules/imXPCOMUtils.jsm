@@ -20,11 +20,6 @@ const {classes: Cc, interfaces: Ci, utils: Cu, results: Cr} = Components;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/imServices.jsm");
 
-const DEBUG_MISC = 1; // Very verbose (= 'DEBUG')
-const DEBUG_INFO = 2; // Verbose (= 'LOG')
-const DEBUG_WARNING = 3;
-const DEBUG_ERROR = 4;
-
 const kLogLevelPref = "purple.debug.loglevel";
 
 function scriptError(aModule, aLevel, aMessage) {
@@ -41,20 +36,15 @@ function scriptError(aModule, aLevel, aMessage) {
       break;
     }
   }
-  // Only continue if we want to see this level of logging.
-  if (logLevel > aLevel)
+
+  // Only continue if we will log this message.
+  if (logLevel > aLevel && (!"imAccount" in this))
     return;
 
   dump(aModule + ": " + aMessage + "\n");
 
-  // Log a debug statement.
-  if (aLevel == DEBUG_INFO && logLevel == DEBUG_INFO) {
-    Services.console.logStringMessage(aMessage);
-    return;
-  }
-
   let flag = Ci.nsIScriptError.warningFlag;
-  if (aLevel >= DEBUG_ERROR)
+  if (aLevel >= Ci.imIDebugMessage.LEVEL_ERROR)
     flag = Ci.nsIScriptError.errorFlag;
 
   let scriptError =
@@ -68,15 +58,22 @@ function scriptError(aModule, aLevel, aMessage) {
   }
   scriptError.init(aMessage, caller.filename, sourceLine, caller.lineNumber,
                    null, flag, "component javascript");
-  Services.console.logMessage(scriptError);
+  if (logLevel <= aLevel) {
+    if (aLevel == Ci.imIDebugMessage.LEVEL_LOG && logLevel == aLevel)
+      Services.console.logStringMessage(aMessage);
+    else
+      Services.console.logMessage(scriptError);
+  }
+  if ("imAccount" in this)
+    this.imAccount.logDebugMessage(scriptError, aLevel);
 }
 function initLogModule(aModule, aThis)
 {
   let obj = aThis || {};
-  obj.DEBUG = scriptError.bind(obj, aModule, DEBUG_MISC);
-  obj.LOG   = scriptError.bind(obj, aModule, DEBUG_INFO);
-  obj.WARN  = scriptError.bind(obj, aModule, DEBUG_WARNING);
-  obj.ERROR = scriptError.bind(obj, aModule, DEBUG_ERROR);
+  obj.DEBUG = scriptError.bind(obj, aModule, Ci.imIDebugMessage.LEVEL_DEBUG);
+  obj.LOG   = scriptError.bind(obj, aModule, Ci.imIDebugMessage.LEVEL_LOG);
+  obj.WARN  = scriptError.bind(obj, aModule, Ci.imIDebugMessage.LEVEL_WARNING);
+  obj.ERROR = scriptError.bind(obj, aModule, Ci.imIDebugMessage.LEVEL_ERROR);
   return obj;
 }
 XPCOMUtils.defineLazyGetter(Cu.getGlobalForObject({}), "gLogLevels", function() {

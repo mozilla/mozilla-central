@@ -35,8 +35,6 @@ XPCOMUtils.defineLazyServiceGetter(this, "imgTools",
                                    "@mozilla.org/image/tools;1",
                                    "imgITools");
 
-initLogModule("xmpp", this);
-
 XPCOMUtils.defineLazyGetter(this, "_", function()
   l10nHelper("chrome://chat/locale/xmpp.properties")
 );
@@ -112,8 +110,8 @@ const XMPPMUCConversationPrototype = {
     let nick = this._account._parseJID(from).resource;
     if (aStanza.attributes["type"] == "unavailable") {
       if (!(nick in this._participants)) {
-        WARN("received unavailable presence for an unknown MUC participant: " +
-             from);
+        this.WARN("received unavailable presence for an unknown MUC participant: " +
+                  from);
         return;
       }
       delete this._participants[nick];
@@ -369,8 +367,8 @@ const XMPPAccountBuddyPrototype = {
   get serverAlias() this._rosterAlias || this._vCardFormattedName || this._serverAlias,
   set serverAlias(aNewAlias) {
     if (!this._rosterItem) {
-      ERROR("attempting to update the server alias of an account buddy for " +
-            "which we haven't received a roster item.");
+      this.ERROR("attempting to update the server alias of an account buddy " +
+                 "for which we haven't received a roster item.");
       return;
     }
 
@@ -396,7 +394,7 @@ const XMPPAccountBuddyPrototype = {
   set tag(aNewTag) {
     let oldTag = this._tag;
     if (oldTag.name == aNewTag.name) {
-      ERROR("attempting to set the tab to the same value");
+      this.ERROR("attempting to set the tag to the same value");
       return;
     }
 
@@ -404,7 +402,7 @@ const XMPPAccountBuddyPrototype = {
     Services.contacts.accountBuddyMoved(this, oldTag, aNewTag);
 
     if (!this._rosterItem) {
-      ERROR("attempting to change the tag of an account buddy without roster item");
+      this.ERROR("attempting to change the tag of an account buddy without roster item");
       return;
     }
 
@@ -757,7 +755,7 @@ const XMPPAccountPrototype = {
     if (this._buddies.hasOwnProperty(jid)) {
       let subscription = this._buddies[jid].subscription;
       if (subscription && (subscription == "both" || subscription == "to")) {
-        DEBUG("not re-adding an existing buddy");
+        this.DEBUG("not re-adding an existing buddy");
         return;
       }
     }
@@ -824,7 +822,7 @@ const XMPPAccountPrototype = {
   /* Called when a presence stanza is received */
   onPresenceStanza: function(aStanza) {
     let from = aStanza.attributes["from"];
-    DEBUG("Received presence stanza for " + from);
+    this.DEBUG("Received presence stanza for " + from);
 
     let jid = this._normalizeJID(from);
     let type = aStanza.attributes["type"];
@@ -868,7 +866,7 @@ const XMPPAccountPrototype = {
         // We have attempted to join, but not created the conversation yet.
         if (aStanza.attributes["type"] == "error") {
           delete this._mucs[jid];
-          ERROR("Failed to join MUC: " + aStanza.convertToString());
+          this.ERROR("Failed to join MUC: " + aStanza.convertToString());
           return;
         }
         let nick = this._mucs[jid];
@@ -877,7 +875,7 @@ const XMPPAccountPrototype = {
       this._mucs[jid].onPresenceStanza(aStanza);
     }
     else if (from != this._connection._jid.jid)
-      WARN("received presence stanza for unknown buddy " + from);
+      this.WARN("received presence stanza for unknown buddy " + from);
   },
 
   /* Called when a message stanza is received */
@@ -914,7 +912,7 @@ const XMPPAccountPrototype = {
       if (type == "groupchat" ||
           (type == "error" && this._mucs.hasOwnProperty(norm))) {
         if (!this._mucs.hasOwnProperty(norm)) {
-          WARN("Received a groupchat message for unknown MUC " + norm);
+          this.WARN("Received a groupchat message for unknown MUC " + norm);
           return;
         }
         this._mucs[norm].incomingMessage(body, aStanza, date);
@@ -939,7 +937,7 @@ const XMPPAccountPrototype = {
     if (s.length > 0)
       state = s[0].localName;
     if (state) {
-      DEBUG(state);
+      this.DEBUG(state);
       if (state == "active")
         this._conv[norm].updateTyping(Ci.prplIConvIM.NOT_TYPING);
       else if (state == "composing")
@@ -1017,7 +1015,7 @@ const XMPPAccountPrototype = {
   _onRosterItem: function(aItem, aNotifyOfUpdates) {
     let jid = aItem.attributes["jid"];
     if (!jid) {
-      WARN("Received a roster item without jid: " + aItem.getXML());
+      this.WARN("Received a roster item without jid: " + aItem.getXML());
       return "";
     }
     jid = this._normalizeJID(jid);
@@ -1146,7 +1144,7 @@ const XMPPAccountPrototype = {
   /* Create a new conversation */
   createConversation: function(aNormalizedName) {
     if (!this._buddies.hasOwnProperty(aNormalizedName)) {
-      ERROR("Trying to create a conversation; buddy not present: " + aNormalizedName);
+      this.ERROR("Trying to create a conversation; buddy not present: " + aNormalizedName);
       return null;
     }
 
@@ -1396,6 +1394,6 @@ const XMPPAccountPrototype = {
     if (this._userVCard.getXML() != existingVCard)
       this._connection.sendStanza(Stanza.iq("set", null, null, this._userVCard));
     else
-      LOG("Not sending the vCard because the server stored vCard is identical.");
+      this.LOG("Not sending the vCard because the server stored vCard is identical.");
   }
 };

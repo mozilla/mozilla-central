@@ -8,9 +8,8 @@ const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
 
-initLogModule("xhr", this);
-
-function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis) {
+function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
+                     aLogger) {
   let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
               .createInstance(Ci.nsIXMLHttpRequest);
   xhr.mozBackgroundRequest = true; // no error dialogs
@@ -39,7 +38,8 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis) {
   xhr.onload = function (aRequest) {
     try {
       let target = aRequest.target;
-      DEBUG("Received response: " + target.responseText);
+      if (aLogger)
+        aLogger.DEBUG("Received response: " + target.responseText);
       if (target.status != 200) {
         let errorText = target.responseText;
         if (!errorText || /<(ht|\?x)ml\b/i.test(errorText))
@@ -69,7 +69,8 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis) {
                         .join("&");
   }
 
-  LOG("sending request to " + aUrl + " (POSTData = " + POSTData + ")");
+  if (aLogger)
+    aLogger.LOG("sending request to " + aUrl + " (POSTData = " + POSTData + ")");
   xhr.send(POSTData);
   return xhr;
 }

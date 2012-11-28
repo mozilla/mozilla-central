@@ -111,7 +111,7 @@ const Socket = {
     if (Services.io.offline)
       throw Cr.NS_ERROR_FAILURE;
 
-    this.log("Connecting to: " + aHost + ":" + aPort);
+    this.LOG("Connecting to: " + aHost + ":" + aPort);
     this.host = aHost;
     this.port = aPort;
 
@@ -144,7 +144,7 @@ const Socket = {
 
   // Disconnect all open streams.
   disconnect: function() {
-    this.log("Disconnect");
+    this.LOG("Disconnect");
 
     // Close all input and output streams.
     if ("_inputStream" in this) {
@@ -170,7 +170,7 @@ const Socket = {
   // Listen for a connection on a port.
   // XXX take a timeout and then call stopListening
   listen: function(port) {
-    this.log("Listening on port " + port);
+    this.LOG("Listening on port " + port);
 
     this.serverSocket = new ServerSocket(port, false, -1);
     this.serverSocket.asyncListen(this);
@@ -178,7 +178,7 @@ const Socket = {
 
   // Stop listening for a connection.
   stopListening: function() {
-    this.log("Stop listening");
+    this.LOG("Stop listening");
     // Close the socket to stop listening.
     if ("serverSocket" in this)
       this.serverSocket.close();
@@ -187,7 +187,7 @@ const Socket = {
   // Send data on the output stream. Provide aLoggedData to log something
   // different than what is actually sent.
   sendData: function(/* string */ aData, aLoggedData) {
-    this.log("Sending:\n" + (aLoggedData || aData));
+    this.LOG("Sending:\n" + (aLoggedData || aData));
 
     try {
       this._outputStream.write(aData + this.delimiter,
@@ -200,7 +200,7 @@ const Socket = {
   // Send a string to the output stream after converting the encoding. Provide
   // aLoggedData to log something different than what is actually sent.
   sendString: function(aString, aEncoding, aLoggedData) {
-    this.log("Sending:\n" + (aLoggedData || aString));
+    this.LOG("Sending:\n" + (aLoggedData || aString));
 
     let converter = new ScriptableUnicodeConverter();
     converter.charset = aEncoding || "UTF-8";
@@ -213,7 +213,7 @@ const Socket = {
   },
 
   sendBinaryData: function(/* ArrayBuffer */ aData) {
-    this.log("Sending binary data data: <" + aData + ">");
+    this.LOG("Sending binary data data: <" + aData + ">");
 
     let uint8 = Uint8Array(aData);
 
@@ -245,17 +245,17 @@ const Socket = {
    */
   onProxyAvailable: function(aRequest, aURI, aProxyInfo, aStatus) {
     if (!("_proxyCancel" in this)) {
-      this.log("onProxyAvailable called, but disconnect() was called before.");
+      this.LOG("onProxyAvailable called, but disconnect() was called before.");
       return;
     }
 
     if (aProxyInfo) {
       if (aProxyInfo.type == "http") {
-        this.log("ignoring http proxy");
+        this.LOG("ignoring http proxy");
         aProxyInfo = null;
       }
       else {
-        this.log("using " + aProxyInfo.type + " proxy: " +
+        this.LOG("using " + aProxyInfo.type + " proxy: " +
                  aProxyInfo.host + ":" + aProxyInfo.port);
       }
     }
@@ -268,7 +268,7 @@ const Socket = {
    */
   // Called after a client connection is accepted when we're listening for one.
   onSocketAccepted: function(aServerSocket, aTransport) {
-    this.log("onSocketAccepted");
+    this.LOG("onSocketAccepted");
     // Store the values
     this.transport = aTransport;
     this.host = this.transport.host;
@@ -284,7 +284,7 @@ const Socket = {
   // Called when the listening socket stops for some reason.
   // The server socket is effectively dead after this notification.
   onStopListening: function(aSocket, aStatus) {
-    this.log("onStopListening");
+    this.LOG("onStopListening");
     if ("serverSocket" in this)
       delete this.serverSocket;
   },
@@ -302,7 +302,7 @@ const Socket = {
                                                  .readByteArray(aCount));
 
       let size = this.inputSegmentSize || this._incomingDataBuffer.length;
-      this.log(size + " " + this._incomingDataBuffer.length);
+      this.LOG(size + " " + this._incomingDataBuffer.length);
       while (this._incomingDataBuffer.length >= size) {
         let buffer = new ArrayBuffer(size);
 
@@ -338,11 +338,11 @@ const Socket = {
    */
   // Signifies the beginning of an async request
   onStartRequest: function(aRequest, aContext) {
-    this.log("onStartRequest");
+    this.DEBUG("onStartRequest");
   },
   // Called to signify the end of an asynchronous request.
   onStopRequest: function(aRequest, aContext, aStatus) {
-    this.log("onStopRequest (" + aStatus + ")");
+    this.DEBUG("onStopRequest (" + aStatus + ")");
     delete this.isConnected;
     if (aStatus == NS_ERROR_NET_RESET)
       this.onConnectionReset();
@@ -386,7 +386,7 @@ const Socket = {
          0x804b0006: "STATUS_RECEIVING_FROM"
     };
     let status = nsITransportEventSinkStatus[aStatus];
-    this.log("onTransportStatus(" + (status || ("0x" + aStatus.toString(16))) +")");
+    this.DEBUG("onTransportStatus(" + (status || ("0x" + aStatus.toString(16))) +")");
 
     if (status == "STATUS_CONNECTED_TO") {
       this.isConnected = true;
@@ -477,7 +477,8 @@ const Socket = {
    ********************* Methods for subtypes to override **********************
    *****************************************************************************
    */
-  log: function(aString) { },
+  LOG: function(aString) { },
+  DEBUG: function(aString) { },
   // Called when a connection is established.
   onConnection: function() { },
   // Called when a socket is accepted after listening.

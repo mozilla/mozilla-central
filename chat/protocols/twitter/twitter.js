@@ -393,7 +393,7 @@ Account.prototype = {
       return;
     }
 
-    LOG("Connecting using existing token");
+    this.LOG("Connecting using existing token");
     this.getTimelines();
   },
 
@@ -465,7 +465,7 @@ Account.prototype = {
       "OAuth " + params.map(function (p) p[0] + "=\"" + p[1] + "\"").join(", ");
     let headers = (aHeaders || []).concat([["Authorization", authorization]]);
 
-    return doXHRequest(url, headers, aPOSTData, aOnLoad, aOnError, aThis);
+    return doXHRequest(url, headers, aPOSTData, aOnLoad, aOnError, aThis, this);
   },
   _parseURLData: function(aData) {
     let result = {};
@@ -539,7 +539,7 @@ Account.prototype = {
         this._lastMsgId = lastMsgId;
       }
       else
-        WARN("invalid value for the lastMessageId preference: " + lastMsgId);
+        this.WARN("invalid value for the lastMessageId preference: " + lastMsgId);
     }
     let getParams = "?include_entities=1&count=200" + lastMsgParam;
     this._pendingRequests = [
@@ -556,7 +556,7 @@ Account.prototype = {
       let url = "http://search.twitter.com/search.json" + getParams;
       this._pendingRequests.push(doXHRequest(url, null, null,
                                              this.onSearchResultsReceived,
-                                             this.onTimelineError, this));
+                                             this.onTimelineError, this, this));
     }
   },
 
@@ -586,7 +586,7 @@ Account.prototype = {
   },
 
   onTimelineError: function(aError, aResponseText, aRequest) {
-    ERROR(aError);
+    this.ERROR(aError);
     if (aRequest.status == 401)
       ++this._timelineAuthError;
     this._doneWithTimelineRequest(aRequest);
@@ -731,7 +731,7 @@ Account.prototype = {
   onDataAvailable: function(aRequest) {
     this.resetStreamTimeout();
     let newText = this._pendingData + aRequest.target.response;
-    DEBUG("Received data: " + newText);
+    this.DEBUG("Received data: " + newText);
     let messages = newText.split(/\r\n?/);
     this._pendingData = messages.pop();
     for each (let message in messages) {
@@ -741,7 +741,7 @@ Account.prototype = {
       try {
         msg = JSON.parse(message);
       } catch (e) {
-        ERROR(e + " while parsing " + message);
+        this.ERROR(e + " while parsing " + message);
         continue;
       }
       if ("text" in msg)
@@ -784,7 +784,7 @@ Account.prototype = {
                      oauthParams);
   },
   onRequestTokenReceived: function(aData) {
-    LOG("Received request token.");
+    this.LOG("Received request token.");
     let data = this._parseURLData(aData);
     if (!data.oauth_callback_confirmed ||
         !data.oauth_token || !data.oauth_token_secret) {
@@ -883,7 +883,7 @@ Account.prototype = {
                      [["oauth_verifier", aTokenVerifier]]);
   },
   onAccessTokenReceived: function(aData) {
-    LOG("Received access token.");
+    this.LOG("Received access token.");
     let result = this._parseURLData(aData);
     if (!this.fixAccountName(result))
       return;
@@ -909,8 +909,8 @@ Account.prototype = {
       return false;
     }
 
-    LOG("Fixing the case of the account name: " +
-        this.name + " -> " + aAuthResult.screen_name);
+    this.LOG("Fixing the case of the account name: " +
+             this.name + " -> " + aAuthResult.screen_name);
     this.__defineGetter__("name", function() aAuthResult.screen_name);
     return true;
   },
@@ -972,8 +972,8 @@ Account.prototype = {
     const kMaxUserDescriptionLength = 160;
     if (aDescription.length > kMaxUserDescriptionLength) {
       aDescription = aDescription.substr(0, kMaxUserDescriptionLength);
-      WARN("Description too long (over " + kMaxUserDescriptionLength +
-           " characters):\n" + aDescription + ".");
+      this.WARN("Description too long (over " + kMaxUserDescriptionLength +
+                " characters):\n" + aDescription + ".");
       this.timeline.systemMessage(_("error.descriptionTooLong", aDescription));
     }
     // Don't need to catch the reply since the stream receives user_update.

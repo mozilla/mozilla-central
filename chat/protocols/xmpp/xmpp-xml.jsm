@@ -321,7 +321,7 @@ XMPPParser.prototype = {
   },
 
   _logReceivedData: function(aData) {
-    this._listener.log("received:\n" + aData);
+    this._listener.LOG("received:\n" + aData);
   },
   _inOnDataAvailable: false,
   onDataAvailable: function(aInputStream, aOffset, aCount) {

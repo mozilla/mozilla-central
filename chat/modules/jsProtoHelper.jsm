@@ -19,8 +19,6 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
 Cu.import("resource:///modules/imServices.jsm");
 
-initLogModule("jsProtoHelper", this);
-
 XPCOMUtils.defineLazyGetter(this, "_", function()
   l10nHelper("chrome://chat/locale/conversations.properties")
 );
@@ -33,6 +31,7 @@ const GenericAccountPrototype = {
   _init: function _init(aProtocol, aImAccount) {
     this.protocol = aProtocol;
     this.imAccount = aImAccount;
+    initLogModule(aProtocol.id, this);
   },
   observe: function(aSubject, aTopic, aData) {},
   remove: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED; },
@@ -146,6 +145,11 @@ const GenericAccountPrototype = {
 
 const GenericAccountBuddyPrototype = {
   __proto__: ClassInfo("imIAccountBuddy", "generic account buddy object"),
+  get DEBUG() this._account.DEBUG,
+  get LOG() this._account.LOG,
+  get WARN() this._account.WARN,
+  get ERROR() this._account.ERROR,
+
   _init: function(aAccount, aBuddy, aTag, aUserName) {
     if (!aBuddy && !aUserName)
       throw "aUserName is required when aBuddy is null";
@@ -341,6 +345,11 @@ const GenericConversationPrototype = {
   __proto__: ClassInfo("prplIConversation", "generic conversation object"),
   flags: Ci.nsIClassInfo.DOM_OBJECT,
   get wrappedJSObject() this,
+
+  get DEBUG() this._account.DEBUG,
+  get LOG() this._account.LOG,
+  get WARN() this._account.WARN,
+  get ERROR() this._account.ERROR,
 
   _init: function(aAccount, aName) {
     this._account = aAccount;
