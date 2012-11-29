@@ -226,12 +226,59 @@ var Sanitizer = {
 
     formdata: {
       clear: function() {
+        // Clear undo history of all search and find bars.
+        var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                                      .getService(Components.interfaces.nsIWindowMediator);
+        var windows = windowManager.getEnumerator("navigator:browser");
+        while (windows.hasMoreElements()) {
+          var win = windows.getNext();
+          var currentDocument = win.document;
+
+          var findBar = currentDocument.getElementById("FindToolbar");
+          if (findBar)
+            findBar.clear();
+          var searchBar = currentDocument.getElementById("searchbar");
+          if (searchBar && searchBar.textbox)
+            searchBar.textbox.reset();
+          var sideSearchBar = win.BrowserSearch.searchSidebar;
+          if (sideSearchBar)
+            sideSearchBar.reset();
+        }
+
         var formHistory = Components.classes["@mozilla.org/satchel/form-history;1"]
                                     .getService(Components.interfaces.nsIFormHistory2);
         formHistory.removeAllEntries();
       },
 
       get canClear() {
+        var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                                      .getService(Components.interfaces.nsIWindowMediator);
+        var windows = windowManager.getEnumerator("navigator:browser");
+        while (windows.hasMoreElements()) {
+          var win = windows.getNext();
+          var currentDocument = win.document;
+
+          var findBar = currentDocument.getElementById("FindToolbar");
+          if (findBar && findBar.canClear)
+            return true;
+          var searchBar = currentDocument.getElementById("searchbar");
+          if (searchBar && searchBar.textbox && searchBar.textbox.editor) {
+            var transactionMgr = searchBar.textbox.editor.transactionManager;
+            if (searchBar.value ||
+                transactionMgr.numberOfUndoItems ||
+                transactionMgr.numberOfRedoItems)
+              return true;
+          }
+          var sideSearchBar = win.BrowserSearch.searchSidebar;
+          if (sideSearchBar) {
+            var sidebarTm = sideSearchBar.editor.transactionManager;
+            if (sideSearchBar.value ||
+                sidebarTm.numberOfUndoItems ||
+                sidebarTm.numberOfRedoItems)
+              return true;
+          }
+        }
+
         var formHistory = Components.classes["@mozilla.org/satchel/form-history;1"]
                                     .getService(Components.interfaces.nsIFormHistory2);
         return formHistory.hasEntries;

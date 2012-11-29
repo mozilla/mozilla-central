@@ -37,6 +37,7 @@ endif
 _BROWSER_FILES = \
                  head.js \
                  browser_bug329212.js \
+                 browser_bug409624.js \
                  browser_bug413915.js \
                  browser_bug427559.js \
                  browser_bug435325.js \
