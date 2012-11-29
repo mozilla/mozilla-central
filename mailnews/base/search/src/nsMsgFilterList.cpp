@@ -515,8 +515,9 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     if (curChar == (char) -1)  //reached eof
       break;
     err = LoadValue(value, bufStream);
-    if (err != NS_OK)
+    if (NS_FAILED(err))
       break;
+
     switch(attrib)
     {
     case nsIMsgFilterList::attribNone:
@@ -887,7 +888,8 @@ nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
       bool isTemporary;
       err = filter->GetTemporary(&isTemporary);
       if (NS_SUCCEEDED(err) && !isTemporary) {
-        if ((err = filter->SaveToTextFile(aStream)) != NS_OK)
+        err = filter->SaveToTextFile(aStream);
+        if (NS_FAILED(err))
           break;
       }
     }

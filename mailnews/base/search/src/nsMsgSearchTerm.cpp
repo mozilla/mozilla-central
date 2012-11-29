@@ -525,7 +525,7 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
 {
   const char *operatorStr;
   nsAutoCString  outputStr;
-  nsresult  ret;
+  nsresult  rv;
 
   if (m_matchAll)
   {
@@ -533,13 +533,14 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
     return NS_OK;
   }
 
-  if (m_attribute > nsMsgSearchAttrib::OtherHeader && m_attribute < nsMsgSearchAttrib::kNumMsgSearchAttributes)  // if arbitrary header, use it instead!
+  // if arbitrary header, use it instead!
+  if (m_attribute > nsMsgSearchAttrib::OtherHeader &&
+      m_attribute < nsMsgSearchAttrib::kNumMsgSearchAttributes)
   {
     outputStr = "\"";
     outputStr += m_arbitraryHeader;
     outputStr += "\"";
   }
-
   else if (m_attribute == nsMsgSearchAttrib::Custom)
   {
     // use the custom id as the string
@@ -550,20 +551,18 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
   {
     outputStr = m_hdrProperty;
   }
-
   else {
     const char *attrib;
-    ret = NS_MsgGetStringForAttribute(m_attribute, &attrib);
-    if (ret != NS_OK)
-      return ret;
+    rv = NS_MsgGetStringForAttribute(m_attribute, &attrib);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     outputStr = attrib;
   }
 
   outputStr += ',';
 
-  ret = NS_MsgGetStringForOperator(m_operator, &operatorStr);
-  if (ret != NS_OK)
-    return ret;
+  rv = NS_MsgGetStringForOperator(m_operator, &operatorStr);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   outputStr += operatorStr;
   outputStr += ',';
@@ -2024,13 +2023,13 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
 nsresult nsMsgResultElement::GetValue (nsMsgSearchAttribValue attrib,
                                        nsMsgSearchValue **outValue) const
 {
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   nsCOMPtr<nsIMsgSearchValue> value;
   *outValue = NULL;
 
   uint32_t count;
   m_valueList->Count(&count);
-  for (uint32_t i = 0; i < count && err != NS_OK; i++)
+  for (uint32_t i = 0; i < count && NS_FAILED(rv); i++)
   {
     m_valueList->QueryElementAt(i, NS_GET_IID(nsIMsgSearchValue),
       (void **)getter_AddRefs(value));
@@ -2042,14 +2041,15 @@ nsresult nsMsgResultElement::GetValue (nsMsgSearchAttribValue attrib,
       *outValue = new nsMsgSearchValue;
       if (*outValue)
       {
-        err = AssignValues (value, *outValue);
-        err = NS_OK;
+        rv = AssignValues(value, *outValue);
+        // Now this is really strange! What is this assignment doing here?
+        rv = NS_OK;
       }
       else
-        err = NS_ERROR_OUT_OF_MEMORY;
+        rv = NS_ERROR_OUT_OF_MEMORY;
     }
   }
-  return err;
+  return rv;
 }
 
 nsresult nsMsgResultElement::GetPrettyName (nsMsgSearchValue **value)
