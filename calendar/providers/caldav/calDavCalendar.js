@@ -949,7 +949,8 @@ calDavCalendar.prototype = {
         // aUri.path may contain double slashes whereas path does not
         // this confuses our counting, so remove multiple successive slashes
         let strippedUriPath = aUri.path.replace(/\/{2,}/g, "/");
-        let uriPathComponentLength = strippedUriPath.split("/").length;
+        let uriPathComponents = strippedUriPath.split("/");
+        let uriPathComponentLength = uriPathComponents.length;
         try {
             parser.parseString(calData);
         } catch (e) {
@@ -990,9 +991,35 @@ calDavCalendar.prototype = {
         // uri's path has. This way we make sure to handle servers
         // that pass paths like /dav/user/Calendar while
         // the request uri is like /dav/user@example.org/Calendar.
+        // But we also need to handle the case where the server passes back
+        // a valid path that just has additional redundant components,
+        // like /dav/davical.php/user@example/Calendar
         let resPathComponents = path.split("/");
-        resPathComponents.splice(0, uriPathComponentLength - 1);
+        let isEitherSubstring = function(s1, s2) {
+            return (s1.length < s2.length ? s2.indexOf(s1) : s1.indexOf(s2)) >= 0;
+        }
+        while (uriPathComponentLength > 0 && !uriPathComponents[uriPathComponentLength - 1].length) {
+           uriPathComponentLength--;
+        }
+        let lastComp = "";
+        if (uriPathComponentLength > 0) {
+           lastComp = uriPathComponents[uriPathComponentLength - 1].toLowerCase();
+        }
+        let endBasePos = resPathComponents.length - 2;
+        while (endBasePos >= 0 && !isEitherSubstring(lastComp, resPathComponents[endBasePos].toLowerCase())) {
+            endBasePos++;
+        }
+        if (endBasePos < 0) {
+            endBasePos = resPathComonents.length - 2;
+        }
+
+        // If endBasePos is negative, no obvious reference to the end of the
+        // base uri was found, so just keep the tail.
+        let splicePos = (endBasePos < 0 ? rePathComponents.length - 2 : endBasePos + 1);
+        resPathComponents.splice(0, splicePos);
         let locationPath = resPathComponents.join("/");
+        cal.ERROR("LOCATION PATH IS NOW " + locationPath);
+
         let isInboxItem = this.isInbox(aUri.spec);
 
         if (this.mHrefIndex[path] &&
