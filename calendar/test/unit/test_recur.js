@@ -62,6 +62,13 @@ function run_test() {
                          "EXDATE:20020403T114500Z\n"),
                          ["20020402T114500Z", "20020404T114500Z"]);
 
+    // test for issue 734245
+    test_recur(makeEvent("DESCRIPTION:Every day, use exdate of type DATE to exclude the second day\n" +
+                         "RRULE:FREQ=DAILY;COUNT=3\n" +
+                         "DTSTART:20020402T114500Z\n" +
+                         "EXDATE:20020403\n"),
+                         ["20020402T114500Z", "20020404T114500Z"]);
+
     test_recur(makeEvent("DESCRIPTION:Use EXDATE to eliminate the base event\n" +
                          "RRULE:FREQ=DAILY;COUNT=1\n" +
                          "DTSTART:20020402T114500Z\n" +

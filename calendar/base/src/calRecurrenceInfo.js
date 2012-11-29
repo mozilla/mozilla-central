@@ -348,7 +348,13 @@ calRecurrenceInfo.prototype = {
                                              .getNextOccurrence(searchStart, searchDate);
                 }
 
-                if (negMap[getRidKey(nextOccurrences[i])] || this.mExceptionMap[getRidKey(nextOccurrences[i])]) {
+                // As decided in bug 734245, an EXDATE of type DATE shall also match a DTSTART of type DATE-TIME
+                let isInExceptionMap = this.mExceptionMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
+                                       this.mExceptionMap[getRidKey(nextOccurrences[i])];
+                let isInNegMap = negMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
+                                 negMap[getRidKey(nextOccurences[i])];
+                let nextKey = getRidKey(nextOccurrences[i]);
+                if (nextKey && (isInNegMap || isInExceptionMap)) {
                     // If the found recurrence id points to either an exception
                     // (will handle later) or an EXDATE, then nextOccurrences[i]
                     // is invalid and we might need to try again next round.
@@ -546,9 +552,21 @@ calRecurrenceInfo.prototype = {
             // (like, you can't make a date "real" by defining an RECURRENCE-ID which
             // is an EXDATE, and then giving it a real DTSTART) -- so we don't
             // check exceptions here
-            for each (var dateToRemove in cur_dates) {
-                var dateToRemoveKey = getRidKey(dateToRemove);
-                if (occurrenceMap[dateToRemoveKey]) {
+            for each (let dateToRemove in cur_dates) {
+                let dateToRemoveKey = getRidKey(dateToRemove);
+                if (dateToRemove.isDate) {
+                    // As decided in bug 734245, an EXDATE of type DATE shall also match a DTSTART of type DATE-TIME
+                    let toRemove = [];
+                    for (let occurenceKey in occurrenceMap) {
+                        if (occurrenceMap[occurenceKey] && occurenceKey.substring(0,8) == dateToRemoveKey) {
+                            dates = dates.filter(function (d) { return d.id.compare(dateToRemove) != 0; });
+                            toRemove.push(occurenceKey)
+                        }
+                    }
+                    for (let i=0; i < toRemove.length; i++) {
+                        delete occurrenceMap[toRemove[i]];
+                    }
+                } else if (occurrenceMap[dateToRemoveKey]) {
                     // TODO PERF Theoretically we could use occurrence map
                     // to construct the array of occurrences. Right now I'm
                     // just using the occurrence map to skip the filter
