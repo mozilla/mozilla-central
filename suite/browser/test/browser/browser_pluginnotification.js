@@ -64,20 +64,23 @@ function test() {
   gBrowser.selectedTab = newTab;
   gTestBrowser = gBrowser.selectedBrowser;
   gTestBrowser.addEventListener("load", pageLoad, true);
-  gTestBrowser.addEventListener("PluginClickToPlay", handlePluginClickToPlay, true);
+  gTestBrowser.addEventListener("PluginBindingAttached", handleBindingAttached, true);
   prepareTest(test1, gTestRoot + "plugin_unknown.html");
 }
 
 function finishTest() {
   gTestBrowser.removeEventListener("load", pageLoad, true);
-  gTestBrowser.removeEventListener("PluginClickToPlay", handlePluginClickToPlay, true);
+  gTestBrowser.removeEventListener("PluginBindingAttached", handleBindingAttached, true);
   gBrowser.removeCurrentTab();
   window.focus();
   finish();
 }
 
-function handlePluginClickToPlay() {
-  gClickToPlayPluginActualEvents++;
+
+function handleBindingAttached(evt) {
+  if (evt.target instanceof Ci.nsIObjectLoadingContent &&
+      evt.target.pluginFallbackType == Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY)
+    gClickToPlayPluginActualEvents++;
 }
 
 function pageLoad() {
@@ -669,8 +672,6 @@ function test18e() {
   ok(objLoadingContent.activated, "Test 18e, Plugin should be activated");
 
   unregisterFakeBlocklistService();
-  var plugin = getTestPlugin();
-  plugin.clicktoplay = false;
   Services.perms.removeAll();
 
   prepareTest(test19a, gTestRoot + "plugin_test.html");
@@ -746,7 +747,7 @@ function test19f() {
 // "display: block" can be clicked to activate.
 function test20a() {
   var clickToPlayNotification = PopupNotifications.getNotification("click-to-play-plugins", gTestBrowser);
-  ok(clickToPlayNotification, "Test 20a, Should have a click-to-play notification");
+  ok(!clickToPlayNotification, "Test 20a, Should not have a click-to-play notification");
   var doc = gTestBrowser.contentDocument;
   var plugin = doc.getElementById("plugin");
   var mainBox = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
@@ -768,6 +769,8 @@ function test20a() {
 }
 
 function test20b() {
+  var clickToPlayNotification = PopupNotifications.getNotification("click-to-play-plugins", gTestBrowser);
+  ok(clickToPlayNotification, "Test 20b, Should now have a click-to-play notification");
   var doc = gTestBrowser.contentDocument;
   var plugin = doc.getElementById("plugin");
   var pluginRect = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox").getBoundingClientRect();
