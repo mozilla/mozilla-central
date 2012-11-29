@@ -31,6 +31,7 @@
 #include "nsILocaleService.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgAccountManager.h"
+#include "nsIMsgDBView.h"
 #include "nsIMsgFolderCache.h"
 #include "nsIMsgFolderCacheElement.h"
 #include "MailNewsTypes2.h"

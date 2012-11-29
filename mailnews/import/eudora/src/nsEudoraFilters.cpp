@@ -17,6 +17,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgFilterList.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIStringBundle.h"
 #include "mozilla/Services.h"

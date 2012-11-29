@@ -6,14 +6,14 @@
 
 #include "nsISupports.idl"
 #include "nsMsgFilterCore.idl"
-#include "nsIMsgSearchScopeTerm.idl"
-#include "nsIMsgSearchValue.idl"
-#include "nsIMsgSearchTerm.idl"
 #include "nsISupportsArray.idl"
 
 interface nsIOutputStream;
 interface nsIMsgFilterCustomAction;
 interface nsIMsgFilterList;
+interface nsIMsgSearchScopeTerm;
+interface nsIMsgSearchValue;
+interface nsIMsgSearchTerm;
 
 [scriptable, uuid(190A2A18-D245-473a-A402-9F0814598C7F)]
 interface nsIMsgRuleAction : nsISupports {

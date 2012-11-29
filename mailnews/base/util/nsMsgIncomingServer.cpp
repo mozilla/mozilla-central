@@ -43,6 +43,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsMsgUtils.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "mozilla/Services.h"
 #include "nsIMsgFilter.h"

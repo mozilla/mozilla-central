@@ -45,6 +45,7 @@
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterService.h"
 #include "nsIMsgSearchCustomTerm.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsImapMoveCoalescer.h"
 #include "nsIPrompt.h"
 #include "nsIPromptService.h"

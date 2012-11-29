@@ -21,14 +21,15 @@
  * @{
  */
 #include "nsISupports.idl"
-#include "MailNewsTypes2.idl"
 #include "nsIDBChangeAnnouncer.idl"
-#include "nsIMsgDBView.idl"
 
 %{C++
 #include "nsTArray.h"
 %}
 
+interface nsIMutableArray;
+interface nsIMsgDatabase;
+interface nsIMsgDBView;
 interface nsIDBChangeListener;
 interface nsIMsgDBHdr;
 interface nsISimpleEnumerator;

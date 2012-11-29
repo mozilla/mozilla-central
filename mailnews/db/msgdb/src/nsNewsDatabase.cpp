@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "msgCore.h"
+#include "nsIMsgDBView.h"
 #include "nsNewsDatabase.h"
 #include "nsMsgKeySet.h"
 #include "nsCOMPtr.h"

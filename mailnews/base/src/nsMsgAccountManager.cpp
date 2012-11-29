@@ -52,6 +52,7 @@
 #include "nsIMsgFilterService.h"
 #include "nsIMsgFilter.h"
 #include "nsIMsgSearchSession.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsIMutableArray.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgHdr.h"

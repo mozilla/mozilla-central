@@ -8,6 +8,7 @@
 #include "nsIFileChannel.h"
 #include "nsIMsgFilterService.h"
 #include "nsIMsgMailSession.h"
+#include "nsIMsgSearchTerm.h"
 #include "nsMsgBaseCID.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"

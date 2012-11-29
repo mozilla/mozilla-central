@@ -22,6 +22,7 @@
 #include "nsWeakReference.h"
 #include "nsIUrlListener.h"
 #include "nsCOMArray.h"
+#include "nsIMsgSearchSession.h"
 #include "nsInterfaceHashtable.h"
 #include "nsIMsgDatabase.h"
 #include "nsIDBChangeListener.h"
