@@ -4971,7 +4971,7 @@ nsImapMailFolder::NotifyMessageDeleted(const char * onlineFolderName, bool delet
           mDatabase->DeleteMessages(affectedMessages.Length(), affectedMessages.Elements(), nullptr);
     }
     else // && !imapDeleteIsMoveToTrash
-      SetIMAPDeletedFlag(mDatabase, affectedMessages, nullptr);
+      SetIMAPDeletedFlag(mDatabase, affectedMessages, false);
   }
   return NS_OK;
 }
@@ -6855,7 +6855,7 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsISupports> aSupport(do_QueryInterface(srcFolder, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = InitCopyState(aSupport, messages, isMove, false, isCrossServerOp,
-                    0, EmptyCString(), listener, msgWindow, allowUndo);
+                     0, EmptyCString(), listener, msgWindow, allowUndo);
   if(NS_FAILED(rv))
     return rv;
 
@@ -7987,9 +7987,8 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
             return NS_OK;
         }
       }
-      rv = InitCopyState(srcSupport, nullptr, false, nullptr,
-                         false, 0, EmptyCString(), listener, 
-                         msgWindow, false);
+      rv = InitCopyState(srcSupport, nullptr, false, false, false,
+                         0, EmptyCString(), listener, msgWindow, false);
       if (NS_FAILED(rv))
         return OnCopyCompleted(srcSupport, rv);
 

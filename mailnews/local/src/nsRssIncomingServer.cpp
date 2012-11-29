@@ -133,7 +133,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
   nsresult rv;
   nsCOMPtr <nsINewsBlogFeedDownloader> rssDownloader = do_GetService("@mozilla.org/newsblog-feed-downloader;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rssDownloader->DownloadFeed(nullptr, aFolder, nullptr, nullptr, aUrlListener, aMsgWindow);
+  rssDownloader->DownloadFeed(nullptr, aFolder, false, nullptr, aUrlListener, aMsgWindow);
   return NS_OK;
 }
 
