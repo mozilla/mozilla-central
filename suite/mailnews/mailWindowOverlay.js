@@ -1039,7 +1039,7 @@ function MsgMoveMessage(destFolder)
  */
 function ComposeMsgByType(aCompType, aEvent, aFormat)
 {
-  var format = aFormat || (aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default;
+  var format = aFormat || ((aEvent && aEvent.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default);
 
   ComposeMessage(aCompType,
                  format,
@@ -1049,8 +1049,8 @@ function ComposeMsgByType(aCompType, aEvent, aFormat)
 
 function MsgNewMessage(aEvent)
 {
-  ComposeMsgByType(msgComposeType.New, aEvent,
-                   aEvent && aEvent.target.getAttribute("mode"));
+  var mode = aEvent && aEvent.target.getAttribute("mode");
+  ComposeMsgByType(msgComposeType.New, aEvent, mode && msgComposeFormat[mode]);
 }
 
 function MsgReplyMessage(aEvent)
