@@ -243,9 +243,9 @@ char *MSG_UnEscapeSearchUrl (const char *commandSpecificData)
     nsAutoCString hex;
     hex.Assign(Substring(result, slashpos + 1, 2));
     int32_t ch;
-    nsresult err;
-    ch = hex.ToInteger(&err, 16);
-    result.Replace(slashpos, 3, err == NS_OK && ch != 0 ? (char) ch : 'X');
+    nsresult rv;
+    ch = hex.ToInteger(&rv, 16);
+    result.Replace(slashpos, 3, NS_SUCCEEDED(rv) && ch != 0 ? (char) ch : 'X');
     slashpos++;
   }
   return ToNewCString(result);

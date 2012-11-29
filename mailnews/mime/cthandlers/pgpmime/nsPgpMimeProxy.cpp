@@ -138,9 +138,6 @@ MimePgpe_init(MimeObject *obj,
   if (!(obj && obj->options && output_fn))
     return nullptr;
 
-  MimeDisplayOptions *opts;
-  opts = obj->options;
-
   MimePgpeData* data = new MimePgpeData();
   NS_ENSURE_TRUE(data, nullptr);
 
@@ -376,7 +373,7 @@ nsPgpMimeProxy::IsPending(bool *result)
 {
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
-  *result = (mCancelStatus == NS_OK);
+  *result = NS_SUCCEEDED(mCancelStatus);
   return NS_OK;
 }
 
@@ -397,10 +394,10 @@ nsPgpMimeProxy::Cancel(nsresult status)
   NS_ENSURE_TRUE(mInitialized, NS_ERROR_NOT_INITIALIZED);
 
   // Need a non-zero status code to cancel
-  if (status == NS_OK)
+  if (NS_SUCCEEDED(status))
     return NS_ERROR_FAILURE;
 
-  if (mCancelStatus == NS_OK)
+  if (NS_SUCCEEDED(mCancelStatus))
     mCancelStatus = status;
 
   return NS_OK;

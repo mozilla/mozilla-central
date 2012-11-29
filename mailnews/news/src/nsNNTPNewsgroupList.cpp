@@ -930,15 +930,14 @@ nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
   if (key.CharAt(0) < '0' || key.CharAt(0) > '9')
     return NS_OK;
 
-  nsresult code;
-  int32_t number = key.ToInteger(&code);
-  if (code != NS_OK)
-    return NS_ERROR_FAILURE;
+  nsresult rv;
+  int32_t number = key.ToInteger(&rv);
+  NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
   // RFC 2980 specifies one or more spaces.
   value.Trim(" ");
 
-  nsCOMPtr <nsIMsgDBHdr> header;
-  nsresult rv = m_newsDB->GetMsgHdrForKey(number, getter_AddRefs(header));
+  nsCOMPtr<nsIMsgDBHdr> header;
+  rv = m_newsDB->GetMsgHdrForKey(number, getter_AddRefs(header));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = header->SetStringProperty(m_filterHeaders[m_currentXHDRIndex].get(), value.get());
