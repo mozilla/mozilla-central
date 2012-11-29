@@ -3274,7 +3274,6 @@
               var dayHeaderBox;
               if (counter < headerboxkids.length) {
                   dayHeaderBox = headerboxkids[counter];
-                  dayHeaderBox.removeAttribute("today");
                   // Delete backwards to make sure we get them all
                   // and delete until no more elements are left.
                   while(dayHeaderBox.mItemBoxes.length != 0) {

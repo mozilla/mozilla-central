@@ -744,6 +744,13 @@
               var daybox = row.childNodes[j];
               var date = dateList[dateBoxes.length];
 
+              // Remove the attribute "relation" for all the column headers.
+              // Consider only the first row index otherwise it will be
+              // removed again afterwards the correct setting.
+              if (i == 0) {
+                  this.labeldaybox.childNodes[j].removeAttribute("relation");
+              }
+
               daybox.setAttribute("context", this.getAttribute("context"));
               daybox.setAttribute("item-context", this.getAttribute("item-context") || this.getAttribute("context"));
 
@@ -768,6 +775,7 @@
                       break;
                   case 0:
                       daybox.setAttribute("relation", "today");
+                      this.labeldaybox.childNodes[j].setAttribute("relation", "today");
                       break;
                   case 1:
                       daybox.setAttribute("relation", "future");
@@ -783,7 +791,6 @@
                 daybox.showMonthLabel = false;
               }
               daybox.calendarView = this;
-              
               daybox.date = date;
               dateBoxes.push(daybox);
 
@@ -806,17 +813,6 @@
           this.mDateBoxes = dateBoxes;
           this.hideDaysOff();
 
-          // Highlight box and column header corresponding to today if it's
-          // in the range of the view.
-          for (let i = 0; i < this.labeldaybox.childNodes.length; i++) {
-              this.labeldaybox.childNodes[i].removeAttribute("relation");
-          }
-          if (today.compare(dateList[0]) != -1 &&
-              today.compare(dateList[dateList.length-1]) != 1) {
-              this.findDayBoxForDate(today).setAttribute("today", "true");
-              this.labeldaybox.childNodes[(7 + today.weekday - this.weekStartOffset) % 7]
-                              .setAttribute("relation", "today");
-          }
           this.adjustWeekdayLength();
         ]]></body>
       </method>
