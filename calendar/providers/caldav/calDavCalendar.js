@@ -795,6 +795,16 @@ calDavCalendar.prototype = {
             eventUri = this.makeUri(this.mItemInfoCache[aItem.id].locationPath);
         }
 
+        if (eventUri.path == this.calendarUri.path) {
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         aItem.id,
+                                         "eventUri and calendarUri paths are the same, " +
+                                         "will not go on to delete entire calendar");
+            return;
+        }
+
         var thisCalendar = this;
 
         let delListener = {
@@ -936,7 +946,10 @@ calDavCalendar.prototype = {
     addTargetCalendarItem : function caldav_addTargetCalendarItem(path,calData,aUri, etag, aListener) {
         let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                                .createInstance(Components.interfaces.calIIcsParser);
-        let uriPathComponentLength = aUri.path.split("/").length;
+        // aUri.path may contain double slashes whereas path does not
+        // this confuses our counting, so remove multiple successive slashes
+        let strippedUriPath = aUri.path.replace(/\/{2,}/g, "/");
+        let uriPathComponentLength = strippedUriPath.split("/").length;
         try {
             parser.parseString(calData);
         } catch (e) {
