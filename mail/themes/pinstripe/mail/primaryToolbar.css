@@ -534,7 +534,8 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
 }
 
 #junkIcon {
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 128px 16px 112px);
 }
 
 /* ::::: remote content bar status rules ::::: */

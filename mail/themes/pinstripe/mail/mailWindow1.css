@@ -269,7 +269,8 @@ treechildren::-moz-tree-image(junkStatusCol, dummy) {
 }
 
 treechildren::-moz-tree-image(junkStatusCol, junk) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 128px 16px 112px);
   -moz-margin-end: -1px;
 }
 

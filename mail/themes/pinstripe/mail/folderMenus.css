@@ -11,12 +11,14 @@
 /* ::::: folder icons for menus ::::: */
 
 .folderMenuItem {
-  list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* News folders */
 .folderMenuItem[ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 80px 16px 64px);
 }
 
 /* Feed folders */
@@ -27,64 +29,74 @@
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-inbox.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 48px 16px 32px);
 }
 
 .folderMenuItem[SpecialFolder="Sent"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-sent.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 64px 16px 48px);
 }
 
 .folderMenuItem[SpecialFolder="Drafts"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-draft.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+    -moz-image-region: rect(0 96px 16px 80px);
 }
 
 .folderMenuItem[SpecialFolder="Templates"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-template.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 112px 16px 96px);
 }
 
 .folderMenuItem[SpecialFolder="Junk"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 128px 16px 112px);
 }
 
 .folderMenuItem[SpecialFolder="Trash"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 144px 16px 128px);
 }
 
 /* ..... servers ..... */
 
-.folderMenuItem[IsServer="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
-}
-
+.folderMenuItem[IsServer="true"],
 .folderMenuItem[IsServer="true"][open="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* IMAP servers */
 .folderMenuItem[IsServer="true"][ServerType="imap"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* POP3 servers */
 .folderMenuItem[IsServer="true"][ServerType="pop3"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* Local Servers */
 .folderMenuItem[IsServer="true"][ServerType="none"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-local.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* News servers */
 .folderMenuItem[IsServer="true"][ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-news.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 64px 16px 48px);
 }
 
 .folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* Feed servers */
 .folderMenuItem[IsServer="true"][ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/server-newsblog.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }

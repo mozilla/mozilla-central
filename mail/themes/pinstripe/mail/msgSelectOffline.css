@@ -14,67 +14,71 @@
 
 treechildren::-moz-tree-image(folderNameCol) {
   -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-closed.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* ..... Inbox ..... */
 
-treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-inbox.png");
-}
-
+treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox),
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Inbox, newMessages-true) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-inbox.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 48px 16px 32px);
 }
 
 /* ..... Sent ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Sent) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-sent.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 64px 16px 48px);
 }
 
 /* ..... Unsent ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Outbox) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-outbox.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 80px 16px 64px);
 }
 
 /* ..... Drafts ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Drafts) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-draft.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 96px 16px 80px);
 }
 
 /* ..... Templates ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Templates) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-template.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 112px 16px 96px);
 }
 
 /* ..... Junk ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Junk) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 128px 16px 112px);
 }
 
 /* ..... Trash ..... */
 
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-trash.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 144px 16px 128px);
 }
 
 /* ..... Servers ..... */
 
-treechildren::-moz-tree-image(folderNameCol, isServer-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
-}
-
+treechildren::-moz-tree-image(folderNameCol, isServer-true),
 treechildren::-moz-tree-image(folderNameCol, biffState-NewMail, isServer-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-mail.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
@@ -83,36 +87,39 @@ treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessage
 }
 
 treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-share.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 192px 16px 176px);
 }
 
 
 /* ..... Server Folders ..... */
 
-treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-pop3, isSecure-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
-}
-
+treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-pop3, isSecure-true),
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-imap, isSecure-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-remote-lock.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 32px 16px 16px);
 }
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-none) {
-  list-style-image: url("chrome://messenger/skin/icons/server-local.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* ..... News Folders ..... */
 
 treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 80px 16px 64px);
 }
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp) {
-  list-style-image: url("chrome://messenger/skin/icons/server-news.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 64px 16px 48px);
 }
 
 treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-nntp, isSecure-true) {
-  list-style-image: url("chrome://messenger/skin/icons/server-news-lock.png");
+  list-style-image: url("chrome://messenger/skin/icons/server.png");
+  -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* ::::: All Servers ::::: */
