@@ -141,7 +141,12 @@ var itemConversion = {
         // Dates and alarms
         item.startDate = aTask.entryDate;
         if (!item.startDate) {
-            item.startDate = getDefaultStartDate();
+            if (aTask.dueDate) {
+                item.startDate = aTask.dueDate.clone();
+                item.startDate.minute -= getPrefSafe("calendar.event.defaultlength", 60);
+            } else {
+                item.startDate = cal.getDefaultStartDate();
+            }
         }
 
         item.endDate = aTask.dueDate;
