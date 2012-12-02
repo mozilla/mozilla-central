@@ -16,6 +16,8 @@
  * they throw exceptions.
  */
 
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
+
 var sanitize =
 {
   integer : function(unchecked)
@@ -91,7 +93,7 @@ var sanitize =
    */
   hostname : function(unchecked)
   {
-    var str = this.nonemptystring(unchecked);
+    let str = cleanUpHostName(this.nonemptystring(unchecked));
 
     // Allow placeholders. TODO move to a new hostnameOrPlaceholder()
     // The regex is "anything, followed by one or more (placeholders than
@@ -100,7 +102,7 @@ var sanitize =
     if (/^[a-zA-Z0-9\-\.]*(%[A-Z0-9]+%[a-zA-Z0-9\-\.]*)+$/.test(str))
       return str;
 
-    if (!/^[a-zA-Z0-9\-\.]*$/.test(str))
+    if (!isLegalHostNameOrIP(str))
       throw new MalformedException("hostname_syntax.error", unchecked);
 
     return str.toLowerCase();

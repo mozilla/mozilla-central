@@ -119,7 +119,7 @@ function saveSmtpSettings(server)
 {
     //dump("Saving to " + server + "\n");
     if (server) {
-        server.hostname = cleanUpHostname(gSmtpHostname.value);
+        server.hostname = cleanUpHostName(gSmtpHostname.value);
         server.description = gSmtpDescription.value;
         server.port = gSmtpPort.value;
         server.authMethod = gSmtpAuthMethod.value;

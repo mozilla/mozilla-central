@@ -6,6 +6,7 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 var gCurrentDirectory = null;
 var gReplicationBundle = null;
@@ -297,7 +298,7 @@ function onAccept()
     var pref_string_title = "";
 
     var description = document.getElementById("description").value;
-    var hostname = document.getElementById("hostname").value;
+    var hostname = cleanUpHostName(document.getElementById("hostname").value);
     var port = document.getElementById("port").value;
     var secure = document.getElementById("secure");
     var results = document.getElementById("results").value;
@@ -305,7 +306,7 @@ function onAccept()
     var saslMechanism = "";
     if ((!description) || hasOnlyWhitespaces(description))
       errorValue = "invalidName";
-    else if ((!hostname) || hasOnlyWhitespaces(hostname))
+    else if (!isLegalHostNameOrIP(hostname))
       errorValue = "invalidHostname";
     // XXX write isValidDn and call it on the dn string here?
     else if (port && hasCharacters(port))

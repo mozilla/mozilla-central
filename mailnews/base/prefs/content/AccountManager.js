@@ -29,6 +29,7 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 // If Local directory has changed the app needs to restart. Once this is set
 // a restart will be attempted at each attempt to close the Account manager with OK.
@@ -376,14 +377,26 @@ function checkUserServerChanges(showAlert) {
   alertText = null;
   // If something is changed then check if the new user/host already exists.
   if ((oldUser != newUser) || (oldHost != newHost)) {
-    if ((checkUser && (newUser == "")) || (newHost == "")) {
-        alertText = prefBundle.getString("serverNameEmpty");
-    } else {
-      let sameServer = MailServices.accounts
-                                   .findRealServer(newUser, newHost, newType, 0)
-      if (sameServer && (sameServer != currentAccount.incomingServer))
-        alertText = prefBundle.getString("modifiedAccountExists");
+    newUser = newUser.trim();
+    newHost = cleanUpHostName(newHost);
+    if (checkUser && (newUser == "")) {
+      alertText = prefBundle.getString("userNameEmpty");
     }
+    else if (!isLegalHostNameOrIP(newHost)) {
+      alertText = prefBundle.getString("enterValidServerName");
+    }
+    else {
+      let sameServer = MailServices.accounts
+                                   .findRealServer(newUser, newHost, newType, 0);
+      if (sameServer && (sameServer != currentAccount.incomingServer)) {
+        alertText = prefBundle.getString("modifiedAccountExists");
+      } else {
+        // New hostname passed all checks. We may have cleaned it up so set
+        // the new value back into the input element.
+        setFormElementValue(pageElements[hIndx], newHost);
+      }
+    }
+
     if (alertText) {
       if (showAlert)
         Services.prompt.alert(window, alertTitle, alertText);

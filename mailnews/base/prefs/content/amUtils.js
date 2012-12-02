@@ -3,7 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource:///modules/hostnameUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
@@ -129,16 +128,4 @@ function openPrefsFromAccountManager(aTBPaneId, aTBTabId, aTBOtherArgs, aSMPaneI
   // If goPreferences() exists, we are in Seamonkey.
   if (typeof win.goPreferences == "function")
     win.goPreferences(aSMPaneId);
-}
-
-/**
- * Clean up the hostname or IP.
- *
- * @param aHostName  The hostname or IP string to clean up.
- */
-function cleanUpHostname(aHostName)
-{
-  // TODO: Bug 235312: if UTF8 string was input, convert to punycode using convertUTF8toACE()
-  // but bug 563172 needs resolving first.
-  return aHostName.trim();
 }

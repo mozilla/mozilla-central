@@ -23,8 +23,6 @@
   <stringbundle id="bundle_messenger"
                 src="chrome://messenger/locale/messenger.properties"/>
   <script type="application/javascript"
-          src="chrome://messenger/content/amUtils.js"/>
-  <script type="application/javascript"
           src="chrome://messenger/content/SmtpServerEdit.js"/>
   <vbox id="smtpServerEditor"/>
 </dialog>

@@ -31,7 +31,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 // from http://xyfer.blogspot.com/2005/01/javascript-regexp-email-validator.html
 var emailRE = /^[-_a-z0-9\'+*$^&%=~!?{}]+(?:\.[-_a-z0-9\'+*$^&%=~!?{}]+)*@(?:[-a-z0-9.]+\.[a-z]{2,6}|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$/i;
-var domainRE = /^((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$|(\[?(\d{1,3}\.){3}\d{1,3}\]?)$/i
 const kHighestPort = 65535;
 
 Cu.import("resource:///modules/gloda/log4moz.js");

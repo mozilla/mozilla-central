@@ -17,7 +17,7 @@ function onLoad(event)
 
 function onAccept()
 {
-  if (!isLegalHostNameOrIP(cleanUpHostname(gSmtpHostname.value))) {
+  if (!isLegalHostNameOrIP(cleanUpHostName(gSmtpHostname.value))) {
     let prefsBundle = document.getElementById("bundle_prefs");
     let brandBundle = document.getElementById("bundle_brand");
     let alertTitle = brandBundle.getString("brandShortName");

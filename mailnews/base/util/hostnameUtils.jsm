@@ -4,8 +4,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /**
- * Generic shared utility code for checking of IP and hostname
- * validity.
+ * Generic shared utility code for checking of IP and hostname validity.
  */
 
 const EXPORTED_SYMBOLS = [ "isLegalHostNameOrIP",
@@ -13,7 +12,8 @@ const EXPORTED_SYMBOLS = [ "isLegalHostNameOrIP",
                            "isLegalIPv4Address",
                            "isLegalIPv6Address",
                            "isLegalIPAddress",
-                           "isLegalLocalIPAddress" ];
+                           "isLegalLocalIPAddress",
+                           "cleanUpHostName" ];
 
 /**
  * Check if aHostName is an IP address or a valid hostname.
@@ -88,6 +88,9 @@ function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
   // octal, hex or in some cases a mix match of each. The IP address could
   // also be represented as a DWORD.
 
+  if (!aHostName)
+    return null;
+
   // Break the IP address down into individual components.
   let ipComponents = aHostName.split(".");
 
@@ -154,6 +157,9 @@ function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
  */
 function isLegalIPv6Address(aHostName)
 {
+  if (!aHostName)
+    return null;
+
   // Break the IP address down into individual components.
   let ipComponents = aHostName.toLowerCase().split(":");
 
@@ -289,4 +295,17 @@ function isLegalLocalIPAddress(aIPAddress)
     return false;
   }
   return false;
+}
+
+/**
+ * Clean up the hostname or IP. Usually used to sanitize a value input by the user.
+ * It is usually applied before we know if the hostname is even valid.
+ *
+ * @param aHostName  The hostname or IP string to clean up.
+ */
+function cleanUpHostName(aHostName)
+{
+  // TODO: Bug 235312: if UTF8 string was input, convert to punycode using convertUTF8toACE()
+  // but bug 563172 needs resolving first.
+  return aHostName.trim();
 }

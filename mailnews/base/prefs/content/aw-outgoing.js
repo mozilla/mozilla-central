@@ -13,7 +13,7 @@ function outgoingPageValidate() {
 
   let smtpServer = document.getElementById("smtphostname").value;
   let usingDefaultSMTP = document.getElementById("noSmtp").hidden;
-  if (!usingDefaultSMTP && !isLegalHostNameOrIP(cleanUpHostname(smtpServer)))
+  if (!usingDefaultSMTP && !isLegalHostNameOrIP(cleanUpHostName(smtpServer)))
     canAdvance = false;
 
   document.documentElement.canAdvance = canAdvance;
@@ -23,7 +23,7 @@ function outgoingPageUnload() {
   var pageData = parent.GetPageData();
   var username = document.getElementById("username").value;
   let smtpserver = document.getElementById("smtphostname").value;
-  setPageData(pageData, "server", "smtphostname", cleanUpHostname(smtpserver));
+  setPageData(pageData, "server", "smtphostname", cleanUpHostName(smtpserver));
 
   // If SMTP username box is blank it is because the
   // incoming and outgoing server names were the same,

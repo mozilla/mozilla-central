@@ -17,12 +17,12 @@ function incomingPageValidate()
 
   if (gOnMailServersPage) {
     hostName = document.getElementById("incomingServer").value;
-    if (!gHideIncoming && !isLegalHostNameOrIP(cleanUpHostname(hostName)))
+    if (!gHideIncoming && !isLegalHostNameOrIP(cleanUpHostName(hostName)))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
     hostName = document.getElementById("newsServer").value;
-    if (!isLegalHostNameOrIP(cleanUpHostname(hostName)))
+    if (!isLegalHostNameOrIP(cleanUpHostName(hostName)))
       canAdvance = false;
   }
 
@@ -47,7 +47,7 @@ function incomingPageUnload()
     // to set the server to an empty value here
     if (!gHideIncoming) {
       var incomingServerName = document.getElementById("incomingServer");
-      setPageData(pageData, "server", "hostname", cleanUpHostname(incomingServerName.value));
+      setPageData(pageData, "server", "hostname", cleanUpHostName(incomingServerName.value));
     }
     var serverport = document.getElementById("serverPort").value;
     setPageData(pageData, "server", "port", serverport);
@@ -56,7 +56,7 @@ function incomingPageUnload()
   }
   else if (gOnNewsServerPage) {
     var newsServerName = document.getElementById("newsServer");
-    setPageData(pageData, "newsserver", "hostname", cleanUpHostname(newsServerName.value));
+    setPageData(pageData, "newsserver", "hostname", cleanUpHostName(newsServerName.value));
   }
 
   return true;
