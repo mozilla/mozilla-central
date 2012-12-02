@@ -14,6 +14,7 @@
 
   <script type="application/javascript" src="chrome://messenger/content/am-addressing.js"/>
   <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/am-prefs.js"/>
 
   <vbox flex="1" id="compositionAndAddressing">
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
@@ -99,12 +100,12 @@
 
       <label control="identity.overrideGlobal_Pref">&addressingText.label;</label>
       <radiogroup id="identity.overrideGlobal_Pref" class="indent"
-                  oncommand="enabling();" wsm_persist="true"
+                  oncommand="LDAPenabling();" wsm_persist="true"
                   genericattr="true" preftype="bool"
                   prefstring="mail.identity.%identitykey%.overrideGlobal_Pref">
         <radio value="false" label="&useGlobal.label;"
                accesskey="&useGlobal.accesskey;"/>
-        <radio id="directories" value="true" label="&directories.label;"
+        <radio value="true" id="directories" label="&directories.label;"
                accesskey="&directories.accesskey;"/>
         <hbox class="indent">
           <menulist id="identity.directoryServer"

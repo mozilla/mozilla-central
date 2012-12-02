@@ -5,21 +5,19 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-var gIdentity = null;
-
 function onLoad()
 {
   parent.onPanelLoaded('am-addressing.xul');
 }
 
-function onInit(aPageId, aServerId) 
+function onInit(aPageId, aServerId)
 {
   onInitCompositionAndAddressing();
 }
 
 function onInitCompositionAndAddressing()
 {
-  enabling();
+  LDAPenabling();
   quoteEnabling();
 }
 
@@ -31,31 +29,12 @@ function onEditDirectories()
 
 function onPreInit(account, accountValues)
 {
-  gIdentity = account.defaultIdentity;
 }
 
-function enabling()
+function LDAPenabling()
 {
-  var autocomplete = document.getElementById("identity.overrideGlobal_Pref");
-  var directoriesList = document.getElementById("identity.directoryServer");
-  var editButton = document.getElementById("editButton");
-
-  switch (autocomplete.value)
-  {
-    case "false":
-      directoriesList.setAttribute("disabled", true);
-      editButton.setAttribute("disabled", true);
-      break;
-    case "true":
-      directoriesList.removeAttribute("disabled");
-      editButton.removeAttribute("disabled");
-      break;
-  }
-
-  if (gIdentity && Services.prefs.prefIsLocked("mail.identity." + gIdentity.key +
-      ".directoryServer")) {
-    directoriesList.setAttribute("disabled", "true");
-  }
+  onCheckItem("identity.directoryServer", ["directories"]);
+  onCheckItem("editButton", ["directories"]);
 }
 
 function quoteEnabling()

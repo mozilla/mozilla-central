@@ -67,7 +67,6 @@ function getAccountValueIsLocked(aElement)
 {
   let prefstring = aElement.getAttribute("prefstring");
   if (prefstring) {
-    let preftype = aElement.getAttribute("preftype");
     let prefstr = substPrefTokens(prefstring, aElement);
     // see if the prefstring is locked
     if (prefstr)
@@ -78,12 +77,12 @@ function getAccountValueIsLocked(aElement)
 
 /**
  * Enables/disables element (slave) according to the checked state
- * of another elements (master).
+ * of another elements (masters).
  *
- * @param aChangeElementId  slave element which should be enabled
+ * @param aChangeElementId  Slave element which should be enabled
  *                          if all the checkElementIDs are checked.
  *                          Otherwise it gets disabled.
- * @param aCheckElementIds  an array of IDs of the master elements
+ * @param aCheckElementIds  An array of IDs of the master elements.
  *
  * See bug 728681 for the pattern on how this is used.
  */
@@ -99,12 +98,17 @@ function onCheckItem(aChangeElementId, aCheckElementIds)
       notifyElementState = notifyElement.checked;
     else if ("selected" in notifyElement)
       notifyElementState = notifyElement.selected;
+    else
+      Components.utils.reportError("Unknown type of control element: " + notifyElement.id);
 
-    if (!notifyElementState || getAccountValueIsLocked(notifyElement)) {
+    if (!notifyElementState) {
       disabled = true;
       break;
     }
   }
+
+  if (!disabled && getAccountValueIsLocked(elementToControl))
+    disabled = true;
 
   elementToControl.disabled = disabled;
 }
