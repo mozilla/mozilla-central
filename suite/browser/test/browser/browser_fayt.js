@@ -3,8 +3,8 @@
  */
 
 function test() {
-  var tab1 = gBrowser.addTab("data:text/html,<p>this is some dummy text</p>");
-  var tab2 = gBrowser.addTab("data:text/html,<p>this is some random text</p>");
+  var tab1 = gBrowser.addTab("data:text/html;charset=utf-8,<p>this is some dummy text</p>");
+  var tab2 = gBrowser.addTab("data:text/html;charset=utf-8,<p>this is some random text</p>");
 
   gBrowser.getBrowserForTab(tab2).addEventListener("load", runTest, true);
   waitForExplicitFinish();
