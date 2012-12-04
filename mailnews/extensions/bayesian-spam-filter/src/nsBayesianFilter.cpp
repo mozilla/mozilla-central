@@ -52,6 +52,8 @@
 #include <prmem.h>
 #include "nsIMsgTraitService.h"
 #include "mozilla/Services.h"
+#include <cstdlib> // for std::abs(int/long)
+#include <cmath> // for std::abs(float/double)
 
 static PRLogModuleInfo *BayesianFilterLogModule = nullptr;
 
@@ -1586,7 +1588,7 @@ void nsBayesianFilter::classifyMessage(
 
         double n = proCount + antiCount;
         prob =  (0.225 + n * prob) / (.45 + n);
-        double distance = NS_ABS(prob - 0.5);
+        double distance = std::abs(prob - 0.5);
         if (distance >= .1)
         {
           nsresult rv = setAnalysis(token, traitIndex, distance, prob);

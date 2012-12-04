@@ -35,6 +35,8 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "prprf.h"
+#include <cstdlib> // for std::abs(int/long)
+#include <cmath> // for std::abs(float/double)
 
 nsMsgBrkMBoxStore::nsMsgBrkMBoxStore()
 {
@@ -256,7 +258,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::IsSummaryFileValid(nsIMsgFolder *aFolder,
     if (gTimeStampLeeway == 0)
       *aResult = folderDate == actualFolderTimeStamp;
     else
-      *aResult = NS_ABS((int32_t) (actualFolderTimeStamp - folderDate)) <= gTimeStampLeeway;
+      *aResult = std::abs((int32_t) (actualFolderTimeStamp - folderDate)) <= gTimeStampLeeway;
   }
   return NS_OK;
 }
