@@ -204,9 +204,10 @@ var FullZoom = {
       var self = this;
       Services.contentPrefs.getPref(aURI, this.name, loadContext, function (aResult) {
         // Check that we're still where we expect to be in case this took a while.
-        if (!aBrowser || aURI.equals(aBrowser.currentURI)) {
+        // Null check currentURI, since the window may have been destroyed before
+        // we were called.
+        if (aBrowser.currentURI && aURI.equals(aBrowser.currentURI))
           self._applyPrefToSetting(aResult, aBrowser);
-        }
       });
     }
   },
