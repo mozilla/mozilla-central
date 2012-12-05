@@ -1154,7 +1154,7 @@ ircAccount.prototype = {
   _quitTimer: null,
   // RFC 2812 Section 3.1.7.
   quit: function(aMessage) {
-    this.reportDisconnecting(Ci.prplIAccount.NO_ERROR);
+    this._reportDisconnecting(Ci.prplIAccount.NO_ERROR);
     this.sendMessage("QUIT",
                      aMessage || this.getString("quitmsg") || undefined);
   },
@@ -1163,7 +1163,7 @@ ircAccount.prototype = {
     if (this.disconnected || this.disconnecting)
        return;
 
-    this.reportDisconnecting(Ci.prplIAccount.NO_ERROR);
+    this._reportDisconnecting(Ci.prplIAccount.NO_ERROR);
 
     // If there's no socket, disconnect immediately to avoid waiting 2 seconds.
     if (!this._socket || !this._socket.isConnected) {
@@ -1368,6 +1368,14 @@ ircAccount.prototype = {
                               this._realname || this._requestedNickname]);
   },
 
+  _reportDisconnecting: function(aErrorReason, aErrorMessage) {
+    this.reportDisconnecting(aErrorReason, aErrorMessage);
+
+    // Mark all contacts on the account as having an unknown status.
+    for each (let buddy in this._buddies)
+      buddy.setStatus(Ci.imIStatusInfo.STATUS_UNKNOWN, "");
+  },
+
   gotDisconnected: function(aError, aErrorMessage) {
     if (!this.imAccount || this.disconnected)
        return;
@@ -1378,7 +1386,7 @@ ircAccount.prototype = {
     // is when the server acknowledges our disconnection.
     // Otherwise it's because we lost the connection.
     if (!this.disconnecting)
-      this.reportDisconnecting(aError, aErrorMessage);
+      this._reportDisconnecting(aError, aErrorMessage);
     this._socket.disconnect();
     delete this._socket;
 
@@ -1397,10 +1405,6 @@ ircAccount.prototype = {
         conversation.left = true;
       }
     }
-
-    // Mark all contacts on the account as having an unknown status.
-    for each (let buddy in this._buddies)
-      buddy.setStatus(Ci.imIStatusInfo.STATUS_UNKNOWN, "");
 
     // Clear whois table.
     this.whoisInformation = {};
