@@ -244,8 +244,19 @@ imAccount.prototype = {
         this._sendNotification("account-connect-error");
       }
     }
-    else if (aTopic == "account-disconnected")
+    else if (aTopic == "account-disconnected") {
       this.connectionState = Ci.imIAccount.STATE_DISCONNECTED;
+      if (this._statusObserver &&
+          this.statusInfo.statusType > Ci.imIStatusInfo.STATUS_OFFLINE) {
+        // If the status changed back to online while an account was still
+        // disconnecting, it was not reconnected automatically at that point,
+        // so we must do it now. (This happens for protocols like IRC where
+        // disconnection is not immediate.)
+        this._sendNotification(aTopic, aData);
+        this.connect();
+        return;
+      }
+    }
     else
       throw Cr.NS_ERROR_UNEXPECTED;
     this._sendNotification(aTopic, aData);
