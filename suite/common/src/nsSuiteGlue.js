@@ -343,15 +343,17 @@ SuiteGlue.prototype = {
     // them to the user.
     var browser = aWindow.getBrowser();
     var changedIDs = AddonManager.getStartupChanges(AddonManager.STARTUP_CHANGE_INSTALLED);
-    AddonManager.getAddonsByIDs(changedIDs, function(aAddons) {
-      aAddons.forEach(function(aAddon) {
-        // If the add-on isn't user disabled or can't be enabled then skip it.
-        if (!aAddon.userDisabled || !(aAddon.permissions & AddonManager.PERM_CAN_ENABLE))
-          return;
+    if (changedIDs.length) {
+      AddonManager.getAddonsByIDs(changedIDs, function(aAddons) {
+        aAddons.forEach(function(aAddon) {
+          // If the add-on isn't user disabled or can't be enabled then skip it.
+          if (!aAddon.userDisabled || !(aAddon.permissions & AddonManager.PERM_CAN_ENABLE))
+            return;
 
-        browser.selectedTab = browser.addTab("about:newaddon?id=" + aAddon.id);
-      })
-    });
+          browser.selectedTab = browser.addTab("about:newaddon?id=" + aAddon.id);
+        })
+      });
+    }
 
     var notifyBox = browser.getNotificationBox();
 
