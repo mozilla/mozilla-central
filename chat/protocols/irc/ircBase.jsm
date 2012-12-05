@@ -1175,12 +1175,12 @@ var ircBase = {
     },
     "432": function(aMessage) { // ERR_ERRONEUSNICKNAME
       // <nick> :Erroneous nickname
-      let msg = _("error.erroneousNickname", aMessage.params[1]);
+      let msg = _("error.erroneousNickname", this._requestedNickname);
       serverErrorMessage(this, aMessage, msg);
       if (this._requestedNickname == this._accountNickname) {
         // The account has been set up with an illegal nickname.
-        this.ERROR("Erroneous nickname " + aMessage.params[1] + ": " +
-                   aMessage.params[2]);
+        this.ERROR("Erroneous nickname " + this._requestedNickname + ": " +
+                   aMessage.params.slice(1).join(" "));
         this.gotDisconnected(Ci.prplIAccount.ERROR_INVALID_USERNAME, msg);
       }
       else {
