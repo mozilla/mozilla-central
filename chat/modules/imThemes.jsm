@@ -332,10 +332,11 @@ const headerFooterReplacements = {
   },
   outgoingIconPath: function(aConv) "outgoing_icon.png",
   timeOpened: function(aConv, aFormat) {
+    let date = new Date(aConv.startDate / 1000);
     if (aFormat)
-      return (new Date()).toLocaleFormat(aFormat);
+      return date.toLocaleFormat(aFormat);
     else
-      return (new Date()).toLocaleTimeString();
+      return date.toLocaleTimeString();
   }
 };
 

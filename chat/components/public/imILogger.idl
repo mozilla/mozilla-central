@@ -17,6 +17,7 @@ interface prplIMessage;
 interface imILogConversation: nsISupports {
   readonly attribute AUTF8String title;
   readonly attribute AUTF8String name;
+  readonly attribute PRTime startDate;
 
   // Simplified account implementation:
   //  - alias will always be empty

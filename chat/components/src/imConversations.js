@@ -269,6 +269,7 @@ UIConversation.prototype = {
   get name() this.target.name,
   get normalizedName() this.target.normalizedName,
   get title() this.target.title,
+  get startDate() this.target.startDate,
   sendMsg: function (aMsg) { this.target.sendMsg(aMsg); },
   unInit: function() {
     for each (let conv in this._prplConv)

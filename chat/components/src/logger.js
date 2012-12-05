@@ -61,9 +61,9 @@ function getLogFolderForAccount(aAccount, aCreate)
   return file;
 }
 
-function getNewLogFileName(aFormat)
+function getNewLogFileName(aFormat, aDate)
 {
-  let date = new Date();
+  let date = aDate ? new Date(aDate / 1000) : new Date();
   let dateTime = date.toLocaleFormat("%Y-%m-%d.%H%M%S");
   let offset = date.getTimezoneOffset();
   if (offset < 0) {
@@ -100,7 +100,7 @@ ConversationLog.prototype = {
       file.create(Ci.nsIFile.DIRECTORY_TYPE, 0777);
     if (Services.prefs.getCharPref("purple.logging.format") == "json")
       this.format = "json";
-    file.append(getNewLogFileName(this.format));
+    file.append(getNewLogFileName(this.format, this._conv.startDate));
     this.file = file;
     let os = Cc["@mozilla.org/network/file-output-stream;1"].
              createInstance(Ci.nsIFileOutputStream);
@@ -119,7 +119,7 @@ ConversationLog.prototype = {
   {
     let account = this._conv.account;
     if (this.format == "json") {
-      return JSON.stringify({date: new Date(),
+      return JSON.stringify({date: new Date(this._conv.startDate / 1000),
                              name: this._conv.name,
                              title: this._conv.title,
                              account: account.normalizedName,
@@ -128,7 +128,7 @@ ConversationLog.prototype = {
                             }) + "\n";
     }
     return "Conversation with " + this._conv.name +
-           " at " + (new Date).toLocaleString() +
+           " at " + (new Date(this._conv.startDate / 1000)).toLocaleString() +
            " on " + account.name +
            " (" + account.protocol.normalizedName + ")" + kLineBreak;
   },
@@ -341,6 +341,7 @@ function LogConversation(aLineInputStreams)
 
     if (firstFile) {
       let data = JSON.parse(line.value);
+      this.startDate = new Date(data.date) * 1000;
       this.name = data.name;
       this.title = data.title;
       this._accountName = data.account;

@@ -355,6 +355,7 @@ const GenericConversationPrototype = {
     this._account = aAccount;
     this._name = aName;
     this._observers = [];
+    this._date = new Date() * 1000;
     Services.conversations.addConversation(this);
   },
 
@@ -399,7 +400,8 @@ const GenericConversationPrototype = {
   get account() this._account.imAccount,
   get name() this._name,
   get normalizedName() normalize(this.name),
-  get title() this.name
+  get title() this.name,
+  get startDate() this._date
 };
 
 const GenericConvIMPrototype = {

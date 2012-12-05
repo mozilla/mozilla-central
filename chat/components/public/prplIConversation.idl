@@ -34,6 +34,9 @@ interface prplIConversation: nsISupports {
   /* The title of the conversation, typically localized */
   readonly attribute AUTF8String title;
 
+  /* The time and date of the conversation's creation */
+  readonly attribute PRTime startDate;
+
   /* Unique identifier of the conversation */
   /* Setable only once by purpleCoreService while calling addConversation. */
            attribute unsigned long id;
