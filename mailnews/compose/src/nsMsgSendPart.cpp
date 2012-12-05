@@ -659,18 +659,16 @@ nsMsgSendPart::Write()
       // We are attaching a message, so we should be careful to
       // strip out certain sensitive internal header fields.
       bool skipping = false;
-      nsLineBuffer<char> *lineBuffer;
-      
-      rv = NS_InitLineBuffer(&lineBuffer);
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+      NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
 
-      while (more) 
+      while (more)
       {
         // NS_ReadLine doesn't return line termination chars.
-        rv = NS_ReadLine(inputStream.get(), lineBuffer, curLine, &more);
-      
+        rv = NS_ReadLine(inputStream.get(), lineBuffer.get(), curLine, &more);
+
         curLine.Append(CRLF);
-        
+
         char *line = (char *) curLine.get();
         if (skipping) {
           if (*line == ' ' || *line == '\t')
@@ -705,7 +703,7 @@ nsMsgSendPart::Write()
           break;  // Now can do normal reads for the body.
         }
       }
-      PR_Free(lineBuffer);
+      lineBuffer = nullptr;
     }
 
     while (NS_SUCCEEDED(status))

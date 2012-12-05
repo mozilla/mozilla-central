@@ -14,6 +14,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsMsgMessageFlags.h"
 #include "prprf.h"
+#include "prmem.h"
 #include "nsISupportsArray.h"
 #include "nsIArray.h"
 #include "nsIServiceManager.h"
@@ -3458,16 +3459,15 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
   aState->m_seekableStream = do_QueryInterface(aState->m_inputStream);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsLineBuffer<char> *lineBuffer;
+  nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+  NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
 
-  rv = NS_InitLineBuffer(&lineBuffer);
-  NS_ENSURE_SUCCESS(rv, rv);
   aState->m_uidl = nullptr;
 
   aMsgDBHdr->GetMessageSize(&len);
   while (len > 0)
   {
-    rv = NS_ReadLine(aState->m_inputStream.get(), lineBuffer, aState->m_header, &more);
+    rv = NS_ReadLine(aState->m_inputStream.get(), lineBuffer.get(), aState->m_header, &more);
     if (NS_SUCCEEDED(rv))
     {
       size = aState->m_header.Length();
@@ -3501,7 +3501,7 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
     aState->m_inputStream->Close();
     aState->m_inputStream = nullptr;
   }
-  PR_Free(lineBuffer);
+  lineBuffer = nullptr;
   return rv;
 }
 

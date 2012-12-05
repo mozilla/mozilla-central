@@ -1205,9 +1205,8 @@ NS_IMETHODIMP nsMsgMaildirStore::ChangeKeywords(nsIArray *aHdrArray,
   if (!messageCount)
     return NS_ERROR_INVALID_ARG;
 
-  nsLineBuffer<char> *lineBuffer;
-  rv = NS_InitLineBuffer(&lineBuffer);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+  NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
 
   nsTArray<nsCString> keywordArray;
   ParseString(aKeywords, ' ', keywordArray);
@@ -1236,7 +1235,7 @@ NS_IMETHODIMP nsMsgMaildirStore::ChangeKeywords(nsIArray *aHdrArray,
     // we need to rewrite the message file with extra room for the keywords,
     // or schedule some sort of background task to do this.
   }
-  PR_Free(lineBuffer);
+  lineBuffer = nullptr;
   return NS_OK;
 }
 

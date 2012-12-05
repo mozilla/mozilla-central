@@ -944,9 +944,8 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::ChangeKeywords(nsIArray *aHdrArray,
   nsCOMPtr<nsIInputStream> inputStream = do_QueryInterface(outputStream, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsLineBuffer<char> *lineBuffer;
-  rv = NS_InitLineBuffer(&lineBuffer);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+  NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
 
   // For each message, we seek to the beginning of the x-mozilla-status header,
   // and start reading lines, looking for x-mozilla-keys: headers; If we're
@@ -978,7 +977,7 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::ChangeKeywords(nsIArray *aHdrArray,
     ChangeKeywordsHelper(msgHdr, desiredOffset, lineBuffer, keywordArray,
                          aAdd, outputStream, seekableStream, inputStream);
   }
-  PR_Free(lineBuffer);
+  lineBuffer = nullptr;
   if (restoreStreamPos != -1)
     seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, restoreStreamPos);
   else if (outputStream)

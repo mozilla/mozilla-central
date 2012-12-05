@@ -59,6 +59,7 @@
 #include "nsITransactionManager.h"
 #include "nsMsgReadStateTxn.h"
 #include "nsAutoPtr.h"
+#include "prmem.h"
 #include "nsIPK11TokenDB.h"
 #include "nsIPK11Token.h"
 #include "nsMsgLocalFolderHdrs.h"
@@ -5428,9 +5429,8 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
    4. multipart/mixed - scan past boundary, treat next part as body.
    */
 
-  nsLineBuffer<char> *lineBuffer;
-  nsresult rv = NS_InitLineBuffer(&lineBuffer);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+  NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
 
   nsAutoCString msgText;
   nsAutoString contentType;
@@ -5448,6 +5448,8 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
 
   uint32_t bytesRead = 0;
 
+  nsresult rv;
+
   // Both are used to extract data from the headers
   nsCOMPtr<nsIMimeHeaders> mimeHeaders(do_CreateInstance(NS_IMIMEHEADERS_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -5463,7 +5465,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
     // We want to NS_ReadLine until we get to a blank line (the end of the headers)
     while (more)
     {
-      rv = NS_ReadLine(stream, lineBuffer, curLine, &more);
+      rv = NS_ReadLine(stream, lineBuffer.get(), curLine, &more);
       NS_ENSURE_SUCCESS(rv, rv);
       if (curLine.IsEmpty())
         break;
@@ -5551,7 +5553,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
     }
     while (more)
     {
-      rv = NS_ReadLine(stream, lineBuffer, curLine, &more);
+      rv = NS_ReadLine(stream, lineBuffer.get(), curLine, &more);
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (count)
@@ -5587,7 +5589,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIInputStream *stream, const 
         break;
     }
   }
-  PR_Free(lineBuffer);
+  lineBuffer = nullptr;
 
   // if the snippet is encoded, decode it
   if (!encoding.IsEmpty())

@@ -2212,9 +2212,10 @@ NS_MSG_BASE uint64_t ParseUint64Str(const char *str)
 NS_MSG_BASE nsresult
 MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
 {
-  nsLineBuffer<char> *lineBuffer;
-  nsresult rv = NS_InitLineBuffer(&lineBuffer);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoPtr<nsLineBuffer<char> > lineBuffer(new nsLineBuffer<char>);
+  NS_ENSURE_TRUE(lineBuffer, NS_ERROR_OUT_OF_MEMORY);
+
+  nsresult rv;
 
   nsAutoCString msgHeaders;
   nsAutoCString curLine;
@@ -2224,14 +2225,14 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
   // We want to NS_ReadLine until we get to a blank line (the end of the headers)
   while (more)
   {
-    rv = NS_ReadLine(aInputStream, lineBuffer, curLine, &more);
+    rv = NS_ReadLine(aInputStream, lineBuffer.get(), curLine, &more);
     NS_ENSURE_SUCCESS(rv, rv);
     if (curLine.IsEmpty())
       break;
     msgHeaders.Append(curLine);
     msgHeaders.Append(NS_LITERAL_CSTRING("\r\n"));
   }
-  PR_Free(lineBuffer);
+  lineBuffer = nullptr;
   nsCOMPtr<nsIStringInputStream> hdrsStream =
         do_CreateInstance("@mozilla.org/io/string-input-stream;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2241,7 +2242,6 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
   NS_ENSURE_SUCCESS(rv, rv);
 
   return pump->AsyncRead(aConsumer, nullptr);
-
 }
 
 class CharsetDetectionObserver : public nsICharsetDetectionObserver
