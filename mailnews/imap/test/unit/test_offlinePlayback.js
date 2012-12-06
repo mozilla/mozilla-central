@@ -61,7 +61,7 @@ var tests = [
                                 "", asyncCopyListener, null);
     yield false;
   },
-  function goOffline() {
+  function goOnline() {
     gOfflineManager = Cc["@mozilla.org/messenger/offline-manager;1"]
                            .getService(Ci.nsIMsgOfflineManager);
     gIMAPDaemon.closing = false;

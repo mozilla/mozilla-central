@@ -2029,9 +2029,9 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
       aDstFolder->GetServer(getter_AddRefs(dstServer));
       rv = dstServer->GetMsgStore(getter_AddRefs(msgStore));
       NS_ENSURE_SUCCESS(rv, rv);
-      bool reusable;
-      msgStore->GetNewMsgOutputStream(aDstFolder, getter_AddRefs(newMsgHdr),
-                                      &reusable, getter_AddRefs(offlineStore));
+      rv = destDB->CreateNewHdr(fakeKey, getter_AddRefs(newMsgHdr));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = aDstFolder->GetOfflineStoreOutputStream(newMsgHdr, getter_AddRefs(offlineStore));
 
       if (NS_SUCCEEDED(rv) && offlineStore)
       {
@@ -2063,8 +2063,8 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
           rv = NS_OK;
 //        rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
 //        if (NS_SUCCEEDED(rv) && bytesRead > 0)
-          msgParser->SetNewMsgHdr(newMsgHdr);
           msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
+          msgParser->SetNewMsgHdr(newMsgHdr);
           // set the env pos to fake key so the msg hdr will have that for a key
           msgParser->SetEnvelopePos(fakeKey);
           bool needMoreData = false;
@@ -2080,9 +2080,9 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
               NS_Free(newLine);
             }
           } while (newLine);
+          msgParser->FinishHeader();
 
           nsCOMPtr<nsIMsgDBHdr> fakeHdr;
-          msgParser->FinishHeader();
           msgParser->GetNewMsgHdr(getter_AddRefs(fakeHdr));
           if (fakeHdr)
           {
@@ -2094,6 +2094,8 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
               fakeHdr->SetOfflineMessageSize(fileSize);
               destDB->AddNewHdrToDB(fakeHdr, true /* notify */);
               aDstFolder->SetFlag(nsMsgFolderFlags::OfflineEvents);
+              if (msgStore)
+                msgStore->FinishNewMessage(offlineStore, fakeHdr);
             }
           }
           // tell the listener we're done.
@@ -2102,6 +2104,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
           aListener->OnStopRunningUrl(aUrl, NS_OK);
           delete inputStreamBuffer;
         }
+        offlineStore->Close();
       }
     }
   }
