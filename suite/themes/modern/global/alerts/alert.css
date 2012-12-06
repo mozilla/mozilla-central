@@ -11,49 +11,59 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 .alertBox {
-  border-right: 2px solid #7B969C;
-  border-bottom: 2px solid #7B969C;
-  border-top: 2px solid #7B969C;
-  border-left: 2px solid #7B969C;
+  border: 1px solid #7B969C;
+  border-radius: 3px;
   background-color: #C7D0D9;
-  min-height: 50px;
 }
 
-.alertBox[orient="horizontal"] > .alertImageBox {
-  -moz-margin-start: 4px;
-  -moz-margin-end: 6px;
-  min-height: 46px;
+.alertImageBox {
+  padding: 8px;
+  width: 64px;
 }
 
-.alertBox[orient="vertical"] > .alertImageBox {
-  margin-top: 6px;
-  margin-bottom: 4px;
-  min-width: 46px;
+.alertTextBox {
+  padding: 8px;
+  width: 255px;
 }
 
 .alertTitle {
   font-weight: bold;
+  font-size: 110%;
 }
 
-.alertBox[orient="horizontal"] > .alertTextBox {
-  margin: 4px 6px 0;
+#alertImage {
+  max-width: 48px;
+  max-height: 48px;
 }
 
-.alertBox[orient="vertical"] > .alertTextBox {
-  margin: 0 4px 6px;
-  -moz-box-align: center;
+#alertNotification[clickable="true"] {
+  cursor: pointer;
 }
 
-.alertText {
-  -moz-margin-end: 6px;
+label {
+  cursor: inherit;
 }
 
 .alertText[clickable="true"] {
-  cursor: pointer;
   color: #1455D6;
   text-decoration: underline;
 }
 
 .alertText[clickable="true"]:hover:active {
   color: #424F63;
+}
+
+@keyframes alert-animation {
+  from {
+    opacity: 0;
+  }
+  6.25% {
+    opacity: 1;
+  }
+  93.75% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
