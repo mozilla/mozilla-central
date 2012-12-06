@@ -1518,7 +1518,7 @@ ld.])
     _PEDANTIC=
     case $OS_RELEASE in
 	4.*|5.*)
-            STRIP="$STRIP -d"
+            STRIP_FLAGS="$STRIP_FLAGS -d"
             ;;
 	*)
 	    DSO_CFLAGS=''
@@ -1541,7 +1541,7 @@ ld.])
     CXXFLAGS="$CXXFLAGS -fno-common"
     DLL_SUFFIX=".dylib"
     DSO_LDOPTS=''
-    STRIP="$STRIP -x -S"
+    STRIP_FLAGS="$STRIP_FLAGS -x -S"
     _PLATFORM_DEFAULT_TOOLKIT='cairo-cocoa'
     TARGET_NSPR_MDCPUCFG='\"md/_darwin.cfg\"'
     # The ExceptionHandling framework is needed for Objective-C exception
