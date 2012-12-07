@@ -20,12 +20,12 @@ var gContextMenuTests = false;
 var gScreenY = -1;
 var gTestIndex = 0;
 var gTests = ["open normal", "open flipped position", "open with scrolling",
-              "open after scrolling", "open small again",
+              "open after scrolling" /* , "open small again",
               "menu movement", "panel movement",
               "context menu enough space below",
               "context menu more space above",
               "context menu too big either side",
-              "context menu larger than screen"];
+              "context menu larger than screen" */ ];
 
 function getScreenXY(element)
 {
@@ -50,6 +50,11 @@ function runTests()
 }
 
 function nextTest()
+{
+  setTimeout("doNextTest()", 2000);
+}
+
+function doNextTest()
 {
   gOverflowed = false, gUnderflowed = false;
 
@@ -77,6 +82,11 @@ function nextTest()
 }
 
 function popupShown()
+{
+  setTimeout("doPopupShown()", 2000);
+}
+
+function doPopupShown()
 {
   if (gTests[gTestIndex] == "menu movement")
     return testPopupMovement();
@@ -114,11 +124,11 @@ function popupShown()
     ok(Math.round(rect.bottom) + gScreenY < screen.height, gTests[gTestIndex] + " bottom");
     ok(gOverflowed && !gUnderflowed, gTests[gTestIndex] + " overflow")
 
-    sbo.scrollTo(0, 40);
-    expectedScrollPos = 40;
+    sbo.scrollTo(0, 15);
+    expectedScrollPos = 15;
   }
   else if (gTestIndex == 3) {
-    expectedScrollPos = 40;
+    expectedScrollPos = 15;
   }
   else if (gTestIndex == 4) {
     // note that if the height is odd, the y-offset will have been rounded
@@ -134,7 +144,7 @@ function popupShown()
   sbo.getPosition(sx, sy);
   is(sy.value, expectedScrollPos, "menu scroll position");
 
-  popup.hidePopup();
+  hideThePopup(popup);
 }
 
 function is(l, r, n) { window.opener.wrappedJSObject.SimpleTest.is(l,r,n); }
@@ -166,6 +176,18 @@ function moveWindowTo(x, y, callback, arg)
     waitSteps = 0;
     callback(arg);
   }
+}
+
+var thePopup;
+function hideThePopup(p)
+{
+  thePopup = p;
+  setTimeout("doHidePopup()", 2000);
+}
+
+function doHidePopup(p)
+{
+  thePopup.hidePopup();
 }
 
 function popupHidden()
