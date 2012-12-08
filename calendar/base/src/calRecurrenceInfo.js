@@ -352,7 +352,7 @@ calRecurrenceInfo.prototype = {
                 let isInExceptionMap = this.mExceptionMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
                                        this.mExceptionMap[getRidKey(nextOccurrences[i])];
                 let isInNegMap = negMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
-                                 negMap[getRidKey(nextOccurences[i])];
+                                 negMap[getRidKey(nextOccurrences[i])];
                 let nextKey = getRidKey(nextOccurrences[i]);
                 if (nextKey && (isInNegMap || isInExceptionMap)) {
                     // If the found recurrence id points to either an exception
