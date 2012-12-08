@@ -273,8 +273,6 @@ calDavCalendar.prototype = {
             } else if (itemId == "calendar-properties") {
                 this.restoreCalendarProperties(itemData);
                 this.setProperty("currentStatus", Components.results.NS_OK);
-                this.readOnly = false;
-                this.disabled = false;
                 if (this.mHaveScheduling || this.hasAutoScheduling || this.hasFreeBusy) {
                     cal.getFreeBusyService().addProvider(this);
                 }
