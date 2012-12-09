@@ -186,16 +186,31 @@ function open_compose_with_element_click(aElement, aController) {
 }
 
 /**
- * Closes the requested compose window. This function currently just forwards to
- * windowHelper but means we don't have to include windowHelper elsewhere if we
- * don't want it.
- *
- * In future it could also be expanded to handle prompting on close.
+ * Closes the requested compose window.
  *
  * @param aController the controller whose window is to be closed.
+ * @param aShouldPrompt (optional) true: check that the prompt to save appears
+ *                                 false: check there's no prompt to save
  */
-function close_compose_window(aController) {
-  windowHelper.close_window(aController);
+function close_compose_window(aController, aShouldPrompt) {
+  if (aShouldPrompt === undefined) { // caller doesn't care if we get a prompt
+    windowHelper.close_window(aController);
+    return;
+  }
+
+  windowHelper.plan_for_window_close(aController);
+  if (aShouldPrompt) {
+    windowHelper.plan_for_modal_dialog("commonDialog", function clickDontSave(controller) {
+       controller.window.document.documentElement.getButton("extra1").doCommand();
+    });
+    // Try to close, we should get a prompt to save.
+    aController.window.goDoCommand("cmd_close");
+    windowHelper.wait_for_modal_dialog();
+  }
+  else {
+    aController.window.goDoCommand("cmd_close");
+  }
+  windowHelper.wait_for_window_close();
 }
 
 /**

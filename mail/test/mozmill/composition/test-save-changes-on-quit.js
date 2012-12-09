@@ -4,14 +4,17 @@
 
 /**
  * Tests that we prompt the user if they'd like to save their message when they
- * try to quit with an open compose window with unsaved changes.
+ * try to quit/close with an open compose window with unsaved changes, and
+ * that we don't prompt if there are no changes.
  */
+
+// make SOLO_TEST=composition/test-save-changes-on-quit.js mozmill-one
 
 const MODULE_NAME = "test-save-changes-on-close";
 
 const RELATIVE_ROOT = "../shared-modules";
 const MODULE_REQUIRES = ["folder-display-helpers", "compose-helpers",
-                         "prompt-helpers"];
+                         "prompt-helpers", "window-helpers"];
 const SAVE = 0
 const CANCEL = 1
 const DONT_SAVE = 2;
@@ -22,18 +25,17 @@ var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-var composeHelper = null;
 var cwc = null; // compose window controller
+var folder = null;
 
 var setupModule = function (module) {
-  let fdh = collector.getModule("folder-display-helpers");
-  fdh.installInto(module);
+  collector.getModule("folder-display-helpers").installInto(module);
+  collector.getModule("compose-helpers").installInto(module);
+  collector.getModule("prompt-helpers").installInto(module);
+  collector.getModule("window-helpers").installInto(module);
 
-  let composeHelper = collector.getModule("compose-helpers");
-  composeHelper.installInto(module);
-
-  let ph = collector.getModule("prompt-helpers");
-  ph.installInto(module);
+  folder = create_folder("PromptToSaveTest");
+  add_message_to_folder(folder, create_message());
 };
 
 /**
@@ -176,5 +178,46 @@ function test_window_quit_state_reset_on_aborted_quit() {
   assert_not_equals(null, promptState, "Expected a confirmEx prompt");
 
   gMockPromptService.unregister();
+}
+
+/**
+ * Tests that we don't get a prompt to save if there has been no user input
+ * into the message yet, when trying to close.
+ */
+function test_no_prompt_on_close_for_unmodified() {
+  be_in_folder(folder);
+  let msg = select_click_row(0);
+  assert_selected_and_displayed(mc, msg);
+
+  let nwc = open_compose_new_mail();
+  close_compose_window(nwc, false);
+
+  let rwc = open_compose_with_reply();
+  close_compose_window(rwc, false);
+
+  let fwc = open_compose_with_forward();
+  close_compose_window(fwc, false);
+}
+
+/**
+ * Tests that we get a prompt to save if the user made changes to the message
+ * before trying to close it.
+ */
+function test_prompt_on_close_for_modified() {
+  be_in_folder(folder);
+  let msg = select_click_row(0);
+  assert_selected_and_displayed(mc, msg);
+
+  let nwc = open_compose_new_mail();
+  nwc.type(nwc.eid("content-frame"), "Hey hey hey!");
+  close_compose_window(nwc, true);
+
+  let rwc = open_compose_with_reply();
+  rwc.type(rwc.eid("content-frame"), "Howdy!");
+  close_compose_window(rwc, true);
+
+  let fwc = open_compose_with_forward();
+  fwc.type(fwc.eid("content-frame"), "Greetings!");
+  close_compose_window(fwc, true);
 }
 

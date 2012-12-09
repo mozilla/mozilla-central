@@ -114,7 +114,7 @@ function setupWindowAndTest(hotkeyToHit, hotkeyModifiers) {
     throw new Error("subject text didn't contain the original subject; " +
                     "msgsubject=" +  msgsubject + ", subjectText=" + subjectText);
 
-  close_compose_window(compWin);
+  close_compose_window(compWin, false);
   close_window(msgWin);
 }
 

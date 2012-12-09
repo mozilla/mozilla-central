@@ -45,9 +45,10 @@ var gCloudAttachmentLinkManager = {
     let editor = GetCurrentEditor();
     let selection = editor.selection;
 
-    let childNodes = mailBody.childNodes;
     let container = editor.createElementWithDefaults("div");
     container.setAttribute("class", "moz-forward-container");
+
+    editor.enableUndo(false);
 
     if (mailBody.hasChildNodes()) {
       while (mailBody.childNodes.length > 0) {
@@ -60,6 +61,9 @@ var gCloudAttachmentLinkManager = {
     editor.insertElementAtSelection(container, false);
     editor.insertLineBreak();
     editor.beginningOfDocument();
+
+    editor.enableUndo(true);
+    editor.resetModificationCount();
   },
   ComposeProcessDone: function() {},
   SaveInFolderDone: function() {},
