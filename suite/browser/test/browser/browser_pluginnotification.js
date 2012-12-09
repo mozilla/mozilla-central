@@ -410,7 +410,7 @@ function test12c() {
   var objLoadingContent = plugin.QueryInterface(Ci.nsIObjectLoadingContent);
   ok(objLoadingContent.activated, "Test 12c, Plugin should be activated");
 
-  Services.perms.removeAll();
+  Services.perms.remove("127.0.0.1:8888", "plugins");
   gNextTest = test13a;
   gTestBrowser.reload();
 }
@@ -453,7 +453,7 @@ function test13c() {
   var overlay = gTestBrowser.contentDocument.getAnonymousElementByAttribute(plugin, "class", "mainBox");
   ok(overlay.style.visibility == "hidden", "Test 13c, Plugin should not have visible overlay");
 
-  Services.perms.removeAll();
+  Services.perms.remove("127.0.0.1:8888", "plugins");
   Services.prefs.setBoolPref("plugins.click_to_play", false);
   prepareTest(test14, gTestRoot + "plugin_test2.html");
 }
@@ -467,7 +467,6 @@ function test14() {
   var plugin = getTestPlugin();
   plugin.disabled = false;
   plugin.blocklisted = false;
-  Services.perms.removeAll();
   Services.prefs.setBoolPref("plugins.click_to_play", true);
   prepareTest(test15, gTestRoot + "plugin_alternate_content.html");
 }
@@ -672,7 +671,7 @@ function test18e() {
   ok(objLoadingContent.activated, "Test 18e, Plugin should be activated");
 
   unregisterFakeBlocklistService();
-  Services.perms.removeAll();
+  Services.perms.remove("127.0.0.1:8888", "plugins");
 
   prepareTest(test19a, gTestRoot + "plugin_test.html");
 }
