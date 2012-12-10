@@ -3745,7 +3745,7 @@ function AddUrlAttachment(attachment)
 function MessageGetNumSelectedAttachments()
 {
   var bucketList = document.getElementById("attachmentBucket");
-  return (bucketList) ? bucketList.selectedItems.length : 0;
+  return (bucketList) ? bucketList.selectedCount : 0;
 }
 
 function AttachPage()
@@ -4269,7 +4269,7 @@ function subjectKeyPress(event)
 function AttachmentBucketClicked(event)
 {
   let boundTarget = document.getBindingParent(event.originalTarget);
-  if (event.button == 0 && boundTarget.localName == "scrollbox")
+  if (event.button == 0 && boundTarget && boundTarget.localName == "scrollbox")
     goDoCommand('cmd_attachFile');
 }
 

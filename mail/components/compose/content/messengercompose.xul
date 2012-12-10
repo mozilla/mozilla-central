@@ -866,6 +866,7 @@
                           context="msgComposeAttachmentListContext"
                           itemcontext="msgComposeAttachmentItemContext"
                           onclick="AttachmentBucketClicked(event);"
+                          onselect="updateAttachmentItems();"
                           ondraggesture="nsDragAndDrop.startDrag(event, attachmentBucketDNDObserver);"/>
         </vbox>
       </hbox>
