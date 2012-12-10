@@ -1215,8 +1215,8 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
 function updateEmailAddressNode(emailAddressNode, address)
 {
   emailAddressNode.setAttribute("emailAddress", address.emailAddress);
-  emailAddressNode.setAttribute("fullAddress", address.fullAddress);
-  emailAddressNode.setAttribute("displayName", address.displayName);
+  emailAddressNode.setAttribute("fullAddress", address.fullAddress || "");
+  emailAddressNode.setAttribute("displayName", address.displayName || "");
 
   UpdateEmailNodeDetails(address.emailAddress, emailAddressNode);
 }
@@ -1260,12 +1260,12 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
   // this are then responsible for falling back to something else (e.g. the
   // value from the message header).
   if (card) {
-    if (!displayName)
+    if (!displayName && aHeaderDisplayName)
       displayName = aHeaderDisplayName;
 
     // getProperty may return a "1" or "0" string, we want a boolean
     if (!displayName || card.getProperty("PreferDisplayName", true) != false)
-      displayName = card.displayName;
+      displayName = card.displayName || null;
   }
 
   return displayName;

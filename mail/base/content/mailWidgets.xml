@@ -602,8 +602,8 @@
             aEmailNode.setAttribute("label", aAddress.fullAddress || aAddress.displayName);
             aEmailNode.removeAttribute("tooltiptext");
             aEmailNode.setAttribute("emailAddress", aAddress.emailAddress);
-            aEmailNode.setAttribute("fullAddress", aAddress.fullAddress);
-            aEmailNode.setAttribute("displayName", aAddress.displayName);
+            aEmailNode.setAttribute("fullAddress", aAddress.fullAddress || "");
+            aEmailNode.setAttribute("displayName", aAddress.displayName || "");
 
             // Since the control attribute points to the
             // <mail-multi-emailHeaderField> element rather than the XUL
