@@ -37,7 +37,6 @@ function setupModule(module) {
  */
 function subtest_check_archive_options_enabled(amc, aAccountKey, isEnabled) {
   let accountRow = get_account_tree_row(aAccountKey, "am-copies.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
   let iframe = amc.window.document.getElementById("contentFrame");

@@ -70,7 +70,6 @@ function subtest_check_account_actions(amc, aAccountKey, aIsSetAsDefaultEnabled,
                                        aIsRemoveEnabled, aIsAddAccountEnabled)
 {
   let accountRow = get_account_tree_row(aAccountKey, null, amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
   // click the Actions Button to bring up the popup with menuitems to test

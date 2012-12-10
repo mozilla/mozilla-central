@@ -73,25 +73,27 @@ function test_account_dot_IDs() {
 function subtest_check_account_dot_IDs(amc)
 {
   let accountRow = get_account_tree_row(gPopAccount.key, "am-server.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
-  let iframe = amc.window.document.getElementById("contentFrame");
+  let iframe = amc.e("contentFrame").contentDocument;
   // Check whether a standard element with "server.loginAtStartUp" stores its
   // value properly.
-  let loginCheck = iframe.contentDocument.getElementById("server.loginAtStartUp");
+  let loginCheck = iframe.getElementById("server.loginAtStartUp");
   assert_false(loginCheck.checked);
   amc.check(new elib.Elem(loginCheck), true);
 
   accountRow = get_account_tree_row(gPopAccount.key, "am-junk.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
   accountRow = get_account_tree_row(gPopAccount.key, "am-server.xul", amc);
   click_account_tree_row(amc, accountRow);
 
+  // Re-assign iframe.contentDocument because it was lost when changing panes
+  // (uses loadURI to load a new document).
+  iframe = amc.e("contentFrame").contentDocument;
+
   // Check by element properties.
-  let loginCheck = iframe.contentDocument.getElementById("server.loginAtStartUp");
+  let loginCheck = iframe.getElementById("server.loginAtStartUp");
   assert_true(loginCheck.checked);
 
   // Check for correct value in the accountValues array, that will be saved into prefs.
@@ -152,22 +154,21 @@ function test_account_locked_prefs() {
 function subtest_check_locked_prefs_addressing(amc)
 {
   let accountRow = get_account_tree_row(gPopAccount.key, "am-addressing.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
-  let iframe = amc.window.document.getElementById("contentFrame");
+  let iframe = amc.e("contentFrame").contentDocument;
 
   // By default, 'use global LDAP server preferences' is set, not the
   // 'different LDAP server'.
-  let useLDAPdirectory = iframe.contentDocument.getElementById("directories");
+  let useLDAPdirectory = iframe.getElementById("directories");
   assert_false(useLDAPdirectory.selected);
 
   // So the server selector is disabled.
-  let LDAPdirectory = iframe.contentDocument.getElementById("identity.directoryServer");
+  let LDAPdirectory = iframe.getElementById("identity.directoryServer");
   assert_true(LDAPdirectory.disabled);
 
   // And the Edit button too.
-  let LDAPeditButton = iframe.contentDocument.getElementById("editButton");
+  let LDAPeditButton = iframe.getElementById("editButton");
   assert_true(LDAPeditButton.disabled);
 
   // Now toggle the 'different LDAP server' on. The server selector
@@ -184,23 +185,26 @@ function subtest_check_locked_prefs_addressing(amc)
 
   // Refresh the pane by swithing to another one.
   accountRow = get_account_tree_row(gPopAccount.key, "am-junk.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
   accountRow = get_account_tree_row(gPopAccount.key, "am-addressing.xul", amc);
   click_account_tree_row(amc, accountRow);
 
+  // Re-assign iframe.contentDocument because it was lost when changing panes
+  // (uses loadURI to load a new document).
+  iframe = amc.e("contentFrame").contentDocument;
+
   // We are now back and the 'different LDAP server' should still be selected
   // (the setting was saved).
-  useLDAPdirectory = iframe.contentDocument.getElementById("directories");
+  useLDAPdirectory = iframe.getElementById("directories");
   assert_true(useLDAPdirectory.selected);
 
   // But now the server selector should be disabled due to locked pref.
-  LDAPdirectory = iframe.contentDocument.getElementById("identity.directoryServer");
+  LDAPdirectory = iframe.getElementById("identity.directoryServer");
   assert_true(LDAPdirectory.disabled);
 
   // The edit button still enabled (does not depend on the same pref lock)
-  LDAPeditButton = iframe.contentDocument.getElementById("editButton");
+  LDAPeditButton = iframe.getElementById("editButton");
   assert_false(LDAPeditButton.disabled);
 
   // Unlock the pref to clean up.
@@ -218,23 +222,22 @@ function subtest_check_locked_prefs_addressing(amc)
 function subtest_check_locked_prefs_server(amc)
 {
   let accountRow = get_account_tree_row(gPopAccount.key, "am-server.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
-  let iframe = amc.window.document.getElementById("contentFrame");
+  let iframe = amc.e("contentFrame").contentDocument;
 
   // Top level leaveOnServer checkbox, disabled by default.
-  let leaveOnServer = iframe.contentDocument.getElementById("pop3.leaveMessagesOnServer");
+  let leaveOnServer = iframe.getElementById("pop3.leaveMessagesOnServer");
   assert_false(leaveOnServer.disabled);
   assert_false(leaveOnServer.checked);
 
   // Second level deleteByAge checkbox, disabled by default.
-  let deleteByAge = iframe.contentDocument.getElementById("pop3.deleteByAgeFromServer");
+  let deleteByAge = iframe.getElementById("pop3.deleteByAgeFromServer");
   assert_true(deleteByAge.disabled);
   assert_false(deleteByAge.checked);
 
   // Third level daysToLeave textbox, disabled by default.
-  let daysToLeave = iframe.contentDocument.getElementById("pop3.numDaysToLeaveOnServer");
+  let daysToLeave = iframe.getElementById("pop3.numDaysToLeaveOnServer");
   assert_true(daysToLeave.disabled);
 
   // When leaveOnServer is checked, only deleteByAge will get enabled.
@@ -256,24 +259,27 @@ function subtest_check_locked_prefs_server(amc)
 
   // Refresh the pane by swithing to another one.
   accountRow = get_account_tree_row(gPopAccount.key, "am-junk.xul", amc);
-  assert_not_equals(accountRow, -1);
   click_account_tree_row(amc, accountRow);
 
   accountRow = get_account_tree_row(gPopAccount.key, "am-server.xul", amc);
   click_account_tree_row(amc, accountRow);
 
+  // Re-assign iframe.contentDocument because it was lost when changing panes
+  // (uses loadURI to load a new document).
+  iframe = amc.e("contentFrame").contentDocument;
+
   // Now leaveOnServer was preserved as checked.
-  leaveOnServer = iframe.contentDocument.getElementById("pop3.leaveMessagesOnServer");
+  leaveOnServer = iframe.getElementById("pop3.leaveMessagesOnServer");
   assert_false(leaveOnServer.disabled);
   assert_true(leaveOnServer.checked);
 
   // Now deleteByAge was preserved as checked but is locked/disabled.
-  deleteByAge = iframe.contentDocument.getElementById("pop3.deleteByAgeFromServer");
+  deleteByAge = iframe.getElementById("pop3.deleteByAgeFromServer");
   assert_true(deleteByAge.disabled);
   assert_true(deleteByAge.checked);
 
   // Because deleteByAge is checked, daysToLeave should be enabled.
-  daysToLeave = iframe.contentDocument.getElementById("pop3.numDaysToLeaveOnServer");
+  daysToLeave = iframe.getElementById("pop3.numDaysToLeaveOnServer");
   assert_false(daysToLeave.disabled);
 
   // When leaveOnserver is unchecked, both of deleteByAge and daysToLeave

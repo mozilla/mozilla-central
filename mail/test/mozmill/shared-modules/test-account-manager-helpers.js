@@ -76,8 +76,12 @@ function click_account_tree_row(controller, rowIndex) {
   utils.waitFor(function () controller.window.currentAccount != null,
                 "Timeout waiting for currentAccount to become non-null");
 
-  var tree = controller.window.document.getElementById("accounttree");
-  var selection = tree.view.selection;
+  let tree = controller.window.document.getElementById("accounttree");
+
+  if (rowIndex < 0 || rowIndex >= tree.view.rowCount)
+    throw new Error("Row " + rowIndex + " does not exist in the account tree!");
+
+  let selection = tree.view.selection;
   selection.select(rowIndex);
   tree.treeBoxObject.ensureRowIsVisible(rowIndex);
 
@@ -103,6 +107,11 @@ function click_account_tree_row(controller, rowIndex) {
  * @param aAccountKey  The key of the account to return.
  *                     If 'null', the SMTP pane is returned.
  * @param aPaneId      The ID of the account settings pane to select.
+ *
+ * @return  The row index of the account and pane. If it was not found return -1.
+ *          Do not throw as callers may intentionally just check if a row exists.
+ *          Just dump into the log so that a subsequent throw in
+ *          click_account_tree_row has a useful context.
  */
 function get_account_tree_row(aAccountKey, aPaneId, aController) {
   let rowIndex = 0;
@@ -123,6 +132,10 @@ function get_account_tree_row(aAccountKey, aPaneId, aController) {
           if (accountBlock[j].getAttribute("PageTag") == aPaneId)
             return rowIndex + j + 1;
         }
+
+        // The pane was not found.
+        dump("The treerow for pane " + aPaneId + " of account " + aAccountKey + " was not found!\n");
+        return -1;
       }
       // If this is not the wanted account, skip all of its settings panes.
       rowIndex += accountHead.getElementsByAttribute("PageTag", "*").length;
@@ -134,6 +147,7 @@ function get_account_tree_row(aAccountKey, aPaneId, aController) {
     rowIndex++;
   }
 
-  // Account not found
+  // The account was not found.
+  dump("The treerow for account " + aAccountKey + " was not found!\n");
   return -1;
 }
