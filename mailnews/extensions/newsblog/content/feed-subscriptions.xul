@@ -126,7 +126,7 @@
                           class="folderMenuItem"
                           hidden="true">
                   <menupopup id="selectFolderPopup"
-                             class="folderLocationPopup"
+                             class="menulist-menupopup"
                              type="folder"
                              mode="feeds"
                              showFileHereLabel="true"
