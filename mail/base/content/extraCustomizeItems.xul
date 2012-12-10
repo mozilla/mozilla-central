@@ -72,12 +72,12 @@
                  class="chromeclass-toolbar-additional">
       <menulist id="locationFolders"
                 class="folderMenuItem"
-                label="&folderLocationToolbarItem.title;"
+                label=" "
                 context="folderPaneContext"
-                maxwidth="300"
+                width="170"
                 crop="center">
         <menupopup id="folderLocationPopup"
-                   class="menulist-menupopup"
+                   class="folderLocationPopup"
                    type="folder"
                    flex="1"
                    fileHereLabel="&filemessageschoosethis.label;"

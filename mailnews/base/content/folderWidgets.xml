@@ -31,30 +31,13 @@
           node = node.parentNode;
         }
         if (this.parentNode && this.parentNode.localName == "menulist" &&
-            !inWrapper) {
-          // If we were in a wrapper before and have a width stored, restore it now.
-          if (this.hasAttribute("original-width")) {
-            if (this.getAttribute("original-width") == "none")
-              this.removeAttribute("width");
-            else
-              this.setAttribute("width", this.getAttribute("original-width"));
-
-            this.removeAttribute("original-width");
-          }
+            !inWrapper)
           this._ensureInitialized();
-        }
+
         // But if we're in a wrapper, remove our children, because we're
         // getting re-created when the toolbar customization closes.
-        if (inWrapper) {
+        if (inWrapper)
           this._teardown();
-          // Store our current width and set a safe small width when we show
-          // in a wrapper.
-          if (!this.hasAttribute("original-width")) {
-            this.setAttribute("original-width", this.hasAttribute("width") ?
-                                                this.getAttribute("width") : "none");
-            this.setAttribute("width", "100");
-          }
-        }
       ]]></constructor>
       <destructor><![CDATA[
         // Clean up when being destroyed.
