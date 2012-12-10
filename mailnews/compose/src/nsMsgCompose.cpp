@@ -592,8 +592,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
                                           bool aHTMLEditor)
 {
   NS_ASSERTION(m_editor, "ConvertAndLoadComposeWindow but no editor\n");
-  if (!m_editor)
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(m_editor && m_identity, NS_ERROR_NOT_INITIALIZED);
 
   // First, get the nsIEditor interface for future use
   nsCOMPtr<nsIDOMNode> nodeInserted;
