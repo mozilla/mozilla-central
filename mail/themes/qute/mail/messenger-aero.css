@@ -213,7 +213,7 @@ treechildren::-moz-tree-cell-text {
   }
 
   treechildren::-moz-tree-cell-text {
-    padding-bottom: auto;
+    padding-bottom: initial;
     border-color: transparent;
     background-color: transparent;
   }
