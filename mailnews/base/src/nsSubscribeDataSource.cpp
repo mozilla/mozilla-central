@@ -23,14 +23,6 @@
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
-// this is used for notification of observers using nsVoidArray
-typedef struct _nsSubscribeNotification {
-  nsIRDFDataSource *datasource;
-  nsIRDFResource *subject;
-  nsIRDFResource *property;
-  nsIRDFNode *object;
-} nsSubscribeNotification;
-
 nsSubscribeDataSource::nsSubscribeDataSource()
 {
 }
@@ -581,53 +573,26 @@ nsSubscribeDataSource::GetAllResources(nsISimpleEnumerator** aCursor)
 NS_IMETHODIMP
 nsSubscribeDataSource::AddObserver(nsIRDFObserver *n)
 {
-    NS_PRECONDITION(n != nullptr, "null ptr");
-    if (! n)
-        return NS_ERROR_NULL_POINTER;
-
-	if (! mObservers)
-	{
-		nsresult rv;
-		rv = NS_NewISupportsArray(getter_AddRefs(mObservers));
-		if (NS_FAILED(rv)) return rv;
-	}
-	mObservers->AppendElement(n);
-	return NS_OK;
+  NS_ENSURE_ARG_POINTER(n);
+  mObservers.AppendElement(n);
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP
 nsSubscribeDataSource::RemoveObserver(nsIRDFObserver *n)
 {
-    NS_PRECONDITION(n != nullptr, "null ptr");
-    if (! n)
-        return NS_ERROR_NULL_POINTER;
-
-	if (! mObservers)
-		return NS_OK;
-
-	mObservers->RemoveElement(n);
-	return NS_OK;
+  NS_ENSURE_ARG_POINTER(n);
+  mObservers.RemoveElement(n);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsSubscribeDataSource::GetHasObservers(bool *hasObservers)
 {
-    nsresult rv = NS_OK;
-    NS_ASSERTION(hasObservers, "null ptr");
-    if (!hasObservers) return NS_ERROR_NULL_POINTER;
-    
-    if (!mObservers) {
-        *hasObservers = false;
-        return NS_OK;
-    }
-    
-    uint32_t count = 0;
-    rv = mObservers->Count(&count);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    *hasObservers = (count > 0);
-    return NS_OK;
+  NS_ENSURE_ARG_POINTER(hasObservers);
+  *hasObservers = !mObservers.IsEmpty();
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -681,63 +646,31 @@ nsSubscribeDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+#define NOTIFY_SUBSCRIBE_LISTENERS(propertyfunc_, params_) \
+  PR_BEGIN_MACRO \
+  { \
+    nsTObserverArray<nsCOMPtr<nsIRDFObserver> >::ForwardIterator iter(mObservers); \
+    while (iter.HasMore()) \
+    { \
+      iter.GetNext()->propertyfunc_ params_; \
+    } \
+  } \
+  PR_END_MACRO
+
 NS_IMETHODIMP
 nsSubscribeDataSource::NotifyObservers(nsIRDFResource *subject,
                                                 nsIRDFResource *property,
                                                 nsIRDFNode *object,
                                                 bool assert, bool change)
 {
-    NS_ASSERTION(!(change && assert),
-                 "Can't change and assert at the same time!\n");
+  NS_ASSERTION(!(change && assert),
+               "Can't change and assert at the same time!\n");
 
-    if(mObservers)
-    {
-        nsSubscribeNotification note = { this, subject, property, object };
-        if(change)
-            mObservers->EnumerateForwards(changeEnumFunc, &note);
-        else if (assert)
-            mObservers->EnumerateForwards(assertEnumFunc, &note);
-        else
-            mObservers->EnumerateForwards(unassertEnumFunc, &note);
-  }
-    return NS_OK;
-}
-
-bool
-nsSubscribeDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
-{
-  nsSubscribeNotification* note = (nsSubscribeNotification*)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnChange(note->datasource,
-                     note->subject,
-                     note->property,
-                     nullptr, note->object);
-  return true;
-}
-
-bool
-nsSubscribeDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
-{
-  nsSubscribeNotification* note = (nsSubscribeNotification*)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnAssert(note->datasource,
-                     note->subject,
-                     note->property,
-                     note->object);
-  return true;
-}
-
-bool
-nsSubscribeDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
-{
-  nsSubscribeNotification* note = (nsSubscribeNotification*)aData;
-  nsIRDFObserver* observer = (nsIRDFObserver *)aElement;
-
-  observer->OnUnassert(note->datasource,
-                       note->subject,
-                       note->property,
-                       note->object);
-  return true;
+  if (change)
+    NOTIFY_SUBSCRIBE_LISTENERS(OnChange, (this, subject, property, nullptr, object));
+  else if (assert)
+    NOTIFY_SUBSCRIBE_LISTENERS(OnAssert, (this, subject, property, object));
+  else
+    NOTIFY_SUBSCRIBE_LISTENERS(OnUnassert, (this, subject, property, object));
+  return NS_OK;
 }

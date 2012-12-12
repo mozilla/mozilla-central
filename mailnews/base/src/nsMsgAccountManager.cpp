@@ -159,11 +159,9 @@ nsresult nsMsgAccountManager::Init()
   m_identities.Init();
   m_incomingServers.Init();
 
-  rv = NS_NewISupportsArray(getter_AddRefs(mFolderListeners));
-
   nsCOMPtr<nsIObserverService> observerService =
            mozilla::services::GetObserverService();
-  if (NS_SUCCEEDED(rv) && observerService)
+  if (observerService)
   {
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
     observerService->AddObserver(this, "quit-application-granted" , true);
@@ -572,7 +570,7 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
   if (mailSession)
     mailSession->OnItemRemoved(nullptr, rootFolder);
 
-  mFolderListeners->EnumerateForwards(removeListenerFromFolder, (void*)rootFolder);
+  removeListenersFromFolder(rootFolder);
   NotifyServerUnloaded(aServer);
   if (aCleanupFiles)
   {
@@ -629,34 +627,25 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = server->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-  mFolderListeners->EnumerateForwards(addListenerToFolder,
-                                      (void *)(nsIMsgFolder*)rootFolder);
+
+  nsTObserverArray<nsCOMPtr<nsIFolderListener> >::ForwardIterator iter(mFolderListeners);
+  while (iter.HasMore())
+  {
+    rootFolder->AddFolderListener(iter.GetNext());
+  }
+
   server.swap(*aServer);
   return NS_OK;
 }
 
-bool
-nsMsgAccountManager::addListenerToFolder(nsISupports *element, void *data)
+void
+nsMsgAccountManager::removeListenersFromFolder(nsIMsgFolder *aFolder)
 {
-  nsresult rv;
-  nsIMsgFolder *rootFolder = (nsIMsgFolder *)data;
-  nsCOMPtr<nsIFolderListener> listener = do_QueryInterface(element, &rv);
-  NS_ENSURE_SUCCESS(rv, true);
-
-  rootFolder->AddFolderListener(listener);
-  return true;
-}
-
-bool
-nsMsgAccountManager::removeListenerFromFolder(nsISupports *element, void *data)
-{
-  nsresult rv;
-  nsIMsgFolder *rootFolder = (nsIMsgFolder *)data;
-  nsCOMPtr<nsIFolderListener> listener = do_QueryInterface(element, &rv);
-  NS_ENSURE_SUCCESS(rv, true);
-
-  rootFolder->RemoveFolderListener(listener);
-  return true;
+  nsTObserverArray<nsCOMPtr<nsIFolderListener> >::ForwardIterator iter(mFolderListeners);
+  while (iter.HasMore())
+  {
+    aFolder->RemoveFolderListener(iter.GetNext());
+  }
 }
 
 NS_IMETHODIMP
@@ -898,8 +887,7 @@ nsMsgAccountManager::hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<n
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
   if (NS_SUCCEEDED(rv)) {
-    accountManager->mFolderListeners->EnumerateForwards(removeListenerFromFolder,
-                                      (void *)(nsIMsgFolder*)rootFolder);
+    accountManager->removeListenersFromFolder(rootFolder);
 
     rootFolder->Shutdown(true);
   }
@@ -2283,7 +2271,7 @@ NS_IMETHODIMP
 nsMsgAccountManager::AddRootFolderListener(nsIFolderListener *aListener)
 {
   NS_ENSURE_TRUE(aListener, NS_OK);
-  mFolderListeners->AppendElement(aListener);
+  mFolderListeners.AppendElement(aListener);
   m_incomingServers.Enumerate(hashAddListener, (void *)aListener);
   return NS_OK;
 }
@@ -2292,7 +2280,7 @@ NS_IMETHODIMP
 nsMsgAccountManager::RemoveRootFolderListener(nsIFolderListener *aListener)
 {
   NS_ENSURE_TRUE(aListener, NS_OK);
-  mFolderListeners->RemoveElement(aListener);
+  mFolderListeners.RemoveElement(aListener);
   m_incomingServers.Enumerate(hashRemoveListener, (void *)aListener);
   return NS_OK;
 }

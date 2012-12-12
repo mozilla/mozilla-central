@@ -12,6 +12,7 @@
 #include "nsIRDFLiteral.h"
 #include "nsCOMPtr.h"
 #include "nsISubscribableServer.h"
+#include "nsTObserverArray.h"
 
 /**
  * The subscribe data source.
@@ -40,14 +41,10 @@ private:
   nsCOMPtr <nsIRDFLiteral>       kFalseLiteral;
 
   nsCOMPtr <nsIRDFService>       mRDFService;
-  nsCOMPtr <nsISupportsArray>    mObservers;
+  nsTObserverArray<nsCOMPtr<nsIRDFObserver> >  mObservers;
 
   nsresult GetServerAndRelativePathFromResource(nsIRDFResource *source, nsISubscribableServer **server, char **relativePath);
   nsresult GetServerType(nsISubscribableServer *server, nsACString& serverType);
-
-  static bool assertEnumFunc(nsISupports *aElement, void *aData);
-  static bool unassertEnumFunc(nsISupports *aElement, void *aData);
-  static bool changeEnumFunc(nsISupports *aElement, void *aData);
 };
 
 #endif /* nsSubscribedDataSource_h__ */

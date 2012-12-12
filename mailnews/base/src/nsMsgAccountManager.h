@@ -221,9 +221,7 @@ private:
   //    should be added to the new server
   // When a new listener is added, it should be added to all root folders.
   // similar for when servers are deleted or listeners removed
-  nsCOMPtr<nsISupportsArray> mFolderListeners;
+  nsTObserverArray<nsCOMPtr<nsIFolderListener> > mFolderListeners;
 
-  // folder listener enumerators
-  static bool addListenerToFolder(nsISupports *element, void *data);
-  static bool removeListenerFromFolder(nsISupports *element, void *data);
+  void removeListenersFromFolder(nsIMsgFolder *aFolder);
 };
