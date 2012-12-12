@@ -1252,7 +1252,7 @@ function FormatDisplayName(aEmailAddress, aHeaderDisplayName, aContext, aCard)
     }
 
     // Make sure we have an unambiguous name if there are multiple identities
-    if (accountManager.allIdentities.Count() > 1)
+    if (accountManager.allIdentities.length > 1)
       displayName += " <"+identity.email+">";
   }
 

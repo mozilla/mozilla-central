@@ -281,9 +281,9 @@ function AccountDataToPageData(accountData, pageData)
         identity = accountData.identity;
     }
     else if (accountData.identities) {
-        identity = accountData.identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
+        identity = accountData.identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
         dump("this is an account, id= " + identity + "\n");
-    } 
+    }
 
     setPageData(pageData, "identity", "email", identity.email);
     setPageData(pageData, "identity", "fullName", identity.fullName);
@@ -468,9 +468,11 @@ function finishAccount(account, accountData)
     }
 
     // copy identity info
-    var destIdentity = account.identities.Count() ? account.identities.QueryElementAt(0, nsIMsgIdentity) : null;
+    var destIdentity = account.identities.length ?
+                       account.identities.queryElementAt(0, nsIMsgIdentity) :
+                       null;
 
-    if (destIdentity) // does this account have an identity? 
+    if (destIdentity) // does this account have an identity?
     {   
         if (accountData.identity && accountData.identity.email) {
             // fixup the email address if we have a default domain
@@ -610,9 +612,9 @@ function setupCopiesAndFoldersServer(account, accountIsDeferred, accountData)
 
     // This function sets up the default send preferences. The send preferences
     // go on identities, so there is no need to continue without any identities.
-    if (server.type == "rss" || account.identities.Count() == 0)
+    if (server.type == "rss" || account.identities.length == 0)
       return false;
-    var identity = account.identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
+    let identity = account.identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
     // For this server, do we default the folder prefs to this server, or to the "Local Folders" server
     // If it's deferred, we use the local folders account.
     var defaultCopiesAndFoldersPrefsToServer = !accountIsDeferred && server.defaultCopiesAndFoldersPrefsToServer;
@@ -738,7 +740,7 @@ function checkForInvalidAccounts()
 
 
         var identity =
-            firstInvalidAccount.identities.QueryElementAt(0, nsIMsgIdentity);
+            firstInvalidAccount.identities.queryElementAt(0, nsIMsgIdentity);
 
         var accountData = null;
         // If there is a email address already provided, try to get to other ISP defaults.
@@ -780,7 +782,7 @@ function getPreConfigDataForAccount(account)
 
   accountData = AccountToAccountData(account, null);
 
-  var identity = account.identities.QueryElementAt(0, nsIMsgIdentity);
+  let identity = account.identities.queryElementAt(0, nsIMsgIdentity);
 
   try {
     var skipPanelsPrefStr = "mail.identity." + identity.key + ".wizardSkipPanels";
@@ -811,9 +813,9 @@ function AccountToAccountData(account, defaultAccountData)
     var accountData = defaultAccountData;
     if (!accountData)
         accountData = new Object;
-    
+
     accountData.incomingServer = account.incomingServer;
-    accountData.identity = account.identities.QueryElementAt(0, nsIMsgIdentity);
+    accountData.identity = account.identities.queryElementAt(0, nsIMsgIdentity);
     accountData.smtp = smtpService.defaultServer;
 
     return accountData;

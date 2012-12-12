@@ -30,10 +30,10 @@ function getInvalidAccounts(accounts)
         }
 
         var identities = account.identities;
-        numIdentities = identities.Count();
+        numIdentities = identities.length;
 
-        for (var j=0; j<numIdentities; j++) {
-            var identity = identities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
+        for (var j = 0; j < numIdentities; j++) {
+            let identity = identities.queryElementAt(j, Components.interfaces.nsIMsgIdentity);
             if (identity.valid) {
               gAnyValidIdentity = true;
             }
@@ -260,10 +260,10 @@ function migrateGlobalQuotingPrefs(allIdentities)
     } catch (ex) {}
 
     if (!auto_quote || reply_on_top) {
-      var numIdentities = allIdentities.Count();
+      let numIdentities = allIdentities.length;
       var identity = null;
       for (var j = 0; j < numIdentities; j++) {
-        identity = allIdentities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
+        identity = allIdentities.queryElementAt(j, Components.interfaces.nsIMsgIdentity);
         if (identity.valid) {
           identity.autoQuote = auto_quote;
           identity.replyOnTop = reply_on_top;

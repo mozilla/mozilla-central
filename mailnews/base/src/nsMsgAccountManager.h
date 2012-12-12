@@ -158,9 +158,6 @@ private:
   // ("element" is always an account)
   //
 
-  // find the identities that correspond to the given server
-  static bool findIdentitiesForServer(nsISupports *element, void *aData);
-
   // find the servers that correspond to the given identity
   static bool findServersForIdentity (nsISupports *element, void *aData);
 
@@ -169,12 +166,6 @@ private:
   static bool findAccountByKey (nsISupports *element, void *aData);
 
   static bool findAccountByServerKey (nsISupports *element, void *aData);
-
-  // load up the identities into the given nsISupportsArray
-  static bool getIdentitiesToArray(nsISupports *element, void *aData);
-
-  // add identities if they don't alreadby exist in the given nsISupportsArray
-  static bool addIdentityIfUnique(nsISupports *element, void *aData);
 
   //
   // server enumerators

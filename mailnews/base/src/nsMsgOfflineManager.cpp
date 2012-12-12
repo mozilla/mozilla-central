@@ -24,8 +24,10 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsServiceManagerUtils.h"
 #include "mozilla/Services.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
-static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID); 
+static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 
 NS_IMPL_THREADSAFE_ISUPPORTS5(nsMsgOfflineManager,
                               nsIMsgOfflineManager,
@@ -186,25 +188,19 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
   // of identities to send unsent messages from.
   // However, I think there's only ever one unsent messages folder at the moment,
   // so I think we'll go with that for now.
-  nsCOMPtr<nsISupportsArray> identities;
+  nsCOMPtr<nsIArray> identities;
 
-  if (NS_SUCCEEDED(rv) && accountManager) 
+  if (NS_SUCCEEDED(rv) && accountManager)
   {
     rv = accountManager->GetAllIdentities(getter_AddRefs(identities));
     NS_ENSURE_SUCCESS(rv, rv);
   }
   nsCOMPtr <nsIMsgIdentity> identityToUse;
   uint32_t numIndentities;
-  identities->Count(&numIndentities);
+  identities->GetLength(&numIndentities);
   for (uint32_t i = 0; i < numIndentities; i++)
   {
-    // convert supports->Identity
-    nsCOMPtr<nsISupports> thisSupports;
-    rv = identities->GetElementAt(i, getter_AddRefs(thisSupports));
-    if (NS_FAILED(rv)) continue;
-    
-    nsCOMPtr<nsIMsgIdentity> thisIdentity = do_QueryInterface(thisSupports, &rv);
-
+    nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryElementAt(identities, i, &rv));
     if (NS_SUCCEEDED(rv) && thisIdentity)
     {
       nsCOMPtr <nsIMsgFolder> outboxFolder;

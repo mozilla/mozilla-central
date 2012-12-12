@@ -23,7 +23,8 @@
 #include "nsIStringBundle.h"
 #include "nsDateTimeFormatCID.h"
 #include "mozilla/Services.h"
-
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 #include "nsMailDirServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsDirectoryServiceDefs.h"
@@ -391,16 +392,16 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
       // account itself.
       if (accountKey.Equals(deferredToAccountKey) || accountKey.Equals(loopAccountKey))
       {
-        nsCOMPtr<nsISupportsArray> identities;
+        nsCOMPtr<nsIArray> identities;
         loopAccount->GetIdentities(getter_AddRefs(identities));
         if (!identities)
           continue;
         uint32_t identityCount = 0;
-        identities->Count(&identityCount);
+        identities->GetLength(&identityCount);
         for (uint32_t j = 0; j < identityCount; ++j)
         {
-          nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, j));
-          if (!identity)
+          nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, j, &rv));
+          if (NS_FAILED(rv) || !identity)
             continue;
           nsAutoCString email;
           identity->GetEmail(email);

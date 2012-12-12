@@ -776,7 +776,7 @@ function updateItems(tree, account, addAccountItem, setDefaultItem, removeItem) 
     let type = server.type;
 
     if (account != MailServices.accounts.defaultAccount &&
-        server.canBeDefaultServer && account.identities.Count() > 0)
+        server.canBeDefaultServer && account.identities.length > 0)
       canSetDefault = true;
 
     if (Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
@@ -1322,8 +1322,8 @@ var gAccountTree = {
 
       // Now add our panels
       var panelsToKeep = [];
-      let idents = MailServices.accounts.GetIdentitiesForServer(server);
-      if (idents.Count()) {
+      let idents = MailServices.accounts.getIdentitiesForServer(server);
+      if (idents.length) {
         panelsToKeep.push(panels[0]); // The server panel is valid
         panelsToKeep.push(panels[1]); // also the copies panel
         panelsToKeep.push(panels[4]); // and addresssing

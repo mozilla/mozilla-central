@@ -516,15 +516,16 @@ var Gloda = {
 
     let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                             getService(Ci.nsIMsgAccountManager);
-    let numIdentities = msgAccountManager.allIdentities.Count();
+    let numIdentities = msgAccountManager.allIdentities.length;
 
     // nothing to do if there are no accounts/identities.
     if (!numIdentities)
       return;
 
     for (let iIdentity = 0; iIdentity < numIdentities; iIdentity++) {
-      let msgIdentity = msgAccountManager.allIdentities.GetElementAt(iIdentity)
-                                         .QueryInterface(Ci.nsIMsgIdentity);
+      let msgIdentity =
+        msgAccountManager.allIdentities.queryElementAt(iIdentity,
+                                                       Ci.nsIMsgIdentity);
 
       if (!fullName)
         fullName = msgIdentity.fullName;

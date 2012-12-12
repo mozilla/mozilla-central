@@ -717,11 +717,11 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   if (NS_SUCCEEDED(rv) && server)
     RemoveIncomingServer(server, false);
 
-  nsCOMPtr<nsISupportsArray> identityArray;
+  nsCOMPtr<nsIArray> identityArray;
   rv = aAccount->GetIdentities(getter_AddRefs(identityArray));
   if (NS_SUCCEEDED(rv)) {
     uint32_t count = 0;
-    identityArray->Count(&count);
+    identityArray->GetLength(&count);
     uint32_t i;
     for (i = 0; i < count; i++)
     {
@@ -743,10 +743,11 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
                                           (void **)getter_AddRefs(existingAccount));
           if (NS_SUCCEEDED(rv))
           {
-            nsCOMPtr<nsISupportsArray> existingIdentitiesArray;
+            nsCOMPtr<nsIArray> existingIdentitiesArray;
 
             rv = existingAccount->GetIdentities(getter_AddRefs(existingIdentitiesArray));
-            if (existingIdentitiesArray->IndexOf(identity) != kNotFound)
+            uint32_t pos;
+            if (NS_SUCCEEDED(existingIdentitiesArray->IndexOf(0, identity, &pos)))
             {
               identityStillUsed = true;
               break;
@@ -1166,84 +1167,71 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
   return NS_OK;
 }
 
-/* nsISupportsArray GetAllIdentities (); */
 NS_IMETHODIMP
-nsMsgAccountManager::GetAllIdentities(nsISupportsArray **_retval)
+nsMsgAccountManager::GetAllIdentities(nsIArray **_retval)
 {
-  nsresult rv;
-  rv = LoadAccounts();
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> identities;
-  rv = NS_NewISupportsArray(getter_AddRefs(identities));
+  nsCOMPtr<nsIMutableArray> result(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // convert hash table->nsISupportsArray of identities
-  m_accounts->EnumerateForwards(getIdentitiesToArray,
-                                (void *)(nsISupportsArray*)identities);
-  // convert nsISupportsArray->nsISupportsArray
-  // when do we free the nsISupportsArray?
-  identities.swap(*_retval);
-  return rv;
-}
+  uint32_t count;
+  rv = m_accounts->Count(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-bool
-nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgIdentity> identity = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
+  nsCOMPtr<nsIArray> identities;
 
-  nsISupportsArray *array = (nsISupportsArray*)aData;
-
-  nsCString key;
-  rv = identity->GetKey(key);
-  if (NS_FAILED(rv))
-    return true;
-
-  uint32_t count = 0;
-  rv = array->Count(&count);
-  if (NS_FAILED(rv))
-    return true;
-
-  bool found=false;
-  uint32_t i;
-  for (i = 0; i < count; i++) {
-    nsCOMPtr<nsIMsgIdentity> thisIdentity( do_QueryElementAt(array, i, &rv));
+  for (uint32_t i = 0; i < count; ++i) {
+    nsCOMPtr<nsIMsgAccount> account = do_QueryElementAt(m_accounts, i, &rv);
     if (NS_FAILED(rv))
       continue;
 
-    nsCString thisKey;
-    thisIdentity->GetKey(thisKey);
-    if (key.Equals(thisKey)) {
-      found = true;
-      break;
+    rv = account->GetIdentities(getter_AddRefs(identities));
+    if (NS_FAILED(rv))
+      continue;
+
+    uint32_t idCount;
+    rv = identities->GetLength(&idCount);
+    if (NS_FAILED(rv))
+      continue;
+
+    for (uint32_t j = 0; j < idCount; ++j) {
+      nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, j, &rv));
+      if (NS_FAILED(rv))
+        continue;
+
+      nsAutoCString key;
+      rv = identity->GetKey(key);
+      if (NS_FAILED(rv))
+        continue;
+
+      uint32_t resultCount;
+      rv = result->GetLength(&resultCount);
+      if (NS_FAILED(rv))
+        continue;
+
+      bool found = false;
+      for (uint32_t k = 0; k < resultCount && !found; ++k) {
+        nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryElementAt(result, k, &rv));
+        if (NS_FAILED(rv))
+          continue;
+
+        nsAutoCString thisKey;
+        rv = thisIdentity->GetKey(thisKey);
+        if (NS_FAILED(rv))
+          continue;
+
+        if (key == thisKey)
+          found = true;
+      }
+
+      if (!found)
+        result->AppendElement(identity, false);
     }
   }
-
-  if (!found)
-    array->AppendElement(identity);
-
-  return true;
-}
-
-bool
-nsMsgAccountManager::getIdentitiesToArray(nsISupports *element, void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
-
-  nsCOMPtr<nsISupportsArray> identities;
-  rv = account->GetIdentities(getter_AddRefs(identities));
-  if (NS_FAILED(rv))
-    return true;
-
-  identities->EnumerateForwards(addIdentityIfUnique, aData);
-
-  return true;
+  result.forget(_retval);
+  return rv;
 }
 
 static PLDHashOperator
@@ -1485,7 +1473,7 @@ nsMsgAccountManager::LoadAccounts()
     m_prefs->GetIntPref(toLeavePref.get(), &secondsToLeave);
 
     // force load of accounts (need to find a better way to do this)
-    nsCOMPtr<nsISupportsArray> identities;
+    nsCOMPtr<nsIArray> identities;
     account->GetIdentities(getter_AddRefs(identities));
 
     rv = account->CreateServer();
@@ -1602,11 +1590,11 @@ nsMsgAccountManager::SetSpecialFolders()
   nsCOMPtr<nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsISupportsArray> identities;
+  nsCOMPtr<nsIArray> identities;
   GetAllIdentities(getter_AddRefs(identities));
 
   uint32_t idCount = 0;
-  identities->Count(&idCount);
+  identities->GetLength(&idCount);
 
   uint32_t id;
   nsCString identityKey;
@@ -2158,21 +2146,19 @@ nsMsgAccountManager::GetFirstIdentityForServer(nsIMsgIncomingServer *aServer, ns
   NS_ENSURE_ARG_POINTER(aServer);
   NS_ENSURE_ARG_POINTER(aIdentity);
 
-  nsCOMPtr<nsISupportsArray> identities;
+  nsCOMPtr<nsIArray> identities;
   nsresult rv = GetIdentitiesForServer(aServer, getter_AddRefs(identities));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // not all servers have identities
   // for example, Local Folders
   uint32_t numIdentities;
-  rv = identities->Count(&numIdentities);
+  rv = identities->GetLength(&numIdentities);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (numIdentities > 0)
   {
-    nsCOMPtr<nsIMsgIdentity> identity;
-    rv = identities->QueryElementAt(0, NS_GET_IID(nsIMsgIdentity),
-                                  (void **)getter_AddRefs(identity));
+    nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, 0, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     identity.swap(*aIdentity);
   }
@@ -2183,65 +2169,60 @@ nsMsgAccountManager::GetFirstIdentityForServer(nsIMsgIncomingServer *aServer, ns
 
 NS_IMETHODIMP
 nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
-                                            nsISupportsArray **_retval)
+                                            nsIArray **_retval)
 {
   NS_ENSURE_ARG_POINTER(server);
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> identities;
-  rv = NS_NewISupportsArray(getter_AddRefs(identities));
+  nsCOMPtr<nsIMutableArray> identities(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  findIdentitiesByServerEntry identityInfo;
-  identityInfo.server = server;
-  identityInfo.identities = identities;
+  uint32_t length;
+  rv = m_accounts->Count(&length);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  m_accounts->EnumerateForwards(findIdentitiesForServer,
-                                (void *)&identityInfo);
+  nsAutoCString serverKey;
+  rv = server->GetKey(serverKey);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  // do an addref for the caller.
-  identities.swap(*_retval);
-  return NS_OK;
-}
-
-bool
-nsMsgAccountManager::findIdentitiesForServer(nsISupports* element, void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
-
-  findIdentitiesByServerEntry *entry = (findIdentitiesByServerEntry*)aData;
-
-  nsCOMPtr<nsIMsgIncomingServer> thisServer;
-  rv = account->GetIncomingServer(getter_AddRefs(thisServer));
-  if (NS_FAILED(rv))
-    return true;
-
-  nsCString serverKey;
-//  NS_ASSERTION(thisServer, "thisServer is null");
-  NS_ASSERTION(entry, "entry is null");
-  NS_ASSERTION(entry->server, "entry->server is null");
-  // if this happens, bail.
-  if (!thisServer || !entry || !(entry->server))
-    return true;
-
-  entry->server->GetKey(serverKey);
-  nsCString thisServerKey;
-  thisServer->GetKey(thisServerKey);
-  if (serverKey.Equals(thisServerKey))
+  for (uint32_t i = 0; i < length; ++i)
   {
-    // add all these elements to the nsISupports array
-    nsCOMPtr<nsISupportsArray> theseIdentities;
-    rv = account->GetIdentities(getter_AddRefs(theseIdentities));
-    if (NS_SUCCEEDED(rv))
-      entry->identities->AppendElements(theseIdentities);
+    nsCOMPtr<nsIMsgAccount> account(do_QueryElementAt(m_accounts, i, &rv));
+    if (NS_FAILED(rv))
+      continue;
+
+    nsCOMPtr<nsIMsgIncomingServer> thisServer;
+    rv = account->GetIncomingServer(getter_AddRefs(thisServer));
+    if (NS_FAILED(rv))
+      continue;
+
+    nsAutoCString thisServerKey;
+    rv = thisServer->GetKey(thisServerKey);
+    if (serverKey.Equals(thisServerKey))
+    {
+      nsCOMPtr<nsIArray> theseIdentities;
+      rv = account->GetIdentities(getter_AddRefs(theseIdentities));
+      if (NS_SUCCEEDED(rv))
+      {
+        uint32_t theseLength;
+        rv = theseIdentities->GetLength(&theseLength);
+        if (NS_SUCCEEDED(rv))
+        {
+          for (uint32_t j = 0; j < theseLength; ++j)
+          {
+            nsCOMPtr<nsISupports> id(do_QueryElementAt(theseIdentities, j, &rv));
+            if (NS_SUCCEEDED(rv))
+              identities->AppendElement(id, false);
+          }
+        }
+      }
+    }
   }
 
-  return true;
+  identities.forget(_retval);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -2278,11 +2259,11 @@ nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
 
   findServersByIdentityEntry *entry = (findServersByIdentityEntry*)aData;
 
-  nsCOMPtr<nsISupportsArray> identities;
+  nsCOMPtr<nsIArray> identities;
   account->GetIdentities(getter_AddRefs(identities));
 
   uint32_t idCount=0;
-  identities->Count(&idCount);
+  identities->GetLength(&idCount);
 
   uint32_t id;
   nsCString identityKey;

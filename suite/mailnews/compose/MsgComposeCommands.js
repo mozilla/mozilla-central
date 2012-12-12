@@ -1282,9 +1282,9 @@ function ComposeStartup(recycled, aParams)
   if (!params.identity || params.identity.identityName == " <>") {
     // no pre selected identity, so use the default account
     var identities = gAccountManager.defaultAccount.identities;
-    if (identities.Count() == 0)
+    if (identities.length == 0)
       identities = gAccountManager.allIdentities;
-    params.identity = identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
+    params.identity = identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
   }
 
   identityList.value = params.identity.key;

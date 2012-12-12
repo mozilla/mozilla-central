@@ -24,6 +24,7 @@
 #include "nsMemory.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "nsArrayUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgAccount, nsIMsgAccount)
 
@@ -175,7 +176,7 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer *aIncomingServer)
 
 /* nsISupportsArray GetIdentities (); */
 NS_IMETHODIMP
-nsMsgAccount::GetIdentities(nsISupportsArray **_retval)
+nsMsgAccount::GetIdentities(nsIArray **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
@@ -193,10 +194,11 @@ nsMsgAccount::createIdentities()
 {
   NS_ENSURE_FALSE(m_identities, NS_ERROR_FAILURE);
 
-  NS_NewISupportsArray(getter_AddRefs(m_identities));
+  nsresult rv;
+  m_identities = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString identityKey;
-  nsresult rv;
   rv = getPrefService();
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -245,7 +247,7 @@ nsMsgAccount::GetDefaultIdentity(nsIMsgIdentity **aDefaultIdentity)
 
   *aDefaultIdentity = nullptr;
   uint32_t count;
-  nsresult rv = m_identities->Count(&count);
+  nsresult rv = m_identities->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
   if (count == 0)
     return NS_OK;
@@ -260,12 +262,16 @@ nsMsgAccount::SetDefaultIdentity(nsIMsgIdentity *aDefaultIdentity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  int32_t position = m_identities->IndexOf(aDefaultIdentity);
-  NS_ASSERTION(position != -1, "Where did that identity come from?!");
-  NS_ENSURE_TRUE(position != -1, NS_ERROR_UNEXPECTED);
+  uint32_t position = 0;
+  nsresult rv = m_identities->IndexOf(0, aDefaultIdentity, &position);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = m_identities->RemoveElementAt(position);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // The passed in identity is in the list, so we have at least one element.
-  m_identities->MoveElement(position, 0);
+  rv = m_identities->InsertElementAt(aDefaultIdentity, 0, false);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return saveIdentitiesPref();
 }
@@ -278,7 +284,7 @@ nsMsgAccount::addIdentityInternal(nsIMsgIdentity *identity)
 {
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
-  return m_identities->AppendElement(identity);
+  return m_identities->AppendElement(identity, false);
 }
 
 /* void addIdentity (in nsIMsgIdentity identity); */
@@ -343,12 +349,16 @@ nsMsgAccount::RemoveIdentity(nsIMsgIdentity *aIdentity)
   NS_ENSURE_TRUE(m_identities, NS_ERROR_FAILURE);
 
   uint32_t count = 0;
-  m_identities->Count(&count);
+  m_identities->GetLength(&count);
   // At least one identity must stay after the delete.
   NS_ENSURE_TRUE(count > 1, NS_ERROR_FAILURE);
 
+  uint32_t pos = 0;
+  nsresult rv = m_identities->IndexOf(0, aIdentity, &pos);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // remove our identity
-  m_identities->RemoveElement(aIdentity);
+  m_identities->RemoveElementAt(pos);
 
   // clear out the actual pref values associated with the identity
   aIdentity->ClearAllValues();
@@ -364,7 +374,7 @@ nsMsgAccount::saveIdentitiesPref()
   // Iterate over the existing identities and build the pref value,
   // a string of identity keys: id1, id2, idX...
   uint32_t count;
-  nsresult rv = m_identities->Count(&count);
+  nsresult rv = m_identities->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString key;

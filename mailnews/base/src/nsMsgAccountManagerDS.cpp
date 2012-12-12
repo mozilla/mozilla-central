@@ -736,14 +736,14 @@ nsMsgAccountManagerDataSource::serverHasIdentities(nsIMsgIncomingServer* aServer
 
   if (NS_FAILED(rv)) return rv;
 
-  nsCOMPtr<nsISupportsArray> identities;
+  nsCOMPtr<nsIArray> identities;
   rv = am->GetIdentitiesForServer(aServer, getter_AddRefs(identities));
 
   // no identities just means no arcs
   if (NS_FAILED(rv)) return NS_OK;
 
   uint32_t count;
-  rv = identities->Count(&count);
+  rv = identities->GetLength(&count);
   if (NS_FAILED(rv)) return NS_OK;
 
   if (count >0)

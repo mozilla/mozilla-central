@@ -31,6 +31,8 @@
 #include "nsNetUtil.h"
 #include "nsIMsgDatabase.h"
 #include "mozilla/Services.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #define MDN_NOT_IN_TO_CC          ((int) 0x0001)
 #define MDN_OUTSIDE_DOMAIN        ((int) 0x0002)
@@ -900,18 +902,18 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
             nsCString mailCC;
             m_headers->ExtractHeader(HEADER_TO, true, getter_Copies(mailTo));
             m_headers->ExtractHeader(HEADER_CC, true, getter_Copies(mailCC));
-            nsCOMPtr<nsISupportsArray> servIdentities;
+            nsCOMPtr<nsIArray> servIdentities;
             accountManager->GetIdentitiesForServer(m_server, getter_AddRefs(servIdentities));
             if (servIdentities)
             {
               nsCOMPtr<nsIMsgIdentity> ident;
               nsCString identEmail;
               uint32_t count = 0;
-              servIdentities->Count(&count);
+              servIdentities->GetLength(&count);
               // First check in the "To:" header
               for (uint32_t i = 0; i < count; i++)
               {
-                rv = servIdentities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),getter_AddRefs(ident));
+                ident = do_QueryElementAt(servIdentities, i, &rv);
                 if (NS_FAILED(rv))
                   continue;
                 ident->GetEmail(identEmail);

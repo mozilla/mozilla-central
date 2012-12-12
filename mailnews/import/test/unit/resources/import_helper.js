@@ -478,8 +478,8 @@ SettingsImportHelper.prototype =
   _checkAccount: function(expected, actual) {
     this._checkIncomingServer(expected.incomingServer, actual.incomingServer);
 
-    do_check_eq(1, actual.identities.Count());
-    let actualIdentity = actual.identities.QueryElementAt(0, Ci.nsIMsgIdentity);
+    do_check_eq(1, actual.identities.length);
+    let actualIdentity = actual.identities.queryElementAt(0, Ci.nsIMsgIdentity);
     this._checkIdentity(expected.identity, actualIdentity);
 
     if (expected.incomingServer.type != "nntp") {

@@ -14,7 +14,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(ae2fc99f-0d94-4e68-bc0e-7feb645b110f)]
+[scriptable, uuid(b00a0e76-9b64-420c-b717-7196b18ff503)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -81,7 +81,7 @@ interface nsIMsgAccountManager : nsISupports {
   /* list of all identities in all accounts
    * array of nsIMsgIdentity
    */
-  readonly attribute nsISupportsArray allIdentities;
+  readonly attribute nsIArray allIdentities;
 
   /* list of all servers in all accounts, except for hidden and IM servers
    * array of nsIMsgIncomingServer
@@ -139,7 +139,7 @@ interface nsIMsgAccountManager : nsISupports {
   /* given a server, return all identities in accounts that have this server
    * returns an array of nsIMsgIdentity
    */
-  nsISupportsArray GetIdentitiesForServer(in nsIMsgIncomingServer server);
+  nsIArray getIdentitiesForServer(in nsIMsgIncomingServer server);
 
   /**
    * given a server, return the first identity in accounts that have this server

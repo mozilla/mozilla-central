@@ -6,7 +6,8 @@
 #include "nsISupports.idl"
 #include "nsIMsgIncomingServer.idl"
 #include "nsIMsgIdentity.idl"
-#include "nsISupportsArray.idl"
+
+interface nsIArray;
 
 /**
  * An account consists of an incoming server and one or more
@@ -15,7 +16,7 @@
  * such as in mail.account.<account>.identities.
  */
 
-[scriptable, uuid(76048A12-303C-4cf8-B592-1F83BD196B14)]
+[scriptable, uuid(84181351-4ec8-4ca8-8439-5c68cc591177)]
 interface nsIMsgAccount : nsISupports {
 
   /// Internal key identifying itself
@@ -25,7 +26,7 @@ interface nsIMsgAccount : nsISupports {
   attribute nsIMsgIncomingServer incomingServer;
 
   /// Outgoing identity list (array of nsIMsgIdentity's)
-  readonly attribute nsISupportsArray identities;
+  readonly attribute nsIArray identities;
 
   /// The default identity for this account.
   attribute nsIMsgIdentity defaultIdentity;

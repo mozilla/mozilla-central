@@ -24,7 +24,7 @@ function getBestIdentity(identities, optionalHint)
 {
   var identity = null;
 
-  var identitiesCount = identities.Count();
+  var identitiesCount = identities.length;
 
   try
   {
@@ -39,7 +39,7 @@ function getBestIdentity(identities, optionalHint)
 
       var lengthOfLongestMatchingEmail = 0;
       for (id = 0; id < identitiesCount; ++id) {
-        tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
+        tempID = identities.queryElementAt(id, Components.interfaces.nsIMsgIdentity);
         if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
           // Be careful, the user can have several adresses with the same
           // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
@@ -61,7 +61,7 @@ function getBestIdentity(identities, optionalHint)
 
       if (!identity) {
         for (id = 0; id < identitiesCount; ++id) {
-          tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
+          tempID = identities.queryElementAt(id, Components.interfaces.nsIMsgIdentity);
           // extract out the partial domain
           var start = tempID.email.lastIndexOf("@"); // be sure to include the @ sign in our search to reduce the risk of false positives
           if (optionalHint.search(tempID.email.slice(start).toLowerCase()) >= 0) {
@@ -77,7 +77,7 @@ function getBestIdentity(identities, optionalHint)
   // Still no matches ?
   // Give up and pick the first one (if it exists), like we used to.
   if (!identity && identitiesCount > 0)
-    identity = identities.GetElementAt(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
+    identity = identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
 
   return identity;
 }
@@ -88,7 +88,7 @@ function getIdentityForServer(server, optionalHint)
 
     if (server) {
         // Get the identities associated with this server.
-        var identities = accountManager.GetIdentitiesForServer(server);
+        var identities = accountManager.getIdentitiesForServer(server);
         // dump("identities = " + identities + "\n");
         // Try and find the best one.
         identity = getBestIdentity(identities, optionalHint);

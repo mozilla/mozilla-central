@@ -318,11 +318,11 @@ cal.itip = {
             identities = actMgr.getAccount(aMsgHdr.accountKey).identities;
         } else {
             // Without an account key, we have to revert back to using the server
-            identities = actMgr.GetIdentitiesForServer(aMsgHdr.folder.server);
+            identities = actMgr.getIdentitiesForServer(aMsgHdr.folder.server);
         }
 
         let emailMap = {};
-        if (identities.Count() == 0) {
+        if (identities.length == 0) {
             // If we were not able to retrieve identities above, then we have no
             // choice but to revert to the default identity
             let identity = actMgr.defaultAccount.defaultIdentity;
@@ -331,9 +331,8 @@ cal.itip = {
                 // default identity), then go ahead and use the first available
                 // identity.
                 let allIdentities = actMgr.allIdentities;
-                if (allIdentities.Count() > 0) {
-                    identity = allIdentities.GetElementAt(0)
-                                            .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                if (allIdentities.length > 0) {
+                    identity = allIdentities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
                 } else {
                     // If there are no identities at all, we cannot get a recipient.
                     return null;
@@ -342,9 +341,8 @@ cal.itip = {
             emailMap[identity.email.toLowerCase()] = true;
         } else {
             // Build a map of usable email addresses
-            for (let i = 0; i < identities.Count(); i++) {
-                let identity = identities.GetElementAt(i)
-                                         .QueryInterface(Components.interfaces.nsIMsgIdentity);
+            for (let i = 0; i < identities.length; i++) {
+                let identity = identities.queryElementAt(i, Components.interfaces.nsIMsgIdentity);
                 emailMap[identity.email.toLowerCase()] = true;
             }
         }

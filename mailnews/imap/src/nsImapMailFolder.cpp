@@ -9370,11 +9370,11 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
         nsCString otherUsersEmailAddress;
         GetFolderOwnerUserName(otherUsersEmailAddress);
         otherUsersEmailAddress.Append(Substring(ourEmailAddress, atPos, ourEmailAddress.Length()));
-        nsCOMPtr <nsISupportsArray> identities;
+        nsCOMPtr<nsIArray> identities;
         rv = accountManager->GetIdentitiesForServer(server, getter_AddRefs(identities));
         NS_ENSURE_SUCCESS(rv, rv);
         uint32_t numIdentities;
-        rv = identities->Count(&numIdentities);
+        rv = identities->GetLength(&numIdentities);
         NS_ENSURE_SUCCESS(rv, rv);
         for (uint32_t identityIndex = 0; identityIndex < numIdentities; identityIndex++)
         {

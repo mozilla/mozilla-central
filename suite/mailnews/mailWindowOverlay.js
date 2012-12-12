@@ -2334,11 +2334,11 @@ function SendUnsentMessages()
                .getService(Components.interfaces.nsIMsgSendLater);
   var identitiesCount, allIdentities, currentIdentity, numMessages, msgFolder;
 
-  if (accountManager) { 
+  if (accountManager) {
     allIdentities = accountManager.allIdentities;
-    identitiesCount = allIdentities.Count();
+    identitiesCount = allIdentities.length;
     for (var i = 0; i < identitiesCount; i++) {
-      currentIdentity = allIdentities.QueryElementAt(i, Components.interfaces.nsIMsgIdentity);
+      currentIdentity = allIdentities.queryElementAt(i, Components.interfaces.nsIMsgIdentity);
       msgFolder = msgSendlater.getUnsentMessagesFolder(currentIdentity);
       if(msgFolder) {
         numMessages = msgFolder.getTotalMessages(false /* include subfolders */);

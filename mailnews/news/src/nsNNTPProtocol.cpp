@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -75,6 +75,8 @@
 #include "nsIStreamConverterService.h"
 #include "nsIStreamListenerTee.h"
 #include "nsISocketTransport.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #include <time.h>
 
@@ -94,11 +96,6 @@
 // after doing "mode reader"
 // and "pushed" authentication (if necessary),
 //#define HAVE_NNTP_EXTENSIONS
-
-typedef struct _cancelInfoEntry {
-    nsCString from;
-    nsCString old_from;
-} cancelInfoEntry;
 
 // quiet compiler warnings by defining these function prototypes
 char *MSG_UnEscapeSearchUrl (const char *commandSpecificData);
@@ -3533,53 +3530,28 @@ nsresult nsNNTPProtocol::StartCancel()
   return rv;
 }
 
-bool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
+void nsNNTPProtocol::CheckIfAuthor(nsIMsgIdentity *aIdentity, const nsCString &aOldFrom, nsCString &aFrom)
 {
-    nsresult rv;
+  nsAutoCString from;
+  nsresult rv = aIdentity->GetEmail(from);
+  if (NS_FAILED(rv))
+    return;
+  PR_LOG(NNTP,PR_LOG_ALWAYS,("from = %s", from.get()));
 
-    cancelInfoEntry *cancelInfo = (cancelInfoEntry*) data;
+  nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
+  if (NS_FAILED(rv))
+    return;
 
-    if (!cancelInfo->from.IsEmpty()) {
-        // already found a match, no need to go any further
-        // keep going
-        return true;
-    }
+  nsCString us;
+  nsCString them;
+  nsresult rv1 = parser->ExtractHeaderAddressMailboxes(from, us);
+  nsresult rv2 = parser->ExtractHeaderAddressMailboxes(aOldFrom, them);
 
-    nsCOMPtr<nsIMsgIdentity> identity = do_QueryInterface(aElement, &rv);
-    if (NS_FAILED(rv)) {
-        // keep going
-        return true;
-    }
+  PR_LOG(NNTP,PR_LOG_ALWAYS,("us = %s, them = %s", us.get(), them.get()));
 
-    if (identity) {
-        identity->GetEmail(cancelInfo->from);
-        PR_LOG(NNTP,PR_LOG_ALWAYS,("from = %s", cancelInfo->from.get()));
-    }
-
-    nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID, &rv);
-
-    if (NS_FAILED(rv)) {
-        cancelInfo->from.Truncate();
-        return true;
-    }
-
-    nsCString us;
-    nsCString them;
-    nsresult rv1 = parser->ExtractHeaderAddressMailboxes(cancelInfo->from, us);
-    nsresult rv2 = parser->ExtractHeaderAddressMailboxes(cancelInfo->old_from,
-                                                         them);
-
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("us = %s, them = %s", us.get(), them.get()));
-
-    if (NS_FAILED(rv1) || NS_FAILED(rv2) || !us.Equals(them, nsCaseInsensitiveCStringComparator())) {
-        //no match.  don't set cancel email
-        cancelInfo->from.Truncate();
-        return true;
-    }
-    else {
-      // we have a match, stop.
-        return false;
-    }
+  if (NS_SUCCEEDED(rv1) && NS_SUCCEEDED(rv2) &&
+      us.Equals(them, nsCaseInsensitiveCStringComparator()))
+    aFrom = from;
 }
 
 nsresult nsNNTPProtocol::DoCancel()
@@ -3592,7 +3564,6 @@ nsresult nsNNTPProtocol::DoCancel()
     char *newsgroups = nullptr;
     char *distribution = nullptr;
     char *body = nullptr;
-    cancelInfoEntry cancelInfo;
     bool requireConfirmationForCancel = true;
     bool showAlertAfterCancel = true;
 
@@ -3630,8 +3601,7 @@ nsresult nsNNTPProtocol::DoCancel()
   newsgroups = m_cancelNewsgroups;
   distribution = m_cancelDistribution;
   id = m_cancelID;
-  cancelInfo.old_from = m_cancelFromHdr;
-  cancelInfo.from.Truncate();
+  nsCString oldFrom(m_cancelFromHdr);
 
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -3673,39 +3643,51 @@ nsresult nsNNTPProtocol::DoCancel()
    */
   bool cancelchk=false;
   rv = m_nntpServer->QueryExtension("CANCELCHK",&cancelchk);
-  if (NS_SUCCEEDED(rv) && !cancelchk) {
+  nsCString from;
+  if (NS_SUCCEEDED(rv) && !cancelchk)
+  {
     NNTP_LOG_NOTE("CANCELCHK not supported");
 
-      // get the current identity from the news session....
-      nsCOMPtr<nsIMsgAccountManager> accountManager =
-               do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-      if (NS_SUCCEEDED(rv) && accountManager) {
-          nsCOMPtr<nsISupportsArray> identities;
-          rv = accountManager->GetAllIdentities(getter_AddRefs(identities));
-          NS_ENSURE_SUCCESS(rv, rv);
+    // get the current identity from the news session....
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
+      do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && accountManager) {
+      nsCOMPtr<nsIArray> identities;
+      rv = accountManager->GetAllIdentities(getter_AddRefs(identities));
+      NS_ENSURE_SUCCESS(rv, rv);
 
-          // CheckIfAuthor will set cancelInfo.from if a match is found
-          identities->EnumerateForwards(CheckIfAuthor, (void *)&cancelInfo);
-      }
+      uint32_t length;
+      rv = identities->GetLength(&length);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-      if (cancelInfo.from.IsEmpty()) {
-          GetNewsStringByName("cancelDisallowed", getter_Copies(alertText));
-          rv = dialog->Alert(nullptr, alertText.get());
-          // XXX:  todo, check rv?
+      for (uint32_t i = 0; i < length && from.IsEmpty(); ++i)
+      {
+        nsCOMPtr<nsIMsgIdentity> identity(do_QueryElementAt(identities, i, &rv));
+        if (NS_SUCCEEDED(rv))
+          CheckIfAuthor(identity, oldFrom, from);
+      }
+    }
 
-/* After the cancel is disallowed, Make the status update to be the same as though the
-cancel was allowed, otherwise, the newsgroup is not able to take further requests as
-reported here */
-          status = MK_NNTP_CANCEL_DISALLOWED;
-          m_nextState = NNTP_RESPONSE;
-          m_nextStateAfterResponse = NNTP_SEND_POST_DATA_RESPONSE;
-          SetFlag(NNTP_PAUSE_FOR_READ);
-          failure = true;
-          goto FAIL;
-      }
-      else {
-        PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) CANCELCHK not supported, so post the cancel message as %s", this, cancelInfo.from.get()));
-      }
+    if (from.IsEmpty())
+    {
+      GetNewsStringByName("cancelDisallowed", getter_Copies(alertText));
+      rv = dialog->Alert(nullptr, alertText.get());
+      // XXX:  todo, check rv?
+
+      /* After the cancel is disallowed, Make the status update to be the same as though the
+         cancel was allowed, otherwise, the newsgroup is not able to take further requests as
+         reported here */
+      status = MK_NNTP_CANCEL_DISALLOWED;
+      m_nextState = NNTP_RESPONSE;
+      m_nextStateAfterResponse = NNTP_SEND_POST_DATA_RESPONSE;
+      SetFlag(NNTP_PAUSE_FOR_READ);
+      failure = true;
+      goto FAIL;
+    }
+    else
+    {
+      PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) CANCELCHK not supported, so post the cancel message as %s", this, from.get()));
+    }
   }
   else
     NNTP_LOG_NOTE("CANCELCHK supported, don't do the us vs. them test");
@@ -3768,7 +3750,7 @@ reported here */
                        CRLF /* body separator */
                        "%s" /* body, already with CRLF */
                        "." CRLF, /* trailing message terminator "." */
-                       cancelInfo.from.get(), newsgroups, subject, id,
+                       from.get(), newsgroups, subject, id,
                        otherHeaders.get(), body);
 
     rv = SendData(data);

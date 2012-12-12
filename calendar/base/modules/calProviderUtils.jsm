@@ -280,11 +280,10 @@ cal.getEmailIdentityOfCalendar = function calGetEmailIdentityOfCalendar(aCalenda
                 }
             }
 
-            if (account && account.identities.Count()) { // Pick an identity
+            if (account && account.identities.length) { // Pick an identity
                 identity = account.defaultIdentity;
                 if (!identity) { // there is no default identity, use the first
-                    identity = account.identities.GetElementAt(0)
-                                                 .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                    identity = account.identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
                 }
             } else { // If this account has no identities, continue to the next account.
                 account = null;

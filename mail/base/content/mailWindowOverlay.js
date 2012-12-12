@@ -2645,9 +2645,9 @@ function SendUnsentMessages()
   var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
                                  .getService(Components.interfaces.nsIMsgAccountManager);
   var allIdentities = accountManager.allIdentities;
-  var identitiesCount = allIdentities.Count();
+  var identitiesCount = allIdentities.length;
   for (var i = 0; i < identitiesCount; i++) {
-    var currentIdentity = allIdentities.QueryElementAt(i, Components.interfaces.nsIMsgIdentity);
+    var currentIdentity = allIdentities.queryElementAt(i, Components.interfaces.nsIMsgIdentity);
     var msgFolder = msgSendlater.getUnsentMessagesFolder(currentIdentity);
     if (msgFolder) {
       var numMessages = msgFolder.getTotalMessages(false /* include subfolders */);

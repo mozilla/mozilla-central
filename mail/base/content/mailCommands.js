@@ -12,7 +12,7 @@ Components.utils.import("resource:///modules/mailServices.js");
  */
 function getBestIdentity(identities, optionalHint)
 {
-  let identityCount = identities.Count();
+  let identityCount = identities.length;
   if (identityCount < 1)
     return null;
 
@@ -36,12 +36,12 @@ function getBestIdentity(identities, optionalHint)
   }
 
   // Still no matches? Give up and pick the first one.
-  return identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
+  return identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
 }
 
 function getIdentityForServer(server, optionalHint)
 {
-  var identities = accountManager.GetIdentitiesForServer(server);
+  var identities = accountManager.getIdentitiesForServer(server);
   return getBestIdentity(identities, optionalHint);
 }
 

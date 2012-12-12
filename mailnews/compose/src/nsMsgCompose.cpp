@@ -2551,7 +2551,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      nsCOMPtr<nsISupportsArray> identities;
+      nsCOMPtr<nsIArray> identities;
       nsCString accountKey;
       mOrigMsgHdr->GetAccountKey(getter_Copies(accountKey));
       if (replyToSelfCheckAll)
@@ -2593,12 +2593,11 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         nsCOMPtr<nsIMsgIdentity> lookupIdentity;
 
         uint32_t count = 0;
-        identities->Count(&count);
+        identities->GetLength(&count);
 
         for (uint32_t i = 0; i < count; i++)
         {
-          rv = identities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),
-                                    getter_AddRefs(lookupIdentity));
+          lookupIdentity = do_QueryElementAt(identities, i, &rv);
           if (NS_FAILED(rv))
             continue;
 

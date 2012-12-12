@@ -1742,8 +1742,8 @@ function calIterateEmailIdentities(func) {
     for (var i = 0; i < accounts.Count(); ++i) {
         var account = accounts.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgAccount);
         var identities = account.identities;
-        for (var j = 0; j < identities.Count(); ++j) {
-            var identity = identities.GetElementAt(j).QueryInterface(Components.interfaces.nsIMsgIdentity);
+        for (var j = 0; j < identities.length; ++j) {
+            var identity = identities.queryElementAt(j, Components.interfaces.nsIMsgIdentity);
             if (!func(identity, account)) {
                 break;
             }

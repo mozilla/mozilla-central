@@ -41,8 +41,8 @@ function setupModule(module) {
   }
 
   // 2) Delete all identities except for one
-  for (let i = localAccount.identities.Count()-1; i >= 0; i--) {
-    let identity = localAccount.identities.QueryElementAt(i, Ci.nsIMsgIdentity);
+  for (let i = localAccount.identities.length - 1; i >= 0; i--) {
+    let identity = localAccount.identities.queryElementAt(i, Ci.nsIMsgIdentity);
     if (identity.email != myEmail)
       localAccount.removeIdentity(identity);
   }
@@ -70,18 +70,18 @@ function setupModule(module) {
 }
 
 function ensure_single_identity() {
-  if (localAccount.identities.Count() > 1)
+  if (localAccount.identities.length > 1)
     localAccount.removeIdentity(secondIdentity);
-  assert_true(acctMgr.allIdentities.Count() == 1,
-              "Expected 1 identity, but got " + acctMgr.allIdentities.Count() +
+  assert_true(acctMgr.allIdentities.length == 1,
+              "Expected 1 identity, but got " + acctMgr.allIdentities.length +
               " identities");
 }
 
 function ensure_multiple_identities() {
-  if (localAccount.identities.Count() == 1)
+  if (localAccount.identities.length == 1)
     localAccount.addIdentity(secondIdentity);
-  assert_true(acctMgr.allIdentities.Count() > 1,
-              "Expected multiple identities, but got only one identity")
+  assert_true(acctMgr.allIdentities.length > 1,
+              "Expected multiple identities, but got only one identity");
 }
 
 function help_test_display_name(message, field, expectedValue) {

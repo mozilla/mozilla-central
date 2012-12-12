@@ -29,6 +29,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgDatabase.h"
 #include "mozilla/Services.h"
+#include "nsArrayUtils.h"
 
 // Consts for checking and sending mail in milliseconds
 
@@ -1431,20 +1432,19 @@ nsMsgSendLater::GetIdentityFromKey(const char *aKey, nsIMsgIdentity  **aIdentity
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
- 
+
   if (aKey)
   {
-    nsCOMPtr<nsISupportsArray> identities;
+    nsCOMPtr<nsIArray> identities;
     if (NS_SUCCEEDED(accountManager->GetAllIdentities(getter_AddRefs(identities))))
     {
       nsCOMPtr<nsIMsgIdentity> lookupIdentity;
-      uint32_t          count = 0;
+      uint32_t count = 0;
 
-      identities->Count(&count);
+      identities->GetLength(&count);
       for (uint32_t i = 0; i < count; i++)
       {
-        rv = identities->QueryElementAt(i, NS_GET_IID(nsIMsgIdentity),
-                                  getter_AddRefs(lookupIdentity));
+        lookupIdentity = do_QueryElementAt(identities, i, &rv);
         if (NS_FAILED(rv))
           continue;
 
