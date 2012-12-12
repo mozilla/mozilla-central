@@ -446,9 +446,7 @@ let mailTabType = {
   },
 
   _getNumberOfRealAccounts : function() {
-    let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Components.interfaces.nsIMsgAccountManager);
-    let accountCount = mgr.accounts.Count();
+    let accountCount = MailServices.accounts.accounts.length;
     // If we have an account, we also always have a "Local Folders" account.
     return accountCount > 0 ? (accountCount - 1) : 0;
   },

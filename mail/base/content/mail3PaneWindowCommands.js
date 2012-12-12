@@ -383,9 +383,7 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk) &&
                gFolderDisplay.getCommandStatus(nsMsgViewCommandType.runJunkControls);
       case "cmd_displayMsgFilters":
-        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                            .getService(Components.interfaces.nsIMsgAccountManager);
-        return mgr.accounts.Count() > 0;
+        return MailServices.accounts.accounts.length > 0;
       case "cmd_applyFilters":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.applyFilters);
       case "cmd_runJunkControls":
@@ -452,7 +450,7 @@ var DefaultController =
         // and have more than one message selected.
         return (!IsMessagePaneCollapsed() && (GetNumSelectedMessages() == 1));
       case "cmd_search":
-        return (MailServices.accounts.accounts.Count() > 0);
+        return MailServices.accounts.accounts.length > 0;
       case "cmd_selectAll":
       case "cmd_selectFlagged":
         return !!gDBView;

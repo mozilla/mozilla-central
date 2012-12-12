@@ -13,11 +13,11 @@ var gNewAccountToLoad = null;   // used to load new messages if we come from the
 
 function getInvalidAccounts(accounts)
 {
-    var numAccounts = accounts.Count();
-    var invalidAccounts = new Array;
-    var numIdentities = 0;
-    for (var i=0; i<numAccounts; i++) {
-        var account = accounts.QueryElementAt(i, Components.interfaces.nsIMsgAccount);
+    let numAccounts = accounts.length;
+    let invalidAccounts = new Array;
+    let numIdentities = 0;
+    for (let i = 0; i < numAccounts; i++) {
+        let account = accounts.queryElementAt(i, Components.interfaces.nsIMsgAccount);
         try {
             if (!account.incomingServer.valid) {
                 invalidAccounts[invalidAccounts.length] = account;
@@ -93,7 +93,7 @@ function verifyAccounts(wizardCallback, needsIdentity, wizardOpen)
         var accounts = MailServices.accounts.accounts;
 
         // as long as we have some accounts, we're fine.
-        var accountCount = accounts.Count();
+        var accountCount = accounts.length;
         var invalidAccounts = getInvalidAccounts(accounts);
         if (invalidAccounts.length > 0 && invalidAccounts.length == accountCount) {
             prefillAccount = invalidAccounts[0];

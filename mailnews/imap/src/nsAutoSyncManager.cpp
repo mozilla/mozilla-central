@@ -23,6 +23,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "mozilla/Services.h"
+#include "nsArrayUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
@@ -741,12 +742,12 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
   nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsISupportsArray> accounts;
+  nsCOMPtr<nsIArray> accounts;
   rv = accountManager->GetAccounts(getter_AddRefs(accounts));
   NS_ENSURE_SUCCESS(rv,rv);
 
   uint32_t accountCount;
-  accounts->Count(&accountCount);
+  accounts->GetLength(&accountCount);
 
   for (uint32_t i = 0; i < accountCount; ++i) 
   {

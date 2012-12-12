@@ -34,8 +34,8 @@ function setupModule(module) {
 
   // We need to make sure we have only one identity:
   // 1) Delete all accounts except for Local Folders
-  for (let i = acctMgr.accounts.Count()-1; i >= 0; i--) {
-    let account = acctMgr.accounts.QueryElementAt(i, Ci.nsIMsgAccount);
+  for (let i = acctMgr.accounts.length - 1; i >= 0; i--) {
+    let account = acctMgr.accounts.queryElementAt(i, Ci.nsIMsgAccount);
     if (account != localAccount)
       acctMgr.removeAccount(account);
   }

@@ -22,6 +22,7 @@
 #include "nsMsgUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -310,7 +311,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
   do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsISupportsArray> servers;
+  nsCOMPtr<nsIArray> servers;
   rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(servers, 0, &rv));
@@ -363,11 +364,11 @@ nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, uint
       do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr<nsISupportsArray> servers;
+    nsCOMPtr<nsIArray> servers;
     rv = accountManager->GetServersForIdentity(this, getter_AddRefs(servers));
     NS_ENSURE_SUCCESS(rv,rv);
     uint32_t cnt = 0;
-    servers->Count(&cnt);
+    servers->GetLength(&cnt);
     if (cnt > 0)
     {
       nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(servers, 0, &rv));

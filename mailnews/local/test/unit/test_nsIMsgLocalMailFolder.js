@@ -13,8 +13,7 @@ function run_test() {
   acctMgr.createLocalMailAccount();
 
   // Get the account
-  var account = acctMgr.accounts.GetElementAt(0)
-                       .QueryInterface(Components.interfaces.nsIMsgAccount);
+  var account = acctMgr.accounts.queryElementAt(0, Components.interfaces.nsIMsgAccount);
 
   // Get the root folder
   var root = account.incomingServer.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);

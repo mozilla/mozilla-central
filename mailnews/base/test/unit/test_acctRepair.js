@@ -36,7 +36,7 @@ function run_test()
                              "server1");
   // This will force the load of the accounts setup above.
   // We should have created an account for the local folders.
-  do_check_eq(am.accounts.Count(), 2);
+  do_check_eq(am.accounts.length, 2);
   do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account6,account7");
   do_check_eq(Services.prefs.getCharPref("mail.account.account7.server"),

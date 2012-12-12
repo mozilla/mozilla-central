@@ -50,7 +50,7 @@ var gMailSession = Components.classes["@mozilla.org/messenger/services/session;1
 var accounts = am.accounts;
 
 //accountCount indicates presence or absense of accounts
-var accountCount = accounts.Count();
+var accountCount = accounts.length;
 
 var nsIMsgIdentity = Components.interfaces.nsIMsgIdentity;
 var nsIMsgIncomingServer = Components.interfaces.nsIMsgIncomingServer;

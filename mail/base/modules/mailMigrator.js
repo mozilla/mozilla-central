@@ -262,7 +262,7 @@ var MailMigrator = {
         addButtonToEnd("chat-toobar", "button-chat-appmenu");
 
         if (Services.prefs.getBoolPref("mail.main_menu.collapse_by_default")
-            && MailServices.accounts.accounts.Count() == 0) {
+            && MailServices.accounts.accounts.length == 0) {
           let menuResource = this._rdf.GetResource(MESSENGER_DOCURL +
                                                    "mail-toolbar-menubar2");
           if (menuResource !== null) {

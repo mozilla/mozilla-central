@@ -10,7 +10,6 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgFolder.h"
-#include "nsISupportsArray.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsISupports.h"
 #include "nsIRDFService.h"
@@ -29,6 +28,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -450,14 +450,14 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
-    // if anyfolder will do, go look for one.
-    nsCOMPtr<nsISupportsArray> retval;
+    // If any folder will do, go look for one.
+    nsCOMPtr<nsIArray> retval;
     accountManager->GetServersForIdentity(userIdentity, getter_AddRefs(retval));
     if (!retval) return NS_ERROR_FAILURE;
 
     // Ok, we have to look through the servers and try to find the server that
     // has a valid folder of the type that interests us...
-    rv = retval->Count(&cnt);
+    rv = retval->GetLength(&cnt);
     if (NS_FAILED(rv)) return rv;
 
     for (i=0; i<cnt; i++) {

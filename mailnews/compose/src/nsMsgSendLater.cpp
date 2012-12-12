@@ -706,12 +706,12 @@ nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, bool *aResult)
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> accounts;
+  nsCOMPtr<nsIArray> accounts;
   accountManager->GetAccounts(getter_AddRefs(accounts));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t cnt = 0;
-  rv = accounts->Count(&cnt);
+  rv = accounts->GetLength(&cnt);
   if (cnt == 0) {
     *aResult = false;
     return NS_OK; // no account set up -> no unsent messages

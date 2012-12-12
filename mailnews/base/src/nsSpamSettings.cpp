@@ -368,12 +368,12 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
     // Loop through all accounts, adding emails from this account, as well as
     // from any accounts that defer to this account.
     mEmails.Clear();
-    nsCOMPtr<nsISupportsArray> accounts;
+    nsCOMPtr<nsIArray> accounts;
     rv = accountManager->GetAccounts(getter_AddRefs(accounts));
     NS_ENSURE_SUCCESS(rv, rv);
     uint32_t accountCount = 0;
     if (account && accounts) // no sense scanning accounts if we've nothing to match
-      accounts->Count(&accountCount);
+      accounts->GetLength(&accountCount);
 
     for (uint32_t i = 0; i < accountCount; i++)
     {

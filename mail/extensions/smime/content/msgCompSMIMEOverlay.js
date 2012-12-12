@@ -108,8 +108,8 @@ function GetSelectedFolderURI()
 
 function GetServer(uri)
 {
-  var servers = gAccountManager.GetServersForIdentity(gCurrentIdentity);
-  return servers.QueryElementAt(0, Components.interfaces.nsIMsgIncomingServer);
+  let servers = gAccountManager.getServersForIdentity(gCurrentIdentity);
+  return servers.queryElementAt(0, Components.interfaces.nsIMsgIncomingServer);
 }
 
 function showNeedSetupInfo()

@@ -46,7 +46,7 @@ function run_test()
                              "account1");
 
   // This will force the load of the accounts setup above.
-  do_check_eq(am.accounts.Count(), 3); // hidden account not included
+  do_check_eq(am.accounts.length, 3); // hidden account not included
   let server4 = am.getAccount("account4").incomingServer
                   .QueryInterface(Ci.nsIPop3IncomingServer);
   do_check_eq(server4.deferredToAccount, "account1");

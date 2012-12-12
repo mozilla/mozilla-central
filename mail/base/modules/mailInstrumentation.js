@@ -188,7 +188,7 @@ var mailInstrumentationManager =
     // we should just return immediately.
     if (!Services.prefs.getBoolPref("mail.instrumentation.askUser"))
       return;
-    if (MailServices.accounts.accounts.Count() > 0)
+    if (MailServices.accounts.accounts.length > 0)
       return;
 
     this._loadState();

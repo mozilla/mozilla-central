@@ -119,7 +119,7 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
     url = url.replace("{{domain}}", domain);
   var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
                        .getService(Ci.nsIMsgAccountManager);
-  url = url.replace("{{accounts}}", accountManager.accounts.Count());
+  url = url.replace("{{accounts}}", accountManager.accounts.length);
 
   if (!url.length)
     return errorCallback("no fetch url set");

@@ -109,28 +109,6 @@ struct findServerEntry {
     {}
 };
 
-typedef struct _findServerByKeyEntry {
-  nsCString key;
-  int32_t index;
-} findServerByKeyEntry;
-
-// use this to search for all servers that match "server" and
-// put all identities in "identities"
-typedef struct _findIdentitiesByServerEntry {
-  nsISupportsArray *identities;
-  nsIMsgIncomingServer *server;
-} findIdentitiesByServerEntry;
-
-typedef struct _findServersByIdentityEntry {
-  nsISupportsArray *servers;
-  nsIMsgIdentity *identity;
-} findServersByIdentityEntry;
-
-typedef struct _findAccountByKeyEntry {
-  nsCString  key;
-  nsIMsgAccount* account;
-} findAccountByKeyEntry;
-
 static PLDHashOperator
 hashCleanupDeferral(nsCStringHashKey::KeyType aKey,
                     nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
@@ -180,9 +158,6 @@ nsresult nsMsgAccountManager::Init()
 
   m_identities.Init();
   m_incomingServers.Init();
-
-  rv = NS_NewISupportsArray(getter_AddRefs(m_accounts));
-  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = NS_NewISupportsArray(getter_AddRefs(mFolderListeners));
 
@@ -303,8 +278,7 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
 }
 
 void
-nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
-                                         nsCString& aResult)
+nsMsgAccountManager::getUniqueAccountKey(nsCString& aResult)
 {
   int32_t lastKey = 0;
   nsresult rv;
@@ -354,16 +328,13 @@ nsMsgAccountManager::getUniqueAccountKey(nsISupportsArray *accounts,
     // If pref service is not working, try to find a free accountX key
     // by checking which keys exist.
     int32_t i = 1;
-    findAccountByKeyEntry findEntry;
-    findEntry.account = nullptr;
+    nsCOMPtr<nsIMsgAccount> account;
 
     do {
-      findEntry.account = nullptr;
       aResult = ACCOUNT_PREFIX;
       aResult.AppendInt(i++);
-      findEntry.key = aResult.get();
-      accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
-    } while (findEntry.account);
+      GetAccount(aResult, getter_AddRefs(account));
+    } while (account);
   }
 }
 
@@ -695,13 +666,13 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  bool accountRemoved = NS_SUCCEEDED(m_accounts->RemoveElement(aAccount));
+  bool accountRemoved = m_accounts.RemoveElement(aAccount);
 
   rv  = OutputAccountsPref();
   // If we couldn't write out the pref, restore the account.
   if (NS_FAILED(rv) && accountRemoved)
   {
-    m_accounts->AppendElement(aAccount);
+    m_accounts.AppendElement(aAccount);
     return rv;
   }
 
@@ -733,25 +704,17 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
       //  unloaded extension types.
       if (NS_SUCCEEDED(rv))
       {
-        uint32_t numAccounts;
-        m_accounts->Count(&numAccounts);
         uint32_t index;
-        for (index = 0; index < numAccounts && !identityStillUsed; index++)
+        for (index = 0; index < m_accounts.Length() && !identityStillUsed; index++)
         {
-          nsCOMPtr<nsIMsgAccount> existingAccount;
-          rv = m_accounts->QueryElementAt(index, NS_GET_IID(nsIMsgAccount),
-                                          (void **)getter_AddRefs(existingAccount));
-          if (NS_SUCCEEDED(rv))
-          {
-            nsCOMPtr<nsIArray> existingIdentitiesArray;
+          nsCOMPtr<nsIArray> existingIdentitiesArray;
 
-            rv = existingAccount->GetIdentities(getter_AddRefs(existingIdentitiesArray));
-            uint32_t pos;
-            if (NS_SUCCEEDED(existingIdentitiesArray->IndexOf(0, identity, &pos)))
-            {
-              identityStillUsed = true;
-              break;
-            }
+          rv = m_accounts[index]->GetIdentities(getter_AddRefs(existingIdentitiesArray));
+          uint32_t pos;
+          if (NS_SUCCEEDED(existingIdentitiesArray->IndexOf(0, identity, &pos)))
+          {
+            identityStillUsed = true;
+            break;
           }
         }
       }
@@ -768,18 +731,12 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
 nsresult
 nsMsgAccountManager::OutputAccountsPref()
 {
-  nsresult rv = NS_OK;
-
-  uint32_t numAccounts;
-  m_accounts->Count(&numAccounts);
   nsCString accountKey;
   mAccountKeyList.Truncate();
 
-  for (uint32_t index = 0; index < numAccounts; index++)
+  for (uint32_t index = 0; index < m_accounts.Length(); index++)
   {
-    nsCOMPtr<nsIMsgAccount> account = do_QueryElementAt(m_accounts, index, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-    account->GetKey(accountKey);
+    m_accounts[index]->GetKey(accountKey);
     if (index)
       mAccountKeyList.Append(ACCOUNT_DELIMITER);
     mAccountKeyList.Append(accountKey);
@@ -797,9 +754,8 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  uint32_t count;
   if (!m_defaultAccount) {
-    m_accounts->Count(&count);
+    uint32_t count = m_accounts.Length();
     if (!count) {
       *aDefaultAccount = nullptr;
       return NS_ERROR_FAILURE;
@@ -816,28 +772,27 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
       uint32_t index;
       bool foundValidDefaultAccount = false;
       for (index = 0; index < count; index++) {
-        nsCOMPtr<nsIMsgAccount> account( do_QueryElementAt(m_accounts, index, &rv));
-        if (NS_SUCCEEDED(rv)) {
-          // get incoming server
-          nsCOMPtr <nsIMsgIncomingServer> server;
-          // server could be null if created by an unloaded extension
-          (void) account->GetIncomingServer(getter_AddRefs(server));
+        nsCOMPtr<nsIMsgAccount> account(m_accounts[index]);
 
-          bool canBeDefaultServer = false;
-          if (server)
-          {
-            server->GetCanBeDefaultServer(&canBeDefaultServer);
-            if (!firstAccount)
-              firstAccount = account;
-          }
+        // get incoming server
+        nsCOMPtr <nsIMsgIncomingServer> server;
+        // server could be null if created by an unloaded extension
+        (void) account->GetIncomingServer(getter_AddRefs(server));
 
-          // if this can serve as default server, set it as default and
-          // break outof the loop.
-          if (canBeDefaultServer) {
-            SetDefaultAccount(account);
-            foundValidDefaultAccount = true;
-            break;
-          }
+        bool canBeDefaultServer = false;
+        if (server)
+        {
+          server->GetCanBeDefaultServer(&canBeDefaultServer);
+          if (!firstAccount)
+            firstAccount = account;
+        }
+
+        // if this can serve as default server, set it as default and
+        // break outof the loop.
+        if (canBeDefaultServer) {
+          SetDefaultAccount(account);
+          foundValidDefaultAccount = true;
+          break;
         }
       }
 
@@ -1133,22 +1088,18 @@ hashShutdown(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aSe
   return PL_DHASH_NEXT;
 }
 
-/* readonly attribute nsISupportsArray accounts; */
 NS_IMETHODIMP
-nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
+nsMsgAccountManager::GetAccounts(nsIArray **_retval)
 {
-  nsresult rv;
-  rv = LoadAccounts();
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> accounts;
-  NS_NewISupportsArray(getter_AddRefs(accounts));
-  uint32_t numAccounts;
-  m_accounts->Count(&numAccounts);
-  for (uint32_t index = 0; index < numAccounts; index++)
+  nsCOMPtr<nsIMutableArray> accounts(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (uint32_t index = 0; index < m_accounts.Length(); index++)
   {
-    nsCOMPtr<nsIMsgAccount> existingAccount = do_QueryElementAt(m_accounts, index, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIMsgAccount> existingAccount(m_accounts[index]);
     nsCOMPtr<nsIMsgIncomingServer> server;
     existingAccount->GetIncomingServer(getter_AddRefs(server));
     if (!server)
@@ -1160,10 +1111,9 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
       if (hidden)
         continue;
     }
-    nsCOMPtr<nsISupports> accountsSupport = do_QueryInterface(existingAccount);
-    accounts->AppendElement(accountsSupport);
+    accounts->AppendElement(existingAccount, false);
   }
-  accounts.swap(*_retval);
+  NS_IF_ADDREF(*_retval = accounts);
   return NS_OK;
 }
 
@@ -1176,18 +1126,10 @@ nsMsgAccountManager::GetAllIdentities(nsIArray **_retval)
   nsCOMPtr<nsIMutableArray> result(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  uint32_t count;
-  rv = m_accounts->Count(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsCOMPtr<nsIArray> identities;
 
-  for (uint32_t i = 0; i < count; ++i) {
-    nsCOMPtr<nsIMsgAccount> account = do_QueryElementAt(m_accounts, i, &rv);
-    if (NS_FAILED(rv))
-      continue;
-
-    rv = account->GetIdentities(getter_AddRefs(identities));
+  for (uint32_t i = 0; i < m_accounts.Length(); ++i) {
+    rv = m_accounts[i]->GetIdentities(getter_AddRefs(identities));
     if (NS_FAILED(rv))
       continue;
 
@@ -1444,13 +1386,10 @@ nsMsgAccountManager::LoadAccounts()
     if (NS_FAILED(rv))
       continue;
 
-    findAccountByKeyEntry entry;
-    entry.key = serverKey;
-    entry.account = nullptr;
-
-    m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
+    nsCOMPtr<nsIMsgAccount> serverAccount;
+    findAccountByServerKey(serverKey, getter_AddRefs(serverAccount));
     // If we have an existing account with the same server, ignore this account
-    if (entry.account)
+    if (serverAccount)
       continue;
 
     if (NS_FAILED(createKeyedAccount(accountsArray[i],
@@ -1511,15 +1450,13 @@ nsMsgAccountManager::LoadAccounts()
     if (deleteAccount)
     {
       dupAccounts.AppendObject(account);
-      m_accounts->RemoveElement(account);
+      m_accounts.RemoveElement(account);
     }
   }
 
-  uint32_t numAccounts;
-  m_accounts->Count(&numAccounts);
   // Check if we removed one or more of the accounts in the pref string.
   // If so, rewrite the pref string.
-  if (accountsArray.Length() != numAccounts)
+  if (accountsArray.Length() != m_accounts.Length())
     OutputAccountsPref();
 
   int32_t cnt = dupAccounts.Count();
@@ -1553,18 +1490,15 @@ nsMsgAccountManager::LoadAccounts()
 
   if (!localFoldersServerKey.IsEmpty())
   {
-    findAccountByKeyEntry entry;
-    entry.key = localFoldersServerKey;
-    entry.account = nullptr;
-
     nsCOMPtr<nsIMsgIncomingServer> server;
     rv = GetIncomingServer(localFoldersServerKey, getter_AddRefs(server));
     if (server)
     {
-      m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
+      nsCOMPtr<nsIMsgAccount> localFoldersAccount;
+      findAccountByServerKey(localFoldersServerKey, getter_AddRefs(localFoldersAccount));
       // If we don't have an existing account pointing at the local folders
       // server, we're going to add one.
-      if (!entry.account)
+      if (!localFoldersAccount)
       {
         nsCOMPtr<nsIMsgAccount> account;
         (void) CreateAccount(getter_AddRefs(account));
@@ -1685,7 +1619,7 @@ nsMsgAccountManager::UnloadAccounts()
   m_defaultAccount=nullptr;
   m_incomingServers.Enumerate(hashUnloadServer, this);
 
-  m_accounts->Clear();          // will release all elements
+  m_accounts.Clear();          // will release all elements
   m_identities.Clear();
   m_incomingServers.Clear();
   mAccountKeyList.Truncate();
@@ -1750,8 +1684,7 @@ nsMsgAccountManager::createKeyedAccount(const nsCString& key,
 
   account->SetKey(key);
 
-  // add to internal nsISupportsArray
-  m_accounts->AppendElement(static_cast<nsISupports*>(account));
+  m_accounts.AppendElement(account);
 
   // add to string list
   if (mAccountKeyList.IsEmpty())
@@ -1772,28 +1705,30 @@ nsMsgAccountManager::CreateAccount(nsIMsgAccount **_retval)
   NS_ENSURE_ARG_POINTER(_retval);
 
   nsAutoCString key;
-  getUniqueAccountKey(m_accounts, key);
+  getUniqueAccountKey(key);
 
   return createKeyedAccount(key, _retval);
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetAccount(const nsACString& key, nsIMsgAccount **_retval)
+nsMsgAccountManager::GetAccount(const nsACString& aKey, nsIMsgAccount **aAccount)
 {
-  NS_ENSURE_ARG_POINTER(_retval);
+  NS_ENSURE_ARG_POINTER(aAccount);
+  *aAccount = nullptr;
 
-  findAccountByKeyEntry findEntry;
-  findEntry.key = key;
-  findEntry.account = nullptr;
+  for (uint32_t i = 0; i < m_accounts.Length(); ++i)
+  {
+    nsCOMPtr<nsIMsgAccount> account(m_accounts[i]);
+    nsCString key;
+    account->GetKey(key);
+    if (key.Equals(aKey))
+    {
+      account.swap(*aAccount);
+      break;
+    }
+  }
 
-  m_accounts->EnumerateForwards(findAccountByKey, (void *)&findEntry);
-
-  if (findEntry.account)
-    NS_ADDREF(*_retval = findEntry.account);
-  else
-    *_retval = nullptr;
-
-  // not found, create on demand
+  // If not found, create on demand.
   return NS_OK;
 }
 
@@ -1807,64 +1742,31 @@ nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server, int32_t* resu
   nsresult rv = server->GetKey(key);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  findServerByKeyEntry findEntry;
-  findEntry.key = key;
-  findEntry.index = -1;
-
   // do this by account because the account list is in order
-  m_accounts->EnumerateForwards(findServerIndexByServer, (void *)&findEntry);
-
-  // even if the search failed, we can return index.
-  // this means that all servers not in the array return an index higher
-  // than all "registered" servers
-  *result = findEntry.index;
-  return NS_OK;
-}
-
-bool
-nsMsgAccountManager::findServerIndexByServer(nsISupports *element, void *aData)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element);
-  findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
-
-  // increment the index;
-  entry->index++;
-
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = account->GetIncomingServer(getter_AddRefs(server));
-  if (!server || NS_FAILED(rv))
-    return true;
-
-  nsCString key;
-  rv = server->GetKey(key);
-  if (NS_FAILED(rv))
-    return true;
-
-  // stop when found,
-  // index will be set to the current index
-  return !key.Equals(entry->key);
-}
-
-bool
-nsMsgAccountManager::findAccountByKey(nsISupports* element, void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
-
-  findAccountByKeyEntry *entry = (findAccountByKeyEntry*) aData;
-
-  nsCString key;
-  account->GetKey(key);
-  if (key.Equals(entry->key))
+  uint32_t i;
+  for (i = 0; i < m_accounts.Length(); ++i)
   {
-    entry->account = account;
-    return false;        // stop when found
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    rv = m_accounts[i]->GetIncomingServer(getter_AddRefs(server));
+    if (!server || NS_FAILED(rv))
+      continue;
+
+    nsCString serverKey;
+    rv = server->GetKey(serverKey);
+    if (NS_FAILED(rv))
+      continue;
+
+    // stop when found,
+    // index will be set to the current index
+    if (serverKey.Equals(key))
+      break;
   }
-  return true;
+
+  // Even if the search failed, we can return index.
+  // This means that all servers not in the array return an index higher
+  // than all "registered" servers.
+  *result = i;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::AddIncomingServerListener(nsIIncomingServerListener *serverListener)
@@ -2027,33 +1929,31 @@ nsMsgAccountManager::FindRealServer(const nsACString& username,
   return NS_OK;
 }
 
-bool
-nsMsgAccountManager::findAccountByServerKey(nsISupports *element,
-                                          void *aData)
+void
+nsMsgAccountManager::findAccountByServerKey(const nsCString &aKey,
+                                            nsIMsgAccount **aResult)
 {
-  nsresult rv;
-  findAccountByKeyEntry *entry = (findAccountByKeyEntry*)aData;
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
+  *aResult = nullptr;
 
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = account->GetIncomingServer(getter_AddRefs(server));
-  if (!server || NS_FAILED(rv))
-    return true;
-
-  nsCString key;
-  rv = server->GetKey(key);
-  if (NS_FAILED(rv))
-    return true;
-
-  // if the keys are equal, the servers are equal
-  if (key.Equals(entry->key))
+  for (uint32_t i = 0; i < m_accounts.Length(); ++i)
   {
-    entry->account = account;
-    return false; // stop on first found account
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    nsresult rv = m_accounts[i]->GetIncomingServer(getter_AddRefs(server));
+    if (!server || NS_FAILED(rv))
+      continue;
+
+    nsCString key;
+    rv = server->GetKey(key);
+    if (NS_FAILED(rv))
+      continue;
+
+    // if the keys are equal, the servers are equal
+    if (key.Equals(aKey))
+    {
+      NS_ADDREF(*aResult = m_accounts[i]);
+      break; // stop on first found account
+    }
   }
-  return true;
 }
 
 NS_IMETHODIMP
@@ -2074,14 +1974,7 @@ nsMsgAccountManager::FindAccountForServer(nsIMsgIncomingServer *server,
   rv = server->GetKey(key);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  findAccountByKeyEntry entry;
-  entry.key = key;
-  entry.account = nullptr;
-
-  m_accounts->EnumerateForwards(findAccountByServerKey, (void *)&entry);
-
-  if (entry.account)
-    NS_ADDREF(*aResult = entry.account);
+  findAccountByServerKey(key, aResult);
   return NS_OK;
 }
 
@@ -2179,19 +2072,13 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
   nsCOMPtr<nsIMutableArray> identities(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  uint32_t length;
-  rv = m_accounts->Count(&length);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   nsAutoCString serverKey;
   rv = server->GetKey(serverKey);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  for (uint32_t i = 0; i < length; ++i)
+  for (uint32_t i = 0; i < m_accounts.Length(); ++i)
   {
-    nsCOMPtr<nsIMsgAccount> account(do_QueryElementAt(m_accounts, i, &rv));
-    if (NS_FAILED(rv))
-      continue;
+    nsCOMPtr<nsIMsgAccount> account(m_accounts[i]);
 
     nsCOMPtr<nsIMsgIncomingServer> thisServer;
     rv = account->GetIncomingServer(getter_AddRefs(thisServer));
@@ -2226,69 +2113,54 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *identity,
-                                           nsISupportsArray **_retval)
+nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *aIdentity,
+                                           nsIArray **_retval)
 {
-  NS_ENSURE_ARG_POINTER(identity);
+  NS_ENSURE_ARG_POINTER(aIdentity);
 
   nsresult rv;
   rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> servers;
-  rv = NS_NewISupportsArray(getter_AddRefs(servers));
+  nsCOMPtr<nsIMutableArray> servers(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  findServersByIdentityEntry serverInfo;
-  serverInfo.identity = identity;
-  serverInfo.servers = servers;
-
-  m_accounts->EnumerateForwards(findServersForIdentity,
-                                (void *)&serverInfo);
-  servers.swap(*_retval);
-  return NS_OK;
-}
-
-bool
-nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgAccount> account = do_QueryInterface(element, &rv);
-  if (NS_FAILED(rv))
-    return true;
-
-  findServersByIdentityEntry *entry = (findServersByIdentityEntry*)aData;
-
-  nsCOMPtr<nsIArray> identities;
-  account->GetIdentities(getter_AddRefs(identities));
-
-  uint32_t idCount=0;
-  identities->GetLength(&idCount);
-
-  uint32_t id;
-  nsCString identityKey;
-  rv = entry->identity->GetKey(identityKey);
-  for (id = 0; id < idCount; id++)
+  for (uint32_t i = 0; i < m_accounts.Length(); ++i)
   {
-    nsCOMPtr<nsIMsgIdentity> thisIdentity( do_QueryElementAt(identities, id, &rv));
-    if (NS_SUCCEEDED(rv))
-    {
-      nsCString thisIdentityKey;
-      rv = thisIdentity->GetKey(thisIdentityKey);
+    nsCOMPtr<nsIArray> identities;
+    if (NS_FAILED(m_accounts[i]->GetIdentities(getter_AddRefs(identities))))
+      continue;
 
-      if (NS_SUCCEEDED(rv) && identityKey.Equals(thisIdentityKey))
+    uint32_t idCount = 0;
+    if (NS_FAILED(identities->GetLength(&idCount)))
+      continue;
+
+    uint32_t id;
+    nsCString identityKey;
+    rv = aIdentity->GetKey(identityKey);
+    for (id = 0; id < idCount; id++)
+    {
+      nsCOMPtr<nsIMsgIdentity> thisIdentity(do_QueryElementAt(identities, id, &rv));
+      if (NS_SUCCEEDED(rv))
       {
-        nsCOMPtr<nsIMsgIncomingServer> thisServer;
-        rv = account->GetIncomingServer(getter_AddRefs(thisServer));
-        if (thisServer && NS_SUCCEEDED(rv))
+        nsCString thisIdentityKey;
+        rv = thisIdentity->GetKey(thisIdentityKey);
+
+        if (NS_SUCCEEDED(rv) && identityKey.Equals(thisIdentityKey))
         {
-          entry->servers->AppendElement(thisServer);
-          break;
+          nsCOMPtr<nsIMsgIncomingServer> thisServer;
+          rv = m_accounts[i]->GetIncomingServer(getter_AddRefs(thisServer));
+          if (thisServer && NS_SUCCEEDED(rv))
+          {
+            servers->AppendElement(thisServer, false);
+            break;
+          }
         }
       }
     }
   }
-  return true;
+  servers.forget(_retval);
+  return NS_OK;
 }
 
 static PLDHashOperator

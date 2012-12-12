@@ -8,8 +8,8 @@ function setupModule(module) {
 };
 
 function test_folder_names_in_favorite_pane_view_mode() {
-  let acc1 = MailServices.accounts.accounts.QueryElementAt(0, Ci.nsIMsgAccount);
-  let acc2 = MailServices.accounts.accounts.QueryElementAt(1, Ci.nsIMsgAccount);
+  let acc1 = MailServices.accounts.accounts.queryElementAt(0, Ci.nsIMsgAccount);
+  let acc2 = MailServices.accounts.accounts.queryElementAt(1, Ci.nsIMsgAccount);
   let rootFolder1 = acc1.incomingServer.rootFolder;
   let rootFolder2 = acc2.incomingServer.rootFolder;
 

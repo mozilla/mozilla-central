@@ -54,7 +54,7 @@ function run_test()
                              "account6");
 
   // This will force the load of the accounts setup above.
-  do_check_eq(am.accounts.Count(), 3);
+  do_check_eq(am.accounts.length, 3);
   do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account4,account5");
   let server5 = am.getIncomingServer("server5")
@@ -76,7 +76,7 @@ function run_test()
   let flags = server.rootFolder.flags;
 
   am.removeAccount(am.FindAccountForServer(server));
-  do_check_eq(am.accounts.Count(), 2);
+  do_check_eq(am.accounts.length, 2);
   do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account5");
   // make sure cleaning up duplicate accounts didn't hork accounts

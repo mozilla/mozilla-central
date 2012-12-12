@@ -14,7 +14,7 @@ interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(b00a0e76-9b64-420c-b717-7196b18ff503)]
+[scriptable, uuid(0eb25b3d-56bf-4d87-9b1d-c4a8466391f3)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -76,7 +76,7 @@ interface nsIMsgAccountManager : nsISupports {
    * Accounts with hidden servers are not returned.
    * array of nsIMsgAccount
    */
-  readonly attribute nsISupportsArray accounts;
+  readonly attribute nsIArray accounts;
 
   /* list of all identities in all accounts
    * array of nsIMsgIdentity
@@ -150,7 +150,7 @@ interface nsIMsgAccountManager : nsISupports {
    * this identity
    * returns an array of nsIMsgIncomingServer
    */
-  nsISupportsArray GetServersForIdentity(in nsIMsgIdentity identity);
+  nsIArray getServersForIdentity(in nsIMsgIdentity identity);
 
   /* there is a special server "Local Folders" that is guaranteed to exist.
    * this will allow you to get */

@@ -91,7 +91,7 @@ private:
   nsCOMPtr <nsIMsgFolderCache> m_msgFolderCache;
   nsCOMPtr<nsIAtom> kDefaultServerAtom;
   nsCOMPtr<nsIAtom> mFolderFlagAtom;
-  nsCOMPtr<nsISupportsArray> m_accounts;
+  nsTArray<nsCOMPtr<nsIMsgAccount>> m_accounts;
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIdentity> m_identities;
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgIncomingServer> m_incomingServers;
   nsCOMPtr<nsIMsgAccount> m_defaultAccount;
@@ -161,11 +161,8 @@ private:
   // find the servers that correspond to the given identity
   static bool findServersForIdentity (nsISupports *element, void *aData);
 
-  static bool findServerIndexByServer(nsISupports *element, void *aData);
-  // find the account with the given key
-  static bool findAccountByKey (nsISupports *element, void *aData);
-
-  static bool findAccountByServerKey (nsISupports *element, void *aData);
+  void findAccountByServerKey(const nsCString &aKey,
+                              nsIMsgAccount **aResult);
 
   //
   // server enumerators
@@ -202,9 +199,7 @@ private:
   nsresult RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
                                  nsIMsgFolder *folder);
 
-  static void getUniqueAccountKey(nsISupportsArray *accounts,
-                                  nsCString& aResult);
-
+  void getUniqueAccountKey(nsCString& aResult);
 
   // Scan the preferences to find a unique server key
   void GetUniqueServerKey(nsACString& aResult);
