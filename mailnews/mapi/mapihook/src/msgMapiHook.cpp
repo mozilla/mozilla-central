@@ -46,7 +46,8 @@
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "mozilla/Services.h"
-
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 #include "nsEmbedCID.h"
 
 extern PRLogModuleInfo *MAPI;

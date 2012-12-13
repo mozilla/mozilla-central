@@ -15,6 +15,8 @@
 #include "nsMsgCompCID.h"
 #include "nsILoginInfo.h"
 #include "nsILoginManager.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 NS_IMPL_ADDREF(nsSmtpServer)
 NS_IMPL_RELEASE(nsSmtpServer)
@@ -303,12 +305,12 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
               && (dotPos = hostName.FindChar('.')) != kNotFound)
             {
               hostName.Cut(0, dotPos);
-              nsCOMPtr<nsISupportsArray> allServers;
+              nsCOMPtr<nsIArray> allServers;
               accountManager->GetAllServers(getter_AddRefs(allServers));
               if (allServers)
               {
                 uint32_t count = 0;
-                allServers->Count(&count);
+                allServers->GetLength(&count);
                 uint32_t i;
                 for (i = 0; i < count; i++)
                 {

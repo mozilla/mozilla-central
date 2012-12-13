@@ -13,7 +13,6 @@
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgUtils.h"
-#include "nsISupportsArray.h"
 #include "nsThreadUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"

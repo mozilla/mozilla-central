@@ -65,10 +65,12 @@ function generateFoldersToSearchList()
   var uriSearchString = "";
 
   var allServers = MailServices.accounts.allServers;
-  var numServers = allServers.Count();
+  var numServers = allServers.length;
   for (var index = 0; index < numServers; index++)
   {
-    var rootFolder  = allServers.GetElementAt(index).QueryInterface(Components.interfaces.nsIMsgIncomingServer).rootFolder;
+    var rootFolder =
+      allServers.queryElementAt(index,
+                                Components.interfaces.nsIMsgIncomingServer).rootFolder;
     if (rootFolder)
     {
       uriSearchString = processSearchSettingForFolder(rootFolder, uriSearchString);
@@ -88,10 +90,12 @@ function resetFolderToSearchAttribute()
   // iterates over all accounts and all folders, clearing out the inVFEditScope property in case
   // we set it.
   var allServers = MailServices.accounts.allServers;
-  var numServers = allServers.Count();
+  var numServers = allServers.length;
   for (var index = 0; index < numServers; index++)
   {
-    var rootFolder  = allServers.GetElementAt(index).QueryInterface(Components.interfaces.nsIMsgIncomingServer).rootFolder;
+    var rootFolder =
+      allServers.queryElementAt(index,
+                                Components.interfaces.nsIMsgIncomingServer).rootFolder;
     if (rootFolder)
     {
       var allFolders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);

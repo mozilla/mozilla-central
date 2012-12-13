@@ -1004,8 +1004,8 @@ var GlodaMsgIndexer = {
       let accountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                            getService(Ci.nsIMsgAccountManager);
       let servers = accountManager.allServers;
-      for (let i = 0; i < servers.Count(); i++) {
-        let server = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
+      for (let i = 0; i < servers.length; i++) {
+        let server = servers.queryElementAt(i, Ci.nsIMsgIncomingServer);
         let rootFolder = server.rootFolder;
 
         let allFolders = Cc["@mozilla.org/supports-array;1"].

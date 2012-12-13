@@ -94,9 +94,9 @@ var FeedUtils = {
   getAllRssServerRootFolders: function() {
     let rssRootFolders = [];
     let allServers = MailServices.accounts.allServers;
-    for (let i = 0; i < allServers.Count(); i++)
+    for (let i = 0; i < allServers.length; i++)
     {
-      let server = allServers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
+      let server = allServers.queryElementAt(i, Ci.nsIMsgIncomingServer);
       if (server && server.type == "rss")
         rssRootFolders.push(server.rootFolder);
     }

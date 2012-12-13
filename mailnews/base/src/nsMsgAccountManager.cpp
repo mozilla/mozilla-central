@@ -1181,27 +1181,24 @@ hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
 
   if (!type.EqualsLiteral("im"))
   {
-    nsISupportsArray *array = (nsISupportsArray*) aClosure;
-    nsCOMPtr<nsISupports> serverSupports = do_QueryInterface(aServer);
-    array->AppendElement(aServer);
+    nsIMutableArray *array = static_cast<nsIMutableArray*>(aClosure);
+    array->AppendElement(aServer, false);
   }
   return PL_DHASH_NEXT;
 }
 
-/* nsISupportsArray GetAllServers (); */
 NS_IMETHODIMP
-nsMsgAccountManager::GetAllServers(nsISupportsArray **_retval)
+nsMsgAccountManager::GetAllServers(nsIArray **_retval)
 {
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> servers;
-  rv = NS_NewISupportsArray(getter_AddRefs(servers));
+  nsCOMPtr<nsIMutableArray> servers(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   m_incomingServers.Enumerate(hashGetNonHiddenServersToArray,
-                              (void *)(nsISupportsArray*)servers);
-  servers.swap(*_retval);
+                              (void *)servers);
+  servers.forget(_retval);
   return rv;
 }
 
@@ -3301,11 +3298,14 @@ nsresult nsMsgAccountManager::RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
 NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
 {
   NS_ENSURE_ARG_POINTER(aAllFolders);
-  nsCOMPtr<nsISupportsArray> servers;
+  nsCOMPtr<nsIArray> servers;
   nsresult rv = GetAllServers(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
+
   uint32_t numServers = 0;
-  servers->Count(&numServers);
+  rv = servers->GetLength(&numServers);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr<nsISupportsArray> allDescendents;
   rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
   NS_ENSURE_SUCCESS(rv, rv);

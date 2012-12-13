@@ -25,6 +25,8 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 // This file contains the news article download state machine.
 
@@ -398,10 +400,18 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(bool *done)
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  uint32_t serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
+  uint32_t serverIndex = 0;
+  if (m_currentServer)
+  {
+    rv = m_allServers->IndexOf(0, m_currentServer, &serverIndex);
+    if (NS_FAILED(rv))
+      serverIndex = -1;
+
+    ++serverIndex;
+  }
   m_currentServer = nullptr;
   uint32_t numServers;
-  m_allServers->Count(&numServers);
+  m_allServers->GetLength(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
   while (serverIndex < numServers)

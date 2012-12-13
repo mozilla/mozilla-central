@@ -1181,9 +1181,9 @@ function CanRenameDeleteJunkMail(aFolderUri)
   {
     var allServers = accountManager.allServers;
 
-    for (var i=0;i<allServers.Count();i++)
+    for (var i = 0; i < allServers.length; i++)
     {
-      var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
+      var currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
       var settings = currentServer.spamSettings;
       // If junk mail control or move junk mail to folder option is disabled then
       // allow the folder to be removed/renamed since the folder is not used in this case.

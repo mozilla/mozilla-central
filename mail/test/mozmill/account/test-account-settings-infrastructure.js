@@ -27,7 +27,7 @@ function setupModule(module) {
   collector.getModule("account-manager-helpers").installInto(module);
 
   // There may be pre-existing accounts from other tests.
-  gOriginalAccountCount = MailServices.accounts.allServers.Count();
+  gOriginalAccountCount = MailServices.accounts.allServers.length;
 
   // Create a POP server
   let popServer = MailServices.accounts
@@ -42,14 +42,14 @@ function setupModule(module) {
   gPopAccount.addIdentity(identity);
 
   // Now there should be one more account.
-  assert_equals(MailServices.accounts.allServers.Count(), gOriginalAccountCount + 1);
+  assert_equals(MailServices.accounts.allServers.length, gOriginalAccountCount + 1);
 }
 
 function teardownModule(module) {
   // Remove our test account to leave the profile clean.
   MailServices.accounts.removeAccount(gPopAccount);
   // There should be only the original accounts left.
-  assert_equals(MailServices.accounts.allServers.Count(), gOriginalAccountCount);
+  assert_equals(MailServices.accounts.allServers.length, gOriginalAccountCount);
 }
 
 /**

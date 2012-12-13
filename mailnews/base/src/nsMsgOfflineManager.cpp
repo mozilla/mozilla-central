@@ -10,7 +10,6 @@
 #include "netCore.h"
 #include "nsMsgOfflineManager.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
 #include "nsMsgBaseCID.h"
 #include "nsIImapService.h"
 #include "nsMsgImapCID.h"

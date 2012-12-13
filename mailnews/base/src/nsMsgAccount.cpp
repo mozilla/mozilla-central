@@ -174,7 +174,6 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer *aIncomingServer)
   return NS_OK;
 }
 
-/* nsISupportsArray GetIdentities (); */
 NS_IMETHODIMP
 nsMsgAccount::GetIdentities(nsIArray **_retval)
 {

@@ -130,13 +130,6 @@ protected:
   static nsresult getAccountRootArcs(nsIMutableArray **aResult);
   
 private:
-  // enumeration function to convert each server (element)
-  // to an nsIRDFResource and append it to the array (in data)
-  static bool createServerResources(nsISupports *element, void *data);
-
-  // search for an account by key
-  static bool findServerByKey(nsISupports *aElement, void *aData);
-
   nsresult serverHasIdentities(nsIMsgIncomingServer *aServer, bool *aResult);
   nsresult getStringBundle();
 

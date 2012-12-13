@@ -24,6 +24,7 @@
 #include "nsIMutableArray.h"
 #include "nsIAutoSyncManager.h"
 #include "nsAlgorithm.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -136,18 +137,26 @@ nsresult nsImapOfflineSync::AdvanceToNextServer()
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  uint32_t serverIndex = (m_currentServer) ? m_allServers->IndexOf(m_currentServer) + 1 : 0;
+  uint32_t serverIndex = 0;
+  if (m_currentServer)
+  {
+    rv = m_allServers->IndexOf(0, m_currentServer, &serverIndex);
+    if (NS_FAILED(rv))
+      serverIndex = -1;
+
+    // Move to the next server
+    ++serverIndex;
+  }
   m_currentServer = nullptr;
   uint32_t numServers; 
-  m_allServers->Count(&numServers);
+  m_allServers->GetLength(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
   while (serverIndex < numServers)
   {
-    nsCOMPtr <nsISupports> serverSupports = getter_AddRefs(m_allServers->ElementAt(serverIndex));
+    nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(m_allServers, serverIndex));
     serverIndex++;
 
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(serverSupports);
     nsCOMPtr <nsINntpIncomingServer> newsServer = do_QueryInterface(server);
     if (newsServer) // news servers aren't involved in offline imap
       continue;
@@ -1091,8 +1100,8 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
     nsCOMPtr<nsIMsgAccountManager> accountManager = 
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
-    nsCOMPtr<nsISupportsArray> servers;
-  
+
+    nsCOMPtr<nsIArray> servers;  
     rv = accountManager->GetAllServers(getter_AddRefs(servers));
     if (NS_FAILED(rv)) return rv;
   }

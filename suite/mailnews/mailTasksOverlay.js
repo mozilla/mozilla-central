@@ -69,10 +69,10 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
     // parallel array of folders to download to...
     var localFoldersToDownloadTo = [];
     var pop3Server = null;
-    for (let i = 0; i < allServers.Count(); ++i)
+    for (let i = 0; i < allServers.length; ++i)
     {
-      let currentServer = allServers.GetElementAt(i);
-      if (currentServer instanceof Components.interfaces.nsIMsgIncomingServer)
+      let currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+      if (currentServer)
       {
         let protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
                                      .getService(Components.interfaces.nsIMsgProtocolInfo);

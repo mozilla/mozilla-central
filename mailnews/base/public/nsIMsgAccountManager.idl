@@ -10,11 +10,10 @@
 #include "nsIIncomingServerListener.idl"
 #include "nsIMsgFolder.idl"
 
-interface nsISupportsArray;
 interface nsIMsgFolderCache;
 interface nsIFolderListener;
 
-[scriptable, uuid(0eb25b3d-56bf-4d87-9b1d-c4a8466391f3)]
+[scriptable, uuid(d5ab0eea-49c5-42f2-b2e6-8ad306606d8b)]
 interface nsIMsgAccountManager : nsISupports {
 
   nsIMsgAccount createAccount();
@@ -86,7 +85,7 @@ interface nsIMsgAccountManager : nsISupports {
   /* list of all servers in all accounts, except for hidden and IM servers
    * array of nsIMsgIncomingServer
    */
-  readonly attribute nsISupportsArray allServers;
+  readonly attribute nsIArray allServers;
 
   /* summary of summary files folder cache */
   readonly attribute nsIMsgFolderCache folderCache;

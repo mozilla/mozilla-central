@@ -16,7 +16,7 @@ function setupModule(module) {
   collector.getModule("account-manager-helpers").installInto(module);
 
   // There may be pre-existing accounts from other tests.
-  originalAccountCount = MailServices.accounts.allServers.Count();
+  originalAccountCount = MailServices.accounts.allServers.length;
   // There already should be a Local Folders account created.
   // It is needed for this test.
   assert_true(MailServices.accounts.localFoldersServer);
@@ -45,7 +45,7 @@ function setupModule(module) {
   nntpAccount.incomingServer = nntpServer;
   nntpAccount.addIdentity(identity);
   // Now there should be 2 more accounts.
-  assert_equals(MailServices.accounts.allServers.Count(), originalAccountCount + 2);
+  assert_equals(MailServices.accounts.allServers.length, originalAccountCount + 2);
 }
 
 function teardownModule(module) {
@@ -53,7 +53,7 @@ function teardownModule(module) {
   MailServices.accounts.removeAccount(nntpAccount);
   MailServices.accounts.removeAccount(imapAccount);
   // There should be only the original accounts left.
-  assert_equals(MailServices.accounts.allServers.Count(), originalAccountCount);
+  assert_equals(MailServices.accounts.allServers.length, originalAccountCount);
 }
 
 /**

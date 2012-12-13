@@ -47,6 +47,8 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "mozilla/Services.h"
 #include "nsIMsgFilter.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #define PORT_NOT_SET -1
 
@@ -2134,14 +2136,14 @@ nsresult nsMsgIncomingServer::GetDeferredServers(nsIMsgIncomingServer *destServe
   accountManager->FindAccountForServer(destServer, getter_AddRefs(thisAccount));
   if (thisAccount)
   {
-    nsCOMPtr <nsISupportsArray> allServers;
+    nsCOMPtr<nsIArray> allServers;
     nsCString accountKey;
     thisAccount->GetKey(accountKey);
     accountManager->GetAllServers(getter_AddRefs(allServers));
     if (allServers)
     {
       uint32_t serverCount;
-      allServers->Count(&serverCount);
+      allServers->GetLength(&serverCount);
       for (uint32_t i = 0; i < serverCount; i++)
       {
         nsCOMPtr <nsIMsgIncomingServer> server (do_QueryElementAt(allServers, i));
@@ -2170,14 +2172,14 @@ NS_IMETHODIMP nsMsgIncomingServer::GetIsDeferredTo(bool *aIsDeferredTo)
     accountManager->FindAccountForServer(this, getter_AddRefs(thisAccount));
     if (thisAccount)
     {
-      nsCOMPtr <nsISupportsArray> allServers;
+      nsCOMPtr<nsIArray> allServers;
       nsCString accountKey;
       thisAccount->GetKey(accountKey);
       accountManager->GetAllServers(getter_AddRefs(allServers));
       if (allServers)
       {
         uint32_t serverCount;
-        allServers->Count(&serverCount);
+        allServers->GetLength(&serverCount);
         for (uint32_t i = 0; i < serverCount; i++)
         {
           nsCOMPtr <nsIMsgIncomingServer> server (do_QueryElementAt(allServers, i));

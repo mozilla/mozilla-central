@@ -61,7 +61,7 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_currentFolder;
   nsCOMPtr <nsIMsgFolder> m_singleFolderToUpdate;
   nsCOMPtr <nsIMsgWindow> m_window;
-  nsCOMPtr <nsISupportsArray> m_allServers;
+  nsCOMPtr <nsIArray> m_allServers;
   nsCOMPtr <nsISupportsArray> m_allFolders;
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;

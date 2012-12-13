@@ -152,12 +152,12 @@ function OpenMessageForMessageId(messageId)
 
     messageHeader = SearchForMessageIdInSubFolder(startServer.rootFolder, messageId);
 
-    for (var i = 0; i < allServers.Count() && !messageHeader; i++)
+    for (var i = 0; i < allServers.length && !messageHeader; i++)
     {
-      var currentServer = allServers.GetElementAt(i);
-      if ((currentServer instanceof Components.interfaces.nsIMsgIncomingServer) &&
-          startServer != currentServer && currentServer.canSearchMessages &&
-          !currentServer.isDeferredTo)
+      var currentServer =
+        allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+      if (currentServer && startServer != currentServer &&
+	  currentServer.canSearchMessages && !currentServer.isDeferredTo)
       {
         messageHeader = SearchForMessageIdInSubFolder(currentServer.rootFolder, messageId);
       }

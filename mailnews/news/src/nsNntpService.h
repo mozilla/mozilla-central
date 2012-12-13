@@ -65,7 +65,6 @@ protected:
   nsresult RunNewsUrl (nsIURI * aUrl, nsIMsgWindow *aMsgWindow, nsISupports * aConsumer);
   // a convience routine to go from folder uri to msg folder
   nsresult GetFolderFromUri(const char *uri, nsIMsgFolder **folder);
-  static bool findNewsServerWithGroup(nsISupports *aElement, void *data);
   nsresult DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder ** aFolder, nsMsgKey *aMsgKey);
 
   bool              mPrintingOperation; // Flag for printing operations

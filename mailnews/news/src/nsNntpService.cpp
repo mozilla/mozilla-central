@@ -49,6 +49,7 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIMsgMailSession.h"
 #include "nsISupportsPrimitives.h"
+#include "nsArrayUtils.h"
 
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
@@ -626,40 +627,6 @@ nsNntpService::CopyMessages(uint32_t aNumKeys, nsMsgKey *akeys,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-struct findNewsServerEntry {
-  const char *newsgroup;
-  nsINntpIncomingServer *server;
-};
-
-
-bool
-nsNntpService::findNewsServerWithGroup(nsISupports *aElement, void *data)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsINntpIncomingServer> newsserver = do_QueryInterface(aElement, &rv);
-  if (NS_FAILED(rv) || ! newsserver) return true;
-
-  findNewsServerEntry *entry = (findNewsServerEntry*) data;
-
-  bool containsGroup = false;
-  NS_ASSERTION(MsgIsUTF8(nsDependentCString(entry->newsgroup)),
-               "newsgroup is not in UTF-8");
-  rv = newsserver->ContainsNewsgroup(nsDependentCString(entry->newsgroup),
-                                     &containsGroup);
-  if (NS_FAILED(rv)) return true;
-
-  if (containsGroup)
-  {
-    entry->server = newsserver;
-    return false;            // stop on first find
-  }
-  else
-  {
-    return true;
-  }
-}
-
 nsresult
 nsNntpService::FindServerWithNewsgroup(nsCString &host, nsCString &groupName)
 {
@@ -667,25 +634,39 @@ nsNntpService::FindServerWithNewsgroup(nsCString &host, nsCString &groupName)
 
   nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  nsCOMPtr<nsISupportsArray> servers;
 
+  nsCOMPtr<nsIArray> servers;
   rv = accountManager->GetAllServers(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  findNewsServerEntry serverInfo;
-  serverInfo.server = nullptr;
-  serverInfo.newsgroup = groupName.get();
+  NS_ASSERTION(MsgIsUTF8(groupName),
+               "newsgroup is not in UTF-8");
 
   // XXX TODO
   // this only looks at the list of subscribed newsgroups.
   // fix to use the hostinfo.dat information
-  servers->EnumerateForwards(findNewsServerWithGroup, (void *)&serverInfo);
-  if (serverInfo.server)
-  {
-    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(serverInfo.server);
-    rv = server->GetHostName(host);
-  }
 
+  uint32_t length;
+  rv = servers->GetLength(&length);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  for (uint32_t i = 0; i < length; ++i)
+  {
+    nsCOMPtr<nsINntpIncomingServer> newsserver(do_QueryElementAt(servers, i, &rv));
+    if (NS_FAILED(rv))
+      continue;
+
+    bool containsGroup = false;
+    rv = newsserver->ContainsNewsgroup(groupName,
+                                       &containsGroup);
+    if (containsGroup)
+    {
+      nsCOMPtr<nsIMsgIncomingServer> server(do_QueryInterface(newsserver, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      return server->GetHostName(host);
+    }
+  }
   return rv;
 }
 
@@ -1013,7 +994,7 @@ nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
   // Grab all servers for if this is a no-authority URL. This also loads
   // accounts if they haven't been loaded, i.e., we're running this straight
   // from the command line
-  nsCOMPtr <nsISupportsArray> servers;
+  nsCOMPtr <nsIArray> servers;
   rv = accountManager->GetAllServers(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
 

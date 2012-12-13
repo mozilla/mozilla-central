@@ -1225,9 +1225,9 @@ function MigrateFolderViews()
      var servers = accountManager.allServers;
      var server;
      var inbox;
-     for (var index = 0; index < servers.Count(); index++)
+     for (var index = 0; index < servers.length; index++)
      {
-       server = servers.QueryElementAt(index, Components.interfaces.nsIMsgIncomingServer);
+       server = servers.queryElementAt(index, Components.interfaces.nsIMsgIncomingServer);
        if (server)
        {
          inbox = GetInboxFolder(server);

@@ -24,7 +24,8 @@
 #include "nsIMsgfilter.h"
 #include "nsEudoraFilters.h"
 #include "nsEudoraStringBundle.h"
-
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 #include "nsNetUtil.h"
 #include "nsILineInputStream.h"
 #include "EudoraDebugLog.h"
@@ -400,12 +401,12 @@ nsresult nsEudoraFilters::LoadServers()
   nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> allServers;
+  nsCOMPtr<nsIArray> allServers;
   rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t numServers;
-  rv = allServers->Count(&numServers);
+  rv = allServers->GetLength(&numServers);
   NS_ENSURE_SUCCESS(rv, rv);
   for (uint32_t serverIndex = 0; serverIndex < numServers; serverIndex++)
   {

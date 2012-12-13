@@ -541,9 +541,9 @@
           // Start iterating at the top of the hierarchy, that is, with the root
           // folders for each incoming server.
           let servers = this.MailServices.accounts.allServers;
-          let count = servers.Count();
+          let count = servers.length;
           for (var i = 0; i < count; i++) {
-            var incomingServer = servers.QueryElementAt(i, Ci.nsIMsgIncomingServer);
+            var incomingServer = servers.queryElementAt(i, Ci.nsIMsgIncomingServer);
             addIfRecent(incomingServer.rootFolder);
             checkSubFolders(incomingServer.rootFolder);
           }

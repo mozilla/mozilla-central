@@ -2170,13 +2170,16 @@ void nsMsgFlatFolderDataSource::EnsureFolders()
     if (NS_FAILED(rv))
       return;
 
-    nsCOMPtr<nsISupportsArray> allServers;
+    nsCOMPtr<nsIArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
+    if (NS_FAILED(rv))
+      return;
+
     nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv) && allServers)
     {
       uint32_t count = 0;
-      allServers->Count(&count);
+      allServers->GetLength(&count);
       uint32_t i;
       for (i = 0; i < count; i++)
       {
@@ -2369,13 +2372,16 @@ void nsMsgRecentFoldersDataSource::EnsureFolders()
     if (NS_FAILED(rv))
       return;
 
-    nsCOMPtr<nsISupportsArray> allServers;
+    nsCOMPtr<nsIArray> allServers;
     rv = accountManager->GetAllServers(getter_AddRefs(allServers));
+    if (NS_FAILED(rv))
+      return;
+
     nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv) && allServers)
     {
       uint32_t count = 0;
-      allServers->Count(&count);
+      allServers->GetLength(&count);
       uint32_t i;
       for (i = 0; i < count; i++)
       {

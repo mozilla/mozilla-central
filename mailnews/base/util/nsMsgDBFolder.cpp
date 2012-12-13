@@ -1822,11 +1822,11 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
   nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsISupportsArray> allServers;
+    nsCOMPtr<nsIArray> allServers;
     rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
     NS_ENSURE_SUCCESS(rv, rv);
     uint32_t numServers = 0, serverIndex = 0;
-    rv = allServers->Count(&numServers);
+    rv = allServers->GetLength(&numServers);
     int32_t offlineSupportLevel;
     if (numServers > 0)
     {
@@ -1839,7 +1839,7 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
       int32_t localExpungedBytes = 0;
       do
       {
-        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);
+        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex, &rv);
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr<nsIMsgPluggableStore> msgStore;
         rv = server->GetMsgStore(getter_AddRefs(msgStore));
@@ -2077,12 +2077,12 @@ nsMsgDBFolder::MatchOrChangeFilterDestination(nsIMsgFolder *newFolder, bool case
   nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> allServers;
+  nsCOMPtr<nsIArray> allServers;
   rv = accountMgr->GetAllServers(getter_AddRefs(allServers));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t numServers;
-  rv = allServers->Count(&numServers);
+  rv = allServers->GetLength(&numServers);
   for (uint32_t serverIndex = 0; serverIndex < numServers; serverIndex++)
   {
     nsCOMPtr <nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex);

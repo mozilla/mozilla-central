@@ -582,12 +582,12 @@ function getServerThatCanHaveFilters()
     else
     {
         var allServers = accountManager.allServers;
-        var numServers = allServers.Count();
+        var numServers = allServers.length;
         var index = 0;
         for (index = 0; index < numServers; index++)
         {
-            var currentServer
-            = allServers.GetElementAt(index).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
+            var currentServer =
+              allServers.queryElementAt(index, Components.interfaces.nsIMsgIncomingServer);
 
             if (currentServer.canHaveFilters)
             {

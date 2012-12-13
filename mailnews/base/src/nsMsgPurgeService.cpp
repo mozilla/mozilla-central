@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsArrayUtils.h"
 
 static PRLogModuleInfo *MsgPurgeLogModule = nullptr;
 
@@ -137,12 +138,12 @@ nsresult nsMsgPurgeService::PerformPurge()
   NS_ENSURE_SUCCESS(rv,rv);
   bool keepApplyingRetentionSettings = true;
 
-  nsCOMPtr<nsISupportsArray> allServers;
+  nsCOMPtr<nsIArray> allServers;
   rv = accountManager->GetAllServers(getter_AddRefs(allServers));
   if (NS_SUCCEEDED(rv) && allServers)
   {
     uint32_t numServers;
-    rv = allServers->Count(&numServers);
+    rv = allServers->GetLength(&numServers);
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%d servers", numServers));
     nsCOMPtr<nsIMsgFolder> folderToPurge;
     PRIntervalTime startTime = PR_IntervalNow();

@@ -1388,9 +1388,9 @@ function MsgGetMessagesForAllServers(defaultServer)
     var localFoldersToDownloadTo = Components.classes["@mozilla.org/supports-array;1"]
                                              .createInstance(Components.interfaces.nsISupportsArray);
     var pop3Server;
-    for (var i = 0; i < allServers.Count(); ++i)
+    for (var i = 0; i < allServers.length; ++i)
     {
-      var currentServer = allServers.QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
+      var currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
       var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
                                    .getService(Components.interfaces.nsIMsgProtocolInfo);
       if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
@@ -2474,9 +2474,8 @@ function IsMailFolderSelected()
 function IsGetNewMessagesEnabled()
 {
   let allServers = accountManager.allServers;
-  for (let i = 0; i < allServers.Count(); ++i) {
-    let server = allServers.GetElementAt(i)
-                           .QueryInterface(Components.interfaces.nsIMsgIncomingServer);
+  for (let i = 0; i < allServers.length; ++i) {
+    let server = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
     if (server.type == "none")
       continue;
     return true;
@@ -2700,9 +2699,9 @@ function GetMessagesForAllAuthenticatedAccounts()
                                              .createInstance(Components.interfaces.nsISupportsArray);
     var pop3Server;
 
-    for (var i = 0; i < allServers.Count(); ++i)
+    for (var i = 0; i < allServers.length; ++i)
     {
-      var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
+      var currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
       var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
                                    .getService(Components.interfaces.nsIMsgProtocolInfo);
       if (protocolinfo.canGetMessages && !currentServer.passwordPromptRequired)
