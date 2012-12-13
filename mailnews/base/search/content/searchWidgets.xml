@@ -222,7 +222,7 @@
           <![CDATA[
             Components.utils.import("resource:///modules/iteratorUtils.jsm", this);
             let identitiesRaw = MailServices.accounts
-              .GetIdentitiesForServer(gFilterList.folder.server);
+              .getIdentitiesForServer(gFilterList.folder.server);
             let identities = [a for each (a in this.fixIterator(identitiesRaw,
                               Components.interfaces.nsIMsgIdentity))];
 
