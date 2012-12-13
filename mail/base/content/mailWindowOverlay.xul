@@ -233,14 +233,14 @@
             events="create-menu-message"
             oncommandupdate="goUpdateMailMenuItems(this)">
   <command id="cmd_archive" oncommand="goDoCommand('cmd_archive')"/>
-  <command id="cmd_reply" oncommand="goDoCommand('cmd_reply')"/>
-  <command id="cmd_replySender" oncommand="goDoCommand('cmd_replySender')"/>
-  <command id="cmd_replyGroup" oncommand="goDoCommand('cmd_replyGroup')"/>
-  <command id="cmd_replyall" oncommand="goDoCommand('cmd_replyall')"/>
-  <command id="cmd_replylist" oncommand="goDoCommand('cmd_replylist')"/>
-  <command id="cmd_forward" oncommand="goDoCommand('cmd_forward')"/>
-  <command id="cmd_forwardInline" oncommand="goDoCommand('cmd_forwardInline')"/>
-  <command id="cmd_forwardAttachment" oncommand="goDoCommand('cmd_forwardAttachment')"/>
+  <command id="cmd_reply" oncommand="MsgReplyMessage(event)"/>
+  <command id="cmd_replySender" oncommand="MsgReplySender(event);"/>
+  <command id="cmd_replyGroup" oncommand="MsgReplyGroup(event);"/>
+  <command id="cmd_replyall" oncommand="MsgReplyToAllMessage(event);"/>
+  <command id="cmd_replylist" oncommand="MsgReplyToListMessage(event);"/>
+  <command id="cmd_forward" oncommand="MsgForwardMessage(event);"/>
+  <command id="cmd_forwardInline" oncommand="MsgForwardAsInline(event)"/>
+  <command id="cmd_forwardAttachment" oncommand="MsgForwardAsAttachment(event);"/>
   <command id="cmd_editAsNew" oncommand="goDoCommand('cmd_editAsNew')"/>
   <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage')"/>
   <command id="cmd_openConversation" oncommand="goDoCommand('cmd_openConversation')"/>
@@ -2974,25 +2974,25 @@
                    label="&replyButton.label;"
                    tooltiptext="&replyButton.tooltip;"
                    observes="button_reply"
-                   oncommand="MsgReplyMessage(event)"/>
+                   command="cmd_reply"/>
     <toolbarbutton id="button-replyall"
                    class="toolbarbutton-1"
                    label="&replyAllButton.label;"
                    tooltiptext="&replyAllButton.tooltip;"
                    observes="button_replyall"
-                   oncommand="MsgReplyToAllMessage(event)"/>
+                   command="cmd_replyall"/>
     <toolbarbutton id="button-replylist"
                    class="toolbarbutton-1"
                    label="&replyListButton.label;"
                    tooltiptext="&replyListButton.tooltip;"
                    observes="button_replylist"
-                   oncommand="MsgReplyToListMessage(event)"/>
+                   command="cmd_replylist"/>
     <toolbarbutton id="button-forward"
                    class="toolbarbutton-1"
                    label="&forwardButton.label;"
                    tooltiptext="&forwardButton.tooltip;"
                    observes="button_forward"
-                   oncommand="MsgForwardMessage(event)"/>
+                   command="cmd_forward"/>
     <toolbarbutton id="button-file"
                    type="menu"
                    class="toolbarbutton-1"
