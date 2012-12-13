@@ -27,7 +27,7 @@ nsMsgHdr::nsMsgHdr(nsMsgDatabase *db, nsIMdbRow *dbRow)
   {
     m_mdb->AddRef();
     mdbOid outOid;
-    if (dbRow && dbRow->GetOid(m_mdb->GetEnv(), &outOid) == NS_OK)
+    if (dbRow && NS_SUCCEEDED(dbRow->GetOid(m_mdb->GetEnv(), &outOid)))
     {
       m_messageKey = outOid.mOid_Id;
       m_mdb->AddHdrToUseCache((nsIMsgDBHdr *) this, m_messageKey);
@@ -60,7 +60,7 @@ nsresult nsMsgHdr::InitCachedValues()
   {
     uint32_t uint32Value;
     mdbOid outOid;
-    if (m_mdbRow->GetOid(m_mdb->GetEnv(), &outOid) == NS_OK)
+    if (NS_SUCCEEDED(m_mdbRow->GetOid(m_mdb->GetEnv(), &outOid)))
       m_messageKey = outOid.mOid_Id;
 
     err = GetUInt32Column(m_mdb->m_messageSizeColumnToken, &m_messageSize);
@@ -115,7 +115,7 @@ NS_IMETHODIMP nsMsgHdr::GetMessageKey(nsMsgKey *result)
   if (m_messageKey == nsMsgKey_None && m_mdbRow != NULL)
   {
     mdbOid outOid;
-    if (m_mdbRow->GetOid(m_mdb->GetEnv(), &outOid) == NS_OK)
+    if (NS_SUCCEEDED(m_mdbRow->GetOid(m_mdb->GetEnv(), &outOid)))
       m_messageKey = outOid.mOid_Id;
 
   }

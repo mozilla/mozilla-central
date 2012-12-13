@@ -158,7 +158,7 @@ NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, bool create, n
   rowObjectId.mOid_Id = msgKey;
   rowObjectId.mOid_Scope = m_offlineOpsRowScopeToken;
   err = m_mdbAllOfflineOpsTable->HasOid(GetEnv(), &rowObjectId, &hasOid);
-  if (err == NS_OK && m_mdbStore && (hasOid  || create))
+  if (NS_SUCCEEDED(err) && m_mdbStore && (hasOid  || create))
   {
     nsCOMPtr <nsIMdbRow> offlineOpRow;
     err = m_mdbStore->GetRow(GetEnv(), &rowObjectId, getter_AddRefs(offlineOpRow));
@@ -219,16 +219,16 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpI
   if (m_mdbAllOfflineOpsTable)
   {
     nsresult err = m_mdbAllOfflineOpsTable->GetTableRowCursor(GetEnv(), -1, &rowCursor);
-    while (err == NS_OK && rowCursor)
+    while (NS_SUCCEEDED(err) && rowCursor)
     {
       mdbOid outOid;
       mdb_pos	outPos;
       
       err = rowCursor->NextRowOid(GetEnv(), &outOid, &outPos);
       // is this right? Mork is returning a 0 id, but that should valid.
-      if (outPos < 0 || outOid.mOid_Id == (mdb_id) -1)	
+      if (outPos < 0 || outOid.mOid_Id == (mdb_id) -1)
         break;
-      if (err == NS_OK)
+      if (NS_SUCCEEDED(err))
       {
         offlineOpIds->AppendElement(outOid.mOid_Id);
         if (PR_LOG_TEST(IMAPOffline, PR_LOG_ALWAYS))
@@ -245,36 +245,36 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpI
         }
       }
     }
-    rv = (err == NS_OK) ? NS_OK : NS_ERROR_FAILURE;
+    // TODO: would it cause a problem to replace this with "rv = err;" ?
+    rv = (NS_SUCCEEDED(err)) ? NS_OK : NS_ERROR_FAILURE;
     rowCursor->Release();
   }
-  
+
   offlineOpIds->Sort();
   return rv;
 }
 
 NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineDeletes)
 {
-  if (!offlineDeletes)
-    return NS_ERROR_NULL_POINTER;
-  
+  NS_ENSURE_ARG_POINTER(offlineDeletes);
+
   nsresult rv = GetAllOfflineOpsTable();
   NS_ENSURE_SUCCESS(rv, rv);
   nsIMdbTableRowCursor *rowCursor;
   if (m_mdbAllOfflineOpsTable)
   {
     nsresult err = m_mdbAllOfflineOpsTable->GetTableRowCursor(GetEnv(), -1, &rowCursor);
-    while (err == NS_OK && rowCursor)
+    while (NS_SUCCEEDED(err) && rowCursor)
     {
       mdbOid outOid;
-      mdb_pos	outPos;
+      mdb_pos outPos;
       nsIMdbRow* offlineOpRow;
-      
+
       err = rowCursor->NextRow(GetEnv(), &offlineOpRow, &outPos);
       // is this right? Mork is returning a 0 id, but that should valid.
-      if (outPos < 0 || offlineOpRow == nullptr)	
+      if (outPos < 0 || offlineOpRow == nullptr)
         break;
-      if (err == NS_OK)
+      if (NS_SUCCEEDED(err))
       {
         offlineOpRow->GetOid(GetEnv(), &outOid);
         nsIMsgOfflineImapOperation *offlineOp = new nsMsgOfflineImapOperation(this, offlineOpRow);
@@ -295,7 +295,8 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineD
         offlineOpRow->Release();
       }
     }
-    rv = (err == NS_OK) ? NS_OK : NS_ERROR_FAILURE;
+    // TODO: would it cause a problem to replace this with "rv = err;" ?
+    rv = (NS_SUCCEEDED(err)) ? NS_OK : NS_ERROR_FAILURE;
     rowCursor->Release();
   }
   return rv;
@@ -357,9 +358,9 @@ nsresult nsMsgOfflineOpEnumerator::GetRowCursor()
 
 NS_IMETHODIMP nsMsgOfflineOpEnumerator::GetNext(nsISupports **aItem)
 {
-  if (!aItem)
-    return NS_ERROR_NULL_POINTER;
-  nsresult rv=NS_OK;
+  NS_ENSURE_ARG_POINTER(aItem);
+
+  nsresult rv = NS_OK;
   if (!mNextPrefetched)
     rv = PrefetchNext();
   if (NS_SUCCEEDED(rv))
@@ -398,10 +399,11 @@ nsresult nsMsgOfflineOpEnumerator::PrefetchNext()
     mDone = true;
     return rv;
   }
-	//Get key from row
+  // Get key from row.
   mdbOid outOid;
-  nsMsgKey key=0;
-  if (offlineOpRow->GetOid(mDB->GetEnv(), &outOid) == NS_OK)
+  nsMsgKey key = 0;
+  // TODO: Is the key variable unused?
+  if (NS_SUCCEEDED(offlineOpRow->GetOid(mDB->GetEnv(), &outOid)))
     key = outOid.mOid_Id;
 
   nsIMsgOfflineImapOperation *op = new nsMsgOfflineImapOperation(mDB, offlineOpRow);
@@ -419,8 +421,7 @@ nsresult nsMsgOfflineOpEnumerator::PrefetchNext()
 
 NS_IMETHODIMP nsMsgOfflineOpEnumerator::HasMoreElements(bool *aResult)
 {
-  if (!aResult)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aResult);
 
   if (!mNextPrefetched)
     PrefetchNext();
