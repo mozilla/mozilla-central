@@ -1087,9 +1087,9 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
       // if we aren't including a short/long view OR if we are and we haven't parsed enough
       // addresses to reach the cutoff valve yet then add it to the default (short) div.
       var address = {};
-      address.emailAddress = addresses.value[index];
-      address.fullAddress = fullNames.value[index];
-      address.displayName = names.value[index];
+      address.emailAddress = addresses.value[index] || "";
+      address.fullAddress = fullNames.value[index] || "";
+      address.displayName = names.value[index] || "";
       if (headerEntry.useToggle)
         headerEntry.enclosingBox.addAddressView(address);
       else

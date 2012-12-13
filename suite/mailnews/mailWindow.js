@@ -283,7 +283,7 @@ nsMsgStatusFeedback.prototype =
   stopTimeoutID  : null,
   pendingStartRequests : 0,
   meteorsSpinning : false,
-  myDefaultStatus : null,
+  myDefaultStatus : "",
 
   ensureStatusFields : function()
     {
