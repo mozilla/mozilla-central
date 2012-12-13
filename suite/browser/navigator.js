@@ -591,7 +591,7 @@ function Startup()
     browser.userTypedValue = uriToLoad;
     if ("arguments" in window && window.arguments.length >= 3) {
       loadURI(uriToLoad, window.arguments[2], window.arguments[3] || null,
-              window.arguments[4] || false);
+              window.arguments[4] || false, window.arguments[5] || false);
     } else {
       loadURI(uriToLoad);
     }
@@ -1534,14 +1534,17 @@ function BrowserCloseWindow()
   window.close();
 }
 
-function loadURI(uri, referrer, postData, allowThirdPartyFixup)
+function loadURI(uri, referrer, postData, allowThirdPartyFixup, isUTF8)
 {
   try {
     var flags = nsIWebNavigation.LOAD_FLAGS_NONE;
     if (allowThirdPartyFixup) {
       flags = nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP;
     }
-    else if (typeof postData == "number") {
+    if (isUTF8) {
+      flags |= nsIWebNavigation.LOAD_FLAGS_URI_IS_UTF8;
+    }
+    if (!flags && typeof postData == "number") {
       // Deal with legacy code that passes load flags in the third argument.
       flags = postData;
       postData = null;
@@ -1587,6 +1590,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
     var browser = getBrowser();
     var postData = {};
     url = getShortcutOrURI(url, postData);
+    var isUTF8 = browser.userTypedValue === null;
     // Accept both Control and Meta (=Command) as New-Window-Modifiers
     if (aTriggeringEvent &&
         (('ctrlKey' in aTriggeringEvent && aTriggeringEvent.ctrlKey) ||
@@ -1597,7 +1601,11 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
         // Reset url in the urlbar
         URLBarSetURI();
         // Open link in new tab
-        var t = browser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
+        var t = browser.addTab(url, {
+                  postData: postData.value,
+                  allowThirdPartyFixup: true,
+                  isUTF8: isUTF8
+                });
 
         // Focus new tab unless shift is pressed
         if (!shiftPressed)
@@ -1605,7 +1613,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
       } else {
         // Open a new window with the URL
         var newWin = openDialog(getBrowserURL(), "_blank", "all,dialog=no", url,
-            null, null, postData.value, true);
+            null, null, postData.value, true, isUTF8);
         // Reset url in the urlbar
         URLBarSetURI();
 
@@ -1635,7 +1643,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
     } else {
       // No modifier was pressed, load the URL normally and
       // focus the content area
-      loadURI(url, null, postData.value, true);
+      loadURI(url, null, postData.value, true, isUTF8);
       content.focus();
     }
   }
