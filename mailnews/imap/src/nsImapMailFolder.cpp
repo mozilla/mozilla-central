@@ -1375,16 +1375,15 @@ NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,
     }
     for (uint32_t i = 0; i < cnt; i++)
     {
-      nsCOMPtr<nsISupports> supports = dont_AddRef(allDescendents->ElementAt(i));
-      nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(supports, &rv);
+      nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
       uint32_t folderFlags;
       folder->GetFlags(&folderFlags);
       if (! (folderFlags & (nsMsgFolderFlags::Virtual | nsMsgFolderFlags::ImapNoselect)))
       {
-        rv = folderArray->AppendElement(supports, false);
+        rv = folderArray->AppendElement(folder, false);
         if (aCompactOfflineAlso)
-          offlineFolderArray->AppendElement(supports, false);
+          offlineFolderArray->AppendElement(folder, false);
       }
     }
     rv = folderArray->GetLength(&cnt);

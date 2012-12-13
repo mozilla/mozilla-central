@@ -1885,7 +1885,11 @@ nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, ns
     // Create an nsIMutableArray from the nsISupportsArray
     nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
     for (uint32_t i = 0; i < itemCount; i++)
-      folderArray->AppendElement(arguments->ElementAt(i), false);
+    {
+      nsCOMPtr<nsISupports> element(do_QueryElementAt(arguments, i, &rv));
+      if (NS_SUCCEEDED(rv))
+        folderArray->AppendElement(element, false);
+    }
 
     //Call copyservice with dstFolder, srcFolder, folders and isMoveFolder
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
