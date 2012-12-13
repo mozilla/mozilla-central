@@ -1939,7 +1939,6 @@ char *nsMsgSearchScopeTerm::GetStatusBarName ()
 
 nsMsgResultElement::nsMsgResultElement(nsIMsgSearchAdapter *adapter)
 {
-  NS_NewISupportsArray(getter_AddRefs(m_valueList));
   m_adapter = adapter;
 }
 
@@ -1951,7 +1950,7 @@ nsMsgResultElement::~nsMsgResultElement ()
 
 nsresult nsMsgResultElement::AddValue (nsIMsgSearchValue *value)
 {
-  m_valueList->AppendElement (value);
+  m_valueList.AppendElement(value);
   return NS_OK;
 }
 
@@ -2024,24 +2023,18 @@ nsresult nsMsgResultElement::GetValue (nsMsgSearchAttribValue attrib,
                                        nsMsgSearchValue **outValue) const
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIMsgSearchValue> value;
   *outValue = NULL;
 
-  uint32_t count;
-  m_valueList->Count(&count);
-  for (uint32_t i = 0; i < count && NS_FAILED(rv); i++)
+  for (uint32_t i = 0; i < m_valueList.Length() && NS_FAILED(rv); i++)
   {
-    m_valueList->QueryElementAt(i, NS_GET_IID(nsIMsgSearchValue),
-      (void **)getter_AddRefs(value));
-
     nsMsgSearchAttribValue valueAttribute;
-    value->GetAttrib(&valueAttribute);
+    m_valueList[i]->GetAttrib(&valueAttribute);
     if (attrib == valueAttribute)
     {
       *outValue = new nsMsgSearchValue;
       if (*outValue)
       {
-        rv = AssignValues(value, *outValue);
+        rv = AssignValues(m_valueList[i], *outValue);
         // Now this is really strange! What is this assignment doing here?
         rv = NS_OK;
       }

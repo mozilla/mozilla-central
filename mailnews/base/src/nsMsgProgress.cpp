@@ -6,8 +6,8 @@
 #include "nsMsgProgress.h"
 
 #include "nsIBaseWindow.h"
-#include "nsISupportsArray.h"
 #include "nsXPCOM.h"
+#include "nsIMutableArray.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIComponentManager.h"
 #include "nsError.h"
@@ -61,8 +61,7 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent,
   NS_ENSURE_ARG_POINTER(parent);
 
   // Set up window.arguments[0]...
-  nsCOMPtr<nsISupportsArray> array;
-  rv = NS_NewISupportsArray(getter_AddRefs(array));
+  nsCOMPtr<nsIMutableArray> array(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsInterfacePointer> ifptr =
@@ -72,8 +71,8 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent,
   ifptr->SetData(static_cast<nsIMsgProgress*>(this));
   ifptr->SetDataIID(&NS_GET_IID(nsIMsgProgress));
 
-  array->AppendElement(ifptr);
-  array->AppendElement(parameters);
+  array->AppendElement(ifptr, false);
+  array->AppendElement(parameters, false);
 
   // Open the dialog.
   nsCOMPtr<nsIDOMWindow> newWindow;

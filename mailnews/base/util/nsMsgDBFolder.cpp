@@ -4416,34 +4416,6 @@ NS_IMETHODIMP nsMsgDBFolder::IsSpecialFolder(uint32_t aFlags,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
-{
-  NS_ENSURE_ARG_POINTER(expansionArray);
-  // the application of flags in GetExpansionArray is subtly different
-  // than in GetFoldersWithFlags
-
-  nsresult rv;
-  int32_t count = mSubFolders.Count();
-
-  for (int32_t i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
-    uint32_t cnt2;
-    rv = expansionArray->Count(&cnt2);
-    if (NS_SUCCEEDED(rv))
-    {
-      expansionArray->InsertElementAt(folder, cnt2);
-      uint32_t flags;
-      folder->GetFlags(&flags);
-      if (!(flags & nsMsgFolderFlags::Elided))
-        folder->GetExpansionArray(expansionArray);
-    }
-  }
-
-  return NS_OK;
-}
-
-
 NS_IMETHODIMP nsMsgDBFolder::GetDeletable(bool *deletable)
 {
   NS_ENSURE_ARG_POINTER(deletable);

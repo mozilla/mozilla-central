@@ -6,7 +6,7 @@
 #include "nsMessengerBootstrap.h"
 #include "nsCOMPtr.h"
 
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsIMsgFolder.h"
 #include "nsIWindowWatcher.h"
 #include "nsMsgUtils.h"
@@ -37,8 +37,8 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
     chromeUrl.Append("messageWindow.xul");
     standAloneMsgWindow = true;
   }
-  nsCOMPtr<nsISupportsArray> argsArray;
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> argsArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // create scriptable versions of our strings that we can store in our nsISupportsArray....
@@ -57,21 +57,20 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
       msgUri.Append('#');
       msgUri.AppendInt(aMessageKey, 10);
       scriptableMsgURI->SetData(msgUri);
-      argsArray->AppendElement(scriptableMsgURI);
-      
+      argsArray->AppendElement(scriptableMsgURI, false);
     }
     nsCOMPtr<nsISupportsCString> scriptableFolderURI (do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
     NS_ENSURE_TRUE(scriptableFolderURI, NS_ERROR_FAILURE);
 
     scriptableFolderURI->SetData(nsDependentCString(aFolderURI));
-    argsArray->AppendElement(scriptableFolderURI);
+    argsArray->AppendElement(scriptableFolderURI, false);
 
     if (!standAloneMsgWindow)
     {
       nsCOMPtr<nsISupportsPRUint32> scriptableMessageKey (do_CreateInstance(NS_SUPPORTS_PRUINT32_CONTRACTID));
       NS_ENSURE_TRUE(scriptableMessageKey, NS_ERROR_FAILURE);
       scriptableMessageKey->SetData(aMessageKey);
-      argsArray->AppendElement(scriptableMessageKey);
+      argsArray->AppendElement(scriptableMessageKey, false);
     }
   }
   

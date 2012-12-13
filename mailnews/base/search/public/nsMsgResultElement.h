@@ -30,7 +30,7 @@ public:
   nsresult GetPrettyName (nsMsgSearchValue**);
   nsresult Open (void *window);
 
-    nsCOMPtr<nsISupportsArray> m_valueList;
+  nsTArray<nsCOMPtr<nsIMsgSearchValue> > m_valueList;
   nsIMsgSearchAdapter *m_adapter;
 
 protected:

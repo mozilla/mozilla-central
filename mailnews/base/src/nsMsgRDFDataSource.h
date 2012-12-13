@@ -52,7 +52,6 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
   virtual nsresult NotifyPropertyChanged(nsIRDFResource *resource, 
                     nsIRDFResource *propertyResource, nsIRDFNode *newNode, 
                     nsIRDFNode *oldNode = nullptr);
-  nsresult GetTransactionManager(nsISupportsArray *sources, nsITransactionManager **aTransactionManager);
 
   nsCOMPtr<nsIMsgWindow> mWindow;
 

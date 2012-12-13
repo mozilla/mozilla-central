@@ -484,8 +484,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
 
   if (showAlert)
   {
-    nsCOMPtr<nsISupportsArray> argsArray;
-    rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
+    nsCOMPtr<nsIMutableArray> argsArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
     // pass in the array of folders with unread messages
@@ -493,7 +492,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
     NS_ENSURE_SUCCESS(rv, rv);
     ifptr->SetData(mFoldersWithNewMail);
     ifptr->SetDataIID(&NS_GET_IID(nsISupportsArray));
-    rv = argsArray->AppendElement(ifptr);
+    rv = argsArray->AppendElement(ifptr, false);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // pass in the observer
@@ -502,14 +501,14 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
     nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMessengerOSIntegration*>(this));
     ifptr->SetData(supports);
     ifptr->SetDataIID(&NS_GET_IID(nsIObserver));
-    rv = argsArray->AppendElement(ifptr);
+    rv = argsArray->AppendElement(ifptr, false);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // pass in the animation flag
     nsCOMPtr<nsISupportsPRBool> scriptableUserInitiated (do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     scriptableUserInitiated->SetData(aUserInitiated);
-    rv = argsArray->AppendElement(scriptableUserInitiated);
+    rv = argsArray->AppendElement(scriptableUserInitiated, false);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // pass in the alert origin
@@ -520,7 +519,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
     if (origin && origin >= 0 && origin <= 7)
       scriptableOrigin->SetData(origin);
 
-    rv = argsArray->AppendElement(scriptableOrigin);
+    rv = argsArray->AppendElement(scriptableOrigin, false);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
