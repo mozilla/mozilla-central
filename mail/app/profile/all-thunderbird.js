@@ -11,6 +11,8 @@
 #endif
 #endif
 
+pref("javascript.options.xml.chrome", true);
+
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
