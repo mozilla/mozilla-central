@@ -1101,7 +1101,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
-    nsCOMPtr<nsIArray> servers;  
+    nsCOMPtr<nsIArray> servers;
     rv = accountManager->GetAllServers(getter_AddRefs(servers));
     if (NS_FAILED(rv)) return rv;
   }
