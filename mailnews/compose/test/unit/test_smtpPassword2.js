@@ -3,6 +3,8 @@
  * Extra tests for SMTP passwords (forgetPassword)
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kUser1 = "testsmtp";
 const kUser2 = "testsmtpa";
 const kProtocol = "smtp";
@@ -11,9 +13,6 @@ const kServerUrl = kProtocol + "://" + kHostname;
 
 function run_test()
 {
-  // Login Manager
-  var loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../../data/signons-mailnews1.8-multiple.txt");
 
@@ -35,7 +34,7 @@ function run_test()
   var count = {};
 
   // Test - Check there are two logins to begin with.
-  var logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
+  let logins = Services.logins.findLogins(count, kServerUrl, null, kServerUrl);
 
   do_check_eq(count.value, 2);
 
@@ -50,7 +49,7 @@ function run_test()
   // Test - Remove a login via the incoming server
   smtpServer1.forgetPassword();
 
-  logins = logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
+  logins = Services.logins.findLogins(count, kServerUrl, null, kServerUrl);
 
   // should be one login left for kUser2
   do_check_eq(count.value, 1);
@@ -59,7 +58,7 @@ function run_test()
   // Test - Remove the other login via the incoming server
   smtpServer2.forgetPassword();
 
-  logins = logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
+  logins = Services.logins.findLogins(count, kServerUrl, null, kServerUrl);
 
   // should be one login left for kUser2
   do_check_eq(count.value, 0);

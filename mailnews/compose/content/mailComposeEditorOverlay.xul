@@ -10,6 +10,7 @@
 
   <script type="application/javascript">
   <![CDATA[
+    Components.utils.import("resource://gre/modules/Services.jsm");
 
     var gMsgCompProcessLink = false;
     var gMsgCompInputElement = null;
@@ -17,7 +18,6 @@
     var gMsgCompPrevMozDoNotSendAttribute;
     var gMsgCompAttachSourceElement = null;
     var gMOZDONOTSEND = "moz-do-not-send";
-    var gMsgCompPrefs = null;
 
     function OnLoadOverlay()
     {
@@ -88,13 +88,9 @@
             if (/^\s*file:\/\/\/\/\//i.test(gMsgCompInputElement.value))
             {
               try {
-                if (!gMsgCompPrefs)
-                {
-                  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                              .getService(Components.interfaces.nsIPrefService);
-                  gMsgCompPrefs = prefService.getBranch(null);
-                }
-                if (gMsgCompPrefs && gMsgCompPrefs.getBoolPref("mail.compose.dont_attach_source_of_local_network_links"))
+                let dontAttachPref =
+                  "mail.compose.dont_attach_source_of_local_network_links";
+                if (Services.prefs.getBoolPref(dontAttachPref))
                   attach = false;
               } catch(ex) {};
             }

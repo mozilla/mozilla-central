@@ -7,6 +7,7 @@ var Cc = Components.classes;
 var Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 const MODULE_NAME = 'prompt-helpers';
 
@@ -199,6 +200,8 @@ var gMockPromptService = {
                               kMockPromptServiceName,
                               kPromptServiceContractID,
                               gMockPromptServiceFactory);
+
+    this._resetServicesPrompt();
     this._registered = true;
   },
 
@@ -221,7 +224,14 @@ var gMockPromptService = {
 
     delete this._origFactory;
 
+    this._resetServicesPrompt();
     this._registered = false;
+  },
+
+  _resetServicesPrompt: function() {
+    XPCOMUtils.defineLazyServiceGetter(Services, "prompt",
+                                       kPromptServiceContractID,
+                                       "nsIPromptService");
   },
 };
 

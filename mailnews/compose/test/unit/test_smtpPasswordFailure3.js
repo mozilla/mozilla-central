@@ -8,6 +8,7 @@
  *
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/alertTestUtils.js");
@@ -118,11 +119,10 @@ var URLListener = {
     // Check for ok status.
     do_check_eq(rc, 0);
     // Now check the new password has been saved.
-    let loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
     let count = {};
-    let logins = loginMgr.findLogins(count, "smtp://localhost", null,
-                                   "smtp://localhost");
+    let logins = Services.logins
+                         .findLogins(count, "smtp://localhost", null,
+                                     "smtp://localhost");
 
     do_check_eq(count.value, 1);
     do_check_eq(logins[0].username, kUsername);

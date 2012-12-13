@@ -10,6 +10,7 @@
  * multiple sends, the rest of this test is in test_smtpPasswordFailure2.js.
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/alertTestUtils.js");
@@ -109,10 +110,9 @@ function run_test() {
 
     // Check that we haven't forgetton the login even though we've retried and
     // canceled.
-    let loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
     let count = {};
-    let logins = loginMgr.findLogins(count, "smtp://localhost", null,
+    let logins = Services.logins
+                         .findLogins(count, "smtp://localhost", null,
                                      "smtp://localhost");
 
     do_check_eq(count.value, 1);

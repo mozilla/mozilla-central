@@ -54,8 +54,6 @@ var gSpellChecker = new InlineSpellChecker();
 var gHideMenus;
 var gMsgCompose;
 var gAccountManager;
-var gIOService;
-var gPromptService;
 var gWindowLocked;
 var gContentChanged;
 var gAutoSaving;
@@ -63,7 +61,6 @@ var gCurrentIdentity;
 var defaultSaveOperation;
 var gSendOrSaveOperationInProgress;
 var gCloseWindowAfterSave;
-var gIsOffline;
 var gSessionAdded;
 var gCurrentAutocompleteDirectory;
 var gSetupLdapAutocomplete;
@@ -115,8 +112,6 @@ const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 function InitializeGlobalVariables()
 {
   gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-  gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
   gMsgCompose = null;
   gWindowLocked = false;
@@ -126,7 +121,6 @@ function InitializeGlobalVariables()
   gSendOrSaveOperationInProgress = false;
   gAutoSaving = false;
   gCloseWindowAfterSave = false;
-  gIsOffline = gIOService.offline;
   gSessionAdded = false;
   gCurrentAutocompleteDirectory = null;
   gSetupLdapAutocomplete = false;
@@ -152,8 +146,6 @@ InitializeGlobalVariables();
 function ReleaseGlobalVariables()
 {
   gAccountManager = null;
-  gIOService = null;
-  gPromptService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
   if (gLDAPSession) {
@@ -481,7 +473,7 @@ var defaultController = {
         return !gWindowLocked && !gNumUploadingAttachments;
       },
       doCommand: function() {
-        if (gIOService && gIOService.offline)
+        if (Services.io.offline)
           SendMessageLater();
         else
           SendMessage();
@@ -490,7 +482,8 @@ var defaultController = {
 
     cmd_sendNow: {
       isEnabled: function() {
-        return !gWindowLocked && !gIsOffline && !gNumUploadingAttachments;
+        return !gWindowLocked && !Services.io.offline &&
+               !gNumUploadingAttachments;
       },
       doCommand: function() {
         SendMessage();
@@ -1159,14 +1152,13 @@ uploadListener.prototype = {
 
       // TODO: support actions other than "Upgrade"
       if (displayError) {
-        const prompt = Services.prompt;
         let url = this.cloudProvider.providerUrlForError(aStatusCode);
-        let flags = prompt.BUTTON_POS_0 * prompt.BUTTON_TITLE_OK;
+        let flags = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_OK;
         if (url)
-          flags += prompt.BUTTON_POS_1 * prompt.BUTTON_TITLE_IS_STRING;
-        if (prompt.confirmEx(window, title, msg, flags, null,
-                             bundle.getString("errorCloudFileUpgrade.label"),
-                             null, null, {})) {
+          flags += Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
+        if (Services.prompt.confirmEx(window, title, msg, flags, null,
+                                      bundle.getString("errorCloudFileUpgrade.label"),
+                                      null, null, {})) {
           openLinkExternally(url);
         }
       }
@@ -1444,8 +1436,7 @@ var messageComposeOfflineQuitObserver =
     // sanity checks
     if (aTopic == "network:offline-status-changed")
     {
-      gIsOffline = aData == "offline";
-      MessageComposeOfflineStateChanged(gIsOffline);
+      MessageComposeOfflineStateChanged(Services.io.offline);
 
       try {
         setupLdapAutocompleteSession();
@@ -1470,9 +1461,8 @@ function AddMessageComposeOfflineQuitObserver()
   Services.obs.addObserver(messageComposeOfflineQuitObserver,
                            "quit-application-requested", false);
 
-  gIsOffline = gIOService.offline;
   // set the initial state of the send button
-  MessageComposeOfflineStateChanged(gIsOffline);
+  MessageComposeOfflineStateChanged(Services.io.offline);
 }
 
 function RemoveMessageComposeOfflineQuitObserver()
@@ -1526,55 +1516,47 @@ var directoryServerObserver = {
 }
 
 function AddDirectoryServerObserver(flag) {
-  var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
   if (flag) {
-    branch.addObserver("ldap_2.autoComplete.useDirectory",
-                       directoryServerObserver, false);
-    branch.addObserver("ldap_2.autoComplete.directoryServer",
-                       directoryServerObserver, false);
+    Services.prefs.addObserver("ldap_2.autoComplete.useDirectory",
+                               directoryServerObserver, false);
+    Services.prefs.addObserver("ldap_2.autoComplete.directoryServer",
+                               directoryServerObserver, false);
   }
   else
   {
     var prefstring = "mail.identity." + gCurrentIdentity.key + ".overrideGlobal_Pref";
-    branch.addObserver(prefstring, directoryServerObserver, false);
+    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
     prefstring = "mail.identity." + gCurrentIdentity.key + ".directoryServer";
-    branch.addObserver(prefstring, directoryServerObserver, false);
+    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
   }
 }
 
 function RemoveDirectoryServerObserver(prefstring)
 {
-  var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
   if (!prefstring) {
-    branch.removeObserver("ldap_2.autoComplete.useDirectory",
-                          directoryServerObserver);
-    branch.removeObserver("ldap_2.autoComplete.directoryServer",
-                          directoryServerObserver);
+    Services.prefs.removeObserver("ldap_2.autoComplete.useDirectory",
+                                  directoryServerObserver);
+    Services.prefs.removeObserver("ldap_2.autoComplete.directoryServer",
+                                  directoryServerObserver);
   }
   else
   {
     var str = prefstring + ".overrideGlobal_Pref";
-    branch.removeObserver(str, directoryServerObserver);
+    Services.prefs.removeObserver(str, directoryServerObserver);
     str = prefstring + ".directoryServer";
-    branch.removeObserver(str, directoryServerObserver);
+    Services.prefs.removeObserver(str, directoryServerObserver);
   }
 }
 
 function AddDirectorySettingsObserver()
 {
-  var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-  branch.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver,
-                     false);
+  Services.prefs.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver,
+                             false);
 }
 
 function RemoveDirectorySettingsObserver(prefstring)
 {
-  var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-  branch.removeObserver(prefstring, directoryServerObserver);
+  Services.prefs.removeObserver(prefstring, directoryServerObserver);
 }
 
 function setupLdapAutocompleteSession()
@@ -1610,7 +1592,7 @@ function setupLdapAutocompleteSession()
         }
     }
 
-    if (autocompleteDirectory && !gIsOffline) {
+    if (autocompleteDirectory && !Services.io.offline) {
         // Add observer on the directory server we are autocompleting against
         // only if current server is different from previous.
         // Remove observer if current server is different from previous
@@ -1629,11 +1611,9 @@ function setupLdapAutocompleteSession()
         if (LDAPSession) {
             let url = getPref(autocompleteDirectory + ".uri", true);
 
-            LDAPSession.serverURL =
-              Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService)
-                        .newURI(url, null, null)
-                        .QueryInterface(Components.interfaces.nsILDAPURL);
+            LDAPSession.serverURL = Services.io
+                                            .newURI(url, null, null)
+                                            .QueryInterface(Components.interfaces.nsILDAPURL);
 
             // get the login to authenticate as, if there is one
             //
@@ -1645,7 +1625,7 @@ function setupLdapAutocompleteSession()
 
             try {
                  LDAPSession.saslMechanism = getPref(autocompleteDirectory +
-		    ".auth.saslmech", true);
+                                                     ".auth.saslmech", true);
             } catch (ex) {
                 // don't care if we don't have this pref
             }
@@ -1963,10 +1943,10 @@ function ComposeFieldsReady()
 function handleMailtoArgs(mailtoUrl)
 {
   // see if the string is a mailto url....do this by checking the first 7 characters of the string
-  if (/^mailto:/i.test(mailtoUrl))
+  if (mailtoUrl.startsWith("mailto:"))
   {
     // if it is a mailto url, turn the mailto url into a MsgComposeParams object....
-    var uri = gIOService.newURI(mailtoUrl, null, null);
+    let uri = Services.io.newURI(mailtoUrl, null, null);
 
     if (uri) {
       var composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
@@ -2277,7 +2257,7 @@ function ComposeStartup(recycled, aParams)
             let title = getComposeBundle().getString("errorFileAttachTitle");
             let msg = getComposeBundle().getFormattedString("errorFileAttachMessage",
                                                         [attachmentName]);
-            gPromptService.alert(window, title, msg);
+            Services.prompt.alert(window, title, msg);
           }
         }
       }
@@ -2519,8 +2499,8 @@ function ComposeLoad()
   }
   catch (ex) {
     Components.utils.reportError(ex);
-    gPromptService.alert(window, getComposeBundle().getString("initErrorDlogTitle"),
-                         getComposeBundle().getString("initErrorDlgMessage"));
+    Services.prompt.alert(window, getComposeBundle().getString("initErrorDlogTitle"),
+                          getComposeBundle().getString("initErrorDlgMessage"));
 
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
@@ -2714,12 +2694,12 @@ function GenericSendMessage(msgType)
     // Remind the person if there isn't a subject
     if (subject == "")
     {
-      if (gPromptService.confirmEx(
+      if (Services.prompt.confirmEx(
             window,
             getComposeBundle().getString("subjectEmptyTitle"),
             getComposeBundle().getString("subjectEmptyMessage"),
-            (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-            (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_1),
+            (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+            (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
             getComposeBundle().getString("sendWithEmptySubjectButton"),
             getComposeBundle().getString("cancelSendingButton"),
             null, null, {value:0}) == 1)
@@ -2736,9 +2716,9 @@ function GenericSendMessage(msgType)
     if ((gRemindLater || (getPref("mail.compose.attachment_reminder_aggressive") &&
           document.getElementById("attachmentNotificationBox").currentNotification)) &&
         ShouldShowAttachmentNotification(false)) {
-      var flags = gPromptService.BUTTON_POS_0 * gPromptService.BUTTON_TITLE_IS_STRING +
-                  gPromptService.BUTTON_POS_1 * gPromptService.BUTTON_TITLE_IS_STRING;
-      var hadForgotten = gPromptService.confirmEx(window,
+      let flags = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
+                  Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
+      let hadForgotten = Services.prompt.confirmEx(window,
                             getComposeBundle().getString("attachmentReminderTitle"),
                             getComposeBundle().getString("attachmentReminderMsg"),
                             flags,
@@ -2762,11 +2742,11 @@ function GenericSendMessage(msgType)
     {
       const kDontAskAgainPref = "mail.compose.dontWarnMail2Newsgroup";
       // default to ask user if the pref is not set
-      var dontAskAgain = getPref(kDontAskAgainPref);
+      let dontAskAgain = getPref(kDontAskAgainPref);
       if (!dontAskAgain)
       {
-        var checkbox = {value:false};
-        var okToProceed = gPromptService.confirmCheck(
+        let checkbox = {value:false};
+        let okToProceed = Services.prompt.confirmCheck(
                               window,
                               getComposeBundle().getString("noNewsgroupSupportTitle"),
                               getComposeBundle().getString("recipientDlogMessage"),
@@ -2776,10 +2756,7 @@ function GenericSendMessage(msgType)
           return;
 
         if (checkbox.value) {
-          var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                                  .getService(Components.interfaces.nsIPrefBranch);
-
-          branch.setBoolPref(kDontAskAgainPref, true);
+          Services.prefs.setBoolPref(kDontAskAgainPref, true);
         }
       }
 
@@ -2929,10 +2906,9 @@ function CheckValidEmailAddress(to, cc, bcc)
     invalidStr = bcc;
   if (invalidStr)
   {
-    if (gPromptService)
-      gPromptService.alert(window, getComposeBundle().getString("addressInvalidTitle"),
-                           getComposeBundle().getFormattedString("addressInvalid",
-                                                     [invalidStr], 1));
+    Services.prompt.alert(window, getComposeBundle().getString("addressInvalidTitle"),
+                          getComposeBundle().getFormattedString("addressInvalid",
+                          [invalidStr], 1));
     return false;
   }
   return true;
@@ -2963,12 +2939,12 @@ function SendMessageWithCheck()
     var warn = getPref("mail.warn_on_send_accel_key");
 
     if (warn) {
-        var checkValue = {value:false};
-        var buttonPressed = gPromptService.confirmEx(window,
+        let checkValue = {value:false};
+        let buttonPressed = Services.prompt.confirmEx(window,
               getComposeBundle().getString('sendMessageCheckWindowTitle'),
               getComposeBundle().getString('sendMessageCheckLabel'),
-              (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-              (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1),
+              (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+              (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1),
               getComposeBundle().getString('sendMessageCheckSendButtonLabel'),
               null, null,
               getComposeBundle().getString('CheckMsg'),
@@ -2977,19 +2953,13 @@ function SendMessageWithCheck()
             return;
         }
         if (checkValue.value) {
-            var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                                   .getService(Components.interfaces.nsIPrefBranch);
-
-            branch.setBoolPref("mail.warn_on_send_accel_key", false);
+            Services.prefs.setBoolPref("mail.warn_on_send_accel_key", false);
         }
     }
 
-  let sendInBackground =
-    Components.classes["@mozilla.org/preferences-service;1"]
-              .getService(Components.interfaces.nsIPrefBranch)
-              .getBoolPref("mailnews.sendInBackground");
+  let sendInBackground = Services.prefs.getBoolPref("mailnews.sendInBackground");
 
-  GenericSendMessage(gIsOffline ? nsIMsgCompDeliverMode.Later :
+  GenericSendMessage(Services.io.offline ? nsIMsgCompDeliverMode.Later :
                      (sendInBackground ?
                       nsIMsgCompDeliverMode.Background :
                       nsIMsgCompDeliverMode.Now));
@@ -3408,30 +3378,27 @@ function ComposeCanClose()
   ReleaseAutoCompleteState();
   if (gSendOrSaveOperationInProgress)
   {
-    var result;
+    let result;
 
-    if (gPromptService)
+    let brandBundle = document.getElementById("brandBundle");
+    let brandShortName = brandBundle.getString("brandShortName");
+    let promptTitle = getComposeBundle().getString("quitComposeWindowTitle");
+    let promptMsg = getComposeBundle().getFormattedString("quitComposeWindowMessage2",
+        [brandShortName], 1);
+    let quitButtonLabel = getComposeBundle().getString("quitComposeWindowQuitButtonLabel2");
+    let waitButtonLabel = getComposeBundle().getString("quitComposeWindowWaitButtonLabel2");
+
+    result = Services.prompt.confirmEx(window, promptTitle, promptMsg,
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
+        waitButtonLabel, quitButtonLabel, null, null, {value:0});
+
+    if (result == 1)
     {
-      var brandBundle = document.getElementById("brandBundle");
-      var brandShortName = brandBundle.getString("brandShortName");
-      var promptTitle = getComposeBundle().getString("quitComposeWindowTitle");
-      var promptMsg = getComposeBundle().getFormattedString("quitComposeWindowMessage2",
-                                                [brandShortName], 1);
-      var quitButtonLabel = getComposeBundle().getString("quitComposeWindowQuitButtonLabel2");
-      var waitButtonLabel = getComposeBundle().getString("quitComposeWindowWaitButtonLabel2");
-
-      result = gPromptService.confirmEx(window, promptTitle, promptMsg,
-          (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +
-          (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_1),
-          waitButtonLabel, quitButtonLabel, null, null, {value:0});
-
-      if (result == 1)
-      {
-        gMsgCompose.abort();
-        return true;
-      }
-      return false;
+      gMsgCompose.abort();
+      return true;
     }
+    return false;
   }
 
   // Returns FALSE only if user cancels save action
@@ -3440,45 +3407,43 @@ function ComposeCanClose()
     // call window.focus, since we need to pop up a dialog
     // and therefore need to be visible (to prevent user confusion)
     window.focus();
-    if (gPromptService)
+    let result = Services.prompt
+                         .confirmEx(window,
+                                    getComposeBundle().getString("saveDlogTitle"),
+                                    getComposeBundle().getString("saveDlogMessage"),
+                                    (Services.prompt.BUTTON_TITLE_SAVE * Services.prompt.BUTTON_POS_0) +
+                                    (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1) +
+                                    (Services.prompt.BUTTON_TITLE_DONT_SAVE * Services.prompt.BUTTON_POS_2),
+                                    null, null, null,
+                                    null, {value:0});
+    switch (result)
     {
-      result = gPromptService.confirmEx(window,
-                              getComposeBundle().getString("saveDlogTitle"),
-                              getComposeBundle().getString("saveDlogMessage"),
-                              (gPromptService.BUTTON_TITLE_SAVE * gPromptService.BUTTON_POS_0) +
-                              (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1) +
-                              (gPromptService.BUTTON_TITLE_DONT_SAVE * gPromptService.BUTTON_POS_2),
-                              null, null, null,
-                              null, {value:0});
-      switch (result)
-      {
-        case 0: //Save
-          // Since we're going to save the message, we tell toolkit that
-          // the close command failed, by returning false, and then
-          // we close the window ourselves after the save is done.
-          gCloseWindowAfterSave = true;
-          // We catch the exception because we need to tell toolkit that it
-          // shouldn't close the window, because we're going to close it
-          // ourselves. If we don't tell toolkit that, and then close the window
-          // ourselves, the toolkit code that keeps track of the open windows
-          // gets off by one and the app can close unexpectedly on os's that
-          // shutdown the app when the last window is closed.
-          try {
-            GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
-          }
-          catch (ex) {
-            Components.utils.reportError(ex);
-          }
-          return false;
-        case 1: //Cancel
-          return false;
-        case 2: //Don't Save
-          // don't delete the draft if we didn't start off editing a draft
-          // and the user hasn't explicitly saved it.
-          if (!gEditingDraft && gAutoSaveKickedIn)
-            RemoveDraft();
-          break;
-      }
+      case 0: //Save
+        // Since we're going to save the message, we tell toolkit that
+        // the close command failed, by returning false, and then
+        // we close the window ourselves after the save is done.
+        gCloseWindowAfterSave = true;
+        // We catch the exception because we need to tell toolkit that it
+        // shouldn't close the window, because we're going to close it
+        // ourselves. If we don't tell toolkit that, and then close the window
+        // ourselves, the toolkit code that keeps track of the open windows
+        // gets off by one and the app can close unexpectedly on os's that
+        // shutdown the app when the last window is closed.
+        try {
+          GenericSendMessage(nsIMsgCompDeliverMode.AutoSaveAsDraft);
+        }
+        catch (ex) {
+          Components.utils.reportError(ex);
+        }
+        return false;
+      case 1: //Cancel
+        return false;
+      case 2: //Don't Save
+        // don't delete the draft if we didn't start off editing a draft
+        // and the user hasn't explicitly saved it.
+        if (!gEditingDraft && gAutoSaveKickedIn)
+          RemoveDraft();
+        break;
     }
   }
 
@@ -3553,9 +3518,9 @@ function GetLastAttachDirectory()
   var lastDirectory;
 
   try {
-    var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                           .getService(Components.interfaces.nsIPrefBranch);
-    lastDirectory = branch.getComplexValue(kComposeAttachDirPrefName, Components.interfaces.nsILocalFile);
+    lastDirectory = Services.prefs
+                            .getComplexValue(kComposeAttachDirPrefName,
+                                             Components.interfaces.nsIFile);
   }
   catch (ex) {
     // this will fail the first time we attach a file
@@ -3570,12 +3535,11 @@ function GetLastAttachDirectory()
 function SetLastAttachDirectory(attachedLocalFile)
 {
   try {
-    var file = attachedLocalFile.QueryInterface(Components.interfaces.nsIFile);
-    var parent = file.parent.QueryInterface(Components.interfaces.nsILocalFile);
+    let file = attachedLocalFile.QueryInterface(Components.interfaces.nsIFile);
+    let parent = file.parent.QueryInterface(Components.interfaces.nsIFile);
 
-    var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                           .getService(Components.interfaces.nsIPrefBranch);
-    branch.setComplexValue(kComposeAttachDirPrefName, Components.interfaces.nsILocalFile, parent);
+    Services.prefs.setComplexValue(kComposeAttachDirPrefName,
+                                   Components.interfaces.nsIFile, parent);
   }
   catch (ex) {
     dump("error: SetLastAttachDirectory failed: " + ex + "\n");
@@ -3693,7 +3657,7 @@ function AddAttachments(aAttachments, aCallback)
       // web url that had a query or reference string after the file name and for
       // mailnews urls where the filename is hidden in the url as a &filename=
       // part.
-      var url = gIOService.newURI(attachment.url, null, null);
+      let url = Services.io.newURI(attachment.url, null, null);
       if (url instanceof Components.interfaces.nsIURL &&
           url.fileName && !url.schemeIs("file"))
         item.image = "moz-icon://" + url.fileName;
@@ -3750,22 +3714,20 @@ function MessageGetNumSelectedAttachments()
 
 function AttachPage()
 {
-   if (gPromptService)
-   {
-      var result = {value:"http://"};
-      if (gPromptService.prompt(window,
-                                getComposeBundle().getString("attachPageDlogTitle"),
-                                getComposeBundle().getString("attachPageDlogMessage"),
-                                result,
-                                null,
-                                {value:0}))
-      {
-        var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
-                                   .createInstance(Components.interfaces.nsIMsgAttachment);
-        attachment.url = result.value;
-        AddAttachments([attachment]);
-      }
-   }
+  let result = {value:"http://"};
+  if (Services.prompt
+              .prompt(window,
+                      getComposeBundle().getString("attachPageDlogTitle"),
+                      getComposeBundle().getString("attachPageDlogMessage"),
+                      result,
+                      null,
+                      {value:0}))
+  {
+    let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                               .createInstance(Components.interfaces.nsIMsgAttachment);
+    attachment.url = result.value;
+    AddAttachments([attachment]);
+  }
 }
 
 /**
@@ -3882,19 +3844,19 @@ function RemoveSelectedAttachment()
 
 function RenameSelectedAttachment()
 {
-  var bucket = document.getElementById("attachmentBucket");
+  let bucket = document.getElementById("attachmentBucket");
   if (bucket.selectedItems.length != 1)
     return; // not one attachment selected
 
-  var item = bucket.getSelectedItem(0);
-  var attachmentName = {value: item.attachment.name};
-  if (gPromptService.prompt(
-                     window,
-                     getComposeBundle().getString("renameAttachmentTitle"),
-                     getComposeBundle().getString("renameAttachmentMessage"),
-                     attachmentName,
-                     null,
-                     {value: 0}))
+  let item = bucket.getSelectedItem(0);
+  let attachmentName = {value: item.attachment.name};
+  if (Services.prompt
+              .prompt(window,
+                      getComposeBundle().getString("renameAttachmentTitle"),
+                      getComposeBundle().getString("renameAttachmentMessage"),
+                      attachmentName,
+                      null,
+                      {value: 0}))
   {
     if (attachmentName.value == "")
       return; // name was not filled, bail out
@@ -3919,17 +3881,17 @@ function AttachmentElementHasItems()
 
 function OpenSelectedAttachment()
 {
-  var child;
-  var bucket = document.getElementById("attachmentBucket");
+  let child;
+  let bucket = document.getElementById("attachmentBucket");
   if (bucket.selectedItems.length == 1)
   {
-    var attachmentUrl = bucket.getSelectedItem(0).attachment.url;
+    let attachmentUrl = bucket.getSelectedItem(0).attachment.url;
 
-    var messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
+    let messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
     if (messagePrefix.test(attachmentUrl))
     {
       // we must be dealing with a forwarded attachment, treat this special
-      var msgHdr = gMessenger.messageServiceFromURI(attachmentUrl).messageURIToMsgHdr(attachmentUrl);
+      let msgHdr = gMessenger.messageServiceFromURI(attachmentUrl).messageURIToMsgHdr(attachmentUrl);
       if (msgHdr)
         MailUtils.openMessageInNewWindow(msgHdr);
     }
@@ -3937,15 +3899,15 @@ function OpenSelectedAttachment()
     {
       // turn the url into a nsIURL object then open it
 
-      var url = gIOService.newURI(attachmentUrl, null, null);
+      let url = Services.io.newURI(attachmentUrl, null, null);
       url = url.QueryInterface( Components.interfaces.nsIURL );
 
       if (url)
       {
-        var channel = gIOService.newChannelFromURI(url);
+        let channel = Services.io.newChannelFromURI(url);
         if (channel)
         {
-          var uriLoader = Components.classes["@mozilla.org/uriloader;1"].getService(Components.interfaces.nsIURILoader);
+          let uriLoader = Components.classes["@mozilla.org/uriloader;1"].getService(Components.interfaces.nsIURILoader);
           uriLoader.openURI(channel, true, new nsAttachmentOpener());
         } // if channel
       } // if url
@@ -4335,7 +4297,7 @@ var envelopeDragObserver = {
             // also skip mailto:, since it doesn't make sense
             // to attach and send mailto urls
             try {
-              var scheme = gIOService.extractScheme(rawData);
+              let scheme = Services.io.extractScheme(rawData);
               // don't attach mailto: urls
               if (scheme == "mailto")
                 isValid = false;
@@ -4420,18 +4382,19 @@ function DisplaySaveFolderDlg(folderURI)
   }
 
   if (showDialog){
-    var msgfolder = GetMsgFolderFromUri(folderURI, true);
+    let msgfolder = GetMsgFolderFromUri(folderURI, true);
     if (!msgfolder)
       return;
-    var checkbox = {value:0};
-    var SaveDlgTitle = getComposeBundle().getString("SaveDialogTitle");
-    var dlgMsg = bundle.getFormattedString("SaveDialogMsg",
+    let checkbox = {value:0};
+    let SaveDlgTitle = getComposeBundle().getString("SaveDialogTitle");
+    let dlgMsg = bundle.getFormattedString("SaveDialogMsg",
                                            [msgfolder.name,
                                             msgfolder.server.prettyName]);
 
-    var CheckMsg = bundle.getString("CheckMsg");
-    gPromptService.alertCheck(window, SaveDlgTitle, dlgMsg,
-                              getComposeBundle().getString("CheckMsg"), checkbox);
+    let CheckMsg = bundle.getString("CheckMsg");
+    Services.prompt
+            .alertCheck(window, SaveDlgTitle, dlgMsg,
+                        getComposeBundle().getString("CheckMsg"), checkbox);
     try {
           gCurrentIdentity.showSaveMsgDlg = !checkbox.value;
     }//try
@@ -4779,18 +4742,17 @@ function getMailToolbox()
 
 function getPref(aPrefName, aIsComplex) {
   const Ci = Components.interfaces;
-  const prefB = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Ci.nsIPrefBranch);
   if (aIsComplex) {
-      return prefB.getComplexValue(aPrefName, Ci.nsISupportsString).data;
+    return Services.prefs
+                   .getComplexValue(aPrefName, Ci.nsISupportsString).data;
   }
-  switch (prefB.getPrefType(aPrefName)) {
+  switch (Services.prefs.getPrefType(aPrefName)) {
     case Ci.nsIPrefBranch.PREF_BOOL:
-      return prefB.getBoolPref(aPrefName);
+      return Services.prefs.getBoolPref(aPrefName);
     case Ci.nsIPrefBranch.PREF_INT:
-      return prefB.getIntPref(aPrefName);
+      return Services.prefs.getIntPref(aPrefName);
     case Ci.nsIPrefBranch.PREF_STRING:
-      return prefB.getCharPref(aPrefName);
+      return Services.prefs.getCharPref(aPrefName);
     default: // includes nsIPrefBranch.PREF_INVALID
       return null;
   }
