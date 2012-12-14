@@ -506,9 +506,7 @@ ExplainedStatementWrapper.prototype = {
  *  shutdown we close it.
  */
 function ExplainedStatementProcessor(aDumpPath) {
-  let observerService = Cc["@mozilla.org/observer-service;1"]
-                          .getService(Ci.nsIObserverService);
-  observerService.addObserver(this, "quit-application", false);
+  Services.obs.addObserver(this, "quit-application", false);
 
   this._sqlStack = [];
   this._curOps = [];
@@ -569,9 +567,7 @@ ExplainedStatementProcessor.prototype = {
     this._ostream.write(s, s.length);
     this._ostream.close();
 
-    let observerService = Cc["@mozilla.org/observer-service;1"]
-                            .getService(Ci.nsIObserverService);
-    observerService.removeObserver(this, "quit-application");
+    Services.obs.removeObserver(this, "quit-application");
   }
 };
 
@@ -1017,9 +1013,7 @@ var GlodaDatastore = {
 
     this._nounIDToDef = aNounIDToDef;
 
-    let prefService = Cc["@mozilla.org/preferences-service;1"].
-                        getService(Ci.nsIPrefService);
-    let branch = prefService.getBranch("mailnews.database.global.datastore.");
+    let branch = Services.prefs.getBranch("mailnews.database.global.datastore.");
     this._prefBranch = branch;
 
     // Not sure the weak reference really makes a difference given that we are a
@@ -1029,14 +1023,8 @@ var GlodaDatastore = {
     this.observe(null, "nsPref:changed", "explainToPath");
 
     // Get the path to our global database
-    var dirService = Cc["@mozilla.org/file/directory_service;1"].
-                     getService(Ci.nsIProperties);
-    var dbFile = dirService.get("ProfD", Ci.nsIFile);
+    var dbFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
     dbFile.append("global-messages-db.sqlite");
-
-    // Get the storage (sqlite) service
-    var dbService = Cc["@mozilla.org/storage/service;1"].
-                    getService(Ci.mozIStorageService);
 
     var dbConnection;
 
@@ -1054,13 +1042,13 @@ var GlodaDatastore = {
     // Create the file if it does not exist
     if (!dbFile.exists()) {
       this._log.debug("Creating database because it doesn't exist.");
-      dbConnection = this._createDB(dbService, dbFile);
+      dbConnection = this._createDB(dbFile);
     }
     // It does exist, but we (someday) might need to upgrade the schema
     else {
       // (Exceptions may be thrown if the database is corrupt)
       try {
-        dbConnection = dbService.openUnsharedDatabase(dbFile);
+        dbConnection = Services.storage.openUnsharedDatabase(dbFile);
         let cacheSize = this._determineCachePages(dbConnection);
         // see _createDB...
         dbConnection.executeSimpleSQL("PRAGMA cache_size = "+cacheSize);
@@ -1091,8 +1079,7 @@ var GlodaDatastore = {
           }
           // too far from the future, nuke it.
           else {
-            dbConnection = this._nukeMigration(dbService, dbFile,
-                                               dbConnection);
+            dbConnection = this._nukeMigration(dbFile, dbConnection);
           }
         }
         // - database from the past!  migrate it, possibly.
@@ -1100,7 +1087,7 @@ var GlodaDatastore = {
           this._log.debug("Need to migrate database.  (DB version: " +
             this._actualSchemaVersion + " desired version: " +
             this._schemaVersion);
-          dbConnection = this._migrate(dbService, dbFile,
+          dbConnection = this._migrate(dbFile,
                                        dbConnection,
                                        this._actualSchemaVersion,
                                        this._schemaVersion);
@@ -1122,7 +1109,7 @@ var GlodaDatastore = {
           this._log.warn("Database was corrupt, removing the old one.");
           dbFile.remove(false);
           this._log.warn("Removed old database, creating a new one.");
-          dbConnection = this._createDB(dbService, dbFile);
+          dbConnection = this._createDB(dbFile);
         }
         else {
           this._log.error("Unexpected error when trying to open the database:",
@@ -1307,8 +1294,8 @@ var GlodaDatastore = {
   /**
    * Create our database; basically a wrapper around _createSchema.
    */
-  _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
-    var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
+  _createDB: function gloda_ds_createDB(aDBFile) {
+    var dbConnection = Services.storage.openUnsharedDatabase(aDBFile);
     // We now follow the Firefox strategy for places, which mainly consists in
     //  picking a default 32k page size, and then figuring out the amount of
     //  cache accordingly. The default 32k come from mozilla/toolkit/storage,
@@ -1447,14 +1434,13 @@ var GlodaDatastore = {
     }
   },
 
-  _nukeMigration: function gloda_ds_nukeMigration(aDBService, aDBFile,
-                                                  aDBConnection) {
+  _nukeMigration: function gloda_ds_nukeMigration(aDBFile, aDBConnection) {
     aDBConnection.close();
     aDBFile.remove(false);
     this._log.warn("Global database has been purged due to schema change.  " +
                    "old version was " + this._actualSchemaVersion +
                    ", new version is: " + this._schemaVersion);
-    return this._createDB(aDBService, aDBFile);
+    return this._createDB(aDBFile);
   },
 
   /**
@@ -1463,7 +1449,7 @@ var GlodaDatastore = {
    *  is not a time machine!  If we need to blow away the database to get to the
    *  most recent version, then that's the sum total of the migration!
    */
-  _migrate: function gloda_ds_migrate(aDBService, aDBFile, aDBConnection,
+  _migrate: function gloda_ds_migrate(aDBFile, aDBConnection,
                                       aCurVersion, aNewVersion) {
 
     // version 12:
@@ -1507,7 +1493,7 @@ var GlodaDatastore = {
 
     // nuke if prior to 26
     if (aCurVersion < 26)
-      return this._nukeMigration(aDBService, aDBFile, aDBConnection);
+      return this._nukeMigration(aDBFile, aDBConnection);
 
     // They must be desiring our "a.contact is undefined" fix!
     // This fix runs asynchronously as the first indexing job the indexer ever

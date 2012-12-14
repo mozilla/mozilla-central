@@ -95,9 +95,8 @@
           <![CDATA[
           if (!this._boundaryCutoff) {
             this._boundaryCutoff =
-              Components.classes["@mozilla.org/preferences-service;1"].
-              getService(Components.interfaces.nsIPrefBranch).
-              getIntPref("toolkit.autocomplete.richBoundaryCutoff");
+              Services.prefs
+                      .getIntPref("toolkit.autocomplete.richBoundaryCutoff");
           }
           return this._boundaryCutoff;
           ]]>
@@ -422,9 +421,7 @@
         <![CDATA[
             let ellipsis = "\u2026";
             try {
-              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch).
-                getComplexValue("intl.ellipsis",
+              ellipsis = Services.prefs.getComplexValue("intl.ellipsis",
                   Components.interfaces.nsIPrefLocalizedString).data;
             } catch (ex) {
               // Do nothing.. we already have a default
@@ -514,9 +511,7 @@
         <![CDATA[
             let ellipsis = "\u2026";
             try {
-              ellipsis = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch).
-                getComplexValue("intl.ellipsis",
+              ellipsis = Services.prefs.getComplexValue("intl.ellipsis",
                   Components.interfaces.nsIPrefLocalizedString).data;
             } catch (ex) {
               // Do nothing.. we already have a default

@@ -12,6 +12,8 @@
  * the nuke path! oh the irony!) so we don't need to get all hardcore.
  **/
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // we need the directory service
 load("../../../../resources/mailDirService.js");
 
@@ -29,16 +31,11 @@ var BAD_DB_VERSION_TO_USE = 2;
  */
 function make_out_of_date_database() {
     // Get the path to our global database
-    var dirService = Cc["@mozilla.org/file/directory_service;1"].
-                     getService(Ci.nsIProperties);
-    var dbFile = dirService.get("ProfD", Ci.nsIFile);
+    var dbFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
     dbFile.append("global-messages-db.sqlite");
 
-    // Get the storage (sqlite) service
-    var dbService = Cc["@mozilla.org/storage/service;1"].
-                    getService(Ci.mozIStorageService);
     // Create the database
-    var dbConnection = dbService.openUnsharedDatabase(dbFile);
+    var dbConnection = Services.storage.openUnsharedDatabase(dbFile);
     dbConnection.schemaVersion = BAD_DB_VERSION_TO_USE;
 
     // Close the database (will throw if there's a problem closing)

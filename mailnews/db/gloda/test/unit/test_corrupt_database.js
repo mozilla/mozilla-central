@@ -17,6 +17,8 @@ load("../../../../resources/mailTestUtils.js");
 load("../../../../resources/logHelper.js");
 load("../../../../resources/asyncTestUtils.js");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // -- Do configure the gloda prefs though...
 // yes to indexing
 Services.prefs.setBoolPref("mailnews.database.global.indexer.enabled",
@@ -73,9 +75,7 @@ Log4Moz.repository.rootLogger.addAppender(countingAppender);
  */
 function test_corrupt_databases_get_reported_and_blown_away() {
   // - get the file path
-  let dirService = Cc["@mozilla.org/file/directory_service;1"]
-                     .getService(Ci.nsIProperties);
-  let dbFile = dirService.get("ProfD", Ci.nsIFile);
+  let dbFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
   dbFile.append("global-messages-db.sqlite");
 
   // - protect dangerous people from themselves

@@ -309,8 +309,7 @@ var GlodaIndexer = {
 
     this._callbackHandle.init();
 
-    if (Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService)
-          .offline)
+    if (Services.io.offline)
       this._suppressIndexing = true;
 
     // create the timer that drives our intermittent indexing
@@ -333,14 +332,10 @@ var GlodaIndexer = {
     }
 
     // register for shutdown notifications
-    let observerService = Cc["@mozilla.org/observer-service;1"]
-                            .getService(Ci.nsIObserverService);
-    observerService.addObserver(this, "quit-application", false);
+    Services.obs.addObserver(this, "quit-application", false);
 
     // figure out if event-driven indexing should be enabled...
-    let prefService = Cc["@mozilla.org/preferences-service;1"].
-                        getService(Ci.nsIPrefService);
-    let branch = prefService.getBranch("mailnews.database.global.indexer.");
+    let branch = Services.prefs.getBranch("mailnews.database.global.indexer.");
     let eventDrivenEnabled = false; // default
     let performInitialSweep = true; // default
     try {
@@ -493,10 +488,7 @@ var GlodaIndexer = {
   set enabled(aEnable) {
     if (!this._enabled && aEnable) {
       // register for offline notifications
-      let observerService = Cc["@mozilla.org/observer-service;1"].
-                              getService(Ci.nsIObserverService);
-      observerService.addObserver(this, "network:offline-status-changed",
-                                  false);
+      Services.obs.addObserver(this, "network:offline-status-changed", false);
 
       // register for idle notification
       this._idleService.addIdleObserver(this, this._indexIdleThresholdSecs);
@@ -533,9 +525,7 @@ var GlodaIndexer = {
       }
 
       // remove offline observer
-      let observerService = Cc["@mozilla.org/observer-service;1"].
-                              getService(Ci.nsIObserverService);
-      observerService.removeObserver(this, "network:offline-status-changed");
+      Services.obs.removeObserver(this, "network:offline-status-changed");
 
       // remove idle
       this._idleService.removeIdleObserver(this, this._indexIdleThresholdSecs);

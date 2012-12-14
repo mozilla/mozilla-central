@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
 var gSearchSession;
@@ -55,12 +56,9 @@ function searchOnLoad()
   gSearchSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
 
   // initialize a flag for phonetic name search
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  var prefBranch = prefService.getBranch(null);
   gSearchPhoneticName =
-        prefBranch.getComplexValue("mail.addr_book.show_phonetic_fields", 
-                                   Components.interfaces.nsIPrefLocalizedString).data;
+        Services.prefs.getComplexValue("mail.addr_book.show_phonetic_fields",
+                                       Components.interfaces.nsIPrefLocalizedString).data;
 
   if (window.arguments && window.arguments[0])
     SelectDirectory(window.arguments[0].directory);

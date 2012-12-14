@@ -4,6 +4,8 @@
 
 const EXPORTED_SYMBOLS = ['Log4Moz'];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
@@ -83,8 +85,7 @@ let Log4Moz = {
 
     consoleLevel = consoleLevel || -1;
     dumpLevel = dumpLevel || -1;
-    let branch = Cc["@mozilla.org/preferences-service;1"].
-                 getService(Ci.nsIPrefService).getBranch(loggername + ".logging.");
+    let branch = Services.prefs.getBranch(loggername + ".logging.");
     if (branch)
     {
       try {
@@ -690,8 +691,7 @@ ConsoleAppender.prototype = {
   },
 
   doAppend: function CApp_doAppend(message) {
-    Cc["@mozilla.org/consoleservice;1"].
-      getService(Ci.nsIConsoleService).logStringMessage(message);
+    Services.console.logStringMessage(message);
   }
 };
 
@@ -819,8 +819,7 @@ function SocketAppender(host, port, formatter, timeoutDelay) {
 
   this._socketService = Cc["@mozilla.org/network/socket-transport-service;1"]
                           .getService(Ci.nsISocketTransportService);
-  this._mainThread =
-    Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
+  this._mainThread = Services.tm.mainThread;
 }
 SocketAppender.prototype = {
   __proto__: Appender.prototype,

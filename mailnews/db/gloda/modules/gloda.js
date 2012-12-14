@@ -21,6 +21,7 @@ Cu.import("resource:///modules/gloda/utils.js");
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 /**
  * @see |Gloda.BadItemContentsError|
@@ -161,9 +162,7 @@ var Gloda = {
 
     try {
       // figure out if event-driven indexing should be enabled...
-      let prefService = Cc["@mozilla.org/preferences-service;1"].
-                          getService(Ci.nsIPrefService);
-      let branch = prefService.getBranch("mailnews.database.global.logging.");
+      let branch = Services.prefs.getBranch("mailnews.database.global.logging.");
       enableConsoleLogging = branch.getBoolPref("console");
       enableDumpLogging = branch.getBoolPref("dump");
       enableUpstreamLogging = branch.getBoolPref("upstream");
@@ -188,9 +187,7 @@ var Gloda = {
     }
 
     if (considerNetLogging) {
-      let file = Cc["@mozilla.org/file/directory_service;1"]
-                    .getService(Ci.nsIProperties)
-                    .get("TmpD", Ci.nsIFile);
+      let file = Services.dirsvc.get("TmpD", Ci.nsIFile);
       file.append("chainsaw.ptr");
       if (file.exists()) {
         let data = IOUtils.loadFileToString(file);

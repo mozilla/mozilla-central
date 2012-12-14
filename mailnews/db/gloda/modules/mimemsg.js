@@ -12,6 +12,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const EMITTER_MIME_CODE = "application/x-js-mime-message";
@@ -41,8 +42,7 @@ let shutdownCleanupObserver = {
     if (this._initialized)
       return;
 
-    Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
-      .addObserver(this, "quit-application", false);
+    Services.obs.addObserver(this, "quit-application", false);
 
     this._initialized = true;
   },
@@ -50,8 +50,7 @@ let shutdownCleanupObserver = {
   observe: function mimemsg_shutdownCleanupObserver_observe(
       aSubject, aTopic, aData) {
     if (aTopic == "quit-application") {
-      Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService)
-        .removeObserver(this, "quit-application");
+      Services.obs.removeObserver(this, "quit-application");
 
       for each (let [, streamListener] in
                 Iterator(activeStreamListeners)) {
