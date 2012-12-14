@@ -47,6 +47,7 @@
 #include "mozilla/LookAndFeel.h"
 #endif
 #include "mozilla/Services.h"
+#include "nsIMutableArray.h"
 
 #include "nsToolkitCompsCID.h"
 #include <stdlib.h>
