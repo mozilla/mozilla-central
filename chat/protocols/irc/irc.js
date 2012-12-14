@@ -1313,7 +1313,7 @@ ircAccount.prototype = {
                   this._encoding + ".");
         this._socket.sendData(aMessage, aLoggedData);
       } catch(e) {
-        this.ERROR("Socket error: " + e);
+        this.ERROR("Socket error:", e);
         this.gotDisconnected(Ci.prplIAccount.ERROR_NETWORK_ERROR,
                              _("connection.error.lost"));
       }

@@ -22,7 +22,20 @@ Cu.import("resource:///modules/imServices.jsm");
 
 const kLogLevelPref = "purple.debug.loglevel";
 
-function scriptError(aModule, aLevel, aMessage) {
+/**
+ * Creates an nsIScriptError instance and logs it.
+ *
+ * @param aModule
+ *        string identifying the module within which the error occurred.
+ * @param aLevel
+ *        the error level as defined in imIDebugMessage.
+ * @param aMessage
+ *        the error message string.
+ * @param aOriginalError
+ *        (optional) JS Error object containing the location where the
+ *        actual error occurred. Its error message is appended to aMessage.
+ */
+function scriptError(aModule, aLevel, aMessage, aOriginalError) {
   // Figure out the log level, based on the module and the prefs set.
   // The module name is split on periods, and if no pref is set the pref with
   // the last section removed is attempted (until no sections are left, using
@@ -54,8 +67,18 @@ function scriptError(aModule, aLevel, aMessage) {
       sourceLine += ": ";
     sourceLine += caller.name;
   }
-  scriptError.init(aMessage, caller.filename, sourceLine, caller.lineNumber,
-                   null, flag, "component javascript");
+  let fileName = caller.filename;
+  let lineNumber = caller.lineNumber;
+  if (aOriginalError) {
+    aMessage += "\n" + (aOriginalError.message || aOriginalError);
+    if (aOriginalError.fileName)
+      fileName = aOriginalError.fileName;
+    if (aOriginalError.lineNumber)
+      lineNumber = aOriginalError.lineNumber
+  }
+  scriptError.init(aMessage, fileName, sourceLine, lineNumber, null, flag,
+                   "component javascript");
+
   if (logLevel <= aLevel) {
     dump(aModule + ": " + aMessage + "\n");
     if (aLevel == Ci.imIDebugMessage.LEVEL_LOG && logLevel == aLevel)

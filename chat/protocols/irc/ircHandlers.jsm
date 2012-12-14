@@ -108,8 +108,7 @@ var ircHandlers = {
         // We want to catch an error here because one of our handlers are
         // broken, if we don't catch the error, the whole IRC plug-in will die.
         aAccount.ERROR("Error running command " + aCommand + " with handler " +
-                       handler.name + ":\n" + JSON.stringify(aMessage) + "\n" +
-                       e);
+                       handler.name + ":\n" + JSON.stringify(aMessage), e);
       }
     }
 
