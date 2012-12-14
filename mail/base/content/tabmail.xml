@@ -38,8 +38,8 @@
     -
     - Consumer code should use the following methods:
     - * openTab(aTabModeName, aArgs)
-    -     Open a tab of the given "mode", passing the provided arguments as an 
-    -     object. The tab type author should tell you the modes they implement 
+    -     Open a tab of the given "mode", passing the provided arguments as an
+    -     object. The tab type author should tell you the modes they implement
     -     and the required/optional arguments.
     -
     -     Each tab type can define the set of arguments that it expects, but
@@ -51,38 +51,38 @@
     -       be switched to automatically by tabmail if the new tab is immediately
     -       closed.
     -
-    - * closeTab(aOptionalTabIndexInfoOrTabNode,aNoUndo): 
-    -     If no argument is provided, the current tab is closed. The first 
+    - * closeTab(aOptionalTabIndexInfoOrTabNode,aNoUndo):
+    -     If no argument is provided, the current tab is closed. The first
     -     argument specifies a specific tab to be closed. It can be a tab index,
-    -     a tab info object, or a tab's DOM element. In case the second 
+    -     a tab info object, or a tab's DOM element. In case the second
     -     argument is true, the closed tab can't be restored by calling
-    -     undoCloseTab(). 
-    -     Please note, some tabs cannot be closed. Trying to close such tab, 
+    -     undoCloseTab().
+    -     Please note, some tabs cannot be closed. Trying to close such tab,
     -     willd fail silently.
-    - * undoCloseTab(): 
-    -     Restores the most recent tab closed by the user. 
-    - * switchToTab(aTabIndexInfoOrTabNode): 
-    -     Switch to the tab by providing a tab index, tab info object, or tab 
-    -     node (tabmail-tab bound element.) You can also just poke at 
+    - * undoCloseTab():
+    -     Restores the most recent tab closed by the user.
+    - * switchToTab(aTabIndexInfoOrTabNode):
+    -     Switch to the tab by providing a tab index, tab info object, or tab
+    -     node (tabmail-tab bound element.) You can also just poke at
     -     tabmail.tabContainer and its selectedIndex and selectedItem
     -     properties.
     - * setTabIcon(aTabNodeorInfo, aIcon): Sets the tab icon to the specified
     -     url or removes the icon if no url is specified. Note that this may
     -     overrride css provided images.
     - * replaceTabWithWindow(aTab):
-    -     Detaches a tab from this tabbar to new window. The argument "aTab" is 
-    -     required and can be a tab index, a tab info object or a tabs's 
+    -     Detaches a tab from this tabbar to new window. The argument "aTab" is
+    -     required and can be a tab index, a tab info object or a tabs's
     -     DOM element. Calling this method works only for tabs implementing
     -     session restore.
     - * moveTabTo(aTab,aIndex):
     -     moves the given tab to the given Index. The first argument can be
     -     a tab index, a tab info object or a tab's DOM element. The second
     -     argument specifies the tabs new absolute position within the tabbar.
-    - 
+    -
     - Less-friendly consumer methods:
     - * persistTab(tab):
-    -     serializes a tab into an object, by passing  a tab info object as 
-    -     argument. It is used for session restore and moving tabs between 
+    -     serializes a tab into an object, by passing  a tab info object as
+    -     argument. It is used for session restore and moving tabs between
     -     windows. Returns null in case persist failes.
     - * removeCurrentTab():
     -     Close the current tab.
@@ -142,7 +142,7 @@
     -     called if the mode does not provide the functions.  Note that because
     -     the 'this' variable passed to the functions will always reference the
     -     tab type definition (rather than the mode definition), the mode
-    -     functions can defer to the tab type functions by calling 
+    -     functions can defer to the tab type functions by calling
     -     this.functionName().  (This should prove convenient.)
     - Mode definition attributes:
     - * type: The "type" attribute to set on the displayed tab for CSS purposes.
@@ -339,7 +339,7 @@
         <body><![CDATA[
           if (aTabType.name in this.tabTypes)
             return;
-        
+
           this.tabTypes[aTabType.name] = aTabType;
           for (let [modeName, modeDetails] in Iterator(aTabType.modes)) {
             modeDetails.name = modeName;
@@ -565,11 +565,11 @@
             if (!background)
               tabMonitor.onTabSwitched(tab, oldTab);
           }
-          
+
           // clear _mostRecentTabInfo; we only needed it during the call to
           //  openTab.
           this._mostRecentTabInfo = null;
-          
+
           t.setAttribute("label", tab.title);
 
           if (!background)
@@ -654,35 +654,35 @@
       <method name="undoCloseTab">
         <parameter name="aIdx"/>
         <body><![CDATA[
-            
+
           if (!this.recentlyClosedTabs.length)
             return;
-        
+
           if (aIdx >= this.recentlyClosedTabs.length)
             aIdx = this.recentlyClosedTabs.length-1;
 
-          // splice always returns an array 
+          // splice always returns an array
           let history = (this.recentlyClosedTabs.splice(aIdx,1))[0];
-          
+
           if (!history.tab)
             return;
 
           if (!this.restoreTab(JSON.parse(history.tab)))
             return;
-          
-          let idx = Math.min(history.idx,this.tabInfo.length);          
+
+          let idx = Math.min(history.idx,this.tabInfo.length);
           let tab = this.tabContainer.childNodes[this.tabInfo.length - 1];
           this.moveTabTo(tab, idx);
-          
+
           this.switchToTab(tab);
-          
+
         ]]></body>
       </method>
       <method name="closeTab">
         <parameter name="aOptTabIndexNodeOrInfo"/>
         <parameter name="aNoUndo" />
         <body><![CDATA[
-        
+
             let [iTab, tab, tabNode] =
               this._getTabContextForTabbyThing(aOptTabIndexNodeOrInfo, true);
 
@@ -712,7 +712,7 @@
                   { tab: JSON.stringify(session), idx: iTab, title: tab.title });
 
                 if (this.recentlyClosedTabs.length > 10)
-                  this.recentlyClosedTabs.pop();    
+                  this.recentlyClosedTabs.pop();
               }
             }
 
@@ -792,106 +792,106 @@
               return null;
 
             let tab = this._getTabContextForTabbyThing(aTab, false)[1];
-                                                         
+
             if (!tab.canClose)
               return null;
-            
+
             // We use Json and session restore transfer the tab to the new window.
             tab = this.persistTab(tab);
             if (!tab)
               return null;
-        
-            // Converting to JSON and back again creates clean javascript 
+
+            // Converting to JSON and back again creates clean javascript
             // object with absolutely no references to our current window.
-            let tab = JSON.parse(JSON.stringify(tab));            
-            
+            let tab = JSON.parse(JSON.stringify(tab));
+
             this.closeTab(aTab,true);
-                      
+
             return window.openDialog("chrome://messenger/content/", "_blank",
-               "chrome,dialog=no,all", null,  
+               "chrome,dialog=no,all", null,
                { action : "restore", tabs: [tab] } ).focus();
           ]]>
         </body>
-      </method>      
+      </method>
       <method name="moveTabTo">
         <parameter name="aTab"/>
         <parameter name="aIndex"/>
         <body><![CDATA[
-          
+
           if ((!aTab) || (aTab.tagName != "tab"))
             return -1;
 
           let oldIdx = this.tabContainer.getIndexOfItem(aTab);
           if (oldIdx < 0)
             return -1;
-          
+
           if (oldIdx == aIndex)
             return -1;
-            
+
           // Cache the old tabInfo
-          let tab = this.tabInfo[oldIdx];          
-          
+          let tab = this.tabInfo[oldIdx]
+
           if (!tab)
             return -1;
-                     
+
           // remove the entries form tabInfo, tabMode and the tabContainer
           this.tabInfo.splice(oldIdx, 1);
           tab.mode.tabs.splice(tab.mode.tabs.indexOf(tab), 1);
           this.tabContainer.removeChild(aTab);
-          
+
 
           // as we removed items, we might need to update indices
           if (oldIdx < aIndex)
             aIndex --;
-                       
+
           // Read it into tabInfo and the tabContainer
           this.tabInfo.splice(aIndex, 0, tab);
           this.tabContainer.insertBefore(aTab, this.tabContainer.childNodes[aIndex]);
-          
+
           // Now it's getting a bit ugly, as tabModes stores redundant
           // information we need to get it in sync with tabInfo.
-          //              
-          // As tabModes.tabs is a subset of tabInfo, every tab can be mapped 
-          // to a tabInfo index. So we check for each tab in tabModes if it is 
-          // directly in front of our moved tab. We do this by looking up the 
+          //
+          // As tabModes.tabs is a subset of tabInfo, every tab can be mapped
+          // to a tabInfo index. So we check for each tab in tabModes if it is
+          // directly in front of our moved tab. We do this by looking up the
           // index in tabInfo and compare it with the moved tab's index. If we
           // found our tab, we insert the moved tab directly behind into tabModes
-          
-          // In case find no tab we simply append it 
+
+          // In case find no tab we simply append it
           let modeIdx = tab.mode.tabs.length+1;
-          
+
           for (let i = 0; i < tab.mode.tabs.length; i++) {
-                    
+
             if (this.tabInfo.indexOf(tab.mode.tabs[i]) < aIndex)
               continue;
-              
+
             modeIdx = i;
             break;
           }
-                            
-          tab.mode.tabs.splice(modeIdx, 0, tab);          
-          
+
+          tab.mode.tabs.splice(modeIdx, 0, tab);
+
           return aIndex;
          ]]>
          </body>
        </method>
        <method name="persistTab">
-         <parameter name="tab"/>        
-         <body><![CDATA[              
+         <parameter name="tab"/>
+         <body><![CDATA[
            /* Returns null in case persist fails */
-           
+
            let persistFunc = tab.mode.persistTab || tab.mode.tabType.persistTab;
-        
+
            // if we can't restore the tab we can't move it
            if (!persistFunc)
-             return null; 
-                 
+             return null;
+
            //  If there is a non-null tab-state, then persisting succeeded and
            //  we should store it.  We store the tab's persisted state in its
            //  own distinct object rather than mixing things up in a dictionary
            //  to avoid bugs and because we may eventually let extensions store
            //  per-tab information in the persisted state.
-           
+
            let tabState;
            // Wrap this in an exception handler so that if the persistence
            // logic fails, things like tab closure still run to completion.
@@ -907,7 +907,7 @@
 
            if (!tabState)
              return null;
-             
+
            let ext = {};
 
            for each (let [i, tabMonitor] in Iterator(this.tabMonitors)) {
@@ -917,11 +917,11 @@
                  ext[tabMonitor.monitorName] = monState;
              }
            }
-           
-           return {mode: tab.mode.name, state: tabState, ext: ext}           
+
+           return {mode: tab.mode.name, state: tabState, ext: ext}
         ]]></body>
       </method>
-      
+
       <method name="persistTabs">
         <body><![CDATA[
           /**
@@ -941,18 +941,18 @@
             // If our currently selected tab gets persisted, we will update this
             selectedIndex: null,
           };
-          
+
           let tabs = state.tabs = [];
 
           for each (let [iTab, tab] in Iterator(this.tabInfo)) {
-          
+
             let persistTab = this.persistTab(tab);
-            
+
             if (!persistTab)
               continue;
-            
+
             tabs.push(persistTab);
-            
+
             // Mark this persisted tab as selected
             if (iTab == this.tabContainer.selectedIndex)
               state.selectedIndex = tabs.length - 1;
@@ -960,33 +960,33 @@
 
           return state;
         ]]></body>
-      </method>      
+      </method>
       <method name="restoreTab">
         <parameter name="aState"/>
         <body><![CDATA[
-                    
-          // if we no longer know about the mode, we can't restore the tab        
-          let mode = this.tabModes[aState.mode];        
+
+          // if we no longer know about the mode, we can't restore the tab
+          let mode = this.tabModes[aState.mode];
           if (!mode)
             return false;
-          
+
           let restoreFunc = mode.restoreTab || mode.tabType.restoreTab;
-        
+
           if (!restoreFunc)
             return false;
-            
+
           // normalize the state to have an ext attribute if it does not.
           if (!("ext" in aState))
             aState.ext = {};
-            
-          this._restoringTabState = aState;  
+
+          this._restoringTabState = aState;
           restoreFunc.call(mode.tabType, this, aState.state);
           this._restoringTabState = null;
-          
+
           return true;
-          
+
         ]]></body>
-      </method>          
+      </method>
       <method name="restoreTabs">
         <parameter name="aPersistedState"/>
         <parameter name="aDontRestoreFirstTab"/>
@@ -1000,10 +1000,10 @@
           let tabs = aPersistedState.tabs;
           let indexToSelect = null;
           for each (let [iTab, tabState] in Iterator(tabs)) {
-          
+
             if (tabState.state.firstTab && aDontRestoreFirstTab)
               tabState.state.dontRestoreFirstTab = aDontRestoreFirstTab;
-          
+
             if (!this.restoreTab(tabState))
               continue;
 
@@ -1012,7 +1012,7 @@
             if (iTab == aPersistedState.selectedIndex)
               indexToSelect = this.tabInfo.length - 1;
           }
-          
+
           if (indexToSelect != null && !aDontRestoreFirstTab)
             this.tabContainer.selectedIndex = indexToSelect;
           else
@@ -1027,7 +1027,7 @@
           <![CDATA[
             for (var i = 0; i < this.tabInfo.length; i++) {
               let tab = this.tabInfo[i];
-              
+
               let tabCloseFunc = tab.mode.closeTab || tab.mode.tabType.closeTab;
               tabCloseFunc.call(tab.mode.tabType, tab);
             }
@@ -1104,7 +1104,7 @@
             {
               if (this.currentTabInfo)
                 this.saveCurrentTabState();
-              
+
               let oldTab = this.currentTabInfo;
               let tab = this.currentTabInfo =
                 this.tabInfo[this.tabContainer.selectedIndex];
@@ -1147,7 +1147,7 @@
             if (!this.currentTabInfo)
               this.currentTabInfo = this.tabInfo[0];
             let tab = this.currentTabInfo;
-            
+
             // save the old tab state before we change the current tab
             let saveTabFunc = tab.mode.saveTabState ||
                               tab.mode.tabType.saveTabState;
@@ -1556,9 +1556,9 @@
         <children/>
       </xul:scrollbox>
       <xul:stack align="center" pack="end" class="scrollbutton-down-stack">
-        <xul:hbox flex="1" class="scrollbutton-down-box" 
+        <xul:hbox flex="1" class="scrollbutton-down-box"
                            collapsed="true" anonid="down-box"/>
-        <xul:hbox flex="1" class="scrollbutton-down-box-animate" 
+        <xul:hbox flex="1" class="scrollbutton-down-box-animate"
                            collapsed="true" anonid="down-box-animate"/>
         <xul:toolbarbutton class="scrollbutton-down" collapsed="true"
                            xbl:inherits="orient"
@@ -1611,8 +1611,8 @@
           return;
 
         // fix for bug #352353
-        // unlike the scrollup button on the tab strip (which is a 
-        // simple toolbarbutton) the scrolldown button is 
+        // unlike the scrollup button on the tab strip (which is a
+        // simple toolbarbutton) the scrolldown button is
         // a more complicated stack of boxes and a toolbarbutton
         // so that we can animate when a tab is opened offscreen.
         // in order to style the box with the actual background image
@@ -1662,28 +1662,26 @@
     <implementation implements="nsITimerCallback, nsIDOMEventListener">
       <constructor>
         <![CDATA[
-          var pb2 =
-              Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
+          Components.utils.import("resource://gre/modules/Services.jsm");
 
           try {
-            this.mTabMinWidth = pb2.getIntPref("mail.tabs.tabMinWidth");
+            this.mTabMinWidth = Services.prefs.getIntPref("mail.tabs.tabMinWidth");
           } catch (e) {
           }
           try {
-            this.mTabMaxWidth = pb2.getIntPref("mail.tabs.tabMaxWidth");
+            this.mTabMaxWidth = Services.prefs.getIntPref("mail.tabs.tabMaxWidth");
           } catch (e) {
           }
           try {
-            this.mTabClipWidth = pb2.getIntPref("mail.tabs.tabClipWidth");
+            this.mTabClipWidth = Services.prefs.getIntPref("mail.tabs.tabClipWidth");
           } catch (e) {
           }
           try {
-            this.mCloseButtons = pb2.getIntPref("mail.tabs.closeButtons");
+            this.mCloseButtons = Services.prefs.getIntPref("mail.tabs.closeButtons");
           } catch (e) {
           }
           try {
-            this.mAutoHide = pb2.getBoolPref("mail.tabs.autoHide");
+            this.mAutoHide = Services.prefs.getBoolPref("mail.tabs.autoHide");
           } catch (e) {
           }
 
@@ -1694,7 +1692,7 @@
           this.firstChild.maxWidth = this.mTabMaxWidth;
           this.adjustTabstrip();
 
-          pb2.addObserver("mail.tabs.", this._prefObserver, false);
+          Services.prefs.addObserver("mail.tabs.", this._prefObserver, false);
 
           window.addEventListener("resize", this, false);
 
@@ -1710,10 +1708,9 @@
 
       <destructor>
         <![CDATA[
-          var pb2 =
-              Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
-          pb2.removeObserver("mail.tabs.", this._prefObserver);
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
+          Services.prefs.removeObserver("mail.tabs.", this._prefObserver);
 
           // Release timer to avoid reference cycles.
           if (this._animateTimer) {
@@ -1770,7 +1767,7 @@
             }
           }
         },
-  
+
         QueryInterface: function(aIID)
         {
           if (aIID.equals(Components.interfaces.nsIObserver) ||
@@ -1780,16 +1777,16 @@
         }
         });
       </field>
-      
+
       <field name="_tabDropIndicator">
         document.getAnonymousElementByAttribute(
             this,
             "anonid", "tab-drop-indicator");
       </field>
-      
+
       <field name="_dragOverDelay">350</field>
       <field name="_dragTime">0</field>
-      
+
       <field name="mTabMinWidth">100</field>
       <field name="mTabMaxWidth">250</field>
       <field name="mTabClipWidth">140</field>
@@ -1835,21 +1832,7 @@
           this.mTabstripClosebutton.collapsed = this.mCloseButtons != 3;
         ]]></body>
       </method>
-        
-      <field name="_mPrefs">null</field>
-      <property name="mPrefs" readonly="true">
-        <getter>
-        <![CDATA[
-          if (!this._mPrefs) {
-            this._mPrefs =
-              Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
-          }
-          return this._mPrefs;
-        ]]>
-        </getter>
-      </property>
-        
+
       <method name="_handleTabSelect">
         <body><![CDATA[
           this.mTabstrip.ensureElementIsVisible(this.selectedItem);
@@ -1887,7 +1870,7 @@
       </field>
 
       <field name="mAllTabsBoxAnimate">
-        document.getAnonymousElementByAttribute(this, 
+        document.getAnonymousElementByAttribute(this,
                                                 "anonid",
                                                 "alltabs-box-animate");
       </field>
@@ -1924,7 +1907,7 @@
           }
         ]]></body>
       </method>
-      
+
       <method name="_notifyBackgroundTab">
         <parameter name="aTab"/>
         <body><![CDATA[
@@ -1941,7 +1924,7 @@
           if (tsboStart > ctboStart || ctboEnd > tsboEnd) {
             this._animateStep = 0;
 
-            if (!this._animateTimer) 
+            if (!this._animateTimer)
               this._animateTimer =
                 Components.classes["@mozilla.org/timer;1"]
                           .createInstance(Components.interfaces.nsITimer);
@@ -1954,7 +1937,7 @@
           }
         ]]></body>
       </method>
-      
+
       <method name="notify">
         <parameter name="aTimer"/>
         <body><![CDATA[
@@ -1971,51 +1954,51 @@
             this._stopAnimation();
         ]]></body>
       </method>
-      
+
       <method name="_getDragTargetTab">
         <parameter name="event"/>
-        <body><![CDATA[     
-                                   
+        <body><![CDATA[
+
           if (event.target.localName != "tab")
             return null;
-                      
+
           let tab = event.target;
-          
-          if ((event.type != "drop") && (event.type != "dragover")) 
+
+          if ((event.type != "drop") && (event.type != "dragover"))
             return tab;
-            
+
           let boxObject = tab.boxObject;
-          
+
           if (event.screenX < boxObject.screenX + boxObject.width * .25)
             return null
-          
+
           if (event.screenX > boxObject.screenX + boxObject.width * .75)
             return null;
-           
-          return tab; 
+
+          return tab;
         ]]></body>
       </method>
-    
-      
+
+
       <method name="_getDropIndex">
         <parameter name="event"/>
-        <body><![CDATA[        
-          let tabs = this.childNodes;                   
-            
-          if (window.getComputedStyle(this, null).direction == "ltr") {                      
-            for (let i = 0; i < tabs.length; i++)              
+        <body><![CDATA[
+          let tabs = this.childNodes;
+
+          if (window.getComputedStyle(this, null).direction == "ltr") {
+            for (let i = 0; i < tabs.length; i++)
               if (event.screenX < (tabs[i].boxObject.screenX + (tabs[i].boxObject.width / 2)))
                 return i;
           }
           else  {
             for (let i = 0; i < tabs.length; i++)
               if (event.screenX > (tabs[i].boxObject.screenX + (tabs[i].boxObject.width / 2)))
-                return i;         
-          }          
-         
-           return tabs.length;           
+                return i;
+          }
+
+           return tabs.length;
         ]]></body>
-      </method>        
+      </method>
     </implementation>
     <handlers>
       <handler event="select"><![CDATA[
@@ -2026,65 +2009,65 @@
           this.tabmail.updateCurrentTab();
       ]]></handler>
       <handler event="TabSelect" action="this._handleTabSelect();"/>
-      <handler event="dragstart"><![CDATA[          
+      <handler event="dragstart"><![CDATA[
         let draggedTab = this._getDragTargetTab(event);
-        
+
         if (!draggedTab)
-          return;  
+          return;
 
         let tab = this.tabmail.selectedTab;
-        
+
         if (!tab || !tab.canClose)
           return;
 
-                                          
+
         let dt = event.dataTransfer;
-        
+
         // If we drag within the same window, we use the tab directly
         dt.mozSetDataAt("application/x-moz-tabmail-tab", draggedTab, 0);
-        
-        // otherwise we use session restore & JSON to migrate the tab.        
+
+        // otherwise we use session restore & JSON to migrate the tab.
         let uri = this.tabmail.persistTab(tab);
-        
+
         // In case the tab implements session restore, we use JSON to convert
         // it into a string
-        // 
-        // If a tab does not support session restore it retuns null. We can't 
+        //
+        // If a tab does not support session restore it retuns null. We can't
         // moved such tabs to a new window. However moving them within the same
         // window works perfectly fine
-        
+
         if (uri)
           uri = JSON.stringify(uri);
-        
+
         dt.mozSetDataAt("application/x-moz-tabmail-json", uri, 0);
 
         dt.mozCursor = "default";
-            
+
         // Create Drag Image
         let panel = document.getElementById("tabpanelcontainer");
-        
-        let thumbnail = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas"); 
+
+        let thumbnail = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
         thumbnail.width = Math.ceil(screen.availWidth / 5.75);
         thumbnail.height = Math.round(width * 0.5625);
-        
+
         let snippetWidth = panel.boxObject.width * .6;
         let scale = thumbnail.width / snippetWidth;
 
         let ctx = thumbnail.getContext("2d");
-    
+
         ctx.scale(scale, scale);
-          
+
         ctx.drawWindow(window,
                 panel.boxObject.screenX - window.mozInnerScreenX,
-                panel.boxObject.screenY - window.mozInnerScreenY, 
+                panel.boxObject.screenY - window.mozInnerScreenY,
                 snippetWidth,
                 snippetWidth * 0.5625,
-                "rgb(255,255,255)"); 
+                "rgb(255,255,255)");
 
         var dt = event.dataTransfer;
-        dt.setDragImage(thumbnail, 0, 0);        
-                
-        event.stopPropagation();        
+        dt.setDragImage(thumbnail, 0, 0);
+
+        event.stopPropagation();
       ]]></handler>
       <handler event="dragover"><![CDATA[
         let dt = event.dataTransfer;
@@ -2113,44 +2096,44 @@
 
         // Bug 516247:
         // incase the user is dragging something else than a tab, and
-        // keeps hovering over a tab, we assume he wants to switch to this tab. 
+        // keeps hovering over a tab, we assume he wants to switch to this tab.
         if ((dt.mozTypesAt(0)[0] != "application/x-moz-tabmail-tab")
             && (dt.mozTypesAt(0)[1] != "application/x-moz-tabmail-json"))  {
-          
-          let tab = this._getDragTargetTab(event); 
-         
+
+          let tab = this._getDragTargetTab(event);
+
           if (!tab)
             return;
-          
+
           event.preventDefault();
-          event.stopPropagation();          
-          
+          event.stopPropagation();
+
           if (!this._dragTime) {
             this._dragTime = Date.now();
             return;
           }
-          
+
           if (Date.now() <= this._dragTime + this._dragOverDelay)
             return;
-          
+
           if (this.tabmail.tabContainer.selectedItem == tab)
             return;
-             
-          this.tabmail.tabContainer.selectedItem = tab;         
-          
+
+          this.tabmail.tabContainer.selectedItem = tab;
+
           return;
         }
-                            
-        // as some tabs do not support session restore they can't be 
-        // moved to a different or new window. We should not show 
+
+        // as some tabs do not support session restore they can't be
+        // moved to a different or new window. We should not show
         // a dropmarker in such a case
         if (!dt.mozGetDataAt("application/x-moz-tabmail-json", 0)) {
-        
+
           let draggedTab = dt.mozGetDataAt("application/x-moz-tabmail-tab", 0);
-           
+
           if (!draggedTab)
             return;
-          
+
           if (this.tabmail.tabContainer.getIndexOfItem(draggedTab) == -1)
             return;
         }
@@ -2159,64 +2142,64 @@
 
         event.preventDefault();
         event.stopPropagation();
-                
-        let ltr = (window.getComputedStyle(this, null).direction == "ltr");        
+
+        let ltr = (window.getComputedStyle(this, null).direction == "ltr");
         let ind = this._tabDropIndicator;
-        
+
         // Let's scroll
         if (this.hasAttribute("overflow")) {
-                 
+
           let target = event.originalTarget.getAttribute("anonid");
-                    
+
           let pixelsToScroll = 0;
-          
+
           if (target == "scrollbutton-up")
             pixelsToScroll = this.mTabstrip.scrollIncrement;
-            
+
           if (target == "scrollbutton-down")
             pixelsToScroll = this.mTabstrip.scrollIncrement * -1;
-            
+
           if (ltr)
             pixelsToScroll = pixelsToScroll * -1;
-          
+
           if (pixelsToScroll) {
             // Hide Indicator while Scrolling
             ind.collapsed = true;
-            this.mTabstrip.scrollByPixels(pixelsToScroll);            
+            this.mTabstrip.scrollByPixels(pixelsToScroll);
             return;
           }
         }
-                                 
+
         let newIndex = this._getDropIndex(event);
-        
-        // fix the DropIndex in case it points to tab that can't be closed        
+
+        // fix the DropIndex in case it points to tab that can't be closed
         let tabInfo = this.tabmail.tabInfo;
-                
+
         while ((newIndex < tabInfo.length) && !(tabInfo[newIndex].canClose))
-          newIndex++;  
-                
-                  
+          newIndex++;
+
+
         var scrollRect = this.mTabstrip.scrollClientRect;
         var rect = this.getBoundingClientRect();
         var minMargin = scrollRect.left - rect.left;
         var maxMargin = Math.min(minMargin + scrollRect.width,scrollRect.right);
-         
+
         if (!ltr)
           [minMargin, maxMargin] = [this.clientWidth - maxMargin, this.clientWidth - minMargin];
-           
+
         var newMargin;
-         
+
         if (newIndex == this.childNodes.length) {
-                 
+
           let tabRect = this.childNodes[newIndex-1].getBoundingClientRect();
-                   
+
           if (ltr)
             newMargin = tabRect.right - rect.left;
           else
             newMargin = rect.right - tabRect.left;
         }
         else  {
-        
+
           let tabRect = this.childNodes[newIndex].getBoundingClientRect();
 
           if (ltr)
@@ -2224,22 +2207,22 @@
           else
             newMargin = rect.right - tabRect.right;
         }
-                         
+
         ind.collapsed = false;
- 
+
         newMargin += ind.clientWidth / 2;
         if (!ltr)
           newMargin *= -1;
- 
+
         ind.style.MozTransform = "translate(" + Math.round(newMargin) + "px)";
         ind.style.MozMarginStart = (-ind.clientWidth) + "px";
       ]]></handler>
       <handler event="drop"><![CDATA[
         let dt = event.dataTransfer;
-    
+
         if (dt.mozItemCount != 1)
           return;
-        
+
 
         /* If we're dragging a toolbar button, let's prepend the tabs toolbar
          * with that button, and then bail out.
@@ -2265,10 +2248,10 @@
 
 
         let draggedTab = dt.mozGetDataAt("application/x-moz-tabmail-tab",0);
-        
+
         if (!draggedTab)
           return;
-        
+
         event.stopPropagation();        
         this._tabDropIndicator.collapsed = true;
 
@@ -2278,43 +2261,43 @@
           // It's a tab from an other window, so we have to trigger session
           // restore to get our tab
 
-          let tabmail2 = draggedTab.ownerDocument.getElementById("tabmail");        
+          let tabmail2 = draggedTab.ownerDocument.getElementById("tabmail");
           if (!tabmail2)
             return;
-          
-          let draggedJson = dt.mozGetDataAt("application/x-moz-tabmail-json", 0);                        
+
+          let draggedJson = dt.mozGetDataAt("application/x-moz-tabmail-json", 0);
           if (!draggedJson)
             return;
-        
+
           draggedJson = JSON.parse(draggedJson);
-          
+
           // Some tab exist only once, so we have to gamble a bit. We close 
           // the tab and try to reopen it. If something fails the tab is gone.
- 
+
           tabmail2.closeTab(draggedTab,true);
-          
+
           if (!this.tabmail.restoreTab(draggedJson))
             return;
-                           
+
           draggedTab = this.tabmail.tabContainer.childNodes[
             this.tabmail.tabContainer.childNodes.length - 1];
         }
 
         let idx = this._getDropIndex(event);
-        
-        // fix the DropIndex in case it points to tab that can't be closed        
-        let tabInfo = this.tabmail.tabInfo;                
+
+        // fix the DropIndex in case it points to tab that can't be closed
+        let tabInfo = this.tabmail.tabInfo;
         while ((idx < tabInfo.length) && !(tabInfo[idx].canClose))
-          idx++;  
-                            
+          idx++;
+
         this.tabmail.moveTabTo(draggedTab, idx);
-                  
+
         this.tabmail.switchToTab(draggedTab);
-        this.tabmail.updateCurrentTab();          
+        this.tabmail.updateCurrentTab();
       ]]></handler>
-      
+
       <handler event="dragend"><![CDATA[
-            
+
         // Note: while this case is correctly handled here, this event
         // isn't dispatched when the tab is moved within the tabstrip,
         // see bug 460801.
@@ -2323,43 +2306,43 @@
         var dt = event.dataTransfer;
         if ((dt.mozUserCancelled) || (dt.dropEffect != "none"))
           return;
-          
+
         // Disable detach within the browser toolbox
         var eX = event.screenX;
         var wX = window.screenX;
-        
+
         // check if the drop point is horizontally within the window
         if (eX > wX && eX < (wX + window.outerWidth)) {
-        
+
           let bo = this.mTabstrip.boxObject;
           // also avoid detaching if the the tab was dropped too close to
           // the tabbar (half a tab)
           let endScreenY = bo.screenY + 1.5 * bo.height;
           let eY = event.screenY;
-          
-          if (eY < endScreenY && eY > window.screenY)        
+
+          if (eY < endScreenY && eY > window.screenY)
             return;
         }
 
-        // user wants to deatach tab from window...        
+        // user wants to deatach tab from window...
         if (dt.mozItemCount != 1)
           return;
-        
+
         let draggedTab = dt.mozGetDataAt("application/x-moz-tabmail-tab",0);
-        
+
         if (!draggedTab)
           return;
-        
-        this.tabmail.replaceTabWithWindow(draggedTab);                    
-                            
+
+        this.tabmail.replaceTabWithWindow(draggedTab);
+
       ]]></handler>
-      
+
       <handler event="dragexit"><![CDATA[
         this._dragTime = 0;
-        
-        this._tabDropIndicator.collapsed = true;                
+
+        this._tabDropIndicator.collapsed = true;
         event.stopPropagation();
-        
+
       ]]></handler>      
     </handlers>
   </binding>
@@ -2378,7 +2361,7 @@
         // We cannot cache the XULBrowserWindow object itself since it might
         // be set after this binding is constructed.
         try {
-          this._xulWindow = 
+          this._xulWindow =
             window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                   .getInterface(Components.interfaces.nsIWebNavigation)
                   .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
@@ -2455,7 +2438,7 @@
             var curTabBO = this.childNodes[i].tab.boxObject;
             if (curTabBO.screenX >= tabstripBO.screenX &&
                 curTabBO.screenX + curTabBO.width <= tabstripBO.screenX + tabstripBO.width)
-              this.childNodes[i].setAttribute("tabIsVisible", "true"); 
+              this.childNodes[i].setAttribute("tabIsVisible", "true");
             else
               this.childNodes[i].removeAttribute("tabIsVisible");
           }
@@ -2466,7 +2449,7 @@
         <parameter name="aTab"/>
         <body><![CDATA[
           var menuItem = document.createElementNS(
-            "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", 
+            "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul",
             "menuitem");
 
           menuItem.setAttribute("class", "menuitem-iconic alltabs-item menuitem-with-favicon");

@@ -100,7 +100,7 @@ function HandleColumnClick(columnID)
   let viewWrapper = gFolderDisplay.view;
   var simpleColumns = false;
   try {
-    simpleColumns = !pref.getBoolPref("mailnews.thread_pane_column_unthreads");
+    simpleColumns = !Services.prefs.getBoolPref("mailnews.thread_pane_column_unthreads");
   }
   catch (ex) {
   }
@@ -281,7 +281,7 @@ function ThreadPaneOnLoad()
     return;
 
   tree.addEventListener("mousedown",TreeOnMouseDown,true);
-  let delay = pref.getIntPref("mailnews.threadpane_select_delay");
+  let delay = Services.prefs.getIntPref("mailnews.threadpane_select_delay");
   document.getElementById("threadTree")._selectDelay = delay;
 }
 

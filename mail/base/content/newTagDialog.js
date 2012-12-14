@@ -4,6 +4,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var dialog;
 
 /**
@@ -102,9 +104,7 @@ function alertForExistingTag()
 {
   var messengerBundle = document.getElementById("bundle_messenger");
   var alertText = messengerBundle.getString("tagExists");
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-  promptService.alert(window, document.title, alertText);
+  Services.prompt.alert(window, document.title, alertText);
 }
 
 function doEnabling()

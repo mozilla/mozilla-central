@@ -6,6 +6,7 @@
 /* This is where functions related to the standalone message window are kept */
 
 Components.utils.import("resource:///modules/jsTreeSelection.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/MsgHdrSyntheticView.js");
 
@@ -257,7 +258,7 @@ StandaloneMessageDisplayWidget.prototype = {
   onMessagesRemoved:
       function StandaloneMessageDisplayWidget_onMessagesRemoved() {
     if (this.folderDisplay.treeSelection.count == 0 &&
-        pref.getBoolPref("mail.close_message_window.on_delete")) {
+        Services.prefs.getBoolPref("mail.close_message_window.on_delete")) {
       window.close();
       return true;
     }
@@ -311,8 +312,7 @@ var messagepaneObserver = {
 function UpdateStatusMessageCounts()
 {
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:updateStandAloneMessageCounts", "");
+  Services.obs.notifyObservers(window, "mail:updateStandAloneMessageCounts", "");
 }
 
 // we won't show the window until the onload() handler is finished
@@ -987,10 +987,10 @@ var MessageWindowController =
         return SetupUndoRedoCommand(command);
       case "cmd_moveToFolderAgain":
         loadedFolder = gFolderDisplay.displayedFolder;
-        if (!loadedFolder || (pref.getBoolPref("mail.last_msg_movecopy_was_move") &&
+        if (!loadedFolder || (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move") &&
             !loadedFolder.canDeleteMessages))
           return false;
-        let targetURI = pref.getCharPref("mail.last_msg_movecopy_target_uri");
+        let targetURI = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
         if (!targetURI)
           return false;
         let targetFolder = MailUtils.getFolderForURI(targetURI);
@@ -1063,8 +1063,8 @@ var MessageWindowController =
         MsgEditMessageAsNew();
         break;
       case "cmd_moveToFolderAgain":
-        var folderId = pref.getCharPref("mail.last_msg_movecopy_target_uri");
-        if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
+        var folderId = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
+        if (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move"))
           MsgMoveMessage(GetMsgFolderFromUri(folderId));
         else
           MsgCopyMessage(GetMsgFolderFromUri(folderId));

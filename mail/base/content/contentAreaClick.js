@@ -10,6 +10,9 @@
    *
    * @return href for the url being clicked
    */
+
+  Components.utils.import("resource://gre/modules/Services.jsm");
+
   function hRefForClickEvent(aEvent, aDontCheckInputElement)
   {
     var href;
@@ -143,9 +146,7 @@ function openLinkExternally(url)
 {
   let uri = url;
   if (!(uri instanceof Components.interfaces.nsIURI))
-    uri = Components.classes["@mozilla.org/network/io-service;1"]
-                    .getService(Components.interfaces.nsIIOService)
-                    .newURI(url, null, null);
+    uri = Services.io.newURI(url, null, null);
 
   Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
             .getService(Components.interfaces.nsIExternalProtocolService)

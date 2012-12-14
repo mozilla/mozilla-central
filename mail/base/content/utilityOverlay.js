@@ -174,12 +174,7 @@ function openUILink(url, event)
 
 function openWhatsNew()
 {
-  let startpage =
-    Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-              .getService(Components.interfaces.nsIURLFormatter)
-              .formatURLPref("mailnews.start_page.override_url");
-
-  openContentTab(startpage);
+  openContentTab(Services.urlFormatter.formatURLPref("mailnews.start_page.override_url"));
 }
 
 /**

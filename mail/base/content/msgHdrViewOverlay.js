@@ -217,13 +217,13 @@ function OnLoadMsgHeaderPane()
 
   // Load any preferences that at are global with regards to
   // displaying a message...
-  gMinNumberOfHeaders = pref.getIntPref("mailnews.headers.minNumHeaders");
-  gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
-  gHeadersShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
+  gMinNumberOfHeaders = Services.prefs.getIntPref("mailnews.headers.minNumHeaders");
+  gShowCondensedEmailAddresses = Services.prefs.getBoolPref("mail.showCondensedAddresses");
+  gHeadersShowReferences = Services.prefs.getBoolPref("mailnews.headers.showReferences");
 
   // listen to the
-  pref.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
-  pref.addObserver("mailnews.headers.showReferences", MsgHdrViewObserver, false);
+  Services.prefs.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
+  Services.prefs.addObserver("mailnews.headers.showReferences", MsgHdrViewObserver, false);
 
   initializeHeaderViewTables();
 
@@ -333,8 +333,8 @@ function initToolbarMenu() {
 
 function OnUnloadMsgHeaderPane()
 {
-  pref.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
-  pref.removeObserver("mailnews.headers.showReferences", MsgHdrViewObserver);
+  Services.prefs.removeObserver("mail.showCondensedAddresses", MsgHdrViewObserver);
+  Services.prefs.removeObserver("mailnews.headers.showReferences", MsgHdrViewObserver);
 
   MailServices.ab.removeAddressBookListener(AddressBookListener);
 
@@ -354,12 +354,12 @@ const MsgHdrViewObserver =
     if (topic == "nsPref:changed") {
       if (prefName == "mail.showCondensedAddresses") {
         gShowCondensedEmailAddresses =
-          pref.getBoolPref("mail.showCondensedAddresses");
+          Services.prefs.getBoolPref("mail.showCondensedAddresses");
         ReloadMessage();
       }
       else if (prefName == "mailnews.headers.showReferences") {
         gHeadersShowReferences =
-          pref.getBoolPref("mailnews.headers.showReferences");
+          Services.prefs.getBoolPref("mailnews.headers.showReferences");
         ReloadMessage();
       }
     }
@@ -412,7 +412,7 @@ var messageHeaderSink = {
       this.mSaveHdr = null;
       // Every time we start to redisplay a message, check the view all headers
       // pref...
-      var showAllHeadersPref = pref.getIntPref("mail.show_headers");
+      var showAllHeadersPref = Services.prefs.getIntPref("mail.show_headers");
       if (showAllHeadersPref == 2) {
         gViewAllHeaders = true;
       } else {
@@ -576,8 +576,8 @@ var messageHeaderSink = {
         this.mSaveHdr = messenger.messageServiceFromURI(uri)
                                  .messageURIToMsgHdr(uri);
       if (contentType == "text/x-vcard") {
-        var inlineAttachments = pref.getBoolPref("mail.inline_attachments");
-        var displayHtmlAs = pref.getIntPref("mailnews.display.html_as");
+        var inlineAttachments = Services.prefs.getBoolPref("mail.inline_attachments");
+        var displayHtmlAs = Services.prefs.getIntPref("mailnews.display.html_as");
         if (inlineAttachments && !displayHtmlAs)
           return;
       }
@@ -916,7 +916,7 @@ function updateExpandedView()
   displayAttachmentsForExpandedView();
 
   try {
-    AdjustHeaderView(pref.getIntPref("mail.show_headers"));
+    AdjustHeaderView(Services.prefs.getIntPref("mail.show_headers"));
   } catch (e) { logException(e); }
 }
 

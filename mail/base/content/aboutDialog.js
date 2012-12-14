@@ -61,9 +61,7 @@ function openAboutTab(url)
 {
   let tabmail;
   // Check existing windows
-  let mailWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Components.interfaces.nsIWindowMediator)
-                             .getMostRecentWindow("mail:3pane");
+  let mailWindow = Services.wm.getMostRecentWindow("mail:3pane");
   if (mailWindow) {
     mailWindow.focus();
     mailWindow.document.getElementById("tabmail")
@@ -291,10 +289,8 @@ appUpdater.prototype =
         env.set("MOZ_SAFE_MODE_RESTART", "1");
       }
 
-      Components.classes["@mozilla.org/toolkit/app-startup;1"].
-      getService(Components.interfaces.nsIAppStartup).
-      quit(Components.interfaces.nsIAppStartup.eAttemptQuit |
-           Components.interfaces.nsIAppStartup.eRestart);
+      Services.startup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit |
+                            Components.interfaces.nsIAppStartup.eRestart);
       return;
     }
 

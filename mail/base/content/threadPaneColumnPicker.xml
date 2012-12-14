@@ -98,6 +98,8 @@
     </implementation>
     <handlers>
       <handler event="command"><![CDATA[
+        Components.utils.import("resource://gre/modules/Services.jsm");
+
         // Are they clicking on our header to get us to show the column list?
         if (event.originalTarget == this) {
           var popup = document.getAnonymousElementByAttribute(this, "anonid",
@@ -151,10 +153,7 @@
         let stringBase = "threadPane.columnPicker.confirmFolder." +
           (useChildren ? "withChildren." : "noChildren.");
 
-        let promptService =
-          Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                    .getService(Components.interfaces.nsIPromptService);
-        let confirmed = promptService.confirm(null,
+        let confirmed = Services.prompt.confirm(null,
           bundle.getString(stringBase + "title"),
           bundle.getFormattedString(stringBase + "message",
                                     [destFolder.prettiestName]));
@@ -172,11 +171,8 @@
           // all folders.  This is currently done for the benefit of our mozmill
           // tests.
           function observerCallback() {
-            let obsService =
-               Components.classes["@mozilla.org/observer-service;1"]
-                         .getService(Components.interfaces.nsIObserverService);
-            obsService.notifyObservers(gFolderDisplay.displayedFolder,
-                                       "msg-folder-columns-propagated", "");
+            Services.obs.notifyObservers(gFolderDisplay.displayedFolder,
+                                         "msg-folder-columns-propagated", "");
           }
           MailUtils.setStringPropertyOnFolderAndDescendents(propName,
                                                             columnStateString,

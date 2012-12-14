@@ -5,6 +5,7 @@
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const kDefaultMode = "all";
 
@@ -119,11 +120,9 @@ let gFolderTreeView = {
       // Normally our tree takes care of keeping the last selected by itself.
       // However older versions of TB stored this in a preference, which we need
       // to migrate
-      let prefB = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefBranch);
-      let modeIndex = prefB.getIntPref("mail.ui.folderpane.view");
+      let modeIndex = Services.prefs.getIntPref("mail.ui.folderpane.view");
       this._mode = this._modeNames[modeIndex];
-      prefB.deleteBranch("mail.ui.folderpane");
+      Services.prefs.deleteBranch("mail.ui.folderpane");
     } catch(ex) {
       // This is ok.  If we've already migrated we'll end up here
     }
@@ -141,8 +140,7 @@ let gFolderTreeView = {
 
     if (aJSONFile) {
       // Parse our persistent-open-state json file
-      let file = Cc["@mozilla.org/file/directory_service;1"]
-                    .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
 
       if (file.exists()) {
@@ -196,8 +194,7 @@ let gFolderTreeView = {
     if (aJSONFile) {
       // Write out our json file...
       let data = JSON.stringify(this._persistOpenMap);
-      let file = Cc["@mozilla.org/file/directory_service;1"]
-                    .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+      let file = Services.dirsvc.get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
       let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                         .createInstance(Ci.nsIFileOutputStream);
@@ -651,8 +648,7 @@ let gFolderTreeView = {
           sourceFolder = msgHdr.folder;
         array.appendElement(msgHdr, false);
       }
-      let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                          .getService(Ci.nsIPrefService).getBranch("mail.");
+      let prefBranch = Services.prefs.getBranch("mail.");
       let isMove = Cc["@mozilla.org/widget/dragservice;1"]
                       .getService(Ci.nsIDragService).getCurrentSession()
                       .dragAction == Ci.nsIDragService.DRAGDROP_ACTION_MOVE;
@@ -1151,9 +1147,7 @@ let gFolderTreeView = {
     try {
       newRowMap = this._modes[this.mode].generateMap(this);
     } catch(ex) {
-      Components.classes["@mozilla.org/consoleservice;1"]
-                .getService(Components.interfaces.nsIConsoleService)
-                .logStringMessage("generator " + this.mode + " failed with exception: " + ex);
+      Services.console.logStringMessage("generator " + this.mode + " failed with exception: " + ex);
       this.mode = "all";
       newRowMap = this._modes[this.mode].generateMap(this);
     }
@@ -1946,9 +1940,7 @@ ftvItem.prototype = {
   },
 
   command: function fti_command() {
-    let pref = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-    if (!pref.getBoolPref("mailnews.reuse_thread_window2"))
+    if (!Services.prefs.getBoolPref("mailnews.reuse_thread_window2"))
       MsgOpenNewWindowForFolder(this._folder.URI, -1 /* key */);
   },
 
@@ -1961,9 +1953,8 @@ ftvItem.prototype = {
       try {
         iter = fixIterator(this._folder.subFolders, Ci.nsIMsgFolder);
       } catch (ex) {
-        Components.classes["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
-          .logStringMessage("Discovering children for " + this._folder.URI + " failed with " +
-                            "exception: " + ex);
+        Services.console.logStringMessage("Discovering children for " + this._folder.URI +
+                                          " failed with " + "exception: " + ex);
         iter = [];
       }
       this._children = [new ftvItem(f) for each (f in iter)];
@@ -2152,10 +2143,9 @@ let gFolderTreeController = {
                                  .getString("confirmSavedSearchDeleteMessage");
       let title = document.getElementById("bundle_messenger")
                           .getString("confirmSavedSearchTitle");
-      let IPS = Components.interfaces.nsIPromptService;
-      if (Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-            .getService(IPS)
-            .confirmEx(window, title, confirmation, IPS.STD_YES_NO_BUTTONS + IPS.BUTTON_POS_1_DEFAULT,
+      if (Servics.prompts
+            .confirmEx(window, title, confirmation,
+                       Services.prompt.STD_YES_NO_BUTTONS + Services.prompt.BUTTON_POS_1_DEFAULT,
                        "", "", "", "", {}) != 0) /* the yes button is in position 0 */
         return;
     }
@@ -2311,25 +2301,21 @@ let gFolderTreeController = {
     const Ci = Components.interfaces;
     let showPrompt = true;
     try {
-      let pref = Cc["@mozilla.org/preferences-service;1"]
-                    .getService(Ci.nsIPrefBranch);
-      showPrompt = !pref.getBoolPref("mail." + aCommand + ".dontAskAgain");
+      showPrompt = !Services.prefs.getBoolPref("mail." + aCommand + ".dontAskAgain");
     } catch (ex) {}
 
     if (showPrompt) {
       let checkbox = {value:false};
-      let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                             .getService(Ci.nsIPromptService);
       let bundle = document.getElementById("bundle_messenger");
-      let ok = promptService.confirmEx(window,
-                                       bundle.getString(aCommand + "Title"),
-                                       bundle.getString(aCommand + "Message"),
-                                       promptService.STD_YES_NO_BUTTONS,
-                                       null, null, null,
-                                       bundle.getString(aCommand + "DontAsk"),
-                                       checkbox) == 0;
+      let ok = Services.prompt.confirmEx(window,
+                                         bundle.getString(aCommand + "Title"),
+                                         bundle.getString(aCommand + "Message"),
+                                         Services.prompt.STD_YES_NO_BUTTONS,
+                                         null, null, null,
+                                         bundle.getString(aCommand + "DontAsk"),
+                                         checkbox) == 0;
       if (checkbox.value)
-        pref.setBoolPref("mail." + aCommand + ".dontAskAgain", true);
+        Services.prefs.setBoolPref("mail." + aCommand + ".dontAskAgain", true);
       if (!ok)
         return false;
     }

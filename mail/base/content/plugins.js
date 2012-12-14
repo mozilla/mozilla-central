@@ -6,6 +6,8 @@
  * mozilla/browser/base/content/browser.js
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 #ifdef MOZ_CRASHREPORTER
 XPCOMUtils.defineLazyServiceGetter(this, "gCrashReporter",
                                    "@mozilla.org/xre/app-info;1",
@@ -352,8 +354,9 @@ var gPluginHandler = {
       if (cancelQuit.data)
         return;
 
-      let as = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup);
-      as.quit(Ci.nsIAppStartup.eRestarti386 | Ci.nsIAppStartup.eRestart | Ci.nsIAppStartup.eAttemptQuit);
+      Services.startup.quit(Ci.nsIAppStartup.eRestarti386 |
+                            Ci.nsIAppStartup.eRestart |
+                            Ci.nsIAppStartup.eAttemptQuit);
     }
 #endif
 

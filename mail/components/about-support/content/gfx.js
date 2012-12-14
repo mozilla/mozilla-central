@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function populateGraphicsSection() {
   function createHeader(name)
   {
@@ -105,9 +107,7 @@ function populateGraphicsSection() {
     pushInfoRow(trGraphics, "driverDate2", gfxInfo.adapterDriverDate2);
     pushInfoRow(trGraphics, "isGPU2Active", gfxInfo.isGPU2Active);
 
-    var version = Cc["@mozilla.org/system-info;1"]
-                  .getService(Ci.nsIPropertyBag2)
-                  .getProperty("version");
+    var version = Services.sysinfo.getProperty("version");
     var isWindowsVistaOrHigher = (parseFloat(version) >= 6.0);
     if (isWindowsVistaOrHigher) {
       var d2dEnabled = "false";

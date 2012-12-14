@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var editContactInlineUI = {
   _overlayLoaded: false,
   _overlayLoading: false,
@@ -185,11 +187,9 @@ var editContactInlineUI = {
     this.panel.hidePopup();
 
     var bundle = document.getElementById("bundle_editContact");
-    if (!Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService)
-                  .confirm(window,
-                            bundle.getString("deleteContactTitle"),
-                            bundle.getString("deleteContactMessage")))
+    if (!Services.prompt.confirm(window,
+                                 bundle.getString("deleteContactTitle"),
+                                 bundle.getString("deleteContactMessage")))
       return;  /* XXX would be nice to bring the popup back up here */
 
     let cardArray = Components.classes["@mozilla.org/array;1"]

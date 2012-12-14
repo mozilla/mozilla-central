@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/gloda/dbview.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const ADDR_DB_LARGE_COMMIT       = 1;
 
@@ -32,10 +33,8 @@ const kMsgNotificationMDN = 4;
 
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/MailConsts.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
-var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefService)
-                            .getBranch(null);
 var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
                      .getService(Components.interfaces.nsIMsgCopyService);
 
@@ -57,7 +56,7 @@ function menu_new_init()
   // If the account provisioner is pref'd off, we shouldn't display the menu
   // item.
   ShowMenuItem("newCreateEmailAccountMenuItem",
-               gPrefBranch.getBoolPref("mail.provider.enabled"));
+               Services.prefs.getBoolPref("mail.provider.enabled"));
 
   // If we don't have a gFolderDisplay, just get out of here and leave the menu
   // as it is.
@@ -68,7 +67,7 @@ function menu_new_init()
   if (!folder)
     return;
 
-  if (gPrefBranch.prefIsLocked("mail.disable_new_account_addition"))
+  if (Services.prefs.prefIsLocked("mail.disable_new_account_addition"))
     document.getElementById("newAccountMenuItem").setAttribute("disabled", "true");
 
   const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
@@ -226,7 +225,7 @@ function view_init()
   }
 
   // Initialize the View Attachment Inline menu
-  var viewAttachmentInline = pref.getBoolPref("mail.inline_attachments");
+  var viewAttachmentInline = Services.prefs.getBoolPref("mail.inline_attachments");
   document.getElementById("viewAttachmentsInlineMenuitem")
           .setAttribute("checked", viewAttachmentInline);
 
@@ -235,7 +234,7 @@ function view_init()
 
 function InitViewLayoutStyleMenu(event)
 {
-  var paneConfig = pref.getIntPref("mail.pane_config.dynamic");
+  var paneConfig = Services.prefs.getIntPref("mail.pane_config.dynamic");
   var layoutStyleMenuitem = event.target.childNodes[paneConfig];
   if (layoutStyleMenuitem)
     layoutStyleMenuitem.setAttribute("checked", "true");
@@ -533,8 +532,8 @@ function InitAppMessageMenu()
  */
 function initMoveToFolderAgainMenu(aMenuItem)
 {
-  var lastFolderURI = pref.getCharPref("mail.last_msg_movecopy_target_uri");
-  var isMove = pref.getBoolPref("mail.last_msg_movecopy_was_move");
+  var lastFolderURI = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
+  var isMove = Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move");
   if (lastFolderURI)
   {
     var destMsgFolder = GetMsgFolderFromUri(lastFolderURI);
@@ -550,7 +549,7 @@ function initMoveToFolderAgainMenu(aMenuItem)
 function InitViewHeadersMenu()
 {
   const dt = Components.interfaces.nsMimeHeaderDisplayTypes;
-  var headerchoice = pref.getIntPref("mail.show_headers");
+  var headerchoice = Services.prefs.getIntPref("mail.show_headers");
   document.getElementById("cmd_viewAllHeader")
           .setAttribute("checked", headerchoice == dt.AllHeaders);
   document.getElementById("cmd_viewNormalHeader")
@@ -585,15 +584,15 @@ function InitViewBodyMenu()
   var menuIDs = isFeed ? rssIDs : defaultIDs;
   try
   {
-    prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
-    html_as = pref.getIntPref("mailnews.display.html_as");
-    disallow_classes = pref.getIntPref("mailnews.display.disallow_mime_handlers");
+    prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
+    html_as = Services.prefs.getIntPref("mailnews.display.html_as");
+    disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
 
     // Separate render prefs not implemented for feeds, bug 458606.  Show the
     // checked item for feeds as for the regular pref.
-    //  prefer_plaintext = pref.getBoolPref("rss.display.prefer_plaintext");
-    //  html_as = pref.getIntPref("rss.display.html_as");
-    //  disallow_classes = pref.getIntPref("rss.display.disallow_mime_handlers");
+    //  prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
+    //  html_as = Services.prefs.getIntPref("rss.display.html_as");
+    //  disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
 
     if (disallow_classes > 0)
       gDisallow_classes_no_html = disallow_classes;
@@ -611,7 +610,7 @@ function InitViewBodyMenu()
         : null;
 
   document.getElementById("bodyAllParts").hidden = 
-    ! pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+    ! Services.prefs.getBoolPref("mailnews.display.show_all_body_parts_menu");
 
   if (!prefer_plaintext && !html_as && !disallow_classes &&
       AllowHTML_menuitem)
@@ -651,13 +650,13 @@ function InitAppmenuViewBodyMenu()
   let menuIDs = isFeed ? kRssIDs : kDefaultIDs;
   // Get prefs
   if (isFeed) {
-    prefer_plaintext = pref.getBoolPref("rss.display.prefer_plaintext");
-    html_as = pref.getIntPref("rss.display.html_as");
-    disallow_classes = pref.getIntPref("rss.display.disallow_mime_handlers");
+    prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
+    html_as = Services.prefs.getIntPref("rss.display.html_as");
+    disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
   } else {
-    prefer_plaintext = pref.getBoolPref("mailnews.display.prefer_plaintext");
-    html_as = pref.getIntPref("mailnews.display.html_as");
-    disallow_classes = pref.getIntPref("mailnews.display.disallow_mime_handlers");
+    prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
+    html_as = Services.prefs.getIntPref("mailnews.display.html_as");
+    disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
   }
 
   if (disallow_classes > 0)
@@ -671,7 +670,7 @@ function InitAppmenuViewBodyMenu()
                                          : null;
 
   document.getElementById("appmenu_bodyAllParts").hidden =
-    !pref.getBoolPref("mailnews.display.show_all_body_parts_menu");
+    !Services.prefs.getBoolPref("mailnews.display.show_all_body_parts_menu");
 
   if (!prefer_plaintext && !html_as && !disallow_classes &&
       AllowHTML_menuitem)
@@ -1497,8 +1496,8 @@ function MsgCopyMessage(aDestFolder)
   else
     gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
 
-  pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
-  pref.setBoolPref("mail.last_msg_movecopy_was_move", false);
+  Services.prefs.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
+  Services.prefs.setBoolPref("mail.last_msg_movecopy_was_move", false);
 }
 
 /**
@@ -1509,8 +1508,8 @@ function MsgMoveMessage(aDestFolder)
 {
   gFolderDisplay.hintAboutToDeleteMessages();
   gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, aDestFolder);
-  pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
-  pref.setBoolPref("mail.last_msg_movecopy_was_move", true);
+  Services.prefs.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
+  Services.prefs.setBoolPref("mail.last_msg_movecopy_was_move", true);
 }
 
 /**
@@ -1831,7 +1830,7 @@ function MsgForwardMessage(event)
 {
   var forwardType = 0;
   try {
-    forwardType = gPrefBranch.getIntPref("mail.forward_message_mode");
+    forwardType = Services.prefs.getIntPref("mail.forward_message_mode");
   }
   catch (ex) {
     dump("failed to retrieve pref mail.forward_message_mode");
@@ -1971,9 +1970,7 @@ function ConfirmUnsubscribe(folders)
     bundle.getFormattedString("confirmUnsubscribeText", [folders[0].name], 1) :
     bundle.getString("confirmUnsubscribeManyText");
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(Components.interfaces.nsIPromptService);
-  return promptService.confirm(window, titleMsg, dialogMsg);
+  return Services.prompt.confirm(window, titleMsg, dialogMsg);
 }
 
 /**
@@ -2363,7 +2360,7 @@ function MsgApplyFiltersToSelection()
 
 function ChangeMailLayout(newLayout)
 {
-  gPrefBranch.setIntPref("mail.pane_config.dynamic", newLayout);
+  Services.prefs.setIntPref("mail.pane_config.dynamic", newLayout);
 }
 
 function ChangeMailLayoutForCommand(aCommand)
@@ -2374,7 +2371,7 @@ function ChangeMailLayoutForCommand(aCommand)
 function MsgViewAllHeaders()
 {
   const mode = Components.interfaces.nsMimeHeaderDisplayTypes.AllHeaders;
-  gPrefBranch.setIntPref("mail.show_headers", mode); // 2
+  Services.prefs.setIntPref("mail.show_headers", mode); // 2
   AdjustHeaderView(mode);
   ReloadMessage();
 }
@@ -2382,58 +2379,58 @@ function MsgViewAllHeaders()
 function MsgViewNormalHeaders()
 {
   const mode = Components.interfaces.nsMimeHeaderDisplayTypes.NormalHeaders;
-  gPrefBranch.setIntPref("mail.show_headers", mode); // 1
+  Services.prefs.setIntPref("mail.show_headers", mode); // 1
   AdjustHeaderView(mode);
   ReloadMessage();
 }
 
 function MsgBodyAllowHTML()
 {
-  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-  gPrefBranch.setIntPref("mailnews.display.html_as", 0);
-  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+  Services.prefs.setIntPref("mailnews.display.html_as", 0);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers", 0);
   ReloadMessage();
 }
 
 function MsgBodySanitized()
 {
-  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-  gPrefBranch.setIntPref("mailnews.display.html_as", 3);
-  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+  Services.prefs.setIntPref("mailnews.display.html_as", 3);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers",
                          gDisallow_classes_no_html);
   ReloadMessage();
 }
 
 function MsgBodyAsPlaintext()
 {
-  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", true);
-  gPrefBranch.setIntPref("mailnews.display.html_as", 1);
-  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers",
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", true);
+  Services.prefs.setIntPref("mailnews.display.html_as", 1);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers",
                          gDisallow_classes_no_html);
   ReloadMessage();
 }
 
 function MsgBodyAllParts()
 {
-  gPrefBranch.setBoolPref("mailnews.display.prefer_plaintext", false);
-  gPrefBranch.setIntPref("mailnews.display.html_as", 4);
-  gPrefBranch.setIntPref("mailnews.display.disallow_mime_handlers", 0);
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", false);
+  Services.prefs.setIntPref("mailnews.display.html_as", 4);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers", 0);
   ReloadMessage();
 }
 
 function MsgFeedBodyRenderPrefs(plaintext, html, mime)
 {
-  gPrefBranch.setBoolPref("rss.display.prefer_plaintext", plaintext);
-  gPrefBranch.setIntPref("rss.display.html_as", html);
-  gPrefBranch.setIntPref("rss.display.disallow_mime_handlers", mime);
+  Services.prefs.setBoolPref("rss.display.prefer_plaintext", plaintext);
+  Services.prefs.setIntPref("rss.display.html_as", html);
+  Services.prefs.setIntPref("rss.display.disallow_mime_handlers", mime);
   // Reload only if showing rss summary; menuitem hidden if web page..
   ReloadMessage();
 }
 
 function ToggleInlineAttachment(target)
 {
-  var viewAttachmentInline = !pref.getBoolPref("mail.inline_attachments");
-  pref.setBoolPref("mail.inline_attachments", viewAttachmentInline)
+  var viewAttachmentInline = !Services.prefs.getBoolPref("mail.inline_attachments");
+  Services.prefs.setBoolPref("mail.inline_attachments", viewAttachmentInline)
   target.setAttribute("checked", viewAttachmentInline ? "true" : "false");
   ReloadMessage();
 }
@@ -2544,14 +2541,14 @@ function SpaceHit(event)
     // if at the start of the message, go to the previous one
     if (contentWindow.scrollY > 0)
       contentWindow.scrollByPages(-1);
-    else if (pref.getBoolPref("mail.advance_on_spacebar"))
+    else if (Services.prefs.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_previousUnreadMsg");
   }
   else {
     // if at the end of the message, go to the next one
     if (contentWindow.scrollY < contentWindow.scrollMaxY)
       contentWindow.scrollByPages(1);
-    else if (pref.getBoolPref("mail.advance_on_spacebar"))
+    else if (Services.prefs.getBoolPref("mail.advance_on_spacebar"))
       goDoCommand("cmd_nextUnreadMsg");
   }
 }
@@ -2809,7 +2806,7 @@ function HandleJunkStatusChanged(folder)
     // We may be forcing junk mail to be rendered with sanitized html.
     // In that scenario, we want to reload the message if the status has just
     // changed to not junk.
-    var sanitizeJunkMail = gPrefBranch.getBoolPref("mail.spam.display.sanitize");
+    var sanitizeJunkMail = Services.prefs.getBoolPref("mail.spam.display.sanitize");
 
     // Only bother doing this if we are modifying the html for junk mail....
     if (sanitizeJunkMail)
@@ -3103,9 +3100,7 @@ function OnMsgParsed(aUrl)
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
   let selectedMessageUris = gFolderDisplay.selectedMessageUris;
   let msgURI = selectedMessageUris ? selectedMessageUris[0] : null;
-  var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                  .getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
+  Services.obs.notifyObservers(msgWindow.msgHeaderSink, "MsgMsgDisplayed", msgURI);
 
   // scale any overflowing images
   let doc = document.getElementById("messagepane").contentDocument;
@@ -3136,21 +3131,21 @@ function OnMsgLoaded(aUrl)
 
   goUpdateCommand('button_delete');
 
-  var markReadAutoMode = gPrefBranch.getBoolPref("mailnews.mark_message_read.auto");
+  var markReadAutoMode = Services.prefs.getBoolPref("mailnews.mark_message_read.auto");
 
   // We just finished loading a message. If messages are to be marked as read
   // automatically, set a timer to mark the message is read after n seconds
   // where n can be configured by the user.
   if (msgHdr && !msgHdr.isRead && markReadAutoMode)
   {
-    let markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
+    let markReadOnADelay = Services.prefs.getBoolPref("mailnews.mark_message_read.delay");
 
     // Only use the timer if viewing using the 3-pane preview pane and the
     // user has set the pref.
     if (markReadOnADelay && wintype == "mail:3pane") // 3-pane window
     {
       ClearPendingReadTimer();
-      let markReadDelayTime = gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval");
+      let markReadDelayTime = Services.prefs.getIntPref("mailnews.mark_message_read.delay.interval");
       if (markReadDelayTime == 0)
         MarkMessageAsRead(msgHdr);
       else
@@ -3287,9 +3282,9 @@ function MsgSearchMessages(aFolder)
 function MsgJunkMailInfo(aCheckFirstUse)
 {
   if (aCheckFirstUse) {
-    if (!pref.getBoolPref("mailnews.ui.junk.firstuse"))
+    if (!Services.prefs.getBoolPref("mailnews.ui.junk.firstuse"))
       return;
-    pref.setBoolPref("mailnews.ui.junk.firstuse", false);
+    Services.prefs.setBoolPref("mailnews.ui.junk.firstuse", false);
 
     // check to see if this is an existing profile where the user has started using
     // the junk mail feature already
@@ -3299,7 +3294,7 @@ function MsgJunkMailInfo(aCheckFirstUse)
       return;
   }
 
-  var desiredWindow = GetWindowByWindowType("mailnews:junkmailinfo");
+  var desiredWindow = Services.wm.getMostRecentWindow("mailnews:junkmailinfo");
 
   if (desiredWindow)
     desiredWindow.focus();
@@ -3320,16 +3315,9 @@ function MsgFilterList(args)
   OpenOrFocusWindow(args, "mailnews:filterlist", "chrome://messenger/content/FilterListDialog.xul");
 }
 
-function GetWindowByWindowType(windowType)
-{
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1']
-                                .getService(Components.interfaces.nsIWindowMediator);
-  return windowManager.getMostRecentWindow(windowType);
-}
-
 function OpenOrFocusWindow(args, windowType, chromeURL)
 {
-  var desiredWindow = GetWindowByWindowType(windowType);
+  var desiredWindow = Services.wm.getMostRecentWindow(windowType);
 
   if (desiredWindow) {
     desiredWindow.focus();

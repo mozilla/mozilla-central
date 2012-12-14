@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gMailListView; 
 var gListBox; 
@@ -46,12 +47,9 @@ function onNewMailView()
 
 function onDeleteMailView()
 {  
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
-  var bundle = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
+  var bundle = Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
 
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-  if (!promptService.confirm(window, bundle.GetStringFromName("confirmViewDeleteTitle"), bundle.GetStringFromName("confirmViewDeleteMessage")))
+  if (!Services.prompt.confirm(window, bundle.GetStringFromName("confirmViewDeleteTitle"), bundle.GetStringFromName("confirmViewDeleteMessage")))
     return;
 
   // get the selected index

@@ -3,8 +3,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 // Dependencies:
-// gPrefBranch should already be defined
 // gatherTextUnder from utilityOverlay.js
+
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const kPhishingNotSuspicious = 0;
 const kPhishingWithIPAddress = 1;
@@ -48,8 +49,8 @@ var gPhishingDetector = {
       this.mPhishingWarden.maybeToggleUpdateChecking();  
     } catch (ex) { dump('unable to create the phishing warden: ' + ex + '\n');}
 
-    this.mCheckForIPAddresses = gPrefBranch.getBoolPref("mail.phishing.detection.ipaddresses");
-    this.mCheckForMismatchedHosts = gPrefBranch.getBoolPref("mail.phishing.detection.mismatched_hosts");
+    this.mCheckForIPAddresses = Services.prefs.getBoolPref("mail.phishing.detection.ipaddresses");
+    this.mCheckForMismatchedHosts = Services.prefs.getBoolPref("mail.phishing.detection.mismatched_hosts");
   },
 
   /**
@@ -64,7 +65,7 @@ var gPhishingDetector = {
    */
   analyzeMsgForPhishingURLs: function (aUrl)
   {
-    if (!aUrl || !gPrefBranch.getBoolPref("mail.phishing.detection.enabled"))
+    if (!aUrl || !Services.prefs.getBoolPref("mail.phishing.detection.enabled"))
       return;
 
     try {
@@ -116,11 +117,10 @@ var gPhishingDetector = {
     if (!aUrl)
       return;
 
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
     var hrefURL;
     // make sure relative link urls don't make us bail out
     try {
-      hrefURL = ioService.newURI(aUrl, null, null);
+      hrefURL = Services.io.newURI(aUrl, null, null);
     } catch(ex) { return; }
 
     // only check for phishing urls if the url is an http or https link.
@@ -200,9 +200,7 @@ var gPhishingDetector = {
        reportUrl += "&url=" + encodeURIComponent(aPhishingURL);
        // now send the url to the default browser
 
-       var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                       .getService(Components.interfaces.nsIIOService);
-       var uri = ioService.newURI(reportUrl, null, null);
+       var uri = Services.io.newURI(reportUrl, null, null);
        var protocolSvc = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
                          .getService(Components.interfaces.nsIExternalProtocolService);
        protocolSvc.loadUrl(uri);
@@ -229,8 +227,7 @@ var gPhishingDetector = {
       // does the link text look like a http url?
        if (aLinkNodeText.search(/(^http:|^https:)/) != -1)
        {
-         var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-         aLinkTextURL.value = ioService.newURI(aLinkNodeText, null, null);
+         aLinkTextURL.value = Services.io.newURI(aLinkNodeText, null, null);
          // compare hosts, but ignore possible www. prefix
          return !(aHrefURL.host.replace(/^www\./, "") == aLinkTextURL.value.host.replace(/^www\./, ""));
        }
@@ -253,12 +250,10 @@ var gPhishingDetector = {
     if (!gMessageNotificationBar.isFlagSet(kMsgNotificationPhishingBar))
       return true;
 
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
     var hrefURL;
     // make sure relative link urls don't make us bail out
     try {
-      hrefURL = ioService.newURI(aUrl, null, null);
+      hrefURL = Services.io.newURI(aUrl, null, null);
     } catch(ex) { return false; }
 
     // only prompt for http and https urls

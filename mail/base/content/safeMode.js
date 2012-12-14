@@ -4,19 +4,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function restartApp() {
-  var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                             .getService(Components.interfaces.nsIAppStartup);
-  appStartup.quit(appStartup.eForceQuit | appStartup.eRestart);
+  Services.startup.quit(Services.startup.eForceQuit | Services.startup.eRestart);
 }
 
 function deleteLocalstore() {
-  const nsIDirectoryServiceContractID = "@mozilla.org/file/directory_service;1";
-  const nsIProperties = Components.interfaces.nsIProperties;
-  var directoryService =  Components.classes[nsIDirectoryServiceContractID]
-                                    .getService(nsIProperties);
-  var localstoreFile = directoryService.get("LStoreS", Components.interfaces.nsIFile);
+  var localstoreFile = Services.dirsvc.get("LStoreS", Components.interfaces.nsIFile);
   if (localstoreFile.exists())
     localstoreFile.remove(false);
 }
@@ -58,9 +53,7 @@ function onOK() {
 }
 
 function onCancel() {
-  var appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                             .getService(Components.interfaces.nsIAppStartup);
-  appStartup.quit(appStartup.eForceQuit);
+  Services.startup.quit(Services.startup.eForceQuit);
 }
 
 function onLoad() {

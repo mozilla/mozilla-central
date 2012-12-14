@@ -5,6 +5,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/appIdleManager.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
 Components.utils.import("resource:///modules/gloda/public.js");
@@ -12,7 +13,6 @@ Components.utils.import("resource:///modules/glodaWebSearch.js");
 
 //This file stores variables common to mail windows
 var messenger;
-var pref;
 var statusFeedback;
 var msgWindow;
 
@@ -60,9 +60,6 @@ function CreateMailWindowGlobals()
   // get the messenger instance
   messenger = Components.classes["@mozilla.org/messenger;1"]
                         .createInstance(Components.interfaces.nsIMessenger);
-
-  pref = Components.classes["@mozilla.org/preferences-service;1"]
-          .getService(Components.interfaces.nsIPrefBranch);
 
   window.addEventListener("blur", appIdleManager.onBlur, false);
   window.addEventListener("focus", appIdleManager.onFocus, false);
@@ -439,9 +436,7 @@ function loadStartPage(aForce)
     return;
 
   gMessageNotificationBar.clearMsgNotifications();
-  let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                            .getService(Components.interfaces.nsIURLFormatter)
-                            .formatURLPref("mailnews.start_page.url");
+  let startpage = Services.urlFormatter.formatURLPref("mailnews.start_page.url");
   if (startpage)
   {
     try {
@@ -666,10 +661,7 @@ nsBrowserAccess.prototype = {
       if (aURI) {
         if (aOpener) {
           let location = aOpener.location;
-          let referrer =
-            Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService)
-                      .newURI(location, null, null);
+          let referrer = Services.io.newURI(location, null, null);
         }
         newWindow.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                  .getInterface(Components.interfaces.nsIWebNavigation)

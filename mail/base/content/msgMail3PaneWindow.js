@@ -14,6 +14,7 @@ Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
 Components.utils.import("resource:///modules/mailInstrumentation.js");
 Components.utils.import("resource:///modules/msgDBCacheManager.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /* This is where functions related to the 3 pane window are kept */
 
@@ -166,7 +167,7 @@ var gThreePaneIncomingServerListener = {
 function UpdateMailPaneConfig(aMsgWindowInitialized) {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
   const layouts = ["standard", "wide", "vertical"];
-  var layoutView = gPrefBranch.getIntPref("mail.pane_config.dynamic");
+  var layoutView = Services.prefs.getIntPref("mail.pane_config.dynamic");
   // Ensure valid value; hard fail if not.
   layoutView = dynamicIds[layoutView] ? layoutView : kStandardPaneConfig;
   var desiredId = dynamicIds[layoutView];
@@ -275,10 +276,10 @@ const MailPrefObserver = {
         var threadTree = document.getElementById("threadTree");
 
         currentDisplayNameVersion =
-            gPrefBranch.getIntPref("mail.displayname.version");
+            Services.prefs.getIntPref("mail.displayname.version");
 
-        gPrefBranch.setIntPref("mail.displayname.version",
-                               ++currentDisplayNameVersion);
+        Services.prefs.setIntPref("mail.displayname.version",
+                                  ++currentDisplayNameVersion);
 
         //refresh the thread pane
         threadTree.treeBoxObject.invalid();
@@ -308,7 +309,7 @@ function AutoConfigWizard(okCallback)
     return;
   }
 
-  if (gPrefBranch.getBoolPref("mail.provider.enabled")) {
+  if (Services.prefs.getBoolPref("mail.provider.enabled")) {
     Services.obs.addObserver({
       observe: function(aSubject, aTopic, aData) {
         if (aTopic == "mail-tabs-session-restored" && aSubject === window) {
@@ -355,9 +356,9 @@ function OnLoadMessenger()
     document.documentElement.setAttribute("screenY", screen.availTop);
   }
 
-  gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
-  gPrefBranch.addObserver("mail.showCondensedAddresses", MailPrefObserver,
-                          false);
+  Services.prefs.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  Services.prefs.addObserver("mail.showCondensedAddresses", MailPrefObserver,
+                             false);
 
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
@@ -478,8 +479,6 @@ function LoadPostAccountWizard()
   function completeStartup() {
     // Check whether we need to show the default client dialog
     // First, check the shell service
-    let obs = Components.classes["@mozilla.org/observer-service;1"]
-                        .getService(Components.interfaces.nsIObserverService);
     var nsIShellService = Components.interfaces.nsIShellService;
     if (nsIShellService) {
       var shellService;
@@ -509,11 +508,11 @@ function LoadPostAccountWizard()
         // On windows, there seems to be a delay between setting TB as the
         // default client, and the isDefaultClient check succeeding.
         if (shellService.isDefaultClient(true, nsIShellService.MAIL))
-          obs.notifyObservers(window, "mail:setAsDefault", null);
+          Services.obs.notifyObservers(window, "mail:setAsDefault", null);
       }
     }
     // All core modal dialogs are done, the user can now interact with the 3-pane window
-    obs.notifyObservers(window, "mail-startup-done", null);
+    Services.obs.notifyObservers(window, "mail-startup-done", null);
   }
 
   setTimeout(completeStartup, 0);
@@ -574,12 +573,9 @@ function HandleAppCommandEvent(evt)
  */
 function FindOther3PaneWindow()
 {
-  let windowMediator =
-    Components.classes["@mozilla.org/appshell/window-mediator;1"]
-        .getService(Components.interfaces.nsIWindowMediator);
   // XXX We'd like to use getZOrderDOMWindowEnumerator here, but it doesn't work
   // on Linux
-  let enumerator = windowMediator.getEnumerator("mail:3pane");
+  let enumerator = Services.wm.getEnumerator("mail:3pane");
   while (enumerator.hasMoreElements()) {
     let win = enumerator.getNext();
     if (win != window)
@@ -596,8 +592,8 @@ function OnUnloadMessenger()
 {
   Services.obs.notifyObservers(window, "mail-unloading-messenger", null);
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
-  gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
-  gPrefBranch.removeObserver("mail.showCondensedAddresses", MailPrefObserver);
+  Services.prefs.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
+  Services.prefs.removeObserver("mail.showCondensedAddresses", MailPrefObserver);
 
   sessionStoreManager.unloadingWindow(window);
 
@@ -778,9 +774,9 @@ function loadStartFolder(initialUri)
             // Enable check new mail once by turning checkmail pref 'on' to bring
             // all users to one plane. This allows all users to go to Inbox. User can
             // always go to server settings panel and turn off "Check for new mail at startup"
-            if (!gPrefBranch.getBoolPref(kMailCheckOncePrefName))
+            if (!Services.prefs.getBoolPref(kMailCheckOncePrefName))
             {
-                gPrefBranch.setBoolPref(kMailCheckOncePrefName, true);
+                Services.prefs.setBoolPref(kMailCheckOncePrefName, true);
                 defaultServer.loginAtStartUp = true;
             }
 
@@ -844,12 +840,12 @@ function loadStartFolder(initialUri)
       // the user should set, it's not in mailnews.js, so we need a try catch.
       let playbackOfflineEvents = false;
       try {
-        playbackOfflineEvents = gPrefBranch.getBoolPref("mailnews.playback_offline");
+        playbackOfflineEvents = Services.prefs.getBoolPref("mailnews.playback_offline");
       }
       catch(ex) {}
       if (playbackOfflineEvents)
       {
-        gPrefBranch.setBoolPref("mailnews.playback_offline", false);
+        Services.prefs.setBoolPref("mailnews.playback_offline", false);
         MailOfflineMgr.offlineManager.goOnline(false, true, msgWindow);
       }
 
@@ -913,10 +909,10 @@ function UpgradeProfileAndBeUglyAboutIt()
   var threadPaneUIVersion;
 
   try {
-    threadPaneUIVersion = gPrefBranch.getIntPref("mailnews.ui.threadpane.version");
+    threadPaneUIVersion = Services.prefs.getIntPref("mailnews.ui.threadpane.version");
     if (threadPaneUIVersion < 7)
     {
-      gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 7);
+      Services.prefs.setIntPref("mailnews.ui.threadpane.version", 7);
     } // version 7 upgrades
   }
   catch (ex) {
@@ -1104,7 +1100,7 @@ function TreeOnMouseDown(event)
 
 function FolderPaneContextMenuNewTab(event)
 {
-  var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
+  var bgLoad = Services.prefs.getBoolPref("mail.tabs.loadInBackground");
   if (event.shiftKey)
     bgLoad = !bgLoad;
   MsgOpenNewTabForFolder(bgLoad);
@@ -1145,7 +1141,7 @@ function OpenMessageInNewTab(event)
 {
   if (!gFolderDisplay.selectedMessage)
     return;
-  var bgLoad = gPrefBranch.getBoolPref("mail.tabs.loadInBackground");
+  var bgLoad = Services.prefs.getBoolPref("mail.tabs.loadInBackground");
   if (event.shiftKey)
     bgLoad = !bgLoad;
 
@@ -1188,7 +1184,7 @@ function ReloadMessage()
 // of those settings from the default account.
 function MigrateJunkMailSettings()
 {
-  var junkMailSettingsVersion = gPrefBranch.getIntPref("mail.spam.version");
+  var junkMailSettingsVersion = Services.prefs.getIntPref("mail.spam.version");
   if (!junkMailSettingsVersion)
   {
     // Get the default account, check to see if we have values for our
@@ -1201,17 +1197,29 @@ function MigrateJunkMailSettings()
     {
       // we only care about
       var prefix = "mail.server." + defaultAccount.incomingServer.key + ".";
-      if (gPrefBranch.prefHasUserValue(prefix + "manualMark"))
-        gPrefBranch.setBoolPref("mail.spam.manualMark", pref.getBoolPref(prefix + "manualMark"));
-      if (gPrefBranch.prefHasUserValue(prefix + "manualMarkMode"))
-        gPrefBranch.setIntPref("mail.spam.manualMarkMode", pref.getIntPref(prefix + "manualMarkMode"));
-      if (gPrefBranch.prefHasUserValue(prefix + "spamLoggingEnabled"))
-        gPrefBranch.setBoolPref("mail.spam.logging.enabled", pref.getBoolPref(prefix + "spamLoggingEnabled"));
-      if (gPrefBranch.prefHasUserValue(prefix + "markAsReadOnSpam"))
-        gPrefBranch.setBoolPref("mail.spam.markAsReadOnSpam", pref.getBoolPref(prefix + "markAsReadOnSpam"));
+      if (Services.prefs.prefHasUserValue(prefix + "manualMark"))
+      {
+        Services.prefs.setBoolPref("mail.spam.manualMark",
+          Services.prefs.getBoolPref(prefix + "manualMark"));
+      }
+      if (Services.prefs.prefHasUserValue(prefix + "manualMarkMode"))
+      {
+        Services.prefs.setIntPref("mail.spam.manualMarkMode",
+          Services.prefs.getIntPref(prefix + "manualMarkMode"));
+      }
+      if (Services.prefs.prefHasUserValue(prefix + "spamLoggingEnabled"))
+      {
+        Services.prefs.setBoolPref("mail.spam.logging.enabled",
+          Services.prefs.getBoolPref(prefix + "spamLoggingEnabled"));
+      }
+      if (Services.prefs.prefHasUserValue(prefix + "markAsReadOnSpam"))
+      {
+        Services.prefs.setBoolPref("mail.spam.markAsReadOnSpam",
+          Services.prefs.getBoolPref(prefix + "markAsReadOnSpam"));
+      }
     }
     // bump the version so we don't bother doing this again.
-    gPrefBranch.setIntPref("mail.spam.version", 1);
+    Services.prefs.setIntPref("mail.spam.version", 1);
   }
 }
 
@@ -1219,7 +1227,7 @@ function MigrateJunkMailSettings()
 // with the existing INBOX folders.
 function MigrateFolderViews()
 {
-  var folderViewsVersion = gPrefBranch.getIntPref("mail.folder.views.version");
+  var folderViewsVersion = Services.prefs.getIntPref("mail.folder.views.version");
   if (!folderViewsVersion)
   {
      var servers = accountManager.allServers;
@@ -1235,7 +1243,7 @@ function MigrateFolderViews()
            inbox.setFlag(Components.interfaces.nsMsgFolderFlags.Favorite);
        }
      }
-    gPrefBranch.setIntPref("mail.folder.views.version", 1);
+    Services.prefs.setIntPref("mail.folder.views.version", 1);
   }
 }
 
@@ -1245,17 +1253,15 @@ function MigrateFolderViews()
 // To migrate to the new download manager, remove downloads.rdf.
 function MigrateAttachmentDownloadStore()
 {
-  var attachmentStoreVersion = gPrefBranch.getIntPref("mail.attachment.store.version");
+  var attachmentStoreVersion = Services.prefs.getIntPref("mail.attachment.store.version");
   if (!attachmentStoreVersion)
   {
-    var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
-                     .getService(Components.interfaces.nsIProperties);
-    var downloadsFile = dirService.get("DLoads", Components.interfaces.nsIFile);
+    var downloadsFile = Services.dirsvc.get("DLoads", Components.interfaces.nsIFile);
     if (downloadsFile && downloadsFile.exists())
       downloadsFile.remove(false);
 
     // bump the version so we don't bother doing this again.
-    gPrefBranch.setIntPref("mail.attachment.store.version", 1);
+    Services.prefs.setIntPref("mail.attachment.store.version", 1);
   }
 }
 
@@ -1264,26 +1270,26 @@ function MigrateAttachmentDownloadStore()
 // is defined.
 function MigrateOpenMessageBehavior()
 {
-  let openMessageBehaviorVersion = gPrefBranch.getIntPref(
+  let openMessageBehaviorVersion = Services.prefs.getIntPref(
                                      "mail.openMessageBehavior.version");
   if (!openMessageBehaviorVersion)
   {
     let reuseMessageWindow;
     try {
-      reuseMessageWindow = gPrefBranch.getBoolPref(
+      reuseMessageWindow = Services.prefs.getBoolPref(
                              "mailnews.reuse_message_window");
     }
     catch (e) {}
 
     // Don't touch this if it isn't defined
     if (reuseMessageWindow === true)
-      gPrefBranch.setIntPref("mail.openMessageBehavior",
+      Services.prefs.setIntPref("mail.openMessageBehavior",
           MailConsts.OpenMessageBehavior.EXISTING_WINDOW);
     else if (reuseMessageWindow === false)
-      gPrefBranch.setIntPref("mail.openMessageBehavior",
+      Services.prefs.setIntPref("mail.openMessageBehavior",
           MailConsts.OpenMessageBehavior.NEW_TAB);
 
-    gPrefBranch.setIntPref("mail.openMessageBehavior.version", 1);
+    Services.prefs.setIntPref("mail.openMessageBehavior.version", 1);
   }
 }
 
@@ -1296,8 +1302,6 @@ function ThreadPaneOnDragStart(aEvent) {
     return;
 
   gFolderDisplay.hintAboutToDeleteMessages();
-  let ios = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
   let fileNames = [];
   let msgUrls = {};
 
@@ -1544,11 +1548,8 @@ var LightWeightThemeWebInstaller = {
   },
 
   _isAllowed: function (node) {
-    let pm = Components.classes["@mozilla.org/permissionmanager;1"]
-      .getService(Components.interfaces.nsIPermissionManager);
-
     let uri = node.ownerDocument.documentURIObject;
-    return pm.testPermission(uri, "install") == pm.ALLOW_ACTION;
+    return Services.perms.testPermission(uri, "install") == Services.perms.ALLOW_ACTION;
   },
 
   _getNotificationBox: function () {

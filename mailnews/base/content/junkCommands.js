@@ -26,6 +26,7 @@
   */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /*
  * determineActionsForJunkMsgs
@@ -356,7 +357,7 @@ function JunkSelectedMessages(setAsJunk)
   // Note that this behaviour should match the one in the back end for marking
   // as junk via clicking the 'junk' column.
 
-  if (setAsJunk && pref.getBoolPref("mailnews.ui.junk.manualMarkAsJunkMarksRead"))
+  if (setAsJunk && Services.prefs.getBoolPref("mailnews.ui.junk.manualMarkAsJunkMarksRead"))
     MarkSelectedMessagesRead(true);
 
   gDBView.doCommand(setAsJunk ? nsMsgViewCommandType.junk

@@ -56,9 +56,7 @@ function getClipboardTransferable() {
 function copyToClipboard() {
   let transferable = getClipboardTransferable();
   // Store the data into the clipboard.
-  let clipboard = Cc["@mozilla.org/widget/clipboard;1"]
-                    .getService(Ci.nsIClipboard);
-  clipboard.setData(transferable, null, clipboard.kGlobalClipboard);
+  Services.clipboard.setData(transferable, null, Services.clipboard.kGlobalClipboard);
 }
 
 function sendViaEmail() {

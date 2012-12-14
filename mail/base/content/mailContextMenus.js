@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 const mailtolength = 7;
@@ -113,8 +114,8 @@ function GetMessageIdFromNode(messageIdNode, cleanMessageId)
  */
 function OpenBrowserWithMessageId(messageId)
 {
-  var browserURL = pref.getComplexValue("mailnews.messageid_browser.url",
-                                        Components.interfaces.nsIPrefLocalizedString).data;
+  var browserURL = Services.prefs.getComplexValue("mailnews.messageid_browser.url",
+                                                  Components.interfaces.nsIPrefLocalizedString).data;
   browserURL = browserURL.replace(/%mid/, messageId);
   try
   {
@@ -168,7 +169,7 @@ function OpenMessageForMessageId(messageId)
   // if message id was found open corresponding message
   // else show error message
   if (messageHeader)
-    OpenMessageByHeader(messageHeader, pref.getBoolPref("mailnews.messageid.openInNewWindow"));
+    OpenMessageByHeader(messageHeader, Services.prefs.getBoolPref("mailnews.messageid.openInNewWindow"));
   else
   {
     var messageIdStr = "<" + messageId + ">";
@@ -176,10 +177,8 @@ function OpenMessageForMessageId(messageId)
     var errorTitle = bundle.getString("errorOpenMessageForMessageIdTitle");
     var errorMessage = bundle.getFormattedString("errorOpenMessageForMessageIdMessage",
                                                  [messageIdStr]);
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
 
-    promptService.alert(window, errorTitle, errorMessage);
+    Services.prompt.alert(window, errorTitle, errorMessage);
   }
 }
 

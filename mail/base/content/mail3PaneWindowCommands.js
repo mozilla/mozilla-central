@@ -8,6 +8,7 @@
  */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 // Controller object for folder pane
 var FolderPaneController =
@@ -538,13 +539,13 @@ var DefaultController =
       case "cmd_moveToFolderAgain":
         // Disable "Move to <folder> Again" for news and other read only
         // folders since we can't really move messages from there - only copy.
-        if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
+        if (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move"))
         {
           let loadedFolder = gFolderTreeView.getSelectedFolders()[0];
           if (loadedFolder && !loadedFolder.canDeleteMessages)
             return false;
         }
-        let targetURI = pref.getCharPref("mail.last_msg_movecopy_target_uri");
+        let targetURI = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
         if (!targetURI)
           return false;
         let targetFolder = MailUtils.getFolderForURI(targetURI);
@@ -899,8 +900,8 @@ var DefaultController =
           MailOfflineMgr.openOfflineAccountSettings();
           break;
       case "cmd_moveToFolderAgain":
-          var folderId = pref.getCharPref("mail.last_msg_movecopy_target_uri");
-          if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
+          var folderId = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
+          if (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move"))
             MsgMoveMessage(GetMsgFolderFromUri(folderId));
           else
             MsgCopyMessage(GetMsgFolderFromUri(folderId));
@@ -955,7 +956,7 @@ function CloseTabOrWindow()
 {
   let tabmail = document.getElementById('tabmail');
   if (tabmail.tabInfo.length == 1) {
-    if (pref.getBoolPref("mail.tabs.closeWindowWithLastTab"))
+    if (Services.prefs.getBoolPref("mail.tabs.closeWindowWithLastTab"))
       window.close();
   }
   else {

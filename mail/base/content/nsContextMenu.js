@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/MailUtils.js");
 
 XPCOMUtils.defineLazyGetter(this, "PageMenu", function() {
@@ -575,10 +576,8 @@ nsContextMenu.prototype = {
     try {
       const nsIScriptSecurityManager =
         Components.interfaces.nsIScriptSecurityManager;
-      var secMan = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                             .getService(nsIScriptSecurityManager);
-      secMan.checkLoadURIWithPrincipal(this.target.nodePrincipal, this.linkURI,
-                                       nsIScriptSecurityManager.STANDARD);
+      Services.scriptSecurityManager.checkLoadURIWithPrincipal(this.target.nodePrincipal,
+          this.linkURI, nsIScriptSecurityManager.STANDARD);
     } catch (e) {
       // Don't save things we can't link to.
       return false;
@@ -738,10 +737,8 @@ nsContextMenu.prototype = {
    * @return an nsIURI if possible, or null if not
    */
   getLinkURI: function CM_getLinkURI() {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
     try {
-      return ioService.newURI(this.linkURL, null, null);
+      return Services.io.newURI(this.linkURL, null, null);
     } catch (ex) {
       // e.g. empty URL string
     }
@@ -820,11 +817,9 @@ nsContextMenu.prototype = {
    */
   makeURLAbsolute : function CM_makeURLAbsolute(aBase, aUrl) {
     // Construct nsIURL.
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    var baseURI  = ioService.newURI(aBase, null, null);
+    var baseURI  = Services.io.newURI(aBase, null, null);
 
-    return ioService.newURI(baseURI.resolve(aUrl), null, null).spec;
+    return Services.io.newURI(baseURI.resolve(aUrl), null, null).spec;
   },
 
   /**

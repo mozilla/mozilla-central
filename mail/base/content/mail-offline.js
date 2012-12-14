@@ -48,14 +48,14 @@ var MailOfflineMgr = {
       // We do the go online stuff in our listener for the online state change.
       Services.io.offline = false;
       // resume managing offline status now that we are going back online.
-      Services.io.manageOfflineStatus = gPrefBranch.getBoolPref("offline.autoDetect");
+      Services.io.manageOfflineStatus = Services.prefs.getBoolPref("offline.autoDetect");
     }
     else // going offline
     {
       // Stop automatic management of the offline status since the user has
       // decided to go offline.
       Services.io.manageOfflineStatus = false;
-      var prefDownloadMessages = gPrefBranch.getIntPref("offline.download.download_messages");
+      var prefDownloadMessages = Services.prefs.getIntPref("offline.download.download_messages");
       // 0 == Ask, 1 == Always Download, 2 == Never Download
       var downloadForOfflineUse = (prefDownloadMessages == 0 && this.confirmDownloadMessagesForOfflineUse())
                                   || prefDownloadMessages == 1;
@@ -126,7 +126,7 @@ var MailOfflineMgr = {
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)
-      gPrefBranch.setIntPref("offline.send.unsent_messages", sendUnsentMessages ? 1 : 2);
+      Services.prefs.setIntPref("offline.send.unsent_messages", sendUnsentMessages ? 1 : 2);
 
     return sendUnsentMessages;
   },
@@ -138,7 +138,7 @@ var MailOfflineMgr = {
    */
   shouldSendUnsentMessages: function()
   {
-    var sendUnsentWhenGoingOnlinePref = gPrefBranch.getIntPref("offline.send.unsent_messages");
+    var sendUnsentWhenGoingOnlinePref = Services.prefs.getIntPref("offline.send.unsent_messages");
     if(sendUnsentWhenGoingOnlinePref == 2) // never send
       return false;
 
@@ -174,7 +174,7 @@ var MailOfflineMgr = {
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)
-      gPrefBranch.setIntPref("offline.download.download_messages", downloadMessages ? 1 : 2);
+      Services.prefs.setIntPref("offline.download.download_messages", downloadMessages ? 1 : 2);
     return downloadMessages;
   },
 
@@ -225,7 +225,7 @@ var MailOfflineMgr = {
     this.updateOfflineUI(aGoingOffline);
     if (!aGoingOffline)
     {
-      let prefSendUnsentMessages = gPrefBranch.getIntPref("offline.send.unsent_messages");
+      let prefSendUnsentMessages = Services.prefs.getIntPref("offline.send.unsent_messages");
       // 0 == Ask, 1 == Always Send, 2 == Never Send
       let sendUnsentMessages = (prefSendUnsentMessages == 0 &&
                                 this.haveUnsentMessages() &&

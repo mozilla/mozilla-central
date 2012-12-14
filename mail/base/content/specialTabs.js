@@ -195,12 +195,9 @@ const DOMLinkHandler = {
       if (!isAllowedPage || !uri.schemeIs("chrome")) {
         // Be extra paraniod and just make sure we're not going to load
         // something we shouldn't. Firefox does this, so we're doing the same.
-        let ssm = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-          .getService(Components.interfaces.nsIScriptSecurityManager);
-
           try {
-            ssm.checkLoadURIWithPrincipal(targetDoc.nodePrincipal, uri,
-                                          Components.interfaces.nsIScriptSecurityManager.DISALLOW_SCRIPT);
+            Services.scriptSecurityManager.checkLoadURIWithPrincipal(targetDoc.nodePrincipal, uri,
+                                           Components.interfaces.nsIScriptSecurityManager.DISALLOW_SCRIPT);
           }
           catch (ex) {
             return;
@@ -490,15 +487,12 @@ var specialTabs = {
 
     let tabmail = document.getElementById('tabmail');
 
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-
     tabmail.registerTabType(this.contentTabType);
     tabmail.registerTabType(this.chromeTabType);
 
     // If we've upgraded (note: always get these values so that we set
     // the mstone preference for the new version):
-    let [fromVer, toVer] = this.getApplicationUpgradeVersions(prefs);
+    let [fromVer, toVer] = this.getApplicationUpgradeVersions();
 
     // Although this might not be really necessary because of the version checks, we'll
     // check this pref anyway and clear it so that we are consistent with what Firefox
@@ -516,10 +510,10 @@ var specialTabs = {
     }
 
     // Show the about rights notification if we need to.
-    if (this.shouldShowAboutRightsNotification(prefs))
-      this.showAboutRightsNotification(prefs);
-    else if (this.shouldShowTelemetryNotification(prefs))
-      this.showTelemetryNotification(prefs);
+    if (this.shouldShowAboutRightsNotification())
+      this.showAboutRightsNotification();
+    else if (this.shouldShowTelemetryNotification())
+      this.showTelemetryNotification();
   },
 
   /**
@@ -694,12 +688,12 @@ var specialTabs = {
    * or the pref being set to ignore - return null and the current version.
    * In either case, updates the pref with the latest version.
    */
-  getApplicationUpgradeVersions: function(prefs) {
+  getApplicationUpgradeVersions: function() {
     let savedAppVersion = null;
     let prefstring = "mailnews.start_page_override.mstone";
 
     try {
-      savedAppVersion = prefs.getCharPref(prefstring);
+      savedAppVersion = Services.prefs.getCharPref(prefstring);
     } catch (ex) {}
 
     let currentApplicationVersion = Application.version;
@@ -708,7 +702,7 @@ var specialTabs = {
       return [null, this.splitVersion(currentApplicationVersion)];
 
     if (savedAppVersion != currentApplicationVersion)
-      prefs.setCharPref(prefstring, currentApplicationVersion);
+      Services.prefs.setCharPref(prefstring, currentApplicationVersion);
 
     return [this.splitVersion(savedAppVersion), this.splitVersion(currentApplicationVersion)];
   },
@@ -742,16 +736,17 @@ var specialTabs = {
    *
    * This is controlled by the pref toolkit.telemetry.prompted
    */
-  shouldShowTelemetryNotification: function(prefs) {
+  shouldShowTelemetryNotification: function() {
     // toolkit has decided that the pref should have no default value
     try {
-      if (prefs.getBoolPref(kTelemetryPrompted) || prefs.getBoolPref(kTelemetryEnabled))
+      if (Services.prefs.getBoolPref(kTelemetryPrompted) ||
+          Services.prefs.getBoolPref(kTelemetryEnabled))
         return false;
     } catch (e) { }
     return true;
   },
 
-  showTelemetryNotification: function(prefs) {
+  showTelemetryNotification: function() {
     var notifyBox = document.getElementById("mail-notification-box");
 
     var brandBundle =
@@ -760,7 +755,7 @@ var specialTabs = {
       new StringBundle("chrome://messenger/locale/telemetry.properties");
 
     var productName = brandBundle.get("brandFullName");
-    var serverOwner = prefs.getCharPref(kTelemetryServerOwner);
+    var serverOwner = Services.prefs.getCharPref(kTelemetryServerOwner);
     var telemetryText = telemetryBundle.get("telemetryText", [productName, serverOwner]);
 
     var buttons = [
@@ -769,7 +764,7 @@ var specialTabs = {
         accessKey: telemetryBundle.get("telemetryYesButtonAccessKey"),
         popup:     null,
         callback:  function(aNotificationBar, aButton) {
-          prefs.setBoolPref(kTelemetryEnabled, true);
+          Services.prefs.setBoolPref(kTelemetryEnabled, true);
         }
       },
       {
@@ -781,7 +776,7 @@ var specialTabs = {
     ];
 
     // Set pref to indicate we've shown the notification.
-    prefs.setBoolPref(kTelemetryPrompted, true);
+    Services.prefs.setBoolPref(kTelemetryPrompted, true);
 
     var notification = notifyBox.appendNotification(telemetryText, "telemetry", null, notifyBox.PRIORITY_INFO_LOW, buttons);
     notification.persistence = 3; // arbitrary number, just so bar sticks around for a bit
@@ -818,24 +813,21 @@ var specialTabs = {
    *     If this pref isn't set or the value is less than the current version
    *     then we show the about:rights notification.
    */
-  shouldShowAboutRightsNotification: function(prefs) {
+  shouldShowAboutRightsNotification: function() {
     try {
-      return !prefs.getBoolPref("mail.rights.override");
+      return !Services.prefs.getBoolPref("mail.rights.override");
     } catch (e) { }
 
-    return prefs.getIntPref("mail.rights.version") < this._kAboutRightsVersion;
+    return Services.prefs.getIntPref("mail.rights.version") < this._kAboutRightsVersion;
   },
 
-  showAboutRightsNotification: function(prefs) {
+  showAboutRightsNotification: function() {
     var notifyBox = document.getElementById("mail-notification-box");
 
-    var stringBundle =
-      Components.classes["@mozilla.org/intl/stringbundle;1"]
-                .getService(Components.interfaces.nsIStringBundleService);
     var brandBundle =
-      stringBundle.createBundle("chrome://branding/locale/brand.properties");
+      Services.strings.createBundle("chrome://branding/locale/brand.properties");
     var rightsBundle =
-      stringBundle.createBundle("chrome://messenger/locale/aboutRights.properties");
+      Services.strings.createBundle("chrome://messenger/locale/aboutRights.properties");
 
     var productName = brandBundle.GetStringFromName("brandFullName");
     var notifyRightsText = rightsBundle.formatStringFromName("notifyRightsText",
@@ -862,7 +854,7 @@ var specialTabs = {
     box.persistence = 3;
 
     // Set the pref to say we've displayed the notification.
-    prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
+    Services.prefs.setIntPref("mail.rights.version", this._kAboutRightsVersion);
   },
 
   /**

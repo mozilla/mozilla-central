@@ -6,6 +6,7 @@
 /*  This file contains the js functions necessary to implement view navigation within the 3 pane. */
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function GetSubFoldersInFolderPaneOrder(folder)
 {
@@ -138,7 +139,7 @@ function CrossFolderNavigation(type)
   if (type == nsMsgNavigationType.nextUnreadMessage ||
       type == nsMsgNavigationType.nextUnreadThread)
   {
-    var nextMode = pref.getIntPref("mailnews.nav_crosses_folders");
+    var nextMode = Services.prefs.getIntPref("mailnews.nav_crosses_folders");
     // 0: "next" goes to the next folder, without prompting
     // 1: "next" goes to the next folder, and prompts (the default)
     // 2: "next" does nothing when there are no unread messages
@@ -155,11 +156,9 @@ function CrossFolderNavigation(type)
         let promptText = document.getElementById("bundle_messenger")
                                  .getFormattedString("advanceNextPrompt",
                                                      [folder.name], 1);
-        let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                      .getService(Components.interfaces.nsIPromptService);
-        if (promptService.confirmEx(window, null, promptText,
-                                    promptService.STD_YES_NO_BUTTONS,
-                                    null, null, null, null, {}))
+        if (Services.prompt.confirmEx(window, null, promptText,
+                                      Services.prompt.STD_YES_NO_BUTTONS,
+                                      null, null, null, null, {}))
           return;
       }
       gFolderDisplay.pushNavigation(type, true);

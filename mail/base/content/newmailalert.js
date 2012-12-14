@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const HORIZONTAL = 1;
 const LEFT = 2;
 const TOP = 4;
@@ -95,9 +97,8 @@ function onAlertLoad()
   // read out our initial settings from prefs.
   try 
   {
-    var prefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
-    gSlideTime = prefBranch.getIntPref("alerts.slideIncrementTime");
-    gOpenTime = prefBranch.getIntPref("alerts.totalOpenTime");
+    gSlideTime = Services.prefs.getIntPref("alerts.slideIncrementTime");
+    gOpenTime = Services.prefs.getIntPref("alerts.totalOpenTime");
   } catch (ex) {}
   
   // bogus call to make sure the window is moved offscreen until we are ready for it.

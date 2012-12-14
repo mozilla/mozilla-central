@@ -4,6 +4,7 @@
 
 Components.utils.import("resource:///modules/MsgHdrSyntheticView.js");
 Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
  * Displays message "folder"s, mail "message"s, and "glodaList" results.  The
@@ -571,7 +572,7 @@ let mailTabType = {
     let displayDeckLegal = aLegalStates.thread ||
                            aLegalStates.accountCentral;
 
-    let layout = pref.getIntPref("mail.pane_config.dynamic");
+    let layout = Services.prefs.getIntPref("mail.pane_config.dynamic");
     if (layout == kWidePaneConfig)
     {
       // in the "wide" configuration, the #messengerBox is left holding the

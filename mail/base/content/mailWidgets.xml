@@ -1558,9 +1558,7 @@
     <implementation>
       <field name="stringBundle">
         <![CDATA[
-          Components.classes["@mozilla.org/intl/stringbundle;1"]
-                    .getService(Components.interfaces.nsIStringBundleService)
-                    .createBundle("chrome://messenger/locale/search-attributes.properties")
+          this.Services.strings.createBundle("chrome://messenger/locale/search-attributes.properties")
         ]]>
       </field>
       <property name="valueLabel" readonly="true">
@@ -1573,15 +1571,13 @@
                 return customTerm.name;
               else
               {
-                let consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                    .getService(Components.interfaces.nsIConsoleService);
                 let scriptError = Components.classes["@mozilla.org/scripterror;1"]
                     .createInstance(Components.interfaces.nsIScriptError);
                 scriptError.init("Missing custom search term " + this.value,
                     null, null, 0, 0,
                     Components.interfaces.nsIScriptError.errorFlag,
                     "component javascript");
-                consoleService.logMessage(scriptError);
+                this.Services.console.logMessage(scriptError);
                 return this.stringBundle.GetStringFromName("MissingCustomTerm");
               }
             }
@@ -1619,9 +1615,7 @@
             let hdrsArray = null;
             try
             {
-              let hdrs = Components.classes["@mozilla.org/preferences-service;1"]
-                                   .getService(Components.interfaces.nsIPrefBranch)
-                                   .getCharPref("mailnews.customHeaders");
+              let hdrs = this.Services.prefs.getCharPref("mailnews.customHeaders");
               hdrs = hdrs.replace(/\s+/g, "");  //remove white spaces before splitting
               hdrsArray = hdrs.match(/[^:]+/g);
             }
@@ -1652,6 +1646,7 @@
       </property>
       <constructor>
       <![CDATA[
+        Components.utils.import("resource://gre/modules/Services.jsm", this);
         initializeTermFromId(this.id);
       ]]>
       </constructor>
@@ -1665,9 +1660,7 @@
       <field name="searchAttribute">Components.interfaces.nsMsgSearchAttrib.Default</field>
       <field name="stringBundle">
         <![CDATA[
-          Components.classes["@mozilla.org/intl/stringbundle;1"]
-                    .getService(Components.interfaces.nsIStringBundleService)
-                    .createBundle("chrome://messenger/locale/search-operators.properties")
+          this.Services.strings.createBundle("chrome://messenger/locale/search-operators.properties")
         ]]>
       </field>
       <property name="valueLabel" readonly="true">
@@ -1729,6 +1722,11 @@
           ]]>
         </getter>
       </property>
+      <constructor>
+        <![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm", this);
+        ]]>
+      </constructor>
     </implementation>
   </binding>
 
@@ -2146,10 +2144,10 @@
       </method>
       <constructor>
       <![CDATA[
+        Components.utils.import("resource://gre/modules/Services.jsm", this);
+
         // initialize strings
-        var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                       .getService(Components.interfaces.nsIStringBundleService)
-                       .createBundle("chrome://messenger/locale/messenger.properties");
+        var bundle = this.Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
 
         // intialize the priority picker
         this.initialize(document.getAnonymousNodes(this)[1], bundle);
@@ -2460,14 +2458,13 @@
         <body>
           <![CDATA[
             // skip servers, Trash, Junk folders and newsgroups
+
             if (!aFolder || aFolder.isServer ||
                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash) ||
                 (aFolder.server instanceof Components.interfaces.nsINntpIncomingServer))
               return false;
-            var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                                 .getService(Components.interfaces.nsIPrefBranch);
-            var showPreviewText = pref.getBoolPref("mail.biff.alert.show_preview");
+            var showPreviewText = this.Services.prefs.getBoolPref("mail.biff.alert.show_preview");
             var folderArray = new Array;
             if (aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)
             {
@@ -2614,6 +2611,11 @@
           ]]>
         </body>
       </method>
+      <constructor>
+        <![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm", this);
+        ]]>
+      </constructor>
     </implementation>
   </binding>
 
@@ -2640,12 +2642,12 @@
       <constructor>
         <![CDATA[
           Components.utils.import("resource:///modules/MailUtils.js");
-          var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch);
-          if (!pref.getBoolPref("mail.biff.alert.show_preview"))
+          Components.utils.import("resource://gre/modules/Services.jsm", this);
+
+          if (!this.Services.prefs.getBoolPref("mail.biff.alert.show_preview"))
             document.getAnonymousElementByAttribute(this, "anonid", "preview").hidden = true;
-          var hideSubject = !pref.getBoolPref("mail.biff.alert.show_subject");
-          var hideSender = !pref.getBoolPref("mail.biff.alert.show_sender");
+          var hideSubject = !this.Services.prefs.getBoolPref("mail.biff.alert.show_subject");
+          var hideSender = !this.Services.prefs.getBoolPref("mail.biff.alert.show_sender");
           if (hideSubject)
             document.getAnonymousElementByAttribute(this, "anonid", "subject").hidden = true;
           if (hideSender)

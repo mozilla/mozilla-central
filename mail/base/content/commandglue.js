@@ -7,6 +7,7 @@
  */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 function UpdateMailToolbar(caller)
 {
@@ -20,8 +21,7 @@ function UpdateMailToolbar(caller)
   document.commandDispatcher.updateCommands('mail-toolbar');
 
   // hook for extra toolbar items
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:updateToolbarItems", null);
+  Services.obs.notifyObservers(window, "mail:updateToolbarItems", null);
 }
 
 function isNewsURI(uri)
@@ -141,9 +141,9 @@ function UpdateStatusQuota(folder)
     gQuotaUICache.panel = document.getElementById("quotaPanel");
     gQuotaUICache.label = document.getElementById("quotaLabel");
     const kBranch = "mail.quota.mainwindow_threshold.";
-    gQuotaUICache.showTreshold = gPrefBranch.getIntPref(kBranch + "show");
-    gQuotaUICache.warningTreshold = gPrefBranch.getIntPref(kBranch + "warning");
-    gQuotaUICache.criticalTreshold = gPrefBranch.getIntPref(kBranch + "critical");
+    gQuotaUICache.showTreshold = Services.prefs.getIntPref(kBranch + "show");
+    gQuotaUICache.warningTreshold = Services.prefs.getIntPref(kBranch + "warning");
+    gQuotaUICache.criticalTreshold = Services.prefs.getIntPref(kBranch + "critical");
   }
 
   var valid = {value: null};

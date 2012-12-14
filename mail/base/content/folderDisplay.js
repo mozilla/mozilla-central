@@ -4,6 +4,7 @@
 
 Components.utils.import("resource:///modules/dbViewWrapper.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gFolderDisplay = null;
 var gMessageDisplay = null;
@@ -208,7 +209,7 @@ FolderDisplayWidget.prototype = {
    *     offline.
    */
   get summarizeSelectionInFolder() {
-    return gPrefBranch.getBoolPref("mail.operate_on_msgs_in_collapsed_threads") &&
+    return Services.prefs.getBoolPref("mail.operate_on_msgs_in_collapsed_threads") &&
       !(this.displayedFolder instanceof Components.interfaces.nsIMsgNewsFolder);
   },
 
@@ -790,7 +791,7 @@ FolderDisplayWidget.prototype = {
   get shouldDeferMessageDisplayUntilAfterServerConnect() {
     let passwordPromptRequired = false;
 
-    if (gPrefBranch.getBoolPref("mail.password_protect_local_cache"))
+    if (Services.prefs.getBoolPref("mail.password_protect_local_cache"))
       passwordPromptRequired =
         this.view.displayedFolder.server.passwordPromptRequired;
 
@@ -805,8 +806,8 @@ FolderDisplayWidget.prototype = {
    */
   shouldMarkMessagesReadOnLeavingFolder:
     function FolderDisplayWidget_crazyMarkOnReadChecker (aMsgFolder) {
-      return gPrefBranch.getBoolPref("mailnews.mark_message_read." +
-                                     aMsgFolder.server.type);
+      return Services.prefs.getBoolPref("mailnews.mark_message_read." +
+                                        aMsgFolder.server.type);
   },
 
   /**
@@ -875,16 +876,12 @@ FolderDisplayWidget.prototype = {
     FolderDisplayListenerManager._fireListeners("onActiveCreatedView",
                                                 [this]);
 
-    let ObserverService =
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService);
     // The data payload used to be viewType + ":" + viewFlags.  We no longer
     //  do this because we already have the implied contract that gDBView is
     //  valid at the time we generate the notification.  In such a case, you
     //  can easily get that information from the gDBView.  (The documentation
     //  on creating a custom column assumes gDBView.)
-    ObserverService.notifyObservers(this.displayedFolder,
-                                    "MsgCreateDBView", "");
+    Services.obs.notifyObservers(this.displayedFolder, "MsgCreateDBView", "");
   },
 
   /**
@@ -1056,7 +1053,7 @@ FolderDisplayWidget.prototype = {
 
     // - new messages
     // if configured to scroll to new messages, try that
-    if (gPrefBranch.getBoolPref("mailnews.scroll_to_new_message") &&
+    if (Services.prefs.getBoolPref("mailnews.scroll_to_new_message") &&
         this.navigate(nsMsgNavigationType.firstNew, /* select */ false))
       return;
 
@@ -1065,7 +1062,7 @@ FolderDisplayWidget.prototype = {
     //  persistent than our saveSelection/restoreSelection stuff), and the view
     //  is backed by a single underlying folder (the only way having just a
     //  message key works out), try that
-    if (gPrefBranch.getBoolPref("mailnews.remember_selected_message") &&
+    if (Services.prefs.getBoolPref("mailnews.remember_selected_message") &&
         this.view.isSingleFolder) {
       // use the displayed folder; nsMsgDBView goes to the effort to save the
       //  state to the viewFolder, so this is the correct course of action.
@@ -1653,8 +1650,8 @@ FolderDisplayWidget.prototype = {
     var prefName = "mailnews.account_central_page.url";
     // oh yeah, 'pref' is a global all right.
     var acctCentralPage =
-      pref.getComplexValue(prefName,
-                           Components.interfaces.nsIPrefLocalizedString).data;
+      Services.prefs.getComplexValue(prefName,
+                                     Components.interfaces.nsIPrefLocalizedString).data;
     window.frames["accountCentralPane"].location.href = acctCentralPage;
   },
 

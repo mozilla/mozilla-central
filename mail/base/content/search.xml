@@ -58,6 +58,8 @@
         const Ci = Components.interfaces;
         const Cu = Components.utils;
         Cu.import("resource:///modules/errUtils.js");
+        Cu.import("resource://gre/modules/Services.jsm");
+
         try {
           this.setAttribute(
             "placeholder",
@@ -66,22 +68,17 @@
                                   Application.platformIsMac ?
                                   "keyLabelMac" : "keyLabelNonMac")));
 
-          var prefBranch =
-              Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
-          prefBranch.addObserver("mailnews.database.global.indexer.enabled",
-                                 this._prefObserver, false);
+          Services.prefs.addObserver("mailnews.database.global.indexer.enabled",
+                                     this._prefObserver, false);
 
           this.glodaCompleter =
             Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"]
                       .getService()
                       .wrappedJSObject;
-          var observerSvc = Cc["@mozilla.org/observer-service;1"]
-                            .getService(Ci.nsIObserverService);
-          observerSvc.addObserver(this, "autocomplete-did-enter-text", false);
+          Services.obs.addObserver(this, "autocomplete-did-enter-text", false);
 
           this.glodaEnabled =
-            prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
+            Services.prefs.getBoolPref("mailnews.database.global.indexer.enabled");
           this.collapsed = !this.glodaEnabled;
 
           // make sure we set our emptytext here from the get-go
@@ -94,14 +91,11 @@
 
       <destructor>
         <![CDATA[
-          var prefBranch =
-              Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch);
-          prefBranch.removeObserver("mailnews.database.global.indexer.enabled",
-                                    this._prefObserver);
-          var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-                            .getService(Components.interfaces.nsIObserverService);
-          observerSvc.removeObserver(this, "autocomplete-did-enter-text");
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
+          Services.prefs.removeObserver("mailnews.database.global.indexer.enabled",
+                                        this._prefObserver);
+          Services.obs.removeObserver(this, "autocomplete-did-enter-text");
         ]]>
       </destructor>
 
@@ -109,12 +103,14 @@
         inputSearch: this,
         observe: function(subject, topic, data)
         {
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           if (topic == "nsPref:changed") {
             subject.QueryInterface(Components.interfaces.nsIPrefBranch);
             switch (data) {
             case "mailnews.database.global.indexer.enabled":
               this.inputSearch.glodaEnabled =
-                gPrefBranch.getBoolPref(
+                Services.prefs.getBoolPref(
                   "mailnews.database.global.indexer.enabled");
               this.inputSearch.collapsed = !this.inputSearch.glodaEnabled;
               break;
@@ -224,6 +220,8 @@
 
       <method name="doSearch">
         <body><![CDATA[
+          Components.utils.import("resource://gre/modules/Services.jsm");
+
           try {
             if (this.value) {
               let tabmail = document.getElementById("tabmail");
@@ -244,10 +242,7 @@
               let args = {
                 searcher: new GlodaMsgSearcher(null, searchString)
               };
-              let prefBranch =
-                Components.classes['@mozilla.org/preferences-service;1'].
-                getService(Components.interfaces.nsIPrefBranch);
-              if (prefBranch.getBoolPref("mail.chat.enabled")) {
+              if (Services.prefs.getBoolPref("mail.chat.enabled")) {
                 if (!("GlodaIMSearcher" in window))
                   Cu.import("resource:///modules/search_im.js");
                 args.IMSearcher = new GlodaIMSearcher(null, searchString);
