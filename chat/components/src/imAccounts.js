@@ -139,6 +139,8 @@ function imAccount(aKey, aName, aPrplId)
   // Ensure the account is correctly stored in blist.sqlite.
   Services.contacts.storeAccount(this.numericId, this.name, prplId);
 
+  gAccountsService._keepAccount(this);
+
   // Get the prplIAccount from the protocol plugin.
   this.prplAccount = this.protocol.getAccount(this);
 
@@ -751,9 +753,7 @@ AccountsService.prototype = {
         account.trim();
         if (!account)
           throw Cr.NS_ERROR_INVALID_ARG;
-        let newAccount = new imAccount(account);
-        this._accounts.push(newAccount);
-        this._accountsById[newAccount.numericId] = newAccount;
+        new imAccount(account);
       } catch (e) {
         Cu.reportError(e);
         dump(e + " " + e.toSource() + "\n");
@@ -926,6 +926,10 @@ AccountsService.prototype = {
     return this.getAccountByNumericId(id);
   },
 
+  _keepAccount: function(aAccount) {
+    this._accounts.push(aAccount);
+    this._accountsById[aAccount.numericId] = aAccount;
+  },
   getAccountByNumericId: function(aAccountId) this._accountsById[aAccountId],
   getAccounts: function() new nsSimpleEnumerator(this._accounts),
 
@@ -956,10 +960,6 @@ AccountsService.prototype = {
     /* Actually create the new account. */
     let key = kAccountKeyPrefix + id;
     let account = new imAccount(key, aName, aPrpl);
-
-    /* Keep it in the local account lists. */
-    this._accounts.push(account);
-    this._accountsById[id] = account;
 
     /* Save the account list pref. */
     let list = this._accountList;
