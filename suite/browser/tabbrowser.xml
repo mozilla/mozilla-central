@@ -790,7 +790,7 @@
         <body>
           <![CDATA[
             if (this.mFaviconService) {
-              let uri = this.mIOService.newURI(iconURL, null, null);
+              let uri = this.mIOService.newURI(aURI, null, null);
               this.mFaviconService.addFailedFavicon(uri);
             }
           ]]>
