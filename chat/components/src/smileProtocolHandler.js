@@ -4,6 +4,7 @@
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/imSmileys.jsm");
 
@@ -27,8 +28,7 @@ smileProtocolHandler.prototype = {
   },
   newChannel: function SPH_newChannel(aURI) {
     let smile = aURI.spec.replace(kSmileRegexp, "");
-    let ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-    let channel = ios.newChannel(getSmileRealURI(smile), null, null);
+    let channel = Services.io.newChannel(getSmileRealURI(smile), null, null);
     channel.originalURI = aURI;
     return channel;
   },

@@ -4,12 +4,11 @@
 
 const EXPORTED_SYMBOLS = ["getHiddenHTMLWindow"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 XPCOMUtils.defineLazyGetter(this, "hiddenWindow", function()
-  Components.classes["@mozilla.org/appshell/appShellService;1"]
-                      .getService(Components.interfaces.nsIAppShellService)
-                      .hiddenDOMWindow
+  Services.appshell.hiddenDOMWindow
 );
 #ifndef XP_MACOSX
 function getHiddenHTMLWindow() hiddenWindow

@@ -14,9 +14,7 @@ function getDBConnection()
   let dbFile = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
   dbFile.append("blist.sqlite");
 
-  let conn =
-    Cc["@mozilla.org/storage/service;1"].getService(Ci.mozIStorageService)
-                                        .openDatabase(dbFile);
+  let conn = Services.storage.openDatabase(dbFile);
   if (!conn.connectionReady)
     throw Cr.NS_ERROR_UNEXPECTED;
 

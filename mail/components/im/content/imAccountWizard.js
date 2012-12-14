@@ -474,9 +474,7 @@ var accountWizard = {
 
     if (Services.prefs.getPrefType(prefURL) != nsIPrefBranch2.PREF_INVALID) {
       try {
-        var getMoreURL = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                   .getService(Components.interfaces.nsIURLFormatter)
-                                   .formatURLPref(prefURL);
+        var getMoreURL = Services.urlFormatter.formatURLPref(prefURL);
         getMore.setAttribute("getMoreURL", getMoreURL);
         showGetMore = getMoreURL != "about:blank";
       }

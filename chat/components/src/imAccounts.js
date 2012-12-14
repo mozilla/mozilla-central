@@ -21,10 +21,6 @@ const kPrefAccountFirstConnectionState = "firstConnectionState";
 const kPrefConvertOldPasswords = "messenger.accounts.convertOldPasswords";
 const kPrefAccountPassword = "password";
 
-XPCOMUtils.defineLazyGetter(this, "LoginManager", function()
-  Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager)
-);
-
 XPCOMUtils.defineLazyGetter(this, "_", function()
   l10nHelper("chrome://chat/locale/accounts.properties")
 );
@@ -402,7 +398,7 @@ imAccount.prototype = {
     let passwordURI = "im://" + this.protocol.id;
     let logins;
     try {
-      logins = LoginManager.findLogins({}, passwordURI, null, passwordURI);
+      logins = Services.logins.findLogins({}, passwordURI, null, passwordURI);
     } catch (e) {
       this._handleMasterPasswordException(e);
       return "";
@@ -443,20 +439,20 @@ imAccount.prototype = {
     newLogin.init(passwordURI, null, passwordURI, this.normalizedName,
                   aPassword, "", "");
     try {
-      let logins = LoginManager.findLogins({}, passwordURI, null, passwordURI);
+      let logins = Services.logins.findLogins({}, passwordURI, null, passwordURI);
       let saved = false;
       for each (let login in logins) {
         if (newLogin.matches(login, true)) {
           if (aPassword)
-            LoginManager.modifyLogin(login, newLogin);
+            Services.logins.modifyLogin(login, newLogin);
           else
-            LoginManager.removeLogin(login);
+            Services.logins.removeLogin(login);
           saved = true;
           break;
         }
       }
       if (!saved && aPassword)
-        LoginManager.addLogin(newLogin);
+        Services.logins.addLogin(newLogin);
     } catch (e) {
       this._handleMasterPasswordException(e);
     }
@@ -524,10 +520,10 @@ imAccount.prototype = {
     // lots of cases this.name is equivalent.
     let name = this.prplAccount ? this.normalizedName : this.name;
     login.init(passwordURI, null, passwordURI, name, "", "", "");
-    let logins = LoginManager.findLogins({}, passwordURI, null, passwordURI);
+    let logins = Services.logins.findLogins({}, passwordURI, null, passwordURI);
     for each (let l in logins) {
       if (login.matches(l, true)) {
-        LoginManager.removeLogin(l);
+        Services.logins.removeLogin(l);
         break;
       }
     }

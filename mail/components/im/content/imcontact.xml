@@ -220,11 +220,7 @@
          if (!this.hasAttribute("aliasing"))
            return;
 
-         let win =
-           Components.classes["@mozilla.org/focus-manager;1"]
-                     .getService(Components.interfaces.nsIFocusManager)
-                     .activeWindow;
-         if (win == document.defaultView)
+         if (Services.focus.activeWindow == document.defaultView)
            finishAliasing(true);
        ]]>
      </handler>

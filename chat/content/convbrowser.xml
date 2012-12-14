@@ -617,13 +617,9 @@
           if (aTopic != "nsPref:changed")
             throw "Bad notification";
 
-          var clipboard =
-            Components.classes["@mozilla.org/widget/clipboard;1"]
-                      .getService(Components.interfaces.nsIClipboard);
-
           if (this.magicCopyEnabled) {
             this.contentWindow.controllers.insertControllerAt(0, this);
-            if (clipboard.supportsSelectionClipboard()) {
+            if (Services.clipboard.supportsSelectionClipboard()) {
               this.contentWindow.getSelection()
                   .QueryInterface(Components.interfaces.nsISelectionPrivate)
                   .addSelectionListener(this);
@@ -631,7 +627,7 @@
           }
           else {
             this.contentWindow.controllers.removeController(this);
-            if (clipboard.supportsSelectionClipboard()) {
+            if (Services.clipboard.supportsSelectionClipboard()) {
                this.contentWindow.getSelection()
                    .QueryInterface(Components.interfaces.nsISelectionPrivate)
                    .removeSelectionListener(this);
@@ -728,10 +724,7 @@
               if (this.magicCopyEnabled) {
                 this.contentWindow.controllers.insertControllerAt(0, this);
 
-                var clipboard =
-                  Components.classes["@mozilla.org/widget/clipboard;1"]
-                            .getService(Components.interfaces.nsIClipboard);
-                if (clipboard.supportsSelectionClipboard()) {
+                if (Services.clipboard.supportsSelectionClipboard()) {
                   this.contentWindow.getSelection()
                       .QueryInterface(Components.interfaces.nsISelectionPrivate)
                       .addSelectionListener(this);
@@ -1023,9 +1016,7 @@
           if (magicCopyEnabled) {
             // We need to remove the selection listener (unix only)
             // before _contentWindow is changed.
-            var clipboard = Components.classes["@mozilla.org/widget/clipboard;1"]
-                                      .getService(Ci.nsIClipboard);
-            if (clipboard.supportsSelectionClipboard()) {
+            if (Services.clipboard.supportsSelectionClipboard()) {
               aOtherBrowser.contentWindow.getSelection()
                            .QueryInterface(Components.interfaces.nsISelectionPrivate)
                            .removeSelectionListener(aOtherBrowser);
@@ -1066,7 +1057,7 @@
           this.contentWindow.controllers.insertControllerAt(0, this);
 
           // and our selection listener!
-          if (clipboard.supportsSelectionClipboard()) {
+          if (Services.clipboard.supportsSelectionClipboard()) {
             this.contentWindow.getSelection()
                 .QueryInterface(Components.interfaces.nsISelectionPrivate)
                 .addSelectionListener(this);
