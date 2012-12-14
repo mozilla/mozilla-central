@@ -2520,6 +2520,10 @@ function URLBarSetURI(aURI) {
 
   if (value == null) {
     let uri = aURI || getWebNavigation().currentURI;
+    // Strip off "wyciwyg://" and passwords for the location bar
+    try {
+      uri = Services.uriFixup.createExposableURI(uri);
+    } catch (e) {}
 
     // Replace initial page URIs with an empty string
     // only if there's no opener (bug 370555).
@@ -4695,12 +4699,7 @@ var XULBrowserWindow = {
       }
 
       if (gURLBar) {
-        // Strip off "wyciwyg://" and passwords for the location bar
-        let uri = aLocationURI;
-        try {
-          uri = this._uriFixup.createExposableURI(uri);
-        } catch (e) {}
-        URLBarSetURI(uri);
+        URLBarSetURI(aLocationURI);
 
         // Update starring UI
         PlacesStarButton.updateState();

@@ -88,6 +88,7 @@ let initTable = [
   ["ww", "@mozilla.org/embedcomp/window-watcher;1", "nsIWindowWatcher"],
   ["startup", "@mozilla.org/toolkit/app-startup;1", "nsIAppStartup"],
   ["sysinfo", "@mozilla.org/system-info;1", "nsIPropertyBag2"],
+  ["uriFixup", "@mozilla.org/docshell/urifixup;1", "nsIURIFixup"],
 ];
 
 initTable.forEach(function ([name, contract, intf])

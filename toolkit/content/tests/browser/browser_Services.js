@@ -75,4 +75,5 @@ function checkServices() {
   checkService("logins", Ci.nsILoginManager);
   checkService("telemetry", Ci.nsITelemetry);
   checkService("sysinfo", Ci.nsIPropertyBag2);
+  checkService("uriFixup", Ci.nsIURIFixup);
 }
