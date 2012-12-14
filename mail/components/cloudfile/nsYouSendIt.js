@@ -261,14 +261,12 @@ nsYouSendIt.prototype = {
 
     let args = {storage: aStorageSize};
     args.wrappedJSObject = args;
-    let ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                    .getService(Components.interfaces.nsIWindowWatcher);
-    ww.openWindow(null, 
-                  "chrome://messenger/content/cloudfile/YouSendIt/"
-                  + "fileExceeds" + aType + ".xul",
-                  "YouSendIt", "chrome,centerscreen,dialog,modal,resizable=yes", 
-                  args).focus(); 
-                  
+    Services.ww.openWindow(null,
+                           "chrome://messenger/content/cloudfile/YouSendIt/"
+                           + "fileExceeds" + aType + ".xul",
+                           "YouSendIt", "chrome,centerscreen,dialog,modal,resizable=yes",
+                           args).focus();
+
     return aCallback.onStopRequest(null, null, cancel);
   },
 
@@ -768,8 +766,7 @@ nsYouSendIt.prototype = {
       this.log.info("Suppressing password prompt");
 
     let passwordURI = gServerUrl;
-    let loginManager = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-    let logins = loginManager.findLogins({}, passwordURI, null, passwordURI);
+    let logins = Services.logins.findLogins({}, passwordURI, null, passwordURI);
     for each (let loginInfo in logins) {
       if (loginInfo.username == aUsername)
         return loginInfo.password;
@@ -1219,8 +1216,7 @@ nsYouSendItFileUploader.prototype = {
    * Creates and returns a temporary file on the local file system.
    */
   getTempFile: function nsYSIFU_getTempFile(leafName) {
-    let tempfile = Cc["@mozilla.org/file/directory_service;1"]
-      .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
+    let tempfile = Services.dirsvc.get("TmpD", Ci.nsIFile);
     tempfile.append(leafName)
     tempfile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, parseInt("0666", 8));
     // do whatever you need to the created file

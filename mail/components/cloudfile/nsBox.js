@@ -888,8 +888,7 @@ nsBoxFileUploader.prototype = {
    * Creates and returns a temporary file on the local file system.
    */
   getTempFile: function nsBox_getTempFile(leafName) {
-    let tempfile = Cc["@mozilla.org/file/directory_service;1"]
-                     .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
+    let tempfile = Services.dirsvc.get("TmpD", Ci.nsIFile);
     tempfile.append(leafName)
     tempfile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0666", 8));
     // do whatever you need to the created file
