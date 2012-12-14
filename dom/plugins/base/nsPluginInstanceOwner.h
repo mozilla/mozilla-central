@@ -297,9 +297,7 @@ public:
   void EndUpdateBackground(gfxContext* aContext, const nsIntRect& aRect);
   
   bool UseAsyncRendering();
-
-  already_AddRefed<nsIURI> GetBaseURI() const;
-
+  
 private:
   
   // return FALSE if LayerSurface dirty (newly created and don't have valid plugin content yet)
