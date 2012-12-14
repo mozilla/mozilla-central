@@ -270,13 +270,12 @@ cal.getEmailIdentityOfCalendar = function calGetEmailIdentityOfCalendar(aCalenda
             account = MailServices.accounts.defaultAccount;
         } catch (exc) {}
 
-        for (let i = 0; accounts && (i < accounts.Count()) && (!account || !identity); ++i) {
+        for (let i = 0; accounts && (i < accounts.length) && (!account || !identity); ++i) {
             if (!account) { // Pick an account only if none was set (i.e there is no default account)
-                account = accounts.GetElementAt(i);
                 try {
-                    account = account.QueryInterface(Components.interfaces.nsIMsgAccount);
+                  account = accounts.queryElementAt(i, Components.interfaces.nsIMsgAccount);
                 } catch (exc) {
-                    account = null;
+                  account = null;
                 }
             }
 
