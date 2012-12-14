@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const ACR = Components.interfaces.nsIAutoCompleteResult;
@@ -72,9 +73,7 @@ nsAbLDAPAutoCompleteResult.prototype = {
 }
 
 function nsAbLDAPAutoCompleteSearch() {
-  Components.classes["@mozilla.org/observer-service;1"]
-            .getService(Components.interfaces.nsIObserverService)
-            .addObserver(this, "quit-application", false);
+  Services.obs.addObserver(this, "quit-application", false);
 }
 
 nsAbLDAPAutoCompleteSearch.prototype = {
@@ -162,9 +161,7 @@ nsAbLDAPAutoCompleteSearch.prototype = {
         this._cachedQueries[item].attributes = null;
       }
       this._cachedQueries = {};
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Components.interfaces.nsIObserverService)
-                .removeObserver(this, "quit-application");
+      Services.obs.removeObserver(this, "quit-application");
     }
   },
 
@@ -237,10 +234,8 @@ nsAbLDAPAutoCompleteSearch.prototype = {
       acDirURI = this._cachedIdentity.directoryServer;
     else {
       // Try the global one
-      var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch);
-      if (prefSvc.getBoolPref("ldap_2.autoComplete.useDirectory"))
-        acDirURI = prefSvc.getCharPref("ldap_2.autoComplete.directoryServer");
+      if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
+        acDirURI = Services.prefs.getCharPref("ldap_2.autoComplete.directoryServer");
     }
 
     if (!acDirURI) {

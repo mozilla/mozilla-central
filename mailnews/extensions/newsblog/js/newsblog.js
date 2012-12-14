@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var gExternalScriptsLoaded = false;
@@ -336,15 +337,10 @@ var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
 
 function loadScripts()
 {
-  var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                     .getService(Components.interfaces.mozIJSSubScriptLoader);
-  if (scriptLoader)
-  {
-    scriptLoader.loadSubScript("chrome://messenger-newsblog/content/Feed.js");
-    scriptLoader.loadSubScript("chrome://messenger-newsblog/content/FeedItem.js");
-    scriptLoader.loadSubScript("chrome://messenger-newsblog/content/feed-parser.js");
-    scriptLoader.loadSubScript("chrome://messenger-newsblog/content/utils.js");
-  }
+  Services.scriptloader.loadSubScript("chrome://messenger-newsblog/content/Feed.js");
+  Services.scriptloader.loadSubScript("chrome://messenger-newsblog/content/FeedItem.js");
+  Services.scriptloader.loadSubScript("chrome://messenger-newsblog/content/feed-parser.js");
+  Services.scriptloader.loadSubScript("chrome://messenger-newsblog/content/utils.js");
 
   gExternalScriptsLoaded = true;
 }

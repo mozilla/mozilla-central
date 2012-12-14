@@ -18,6 +18,8 @@
 // reportPhishURL: HTML page for notifying the provider of a new phishing page
 // reportErrorURL: HTML page for notifying the provider of a false positive
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kDataProviderIdPref = 'browser.safebrowsing.dataProvider';
 const kProviderBasePref = 'browser.safebrowsing.provider.';
 
@@ -104,17 +106,14 @@ PROT_DataProvider.prototype.updateListManager_ = function() {
 PROT_DataProvider.prototype.getUrlPref_ = function(prefName) {
   var url = this.prefs_.getPref(prefName);
 
-  var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                          .getService(Components.interfaces.nsIXULAppInfo);
-
   // What value should we use here for Thunderbird??
-  var mozClientStr = appInfo.name;
+  var mozClientStr = Services.appinfo.name;
 
   // Parameter substitution
   url = url.replace(MOZ_PARAM_LOCALE, this.getLocale_());
-  url = url.replace(MOZ_PARAM_CLIENT, mozClientStr + appInfo.version);
-  url = url.replace(MOZ_PARAM_BUILDID, appInfo.appBuildID);
-  url = url.replace(MOZ_PARAM_VERSION, appInfo.platformVersion);
+  url = url.replace(MOZ_PARAM_CLIENT, mozClientStr + Services.appinfo.version);
+  url = url.replace(MOZ_PARAM_BUILDID, Services.appinfo.appBuildID);
+  url = url.replace(MOZ_PARAM_VERSION, Services.appinfo.platformVersion);
   return url;
 }
 
@@ -138,10 +137,8 @@ PROT_DataProvider.prototype.getLocale_ = function() {
 PROT_DataProvider.prototype.getLocalizedPref_ = function(aPrefName) {
   // G_Preferences doesn't know about complex values, so we use the
   // xpcom object directly.
-  var prefs = Cc["@mozilla.org/preferences-service;1"]
-              .getService(Ci.nsIPrefBranch);
   try {
-    return prefs.getComplexValue(aPrefName, Ci.nsIPrefLocalizedString).data;
+    return Services.prefs.getComplexValue(aPrefName, Ci.nsIPrefLocalizedString).data;
   } catch (ex) {
   }
   return "";

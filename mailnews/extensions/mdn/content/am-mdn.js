@@ -110,8 +110,6 @@ function onLockPreference(initPrefString, keyString)
 {
     var finalPrefString; 
 
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-
     var allPrefElements = [
       { prefstring:"request_return_receipt_on", id:"identity.request_return_receipt_on"},
       { prefstring:"select_custom_prefs", id:"identity.select_custom_prefs"},
@@ -125,7 +123,7 @@ function onLockPreference(initPrefString, keyString)
     ];
 
     finalPrefString = initPrefString + "." + keyString + ".";
-    gMdnPrefBranch = prefService.getBranch(finalPrefString);
+    gMdnPrefBranch = Services.prefs.getBranch(finalPrefString);
 
     disableIfLocked( allPrefElements );
 } 

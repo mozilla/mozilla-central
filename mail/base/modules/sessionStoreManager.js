@@ -15,6 +15,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 /**
  * asuth arbitrarily chose this value to trade-off powersaving,
@@ -65,9 +66,7 @@ var sessionStoreManager =
     // we listen for "quit-application-granted" instead of
     // "quit-application-requested" because other observers of the
     // latter can cancel the shutdown.
-    var observerSvc = Cc["@mozilla.org/observer-service;1"]
-                      .getService(Ci.nsIObserverService);
-    observerSvc.addObserver(this, "quit-application-granted", false);
+    Services.obs.addObserver(this, "quit-application-granted", false);
 
     this.startPeriodicSave();
 
@@ -161,12 +160,9 @@ var sessionStoreManager =
   {
     let state = this._createStateObject();
 
-    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                         .getService(Ci.nsIWindowMediator);
-
     // XXX we'd like to support other window types in future, but for now
     // only get the 3pane windows.
-    let enumerator = windowMediator.getEnumerator("mail:3pane");
+    let enumerator = Services.wm.getEnumerator("mail:3pane");
     while (enumerator.hasMoreElements()) {
       let win = enumerator.getNext();
       if (win && "complete" == win.document.readyState &&
@@ -248,9 +244,7 @@ var sessionStoreManager =
     if (!this._shutdownStateSaved) {
       // determine whether aWindow is the last open window
       let lastWindow = true;
-      let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Ci.nsIWindowMediator);
-      let enumerator = windowMediator.getEnumerator("mail:3pane");
+      let enumerator = Services.wm.getEnumerator("mail:3pane");
       while (enumerator.hasMoreElements()) {
         if (enumerator.getNext() != aWindow)
           lastWindow = false;
@@ -307,9 +301,7 @@ var sessionStoreManager =
    */
   get sessionFile()
   {
-    let sessionFile = Cc["@mozilla.org/file/directory_service;1"]
-                      .getService(Ci.nsIProperties)
-                      .get("ProfD", Ci.nsIFile);
+    let sessionFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
     sessionFile.append("session.json");
     return sessionFile;
   }

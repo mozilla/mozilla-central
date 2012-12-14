@@ -10,6 +10,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/PluralForm.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 Cu.import("resource:///modules/searchSpec.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
@@ -17,9 +18,6 @@ Cu.import("resource:///modules/errUtils.js");
 
 const Application = Cc["@mozilla.org/steel/application;1"]
                       .getService(Ci.steelIApplication);
-
-const FocusManager = Cc["@mozilla.org/focus-manager;1"]
-                       .getService(Ci.nsIFocusManager);
 
 const nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
 const nsMsgMessageFlags = Components.interfaces.nsMsgMessageFlags;
@@ -1076,7 +1074,7 @@ let MessageTextFilter = {
     // -- Blurring kills upsell.
     aNode.addEventListener("blur", function(aEvent) {
       let panel = aDocument.getElementById("qfb-text-search-upsell");
-      if ((FocusManager.activeWindow != aDocument.defaultView ||
+      if ((Services.focus.activeWindow != aDocument.defaultView ||
            aDocument.commandDispatcher.focusedElement != aNode.inputField) &&
           panel.state == "open") {
         panel.hidePopup();

@@ -13,19 +13,14 @@
 var EXPORTED_SYMBOLS = [ "migrateMailnews" ];
 
 Components.utils.import("resource:///modules/errUtils.js");
-//Components.utils.import("resource:///modules/Services.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 const Ci = Components.interfaces;
 const kServerPrefVersion = 1;
 const kSmtpPrefVersion = 1;
-var gPrefs;
 
 function migrateMailnews()
 {
   try {
-    //gPrefs = Services.prefs; -- Gecko 1.9.3+
-    gPrefs = Components.classes["@mozilla.org/preferences-service;1"]
-        .getService(Ci.nsIPrefBranch);
-
     MigrateServerAuthPref();
   } catch (e) { logException(e); }
 }
@@ -37,22 +32,22 @@ function MigrateServerAuthPref()
 {
   try {
     // comma-separated list of all accounts.
-    var accounts = gPrefs.getCharPref("mail.accountmanager.accounts")
+    var accounts = Services.prefs.getCharPref("mail.accountmanager.accounts")
         .split(",");
     for (let i = 0; i < accounts.length; i++)
     {
       let accountKey = accounts[i]; // e.g. "account1"
       if (!accountKey)
         continue;
-      let serverKey = gPrefs.getCharPref("mail.account." + accountKey +
+      let serverKey = Services.prefs.getCharPref("mail.account." + accountKey +
          ".server");
       let server = "mail.server." + serverKey + ".";
-      if (gPrefs.prefHasUserValue(server + "authMethod"))
+      if (Services.prefs.prefHasUserValue(server + "authMethod"))
         continue;
-      if (!gPrefs.prefHasUserValue(server + "useSecAuth") &&
-          !gPrefs.prefHasUserValue(server + "auth_login"))
+      if (!Services.prefs.prefHasUserValue(server + "useSecAuth") &&
+          !Services.prefs.prefHasUserValue(server + "auth_login"))
         continue;
-      if (gPrefs.prefHasUserValue(server + "migrated"))
+      if (Services.prefs.prefHasUserValue(server + "migrated"))
         continue;
       // auth_login = false => old-style auth
       // else: useSecAuth = true => "secure auth"
@@ -60,33 +55,33 @@ function MigrateServerAuthPref()
       let auth_login = true;
       let useSecAuth = false; // old default, default pref now removed
       try {
-        auth_login = gPrefs.getBoolPref(server + "auth_login");
+        auth_login = Services.prefs.getBoolPref(server + "auth_login");
       } catch (e) {}
       try {
-        useSecAuth = gPrefs.getBoolPref(server + "useSecAuth");
+        useSecAuth = Services.prefs.getBoolPref(server + "useSecAuth");
       } catch (e) {}
 
-      gPrefs.setIntPref(server + "authMethod",
+      Services.prefs.setIntPref(server + "authMethod",
           auth_login ? (useSecAuth ?
                            Ci.nsMsgAuthMethod.secure :
                            Ci.nsMsgAuthMethod.passwordCleartext) :
                        Ci.nsMsgAuthMethod.old);
-      gPrefs.setIntPref(server + "migrated", kServerPrefVersion);
+      Services.prefs.setIntPref(server + "migrated", kServerPrefVersion);
     }
 
     // same again for SMTP servers
-    var smtpservers = gPrefs.getCharPref("mail.smtpservers").split(",");
+    var smtpservers = Services.prefs.getCharPref("mail.smtpservers").split(",");
     for (let i = 0; i < smtpservers.length; i++)
     {
       if (!smtpservers[i])
         continue;
       let server = "mail.smtpserver." + smtpservers[i] + ".";
-      if (gPrefs.prefHasUserValue(server + "authMethod"))
+      if (Services.prefs.prefHasUserValue(server + "authMethod"))
         continue;
-      if (!gPrefs.prefHasUserValue(server + "useSecAuth") &&
-          !gPrefs.prefHasUserValue(server + "auth_method"))
+      if (!Services.prefs.prefHasUserValue(server + "useSecAuth") &&
+          !Services.prefs.prefHasUserValue(server + "auth_method"))
         continue;
-      if (gPrefs.prefHasUserValue(server + "migrated"))
+      if (Services.prefs.prefHasUserValue(server + "migrated"))
         continue;
       // auth_method = 0 => no auth
       // else: useSecAuth = true => "secure auth"
@@ -94,18 +89,18 @@ function MigrateServerAuthPref()
       let auth_method = 1;
       let useSecAuth = false;
       try {
-        auth_method = gPrefs.getIntPref(server + "auth_method");
+        auth_method = Services.prefs.getIntPref(server + "auth_method");
       } catch (e) {}
       try {
-        useSecAuth = gPrefs.getBoolPref(server + "useSecAuth");
+        useSecAuth = Services.prefs.getBoolPref(server + "useSecAuth");
       } catch (e) {}
 
-      gPrefs.setIntPref(server + "authMethod",
+      Services.prefs.setIntPref(server + "authMethod",
           auth_method ? (useSecAuth ?
                             Ci.nsMsgAuthMethod.secure :
                             Ci.nsMsgAuthMethod.passwordCleartext) :
                         Ci.nsMsgAuthMethod.none);
-      gPrefs.setIntPref(server + "migrated", kSmtpPrefVersion);
+      Services.prefs.setIntPref(server + "migrated", kSmtpPrefVersion);
     }
   } catch(e) { logException(e); }
 }

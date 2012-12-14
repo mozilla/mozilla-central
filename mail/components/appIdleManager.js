@@ -5,6 +5,8 @@
 
 const EXPORTED_SYMBOLS = ['appIdleManager'];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -29,8 +31,7 @@ var appIdleManager =
   _timerCallback: function()
   {
     appIdleManager._appIdle = true;
-    Cc["@mozilla.org/observer-service;1"]
-      .getService(Components.interfaces.nsIObserverService).notifyObservers(null, "mail:appIdle", "idle");
+    Services.obs.notifyObservers(null, "mail:appIdle", "idle");
     
   },
   
@@ -47,8 +48,7 @@ var appIdleManager =
     if (appIdleManager._appIdle)
     {
       appIdleManager._appIdle = false;
-      Cc["@mozilla.org/observer-service;1"]
-        .getService(Components.interfaces.nsIObserverService).notifyObservers(null, "mail:appIdle", "back");
+      Services.obs.notifyObservers(null, "mail:appIdle", "back");
     }
   }
 };

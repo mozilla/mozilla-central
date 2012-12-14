@@ -37,14 +37,10 @@ function isAccel (event) (isOSX && event.metaKey || event.ctrlKey)
  */
 function getLocalStorage(page) {
   var url = "chrome://content/messenger/accountProvisionerStorage/" + page;
-  var ssm = Cc["@mozilla.org/scriptsecuritymanager;1"]
-    .getService(Ci.nsIScriptSecurityManager);
-  var dsm = Cc["@mozilla.org/dom/storagemanager;1"]
-    .getService(Ci.nsIDOMStorageManager);
 
   var uri = Services.io.newURI(url, "", null);
-  var principal = ssm.getNoAppCodebasePrincipal(uri);
-  return dsm.getLocalStorageForPrincipal(principal, url);
+  var principal = Services.scriptSecurityManager.getNoAppCodebasePrincipal(uri);
+  return Services.domStorageManager.getLocalStorageForPrincipal(principal, url);
 }
 
 const MAX_SMALL_ADDRESSES = 2;
@@ -407,9 +403,7 @@ var EmailAccountProvisioner = {
 
     gLog.info("Opening up a contentTab with the order form.");
     // Then open a content tab.
-    let mail3Pane = Cc["@mozilla.org/appshell/window-mediator;1"]
-          .getService(Ci.nsIWindowMediator)
-          .getMostRecentWindow("mail:3pane");
+    let mail3Pane = Services.wm.getMostRecentWindow("mail:3pane");
 
     let tabmail = mail3Pane.document.getElementById("tabmail");
     tabmail.openTab("accountProvisionerTab", {

@@ -24,8 +24,8 @@
   <script type="application/javascript" src="chrome://messenger/content/folderProps.js"/>
   <script type="application/javascript">
   <![CDATA[
-    var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    observerService.notifyObservers(null, "charsetmenu-selected", "other");
+    Components.utils.import("resource://gre/modules/Services.jsm");
+    Services.obs.notifyObservers(null, "charsetmenu-selected", "other");
   ]]>
   </script>
 

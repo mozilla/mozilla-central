@@ -7,6 +7,8 @@
 
 var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const MSG_DB_LARGE_COMMIT = 1;
 const CRLF="\r\n";
 
@@ -155,9 +157,7 @@ let SearchIntegration =
     }
 
     // We're currently only enabled on Vista and above
-    let sysInfo = Cc["@mozilla.org/system-info;1"]
-                    .getService(Ci.nsIPropertyBag2);
-    let windowsVersion = sysInfo.getProperty("version");
+    let windowsVersion = Services.sysinfo.getProperty("version");
     if (parseFloat(windowsVersion) < 6)
     {
       this._log.fatal("Windows version " + windowsVersion + " < 6.0");
@@ -211,8 +211,7 @@ let SearchIntegration =
       catch (e) { this._log.warn("File association not set"); }
     }
     // Also set the FANCI bit to 0 for the profile directory
-    let profD = Cc["@mozilla.org/file/directory_service;1"]
-                  .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
+    let profD = Services.dirsvc.get("ProfD", Ci.nsIFile);
     this._winSearchHelper.setFANCIBit(profD, false, true);
 
     return true;

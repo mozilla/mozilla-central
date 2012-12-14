@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Account encryption policy values:
 // const kEncryptionPolicy_Never = 0;
 // 'IfPossible' was used by ns4.
@@ -119,15 +121,11 @@ function showNeedSetupInfo()
   if (!compSmimeBundle || !brandBundle)
     return;
 
-  var ifps = Components.interfaces.nsIPromptService;
-  let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                .getService(ifps);
-
   let buttonPressed =
-    promptService.confirmEx(window,
-                            brandBundle.getString("brandShortName"),
-                            compSmimeBundle.getString("NeedSetup"),
-                            ifps.STD_YES_NO_BUTTONS, 0, 0, 0, null, {});
+    Services.prompt.confirmEx(window,
+                              brandBundle.getString("brandShortName"),
+                              compSmimeBundle.getString("NeedSetup"),
+                              Services.prompt.STD_YES_NO_BUTTONS, 0, 0, 0, null, {});
   if (buttonPressed == 0)
     MsgAccountManager("am-smime.xul");
 }
@@ -330,11 +328,9 @@ function onComposerSendMessage()
     else
     {
       // Try the global one
-      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-      if (prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
+      if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
         autocompleteDirectory =
-          prefs.getCharPref("ldap_2.autoComplete.directoryServer");
+          Services.prefs.getCharPref("ldap_2.autoComplete.directoryServer");
     }
 
     if (autocompleteDirectory)

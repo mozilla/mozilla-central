@@ -4,6 +4,8 @@
 
 var EXPORTED_SYMBOLS = ["IOUtils"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -44,8 +46,6 @@ var IOUtils =
   btoa: btoa,
 
   getPhysicalMemorySize: function IOUtils_getPhysicalMemorySize() {
-    let systemInfo = Cc["@mozilla.org/system-info;1"]
-                      .createInstance(Ci.nsIPropertyBag2);
-    return systemInfo.getPropertyAsInt64("memsize");
+    return Services.sysinfo.getPropertyAsInt64("memsize");
   },
 };

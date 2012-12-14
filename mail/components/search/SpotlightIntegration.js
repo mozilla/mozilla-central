@@ -7,6 +7,8 @@
 
 var EXPORTED_SYMBOLS = ["SearchIntegration"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const MSG_DB_LARGE_COMMIT = 1;
 const gFileHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.\ncom/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict>";
 
@@ -28,17 +30,13 @@ let SearchIntegration =
   get _profileDir()
   {
     delete this._profileDir;
-    return this._profileDir = Cc["@mozilla.org/file/directory_service;1"]
-                                .getService(Ci.nsIProperties)
-                                .get("ProfD", Ci.nsIFile);
+    return this._profileDir = Services.dirsvc.get("ProfD", Ci.nsIFile);
   },
 
   get _metadataDir()
   {
     delete this._metadataDir;
-    let metadataDir = Cc["@mozilla.org/file/directory_service;1"]
-                        .getService(Ci.nsIProperties)
-                        .get("Home", Ci.nsIFile);
+    let metadataDir = Services.dirsvc.get("Home", Ci.nsIFile);
     metadataDir.append("Library");
     metadataDir.append("Caches");
     metadataDir.append("Metadata");

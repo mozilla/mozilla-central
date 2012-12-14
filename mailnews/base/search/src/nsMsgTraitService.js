@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // local static variables
@@ -9,9 +10,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 var _lastIndex = 0;  // the first index will be one
 var _traits = {};
 
-var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-var traitsBranch = prefs.getBranch("mailnews.traits.");
+var traitsBranch = Services.prefs.getBranch("mailnews.traits.");
 
 function _registerTrait(aId, aIndex)
 {
@@ -198,11 +197,11 @@ _init();
 function _init()
 {
   // get existing traits
-  var idBranch = prefs.getBranch("mailnews.traits.id.");
-  var nameBranch = prefs.getBranch("mailnews.traits.name.");
-  var enabledBranch = prefs.getBranch("mailnews.traits.enabled.");
-  var antiIdBranch = prefs.getBranch("mailnews.traits.antiId.");
-  _lastIndex = prefs.getBranch("mailnews.traits.").getIntPref("lastIndex");
+  var idBranch = Services.prefs.getBranch("mailnews.traits.id.");
+  var nameBranch = Services.prefs.getBranch("mailnews.traits.name.");
+  var enabledBranch = Services.prefs.getBranch("mailnews.traits.enabled.");
+  var antiIdBranch = Services.prefs.getBranch("mailnews.traits.antiId.");
+  _lastIndex = Services.prefs.getBranch("mailnews.traits.").getIntPref("lastIndex");
   var ids = idBranch.getChildList("");
   for (var i = 0; i < ids.length; i++)
   {

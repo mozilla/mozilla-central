@@ -206,8 +206,6 @@ var mailInstrumentationManager =
   uninit: function() {
     if (!this._observersRegistered)
       return;
-    let os = Cc["@mozilla.org/observer-service;1"]
-              .getService(Ci.nsIObserverService);
     Services.obs.removeObserver(this, "mail:composeSendSucceeded");
     Services.obs.removeObserver(this, "mail:setAsDefault");
     if (this._mfnListener)

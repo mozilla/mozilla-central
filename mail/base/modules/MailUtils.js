@@ -9,6 +9,7 @@ const Ci = Components.interfaces;
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/MailConsts.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 const MC = MailConsts;
 
 /**
@@ -18,16 +19,6 @@ const MC = MailConsts;
  */
 var MailUtils =
 {
-  /**
-   * A reference to the root pref branch
-   */
-  get _prefBranch() {
-    delete this._prefBranch;
-    return this._prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                                .getService(Ci.nsIPrefService)
-                                .getBranch(null);
-  },
-
   /**
    * Discover all folders. This is useful during startup, when you have code
    * that deals with folders and that executes before the main 3pane window is
@@ -44,9 +35,8 @@ var MailUtils =
         server.rootFolder.subFolders;
       }
       catch (ex) {
-        Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService)
-          .logStringMessage("Discovering folders for account failed with " +
-                            "exception: " + ex);
+        Services.console.logStringMessage("Discovering folders for account failed with " +
+                                          "exception: " + ex);
       }
     }
   },
@@ -152,7 +142,7 @@ var MailUtils =
    */
   displayMessages: function MailUtils_displayMessages(aMsgHdrs,
                        aViewWrapperToClone, aTabmail) {
-    let openMessageBehavior = this._prefBranch.getIntPref(
+    let openMessageBehavior = Services.prefs.getIntPref(
                                   "mail.openMessageBehavior");
 
     if (openMessageBehavior == MC.OpenMessageBehavior.NEW_WINDOW) {
@@ -168,9 +158,7 @@ var MailUtils =
       let mail3PaneWindow = null;
       if (!aTabmail) {
         // Try opening new tabs in a 3pane window
-        let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                               .getService(Ci.nsIWindowMediator);
-        mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+        mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
         if (mail3PaneWindow)
           aTabmail = mail3PaneWindow.document.getElementById("tabmail");
       }
@@ -206,9 +194,7 @@ var MailUtils =
   openMessageInExistingWindow:
       function MailUtils_openMessageInExistingWindow(aMsgHdr,
                                                      aViewWrapperToClone) {
-    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Ci.nsIWindowMediator);
-    let messageWindow = windowMediator.getMostRecentWindow("mail:messageWindow");
+    let messageWindow = Services.wm.getMostRecentWindow("mail:messageWindow");
     if (messageWindow) {
       messageWindow.displayMessage(aMsgHdr, aViewWrapperToClone);
       return true;
@@ -229,9 +215,7 @@ var MailUtils =
     let args = {msgHdr: aMsgHdr, viewWrapperToClone: aViewWrapperToClone};
     args.wrappedJSObject = args;
 
-    let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
-                          .getService(Ci.nsIWindowWatcher);
-    windowWatcher.openWindow(null,
+    Services.ww.openWindow(null,
         "chrome://messenger/content/messageWindow.xul", "",
         "all,chrome,dialog=no,status,toolbar", args);
   },
@@ -248,22 +232,19 @@ var MailUtils =
    openMessagesInNewWindows:
        function MailUtils_openMessagesInNewWindows(aMsgHdrs,
                                                    aViewWrapperToClone) {
-    let openWindowWarning = this._prefBranch.getIntPref(
+    let openWindowWarning = Services.prefs.getIntPref(
                                 "mailnews.open_window_warning");
     let numMessages = aMsgHdrs.length;
 
     if ((openWindowWarning > 1) && (numMessages >= openWindowWarning)) {
-      let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
-                     .getService(Ci.nsIStringBundleService).createBundle(
-                         "chrome://messenger/locale/messenger.properties");
+      let bundle = Services.strings.createBundle(
+        "chrome://messenger/locale/messenger.properties");
 
       let title = bundle.GetStringFromName("openWindowWarningTitle");
       let params = [numMessages];
       let message = bundle.formatStringFromName("openWindowWarningText",
                                                 params, params.length);
-      let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"]
-                            .getService(Ci.nsIPromptService);
-      if (!promptService.confirm(null, title, message))
+      if (!Services.prompt.confirm(null, title, message))
         return;
     }
 
@@ -281,18 +262,14 @@ var MailUtils =
   displayMessageInFolderTab: function MailUtils_displayMessageInFolderTab(
                                  aMsgHdr) {
     // Try opening new tabs in a 3pane window
-    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Ci.nsIWindowMediator);
-    let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
     if (mail3PaneWindow) {
       mail3PaneWindow.MsgDisplayMessageInFolderTab(aMsgHdr);
     }
     else {
-      let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
-                            .getService(Ci.nsIWindowWatcher);
       let args = {msgHdr: aMsgHdr};
       args.wrappedJSObject = args;
-      windowWatcher.openWindow(null,
+      Services.ww.openWindow(null,
           "chrome://messenger/content/", "",
           "all,chrome,dialog=no,status,toolbar", args);
     }

@@ -32,26 +32,26 @@ var MailMigrator = {
       let variableSizePref = "font.size.variable." + encoding;
       // This is expected to be one of sans-serif or serif, and determines what
       // we'll link the variable font size to.
-      let isSansDefault = this._prefBranch.getCharPref("font.default." + encoding) ==
+      let isSansDefault = Services.prefs.getCharPref("font.default." + encoding) ==
                             "sans-serif";
 
-      if (!this._prefBranch.prefHasUserValue(serifPref)) {
-        this._prefBranch.setCharPref(serifPref, aFonts.serif);
+      if (!Services.prefs.prefHasUserValue(serifPref)) {
+        Services.prefs.setCharPref(serifPref, aFonts.serif);
         if (!isSansDefault)
-          this._prefBranch.setIntPref(variableSizePref, aFonts.variableSize);
+          Services.prefs.setIntPref(variableSizePref, aFonts.variableSize);
       }
 
-      if (!this._prefBranch.prefHasUserValue(sansPref)) {
-        this._prefBranch.setCharPref(sansPref, aFonts.sans);
+      if (!Services.prefs.prefHasUserValue(sansPref)) {
+        Services.prefs.setCharPref(sansPref, aFonts.sans);
         if (isSansDefault)
-          this._prefBranch.setIntPref(variableSizePref, aFonts.variableSize);
+          Services.prefs.setIntPref(variableSizePref, aFonts.variableSize);
       }
 
       let monospacePref = "font.name.monospace." + encoding;
       let fixedSizePref = "font.size.fixed." + encoding;
-      if (!this._prefBranch.prefHasUserValue(monospacePref)) {
-        this._prefBranch.setCharPref(monospacePref, aFonts.monospace);
-        this._prefBranch.setIntPref(fixedSizePref, aFonts.fixedSize);
+      if (!Services.prefs.prefHasUserValue(monospacePref)) {
+        Services.prefs.setCharPref(monospacePref, aFonts.monospace);
+        Services.prefs.setIntPref(fixedSizePref, aFonts.fixedSize);
       }
     }
   },
@@ -64,11 +64,9 @@ var MailMigrator = {
     // Windows...
     if ("@mozilla.org/windows-registry-key;1" in Components.classes) {
       // Only migrate on Vista (Windows version 6.0) and above
-      let sysInfo = Cc["@mozilla.org/system-info;1"]
-                      .getService(Ci.nsIPropertyBag2);
-      if (sysInfo.getPropertyAsDouble("version") >= 6.0) {
+      if (Services.sysinfo.getPropertyAsDouble("version") >= 6.0) {
         let fontPrefVersion =
-          this._prefBranch.getIntPref("mail.font.windows.version");
+          Services.prefs.getIntPref("mail.font.windows.version");
         if (fontPrefVersion < 2) {
           let fonts = {
             serif: "Cambria",
@@ -87,7 +85,7 @@ var MailMigrator = {
 
           this._switchDefaultFonts(fonts, encodings);
 
-          this._prefBranch.setIntPref("mail.font.windows.version", 2);
+          Services.prefs.setIntPref("mail.font.windows.version", 2);
         }
       }
     }
@@ -379,7 +377,3 @@ var MailMigrator = {
     }
   },
 };
-
-XPCOMUtils.defineLazyServiceGetter(MailMigrator, "_prefBranch",
-                                   "@mozilla.org/preferences-service;1",
-                                   "nsIPrefBranch");

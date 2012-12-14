@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kIMig = Components.interfaces.nsIMailProfileMigrator;
 const kIPStartup = Components.interfaces.nsIProfileStartup;
 const kProfileMigratorContractIDPrefix = "@mozilla.org/profile/migrator;1?app=mail&type=";
@@ -17,12 +19,11 @@ var MigrationWizard = {
 
   init: function ()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    os.addObserver(this, "Migration:Started", false);
-    os.addObserver(this, "Migration:ItemBeforeMigrate", false);
-    os.addObserver(this, "Migration:ItemAfterMigrate", false);
-    os.addObserver(this, "Migration:Ended", false);
-    os.addObserver(this, "Migration:Progress", false);
+    Services.obs.addObserver(this, "Migration:Started", false);
+    Services.obs.addObserver(this, "Migration:ItemBeforeMigrate", false);
+    Services.obs.addObserver(this, "Migration:ItemAfterMigrate", false);
+    Services.obs.addObserver(this, "Migration:Ended", false);
+    Services.obs.addObserver(this, "Migration:Progress", false);
 
     this._wiz = document.documentElement;
 
@@ -58,12 +59,11 @@ var MigrationWizard = {
 
   uninit: function ()
   {
-    var os = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-    os.removeObserver(this, "Migration:Started");
-    os.removeObserver(this, "Migration:ItemBeforeMigrate");
-    os.removeObserver(this, "Migration:ItemAfterMigrate");
-    os.removeObserver(this, "Migration:Ended");
-    os.removeObserver(this, "Migration:Progress");
+    Services.obs.removeObserver(this, "Migration:Started");
+    Services.obs.removeObserver(this, "Migration:ItemBeforeMigrate");
+    Services.obs.removeObserver(this, "Migration:ItemAfterMigrate");
+    Services.obs.removeObserver(this, "Migration:Ended");
+    Services.obs.removeObserver(this, "Migration:Progress");
   },
 
   // 1 - Import Source

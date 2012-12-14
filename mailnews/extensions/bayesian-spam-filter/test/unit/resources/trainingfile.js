@@ -5,6 +5,8 @@
 // service class to manipulate the junk training.dat file
 //  code is adapted from Mnehy Thunderbird Extension
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function TrainingData() {
 
   // local constants
@@ -29,8 +31,7 @@ function TrainingData() {
   // helper functions
 
   function getJunkStatFile() {
-    var nsIProperties = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties);
-    var sBaseDir = nsIProperties.get("ProfD", Ci.nsIFile);
+    var sBaseDir = Services.dirsvc.get("ProfD", Ci.nsIFile);
     var CFileByFile = new CC("@mozilla.org/file/local;1", "nsILocalFile", "initWithFile");
     var oFile = new CFileByFile(sBaseDir);
     oFile.append("training.dat");
@@ -39,13 +40,11 @@ function TrainingData() {
   
   function getBinStream(oFile) {
   
-    var nsIIOService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-
     if (oFile && oFile.exists())
     { 
-      var oUri = nsIIOService.newFileURI(oFile);
+      var oUri = Services.io.newFileURI(oFile);
       // open stream (channel)
-      var oStream    = nsIIOService.newChannelFromURI(oUri).open();
+      var oStream = Services.io.newChannelFromURI(oUri).open();
       // buffer it
       var oBufStream = Cc["@mozilla.org/network/buffered-input-stream;1"].
         createInstance(Ci.nsIBufferedInputStream);

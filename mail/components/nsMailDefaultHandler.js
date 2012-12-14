@@ -20,8 +20,6 @@ const nsINetUtil               = Components.interfaces.nsINetUtil;
 const nsISupportsString        = Components.interfaces.nsISupportsString;
 const nsIURIFixup              = Components.interfaces.nsIURIFixup;
 const nsIURILoader             = Components.interfaces.nsIURILoader;
-const nsIWindowMediator        = Components.interfaces.nsIWindowMediator;
-const nsIWindowWatcher         = Components.interfaces.nsIWindowWatcher;
 
 const NS_ERROR_ABORT = Components.results.NS_ERROR_ABORT;
 
@@ -90,9 +88,7 @@ function openURI(uri)
   if (!mayOpenURI(uri))
     throw Components.results.NS_ERROR_FAILURE;
 
-  var io = Components.classes["@mozilla.org/network/io-service;1"]
-                     .getService(Components.interfaces.nsIIOService);
-  var channel = io.newChannelFromURI(uri);
+  var channel = Services.io.newChannelFromURI(uri);
   var loader = Components.classes["@mozilla.org/uriloader;1"]
                          .getService(Components.interfaces.nsIURILoader);
 
@@ -102,16 +98,13 @@ function openURI(uri)
   var loadgroup = Components.classes["@mozilla.org/network/load-group;1"]
                             .createInstance(Components.interfaces.nsILoadGroup);
 
-  var appstartup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                             .getService(Components.interfaces.nsIAppStartup);
-
   var loadlistener = {
     onStartRequest: function ll_start(aRequest, aContext) {
-      appstartup.enterLastWindowClosingSurvivalArea();
+      Services.startup.enterLastWindowClosingSurvivalArea();
     },
 
     onStopRequest: function ll_stop(aRequest, aContext, aStatusCode) {
-      appstartup.exitLastWindowClosingSurvivalArea();
+      Services.startup.exitLastWindowClosingSurvivalArea();
     },
 
     QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIRequestObserver,
@@ -187,34 +180,27 @@ var nsMailDefaultHandler = {
           // xfeDoCommand(openBrowser)
           switch (remoteParams[0].toLowerCase()) {
           case "openinbox":
-            var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                               .getService(nsIWindowMediator);
-            var win = wm.getMostRecentWindow("mail:3pane");
+            var win = Services.wm.getMostRecentWindow("mail:3pane");
             if (win) {
               win.focus();
             }
             else {
-              var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                     .getService(nsIWindowWatcher);
-
               // Bug 277798 - we have to pass an argument to openWindow(), or
               // else it won't honor the dialog=no instruction.
               var argstring = Components.classes["@mozilla.org/supports-string;1"]
                                         .createInstance(nsISupportsString);
-              wwatch.openWindow(null, "chrome://messenger/content/", "_blank",
-                                "chrome,dialog=no,all", argstring);
+              Services.ww.openWindow(null, "chrome://messenger/content/", "_blank",
+                                     "chrome,dialog=no,all", argstring);
             }
             break;
 
           case "composemessage":
-            var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                   .getService(nsIWindowWatcher);
             var argstring = Components.classes["@mozilla.org/supports-string;1"]
                                       .createInstance(nsISupportsString);
             remoteParams.shift();
             argstring.data = remoteParams.join(",");
-            wwatch.openWindow(null, "chrome://messenger/content/messengercompose/messengercompose.xul", "_blank",
-                              "chrome,dialog=no,all", argstring);
+            Services.ww.openWindow(null, "chrome://messenger/content/messengercompose/messengercompose.xul",
+                                   "_blank", "chrome,dialog=no,all", argstring);
             break;
 
           default:
@@ -243,8 +229,6 @@ var nsMailDefaultHandler = {
     if (chromeParam) {
       try {
         var features = "chrome,dialog=no,all";
-        var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                               .getService(nsIWindowWatcher);
         var argstring = Components.classes["@mozilla.org/supports-string;1"]
                                   .createInstance(nsISupportsString);
         var uri = resolveURIInternal(cmdLine, chromeParam);
@@ -252,8 +236,8 @@ var nsMailDefaultHandler = {
                                 .getService(nsINetUtil);
         // only load URIs which do not inherit chrome privs
         if (!netutil.URIChainHasFlags(uri, URI_INHERITS_SECURITY_CONTEXT)) {
-          wwatch.openWindow(null, uri.spec, "_blank",
-                            "chrome,dialog=no,all", argstring);
+          Services.ww.openWindow(null, uri.spec, "_blank",
+                                 "chrome,dialog=no,all", argstring);
           cmdLine.preventDefault = true;
         }
       }
@@ -361,18 +345,14 @@ var nsMailDefaultHandler = {
                            .QueryInterface(Components.interfaces.nsIFileURL);
           fileURL.query = "?type=application/x-message-display";
 
-          let wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                 .getService(nsIWindowWatcher);
-          wwatch.openWindow(null,
-                            "chrome://messenger/content/messageWindow.xul",
-                            "_blank", "all,chrome,dialog=no,status,toolbar",
-                            fileURL);
+          Services.ww.openWindow(null,
+                                 "chrome://messenger/content/messageWindow.xul",
+                                 "_blank", "all,chrome,dialog=no,status,toolbar",
+                                 fileURL);
           cmdLine.preventDefault = true;
         }
         else {
-          let bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                 .getService(Components.interfaces.nsIStringBundleService)
-                                 .createBundle("chrome://messenger/locale/messenger.properties");
+          let bundle = Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
           let title, message;
           if (!file.exists()) {
             title = bundle.GetStringFromName("fileNotFoundTitle");
@@ -384,9 +364,7 @@ var nsMailDefaultHandler = {
             message = bundle.formatStringFromName("fileEmptyMsg", [file.path], 1);
           }
 
-          let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                        .getService(Components.interfaces.nsIPromptService);
-          promptService.alert(null, title, message);
+          Services.prompt.alert(null, title, message);
         }
       }
       else if (/\.vcf$/i.test(uri)) {
@@ -422,10 +400,8 @@ var nsMailDefaultHandler = {
                                    .createInstance(Components.interfaces.nsIMsgAttachment);
         let localFile = Components.classes["@mozilla.org/file/local;1"]
                                   .createInstance(Components.interfaces.nsILocalFile);
-        let ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-        let fileHandler = ioService.getProtocolHandler("file")
-                                   .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        let fileHandler = Services.io.getProtocolHandler("file")
+                                     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
         try {
           // Unescape the URI so that we work with clients that escape spaces.
@@ -443,14 +419,11 @@ var nsMailDefaultHandler = {
         }
       }
     } else {
-      var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                             .getService(nsIWindowWatcher);
-
       var argstring = Components.classes["@mozilla.org/supports-string;1"]
                                 .createInstance(nsISupportsString);
 
-      wwatch.openWindow(null, "chrome://messenger/content/", "_blank",
-                        "chrome,dialog=no,all", argstring);
+      Services.ww.openWindow(null, "chrome://messenger/content/", "_blank",
+                             "chrome,dialog=no,all", argstring);
     }
   },
 

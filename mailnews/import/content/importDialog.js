@@ -4,6 +4,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var importType = null;
 var gImportMsgsBundle;
 var gFeedsBundle;
@@ -860,9 +862,8 @@ function ImportAddress( module, success, error) {
 
     if ( !fileIsDirectory && (file.fileSize == 0) ) {
       var errorText = gImportMsgsBundle.getFormattedString('ImportEmptyAddressBook', [path]);
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
-      promptService.alert(window, document.title, errorText);
+      Services.prompt.alert(window, document.title, errorText);
       return false;
     }
     addInterface.SetData("addressLocation", file);

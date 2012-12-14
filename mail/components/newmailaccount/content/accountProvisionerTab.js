@@ -93,9 +93,7 @@ accountProvisionerTabType.restoreTab = function(aTabmail, aPersistedState) {
  */
 accountProvisionerTabType._setMonitoring = function(aBrowser, aRealName,
                                                     aEmail, aSearchEngine) {
-  let mail3Pane = Cc["@mozilla.org/appshell/window-mediator;1"]
-        .getService(Ci.nsIWindowMediator)
-        .getMostRecentWindow("mail:3pane");
+  let mail3Pane = Services.wm.getMostRecentWindow("mail:3pane");
 
   // We'll construct our special observer (defined in urlListener.js)
   // that will watch for requests where the contentType contains

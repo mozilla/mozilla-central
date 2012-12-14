@@ -23,6 +23,7 @@ const Cu = Components.utils;
 Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/MailUtils.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 const PERM_DIRECTORY = parseInt("0755", 8);
 const PERM_FILE = parseInt("0644", 8);
@@ -74,9 +75,7 @@ let SearchSupport =
   get _prefBranch()
   {
     if (!this.__prefBranch)
-      this.__prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                            .getService(Ci.nsIPrefService)
-                            .getBranch(this._prefBase);
+      this.__prefBranch = Services.prefs.getBranch(this._prefBase);
     return this.__prefBranch;
   },
 
@@ -216,9 +215,7 @@ let SearchSupport =
         notificationService.folderMoveCopyCompleted |
         notificationService.folderRenamed);
         // itemEvent intentionally omitted
-      let observerService = Cc["@mozilla.org/observer-service;1"]
-                              .getService(Ci.nsIObserverService);
-      observerService.addObserver(this, "MsgMsgDisplayed", false);
+      Services.obs.addObserver(this, "MsgMsgDisplayed", false);
       let idleService = Cc["@mozilla.org/widget/idleservice;1"]
                           .getService(Ci.nsIIdleService);
       idleService.addIdleObserver(this, this._idleThresholdSecs);
@@ -256,9 +253,7 @@ let SearchSupport =
 
     if (this.enabled)
     {
-      let observerService = Cc["@mozilla.org/observer-service;1"]
-                              .getService(Ci.nsIObserverService);
-      observerService.removeObserver(this, "MsgMsgDisplayed", false);
+      Services.obs.removeObserver(this, "MsgMsgDisplayed", false);
       let idleService = Cc["@mozilla.org/widget/idleservice;1"]
                           .getService(Ci.nsIIdleService);
       idleService.removeIdleObserver(this, this._idleThresholdSecs);

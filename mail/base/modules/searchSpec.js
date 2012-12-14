@@ -10,6 +10,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsIMsgSearchTerm = Ci.nsIMsgSearchTerm;
@@ -404,8 +405,6 @@ SearchSpec.prototype = {
     }
 
     let filtering = this._userTerms != null || this._viewTerms != null;
-    let ioService = Cc["@mozilla.org/network/io-service;1"]
-                      .getService(Ci.nsIIOService);
     let validityManager = Cc['@mozilla.org/mail/search/validityManager;1']
                             .getService(Ci.nsIMsgSearchValidityManager);
     for each (let [, folder] in Iterator(this.owner._underlyingFolders)) {
@@ -416,8 +415,8 @@ SearchSpec.prototype = {
       let serverScope = folder.server.searchScope;
       // If we're offline, or this is a local folder, or there's no separate
       //  online scope, use server scope.
-      if (ioService.offline || (serverScope == nsMsgSearchScope.offlineMail) ||
-                               (folder instanceof nsIMsgLocalMailFolder))
+      if (Services.io.offline || (serverScope == nsMsgSearchScope.offlineMail) ||
+                                 (folder instanceof nsIMsgLocalMailFolder))
         scope = serverScope;
       else {
         // we need to test the validity in online and offline tables
