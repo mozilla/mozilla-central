@@ -2205,8 +2205,12 @@ GetRequestBody(nsIVariant* aBody, nsIInputStream** aResult,
       NS_ENSURE_SUCCESS(rv, rv);
 
       // Make sure to use the encoding we'll send
-      rv = serializer->SerializeToStream(doc, output, aCharset);
-      NS_ENSURE_SUCCESS(rv, rv);
+      {
+        nsCxPusher pusher;
+        pusher.PushNull();
+        rv = serializer->SerializeToStream(doc, output, aCharset);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
 
       output->Close();
 
