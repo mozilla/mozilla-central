@@ -18,8 +18,6 @@
   <string>AdIM</string>
   <key>DefaultBackgroundColor</key>
   <string>FFFFFF</string>
-  <key>DefaultVariant</key>
-  <string>Normal</string>
   <key>DisableCustomBackground</key>
   <false/>
   <key>MessageViewVersion</key>
