@@ -873,9 +873,8 @@
       <method name="notifyPopupCountChanged">
         <body>
           <![CDATA[
-            var event = document.createEvent("Events");
-            event.initEvent("PopupCountChanged", true, true);
-            this.dispatchEvent(event);
+            this.dispatchEvent(new Event("PopupCountChanged",
+              { bubbles: true, cancelable: true }));
           ]]>
         </body>
       </method>

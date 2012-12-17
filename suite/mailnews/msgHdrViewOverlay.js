@@ -251,9 +251,8 @@ function OnLoadMsgHeaderPane()
     gCollapsedHeaderViewMode = true;   
 
   // dispatch an event letting any listeners know that we have loaded the message pane
-  var event = document.createEvent('Events');
-  event.initEvent('messagepane-loaded', false, true);
-  toggleHeaderView.dispatchEvent(event);
+  toggleHeaderView.dispatchEvent(new Event('messagepane-loaded', 
+    { bubbles: false, cancelable: true }));
 }
 
 function OnUnloadMsgHeaderPane()
@@ -265,9 +264,8 @@ function OnUnloadMsgHeaderPane()
             .removeAddressBookListener(AddressBookListener);
 
   // dispatch an event letting any listeners know that we have unloaded the message pane
-  var event = document.createEvent('Events');
-  event.initEvent('messagepane-unloaded', false, true);
-  GetHeaderPane().dispatchEvent(event);
+  GetHeaderPane().dispatchEvent(new Event('messagepane-unloaded',
+    { bubbles: false, cancelable: true }));
 }
 
 const MsgHdrViewObserver =

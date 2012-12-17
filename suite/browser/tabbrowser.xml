@@ -1020,9 +1020,8 @@
                                         true, false);
 
             // We've selected the new tab, so go ahead and notify listeners
-            var event = document.createEvent("Events");
-            event.initEvent("TabSelect", true, false);
-            this.mCurrentTab.dispatchEvent(event);
+            this.mCurrentTab.dispatchEvent(new Event("TabSelect",
+              { bubbles: true, cancelable: false }));
 
             if (!document.commandDispatcher.focusedElement ||
                 document.commandDispatcher.focusedElement.parentNode !=
@@ -1155,9 +1154,8 @@
         <body><![CDATA[
           // This event should be dispatched when any of these attributes change:
           // label, crop, busy, image, selected
-          var event = document.createEvent("Events");
-          event.initEvent("TabAttrModified", true, false);
-          aTab.dispatchEvent(event);
+          aTab.dispatchEvent(new Event("TabAttrModified",
+            { bubbles: true, cancelable: false }));
         ]]></body>
       </method>
 
@@ -1427,9 +1425,8 @@
             }
             this.tabContainer._handleNewTab(t);
 
-            var evt = document.createEvent("Events");
-            evt.initEvent("TabOpen", true, false);
-            t.dispatchEvent(evt);
+            t.dispatchEvent(new Event("TabOpen",
+              { bubbles: true, cancelable: false }));
 
             return t;
           ]]>
@@ -1624,9 +1621,9 @@
             // Dispatch a notification.
             // We dispatch it before any teardown so that event listeners can
             // inspect the tab that's about to close.
-            var event = document.createEvent('UIEvents');
-            event.initUIEvent("TabClose", true, false, window, !!aParams.disableUndo);
-            aTab.dispatchEvent(event);
+            aTab.dispatchEvent(new UIEvent("TabClose",
+              { bubbles: true, cancelable: false, view: window,
+                detail: !!aParams.disableUndo }));
             var tabData = aTab.tabData || {};
             tabData.pos = this.getTabIndex(aTab);
             tabData.panel = oldBrowser.parentNode.id;
@@ -2168,9 +2165,9 @@
             this.mCurrentTab._selected = true;
             this.tabContainer.mTabstrip.ensureElementIsVisible(this.mCurrentTab, false);
 
-            var evt = document.createEvent("UIEvents");
-            evt.initUIEvent("TabMove", true, false, window, aSrcIndex);
-            tab.dispatchEvent(evt);
+            tab.dispatchEvent(new UIEvent("TabMove",
+              { bubbles: true, cancelable: false, view: window,
+                detail: aSrcIndex }));
           ]]>
         </body>
       </method>

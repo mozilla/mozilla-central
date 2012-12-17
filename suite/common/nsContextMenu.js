@@ -1385,14 +1385,12 @@ nsContextMenu.prototype = {
         media.setAttribute("controls", "true");
         break;
       case "showstats":
-        var event = document.createEvent("CustomEvent");
-        event.initCustomEvent("media-showStatistics", false, true, true);
-        media.dispatchEvent(event);
+        media.dispatchEvent(new CustomEvent("media-showStatistics",
+          { bubbles: false, cancelable: true, detail: true }));
         break;
       case "hidestats":
-        var event = document.createEvent("CustomEvent");
-        event.initCustomEvent("media-showStatistics", false, true, false);
-        media.dispatchEvent(event);
+        media.dispatchEvent(new CustomEvent("media-showStatistics",
+          { bubbles: false, cancelable: true, detail: false }));
         break;
     }
   },

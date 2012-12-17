@@ -836,11 +836,9 @@ function ChangeMessagePaneVisibility()
     gDBView.loadMessageByUrl("about:blank");
     gDBView.selectionChanged();
   }
-  var event = document.createEvent("Events");
-  if (hidden)
-    event.initEvent("messagepane-hide", false, true);
-  else
-    event.initEvent("messagepane-unhide", false, true);
+
+  var event = new Event( "messagepane-"+ (hidden ? "hide" : "unhide"),
+                          { bubbles: false, cancelable: true });
   document.getElementById("messengerWindow").dispatchEvent(event);
 }
 

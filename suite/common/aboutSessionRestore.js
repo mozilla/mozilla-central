@@ -20,9 +20,8 @@ window.onload = function() {
     }
   }
   // make sure the data is tracked to be restored in case of a subsequent crash
-  var event = document.createEvent("UIEvents");
-  event.initUIEvent("input", true, true, window, 0);
-  sessionData.dispatchEvent(event);
+  sessionData.dispatchEvent(new UIEvent("input",
+    { bubbles: true, cancelable: true, view: window, detail: 0 }));
 
   gStateObject = JSON.parse(sessionData.value);
 

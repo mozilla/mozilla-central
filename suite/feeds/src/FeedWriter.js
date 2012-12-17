@@ -291,9 +291,8 @@ FeedWriter.prototype = {
 
     if (change) {
       this._contentSandbox.document = this._document;
-      codeStr += "var event = document.createEvent('Events'); " +
-                 "event.initEvent('CheckboxStateChange', true, true);" +
-                 "checkbox.dispatchEvent(event);";
+      codeStr += "checkbox.dispatchEvent(new Event('CheckboxStateChange',"+
+                 "  { bubbles: true, cancelable: true }));";
     }
 
     Components.utils.evalInSandbox(codeStr, this._contentSandbox);
