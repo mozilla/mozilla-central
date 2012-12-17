@@ -92,17 +92,17 @@
          command="cmd_removeNamedAnchors"
          modifiers="accel, shift"/>
     <key id="decreasefontsizekb"
-         key="&decreaseFontSize.key;"
+         key="&decrementFontSize.key;"
          command="cmd_decreaseFont"
          modifiers="accel"/>
     <key id="increasefontsizekb"
-         key="&increaseFontSize.key;"
+         key="&incrementFontSize.key;"
          command="cmd_increaseFont"
          modifiers="accel"/>
-    <key key="&increaseFontSize.key;"
+    <key key="&incrementFontSize.key;"
          command="cmd_increaseFont"
          modifiers="accel,shift"/>
-    <key key="&increaseFontSize.key2;"
+    <key key="&incrementFontSize.key2;"
          command="cmd_increaseFont"
          modifiers="accel"/>
 
