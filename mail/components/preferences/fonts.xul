@@ -124,7 +124,6 @@
 
             <menulist id="sizeVar" class="small-margin">
               <menupopup>
-                <menuitem value="8" label="8"/>
                 <menuitem value="9" label="9"/>
                 <menuitem value="10" label="10"/>
                 <menuitem value="11" label="11"/>
@@ -184,7 +183,6 @@
             </hbox>
             <menulist id="sizeMono" class="small-margin">
               <menupopup>
-                <menuitem value="8" label="8"/>
                 <menuitem value="9" label="9"/>
                 <menuitem value="10" label="10"/>
                 <menuitem value="11" label="11"/>
