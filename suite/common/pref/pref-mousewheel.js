@@ -9,6 +9,21 @@ function doEnabling(aElement)
   var vertical = document.getElementById(prefix + "delta_multiplier_y");
   EnableElement(vertical, preference.value);
   updateCheckbox(vertical);
+  var actionX = document.getElementById(prefix + "action_x");
+  if (actionX.value < 0)
+    doEnablingX(actionX);
+}
+
+function doEnablingX(aElement)
+{
+  var preference = document.getElementById(aElement.getAttribute("preference"));
+  var prefix = aElement.id.replace(/action_x$/, "");
+  var value = preference.value;
+  if (value < 0) {
+    var action = document.getElementById(prefix + "action");
+    preference = document.getElementById(action.getAttribute("preference"));
+    value = preference.value;
+  }
   var horizontal = document.getElementById(prefix + "delta_multiplier_x");
   EnableElement(horizontal, preference.value);
   updateCheckbox(horizontal);
