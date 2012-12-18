@@ -445,7 +445,7 @@ nsContextMenu.prototype = {
     // Remember the node that was clicked.
     this.target = aNode;
 
-    if (aNode.namespaceURI == xulNS || this.isTargetAFormControl(aNode)) {
+    if (aNode.namespaceURI == xulNS) {
       this.shouldDisplay = false;
       return;
     }
@@ -1313,18 +1313,6 @@ nsContextMenu.prototype = {
            "contextMenu.link       = " + this.link + "\n" +
            "contextMenu.inFrame    = " + this.inFrame + "\n" +
            "contextMenu.hasBGImage = " + this.hasBGImage + "\n";
-  },
-
-  // Returns true if aNode is a form control (except text boxes and images).
-  // This is used to disable the context menu for form controls.
-  isTargetAFormControl: function(aNode) {
-    if (aNode instanceof HTMLInputElement)
-      return (!aNode.mozIsTextField(false) && aNode.type != "image");
-
-    return (aNode instanceof HTMLButtonElement) ||
-           (aNode instanceof HTMLSelectElement) ||
-           (aNode instanceof HTMLOptionElement) ||
-           (aNode instanceof HTMLOptGroupElement);
   },
 
   isTargetATextBox: function(aNode) {
