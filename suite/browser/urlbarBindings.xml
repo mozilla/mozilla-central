@@ -608,7 +608,7 @@
     </content>
     
     <handlers>
-      <handler event="mouseover">
+      <handler event="mousemove">
         this.parentNode.selectedIndex = Number(this.getAttribute("engineIndex"));
       </handler>
 
