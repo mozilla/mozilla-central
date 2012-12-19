@@ -2349,7 +2349,7 @@
 
   <binding id="tabmail-alltabs-popup"
            extends="chrome://global/content/bindings/popup.xml#popup">
-    <implementation implements="nsIDOMEventListener,nsIMutationObserverCallback">
+    <implementation implements="nsIDOMEventListener">
       <field name="_xulWindow">
         null
       </field>
@@ -2370,7 +2370,16 @@
                   .getInterface(Components.interfaces.nsIXULWindow);
         }
         catch(ex) { }
-        this._mutationObserver = new MutationObserver(this);
+
+        let tabmailalltabspopup = this;
+        this._mutationObserver = new MutationObserver(function handleMutations(aRecords, aObserver) {
+          aRecords.forEach(function(mutation) {
+            let menuItem = mutation.target.mCorrespondingMenuitem;
+            if (menuItem)
+              tabmailalltabspopup._setMenuitemAttributes(menuItem, mutation.target);
+          });
+        });
+
       ]]></constructor>
 
       <method name="_menuItemOnCommand">
@@ -2411,18 +2420,6 @@
               this._updateTabsVisibilityStatus();
               break;
           }
-        ]]></body>
-      </method>
-
-      <method name="handleMutations">
-        <parameter name="aMutationRecords"/>
-        <parameter name="aObserver"/>
-        <body><![CDATA[
-          aMutationRecords.forEach(function(mutation) {
-            let menuItem = mutation.target.mCorrespondingMenuitem;
-            if (menuItem)
-              this._setMenuitemAttributes(menuItem, mutation.target);
-          });
         ]]></body>
       </method>
 

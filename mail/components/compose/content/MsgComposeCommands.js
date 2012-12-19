@@ -4652,7 +4652,12 @@ const gAttachmentNotifier =
     if (this._obs)
       this.shutdown();
 
-    this._obs = new MutationObserver(this);
+    this._obs = new MutationObserver(function gAN_handleMutations(aMutations) {
+      gAttachmentNotifier.timer.cancel();
+      gAttachmentNotifier.timer.initWithCallback(gAttachmentNotifier.event, 500,
+                                                 Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+    });
+
     this._obs.observe(aDocument, {
       attributes: true,
       childList: true,
@@ -4676,13 +4681,7 @@ const gAttachmentNotifier =
   },
 
   timer: Components.classes["@mozilla.org/timer;1"]
-                   .createInstance(Components.interfaces.nsITimer),
-
-  handleMutations: function gAN_handleMutations(aMutations) {
-    this.timer.cancel();
-    this.timer.initWithCallback(this.event, 500,
-                                Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-  }
+                   .createInstance(Components.interfaces.nsITimer)
 };
 
 function InitEditor()
