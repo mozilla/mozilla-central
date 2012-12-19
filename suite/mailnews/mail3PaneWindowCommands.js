@@ -340,7 +340,7 @@ var DefaultController =
       case "cmd_displayMsgFilters":
         let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
                             .getService(Components.interfaces.nsIMsgAccountManager);
-        return mgr.accounts.Count() > 0;
+        return mgr.accounts.length > 0;
       case "cmd_applyFilters":
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.applyFilters, enabled, checkStatus);
