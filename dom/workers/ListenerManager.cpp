@@ -43,6 +43,7 @@
 #include "jsapi.h"
 #include "jscntxt.h"
 #include "js/Vector.h"
+#include "nsAutoJSValHolder.h"
 
 #include "Events.h"
 
@@ -368,7 +369,12 @@ ListenerManager::DispatchEvent(JSContext* aCx, JSObject* aTarget,
   }
 
   js::ContextAllocPolicy ap(aCx);
-  js::Vector<jsval, 10, js::ContextAllocPolicy> listeners(ap);
+
+  // XXXbent There is no reason to use nsAutoJSValHolder here as we should be
+  //         able to use js::AutoValueVector. Worse, nsAutoJSValHolder is much
+  //         slower. However, js::AutoValueVector causes crashes on Android at
+  //         the moment so we don't have much choice.
+  js::Vector<nsAutoJSValHolder, 10, js::ContextAllocPolicy> listeners(ap);
 
   for (PRCList* elem = PR_NEXT_LINK(&collection->mListenerHead);
        elem != &collection->mListenerHead;
@@ -377,9 +383,17 @@ ListenerManager::DispatchEvent(JSContext* aCx, JSObject* aTarget,
 
     // Listeners that don't want untrusted events will be skipped if this is an
     // untrusted event.
-    if ((eventIsTrusted || listener->mWantsUntrusted) &&
-        !listeners.append(listener->mListenerVal)) {
-      return false;
+    if (eventIsTrusted || listener->mWantsUntrusted) {
+      nsAutoJSValHolder holder;
+      if (!holder.Hold(aCx)) {
+        return false;
+      }
+
+      holder = listener->mListenerVal;
+
+      if (!listeners.append(holder)) {
+        return false;
+      }
     }
   }
 
