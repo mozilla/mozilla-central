@@ -323,7 +323,8 @@ var PlacesOrganizer = {
     if (fp.show() != Components.interfaces.nsIFilePicker.returnCancel) {
       if (fp.fileURL) {
         Components.utils.import("resource://gre/modules/BookmarkHTMLUtils.jsm");
-        BookmarkHTMLUtils.importFromURL(fp.fileURL.spec, false);
+        BookmarkHTMLUtils.importFromURL(fp.fileURL.spec, false)
+                         .then(null, Components.utils.reportError);
       }
     }
   },
@@ -339,9 +340,9 @@ var PlacesOrganizer = {
     fp.appendFilters(Components.interfaces.nsIFilePicker.filterHTML);
     fp.defaultString = "bookmarks.html";
     if (fp.show() != Components.interfaces.nsIFilePicker.returnCancel) {
-      var exporter = Components.classes["@mozilla.org/browser/places/import-export-service;1"]
-                               .getService(Components.interfaces.nsIPlacesImportExportService);
-      exporter.exportHTMLToFile(fp.file);
+      Components.utils.import("resource://gre/modules/BookmarkHTMLUtils.jsm");
+      BookmarkHTMLUtils.exportToFile(fp.file)
+                       .then(null, Components.utils.reportError);
     }
   },
 
