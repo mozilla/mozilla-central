@@ -15,6 +15,7 @@
 #include "nsAbDirFactoryService.h"
 #include "nsAbMDBDirFactory.h"
 #include "nsArrayEnumerator.h"
+#include "nsVoidArray.h"
 
 #include "nsCRTGlue.h"
 

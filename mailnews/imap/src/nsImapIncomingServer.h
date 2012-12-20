@@ -15,6 +15,7 @@
 #include "nsIUrlListener.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsCOMArray.h"
+#include "nsVoidArray.h"
 #include "mozilla/Mutex.h"
 
 class nsIRDFService;

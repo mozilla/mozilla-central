@@ -35,6 +35,8 @@
 #include "nsIWeakReferenceUtils.h"
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
+class nsVoidArray;
+
 typedef nsAutoTArray<nsMsgViewIndex, 1> nsMsgViewIndexArray;
 
 enum eFieldType {

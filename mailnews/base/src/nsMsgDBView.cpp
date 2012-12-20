@@ -48,6 +48,7 @@
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
 #include "mozilla/Services.h"
+#include "nsVoidArray.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 

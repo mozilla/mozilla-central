@@ -26,6 +26,7 @@
 #include "nsIMsgFilterList.h"
 #include "nsIMsgFilterHitNotify.h"
 #include "nsIMsgFolderNotificationService.h"
+#include "nsVoidArray.h"
 
 class nsByteArray;
 class nsOutputFileStream;
