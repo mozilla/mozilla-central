@@ -726,7 +726,6 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
   // if we detect that, we stop and return error.
 
   nsAutoCString host;
-  nsAutoCString str;
   nsAutoCString newsgroups;
 
   nsTArray<nsCString> list;
@@ -738,7 +737,7 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
     {
       nsAutoCString currentHost;
       nsAutoCString theRest;
-      // does str start with "news:/"?
+      // does list[index] start with "news:/"?
       if (StringBeginsWith(list[index], NS_LITERAL_CSTRING(kNewsRootURI)))
       {
         // we have news://group or news://host/group
@@ -776,14 +775,14 @@ nsNntpService::GenerateNewsHeaderValsForPosting(const nsACString& newsgroupsList
       }
       else
       {
-        // str is "group"
-        rv = FindHostFromGroup(currentHost, str);
+        // theRest is "group"
+        rv = FindHostFromGroup(currentHost, theRest);
         if (NS_FAILED(rv))
           return rv;
         // build up the newsgroups
         if (!newsgroups.IsEmpty())
           newsgroups += ",";
-        newsgroups += list[index];
+        newsgroups += theRest;
       }
 
       if (!currentHost.IsEmpty())
