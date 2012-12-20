@@ -610,6 +610,7 @@ NS_IMETHODIMP nsParseMailMessageState::Clear()
   m_headers.ResetWritePos();
   m_envelope.ResetWritePos();
   m_receivedTime = 0;
+  m_receivedValue.Truncate();
   for (uint32_t i = 0; i < m_customDBHeaders.Length(); i++)
     m_customDBHeaderValues[i].length = 0;
 
