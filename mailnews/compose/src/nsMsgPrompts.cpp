@@ -49,6 +49,7 @@ nsMsgGetMessageByName(const nsString &aName, nsString& aResult)
 static nsresult
 nsMsgBuildMessageByName(const PRUnichar *aName, nsIFile *aFile, nsString& aResult)
 {
+  NS_ENSURE_ARG_POINTER(aFile);
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
     mozilla::services::GetStringBundleService();

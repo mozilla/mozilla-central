@@ -524,7 +524,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       if (mSendReport)
       {
         nsAutoString error_msg;
-        nsMsgBuildMessageWithTmpFile(mTempFile, error_msg);
+        nsMsgBuildMessageWithTmpFile(mHTMLFile, error_msg);
         mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
       }
       status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -4453,7 +4453,7 @@ nsMsgComposeAndSend::MimeDoFCC(nsIFile          *input_file,
     if (mSendReport)
     {
       nsAutoString error_msg;
-      nsMsgBuildMessageWithFile(mTempFile, error_msg);
+      nsMsgBuildMessageWithFile(input_file, error_msg);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
     }
     status = NS_MSG_UNABLE_TO_OPEN_FILE;
