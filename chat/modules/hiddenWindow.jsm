@@ -8,7 +8,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 XPCOMUtils.defineLazyGetter(this, "hiddenWindow", function()
-  Services.appshell.hiddenDOMWindow
+  Services.appShell.hiddenDOMWindow
 );
 #ifndef XP_MACOSX
 function getHiddenHTMLWindow() hiddenWindow
