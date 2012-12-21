@@ -2,10 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// Test that listing subscribed mailboxes uses LIST (SUBSCRIBED) instead of LSUB
-// for servers that have LIST-EXTENDED capability
-// see: bug 495318
-// see: RFC 5258 - http://tools.ietf.org/html/rfc5258
+/** Test that listing subscribed mailboxes uses LIST (SUBSCRIBED) instead of LSUB
+ * for servers that have LIST-EXTENDED capability
+ */
+/* References:
+ * RFC 5258 - http://tools.ietf.org/html/rfc5258
+ * Bug 495318
+ * Bug 816028
+ * http://bugzilla.zimbra.com/show_bug.cgi?id=78794
+ */
 
 // async support
 load("../../../resources/logHelper.js");
@@ -19,15 +24,17 @@ load("../../../resources/IMAPpump.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 // Globals
+let nsMsgFolderFlags = Ci.nsMsgFolderFlags;
 
-
-// Dovecot is one of the servers that supports LIST-EXTENDED
-setupIMAPPump("Dovecot");
+// Zimbra is one of the servers that supports LIST-EXTENDED
+// it also has a bug that causes a server crash in certain setups
+setupIMAPPump("Zimbra");
 
 // Definition of tests
 var tests = [
   setupMailboxes,
   testListSubscribed,
+  testZimbraServerVersions,
   endTest
 ]
 
@@ -48,8 +55,6 @@ function setupMailboxes()
 // tests that LIST (SUBSCRIBED) returns the proper response
 function testListSubscribed()
 {
-  let nsMsgFolderFlags = Ci.nsMsgFolderFlags;
-
   // check that we have \Noselect and \Noinferiors flags - these would not have
   // been returned if we had used LSUB instead of LIST(SUBSCRIBED)
   let rootFolder = gIMAPIncomingServer.rootFolder;
@@ -75,6 +80,35 @@ function testListSubscribed()
   do_check_null(folder3);
 
   yield true;
+}
+
+function testZimbraServerVersions() {
+  // older versions of Zimbra can crash if we send LIST (SUBSCRIBED) so we want
+  // to make sure that we are checking for versions
+
+  let testValues = [ { version : '6.3.1_GA_2790', expectedResult : false },
+                     { version : '7.2.2_GA_2790', expectedResult : false },
+                     { version : '7.2.3_GA_2790', expectedResult : true },
+                     { version : '8.0.2_GA_2790', expectedResult : false },
+                     { version : '8.0.3_GA_2790', expectedResult : true },
+                     { version : '9.0.0_GA_2790', expectedResult : true } ];
+
+  for (let i = 0; i < testValues.length; i++) {
+    gIMAPDaemon.idResponse = '("NAME" "Zimbra" ' +
+                             '"VERSION" "' + testValues[i].version + '" ' +
+                             '"RELEASE" "20120815212257" ' +
+                             '"USER" "user@domain.com" ' +
+                             '"SERVER" "14b63305-d002-4f1b-bcd9-23d402d4ef40")';
+    gIMAPIncomingServer.closeCachedConnections();
+    gIMAPIncomingServer.performExpand(null);
+    // select inbox is just to wait on performExpand since performExpand does not have listener
+    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    yield false;
+    // if we send LSUB instead of LIST(SUBSCRIBED), then we should not have \NoSelect flag
+    let rootFolder = gIMAPIncomingServer.rootFolder;
+    let folder1 = rootFolder.getChildNamed("folder1");
+    do_check_eq(folder1.getFlag(nsMsgFolderFlags.ImapNoselect), testValues[i].expectedResult);
+  }
 }
 
 // Cleanup at end

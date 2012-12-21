@@ -38,9 +38,11 @@ var gIMAPServer;         // the imap fake server
 var gIMAPIncomingServer; // nsIMsgIncomingServer for the imap server
 var gIMAPInbox;          // nsIMsgFolder/nsIMsgImapMailFolder for imap inbox
 var gIMAPMailbox;        // imap fake server mailbox
+var gAppInfo;            // application info
 
 function setupIMAPPump(extensions)
 {
+  createAppInfo("xpcshell@tests.mozilla.org", "XPCShell", "5", "2.0");
 
   // These are copied from imap's head_server.js to here so we can run
   //   this from any directory.
@@ -130,6 +132,38 @@ function teardownIMAPPump()
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
+}
+
+const XULAPPINFO_CONTRACTID = "@mozilla.org/xre/app-info;1";
+const XULAPPINFO_CID = Components.ID("{7e10a36e-1085-4302-9e3f-9571fc003ee0}");
+
+
+function createAppInfo(id, name, version, platformVersion) {
+  gAppInfo = {
+    // nsIXULAppInfo
+    vendor: "Mozilla",
+    name: name,
+    ID: id,
+    version: version,
+    appBuildID: "2007010101",
+    platformVersion: platformVersion,
+    platformBuildID: "2007010101",
+
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIXULAppInfo,
+                                           Components.interfaces.nsISupports])
+  };
+
+  var XULAppInfoFactory = {
+    createInstance: function (outer, iid) {
+      if (outer != null)
+        throw Components.results.NS_ERROR_NO_AGGREGATION;
+      return gAppInfo.QueryInterface(iid);
+    }
+  };
+  var registrar = Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar);
+  registrar.registerFactory(XULAPPINFO_CID, "XULAppInfo",
+                            XULAPPINFO_CONTRACTID, XULAppInfoFactory);
+
 }
 
 } // end run only once

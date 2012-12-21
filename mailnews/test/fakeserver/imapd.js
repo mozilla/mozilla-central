@@ -1699,7 +1699,7 @@ var configurations = {
   Cyrus: ["RFC2342", "RFC2195", "RFC5258"],
   UW: ["RFC2342", "RFC2195"],
   Dovecot: ["RFC2195", "RFC5258"],
-  Zimbra: ["RFC2342", "RFC2195", "RFC5258"],
+  Zimbra: ["RFC2197", "RFC2342", "RFC2195", "RFC5258"],
   Exchange: ["RFC2342", "RFC2195"],
   LEMONADE: ["RFC2342", "RFC2195"],
   CUSTOM1: ["MOVE", "RFC4315", "CUSTOM"],
@@ -1970,7 +1970,7 @@ var IMAP_CUSTOM_extension = {
 
 // RFC 2197: ID
 var IMAP_RFC2197_extension = {
-  ID: function (args) {
+  ID : function (args) {
     let clientID = "(";
     for each (let i in args)
       clientID += "\"" + i + "\"";

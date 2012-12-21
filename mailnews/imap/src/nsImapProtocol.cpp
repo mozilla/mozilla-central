@@ -15,6 +15,7 @@
 #include "nsIServiceManager.h"
 #include "nsICharsetConverterManager.h"
 #include "nsIStringBundle.h"
+#include "nsVersionComparator.h"
 
 #include "nsMsgImapCID.h"
 #include "nsThreadUtils.h"
@@ -7566,6 +7567,26 @@ nsCString nsImapProtocol::CreatePossibleTrashName(const char *prefix)
   return returnTrash;
 }
 
+bool nsImapProtocol::GetListSubscribedIsBrokenOnServer()
+{
+  // This is a workaround for an issue with LIST(SUBSCRIBED) crashing older versions of Zimbra
+  if (GetServerStateParser().GetServerID().Find("\"NAME\" \"Zimbra\"", CaseInsensitiveCompare) != kNotFound) {
+    nsCString serverID(GetServerStateParser().GetServerID());
+    int start = serverID.Find("\"VERSION\" \"", CaseInsensitiveCompare) + 11;
+    int length = serverID.Find("\" ", start, CaseInsensitiveCompare);
+    const nsDependentCSubstring serverVersionSubstring = Substring(serverID, start, length);
+    nsCString serverVersionStr(serverVersionSubstring);
+    Version serverVersion(serverVersionStr.get());
+    Version sevenTwoThree("7.2.3_");
+    Version eightZeroZero("8.0.0_");
+    Version eightZeroThree("8.0.3_");
+    if ((serverVersion < sevenTwoThree) ||
+        ((serverVersion >= eightZeroZero) && (serverVersion < eightZeroThree)))
+      return true;
+  }
+  return false;
+}
+
 void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessary)
 {
   ProgressEventFunctionUsingId (IMAP_STATUS_LOOKING_FOR_MAILBOX);
@@ -7582,7 +7603,8 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessa
                         mailboxPattern, escapedPattern);
 
   nsCString command (GetServerCommandTag());
-  if (GetServerStateParser().GetCapabilityFlag() & kHasListExtendedCapability)
+  if ((GetServerStateParser().GetCapabilityFlag() & kHasListExtendedCapability) &&
+      !GetListSubscribedIsBrokenOnServer())
     command += " list (subscribed)";
   else
     command += " lsub";

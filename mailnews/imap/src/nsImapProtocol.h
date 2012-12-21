@@ -389,7 +389,7 @@ private:
   // biff
   void  PeriodicBiff();
   void  SendSetBiffIndicatorEvent(nsMsgBiffState newState);
-  bool    CheckNewMail();
+  bool  CheckNewMail();
 
   // folder opening and listing header functions
   void FolderHeaderDump(uint32_t *msgUids, uint32_t msgCount);
@@ -534,6 +534,9 @@ private:
   void DiscoverAllAndSubscribedBoxes();
   void MailboxDiscoveryFinished();
   void NthLevelChildList(const char *onlineMailboxPrefix, int32_t depth);
+  // LIST SUBSCRIBED command (from RFC 5258) crashes some servers. so we need to
+  // identify those servers
+  bool GetListSubscribedIsBrokenOnServer();
   void Lsub(const char *mailboxPattern, bool addDirectoryIfNecessary);
   void List(const char *mailboxPattern, bool addDirectoryIfNecessary,
             bool useXLIST = false);
