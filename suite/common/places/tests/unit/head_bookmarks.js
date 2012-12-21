@@ -72,4 +72,4 @@ const SMART_BOOKMARKS_ON_MENU = 3; // Takes in count the additional separator.
 // 4 =  "SeaMonkey", "mozilla.org", "mozillaZine", "mozdev.org".
 const DEFAULT_BOOKMARKS_ON_TOOLBAR = 4;
 // 2 = "SeaMonkey and Mozilla", "Search the Web".
-const DEFAULT_BOOKMARKS_ON_MENU = 2;
+const DEFAULT_BOOKMARKS_ON_MENU = 3; // Takes in count the additional separator.
