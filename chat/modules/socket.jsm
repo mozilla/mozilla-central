@@ -15,13 +15,26 @@
  * nsIProxyService, nsIProxyInfo.
  *
  * High-level methods:
- *   .connect(<host>, <port>[, ("starttls" | "ssl" | "udp") [, <proxy>]])
- *   .disconnect()
- *   .listen(port)
- *   .send(String data)
- *   .startTLS()
+ *   connect(<host>, <port>[, ("starttls" | "ssl" | "udp") [, <proxy>]])
+ *   disconnect()
+ *   listen(<port>)
+ *   stopListening()
+ *   sendData(String <data>[, <logged data>])
+ *   sendString(String <data>[, <encoding>[, <logged data>]])
+ *   sendBinaryData(<arraybuffer data>)
+ *   startTLS()
+ *   resetPingTimer()
+ *   cancelDisconnectTimer()
+ *
  * High-level properties:
- *   XXX Need to include properties here
+ *   binaryMode
+ *   delimiter
+ *   inputSegmentSize
+ *   outputSegmentSize
+ *   proxyFlags
+ *   connectTimeout (default is no timeout)
+ *   readWriteTimeout (default is no timeout)
+ *   isConnected
  *
  * Users should "subclass" this object, i.e. set their .__proto__ to be it. And
  * then implement:
@@ -31,11 +44,27 @@
  *   onConnectionReset()
  *   onBadCertificate(AString aNSSErrorMessage)
  *   onConnectionClosed()
- *   onDataReceived(data)
- *   onBinaryDataReceived(ArrayBuffer data, int length)
- *   onTransportStatus(nsISocketTransport transport, nsresult status,
- *                     unsigned long progress, unsigned longprogressMax)
- *   log(message)
+ *   onDataReceived(String <data>)
+ *   <length handled> = onBinaryDataReceived(ArrayBuffer <data>)
+ *   onTransportStatus(nsISocketTransport <transport>, nsresult <status>,
+ *                     unsigned long <progress>, unsigned long <progress max>)
+ *   sendPing()
+ *   LOG(<message>)
+ *   DEBUG(<message>)
+ *
+ * Optional features:
+ *   The ping functionality: Included in the socket object is a higher level
+ *   "ping" messaging system, which is commonly used in instant messaging
+ *   protocols. The ping functionality works by calling a user defined method,
+ *   sendPing(), if resetPingTimeout() is not called after two minutes. If no
+ *   ping response is received after 30 seconds, the socket will disconnect.
+ *   Thus, a socket using this functionality should:
+ *     1. Implement sendPing() to send an appropriate ping message for the
+ *        protocol.
+ *     2. Call resetPingTimeout() to start the ping messages.
+ *     3. Call resetPingTimeout() each time a message is received (i.e. the
+ *        socket is known to still be alive).
+ *     4. Call cancelDisconnectTimer() when a ping response is received.
  */
 
 /*
@@ -49,6 +78,7 @@ const EXPORTED_SYMBOLS = ["Socket"];
 
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/imXPCOMUtils.jsm");
 
 // Network errors see: xpcom/base/nsError.h
 const NS_ERROR_MODULE_NETWORK = 2152398848;
@@ -165,6 +195,12 @@ const Socket = {
         this._proxyCancel.cancel(Cr.NS_ERROR_ABORT); // Has to give a failure code
       delete this._proxyCancel;
     }
+
+    if (this._pingTimer) {
+      clearTimeout(this._pingTimer);
+      delete this._pingTimer;
+    }
+    this.cancelDisconnectTimer();
   },
 
   // Listen for a connection on a port.
@@ -233,6 +269,25 @@ const Socket = {
 
   startTLS: function() {
     this.transport.securityInfo.QueryInterface(Ci.nsISSLSocketControl).StartTLS();
+  },
+
+  // If using the ping functionality, this should be called whenever a message is
+  // received (e.g. when it is known the socket is still open). Calling this for
+  // the first time enables the ping functionality.
+  resetPingTimer: function() {
+    if (this._pingTimer)
+      clearTimeout(this._pingTimer);
+    // Send a ping every 2 minutes if there's no traffic on the socket.
+    this._pingTimer = setTimeout(this._sendPing.bind(this), 120000);
+  },
+
+  // If using the ping functionality, this should be called when a ping receives
+  // a response.
+  cancelDisconnectTimer: function() {
+    if (!this._disconnectTimer)
+      return;
+    clearTimeout(this._disconnectTimer);
+    delete this._disconnectTimer;
   },
 
   /*
@@ -472,6 +527,15 @@ const Socket = {
     this.pump.asyncRead(this, this);
   },
 
+  _pingTimer: null,
+  _disconnectTimer: null,
+  _sendPing: function() {
+    delete this._pingTimer;
+    this.sendPing();
+    this._disconnectTimer = setTimeout(this.onConnectionTimedOut.bind(this),
+                                       30000);
+  },
+
   /*
    *****************************************************************************
    ********************* Methods for subtypes to override **********************
@@ -497,6 +561,10 @@ const Socket = {
 
   // Called when binary data is available.
   onBinaryDataReceived: function(/* ArrayBuffer */ aData) { },
+
+  // If using the ping functionality, this is called when a new ping message
+  // should be sent on the socket.
+  sendPing: function() { },
 
   /* QueryInterface and nsIInterfaceRequestor implementations */
   _interfaces: [Ci.nsIServerSocketListener, Ci.nsIStreamListener,

@@ -65,27 +65,10 @@ XMPPSession.prototype = {
   __proto__: Socket,
   connectTimeout: 60,
   readWriteTimeout: 300,
-  _pingTimer: null,
-  resetPingTimer: function() {
-    if (this._pingTimer)
-      clearTimeout(this._pingTimer);
-    // send an iq ping every 2 minutes if there's no traffic on the socket.
-    this._pingTimer = setTimeout(this.sendPing.bind(this), 120000);
-  },
-  _disconnectTimer: null,
   sendPing: function() {
-    delete this._pingTimer;
     this.sendStanza(Stanza.iq("get", null, null,
                               Stanza.node("ping", Stanza.NS.ping)),
                     this.cancelDisconnectTimer, this);
-    this._disconnectTimer =
-      setTimeout(this.onConnectionTimedOut.bind(this), 30000);
-  },
-  cancelDisconnectTimer: function() {
-    if (!this._disconnectTimer)
-      return;
-    clearTimeout(this._disconnectTimer);
-    delete this._disconnectTimer;
   },
 
   get DEBUG() this._account.DEBUG,
@@ -105,10 +88,6 @@ XMPPSession.prototype = {
     if (this._parser) {
       this._parser.destroy();
       delete this._parser;
-    }
-    if (this._pingTimer) {
-      clearTimeout(this._pingTimer);
-      delete this._pingTimer;
     }
     this.cancelDisconnectTimer();
   },

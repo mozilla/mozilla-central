@@ -578,6 +578,11 @@ ircSocket.prototype = {
   readWriteTimeout: 300, // Failure when no data for 5 minutes
   _converter: null,
 
+  sendPing: function() {
+    // Send a ping using the current timestamp as a payload.
+    this._account.sendMessage("PING", Date.now());
+  },
+
   _initCharsetConverter: function() {
     this._converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                         .createInstance(Ci.nsIScriptableUnicodeConverter);
@@ -604,6 +609,10 @@ ircSocket.prototype = {
         this._initCharsetConverter();
       }
     }
+
+    // We've received data and are past the authentication stage.
+    if (this.connected)
+      this.resetPingTimer();
 
     // Low level dequote: replace quote character \020 followed by 0, n, r or
     // \020 with a \0, \n, \r or \020, respectively. Any other character is

@@ -293,9 +293,15 @@ var ircBase = {
                       aMessage.params.length == 2 ? aMessage.params[1] : null);
     },
     "PING": function(aMessage) {
-      // PING <server1 [ <server2> ]
+      // PING <server1> [ <server2> ]
       // Keep the connection alive.
       this.sendMessage("PONG", aMessage.params[0]);
+      return true;
+    },
+    "PONG": function(aMessage) {
+      // PONG <server> [ <server2> ]
+      // Ping to keep the connection alive.
+      this._socket.cancelDisconnectTimer();
       return true;
     },
     "PRIVMSG": function(aMessage) {
@@ -348,6 +354,7 @@ var ircBase = {
     "001": function(aMessage) { // RPL_WELCOME
       // Welcome to the Internet Relay Network <nick>!<user>@<host>
       this.reportConnected();
+      this._socket.resetPingTimer();
       this._currentServerName = aMessage.servername;
 
       // Clear user mode.
