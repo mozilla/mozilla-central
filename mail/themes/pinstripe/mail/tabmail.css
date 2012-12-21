@@ -72,13 +72,13 @@
                        30px 0,
                        right 0;
   background-size: 30px 100%,
-                   -moz-calc(100% - 60px) 100%,
+                   calc(100% - 60px) 100%,
                    30px 100%;
 }
 
 .tab-background[selected=true] {
   background-size: 30px 100%,
-                   -moz-calc(100% - 59px) 100%,
+                   calc(100% - 59px) 100%,
                    30px 100%;
 }
 
@@ -139,7 +139,7 @@
 
 .tab-background-end:-moz-locale-dir(ltr),
 .tab-background-start:-moz-locale-dir(rtl) {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 .tab-background-middle {
@@ -280,7 +280,7 @@ tabmail > tabbox > tabpanels {
 
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-locale-dir(rtl),
 .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down:-moz-locale-dir(ltr) {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up:hover,

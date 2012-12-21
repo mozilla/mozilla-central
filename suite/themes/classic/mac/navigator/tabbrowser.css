@@ -158,12 +158,12 @@ tabpanels {
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-right.png");
   -moz-image-region: rect(0, 7px, 11px, 0);
   box-shadow: 0 0 0 9px transparent inset;
-  -moz-transition: box-shadow 1s ease-out;
+  transition: box-shadow 1s ease-out;
 }
 
 .scrollbutton-down[notifybgtab="true"] {
   box-shadow: 0 0 0 9px rgba(0, 0, 0, 0.2) inset;
-  -moz-transition: none;
+  transition: none;
 }
 
 .scrollbutton-down[disabled="true"]:-moz-locale-dir(ltr),

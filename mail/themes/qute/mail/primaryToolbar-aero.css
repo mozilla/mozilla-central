@@ -115,8 +115,8 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
     box-shadow: 0 1px hsla(0, 0%, 100%, 0) inset,
                 0 1px hsla(210, 54%, 20%, 0),
                 0 0 2px hsla(210, 54%, 20%, 0);
-    -moz-transition-property: background-color, border-color, box-shadow;
-    -moz-transition-duration: 150ms;
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 150ms;
   }
 
   /* Separator between menu and split type buttons */
@@ -231,7 +231,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
                 0 1px 0 hsla(210, 54%, 20%, 0),
                 0 0 2px hsla(210, 54%, 20%, 0);
     text-shadow: none;
-    -moz-transition: none;
+    transition: none;
   }
 
   .toolbarbutton-1:not([disabled="true"]):-moz-any(:hover,[open="true"]) >
@@ -241,7 +241,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
 
   .toolbarbutton-1[checked=true]:not(:active):hover {
     background-color: rgba(90%, 90%, 90%, .4);
-    -moz-transition: background-color .4s;
+    transition: background-color .4s;
   }
 
   /* Let the Customize window's menulist stay a system menulist */
@@ -314,7 +314,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
                     -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
                     -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
   background-position: 1px -1px, 0 -1px, 100% -1px;
-  background-size: -moz-calc(100% - 2px) 100%, 1px 100%, 1px 100%;
+  background-size: calc(100% - 2px) 100%, 1px 100%, 1px 100%;
   background-repeat: no-repeat;
 }
 
@@ -323,7 +323,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
                     rgba(255, 255, 255, .5)),
                     -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
   background-position: 1px -1px, 0 -1px;
-  background-size: -moz-calc(100% - 1px) 100%, 1px 100%;
+  background-size: calc(100% - 1px) 100%, 1px 100%;
   background-repeat: no-repeat;
 }
 

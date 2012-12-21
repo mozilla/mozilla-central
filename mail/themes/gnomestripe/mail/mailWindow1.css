@@ -322,7 +322,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   /* because of the negative margin needed to make the splitter visible */
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 #threadpane-splitter:not([orient="vertical"]) {
@@ -332,7 +332,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 
 /* Until Bug 621351 is fixed we need border-right and border-left in
  * combination with -moz-locale-dir instead of -moz-border-end and
- * -moz-border-start for -moz-transition
+ * -moz-border-start for transition
  */
 
 #folderpane_splitter:-moz-locale-dir(rtl),
@@ -362,7 +362,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   /* because of the negative margin needed to make the splitter visible */
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 #attachment-splitter:not([state="collapsed"]) {
@@ -371,7 +371,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 
 #attachment-splitter,
 #threadpane-splitter[state="collapsed"] {
-  -moz-transition: border-color .3s;
+  transition: border-color .3s;
 }
 
 #threadpane-splitter[state="collapsed"]:hover,

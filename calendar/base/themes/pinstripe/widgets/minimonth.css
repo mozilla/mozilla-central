@@ -67,7 +67,7 @@ minimonth {
 
 .minimonth-nav-btns:-moz-locale-dir(ltr)[dir="-1"],
 .minimonth-nav-btns:-moz-locale-dir(rtl)[dir="1"] {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 .minimonth-nav-btns[dir="0"] {

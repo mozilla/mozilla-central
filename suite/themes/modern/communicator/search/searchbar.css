@@ -41,7 +41,7 @@
 }
 
 .search-go-button:-moz-locale-dir(rtl) {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 .searchbar-engine-menuitem[selected="true"] > .menu-iconic-text {

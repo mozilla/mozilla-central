@@ -16,7 +16,7 @@
   /* because of the negative margin needed to make the splitter visible */
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 /* Adaptation from #folderTree */

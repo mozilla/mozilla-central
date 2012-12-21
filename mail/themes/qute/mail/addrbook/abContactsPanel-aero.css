@@ -39,8 +39,8 @@
     box-shadow: 0 1px hsla(0, 0%, 100%, .3) inset,
                 0 1px hsla(210, 54%, 20%, .03),
                 0 0 2px hsla(210, 54%, 20%, .1);
-    -moz-transition-property: background-color, border-color, box-shadow;
-    -moz-transition-duration: 150ms;
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 150ms;
   }
 
   button:hover,
@@ -64,7 +64,7 @@
                 0 1px 0 hsla(210, 54%, 20%, 0),
                 0 0 2px hsla(210, 54%, 20%, 0);
     text-shadow: none;
-    -moz-transition: none;
+    transition: none;
   }
 
   .menulist-dropmarker {

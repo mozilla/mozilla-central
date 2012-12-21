@@ -865,7 +865,7 @@ toolbar[iconsize="small"] .button-appmenu[disabled] {
     -moz-appearance: none;
     margin-top: 3px;
     margin-bottom: 3px;
-    -moz-margin-start: -moz-calc(1.45em + 4px);
+    -moz-margin-start: calc(1.45em + 4px);
     padding: 0;
     border-top: 1px solid #d6e5f5;
     border-bottom: none;

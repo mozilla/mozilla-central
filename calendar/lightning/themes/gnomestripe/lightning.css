@@ -19,7 +19,7 @@
   /* because of the negative margin needed to make the splitter visible */
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 #today-splitter {
@@ -29,7 +29,7 @@
 
 /* Until Bug 621351 is fixed we need border-right and border-left in
  * combination with -moz-locale-dir instead of -moz-border-end and
- * -moz-border-start for -moz-transition
+ * -moz-border-start for transition
  */
 
 #calsidebar_splitter:-moz-locale-dir(rtl),

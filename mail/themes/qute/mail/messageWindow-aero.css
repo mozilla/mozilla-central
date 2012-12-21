@@ -46,7 +46,7 @@
   margin-top: -5px;
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 #attachment-splitter:not([state="collapsed"]) {
@@ -54,7 +54,7 @@
 }
 
 #attachment-splitter {
-  -moz-transition: border-color .3s;
+  transition: border-color .3s;
 }
 
 #attachment-splitter[state="collapsed"]:hover {

@@ -122,12 +122,12 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   -moz-margin-end: -4px;
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 /* Until Bug 621351 is fixed we need border-right and border-left in
  * combination with -moz-locale-dir instead of -moz-border-end and
- * -moz-border-start for -moz-transition
+ * -moz-border-start for transition
  */
 
 #folderpane_splitter:-moz-locale-dir(rtl),
@@ -158,7 +158,7 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   margin-top: -5px;
   position: relative;
   z-index: 10;
-  -moz-transition: border-width .3s ease-in;
+  transition: border-width .3s ease-in;
 }
 
 #attachment-splitter:not([state="collapsed"]) {
@@ -167,7 +167,7 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
 
 #attachment-splitter,
 #threadpane-splitter[state="collapsed"] {
-  -moz-transition: border-color .3s;
+  transition: border-color .3s;
 }
 
 #threadpane-splitter[state="collapsed"]:hover,
@@ -281,8 +281,8 @@ padding: 4px 0px;
     box-shadow: 0 1px hsla(0, 0%, 100%, .3) inset,
                 0 1px hsla(210, 54%, 20%, .03),
                 0 0 2px hsla(210, 54%, 20%, .1);
-    -moz-transition-property: background-color, border-color, box-shadow;
-    -moz-transition-duration: 150ms;
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 150ms;
   }
 
   menulist:not([disabled="true"]):not([open="true"]):hover {
@@ -304,7 +304,7 @@ padding: 4px 0px;
                 0 1px 0 hsla(210, 54%, 20%, 0),
                 0 0 2px hsla(210, 54%, 20%, 0);
     text-shadow: none;
-    -moz-transition: none;
+    transition: none;
   }
 
   menulist[disabled="true"] {

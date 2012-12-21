@@ -18,7 +18,7 @@
 
 #previous-day-button:-moz-locale-dir(ltr),
 #next-day-button:-moz-locale-dir(rtl) {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 #miniday-dropdown-button {

@@ -118,13 +118,13 @@ tabpanels {
 
 .scrollbutton-down {
   box-shadow: 0px 0px 0px 9px transparent inset;
-  -moz-transition: box-shadow 1s ease-out;
+  transition: box-shadow 1s ease-out;
 }
 
 .scrollbutton-down:hover,
 .scrollbutton-down[notifybgtab="true"],
 .scrollbutton-down[disabled="true"] {
-  -moz-transition: none;
+  transition: none;
 }
 
 .scrollbutton-up:not([disabled="true"]):hover:active,

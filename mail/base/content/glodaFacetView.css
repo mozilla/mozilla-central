@@ -795,7 +795,7 @@ img.loading, img.empty {
 }
 
 html[dir="rtl"] img.empty {
-  -moz-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 div.empty {
