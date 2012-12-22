@@ -2145,6 +2145,7 @@
     </toolbarbutton>
 
     <toolbaritem id="button-junk"
+                 title="&junkButton.label;"
                  observes="button_junk">
       <deck id="junk-deck"
             oncommand="goDoCommand('button_junk')">
@@ -2162,6 +2163,7 @@
     </toolbaritem>
 
     <toolbaritem id="button-delete"
+                 title="&deleteButton.label;"
                  observes="button_delete">
       <deck id="delete-deck">
         <toolbarbutton id="button-mark-deleted"
