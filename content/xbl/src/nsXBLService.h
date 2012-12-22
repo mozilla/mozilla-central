@@ -47,6 +47,7 @@
 #include "jsclist.h"            // nsXBLJSClass derives from JSCList
 #include "nsFixedSizeAllocator.h"
 #include "nsTArray.h"
+#include "mozilla/Types.h"
 
 class nsXBLBinding;
 class nsXBLDocumentInfo;
