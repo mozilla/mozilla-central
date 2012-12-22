@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var gMsgCompose = false;
+var gIsMsgCompose = false;
 
 function GetAbViewListener()
 {
@@ -33,18 +33,20 @@ function AbPanelLoad()
   // for the compose window we want to show To, Cc, Bcc and a separator
   // for all other windows we want to show Compose Mail To
   var popup = document.getElementById("composeMail");
-  gMsgCompose = parent.document.documentElement.getAttribute("windowtype") == "msgcompose";
+  gIsMsgCompose = parent.document
+                        .documentElement
+                        .getAttribute("windowtype") == "msgcompose";
   for (var i = 0; i < 4; i++)
-    popup.childNodes[i].hidden = !gMsgCompose;
-  popup.childNodes[4].hidden = gMsgCompose;
+    popup.childNodes[i].hidden = !gIsMsgCompose;
+  popup.childNodes[4].hidden = gIsMsgCompose;
 
-  if (gMsgCompose)
+  if (gIsMsgCompose)
     parent.addEventListener("compose-window-close", onAbClearSearch, true);
 }
 
 function AbPanelUnload()
 {
-  if (gMsgCompose)
+  if (gIsMsgCompose)
     parent.removeEventListener("compose-window-close", onAbClearSearch, true);
 
   CloseAbView();
@@ -96,7 +98,7 @@ function OnClickedCard()
 function AbResultsPaneDoubleClick(card) 
 {
   // double click for ab panel means "send mail to this person / list"
-  if (gMsgCompose)
+  if (gIsMsgCompose)
     AbPanelAdd('addr_to');
   else
     AbNewMessage();
