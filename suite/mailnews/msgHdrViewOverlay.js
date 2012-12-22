@@ -251,7 +251,7 @@ function OnLoadMsgHeaderPane()
     gCollapsedHeaderViewMode = true;   
 
   // dispatch an event letting any listeners know that we have loaded the message pane
-  toggleHeaderView.dispatchEvent(new Event('messagepane-loaded', 
+  toggleHeaderView.dispatchEvent(new Event('messagepane-loaded',
     { bubbles: false, cancelable: true }));
 }
 

@@ -115,7 +115,7 @@
       <method name="_fireOnSelect">
         <body><![CDATA[
           if (!this._suppressOnSelect && !this.suppressOnSelect) {
-            this.dispatchEvent(new Event("select", 
+            this.dispatchEvent(new Event("select",
               { bubbles: false, cancelable: true }));
           }
         ]]></body>
