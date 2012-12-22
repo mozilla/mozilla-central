@@ -213,7 +213,10 @@ XBLResolve(JSContext *cx, JSObject *obj, jsid id, uintN flags,
   return JS_TRUE;
 }
 
-nsXBLJSClass::nsXBLJSClass(const nsAFlatCString& aClassName)
+uint64_t nsXBLJSClass::sIdCount = 0;
+
+nsXBLJSClass::nsXBLJSClass(const nsAFlatCString& aClassName,
+                           const nsCString& aKey)
 {
   memset(this, 0, sizeof(nsXBLJSClass));
   next = prev = static_cast<JSCList*>(this);
@@ -229,6 +232,7 @@ nsXBLJSClass::nsXBLJSClass(const nsAFlatCString& aClassName)
   resolve = (JSResolveOp)XBLResolve;
   convert = ::JS_ConvertStub;
   finalize = XBLFinalize;
+  mKey = aKey;
 }
 
 nsrefcnt
@@ -238,8 +242,9 @@ nsXBLJSClass::Destroy()
                "referenced nsXBLJSClass is on LRU list already!?");
 
   if (nsXBLService::gClassTable) {
-    nsCStringKey key(name);
+    nsCStringKey key(mKey);
     (nsXBLService::gClassTable)->Remove(&key);
+    mKey.Truncate();
   }
 
   if (nsXBLService::gClassLRUListLength >= nsXBLService::gClassLRUListQuota) {
@@ -1215,6 +1220,7 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
   JSObject* proto = NULL;
 
   nsCAutoString className(aClassName);
+  nsCAutoString xblKey(aClassName);
   JSObject* parent_proto = nsnull;  // If we have an "obj" we can set this
   JSAutoRequest ar(cx);
 
@@ -1222,12 +1228,13 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
   if (!ac.enter(cx, global))
       return NS_ERROR_FAILURE;
 
+  nsXBLJSClass* c = nsnull;
   if (obj) {
     // Retrieve the current prototype of obj.
     parent_proto = ::JS_GetPrototype(cx, obj);
     if (parent_proto) {
       // We need to create a unique classname based on aClassName and
-      // parent_proto.  Append a space (an invalid URI character) to ensure that
+      // id.  Append a space (an invalid URI character) to ensure that
       // we don't have accidental collisions with the case when parent_proto is
       // null and aClassName ends in some bizarre numbers (yeah, it's unlikely).
       jsid parent_proto_id;
@@ -1241,8 +1248,23 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
       // string representation of what we're printing does not fit in the buffer
       // provided).
       char buf[20];
-      PR_snprintf(buf, sizeof(buf), " %lx", parent_proto_id);
-      className.Append(buf);
+      if (sizeof(jsid) == 4) {
+        PR_snprintf(buf, sizeof(buf), " %lx", parent_proto_id);
+      } else {
+        MOZ_ASSERT(sizeof(jsid) == 8);
+        PR_snprintf(buf, sizeof(buf), " %llx", parent_proto_id);
+      }
+      xblKey.Append(buf);
+      nsCStringKey key(xblKey);
+
+      c = static_cast<nsXBLJSClass*>(nsXBLService::gClassTable->Get(&key));
+      if (c) {
+        className.Assign(c->name);
+      } else {
+        char buf[20];
+        PR_snprintf(buf, sizeof(buf), " %llx", nsXBLJSClass::NewId());
+        className.Append(buf);
+      }
     }
   }
 
@@ -1252,14 +1274,11 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
       JSVAL_IS_PRIMITIVE(val)) {
     // We need to initialize the class.
 
-    nsXBLJSClass* c;
-    void* classObject;
-    nsCStringKey key(className);
-    classObject = (nsXBLService::gClassTable)->Get(&key);
-
-    if (classObject) {
-      c = static_cast<nsXBLJSClass*>(classObject);
-
+    nsCStringKey key(xblKey);
+    if (!c) {
+      c = static_cast<nsXBLJSClass*>(nsXBLService::gClassTable->Get(&key));
+    }
+    if (c) {
       // If c is on the LRU list (i.e., not linked to itself), remove it now!
       JSCList* link = static_cast<JSCList*>(c);
       if (c->next != link) {
@@ -1269,7 +1288,7 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
     } else {
       if (JS_CLIST_IS_EMPTY(&nsXBLService::gClassLRUList)) {
         // We need to create a struct for this class.
-        c = new nsXBLJSClass(className);
+        c = new nsXBLJSClass(className, xblKey);
 
         if (!c)
           return NS_ERROR_OUT_OF_MEMORY;
@@ -1281,12 +1300,13 @@ nsXBLBinding::DoInitJSClass(JSContext *cx, JSObject *global, JSObject *obj,
 
         // Remove any mapping from the old name to the class struct.
         c = static_cast<nsXBLJSClass*>(lru);
-        nsCStringKey oldKey(c->name);
+        nsCStringKey oldKey(c->Key());
         (nsXBLService::gClassTable)->Remove(&oldKey);
 
         // Change the class name and we're done.
         nsMemory::Free((void*) c->name);
         c->name = ToNewCString(className);
+        c->SetKey(xblKey);
       }
 
       // Add c to our table.
