@@ -289,7 +289,7 @@ nsLDAPOperation::SimpleBind(const nsACString& passwd)
       connection->RemovePendingOperation(originalMsgID);
 
     mMsgID = ldap_simple_bind(mConnectionHandle, bindName.get(),
-                              PromiseFlatCString(mSavePassword).get());
+                              mSavePassword.get());
 
     if (mMsgID == -1) {
       // XXX Should NS_ERROR_LDAP_SERVER_DOWN cause a rebind here?

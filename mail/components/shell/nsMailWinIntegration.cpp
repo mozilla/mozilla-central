@@ -364,7 +364,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], int32_t aSize)
     }
 
     DWORD len = sizeof currValue;
-    DWORD result = ::RegQueryValueExW(theKey, PromiseFlatString(value).get(),
+    DWORD result = ::RegQueryValueExW(theKey, value.get(),
                                       NULL, NULL, (LPBYTE)currValue, &len);
     // Close the key we opened.
     ::RegCloseKey(theKey);
