@@ -213,7 +213,7 @@ XBLResolve(JSContext *cx, JSObject *obj, jsid id, uintN flags,
   return JS_TRUE;
 }
 
-uint64_t nsXBLJSClass::sIdCount = 0;
+PRUint64 nsXBLJSClass::sIdCount = 0;
 
 nsXBLJSClass::nsXBLJSClass(const nsAFlatCString& aClassName,
                            const nsCString& aKey)

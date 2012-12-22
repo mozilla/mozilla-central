@@ -163,14 +163,14 @@ class nsXBLJSClass : public JSCList, public JSClass
 private:
   nsrefcnt mRefCnt;
   nsCString mKey;
-  static uint64_t sIdCount;
+  static PRUint64 sIdCount;
   nsrefcnt Destroy();
 
 public:
   nsXBLJSClass(const nsAFlatCString& aClassName, const nsCString& aKey);
   ~nsXBLJSClass() { nsMemory::Free((void*) name); }
 
-  static uint64_t NewId() { return ++sIdCount; }
+  static PRUint64 NewId() { return ++sIdCount; }
 
   nsCString& Key() { return mKey; }
   void SetKey(const nsCString& aKey) { mKey = aKey; }
