@@ -15,6 +15,10 @@ const gStringBundle = Services.strings.createBundle(
 var gMessenger = Cc["@mozilla.org/messenger;1"]
                    .createInstance(Ci.nsIMessenger);
 
+function isDigit(c) {
+  return "0123456789".indexOf(c) != -1;
+}
+
 function test_formatFileSize(aArgs) {
   const strings = {  b: "byteAbbreviation2",
                     kb: "kiloByteAbbreviation2",
@@ -24,6 +28,14 @@ function test_formatFileSize(aArgs) {
   let actual = gMessenger.formatFileSize(aArgs.bytes, aArgs.useKB);
   let expected = gStringBundle.GetStringFromName(strings[aArgs.units])
                               .replace("%.*f", aArgs.mantissa);
+
+  // If the actual string contains a non-numeric character at the position
+  // where we'd expect a decimal separator, assume it is a localized separator
+  // and just convert it to a dot for easy comparing.
+  let separatorPos = aArgs.mantissa.indexOf(".");
+  if (!isDigit(actual.charAt(separatorPos)))
+    actual = actual.substring(0, separatorPos) + "." + actual.substr(separatorPos + 1);
+
   do_check_eq(actual, expected);
 }
 
