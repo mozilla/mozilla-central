@@ -194,6 +194,7 @@ classic.jar:
   skin/classic/messenger/icons/button-reply.svg               (mail/icons/button-reply.svg)
   skin/classic/messenger/icons/button-reply-all.svg           (mail/icons/button-reply-all.svg)
   skin/classic/messenger/icons/button-reply-list.svg          (mail/icons/button-reply-list.svg)
+  skin/classic/messenger/icons/button-tag.svg                 (mail/icons/button-tag.svg)
   skin/classic/messenger/icons/chat-toolbar.png               (mail/icons/chat-toolbar.png)
   skin/classic/messenger/icons/chat-toolbar-small.png         (mail/icons/chat-toolbar-small.png)
   skin/classic/messenger/icons/status.png                     (mail/icons/status.png)
