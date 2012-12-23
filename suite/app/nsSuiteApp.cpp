@@ -189,23 +189,23 @@ static int do_main(const char *exePath, int argc, char* argv[])
 int main(int argc, char* argv[])
 {
   char exePath[MAXPATHLEN];
-  
+
 #ifdef XP_MACOSX
   TriggerQuirks();
 #endif
-  
+
   nsresult rv = mozilla::BinaryPath::Get(argv[0], exePath);
   if (NS_FAILED(rv)) {
     Output("Couldn't calculate the application directory.\n");
     return 255;
   }
-  
+
   char *lastSlash = strrchr(exePath, XPCOM_FILE_PATH_SEPARATOR[0]);
-  if (!lastSlash || (lastSlash - exePath > MAXPATHLEN - sizeof(XPCOM_DLL) - 1))
+  if (!lastSlash || (size_t(lastSlash - exePath) > MAXPATHLEN - sizeof(XPCOM_DLL) - 1))
     return 255;
-  
+
   strcpy(++lastSlash, XPCOM_DLL);
-  
+
   int gotCounters;
 #if defined(XP_UNIX)
   struct rusage initialRUsage;
