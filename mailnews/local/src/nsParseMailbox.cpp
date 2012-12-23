@@ -1985,10 +1985,9 @@ void nsParseNewMailState::ApplyFilters(bool *pMoved, nsIMsgWindow *msgWindow, ui
 
 NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindow *msgWindow, bool *applyMore)
 {
+  NS_ENSURE_ARG_POINTER(filter);
   NS_ENSURE_ARG_POINTER(applyMore);
 
-  nsMsgRuleActionType actionType;
-  nsCString actionTargetFolderUri;
   uint32_t newFlags;
   nsresult rv = NS_OK;
 
@@ -1996,14 +1995,13 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
 
   nsCOMPtr<nsIMsgDBHdr> msgHdr = m_newMsgHdr;
 
-  nsCOMPtr<nsISupportsArray> filterActionList;
-  rv = NS_NewISupportsArray(getter_AddRefs(filterActionList));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = filter->GetSortedActionList(filterActionList);
+  nsCOMPtr<nsIArray> filterActionList;
+
+  rv = filter->GetSortedActionList(getter_AddRefs(filterActionList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t numActions;
-  rv = filterActionList->Count(&numActions);
+  rv = filterActionList->GetLength(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool loggingEnabled = false;
@@ -2011,20 +2009,24 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
     m_filterList->GetLoggingEnabled(&loggingEnabled);
 
   bool msgIsNew = true;
-  for (uint32_t actionIndex =0; actionIndex < numActions && *applyMore; actionIndex++)
+  for (uint32_t actionIndex = 0; actionIndex < numActions && *applyMore; actionIndex++)
   {
     nsCOMPtr<nsIMsgRuleAction> filterAction;
-    filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), getter_AddRefs(filterAction));
-    if (!filterAction)
+    rv = filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction),
+                                                       getter_AddRefs(filterAction));
+    if (NS_FAILED(rv) || !filterAction)
       continue;
 
+    nsMsgRuleActionType actionType;
     if (NS_SUCCEEDED(filterAction->GetType(&actionType)))
     {
+      nsCString actionTargetFolderUri;
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(actionTargetFolderUri);
-        if (actionTargetFolderUri.IsEmpty())
+
+        rv = filterAction->GetTargetFolderUri(actionTargetFolderUri);
+        if (NS_FAILED(rv) || actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(false, "actionTargetFolderUri is empty");
           continue;

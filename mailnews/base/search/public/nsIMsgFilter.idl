@@ -8,6 +8,7 @@
 #include "nsMsgFilterCore.idl"
 #include "nsISupportsArray.idl"
 
+interface nsIArray;
 interface nsIOutputStream;
 interface nsIMsgFilterCustomAction;
 interface nsIMsgFilterList;
@@ -15,7 +16,7 @@ interface nsIMsgSearchScopeTerm;
 interface nsIMsgSearchValue;
 interface nsIMsgSearchTerm;
 
-[scriptable, uuid(190A2A18-D245-473a-A402-9F0814598C7F)]
+[scriptable, uuid(387c1c49-327c-49d8-a14b-ba8df9e12d57)]
 interface nsIMsgRuleAction : nsISupports {
 
   attribute nsMsgRuleActionType type;
@@ -81,8 +82,8 @@ interface nsIMsgFilter : nsISupports {
 
     attribute nsIMsgSearchScopeTerm scope;
 
-    // marking noscript because "headers" is actually a null-separated
-    // list of headers, which is not scriptable
+    // Marking noscript because "headers" is actually a null-separated
+    // list of headers, which is not scriptable.
     [noscript] void MatchHdr(in nsIMsgDBHdr msgHdr, in nsIMsgFolder folder,
                   in nsIMsgDatabase db,
                   in string headers,
@@ -90,6 +91,7 @@ interface nsIMsgFilter : nsISupports {
                   in unsigned long headerSize, out boolean result);
 
     void logRuleHit(in nsIMsgRuleAction aFilterAction, in nsIMsgDBHdr aHeader);
+
     nsIMsgRuleAction createAction();
 
     nsIMsgRuleAction getActionAt(in long aIndex);
@@ -97,7 +99,10 @@ interface nsIMsgFilter : nsISupports {
     void appendAction(in nsIMsgRuleAction action);
 
     void clearActionList();
-    void getSortedActionList(in nsISupportsArray actionList);  //will return an action list with moveAction (if present) as last one.
+
+    // Returns the action list in the order it will be really executed in.
+    readonly attribute nsIArray sortedActionList;
+
     readonly attribute nsISupportsArray actionList;
 
     void SaveToTextFile(in nsIOutputStream aStream);

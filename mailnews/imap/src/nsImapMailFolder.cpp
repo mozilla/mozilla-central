@@ -3437,10 +3437,9 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
   //  should be performed.
   //
 
+  NS_ENSURE_ARG_POINTER(filter);
   NS_ENSURE_ARG_POINTER(applyMore);
 
-  nsMsgRuleActionType actionType;
-  nsCString actionTargetFolderUri;
   nsresult rv = NS_OK;
 
   // look at action - currently handle move
@@ -3453,17 +3452,17 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
     GetMessageHeader(m_curMsgUid, getter_AddRefs(msgHdr));
   else if (m_msgParser)
     m_msgParser->GetNewMsgHdr(getter_AddRefs(msgHdr));
-  if (!msgHdr)
-    return NS_ERROR_NULL_POINTER; //fatal error, cannot apply filters
+  NS_ENSURE_TRUE(msgHdr, NS_ERROR_NULL_POINTER); //fatal error, cannot apply filters
 
   bool deleteToTrash = DeleteIsMoveToTrash();
-  nsCOMPtr<nsISupportsArray> filterActionList = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-  NS_ENSURE_TRUE(filterActionList, rv);
-  rv = filter->GetSortedActionList(filterActionList);
+
+  nsCOMPtr<nsIArray> filterActionList;
+
+  rv = filter->GetSortedActionList(getter_AddRefs(filterActionList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t numActions;
-  rv = filterActionList->Count(&numActions);
+  rv = filterActionList->GetLength(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool loggingEnabled = false;
@@ -3475,16 +3474,20 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
   for (uint32_t actionIndex = 0; actionIndex < numActions; actionIndex++)
   {
     nsCOMPtr<nsIMsgRuleAction> filterAction;
-    filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), getter_AddRefs(filterAction));
-    if (!filterAction)
+    rv = filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction),
+                                                       getter_AddRefs(filterAction));
+    if (NS_FAILED(rv) || !filterAction)
       continue;
+
+    nsMsgRuleActionType actionType;
     if (NS_SUCCEEDED(filterAction->GetType(&actionType)))
     {
+      nsCString actionTargetFolderUri;
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(actionTargetFolderUri);
-        if (actionTargetFolderUri.IsEmpty())
+        rv = filterAction->GetTargetFolderUri(actionTargetFolderUri);
+        if (NS_FAILED(rv) || actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(false, "actionTargetFolderUri is empty");
           continue;

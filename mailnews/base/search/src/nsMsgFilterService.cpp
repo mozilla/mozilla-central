@@ -425,13 +425,13 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
     if (m_filters)
       (void)m_filters->GetLoggingEnabled(&loggingEnabled);
 
-    nsCOMPtr<nsISupportsArray> actionList;
-    rv = NS_NewISupportsArray(getter_AddRefs(actionList));
+    nsCOMPtr<nsIArray> actionList;
+
+    rv = m_curFilter->GetSortedActionList(getter_AddRefs(actionList));
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = m_curFilter->GetSortedActionList(actionList);
-    NS_ENSURE_SUCCESS(rv, rv);
+
     uint32_t numActions;
-    actionList->Count(&numActions);
+    actionList->GetLength(&numActions);
 
     // We start from m_nextAction to allow us to continue applying actions
     // after the return from an async copy.
@@ -440,19 +440,21 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
          actionIndex++)
     {
       nsCOMPtr<nsIMsgRuleAction> filterAction;
-      actionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(filterAction));
+      rv = actionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction),
+                                                   getter_AddRefs(filterAction));
+      if (NS_FAILED(rv) || !filterAction)
+        continue;
+
       nsMsgRuleActionType actionType;
-      if (filterAction)
-        filterAction->GetType(&actionType);
-      else
+      if (NS_FAILED(filterAction->GetType(&actionType)))
         continue;
 
       nsCString actionTargetFolderUri;
       if (actionType == nsMsgFilterAction::MoveToFolder ||
           actionType == nsMsgFilterAction::CopyToFolder)
       {
-        filterAction->GetTargetFolderUri(actionTargetFolderUri);
-        if (actionTargetFolderUri.IsEmpty())
+        rv = filterAction->GetTargetFolderUri(actionTargetFolderUri);
+        if (NS_FAILED(rv) || actionTargetFolderUri.IsEmpty())
         {
           NS_ASSERTION(false, "actionTargetFolderUri is empty");
           continue;

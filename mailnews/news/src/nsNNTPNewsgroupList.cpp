@@ -624,14 +624,13 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
   // you can't move news messages, so applyMore is always true
   *aApplyMore = true;
 
-  nsCOMPtr<nsISupportsArray> filterActionList;
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(filterActionList));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = aFilter->GetSortedActionList(filterActionList);
+  nsCOMPtr<nsIArray> filterActionList;
+
+  nsresult rv = aFilter->GetSortedActionList(getter_AddRefs(filterActionList));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t numActions;
-  rv = filterActionList->Count(&numActions);
+  rv = filterActionList->GetLength(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
   bool loggingEnabled = false;
@@ -643,8 +642,9 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
   for (uint32_t actionIndex = 0; actionIndex < numActions; actionIndex++)
   {
     nsCOMPtr<nsIMsgRuleAction> filterAction;
-    filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction), getter_AddRefs(filterAction));
-    if (!filterAction)
+    rv = filterActionList->QueryElementAt(actionIndex, NS_GET_IID(nsIMsgRuleAction),
+                                                       getter_AddRefs(filterAction));
+    if (NS_FAILED(rv) || !filterAction)
       continue;
 
     nsMsgRuleActionType actionType;
