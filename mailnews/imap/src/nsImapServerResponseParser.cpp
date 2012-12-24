@@ -2283,6 +2283,8 @@ void nsImapServerResponseParser::capability_data()
         fCapabilityFlag |= kLiteralPlusCapability;
       else if (token.Equals("XAOL-OPTION", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kAOLImapCapability;
+      else if (token.Equals("X-GM-EXT-1", nsCaseInsensitiveCStringComparator()))
+        fCapabilityFlag |= kGmailImapCapability;
       else if (token.Equals("QUOTA", nsCaseInsensitiveCStringComparator()))
         fCapabilityFlag |= kQuotaCapability;
       else if (token.Equals("LANGUAGE", nsCaseInsensitiveCStringComparator()))
