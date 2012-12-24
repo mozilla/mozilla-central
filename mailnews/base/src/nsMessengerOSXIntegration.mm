@@ -642,7 +642,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
 
           notify->SetData(true);
           os->NotifyObservers(notify, "newmail-notification-requested",
-                              PromiseFlatString(author).get());
+                              author.get());
 
           bool includeSender;
           notify->GetData(&includeSender);
