@@ -493,14 +493,14 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
 
         int32_t index = 0;
         char addrbuf[64];
-        PRNetAddr addr;
+        mozilla::net::NetAddr addr;
 
         while (NS_SUCCEEDED(aRecord->GetNextAddr(0, &addr))) {
             // We can only use v4 addresses
             //
             bool v4mapped = false;
             if (addr.raw.family == PR_AF_INET6)
-                v4mapped = PR_IsNetAddrType(&addr, PR_IpAddrV4Mapped);
+                v4mapped = IsIPAddrV4Mapped(&addr);
             if (addr.raw.family == PR_AF_INET || v4mapped) {
                 // If there are more IPs in the list, we separate them with
                 // a space, as supported/used by the LDAP C-SDK.
@@ -512,7 +512,7 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
                 // list of IPs.  Strip leading '::FFFF:' (the IPv4-mapped-IPv6
                 // indicator) if present.
                 //
-                PR_NetAddrToString(&addr, addrbuf, sizeof(addrbuf));
+                NetAddrToString(&addr, addrbuf, sizeof(addrbuf));
                 if ((addrbuf[0] == ':') && (strlen(addrbuf) > 7))
                     mResolvedIP.Append(addrbuf+7);
                 else

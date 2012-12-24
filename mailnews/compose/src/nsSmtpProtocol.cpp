@@ -342,7 +342,7 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
       }
       else
       {
-          PRNetAddr iaddr; // IP address for this connection
+          mozilla::net::NetAddr iaddr; // IP address for this connection
           // our transport is always a nsISocketTransport
           nsCOMPtr<nsISocketTransport> socketTransport = do_QueryInterface(m_transport);
           // should return the interface ip of the SMTP connection
@@ -353,9 +353,9 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
           {
               // turn it into a string
               char ipAddressString[64];
-              if (PR_NetAddrToString(&iaddr, ipAddressString, sizeof(ipAddressString)) == PR_SUCCESS)
+              if (NetAddrToString(&iaddr, ipAddressString, sizeof(ipAddressString)))
               {
-                  NS_ASSERTION(!PR_IsNetAddrType(&iaddr, PR_IpAddrV4Mapped),
+                  NS_ASSERTION(!IsIPAddrV4Mapped(&iaddr),
                                "unexpected IPv4-mapped IPv6 address");
 
                   if (iaddr.raw.family == PR_AF_INET6)   // IPv6 style address?
