@@ -1975,8 +1975,6 @@ nsresult nsMsgLocalMailFolder::WriteStartOfNewMessage()
   return NS_OK;
 }
 
-#define EIGHT_K 8192
-
 nsresult nsMsgLocalMailFolder::InitCopyMsgHdrAndFileStream()
 {
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
@@ -1988,11 +1986,6 @@ nsresult nsMsgLocalMailFolder::InitCopyMsgHdrAndFileStream()
                                &reusable,
                                getter_AddRefs(mCopyState->m_fileStream));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  /* Buffer the output if possible */
-  /* BIG performance improvement on Windows with some network file systems */
-  mCopyState->m_fileStream = NS_BufferOutputStream(mCopyState->m_fileStream, EIGHT_K);
-
   if (mCopyState->m_parseMsgState)
     mCopyState->m_parseMsgState->SetNewMsgHdr(mCopyState->m_newHdr);
   return rv;
