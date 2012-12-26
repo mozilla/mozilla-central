@@ -25,7 +25,7 @@ function doEnablingX(aElement)
     value = preference.value;
   }
   var horizontal = document.getElementById(prefix + "delta_multiplier_x");
-  EnableElement(horizontal, preference.value);
+  EnableElement(horizontal, value);
   updateCheckbox(horizontal);
 }
 
