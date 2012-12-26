@@ -311,7 +311,12 @@ var BookmarkPropertiesPanel = {
     // resize the dialog.
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
                           .getService(Components.interfaces.nsIPrefBranch);
-    var observer = new MutationObserver(this);
+    var observer = new MutationObserver(function(aRecords, aObserver) {
+      var el = document.getElementById("editBookmarkPanelContent");
+      var width = el.boxObject.width;
+      window.sizeToContent();
+      window.outerWidth -= el.boxObject.width - width;
+    });
     if (!this._element("tagsRow").collapsed) {
       if (prefs.getBoolPref("browser.bookmarks.editDialog.expandTags"))
         gEditItemOverlay.toggleTagsSelector();
@@ -386,14 +391,6 @@ var BookmarkPropertiesPanel = {
     }
   },
 
-  // nsIMutationObserverCallback
-  handleMutations: function BPP_handleMutations(aRecords, aObserver) {
-    var el = document.getElementById("editBookmarkPanelContent");
-    var width = el.boxObject.width;
-    window.sizeToContent();
-    window.outerWidth -= el.boxObject.width - width;
-  },
-
   _beginBatch: function BPP__beginBatch() {
     if (this._batching)
       return;
@@ -433,7 +430,6 @@ var BookmarkPropertiesPanel = {
   QueryInterface: function BPP_QueryInterface(aIID) {
     if (aIID.equals(Components.interfaces.nsIDOMEventListener) ||
         aIID.equals(Components.interfaces.mozILivemarkCallback) ||
-        aIID.equals(Components.interfaces.nsIMutationObserverCallback) ||
         aIID.equals(Components.interfaces.nsISupports))
       return this;
 
