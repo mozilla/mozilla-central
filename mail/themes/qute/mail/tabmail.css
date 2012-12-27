@@ -92,9 +92,9 @@
   height: 28px;
   -moz-margin-start: -2px;
   -moz-margin-end: 0;
-  background: -moz-linear-gradient(bottom, hsla(210, 23%, 10%, .4),
+  background: linear-gradient(to top, hsla(210, 23%, 10%, .4),
               hsla(210, 23%, 10%, .1) 80%, transparent),
-              -moz-linear-gradient(bottom, hsla(0, 0%, 100%, .4),
+              linear-gradient(to top, hsla(0, 0%, 100%, .4),
               hsla(0, 0%, 100%, .1) 80%, transparent);
   background-position: 0 0, 1px 0;
   background-size: 1px 100%;
@@ -411,7 +411,7 @@ tabpanels {
 
 .contentTabToolbox:-moz-lwtheme {
   height: 1px;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
   background-color: rgba(255, 255, 255, 0.3);
 }
 

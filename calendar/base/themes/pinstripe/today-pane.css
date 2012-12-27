@@ -7,7 +7,7 @@
 #today-pane-panel:-moz-lwtheme > sidebarheader {
   text-shadow: none;
   background-color: rgba(255, 255, 255, 0.3);
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 19px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 19px);
 }
 
 .miniday-nav-buttons {

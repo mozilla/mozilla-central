@@ -88,7 +88,7 @@
 #organizerScopeBar {
   padding: 3px;
   -moz-appearance: none;
-  background: -moz-linear-gradient(top, #E8E8E8, #D0D0D0) repeat-x;
+  background: linear-gradient(#E8E8E8, #D0D0D0) repeat-x;
   border-bottom: 1px solid #888888;
 }
 
@@ -148,7 +148,7 @@ button[group="scopeBar"]:active:hover {
   border-radius: 10000px;
   border: 1px solid rgba(0, 0, 0, .4);
   text-shadow: 0 1px rgba(255, 255, 255, .4);
-  background: -moz-linear-gradient(top, #FFF, #CACACA) repeat-x;
+  background: linear-gradient(#FFF, #CACACA) repeat-x;
   box-shadow: 0 1px rgba(255, 255, 255, .4);
 }
 

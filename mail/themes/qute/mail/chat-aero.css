@@ -132,8 +132,8 @@
   }
 
   :-moz-any(imconv, imcontact, imgroup)[selected] {
-    background-image: -moz-linear-gradient(rgba(190, 190, 190, .1),
-                                           rgba(190, 190, 190, .4));
+    background-image: linear-gradient(rgba(190, 190, 190, .1),
+                                      rgba(190, 190, 190, .4));
     background-color: transparent;
     -moz-border-top-colors: rgb(217, 217, 217) rgba(255, 255, 255, .4);
     -moz-border-right-colors: rgb(217, 217, 217) rgba(255, 255, 255, .4);
@@ -142,8 +142,8 @@
   }
 
   :-moz-any(imconv, imcontact, imgroup):hover {
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .05),
-                                           rgba(131, 183, 249, .16));
+    background-image: linear-gradient(rgba(131, 183, 249, .05),
+                                      rgba(131, 183, 249, .16));
     -moz-border-top-colors: rgb(184, 214, 251) rgba(255, 255, 255, .4);
     -moz-border-right-colors: rgb(184, 214, 251) rgba(255, 255, 255, .4);
     -moz-border-left-colors: rgb(184, 214, 251) rgba(255, 255, 255, .4);
@@ -151,8 +151,8 @@
   }
 
   :-moz-any(imconv, imcontact, imgroup)[selected]:hover {
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .28),
-                                           rgba(131, 183, 249, .50));
+    background-image: linear-gradient(rgba(131, 183, 249, .28),
+                                      rgba(131, 183, 249, .50));
     -moz-border-top-colors: rgb(125, 162, 206) rgba(255, 255, 255, .4);
     -moz-border-right-colors: rgb(125, 162, 206) rgba(255, 255, 255, .4);
     -moz-border-left-colors: rgb(125, 162, 206) rgba(255, 255, 255, .4);
@@ -160,8 +160,8 @@
   }
 
   #contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected] {
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .16),
-                                           rgba(131, 183, 249, .375));
+    background-image: linear-gradient(rgba(131, 183, 249, .16),
+                                      rgba(131, 183, 249, .375));
     background-color: transparent;
     border: 2px solid transparent;
     -moz-border-top-colors: rgb(132, 172, 221) rgba(255, 255, 255, .4);

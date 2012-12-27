@@ -20,8 +20,8 @@
 
 #displayDeck[collapsed="true"] + splitter + #messagepaneboxwrapper 
 .main-header-area {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
-                                         rgba(255, 255, 255, .5) 100%);
+  background-image: linear-gradient(rgba(255, 255, 255, .5),
+                                    rgba(255, 255, 255, .5) 100%);
 }
 
 @media (-moz-windows-default-theme) {
@@ -246,7 +246,7 @@
   .toolbarbutton-1.msgHeaderView-button,
   .toolbarbutton-1.msgHeaderView-button > .toolbarbutton-menubutton-button,
   .toolbarbutton-1.msgHeaderView-button > .toolbarbutton-menubutton-dropmarker {
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 32%, 93%, .2);
     border-color: hsla(210, 54%, 20%, .2) hsla(210, 54%, 20%, .25)

@@ -18,7 +18,7 @@
 }
 
 #today-splitter:-moz-lwtheme {
-    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5),
                       rgba(255, 255, 255, 0) 19px, rgba(255, 255, 255, 0) 25px,
                       ThreeDDarkShadow 25px, -moz-Dialog 26px);
 }

@@ -22,7 +22,7 @@
 #ab-toolbox:not(:-moz-lwtheme) {
   -moz-appearance: none;
   background-color: -moz-Dialog;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+  background-image: linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, 0));
   border-top: none;
   border-bottom: 1px solid ThreeDShadow;
@@ -161,7 +161,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   .toolbarbutton-menubutton-dropmarker,
   .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):not([checked="true"]):not([open="true"]):not(:active):hover {
     color: -moz-DialogText;
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 32%, 93%, .2);
     border-color: hsla(210, 54%, 20%, .15) hsla(210, 54%, 20%, .2)
@@ -187,7 +187,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   .toolbarbutton-1[open="true"] >
   .toolbarbutton-menubutton-dropmarker:not([disabled="true"]),
   .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):-moz-any([open="true"],[checked="true"],:hover:active) {
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 54%, 20%, .15);
     border-color: hsla(210, 54%, 20%, .3) hsla(210, 54%, 20%, .35)

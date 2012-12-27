@@ -98,7 +98,7 @@ notification[value="addon-install-blocked"],
 notification[value="addon-install-failed"],
 notification[value="addon-install-complete"] {
   background-image: url("chrome://mozapps/skin/extensions/stripes-info-negative.png"),
-                    -moz-linear-gradient(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0));
+                    linear-gradient(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0));
   background-repeat: repeat-x;
   border-top: none;
   border-bottom: none;
@@ -123,8 +123,8 @@ notification[value="addon-install-complete"] > button {
   border: 1px solid rgba(60, 73, 97, 0.5);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.25),
               0 1px rgba(255, 255, 255, 0.25);
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.45),
-                                         rgba(255, 255, 255, 0.2));
+  background-image: linear-gradient(rgba(255, 255, 255, 0.45),
+                                    rgba(255, 255, 255, 0.2));
   background-clip: padding-box;
   color: #252F3B;
 }
@@ -135,7 +135,7 @@ notification[value="addon-install-complete"] > button:active:hover {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2),
               0 1px rgba(255, 255, 255, 0.25);
   background-color: transparent;
-  background-image: -moz-linear-gradient(rgba(45, 54, 71, 0.3),
-                                         rgba(45, 54, 71, 0.1));
+  background-image: linear-gradient(rgba(45, 54, 71, 0.3),
+                                    rgba(45, 54, 71, 0.1));
   border-color: rgba(60, 73, 97, 0.7);
 }

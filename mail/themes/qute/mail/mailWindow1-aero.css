@@ -273,7 +273,7 @@ padding: 4px 0px;
     padding: 1px 5px !important;
     border-radius: 2px;
     border: 1px solid;
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 32%, 93%, .2);
     border-color: hsla(210, 54%, 20%, .15) hsla(210, 54%, 20%, .2)
@@ -294,7 +294,7 @@ padding: 4px 0px;
   }
 
   menulist[open="true"] {
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 54%, 20%, .15);
     border-color: hsla(210, 54%, 20%, .3) hsla(210, 54%, 20%, .35)
@@ -333,8 +333,8 @@ menulist > .menulist-label-box {
   }
 
   #folderTree treechildren::-moz-tree-cell(dropOn) {
-    background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
-                                           rgba(255, 255, 255, .45));
+    background-image: linear-gradient(rgba(255, 255, 255, .7),
+                                      rgba(255, 255, 255, .45));
     background-color: Highlight;
     border-radius: 3px;
   }

@@ -67,7 +67,7 @@ treechildren::-moz-tree-cell-text {
     -moz-margin-end: 1px;
     border-radius: 3px;
     border: 2px solid transparent!important;
-    background-image: -moz-linear-gradient(transparent, transparent) !important;
+    background-image: linear-gradient(transparent, transparent) !important;
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -82,8 +82,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255, 255, 255, .4) !important;
     -moz-border-bottom-colors: rgb(217, 217, 217)
                                rgba(255, 255, 255, .6) !important;
-    background-image: -moz-linear-gradient(rgba(190, 190, 190, .1),
-                                           rgba(190, 190, 190, .4)) !important;
+    background-image: linear-gradient(rgba(190, 190, 190, .1),
+                                      rgba(190, 190, 190, .4)) !important;
     background-color: transparent;
   }
 
@@ -93,8 +93,8 @@ treechildren::-moz-tree-cell-text {
 
   listbox:focus > listitem[selected="true"] {
     background-color: rgba(131, 183, 249, .05);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .16),
-                                           rgba(131, 183, 249, .375)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .16),
+                                      rgba(131, 183, 249, .375)) !important;
   }
 
   listbox:focus > listitem[current="true"],
@@ -121,8 +121,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255, 255, 255, .4) !important;
     -moz-border-bottom-colors: rgb(132, 172, 221)
                                rgba(255, 255, 255, .6) !important;
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .16),
-                                           rgba(131, 183, 249, .375)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .16),
+                                      rgba(131, 183, 249, .375)) !important;
     background-color: transparent;
   }
 
@@ -149,8 +149,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255,255,255,.4) !important;
     -moz-border-bottom-colors: rgb(125, 162, 206)
                                rgba(255,255,255,.6) !important;
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .28),
-                                           rgba(131, 183, 249, .50)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .28),
+                                      rgba(131, 183, 249, .50)) !important;
     background-color: transparent;
   }
 
@@ -163,8 +163,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255,255,255,.4) !important;
     -moz-border-bottom-colors: rgb(184, 214, 251)
                                rgba(255,255,255,.6) !important;
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .05),
-                                           rgba(131, 183, 249, .16)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .05),
+                                      rgba(131, 183, 249, .16)) !important;
     background-color: transparent;
   }
 
@@ -177,8 +177,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255,255,255,.4) !important;
     -moz-border-bottom-colors: rgb(125, 162, 206)
                                rgba(255,255,255,.6) !important;
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .05),
-                                           rgba(131, 183, 249, .16)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .05),
+                                      rgba(131, 183, 249, .16)) !important;
     background-color: transparent;
   }
 
@@ -191,8 +191,8 @@ treechildren::-moz-tree-cell-text {
                              rgba(255,255,255,.4) !important;
     -moz-border-bottom-colors: rgb(125, 162, 206)
                                rgba(255,255,255,.6) !important;
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, .28),
-                                           rgba(131, 183, 249, .50)) !important;
+    background-image: linear-gradient(rgba(131, 183, 249, .28),
+                                      rgba(131, 183, 249, .50)) !important;
     background-color: transparent;
   }
 
@@ -227,8 +227,8 @@ treechildren::-moz-tree-cell-text {
   notification[value="addon-install-failed"],
   notification[value="addon-install-complete"] {
     background-image: url("chrome://mozapps/skin/extensions/stripes-info-negative.png"),
-                      -moz-linear-gradient(rgba(204, 217, 234, 0.5),
-                                           rgba(231, 237, 246, 0.8));
+                      linear-gradient(rgba(204, 217, 234, 0.5),
+                                      rgba(231, 237, 246, 0.8));
   }
 }
 

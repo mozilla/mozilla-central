@@ -57,7 +57,7 @@
 
 .mail-toolbox:-moz-lwtheme,
 .contentTabToolbox:-moz-lwtheme {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+  background-image: linear-gradient(rgba(255, 255, 255, 0.5),
                     rgba(255, 255, 255, 0) 28px) !important;
 }
 
@@ -74,7 +74,7 @@
 
 .mail-toolbox:not(:-moz-lwtheme),
 .contentTabToolbox:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+  background-image: linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, 0));
 }
 
@@ -197,7 +197,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   .toolbarbutton-menubutton-dropmarker,
   .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):not([checked="true"]):not([open="true"]):not(:active):hover {
     color: -moz-DialogText;
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 32%, 93%, .2);
     border-color: hsla(210, 54%, 20%, .15) hsla(210, 54%, 20%, .2)
@@ -221,7 +221,7 @@ toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   .toolbarbutton-1 > .toolbarbutton-menubutton-button:not([disabled="true"]):hover:active,
   .toolbarbutton-1[open="true"] > .toolbarbutton-menubutton-dropmarker:not([disabled="true"]),
   .toolbarbutton-1:not([type="menu-button"]):not([disabled="true"]):-moz-any([open="true"],[checked="true"],:hover:active) {
-    background-image: -moz-linear-gradient(hsla(0, 0%, 100%, .6),
+    background-image: linear-gradient(hsla(0, 0%, 100%, .6),
                       hsla(0, 0%, 100%, .1));
     background-color: hsla(210, 54%, 20%, .15);
     border-color: hsla(210, 54%, 20%, .3) hsla(210, 54%, 20%, .35)
@@ -309,19 +309,19 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 #tabbar-toolbar .toolbarbutton-1:not([disabled])[checked="true"],
 #tabbar-toolbar toolbarbutton[type="menu-button"]:hover >
                 .toolbarbutton-menubutton-dropmarker:not([disabled="true"]) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+  background-image: linear-gradient(rgba(255, 255, 255, 0),
                     rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
+                    linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
+                    linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
   background-position: 1px -1px, 0 -1px, 100% -1px;
   background-size: calc(100% - 2px) 100%, 1px 100%, 1px 100%;
   background-repeat: no-repeat;
 }
 
 #tabbar-toolbar .toolbarbutton-menubutton-button:not([disabled]):hover {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+  background-image: linear-gradient(rgba(255, 255, 255, 0),
                     rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
+                    linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
   background-position: 1px -1px, 0 -1px;
   background-size: calc(100% - 1px) 100%, 1px 100%;
   background-repeat: no-repeat;
@@ -382,12 +382,12 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   }
 
   #mail-toolbar-menubar2:-moz-lwtheme {
-    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
   }
 
   #navigation-toolbox > #mail-toolbar-menubar2:not(:-moz-lwtheme) {
     background-color: hsl(210, 75%, 92%);
-    background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+    background-image: linear-gradient(rgba(255, 255, 255, .5),
                       rgba(255, 255, 255, .5));
     border-bottom: 1px solid #AABCCF;
   }
@@ -668,9 +668,9 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
 
   #appmenuPrimaryPane menupopup {
     -moz-appearance: none;
-    background-image: -moz-linear-gradient(left, white 26px, ThreeDLightShadow 26px,
-                                           ThreeDLightShadow 27px, ThreeDHighlight 27px,
-                                           ThreeDHighlight 28px, white 28px);
+    background-image: linear-gradient(to right, white 26px, ThreeDLightShadow 26px,
+                                      ThreeDLightShadow 27px, ThreeDHighlight 27px,
+                                      ThreeDHighlight 28px, white 28px);
     border: 3px solid;
     -moz-border-top-colors: ThreeDShadow white;
     -moz-border-bottom-colors: ThreeDShadow white;
@@ -680,9 +680,9 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
 
   #appmenuSecondaryPane menupopup {
     -moz-appearance: none;
-    background-image: -moz-linear-gradient(left, #f1f5fb 26px, ThreeDLightShadow 26px,
-                                           ThreeDLightShadow 27px, ThreeDHighlight 27px,
-                                           ThreeDHighlight 28px, #f1f5fb 28px);
+    background-image: linear-gradient(to right, #f1f5fb 26px, ThreeDLightShadow 26px,
+                                      ThreeDLightShadow 27px, ThreeDHighlight 27px,
+                                      ThreeDHighlight 28px, #f1f5fb 28px);
     border: 3px solid;
     -moz-border-top-colors: ThreeDShadow #f1f5fb;
     -moz-border-bottom-colors: ThreeDShadow #f1f5fb;
@@ -691,14 +691,14 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   }
 
   #appmenuPrimaryPane menupopup:-moz-locale-dir(rtl) {
-    background-image: -moz-linear-gradient(right, white 26px, ThreeDLightShadow 26px,
-                                           ThreeDLightShadow 27px, ThreeDHighlight 27px,
-                                           ThreeDHighlight 28px, white 28px);
+    background-image: linear-gradient(to left, white 26px, ThreeDLightShadow 26px,
+                                      ThreeDLightShadow 27px, ThreeDHighlight 27px,
+                                      ThreeDHighlight 28px, white 28px);
   }
   #appmenuSecondaryPane menupopup:-moz-locale-dir(rtl) {
-    background-image: -moz-linear-gradient(right, #f1f5fb 26px, ThreeDLightShadow 26px,
-                                           ThreeDLightShadow 27px, ThreeDHighlight 27px,
-                                           ThreeDHighlight 28px, #f1f5fb 28px);
+    background-image: linear-gradient(to left, #f1f5fb 26px, ThreeDLightShadow 26px,
+                                      ThreeDLightShadow 27px, ThreeDHighlight 27px,
+                                      ThreeDHighlight 28px, #f1f5fb 28px);
   }
 
   .appmenu-menuseparator {
@@ -714,7 +714,7 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   .appmenu-edit-button:not([disabled]):hover {
     border: 1px solid #b8d6fb;
     box-shadow: inset 0 0 1px white;
-    background: -moz-linear-gradient(#fafbfd, #ebf3fd);
+    background: linear-gradient(#fafbfd, #ebf3fd);
     transition: .2s ease-in;
   }
 }

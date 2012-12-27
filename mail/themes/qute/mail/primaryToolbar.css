@@ -41,7 +41,7 @@
   -moz-appearance: none;
   border-top: none;
   border-bottom: 1px solid threedshadow;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+  background-image: linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, .1) 19px) !important;
 }
 
@@ -874,7 +874,7 @@ toolbar[iconsize="small"] .button-appmenu[disabled] {
   .appmenu-edit-button:not([disabled]):hover {
     border: 1px solid #b8d6fb;
     box-shadow: inset 0 0 1px white;
-    background: -moz-linear-gradient(#fafbfd, #ebf3fd);
+    background: linear-gradient(#fafbfd, #ebf3fd);
     transition: .2s ease-in;
   }
 }

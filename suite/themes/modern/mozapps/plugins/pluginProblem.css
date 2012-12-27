@@ -11,11 +11,11 @@
 
 .mainBox {
   text-align: center;
-  background-image: -moz-repeating-linear-gradient(-45deg,
-                                                   rgba(65, 65, 65, 0.8),
-                                                   rgba(65, 65, 65, 0.8) 20px,
-                                                   rgba(69, 69, 69, 0.8) 20px,
-                                                   rgba(69, 69, 69, 0.8) 40px);
+  background-image: repeating-linear-gradient(-45deg,
+                                              rgba(65, 65, 65, 0.8),
+                                              rgba(65, 65, 65, 0.8) 20px,
+                                              rgba(69, 69, 69, 0.8) 20px,
+                                              rgba(69, 69, 69, 0.8) 40px);
   color: white;
   border-radius: 12px;
   /* recessed effect with dark inner shadow and lightened bottom */

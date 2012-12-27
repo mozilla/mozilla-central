@@ -6,7 +6,7 @@
 
 /* added for new id ..... search box ..... */
 #unifinder-searchBox {
-    background: -moz-linear-gradient(top, #eaeaea, #d1d1d1);
+    background: linear-gradient(#eaeaea, #d1d1d1);
     border-bottom: 1px solid #bebebe;
 }
 

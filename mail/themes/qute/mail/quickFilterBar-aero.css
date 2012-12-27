@@ -51,7 +51,7 @@
   }
 
   #threadTree[filterActive="nomatches"] {
-    background: -moz-repeating-linear-gradient(top left -45deg, #fff0f4,
+    background: repeating-linear-gradient(-45deg, #fff0f4,
                 #fff0f4 5px, white 5px, white 10px);
   }
 }
@@ -86,7 +86,7 @@
 
 @media (-moz-windows-default-theme) {
   #quick-filter-bar toolbarbutton:not([checked="true"]):hover {
-    background-image: -moz-linear-gradient(rgba(255, 255, 255, .8),
+    background-image: linear-gradient(rgba(255, 255, 255, .8),
                       rgba(255, 255, 255, .45) 49%, rgba(255, 255, 255, .35) 51%,
                       rgba(255,255,255,.1));
     background-color: hsla(210, 48%, 96%, .75);

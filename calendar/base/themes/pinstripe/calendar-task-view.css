@@ -13,7 +13,7 @@
 }
 
 #task-addition-box {
-    background: -moz-linear-gradient(top, #eaeaea, #d1d1d1);
+    background: linear-gradient(#eaeaea, #d1d1d1);
 }
 
 .task-details-name {

@@ -11,17 +11,17 @@
 /* ::::: for the entire area ::::: */
 .main-header-area {
   color: #2E3436; /* Aluminium 6 */
-  background: -moz-linear-gradient(top, #909090, #FFFFFF 5px);
+  background: linear-gradient(#909090, #FFFFFF 5px);
   border-bottom:1px solid #BFBFBF;
   padding: 0.6ex;
 }
 
 .main-header-area:-moz-window-inactive {
-  background: -moz-linear-gradient(top, #CDCDCD, #FFFFFF 5px);
+  background: linear-gradient(#CDCDCD, #FFFFFF 5px);
 }
 
 #displayDeck:not([collapsed="true"]) + #threadpane-splitter + #messagepanebox .main-header-area {
-  background: -moz-linear-gradient(top, #E4E4E4, #FFFFFF 5px);
+  background: linear-gradient(#E4E4E4, #FFFFFF 5px);
 }
 
 /* ::::: msg header toolbars ::::: */
@@ -160,7 +160,7 @@
 #attachmentName:hover,
 #attachmentName[selected="true"] {
   cursor: pointer;
-  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
+  background: linear-gradient(#F9CE90, #F6A942); /* orange gradient */
 }
 
 #attachmentName:focus {
@@ -568,7 +568,7 @@ toolbarpaletteitem #hdrDummyReplyButton {
 
 .emailDisplayButton:hover {
   cursor: pointer;
-  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
+  background: linear-gradient(#F9CE90, #F6A942); /* orange gradient */
 }
 
 mail-emailaddress[selected="true"] .emailDisplayButton{
@@ -577,7 +577,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
     tweak the bottom to blend in more w/ the menu */
   cursor: pointer;
   border-radius: 3px;
-  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
+  background: linear-gradient(#F9CE90, #F6A942); /* orange gradient */
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }

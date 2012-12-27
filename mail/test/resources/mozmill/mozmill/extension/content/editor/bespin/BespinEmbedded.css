@@ -18,7 +18,7 @@
     top: 1px;
     border-top: solid #555 1px;
     border-left: solid #555 1px;
-    background-image: -moz-linear-gradient(top left, #333333, #333333 50%, transparent 50%, transparent);
+    background-image: linear-gradient(to right bottom, #333333, #333333 50%, transparent 50%, transparent);
     background-image: -webkit-gradient(linear, left top, right bottom, from(#333333), color-stop(0.5, #333333), color-stop(0.5, transparent), to(transparent));
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
@@ -28,7 +28,7 @@
     bottom: 1px;
     border-top: solid #000 1px;
     border-left: solid #000 1px;
-    background-image: -moz-linear-gradient(top left, #000, #000 50%, transparent 50%, transparent);
+    background-image: linear-gradient(to right bottom, #000, #000 50%, transparent 50%, transparent);
     background-image: -webkit-gradient(linear, left top, right bottom, from(#000), color-stop(0.5, #000), color-stop(0.5, transparent), to(transparent));
     transform: rotate(225deg);
     -webkit-transform: rotate(225deg);
@@ -47,7 +47,7 @@
     position: relative;
     z-index: 3;
     padding: 6px;
-    background: -moz-linear-gradient(top, #333333, #000000);
+    background: linear-gradient(#333333, #000000);
     background: -webkit-gradient(linear, center top, center bottom, from(#333333), to(#000000));
     color: #ffffff;
     font-size: 10.5pt;
@@ -72,7 +72,7 @@
 .bespin-completion-highlight {
     position: absolute;
     z-index: -1;
-    background-image: -moz-linear-gradient(top, #3e59be, #312d80);
+    background-image: linear-gradient(#3e59be, #312d80);
     background-image: -webkit-gradient(linear, center top, center bottom, from(#3e59be), to(#312d80));
     border: solid rgba(37, 34, 91, 1.0) 1px;
     -moz-border-radius: 6px;

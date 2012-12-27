@@ -54,12 +54,12 @@ menulist > menupopup > menu > .menu-iconic-left {
 .contentTabToolbox {
   -moz-appearance: none;
   border-bottom: 1px solid threedshadow;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 19px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 19px);
 }
 
 .mail-toolbox:-moz-lwtheme,
 .contentTabToolbox:-moz-lwtheme {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 19px);
+  background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 19px);
 }
 
 .mail-toolbox > toolbar,
@@ -401,8 +401,7 @@ notification[value="addon-install-blocked"],
 notification[value="addon-install-failed"],
 notification[value="addon-install-complete"] {
   background-image: url("chrome://mozapps/skin/extensions/stripes-info-negative.png"),
-                    -moz-linear-gradient(rgba(255, 255, 255, 0),
-                                         rgba(255, 255, 255, 0.5));
+                    linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5));
   background-repeat: repeat-x;
 }
 

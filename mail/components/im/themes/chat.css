@@ -146,9 +146,9 @@ imcontact[aliasing] .contactDisplayName {
 %else
   background-color: -moz-Dialog;
 %ifdef XP_WIN
-  background-image: -moz-linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0));
+  background-image: linear-gradient(rgba(255,255,255,.5), rgba(255,255,255,0));
 %else
-  background-image: -moz-linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,0));
+  background-image: linear-gradient(rgba(255,255,255,.3), rgba(255,255,255,0));
 %endif
 %ifndef XP_WIN
   border-bottom: 1px solid ThreeDShadow;
@@ -324,7 +324,7 @@ grippy {
   border-style: none;
 %ifdef XP_MACOSX
   min-height: 2px;
-  background: -moz-linear-gradient(top, rgba(0,0,0,0.35), transparent);
+  background: linear-gradient(rgba(0,0,0,0.35), transparent);
 %else
   height: 3px;
   background: transparent;

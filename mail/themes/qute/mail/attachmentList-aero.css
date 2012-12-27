@@ -49,8 +49,8 @@
     -moz-border-right-colors: rgb(217, 217, 217) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(217, 217, 217) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(217, 217, 217) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(190, 190, 190, 0.1),
-                                           rgba(190, 190, 190, 0.4));
+    background-image: linear-gradient(rgba(190, 190, 190, 0.1),
+                                      rgba(190, 190, 190, 0.4));
   }
 
   attachmentitem[selected="true"]:hover {
@@ -58,8 +58,8 @@
     -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.28),
-                                           rgba(131, 183, 249, 0.50));
+    background-image: linear-gradient(rgba(131, 183, 249, 0.28),
+                                      rgba(131, 183, 249, 0.50));
   }
 
   attachmentlist:focus > attachmentitem[current="true"] {
@@ -74,8 +74,8 @@
     -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.05),
-                                           rgba(131, 183, 249, 0.16));
+    background-image: linear-gradient(rgba(131, 183, 249, 0.05),
+                                      rgba(131, 183, 249, 0.16));
   }
 
   attachmentlist:focus > attachmentitem[selected="true"] {
@@ -83,8 +83,8 @@
     -moz-border-right-colors: rgb(132, 172, 221) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(132, 172, 221) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(132, 172, 221) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.16),
-                                           rgba(131, 183, 249, 0.375));
+    background-image: linear-gradient(rgba(131, 183, 249, 0.16),
+                                      rgba(131, 183, 249, 0.375));
   }
 
   attachmentlist:focus > attachmentitem[selected="true"][current="true"] {
@@ -92,8 +92,8 @@
     -moz-border-right-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(125, 162, 206) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(125, 162, 206) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.28),
-                                           rgba(131, 183, 249, 0.50));
+    background-image: linear-gradient(rgba(131, 183, 249, 0.28),
+                                      rgba(131, 183, 249, 0.50));
   }
 
   attachmentitem:hover {
@@ -101,7 +101,7 @@
     -moz-border-right-colors: rgb(184, 214, 251) rgba(255,255,255,.4);
     -moz-border-left-colors: rgb(184, 214, 251) rgba(255,255,255,.4);
     -moz-border-bottom-colors: rgb(184, 214, 251) rgba(255,255,255,.6);
-    background-image: -moz-linear-gradient(rgba(131, 183, 249, 0.05),
-                                           rgba(131, 183, 249, 0.16));
+    background-image: linear-gradient(rgba(131, 183, 249, 0.05),
+                                      rgba(131, 183, 249, 0.16));
   }
 }

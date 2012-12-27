@@ -9,7 +9,7 @@ calendar-category-box:not([categories]) {
 
 .calendar-category-box-gradient {
     width: 7px;
-    background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.38), transparent) !important;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.38), transparent) !important;
     border-left: 1px solid rgba(255, 255, 255, 0.38);
 }
 
@@ -349,13 +349,13 @@ window[systemcolors] .multiday-view-day-box {
 
 .fgdragbox[dragging="true"] {
     display: -moz-box;
-    background-image: -moz-linear-gradient(top, #fe4b22, #feb822);
+    background-image: linear-gradient(#fe4b22, #feb822);
     border: 5px #ffffff;
     opacity: 0.5;
 }
 
 window[systemcolors] .fgdragbox[dragging="true"] {
-    background-image: -moz-linear-gradient(top, Highlight, Highlight);
+    background-image: linear-gradient(Highlight, Highlight);
     border: 5px -moz-Field;
 }
 
@@ -581,7 +581,7 @@ calendar-multiday-view[hidden="true"] {
 calendar-day-label {
     color: #000000;
     background-color: white;
-    background-image: -moz-linear-gradient(top, #fafafa, #eeeeee);
+    background-image: linear-gradient(#fafafa, #eeeeee);
     border-left: 1px solid #D2D2D2;
     border-bottom: 1px solid #D2D2D2;
 }
@@ -589,7 +589,7 @@ calendar-day-label {
 window[systemcolors] calendar-day-label {
     color: WindowText;
     background-color: -moz-Field;
-    background-image: -moz-linear-gradient(transparent, transparent 48%, rgba(0, 0, 0, 0.02) 52%, rgba(0, 0, 0, 0.1));
+    background-image: linear-gradient(transparent, transparent 48%, rgba(0, 0, 0, 0.02) 52%, rgba(0, 0, 0, 0.1));
     border-left: 1px solid ThreeDShadow;
     border-bottom: 1px solid ThreeDShadow;
 }
@@ -818,7 +818,7 @@ window[systemcolors] .calendar-month-day-box-date-label[relation="today"][select
 
 window[systemcolors] .calendar-month-day-box-date-label {
     color: WindowText;
-    background-image: -moz-linear-gradient(rgba(0, 0, 0, .05), rgba(0, 0, 0, .05));
+    background-image: linear-gradient(rgba(0, 0, 0, .05), rgba(0, 0, 0, .05));
 }
 
 calendar-month-day-box-item {
@@ -829,7 +829,7 @@ calendar-month-day-box-item {
 .calendar-color-box {
     /* This rule should be adopted if the alarm image size is changed */
     min-height: 13px;
-    background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.05));
+    background-image: linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.05));
     border: 1px solid transparent;
     border-radius: 2px;
 }

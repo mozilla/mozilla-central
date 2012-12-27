@@ -6,7 +6,7 @@
   -moz-appearance: none;
   border-top: none;
   background-color: -moz-Dialog;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+  background-image: linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, 0));
   border-bottom: 1px solid ThreeDShadow;
 }
