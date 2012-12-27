@@ -266,6 +266,7 @@
             if (this._messageDisplayPending)
               return;
             this._messageDisplayPending = true;
+            this.contentWindow.messageInsertPending = true;
             Services.tm.mainThread.dispatch(this.displayPendingMessages.bind(this),
                                             Ci.nsIEventTarget.DISPATCH_NORMAL);
           ]]>
@@ -310,6 +311,7 @@
                                               Ci.nsIEventTarget.DISPATCH_NORMAL);
               return;
             }
+            this.contentWindow.messageInsertPending = false;
             this._messageDisplayPending = false;
             this._pendingMessages = [];
             this._nextPendingMessageIndex = 0;
