@@ -51,7 +51,7 @@ var FullZoom = {
 
   init: function FullZoom_init() {
     // Listen for scrollwheel events so we can save scrollwheel-based changes.
-    window.addEventListener("wheel", this, false);
+    window.addEventListener("wheel", this, true);
 
     // Register ourselves with the service so we know when our pref changes.
     Services.contentPrefs.addObserver(this.name, this);
@@ -68,7 +68,7 @@ var FullZoom = {
   destroy: function FullZoom_destroy() {
     Services.prefs.removeObserver("browser.zoom.", this);
     Services.contentPrefs.removeObserver(this.name, this);
-    window.removeEventListener("wheel", this, false);
+    window.removeEventListener("wheel", this, true);
   },
 
 
