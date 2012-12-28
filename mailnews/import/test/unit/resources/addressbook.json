@@ -81,13 +81,13 @@
       "DisplayName"      : "John Doe",
       "FirstName"        : "John",
       "LastName"         : "Doe",
-      "PrimaryEmail"     : "john.doe@genericemail.com"
+      "PrimaryEmail"     : "john.doe@genericemail.invalid"
     },
     {
       "DisplayName"      : "Jane Doe",
       "FirstName"        : "Jane",
       "LastName"         : "Doe",
-      "PrimaryEmail"     : "jane.doe@genericemail.com"
+      "PrimaryEmail"     : "jane.doe@genericemail.invalid"
     }
   ],
   "csv_import" :

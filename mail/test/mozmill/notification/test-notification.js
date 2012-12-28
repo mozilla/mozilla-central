@@ -108,7 +108,7 @@ function setupModule(module) {
   // Create a second identity to check cross-account
   // notifications.
   var identity2 = MailServices.accounts.createIdentity();
-  identity2.email = "new-account@invalid.com";
+  identity2.email = "new-account@foo.invalid";
 
   var server = MailServices.accounts
                            .createIncomingServer("nobody",
@@ -331,7 +331,7 @@ function test_show_only_subject() {
   Services.prefs.setBoolPref("mail.biff.alert.show_sender", false);
   Services.prefs.setBoolPref("mail.biff.alert.show_subject", true);
 
-  let sender = ["John Cleese", "john@cleese.net"];
+  let sender = ["John Cleese", "john@cleese.invalid"];
   let subject = "This should not be displayed";
   let messageBody = "My message preview";
 
@@ -356,7 +356,7 @@ test_show_only_subject.EXCLUDED_PLATFORMS = ['winnt', 'darwin'];
  * Test that we can show the message sender in the notification.
  */
 function test_show_sender() {
-  let sender = ["John Cleese", "john@cleese.net"];
+  let sender = ["John Cleese", "john@cleese.invalid"];
   make_gradually_newer_sets_in_folder(gFolder,
                                       [{count: 1,
                                         from: sender}]);
@@ -371,7 +371,7 @@ test_show_sender.EXCLUDED_PLATFORMS = ['winnt', 'darwin'];
  */
 function test_hide_sender() {
   Services.prefs.setBoolPref("mail.biff.alert.show_sender", false);
-  let sender = ["John Cleese", "john@cleese.net"];
+  let sender = ["John Cleese", "john@cleese.invalid"];
   make_gradually_newer_sets_in_folder(gFolder,
                                       [{count: 1,
                                         from: sender}]);
@@ -389,7 +389,7 @@ function test_show_only_sender() {
   Services.prefs.setBoolPref("mail.biff.alert.show_sender", true);
   Services.prefs.setBoolPref("mail.biff.alert.show_subject", false);
 
-  let sender = ["John Cleese", "john@cleese.net"];
+  let sender = ["John Cleese", "john@cleese.invalid"];
   let subject = "This should not be displayed";
   let messageBody = "My message preview";
 
@@ -447,7 +447,7 @@ function test_show_only_preview() {
   Services.prefs.setBoolPref("mail.biff.alert.show_sender", false);
   Services.prefs.setBoolPref("mail.biff.alert.show_subject", false);
 
-  let sender = ["John Cleese", "john@cleese.net"];
+  let sender = ["John Cleese", "john@cleese.invalid"];
   let subject = "This should not be displayed";
   let messageBody = "My message preview";
   make_gradually_newer_sets_in_folder(gFolder,

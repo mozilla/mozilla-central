@@ -19,34 +19,34 @@ function run_test() {
   // 3: expected output from extractHeaderAddressName
   const checks =
   [
-    ["abc@invalid.com",
-     "abc@invalid.com",
-     "abc@invalid.com",
-     "abc@invalid.com" ],
-    ["foo <ghj@invalid.com>",
-     "ghj@invalid.com",
+    ["abc@foo.invalid",
+     "abc@foo.invalid",
+     "abc@foo.invalid",
+     "abc@foo.invalid" ],
+    ["foo <ghj@foo.invalid>",
+     "ghj@foo.invalid",
      "foo",
      "foo" ],
-    ["abc@invalid.com, foo <ghj@invalid.com>",
-     "abc@invalid.com, ghj@invalid.com",
-     "abc@invalid.com, foo",
-     "abc@invalid.com" ],
+    ["abc@foo.invalid, foo <ghj@foo.invalid>",
+     "abc@foo.invalid, ghj@foo.invalid",
+     "abc@foo.invalid, foo",
+     "abc@foo.invalid" ],
     ["foo bar <foo@bar.invalid>",
      "foo@bar.invalid",
      "foo bar",
      "foo bar" ],
-    ["foo bar <foo@bar.invalid>, abc@invalid.com, foo <ghj@invalid.com>",
-     "foo@bar.invalid, abc@invalid.com, ghj@invalid.com",
-     "foo bar, abc@invalid.com, foo",
+    ["foo bar <foo@bar.invalid>, abc@foo.invalid, foo <ghj@foo.invalid>",
+     "foo@bar.invalid, abc@foo.invalid, ghj@foo.invalid",
+     "foo bar, abc@foo.invalid, foo",
      "foo bar" ],
     // UTF-8 names
-    ["foo\u00D0 bar <foo@bar.invalid>, \u00F6foo <ghj@invalid.com>",
-     "foo@bar.invalid, ghj@invalid.com",
+    ["foo\u00D0 bar <foo@bar.invalid>, \u00F6foo <ghj@foo.invalid>",
+     "foo@bar.invalid, ghj@foo.invalid",
      "foo\u00D0 bar, \u00F6foo",
      "foo\u00D0 bar" ],
     // More complicated examples drawn from RFC 2822
-    ["\"Joe Q. Public\" <john.q.public@example.com>,Test <\"abc!x.yz\"@invalid.com>, Test <test@[xyz!]>,\"Giant; \\\"Big\\\" Box\" <sysservices@example.net>",
-     "john.q.public@example.com, \"abc!x.yz\"@invalid.com, test@[xyz!], sysservices@example.net",
+    ["\"Joe Q. Public\" <john.q.public@example.com>,Test <\"abc!x.yz\"@foo.invalid>, Test <test@[xyz!]>,\"Giant; \\\"Big\\\" Box\" <sysservices@example.net>",
+     "john.q.public@example.com, \"abc!x.yz\"@foo.invalid, test@[xyz!], sysservices@example.net",
      "\"Joe Q. Public\", Test, Test, \"Giant; \\\"Big\\\" Box\"",
      // extractHeaderAddressName returns unquoted names, hence the difference.
      "Joe Q. Public" ],
@@ -65,7 +65,7 @@ function run_test() {
   // of strings with ":;" in them. The second ":;" is required to force the
   // parser to keep going.
   do_check_eq(parser.extractHeaderAddressMailboxes(
-    "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.com>"),
+    "undisclosed-recipients:;\0:; foo <ghj@veryveryveryverylongveryveryveryveryinvalidaddress.invalid>"),
               "undisclosed-recipients:;");
 
   do_check_eq(parser.extractHeaderAddressMailboxes("<a;a@invalid"), "");

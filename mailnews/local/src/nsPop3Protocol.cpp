@@ -2567,8 +2567,8 @@ int32_t nsPop3Protocol::HandleNoUidListAvailable()
 
  >>XTND XLST Message-Id
  <<+OK xlst command accepted; headers coming.
- <<1 Message-ID: <3117E4DC.2699@netscape.com>
- <<2 Message-Id: <199602062335.PAA19215@lemon.mcom.com>
+ <<1 Message-ID: <3117E4DC.2699@netscape.invalid>
+ <<2 Message-Id: <199602062335.PAA19215@lemon.example.com>
 
  * This function will send the xtnd command and put us into the
  * POP3_GET_XTND_XLST_MSGID state
@@ -2640,7 +2640,7 @@ nsPop3Protocol::GetXtndXlstMsgid(nsIInputStream* inputStream,
 
   /* parse the line returned from the list command
   * it looks like
-  * 1 Message-ID: <3117E4DC.2699@netscape.com>
+  * 1 Message-ID: <3117E4DC.2699@example.com>
   *
   * list data is terminated by a ".CRLF" line
   */

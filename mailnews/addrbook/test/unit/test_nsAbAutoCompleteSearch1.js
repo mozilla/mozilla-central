@@ -12,11 +12,11 @@ const ACR = Components.interfaces.nsIAutoCompleteResult;
 // on a pattern rather just doing the odd spot check.
 //
 // Note the expected arrays are in expected sort order as well.
-const results = [ { email: "d <ema@invalid.com>", dirName: kPABData.dirName },
-                  { email: "di <emai@invalid.com>", dirName: kPABData.dirName },
-                  { email: "dis <email@invalid.com>", dirName: kPABData.dirName },
-                  { email: "disp <e@invalid.com>", dirName: kPABData.dirName },
-                  { email: "displ <em@invalid.com>", dirName: kPABData.dirName },
+const results = [ { email: "d <ema@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "di <emai@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "dis <email@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "disp <e@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "displ <em@foo.invalid>", dirName: kPABData.dirName },
                   { email: "DisplayName1 <PrimaryEmail1@test.invalid>",
                     dirName: kCABData.dirName },
                   { email: "t <list>", dirName: kPABData.dirName },
@@ -165,8 +165,8 @@ function run_test() {
   do_check_eq(obs._result.matchCount, 1);
   do_check_eq(obs._result.defaultIndex, 0);
 
-  do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
-  do_check_eq(obs._result.getLabelAt(0), "dis <email@invalid.com>");
+  do_check_eq(obs._result.getValueAt(0), "dis <email@foo.invalid>");
+  do_check_eq(obs._result.getLabelAt(0), "dis <email@foo.invalid>");
   do_check_eq(obs._result.getCommentAt(0), "");
   do_check_eq(obs._result.getStyleAt(0), "local-abook");
   do_check_eq(obs._result.getImageAt(0), "");
@@ -183,8 +183,8 @@ function run_test() {
   do_check_eq(obs._result.matchCount, 1);
   do_check_eq(obs._result.defaultIndex, 0);
 
-  do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
-  do_check_eq(obs._result.getLabelAt(0), "dis <email@invalid.com>");
+  do_check_eq(obs._result.getValueAt(0), "dis <email@foo.invalid>");
+  do_check_eq(obs._result.getLabelAt(0), "dis <email@foo.invalid>");
   do_check_eq(obs._result.getCommentAt(0), kPABData.dirName);
   do_check_eq(obs._result.getStyleAt(0), "local-abook");
   do_check_eq(obs._result.getImageAt(0), "");
@@ -199,8 +199,8 @@ function run_test() {
   do_check_eq(obs._result.matchCount, 1);
   do_check_eq(obs._result.defaultIndex, 0);
 
-  do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
-  do_check_eq(obs._result.getLabelAt(0), "dis <email@invalid.com>");
+  do_check_eq(obs._result.getValueAt(0), "dis <email@foo.invalid>");
+  do_check_eq(obs._result.getLabelAt(0), "dis <email@foo.invalid>");
   do_check_eq(obs._result.getCommentAt(0), kPABData.dirName);
   do_check_eq(obs._result.getStyleAt(0), "local-abook");
   do_check_eq(obs._result.getImageAt(0), "");

@@ -23,10 +23,10 @@ var gTestFolder;
 
 // Setup the display name to be opposite of alphabetic order of e-mail address.
 const cards = [
-  { email: "aaa@b.com", displayName: "4" },
-  { email: "ccc@d.com", displayName: "3" },
-  { email: "eee@f.com", displayName: "2" },
-  { email: "ggg@h.com", displayName: "1" },
+  { email: "aaa@b.invalid", displayName: "4" },
+  { email: "ccc@d.invalid", displayName: "3" },
+  { email: "eee@f.invalid", displayName: "2" },
+  { email: "ggg@h.invalid", displayName: "1" },
 ];
 
 function run_test() {
@@ -53,8 +53,8 @@ function run_test() {
 
   // build up a couple message with addresses in the ab.
   let messages = [];
-  messages = messages.concat(gMessageGenerator.makeMessage({from: ["aaa", "aaa@b.com"], to: [["ccc", "ccc@d.com"]]}));
-  messages = messages.concat(gMessageGenerator.makeMessage({from: ["eee", "eee@f.com"], to: [["ggg", "ggg@h.com"]]}));
+  messages = messages.concat(gMessageGenerator.makeMessage({from: ["aaa", "aaa@b.invalid"], to: [["ccc", "ccc@d.invalid"]]}));
+  messages = messages.concat(gMessageGenerator.makeMessage({from: ["eee", "eee@f.invalid"], to: [["ggg", "ggg@h.invalid"]]}));
 
   let msgSet = new SyntheticMessageSet(messages);
 

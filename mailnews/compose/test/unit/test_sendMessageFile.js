@@ -17,8 +17,8 @@ var sentFolder;
 var originalData;
 var finished = false;
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 
 function msl() {}
 

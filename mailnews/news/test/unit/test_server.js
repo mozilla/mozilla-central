@@ -55,11 +55,11 @@ function testRFC977() {
     // Test - getting an article
     test = "news:MESSAGE_ID";
     server.resetTest();
-    setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.test");
+    setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.invalid");
     server.performTest();
     transaction = server.playTransaction();
     do_check_transaction(transaction, ["MODE READER",
-        "ARTICLE <TSS1@nntp.test>"]);
+        "ARTICLE <TSS1@nntp.invalid>"]);
 
     // Test - news expiration
     test = "news:GROUP?list-ids";
@@ -104,7 +104,7 @@ function testConnectionLimit() {
   // To test make connections limit, we run two URIs simultaneously.
   var url = URLCreator.newURI(prefix+"*", null, null);
   _server.loadNewsUrl(url, null, null);
-  setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.test");
+  setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.invalid");
   server.performTest();
   // We should have length one... which means this must be a transaction object,
   // containing only us and them

@@ -16,8 +16,8 @@ var decoyFolder;
 var acctMgr;
 var localAccount;
 var secondIdentity;
-var myEmail = "sender@nul.nul"; // Dictated by messagerInjector.js
-var friendEmail = "carl@sagan.com";
+var myEmail = "sender@nul.invalid"; // Dictated by messagerInjector.js
+var friendEmail = "carl@sagan.invalid";
 var friendName = "Carl Sagan";
 var headertoFieldMe;
 var collectedAddresses;
@@ -49,7 +49,7 @@ function setupModule(module) {
 
   // 3) Create a second identity and hold onto it for later
   secondIdentity = acctMgr.createIdentity();
-  secondIdentity.email = "nobody@nowhere.com";
+  secondIdentity.email = "nobody@nowhere.invalid";
 
   folder = create_folder("DisplayNamesA");
   decoyFolder = create_folder("DisplayNamesB");

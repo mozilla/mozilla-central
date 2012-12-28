@@ -2,7 +2,7 @@ From - Mon Jan 1 00:00:00 1965
 X-Mozilla-Status: 0001
 X-Mozilla-Status2: 10000000
 From: <aaa bbb>
-To: <aaa@bb.com>
+To: <aaa@bb.invalid>
 Subject: xxx
 Date: Tue, 9 Dec 2008 16:49:02 +0200
 MIME-Version: 1.0
@@ -34,7 +34,7 @@ Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment
 
 From: <sys admin>
-To: <dd@ee.com>
+To: <dd@ee.invalid>
 Subject: yyy
 Date: Sun, 7 Dec 2008 17:53:47 +0200
 MIME-Version: 1.0

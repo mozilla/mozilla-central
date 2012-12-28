@@ -24,7 +24,7 @@ const kSimpleNewsArticle =
   "Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
   "Newsgroups: test.subscribe.simple\n"+
   "Subject: H2G2 -- What does it mean?\n"+
-  "Message-ID: <TSS1@nntp.test>\n"+
+  "Message-ID: <TSS1@nntp.invalid>\n"+
   "\n"+
   "What does the acronym H2G2 stand for? I've seen it before...\n";
 

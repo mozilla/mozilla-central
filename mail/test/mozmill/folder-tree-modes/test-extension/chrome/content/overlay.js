@@ -7,7 +7,7 @@
    var testFolderTreeMode = {
      __proto__: IFolderTreeMode,
      generateMap: function testFolderTreeMode_generateMap(aFTV) {
-       // Pick the tinderbox@invalid.com inbox and use it as the only folder
+       // Pick the tinderbox@foo.invalid inbox and use it as the only folder
        let acctMgr =
          Components.classes["@mozilla.org/messenger/account-manager;1"]
            .getService(Components.interfaces.nsIMsgAccountManager);

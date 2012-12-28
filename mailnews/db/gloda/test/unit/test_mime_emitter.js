@@ -99,7 +99,7 @@ var partTachImage = new SyntheticPartLeaf(tachImage.body, tachImage);
 
 var relImage = {contentType: 'image/png',
                 encoding: 'base64', charset: null, format: null,
-                contentId: 'part1.foo@bar.com',
+                contentId: 'part1.foo@bar.invalid',
                 body: 'YWJj\n'};
 var partRelImage = new SyntheticPartLeaf(relImage.body, relImage);
 

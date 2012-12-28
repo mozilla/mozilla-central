@@ -150,7 +150,7 @@ function doChecks(server)
   fakeAccount.incomingServer = gPOP3Pump.fakeServer;
   let fakeIdentity = accountManager.createIdentity();
   // start with an email that does not match
-  fakeIdentity.email = "iAmNotTheSender@wrong.domain";
+  fakeIdentity.email = "iAmNotTheSender@wrong.invalid";
   fakeAccount.addIdentity(fakeIdentity);
 
   // gPOP3Pump delivers messages to the local inbox regardless of other
@@ -186,10 +186,10 @@ function doChecks(server)
   do_check_true(spamSettings.checkWhiteList(hdrs[kDomainTest]));
 
   // remove the matching email from the fake identity
-  fakeIdentity.email = "iAmNotTheSender@wrong.domain";
+  fakeIdentity.email = "iAmNotTheSender@wrong.invalid";
 
   // add a fully non-matching domain to the identity
-  identity.email = "PrimaryEmail1@wrong.domain";
+  identity.email = "PrimaryEmail1@wrong.invalid";
 
   // suppress whitelist by matching domain
   server.setBoolValue("inhibitWhiteListingIdentityDomain", true);

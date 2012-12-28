@@ -47,7 +47,7 @@ function run_test() {
                .createInstance(Ci.nsIAbCard);
 
   card.firstName = "test";
-  card.primaryEmail = "test@invalid.com";
+  card.primaryEmail = "test@foo.invalid";
 
   var newCard = AB.addCard(card);
 

@@ -152,7 +152,7 @@ function test_deleting_contact_causes_confirm_prompt()
   gMockPromptService.register();
 
   // Create a contact that we'll try to delete
-  let contact1 = create_contact("test@nobody.com", "Sammy Jenkis", true);
+  let contact1 = create_contact("test@example.com", "Sammy Jenkis", true);
   let toDelete = [contact1];
 
   let bundle = Services.strings
@@ -211,9 +211,9 @@ function test_deleting_contacts_causes_confirm_prompt()
   gMockPromptService.register();
 
   // Create some contacts that we'll try to delete.
-  let contact2 = create_contact("test2@nobody.com", "Leonard Shelby", true);
-  let contact3 = create_contact("test3@nobody.com", "John Edward Gammell", true);
-  let contact4 = create_contact("test4@nobody.com", "Natalie", true);
+  let contact2 = create_contact("test2@example.com", "Leonard Shelby", true);
+  let contact3 = create_contact("test3@example.com", "John Edward Gammell", true);
+  let contact4 = create_contact("test4@example.com", "Natalie", true);
 
   let toDelete = [contact2, contact3, contact4];
 
@@ -327,10 +327,10 @@ function test_writing_to_mailing_list() {
   let mlURI = addedList.URI;
 
   // Create some contacts that we'll try to contact
-  let contacts = [create_contact("test2@nobody.com", "Leonard Shelby", true),
-                  create_contact("test3@nobody.com", "John Edward Gammell",
+  let contacts = [create_contact("test2@example.com", "Leonard Shelby", true),
+                  create_contact("test3@example.com", "John Edward Gammell",
                                  true),
-                  create_contact("test4@nobody.com", "Natalie", true),];
+                  create_contact("test4@example.com", "Natalie", true),];
 
   load_contacts_into_mailing_list(addedList, contacts);
 

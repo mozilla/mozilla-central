@@ -131,8 +131,8 @@ function GetNextNMessages(folder)
 function GetMsgKeyFromURI(uri) {
   // Format of 'uri' : protocol://email/folder#key?params
   //                   '?params' are optional
-  //   ex : mailbox-message://john%2Edoe@pop.isp.com/Drafts#123456?fetchCompleteMessage=true
-  //   ex : mailbox-message://john%2Edoe@pop.isp.com/Drafts#12345
+  //   ex : mailbox-message://john%2Edoe@pop.isp.invalid/Drafts#123456?fetchCompleteMessage=true
+  //   ex : mailbox-message://john%2Edoe@pop.isp.invalid/Drafts#12345
   // We keep only the part after '#' and before an optional '?'.
   // The regexp expects 'key' to be an integer (a serie of digits) : '\d+'.
   let match = /.+#(\d+)/.exec(uri);

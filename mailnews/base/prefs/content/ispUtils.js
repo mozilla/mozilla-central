@@ -35,8 +35,8 @@ function getIspDefaultsForUri(domainURI)
 
     if (!result) return null;
 
-    // The domainURI should be in the format domain:aol.com. (Where 
-    // aol.com is the domain name to use for all email addresses). If
+    // The domainURI should be in the format domain:example.com. (Where 
+    // example.com is the domain name to use for all email addresses). If
     // it does not match this pattern, then it is possible no domain
     // has been specified, so we should leave it uninitialized.
     if (domainURI.startsWith("domain:")) {
@@ -45,7 +45,7 @@ function getIspDefaultsForUri(domainURI)
         if (domainData.length > 1) {
           // To faciltate distributing two different account types for one ISP,
           // it's possible to add parameters to the domain URI 
-          // - e.g. domain:gmail.com?type=imap.
+          // - e.g. domain:example.com?type=imap.
           // This is necessary so RDF doesn't think they're the same.
 
           // Save the domain, but only the part up to the (possible) question mark.
@@ -56,13 +56,13 @@ function getIspDefaultsForUri(domainURI)
 }
 
 // construct an ISP's domain URI based on it's domain
-// (i.e. turns isp.com -> domain:isp.com)
+// (i.e. turns example.com -> domain:example.com)
 function getIspDefaultsForDomain(domain) {
     domainURI = "domain:" + domain;
     return getIspDefaultsForUri(domainURI);
 }
 
-// Given an email address (like "joe@isp.com") look up 
+// Given an email address (like "joe@example.com") look up 
 function getIspDefaultsForEmail(email) {
 
     var emailData = getEmailInfo(email);

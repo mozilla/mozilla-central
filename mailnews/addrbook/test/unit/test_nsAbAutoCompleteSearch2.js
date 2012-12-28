@@ -79,7 +79,7 @@ function createCard(chars, popularity) {
   card.firstName = "firstName".slice(0, chars);
   card.lastName = "lastName".slice(0, chars);
   card.displayName = "displayName".slice(0, chars);
-  card.primaryEmail = "email".slice(0, chars) + "@invalid.com";
+  card.primaryEmail = "email".slice(0, chars) + "@foo.invalid";
   card.setProperty("NickName", "nickName".slice(0, chars));
 
   return card;
@@ -87,9 +87,9 @@ function createCard(chars, popularity) {
 
 const lastSearchCards = [ createCard(1, 0), createCard(2, 0), createCard(3, 0) ];
 
-const results = [ { email: "d <e@invalid.com>", dirName: kPABData.dirName },
-                  { email: "di <em@invalid.com>", dirName: kPABData.dirName },
-                  { email: "dis <ema@invalid.com>", dirName: kPABData.dirName } ];
+const results = [ { email: "d <e@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "di <em@foo.invalid>", dirName: kPABData.dirName },
+                  { email: "dis <ema@foo.invalid>", dirName: kPABData.dirName } ];
 
 const firstNames = [ { search: "fi",     expected: [1, 2] },
                      { search: "fir",    expected: [2] } ];

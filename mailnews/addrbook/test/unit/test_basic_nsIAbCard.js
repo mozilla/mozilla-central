@@ -7,9 +7,9 @@
 const kFNValue = "testFirst\u00D0";
 const kLNValue = "testLast";
 const kDNValue = "testDisplay\u00D1";
-const kEmailValue = "testEmail\u00D2@invalid.com";
-const kEmailValueLC = "testemail\u00D2@invalid.com";
-const kEmailValue2 = "test@test.invalid.com";
+const kEmailValue = "testEmail\u00D2@foo.invalid";
+const kEmailValueLC = "testemail\u00D2@foo.invalid";
+const kEmailValue2 = "test@test.foo.invalid";
 // Email without the @ or anything after it.
 const kEmailReducedValue = "testEmail\u00D2";
 const kCompanyValue = "Test\u00D0 Company";

@@ -5,7 +5,7 @@
  */
 var ab_prefix       = "test-537815-";
 var re_prefix       = new RegExp(ab_prefix)
-var card_properties = { FirstName: "01-first-3", LastName: "02-last", PrimaryEmail: "08-email-1@zindus.com" };
+var card_properties = { FirstName: "01-first-3", LastName: "02-last", PrimaryEmail: "08-email-1@zindus.invalid" };
 var max_addressbooks = 10;
 
 function bug_537815_fixture_setup()

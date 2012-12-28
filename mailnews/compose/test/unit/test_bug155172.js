@@ -21,8 +21,8 @@ function promptPasswordPS(aParent, aDialogTitle, aText, aPassword,
 
 var server;
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 const kUsername = "test.smtp@fakeserver";
 // kPassword 2 is the one defined in signons-mailnews1.8.txt, the other one
 // is intentionally wrong.

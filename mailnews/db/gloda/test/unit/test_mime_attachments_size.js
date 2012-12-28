@@ -127,7 +127,7 @@ var tachApplication = {filename: 'funky.funk',
 
 var relImage = {contentType: 'image/png',
                 encoding: 'base64', charset: null, format: null,
-                contentId: 'part1.foo@bar.com',
+                contentId: 'part1.foo@bar.invalid',
                 body: b64Text};
 
 var tachVCard = {filename: 'bob.vcf', contentType: 'text/x-vcard',

@@ -18,8 +18,8 @@ load("../../../resources/alertTestUtils.js");
 var server;
 var attempt = 0;
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 const kUsername = "testsmtp";
 // This is the same as in the signons file.
 const kInvalidPassword = "smtptest";

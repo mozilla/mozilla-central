@@ -30,7 +30,7 @@ function run_test() {
 
   // Initially disable autocomplete
   identity.autocompleteToMyDomain = false;
-  identity.email = "myemail@invalid.com";
+  identity.email = "myemail@foo.invalid";
 
   // Test - Valid search - this should return no results (autocomplete disabled)
   acs.startSearch("test", identity.key, null, obs);
@@ -98,8 +98,8 @@ function run_test() {
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 1);
 
-  do_check_eq(obs._result.getValueAt(0), "test1@invalid.com");
-  do_check_eq(obs._result.getLabelAt(0), "test1@invalid.com");
+  do_check_eq(obs._result.getValueAt(0), "test1@foo.invalid");
+  do_check_eq(obs._result.getLabelAt(0), "test1@foo.invalid");
   do_check_eq(obs._result.getCommentAt(0), null);
   do_check_eq(obs._result.getStyleAt(0), "default-match");
   do_check_eq(obs._result.getImageAt(0), null);

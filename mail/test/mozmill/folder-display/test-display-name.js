@@ -20,13 +20,13 @@ function setupModule(module) {
   folder = create_folder("DisplayNameA");
 
   add_message_to_folder(folder, create_message({
-    clobberHeaders: {from: "Carter Burke <cburke@wyutani.com>"},
+    clobberHeaders: {from: "Carter Burke <cburke@wyutani.invalid>"},
   }));
   add_message_to_folder(folder, create_message({
-    clobberHeaders: {from: '"Ellen Ripley" <eripley@wyutani.com>'},
+    clobberHeaders: {from: '"Ellen Ripley" <eripley@wyutani.invalid>'},
   }));
   add_message_to_folder(folder, create_message({
-    clobberHeaders: {from: "'Dwayne Hicks' <dhicks@uscmc.mil>"},
+    clobberHeaders: {from: "'Dwayne Hicks' <dhicks@uscmc.invalid>"},
   }));
 }
 

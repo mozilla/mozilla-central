@@ -33,8 +33,8 @@
   (A2=HomeAddress21)(A3=http://WebPage21)(A4=Notes1)(A5=Custom21)(A6
     =Department1)(A7=WorkCountry1)(A8=HomeState1)(A9=JobTitle1)(AA
     =Organization1)(B0=1245128765)(B1=johnd)(B2=John Doe)(B3=Doe)(B4
-    =john.doe@mailinator.com)(B5=John)(AD=3)(B6=janed)(B7=Jane Doe)
-  (B8=jane.doe@mailinator.com)(B9=Jane)>
+    =john.doe@mailinator.invalid)(B5=John)(AD=3)(B6=janed)(B7=Jane Doe)
+  (B8=jane.doe@mailinator.invalid)(B9=Jane)>
 {1:^80 {(k^BC:c)(s=9)} 
   [1:^82(^BB=4)]
   [1(^84^81)(^C3=1)(^87^83)(^8E=0)(^8D=0)(^83^84)(^8C=0)(^B8=0)(^B9=1)

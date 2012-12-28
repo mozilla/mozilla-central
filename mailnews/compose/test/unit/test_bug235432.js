@@ -8,8 +8,8 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 var testmail = do_get_file("data/message1.eml");
 var expectedTemporaryFile;
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 
 var msgSend = Cc["@mozilla.org/messengercompose/send;1"]
                 .createInstance(Ci.nsIMsgSend);

@@ -3945,7 +3945,7 @@ var GlodaDatastore = {
   /**
    * Synchronous lookup of an identity by kind and value, only for use by
    *  the legacy gloda core code that creates a concept of "me".
-   *  Ex: (email, foo@bar.com)
+   *  Ex: (email, foo@example.com)
    */
   getIdentity: function gloda_ds_getIdentity(aKind, aValue) {
     let identity = GlodaCollectionManager.cacheLookupOneByUniqueValue(

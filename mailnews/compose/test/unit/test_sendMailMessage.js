@@ -9,8 +9,8 @@
 var test = null;
 var server;
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 const kUsername = "testsmtp";
 const kPassword = "smtptest";
 

@@ -1,5 +1,5 @@
-From: from@invalid.com
-To: to@invalid.com
+From: from@foo.invalid
+To: to@foo.invalid
 Subject: test mail
 
 this email is in dos format because that is what the interface requires

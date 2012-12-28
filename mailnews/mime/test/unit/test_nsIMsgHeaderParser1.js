@@ -11,10 +11,10 @@ function run_test() {
 
   var checks =
   [
-    ["", "test@invalid.com", "test@invalid.com"],
-    ["Test", "test@invalid.com", "Test <test@invalid.com>"],
-    ["Test", "\"abc!x.yz\"@invalid.com", "Test <\"abc!x.yz\"@invalid.com>"],
-    ["Test", "test.user@invalid.com", "Test <test.user@invalid.com>"],
+    ["", "test@foo.invalid", "test@foo.invalid"],
+    ["Test", "test@foo.invalid", "Test <test@foo.invalid>"],
+    ["Test", "\"abc!x.yz\"@foo.invalid", "Test <\"abc!x.yz\"@foo.invalid>"],
+    ["Test", "test.user@foo.invalid", "Test <test.user@foo.invalid>"],
     ["Test", "test@[xyz!]", "Test <test@[xyz!]>"],
     // Based on RFC 2822 A.1.1
     ["John Doe", "jdoe@machine.example", "John Doe <jdoe@machine.example>"],

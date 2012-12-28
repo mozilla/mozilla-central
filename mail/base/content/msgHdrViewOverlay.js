@@ -107,7 +107,7 @@ var gExpandedHeaderView  = {};
  * information is contained in the view objects.
  * For a given entry in this array you can ask for:
  * .headerName   name of the header (i.e. 'to'). Always stored in lower case
- * .headerValue  value of the header "johndoe@netscape.net"
+ * .headerValue  value of the header "johndoe@example.com"
  */
 var currentHeaderData = {};
 

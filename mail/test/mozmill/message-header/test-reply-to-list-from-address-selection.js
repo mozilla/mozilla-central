@@ -20,7 +20,7 @@ var testFolder = null;
 var msgHdr = null;
 var replyToListWindow = null;
 
-var identityString1 = "tinderbox_correct_identity@invalid.com";
+var identityString1 = "tinderbox_correct_identity@foo.invalid";
 
 var setupModule = function (module) {
 
@@ -43,9 +43,9 @@ var addMessageToFolder = function (aFolder) {
   var source = "From - Sat Nov  1 12:39:54 2008\n" +
                 "X-Mozilla-Status: 0001\n" +
                 "X-Mozilla-Status2: 00000000\n" +
-                "Delivered-To: <tinderbox_identity333@invalid.com>\n" +
+                "Delivered-To: <tinderbox_identity333@foo.invalid>\n" +
                 "Delivered-To: <" + identityString1 + ">\n" +
-                "Delivered-To: <tinderbox_identity555@invalid.com>\n" +
+                "Delivered-To: <tinderbox_identity555@foo.invalid>\n" +
                 "Message-ID: <" + msgId + ">\n" +
                 "Date: Wed, 11 Jun 2008 20:32:02 -0400\n" +
                 "From: Tester <tests@mozillamessaging.invalid>\n" +
@@ -74,7 +74,7 @@ var addIdentitiesAndFolder = function() {
 
   var identity2 = acctMgr.createIdentity();
   //identity.fullName = "Tinderbox_Identity1";
-  identity2.email="tinderbox_identity1@invalid.com";
+  identity2.email="tinderbox_identity1@foo.invalid";
 
   var identity = acctMgr.createIdentity();
   //identity.fullName = "Tinderbox_Identity1";

@@ -76,10 +76,10 @@ function run_test() {
                          .createInstance(nsIMsgCompFields);
 
   // These aren't in the address book copied above.
-  fields.from = "test1@invalid1.com";
-  fields.to = "test2@invalid1.com";
-  fields.cc = "test3@invalid1.com";
-  fields.bcc = "test4@invalid1.com";
+  fields.from = "test1@foo1.invalid";
+  fields.to = "test2@foo1.invalid";
+  fields.cc = "test3@foo1.invalid";
+  fields.bcc = "test4@foo1.invalid";
 
   // Set up some params
   params = Components.classes[MsgComposeParamsContractID]
@@ -101,56 +101,56 @@ function run_test() {
                                                       nonHTMLRecipients),
               nsIAbPreferMailFormat.unknown);
 
-  do_check_eq(nonHTMLRecipients.value, "test2@invalid1.com,test3@invalid1.com,test4@invalid1.com");
+  do_check_eq(nonHTMLRecipients.value, "test2@foo1.invalid,test3@foo1.invalid,test4@foo1.invalid");
 
-  do_check_eq(fields.to, "test2@invalid1.com");
-  do_check_eq(fields.cc, "test3@invalid1.com");
-  do_check_eq(fields.bcc, "test4@invalid1.com");
+  do_check_eq(fields.to, "test2@foo1.invalid");
+  do_check_eq(fields.cc, "test3@foo1.invalid");
+  do_check_eq(fields.bcc, "test4@foo1.invalid");
 
   // Test - checkAndPopulateRecipients with plain text.
 
-  checkPopulate("test4@invalid.com", "test4@invalid.com",
-                nsIAbPreferMailFormat.plaintext, "test4@invalid.com");
+  checkPopulate("test4@foo.invalid", "test4@foo.invalid",
+                nsIAbPreferMailFormat.plaintext, "test4@foo.invalid");
 
   // Test - checkAndPopulateRecipients with html.
 
-  checkPopulate("test5@invalid.com", "", nsIAbPreferMailFormat.html,
-                "test5@invalid.com");
+  checkPopulate("test5@foo.invalid", "", nsIAbPreferMailFormat.html,
+                "test5@foo.invalid");
 
   // Test - checkAndPopulateRecipients with a list of three items.
 
   checkPopulate("TestList1 <TestList1>",
-                "test1@invalid.com,test2@invalid.com,test3@invalid.com",
+                "test1@foo.invalid,test2@foo.invalid,test3@foo.invalid",
                 nsIAbPreferMailFormat.unknown,
-                "test1@invalid.com,test2@invalid.com,test3@invalid.com");
+                "test1@foo.invalid,test2@foo.invalid,test3@foo.invalid");
 
   // Test - checkAndPopulateRecipients with a list of one item.
 
-  checkPopulate("TestList2 <TestList2>", "test4@invalid.com",
-                nsIAbPreferMailFormat.plaintext, "test4@invalid.com");
+  checkPopulate("TestList2 <TestList2>", "test4@foo.invalid",
+                nsIAbPreferMailFormat.plaintext, "test4@foo.invalid");
 
   checkPopulate("TestList3 <TestList3>", "",
-                nsIAbPreferMailFormat.html, "test5@invalid.com");
+                nsIAbPreferMailFormat.html, "test5@foo.invalid");
 
   // Test - checkAndPopulateRecipients with items from multiple address books.
 
   checkPopulate("TestList1 <TestList1>, test3@com.invalid",
-                "test1@invalid.com,test2@invalid.com,test3@invalid.com,test3@com.invalid",
+                "test1@foo.invalid,test2@foo.invalid,test3@foo.invalid,test3@com.invalid",
                 nsIAbPreferMailFormat.unknown,
-                "test1@invalid.com,test2@invalid.com,test3@invalid.com,test3@com.invalid");
+                "test1@foo.invalid,test2@foo.invalid,test3@foo.invalid,test3@com.invalid");
 
   checkPopulate("TestList2 <TestList2>, ListTest2 <ListTest2>",
-                "test4@invalid.com,test4@com.invalid",
+                "test4@foo.invalid,test4@com.invalid",
                 nsIAbPreferMailFormat.plaintext,
-                "test4@invalid.com,test4@com.invalid");
+                "test4@foo.invalid,test4@com.invalid");
 
   checkPopulate("TestList3 <TestList3>, ListTest1 <ListTest1>",
                 "test1@com.invalid,test2@com.invalid,test3@com.invalid",
                 nsIAbPreferMailFormat.unknown,
-                "test5@invalid.com,test1@com.invalid,test2@com.invalid,test3@com.invalid");
+                "test5@foo.invalid,test1@com.invalid,test2@com.invalid,test3@com.invalid");
                 
   // test bug 254519 rfc 2047 encoding
-  checkPopulate("=?iso-8859-1?Q?Sure=F6name=2C_Forename__Dr=2E?= <pb@bieringer.de>", "pb@bieringer.de",
+  checkPopulate("=?iso-8859-1?Q?Sure=F6name=2C_Forename__Dr=2E?= <pb@bieringer.invalid>", "pb@bieringer.invalid",
                 nsIAbPreferMailFormat.unknown,
-                "\"Sure\u00F6name, Forename  Dr.\" <pb@bieringer.de>");
+                "\"Sure\u00F6name, Forename  Dr.\" <pb@bieringer.invalid>");
 };

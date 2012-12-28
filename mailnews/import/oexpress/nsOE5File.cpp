@@ -453,7 +453,7 @@ nsresult nsOE5File::ImportMailbox(uint32_t *pBytesDone, bool *pAbort,
       // From - Jan 1965 00:00:00     <<<--- 1st msg starts here
       // Subject: Test msg
       // . . . (more headers)
-      // To: <someone@netscape.com>
+      // To: <someone@example.com>
       // From - Jan 1965 00:00:00     <<<--- 2nd msg starts here
       // Subject: How are you
       // . . .(more headers)

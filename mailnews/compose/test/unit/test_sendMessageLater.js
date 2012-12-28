@@ -19,8 +19,8 @@ var finished = false;
 var identity = null;
 var testFile = do_get_file("data/429891_testcase.eml");
 
-const kSender = "from@invalid.com";
-const kTo = "to@invalid.com";
+const kSender = "from@foo.invalid";
+const kTo = "to@foo.invalid";
 
 var msgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]
   .getService(Ci.nsIMsgSendLater);

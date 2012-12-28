@@ -31,7 +31,7 @@ var setupModule = function(module) {
 
   folder = folderHelper.create_folder("Forward Content Testing");
   add_message_to_folder(folder, create_message({
-    subject: "something like <foo@bar>",
+    subject: "something like <foo@example>",
     body: {body: "Testing bug 397021!"},
   }));
 }

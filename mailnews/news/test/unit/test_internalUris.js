@@ -183,7 +183,7 @@ function test_forwardInline() {
                      .getService(Ci.nsIMsgComposeService);
   let folder = localserver.rootFolder.getChildNamed("test.filter");
   let hdr = folder.msgDatabase.GetMsgHdrForKey(1);
-  composeSvc.forwardMessage("a@b.c", hdr, null,
+  composeSvc.forwardMessage("a@b.invalid", hdr, null,
     localserver, Ci.nsIMsgComposeService.kForwardInline);
 }
 

@@ -245,7 +245,7 @@ function get_mailing_list_from_address_book(aAddressBook, aDirName)
  *                  and "displayName"
  *
  *                  Example:
- *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
+ *                  [{email: 'test@example.com', displayName: 'Sammy Jenkis'}]
  */
 function load_contacts_into_address_book(aAddressBook, aContacts)
 {
@@ -267,7 +267,7 @@ function load_contacts_into_address_book(aAddressBook, aContacts)
  *                  "displayName"
  *
  *                  Example:
- *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
+ *                  [{email: 'test@example.com', displayName: 'Sammy Jenkis'}]
  */
 function load_contacts_into_mailing_list(aMailingList, aContacts)
 {

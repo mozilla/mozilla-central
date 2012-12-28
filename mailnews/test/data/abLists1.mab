@@ -23,9 +23,9 @@
   (B0=WebPage1)(B1=WebPage2)(B2=BirthYear)(B3=BirthMonth)(B4=BirthDay)
   (B5=Custom1)(B6=Custom2)(B7=Custom3)>
 
-<(90=6)(81=)(82=test1@invalid.com)(80=0)(83=1)(84=test2@invalid.com)
-  (85=2)(86=test3@invalid.com)(87=3)(88=test4@invalid.com)(8C=4791024e)
-  (89=4)(8A=test5@invalid.com)(8D=47910253)(8B=5)(8E=TestList1)(8F
+<(90=6)(81=)(82=test1@foo.invalid)(80=0)(83=1)(84=test2@foo.invalid)
+  (85=2)(86=test3@foo.invalid)(87=3)(88=test4@foo.invalid)(8C=4791024e)
+  (89=4)(8A=test5@foo.invalid)(8D=47910253)(8B=5)(8E=TestList1)(8F
     =testlist1)>
 {1:^80 {(k^BE:c)(s=9)} 
   [1:^82(^BD=6)]

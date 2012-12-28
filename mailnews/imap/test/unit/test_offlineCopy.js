@@ -23,12 +23,12 @@ const nsMsgMessageFlags = Ci.nsMsgMessageFlags;
 var gMsgFile1 = do_get_file("../../../data/bugmail10");
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
 var gMsgFile2 = do_get_file("../../../data/image-attach-test");
-const gMsgId2 = "4A947F73.5030709@xxx.com";
+const gMsgId2 = "4A947F73.5030709@example.com";
 var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 var gMsgFile3 = do_get_file("../../../data/SpamAssassinYes");
 var gMsg3Id = "bugmail7.m47LtAEf007543@mrapp51.mozilla.org";
 var gMsgFile4 = do_get_file("../../../data/bug460636");
-var gMsg4Id = "foo.12345@bar";
+var gMsg4Id = "foo.12345@example";
 
 var gFolder1;
 

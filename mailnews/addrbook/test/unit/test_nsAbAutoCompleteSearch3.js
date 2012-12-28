@@ -6,20 +6,20 @@
 const ACR = Components.interfaces.nsIAutoCompleteResult;
 
 const cards = [
-  { email: "test@invalid.com", displayName: "",
-    popularityIndex: 0, firstName: "test0", value: "test@invalid.com" },
-  { email: "test@invalid.com", displayName: "",
-    popularityIndex: 1, firstName: "test1", value: "test@invalid.com" },
-  { email: "abc@invalid.com", displayName: "",
-    popularityIndex: 1, firstName: "test2", value: "abc@invalid.com" },
-  { email: "foo1@invalid.com", displayName: "d",
-    popularityIndex: 0, firstName: "first1", value: "d <foo1@invalid.com>" },
-  { email: "foo2@invalid.com", displayName: "di",
-    popularityIndex: 1, firstName: "first1", value: "di <foo2@invalid.com>" },
-  { email: "foo3@invalid.com", displayName: "dis",
-    popularityIndex: 2, firstName: "first2", value: "dis <foo3@invalid.com>" },
-  { email: "foo2@invalid.com", displayName: "di",
-    popularityIndex: 3, firstName: "first2", value: "di <foo2@invalid.com>" }
+  { email: "test@foo.invalid", displayName: "",
+    popularityIndex: 0, firstName: "test0", value: "test@foo.invalid" },
+  { email: "test@foo.invalid", displayName: "",
+    popularityIndex: 1, firstName: "test1", value: "test@foo.invalid" },
+  { email: "abc@foo.invalid", displayName: "",
+    popularityIndex: 1, firstName: "test2", value: "abc@foo.invalid" },
+  { email: "foo1@foo.invalid", displayName: "d",
+    popularityIndex: 0, firstName: "first1", value: "d <foo1@foo.invalid>" },
+  { email: "foo2@foo.invalid", displayName: "di",
+    popularityIndex: 1, firstName: "first1", value: "di <foo2@foo.invalid>" },
+  { email: "foo3@foo.invalid", displayName: "dis",
+    popularityIndex: 2, firstName: "first2", value: "dis <foo3@foo.invalid>" },
+  { email: "foo2@foo.invalid", displayName: "di",
+    popularityIndex: 3, firstName: "first2", value: "di <foo2@foo.invalid>" }
 ];
 
 const duplicates = [

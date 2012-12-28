@@ -81,7 +81,7 @@ var messageInfos = [
   },
   {
     name: "german style",
-    bode: [[false, "Mark Banner <bugzilla@standard8.plus.com> wrote:"],
+    bode: [[false, "Mark Banner <bugzilla@standard8.plus.invalid> wrote:"],
            [false, "\xa0"],
            [false, "> We haven't nailed anything down in detail yet, depending on how we are "],
            [true, "That sounds great and would definitely be appreciated by localizers."],

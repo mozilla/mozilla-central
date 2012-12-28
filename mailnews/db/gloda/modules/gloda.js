@@ -371,7 +371,7 @@ var Gloda = {
    * @param ... One or more strings.  Each string can contain zero or more
    *   e-mail addresses with display name.  If more than one address is given,
    *   they should be comma-delimited.  For example
-   *   '"Bob Smith" <bob@smith.com>' is an address with display name.  Mime
+   *   '"Bob Smith" <bob@example.com>' is an address with display name.  Mime
    *   header decoding is performed, but is ignorant of any folder-level
    *   character set overrides.
    * @returns via the callback handle mechanism, a list containing one sub-list

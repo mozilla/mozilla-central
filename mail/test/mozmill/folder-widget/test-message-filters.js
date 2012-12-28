@@ -140,7 +140,7 @@ function create_simple_filter() {
     opList.value = Components.interfaces.nsMsgSearchOp.Is;
     let searchValList = fec.e("searchVal0");
     let searchVal = fec.window.document.getAnonymousNodes(searchValList)[0];
-    searchVal.setAttribute("value", "test@invalid.com");
+    searchVal.setAttribute("value", "test@foo.invalid");
 
     let filterActions = fec.e("filterActionList");
     let firstAction = filterActions.getItemAtIndex(0);

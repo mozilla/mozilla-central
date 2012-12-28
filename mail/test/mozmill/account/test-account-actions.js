@@ -35,7 +35,7 @@ function setupModule(module) {
 
   // Create a NNTP server
   let nntpServer = MailServices.accounts
-    .createIncomingServer(null, "example.nntp.com", "nntp")
+    .createIncomingServer(null, "example.nntp.invalid", "nntp")
     .QueryInterface(Components.interfaces.nsINntpIncomingServer);
 
   identity = MailServices.accounts.createIdentity();

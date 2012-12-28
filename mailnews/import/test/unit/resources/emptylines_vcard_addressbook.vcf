@@ -4,7 +4,7 @@ BEGIN:VCARD
 VERSION:2.1
 FN:John Doe
 N:Doe;John;;;
-EMAIL;TYPE=INTERNET:john.doe@genericemail.com
+EMAIL;TYPE=INTERNET:john.doe@genericemail.invalid
 END:VCARD
 
 
@@ -12,7 +12,7 @@ BEGIN:VCARD
 VERSION:2.1
 FN:Jane Doe
 N:Doe;Jane;;;
-EMAIL;TYPE=INTERNET:jane.doe@genericemail.com
+EMAIL;TYPE=INTERNET:jane.doe@genericemail.invalid
 END:VCARD
 
 

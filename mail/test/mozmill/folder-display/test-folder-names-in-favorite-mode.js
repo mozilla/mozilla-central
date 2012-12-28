@@ -33,8 +33,8 @@ function test_folder_names_in_favorite_pane_view_mode() {
   mc.window.gFolderTreeView.mode = "favorite";
 
   assert_folder_at_index_as(0, "duplicatedName - Local Folders");
-  assert_folder_at_index_as(1, "duplicatedName - tinderbox@invalid.com");
-  assert_folder_at_index_as(2, "duplicatedName - tinderbox@invalid.com");
+  assert_folder_at_index_as(1, "duplicatedName - tinderbox@foo.invalid");
+  assert_folder_at_index_as(2, "duplicatedName - tinderbox@foo.invalid");
   assert_folder_at_index_as(3, "uniqueName");
 
   // Reset the flags to the state they were previously.

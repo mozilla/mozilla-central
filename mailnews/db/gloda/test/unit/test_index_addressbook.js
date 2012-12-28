@@ -50,7 +50,7 @@ function get_cached_gloda_identity_for_email(aEmailAddress) {
     Gloda.NOUN_IDENTITY, "email@" + aEmailAddress.toLowerCase());
 }
 
-const EMAIL_ADDRESS = "all.over@the.world";
+const EMAIL_ADDRESS = "all.over@the.world.invalid";
 const DISPLAY_NAME = "every day";
 
 let identityCollection;

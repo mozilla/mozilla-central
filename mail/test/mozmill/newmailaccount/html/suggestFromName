@@ -2,12 +2,12 @@
 "green_llama@example.com", "gllama@example.com"], "succeeded": true, "quote":
 "b28acb3c0a464d33af22", "price": 0, "provider": "bar"}, {"product":
 "personalized_email", "addresses": ["green-bar@example.com", "me-bar@example.com",
-"green-bar@madeup.nul", "green@bar.nul", "green@barexample.nul",
-"greenbar@greenllama.nul", "mebar@greenllama.nul"], "succeeded": true, "quote":
+"green-bar@madeup.invalid", "green@bar.invalid", "green@barexample.invalid",
+"greenbar@greenllama.invalid", "mebar@greenllama.invalid"], "succeeded": true, "quote":
 "3f93e48679ab46a49475", "price": "20.00", "provider": "foo"},
-{"product": "personalized_email", "addresses": ["corrupt@corrupt.nul"],
+{"product": "personalized_email", "addresses": ["corrupt@corrupt.invalid"],
 "succeeded": true, "quote": "abcdefg", "price": 0, "provider": "corrupt"},
-{"product": "personalized_email", "addresses": ["error@error.nul"],
+{"product": "personalized_email", "addresses": ["error@error.invalid"],
 "succeeded": true, "quote": "abcdefg", "price": 0, "provider": "err"},
 {"addresses": ["default@example.com", {"address": "cheap@example.com", "price": "0"},
 {"address": "expensive@example.com", "price": "$20.00"}], "succeeded": true, "price": "$20-$0", "provider": "multi"}]

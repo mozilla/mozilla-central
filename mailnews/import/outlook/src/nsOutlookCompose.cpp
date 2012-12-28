@@ -52,11 +52,11 @@ static NS_DEFINE_CID(kMsgCompFieldsCID, NS_MSGCOMPFIELDS_CID);
 
 #ifdef IMPORT_DEBUG
 static const char *p_test_headers =
-"Received: from netppl.fi (IDENT:monitor@get.freebsd.because.microsoftsucks.net [209.3.31.115])\n\
- by mail4.sirius.com (8.9.1/8.9.1) with SMTP id PAA27232;\n\
+"Received: from netppl.invalid (IDENT:monitor@get.freebsd.because.microsoftsucks.invalid [209.3.31.115])\n\
+ by mail4.sirius.invalid (8.9.1/8.9.1) with SMTP id PAA27232;\n\
  Mon, 17 May 1999 15:27:43 -0700 (PDT)\n\
-Message-ID: <ikGD3jRTsKklU.Ggm2HmE2A1Jsqd0p@netppl.fi>\n\
-From: \"adsales@qualityservice.com\" <adsales@qualityservice.com>\n\
+Message-ID: <ikGD3jRTsKklU.Ggm2HmE2A1Jsqd0p@netppl.invalid>\n\
+From: \"adsales@qualityservice.invalid\" <adsales@qualityservice.invalid>\n\
 Subject: Re: Your College Diploma (36822)\n\
 Date: Mon, 17 May 1999 15:09:29 -0400 (EDT)\n\
 MIME-Version: 1.0\n\

@@ -608,7 +608,7 @@ function subtest_shows_error_on_empty_suggest_from_name(w) {
  */
 function test_throws_console_error_on_corrupt_XML() {
   // Open the provisioner - once opened, let subtest_get_an_account run.
-  get_to_order_form("corrupt@corrupt.nul");
+  get_to_order_form("corrupt@corrupt.invalid");
   let tab = mc.tabmail.currentTabInfo;
 
   // Record how many accounts we start with.
@@ -997,7 +997,7 @@ function test_external_link_opening_behaviour() {
 function test_return_to_provisioner_on_error_XML() {
   const kOriginalTabNum = mc.tabmail.tabContainer.childNodes.length;
 
-  get_to_order_form("error@error.nul");
+  get_to_order_form("error@error.invalid");
 
   let tab = mc.tabmail.currentTabInfo;
   let doc = tab.browser.contentWindow.document;

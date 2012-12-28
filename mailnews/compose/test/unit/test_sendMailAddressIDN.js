@@ -13,11 +13,11 @@ var sentFolder;
 var originalData;
 var expectedAlertMessage;
 
-const kSender     = "from@invalid.com";
-const kToASCII    = "to@invalid.com";
-const kToValid    = "to@v\u00E4lid.invalid.com";
-const kToValidACE = "to@xn--vlid-loa.invalid.com";
-const kToInvalid  = "b\u00F8rken.to@invalid.invalid.com";
+const kSender     = "from@foo.invalid";
+const kToASCII    = "to@foo.invalid";
+const kToValid    = "to@v\u00E4lid.foo.invalid";
+const kToValidACE = "to@xn--vlid-loa.foo.invalid";
+const kToInvalid  = "b\u00F8rken.to@invalid.foo.invalid";
 const NS_ERROR_BUT_DONT_SHOW_ALERT = 0x805530ef;
 
 

@@ -23,11 +23,11 @@
   (B0=WebPage1)(B1=WebPage2)(B2=BirthYear)(B3=BirthMonth)(B4=BirthDay)
   (B5=Custom1)(B6=Custom2)(B7=Custom3)>
 
-<(A8=8)(81=firs)(82=lastn)(83=)(84=d)(85=ni)(86=ema@invalid.com)(80=0)
-  (87=1)(88=first)(89=l)(8A=di)(8B=nic)(8C=emai@invalid.com)(8D=2)(8E=f)
-  (8F=la)(90=dis)(91=nick)(92=email@invalid.com)(93=3)(94=fi)(95=las)
-  (96=disp)(97=nickn)(98=e@invalid.com)(99=4)(9A=fir)(9B=last)(9C=displ)
-  (9D=n)(9E=em@invalid.com)(9F=5)(A0=t)(A1=list)(A2=6)(A3=te)(A4=lis)
+<(A8=8)(81=firs)(82=lastn)(83=)(84=d)(85=ni)(86=ema@foo.invalid)(80=0)
+  (87=1)(88=first)(89=l)(8A=di)(8B=nic)(8C=emai@foo.invalid)(8D=2)(8E=f)
+  (8F=la)(90=dis)(91=nick)(92=email@foo.invalid)(93=3)(94=fi)(95=las)
+  (96=disp)(97=nickn)(98=e@foo.invalid)(99=4)(9A=fir)(9B=last)(9C=displ)
+  (9D=n)(9E=em@foo.invalid)(9F=5)(A0=t)(A1=list)(A2=6)(A3=te)(A4=lis)
   (A5=7)(A6=tes)(A7=li)>
 {1:^80 {(k^BE:c)(s=9)} 
   [1:^82(^BD=8)]

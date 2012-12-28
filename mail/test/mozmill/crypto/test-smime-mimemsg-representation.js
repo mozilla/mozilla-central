@@ -22,8 +22,8 @@ function setupModule(module) {
   folder = create_folder("SMIME_A");
 
   let msg = create_encrypted_smime_message({
-    from: ["Tinderbox", "tinderbox@invalid.com"],
-    to: [["Tinderbox", "tinderbox@invalid.com"]],
+    from: ["Tinderbox", "tinderbox@foo.invalid"],
+    to: [["Tinderbox", "tinderbox@foo.invalid"]],
     subject: "Albertine disparue (La Fugitive)",
     body: { body: encrypted_blurb },
   });

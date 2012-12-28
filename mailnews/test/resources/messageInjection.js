@@ -76,7 +76,7 @@ function configure_message_injection(aInjectionConfig) {
     let identity = acctMgr.createIdentity();
     // We need an email to protect against random code assuming it exists and
     // throwing exceptions.
-    identity.email = "sender@nul.nul";
+    identity.email = "sender@nul.invalid";
     localAccount.addIdentity(identity);
     localAccount.defaultIdentity = identity;
 
@@ -128,7 +128,7 @@ function configure_message_injection(aInjectionConfig) {
     let identity = acctMgr.createIdentity();
     // We need an email to protect against random code assuming it exists and
     // throwing exceptions.
-    identity.email = "sender@nul.nul";
+    identity.email = "sender@nul.invalid";
     localAccount.addIdentity(identity);
     localAccount.defaultIdentity = identity;
     localAccount.incomingServer = mis.incomingServer;

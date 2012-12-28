@@ -41,7 +41,7 @@ var Tests =
     op: Contains,
     count: 1},
   /* test header:
-  From: bugzilla-daemon@mozilla.org
+  From: bugzilla-daemon@mozilla.invalid
 
   Here we show that the "From" header does not fire tests for the
   "Sender" arbitrary headers, but does fire the standard test
