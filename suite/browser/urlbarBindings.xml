@@ -101,6 +101,9 @@
       <method name="_formatValue">
         <parameter name="formattingEnabled"/>
         <body><![CDATA[
+          if (!this.editor)
+            return;
+
           var controller = this.editor.selectionController;
           var selection = controller.getSelection(controller.SELECTION_URLSECONDARY);
           selection.removeAllRanges();
