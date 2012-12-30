@@ -2067,7 +2067,7 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
 
     nsCOMPtr<nsIMsgIncomingServer> thisServer;
     rv = account->GetIncomingServer(getter_AddRefs(thisServer));
-    if (NS_FAILED(rv))
+    if (NS_FAILED(rv) || !thisServer)
       continue;
 
     nsAutoCString thisServerKey;
