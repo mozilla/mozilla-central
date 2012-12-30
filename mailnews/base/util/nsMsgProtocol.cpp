@@ -36,6 +36,8 @@
 #include "nsAlgorithm.h"
 #include "mozilla/Services.h"
 
+#undef PostMessage // avoid to collision with WinUser.h
+
 using namespace mozilla;
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProtocol)

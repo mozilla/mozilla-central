@@ -50,6 +50,8 @@
 #include <stdarg.h>
 #endif /* !XP_UNIX */
 
+#undef PostMessage // avoid to collision with WinUser.h
+
 static PRLogModuleInfo *SMTPLogModule = nullptr;
 
 /* the output_buffer_size must be larger than the largest possible line

@@ -82,6 +82,7 @@
 
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
+#undef PostMessage // avoid to collision with WinUser.h
 
 #define PREF_NEWS_CANCEL_CONFIRM  "news.cancel.confirm"
 #define PREF_NEWS_CANCEL_ALERT_ON_SUCCESS "news.cancel.alert_on_success"
