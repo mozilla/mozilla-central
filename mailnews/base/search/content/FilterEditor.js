@@ -310,12 +310,10 @@ function initializeDialog(filter)
   let filterType = filter.filterType;
   gFilterTypeSelector.setType(filter.filterType);
 
-  var actionList = filter.actionList;
-  var numActions = actionList.Count();
-
-  for (var actionIndex=0; actionIndex < numActions; actionIndex++)
+  let numActions = filter.actionCount;
+  for (let actionIndex = 0; actionIndex < numActions; actionIndex++)
   {
-    var filterAction = actionList.QueryElementAt(actionIndex, Components.interfaces.nsIMsgRuleAction);
+    let filterAction = filter.getActionAt(actionIndex);
 
     var newActionRow = document.createElement('listitem');
     newActionRow.setAttribute('initialActionIndex', actionIndex);

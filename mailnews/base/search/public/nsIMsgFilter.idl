@@ -16,7 +16,7 @@ interface nsIMsgSearchScopeTerm;
 interface nsIMsgSearchValue;
 interface nsIMsgSearchTerm;
 
-[scriptable, uuid(387c1c49-327c-49d8-a14b-ba8df9e12d57)]
+[scriptable, uuid(36d2748e-9246-44f3-bb74-46cbb0b8c23a)]
 interface nsIMsgRuleAction : nsISupports {
 
   attribute nsMsgRuleActionType type;
@@ -94,16 +94,16 @@ interface nsIMsgFilter : nsISupports {
 
     nsIMsgRuleAction createAction();
 
-    nsIMsgRuleAction getActionAt(in long aIndex);
+    nsIMsgRuleAction getActionAt(in unsigned long aIndex);
 
     void appendAction(in nsIMsgRuleAction action);
+
+    readonly attribute unsigned long actionCount;
 
     void clearActionList();
 
     // Returns the action list in the order it will be really executed in.
     readonly attribute nsIArray sortedActionList;
-
-    readonly attribute nsISupportsArray actionList;
 
     void SaveToTextFile(in nsIOutputStream aStream);
 };

@@ -724,25 +724,23 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolderWithListener(nsIMsgWindow *aMsgWindo
         }
 
         // Also check if filter actions need the body, as this
-        //  is supported in custom actions.
-        nsCOMPtr<nsISupportsArray> actionList;
-        filter->GetActionList(getter_AddRefs(actionList));
+        // is supported in custom actions.
         uint32_t numActions = 0;
-        if (actionList)
-          actionList->Count(&numActions);
+        filter->GetActionCount(&numActions);
         for (uint32_t actionIndex = 0;
              actionIndex < numActions && !m_filterListRequiresBody;
              actionIndex++)
         {
-          nsCOMPtr<nsIMsgRuleAction> action(do_QueryElementAt(actionList,
-                                                              actionIndex,
-                                                              &rv));
+          nsCOMPtr<nsIMsgRuleAction> action;
+          rv = filter->GetActionAt(actionIndex, getter_AddRefs(action));
           if (NS_FAILED(rv) || !action)
             continue;
+
           nsCOMPtr<nsIMsgFilterCustomAction> customAction;
           rv = action->GetCustomAction(getter_AddRefs(customAction));
           if (NS_FAILED(rv) || !customAction)
             continue;
+
           bool needsBody = false;
           customAction->GetNeedsBody(&needsBody);
           if (needsBody)

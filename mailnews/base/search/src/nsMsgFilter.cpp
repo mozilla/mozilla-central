@@ -174,7 +174,6 @@ nsMsgFilter::nsMsgFilter():
     m_expressionTree(nullptr)
 {
   NS_NewISupportsArray(getter_AddRefs(m_termList));
-  NS_NewISupportsArray(getter_AddRefs(m_actionList));
 
   m_type = nsMsgFilterType::InboxRule | nsMsgFilterType::Manual;
 }
@@ -295,7 +294,7 @@ nsMsgFilter::GetSortedActionList(nsIArray **aActionList)
   NS_ENSURE_ARG_POINTER(aActionList);
 
   uint32_t numActions;
-  nsresult rv = m_actionList->Count(&numActions);
+  nsresult rv = GetActionCount(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMutableArray> orderedActions(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
@@ -306,8 +305,7 @@ nsMsgFilter::GetSortedActionList(nsIArray **aActionList)
   for (uint32_t index = 0; index < numActions; ++index)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
-    rv = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
-                                      getter_AddRefs(action));
+    rv = GetActionAt(index, getter_AddRefs(action));
     if (NS_FAILED(rv) || !action)
       continue;
 
@@ -375,30 +373,36 @@ NS_IMETHODIMP
 nsMsgFilter::AppendAction(nsIMsgRuleAction *aAction)
 {
   NS_ENSURE_ARG_POINTER(aAction);
-  return m_actionList->AppendElement(static_cast<nsISupports*>(aAction));
+
+  m_actionList.AppendElement(aAction);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFilter::GetActionAt(int32_t aIndex, nsIMsgRuleAction **aAction)
+nsMsgFilter::GetActionAt(uint32_t aIndex, nsIMsgRuleAction **aAction)
 {
   NS_ENSURE_ARG_POINTER(aAction);
-  return m_actionList->QueryElementAt(aIndex, NS_GET_IID(nsIMsgRuleAction),
-                                      (void **) aAction);
+  NS_ENSURE_ARG(aIndex < m_actionList.Length());
+
+  NS_ENSURE_TRUE(*aAction = m_actionList[aIndex], NS_ERROR_ILLEGAL_VALUE);
+  NS_IF_ADDREF(*aAction);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgFilter::GetActionList(nsISupportsArray **actionList)
+nsMsgFilter::GetActionCount(uint32_t *aCount)
 {
-  NS_ENSURE_ARG_POINTER(actionList);
+  NS_ENSURE_ARG_POINTER(aCount);
 
-  NS_IF_ADDREF(*actionList = m_actionList);
+  *aCount = m_actionList.Length();
   return NS_OK;
 }
 
 NS_IMETHODIMP  //for editing a filter
 nsMsgFilter::ClearActionList()
 {
-  return m_actionList->Clear();
+  m_actionList.Clear();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFilter::GetTerm(int32_t termIndex,
@@ -779,15 +783,14 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   nsAutoCString  actionFilingStr;
 
   uint32_t numActions;
-  err = m_actionList->Count(&numActions);
+  err = GetActionCount(&numActions);
   NS_ENSURE_SUCCESS(err, err);
 
-  for (uint32_t index =0; index < numActions; index++)
+  for (uint32_t index = 0; index < numActions; index++)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
-    err = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
-                                       (void **)getter_AddRefs(action));
-    if (!action)
+    err = GetActionAt(index, getter_AddRefs(action));
+    if (NS_FAILED(err) || !action)
       continue;
 
     nsMsgRuleActionType actionType;

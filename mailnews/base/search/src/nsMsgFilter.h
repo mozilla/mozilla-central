@@ -84,7 +84,7 @@ protected:
   nsCOMPtr<nsISupportsArray> m_termList;       /* linked list of criteria terms */
   nsCOMPtr<nsIMsgSearchScopeTerm> m_scope;         /* default for mail rules is inbox, but news rules could
                                                   have a newsgroup - LDAP would be invalid */
-  nsCOMPtr<nsISupportsArray> m_actionList;
+  nsTArray<nsCOMPtr<nsIMsgRuleAction> > m_actionList;
   nsMsgSearchBoolExpression *m_expressionTree;
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
 };

@@ -569,8 +569,8 @@
         <![CDATA[
           if (this.parentNode.hasAttribute('initialActionIndex'))
           {
-            var actionIndex = this.parentNode.getAttribute('initialActionIndex');
-            var filterAction = gFilter.actionList.QueryElementAt(actionIndex, Components.interfaces.nsIMsgRuleAction);
+            let actionIndex = this.parentNode.getAttribute('initialActionIndex');
+            let filterAction = gFilter.getActionAt(actionIndex);
             this.parentNode.initWithAction(filterAction);
           }
           this.parentNode.updateRemoveButton();

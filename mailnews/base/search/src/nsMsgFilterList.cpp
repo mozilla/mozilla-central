@@ -1069,20 +1069,19 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
     rv = GetFilterAt(index, getter_AddRefs(filter));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsISupportsArray> filterActionList;
-    rv = filter->GetActionList(getter_AddRefs(filterActionList));
-    NS_ENSURE_SUCCESS(rv, rv);
     uint32_t numActions;
-    filterActionList->Count(&numActions);
+    rv = filter->GetActionCount(&numActions);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     for (uint32_t actionIndex = 0; actionIndex < numActions; actionIndex++)
     {
-      nsCOMPtr<nsIMsgRuleAction> filterAction =
-          do_QueryElementAt(filterActionList, actionIndex);
+      nsCOMPtr<nsIMsgRuleAction> filterAction;
+      rv = filter->GetActionAt(actionIndex, getter_AddRefs(filterAction));
+      if (NS_FAILED(rv) || !filterAction)
+        continue;
+
       nsMsgRuleActionType actionType;
-      if (filterAction)
-        filterAction->GetType(&actionType);
-      else
+      if (NS_FAILED(filterAction->GetType(&actionType)))
         continue;
 
       if (actionType == nsMsgFilterAction::MoveToFolder ||
