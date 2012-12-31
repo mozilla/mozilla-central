@@ -666,12 +666,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
       // Unless we're dealing with an Inbox, we don't care
       // about Drafts, Queue, SentMail, Template, or Junk folders
       if (!(flags & nsMsgFolderFlags::Inbox) &&
-          (flags & nsMsgFolderFlags::Drafts ||
-           flags & nsMsgFolderFlags::Queue ||
-           flags & nsMsgFolderFlags::SentMail ||
-           flags & nsMsgFolderFlags::Templates ||
-           flags & nsMsgFolderFlags::Junk ||
-           flags & nsMsgFolderFlags::Archive))
+           (flags & (nsMsgFolderFlags::SpecialUse & ~nsMsgFolderFlags::Inbox)))
         continue;
 
       nsCString folderURI;

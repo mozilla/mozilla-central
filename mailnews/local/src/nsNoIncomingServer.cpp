@@ -59,16 +59,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
 
   // None server may have an inbox if it's deferred to,
   // or if it's the smart mailboxes account.
-  uint32_t mailboxFlags = nsMsgFolderFlags::SentMail |
-                          nsMsgFolderFlags::Archive |
-                          nsMsgFolderFlags::Drafts |
-                          nsMsgFolderFlags::Templates |
-                          nsMsgFolderFlags::Trash |
-                          nsMsgFolderFlags::Junk |
-                          nsMsgFolderFlags::Inbox |
-                          nsMsgFolderFlags::Queue;
-
-  localFolder->SetFlagsOnDefaultMailboxes(mailboxFlags);
+  localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::SpecialUse);
 
   return NS_OK;
 }

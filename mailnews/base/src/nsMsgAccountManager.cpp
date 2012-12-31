@@ -3568,14 +3568,8 @@ nsMsgAccountManager::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 {
   if (aProperty == mFolderFlagAtom)
   {
-    const uint32_t smartFolderFlags = nsMsgFolderFlags::Inbox |
-                                      nsMsgFolderFlags::Templates |
-                                      nsMsgFolderFlags::Trash |
-                                      nsMsgFolderFlags::Drafts |
-                                      nsMsgFolderFlags::Archive |
-                                      nsMsgFolderFlags::SentMail |
-                                      nsMsgFolderFlags::Junk;
-    uint32_t smartFlagsChanged = (oldValue ^ newValue) & smartFolderFlags;
+    uint32_t smartFlagsChanged = (oldValue ^ newValue) &
+      (nsMsgFolderFlags::SpecialUse & ~nsMsgFolderFlags::Queue);
     if (smartFlagsChanged)
     {
       if (smartFlagsChanged & newValue)

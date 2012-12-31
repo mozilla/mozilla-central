@@ -1780,10 +1780,7 @@ NS_IMETHODIMP nsImapMailFolder::GetDeletable (bool *deletable)
   bool isServer;
   GetIsServer(&isServer);
 
-  *deletable = !(isServer || (mFlags & (nsMsgFolderFlags::Inbox |
-    nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
-    nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Archive |
-    nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash)));
+  *deletable = !(isServer || (mFlags & nsMsgFolderFlags::SpecialUse));
   return NS_OK;
 }
 

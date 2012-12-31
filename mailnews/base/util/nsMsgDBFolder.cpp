@@ -2522,9 +2522,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
 
   bool filterForJunk = true;
   if (serverType.EqualsLiteral("rss") ||
-      (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
-                 nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
-                 nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+      (mFlags & (nsMsgFolderFlags::SpecialUse |
                  nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::Newsgroup |
                  nsMsgFolderFlags::ImapOtherUser) &&
        !(mFlags & nsMsgFolderFlags::Inbox)))
@@ -3374,14 +3372,7 @@ nsMsgDBFolder::GetCanRename(bool *aResult)
   // instead of checking if the folder really is being used as a
   // special folder by looking at the "copies and folders" prefs on the
   // identities.
-  *aResult = !(isServer || (mFlags & nsMsgFolderFlags::Trash ||
-           mFlags & nsMsgFolderFlags::Drafts ||
-           mFlags & nsMsgFolderFlags::Queue ||
-           mFlags & nsMsgFolderFlags::Inbox ||
-           mFlags & nsMsgFolderFlags::SentMail ||
-           mFlags & nsMsgFolderFlags::Templates ||
-           mFlags & nsMsgFolderFlags::Archive ||
-           mFlags & nsMsgFolderFlags::Junk));
+  *aResult = !(isServer || (mFlags & nsMsgFolderFlags::SpecialUse));
   return NS_OK;
 }
 
@@ -5948,5 +5939,3 @@ nsresult nsMsgKeySetU::ToMsgKeyArray(nsTArray<nsMsgKey> &aArray)
   NS_ENSURE_SUCCESS(rv, rv);
   return hiKeySet->ToMsgKeyArray(aArray);
 }
-
-

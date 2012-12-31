@@ -107,15 +107,7 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
         do_QueryInterface(rootFolder, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Inbox |
-                                            nsMsgFolderFlags::Archive |
-                                            nsMsgFolderFlags::SentMail |
-                                            nsMsgFolderFlags::Drafts |
-                                            nsMsgFolderFlags::Templates |
-                                            nsMsgFolderFlags::Trash |
-                                            nsMsgFolderFlags::Junk |
-                                            // hmm?
-                                            nsMsgFolderFlags::Queue);
+    localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::SpecialUse);
     return NS_OK;
 }
 
