@@ -868,15 +868,14 @@ nsMsgFilterList::WriteWstrAttr(nsMsgFilterFileAttribValue attrib,
 
 nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
 {
-  const char *attribStr;
   uint32_t   filterCount = 0;
   nsresult   err = GetFilterCount(&filterCount);
   NS_ENSURE_SUCCESS(err, err);
-  err = NS_OK;
 
-  attribStr = GetStringForAttrib(nsIMsgFilterList::attribVersion);
   err = WriteIntAttr(nsIMsgFilterList::attribVersion, kFileVersion, aStream);
+  NS_ENSURE_SUCCESS(err, err);
   err = WriteBoolAttr(nsIMsgFilterList::attribLogging, m_loggingEnabled, aStream);
+  NS_ENSURE_SUCCESS(err, err);
   for (uint32_t i = 0; i < filterCount; i ++)
   {
     nsCOMPtr<nsIMsgFilter> filter;
@@ -924,7 +923,7 @@ nsresult nsMsgFilterList::GetFilterAt(uint32_t filterIndex, nsIMsgFilter **filte
 
   uint32_t filterCount = 0;
   GetFilterCount(&filterCount);
-  NS_ENSURE_ARG_MAX(filterIndex, filterCount - 1);
+  NS_ENSURE_ARG(filterIndex < filterCount);
 
   NS_IF_ADDREF(*filter = m_filters[filterIndex]);
   return NS_OK;
@@ -1000,7 +999,7 @@ nsresult nsMsgFilterList::MoveFilterAt(uint32_t filterIndex,
   nsresult rv = GetFilterCount(&filterCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  NS_ENSURE_ARG_MAX(filterIndex, filterCount - 1);
+  NS_ENSURE_ARG(filterIndex < filterCount);
 
   uint32_t newIndex = filterIndex;
 
@@ -1011,7 +1010,6 @@ nsresult nsMsgFilterList::MoveFilterAt(uint32_t filterIndex,
       return NS_OK;
 
     newIndex = filterIndex - 1;
-
   }
   else if (motion == nsMsgFilterMotion::down)
   {
@@ -1039,7 +1037,7 @@ nsresult nsMsgFilterList::MoveFilterAt(uint32_t filterIndex,
 nsresult nsMsgFilterList::MoveFilter(nsIMsgFilter *aFilter,
                                      nsMsgFilterMotionValue motion)
 {
-  int32_t filterIndex = m_filters.IndexOf(aFilter, 0);
+  uint32_t filterIndex = m_filters.IndexOf(aFilter, 0);
   NS_ENSURE_ARG(filterIndex != m_filters.NoIndex);
 
   return MoveFilterAt(filterIndex, motion);
