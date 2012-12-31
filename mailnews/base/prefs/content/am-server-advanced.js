@@ -109,7 +109,7 @@ function onOk()
     if (radioGroup.value != 1 && !gFirstDeferredAccount.length)
     {
       var confirmDeferAccount =
-        gPrefsBundle.getString("confirmDeferAccount");
+        gPrefsBundle.getString("confirmDeferAccountWarning");
 
       var confirmTitle = gPrefsBundle.getString("confirmDeferAccountTitle");
 

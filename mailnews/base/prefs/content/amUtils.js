@@ -107,6 +107,57 @@ function chooseJunkTargetFolder(aTargetURI, aIsServer)
 }
 
 /**
+ * Fixes junk target folders if they point to an invalid/unusable (e.g. deferred)
+ * folder/account. Only returns the new safe values. It is up to the caller
+ * to push them to the proper elements/prefs.
+ *
+ * @param aSpamActionTargetAccount  The value of the server.*.spamActionTargetAccount pref value (URI).
+ * @param aSpamActionTargetFolder   The value of the server.*.spamActionTargetFolder pref value (URI).
+ * @param aProposedTarget           The URI of a new target to try.
+ * @param aMoveTargetModeValue      The value of the server.*.moveTargetMode pref value (0/1).
+ * @param aServerSpamSettings       The nsISpamSettings object of any server
+ *                                  (used just for the MOVE_TARGET_MODE_* constants).
+ * @param aMoveOnSpam               The server.*.moveOnSpam pref value (bool).
+ *
+ * @return  an array containing:
+ *          newTargetAccount new safe junk target account
+ *          newTargetAccount new safe junk target folder
+ *          newMoveOnSpam    new moveOnSpam value
+ */
+function sanitizeJunkTargets(aSpamActionTargetAccount,
+                             aSpamActionTargetFolder,
+                             aProposedTarget,
+                             aMoveTargetModeValue,
+                             aServerSpamSettings,
+                             aMoveOnSpam)
+{
+  // Check if folder targets are valid.
+  aSpamActionTargetAccount = checkJunkTargetFolder(aSpamActionTargetAccount, true);
+  if (!aSpamActionTargetAccount) {
+    // If aSpamActionTargetAccount is not valid,
+    // reset to default behavior to NOT move junk messages...
+    if (aMoveTargetModeValue == aServerSpamSettings.MOVE_TARGET_MODE_ACCOUNT)
+      aMoveOnSpam = false;
+
+    // ... and find a good default target.
+    aSpamActionTargetAccount = chooseJunkTargetFolder(aProposedTarget, true);
+  }
+
+  aSpamActionTargetFolder = checkJunkTargetFolder(aSpamActionTargetFolder, false);
+  if (!aSpamActionTargetFolder) {
+    // If aSpamActionTargetFolder is not valid,
+    // reset to default behavior to NOT move junk messages...
+    if (aMoveTargetModeValue == aServerSpamSettings.MOVE_TARGET_MODE_FOLDER)
+      aMoveOnSpam = false;
+
+    // ... and find a good default target.
+    aSpamActionTargetFolder = chooseJunkTargetFolder(aProposedTarget, false);
+  }
+
+  return [ aSpamActionTargetAccount, aSpamActionTargetFolder, aMoveOnSpam ];
+}
+
+/**
  * Opens Preferences (Options) dialog on the Advanced pane, General tab
  * so that the user sees where the global receipts settings can be found.
  *

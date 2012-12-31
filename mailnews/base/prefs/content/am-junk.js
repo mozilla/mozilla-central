@@ -10,9 +10,6 @@ let gDeferredToAccount = "";
 
 function onInit(aPageId, aServerId)
 {
-  const kMoveFolderJunk = 0;
-  const kMoveFolderOther = 1;
-
   // manually adjust several pref UI elements
   document.getElementById('server.spamLevel.visible').setAttribute("checked",
     document.getElementById('server.spamLevel').value > 0);
@@ -31,34 +28,21 @@ function onInit(aPageId, aServerId)
   let spamActionTargetAccount = spamActionTargetAccountElement.value;
   let spamActionTargetFolder = spamActionTargetFolderElement.value;
 
-  // check if folder targets are valid
-  spamActionTargetAccount = checkJunkTargetFolder(spamActionTargetAccount, true);
-  spamActionTargetFolder = checkJunkTargetFolder(spamActionTargetFolder, false);
+  let moveOnSpamCheckbox = document.getElementById("server.moveOnSpam");
+  let moveOnSpamValue = moveOnSpamCheckbox.checked;
 
-  let moveCheckbox = document.getElementById("server.moveOnSpam");
-  let moveTargetModeValue = document.getElementById("server.moveTargetMode").value;
+  // Check if there are any invalid junk targets and fix them.
+  [ spamActionTargetAccount, spamActionTargetFolder, moveOnSpamValue ] =
+    sanitizeJunkTargets(spamActionTargetAccount,
+                        spamActionTargetFolder,
+                        deferredToURI || aServerId,
+                        document.getElementById("server.moveTargetMode").value,
+                        GetMsgFolderFromUri(aServerId, false).server.spamSettings,
+                        moveOnSpamValue);
 
-  if (!spamActionTargetAccount) {
-    // spamActionTargetAccount is not valid,
-    // reset to default behavior to NOT move junk messages...
-    if (moveTargetModeValue == kMoveFolderJunk)
-      moveCheckbox.setAttribute("checked", false);
-
-    // ... and find a good default target.
-    spamActionTargetAccount = chooseJunkTargetFolder(deferredToURI || aServerId, true);
-    spamActionTargetAccountElement.value = spamActionTargetAccount;
-  }
-
-  if (!spamActionTargetFolder) {
-    // spamActionTargetFolder is not valid,
-    // reset to default behavior to NOT move junk messages...
-    if (moveTargetModeValue == kMoveFolderOther)
-      moveCheckbox.setAttribute("checked", false);
-
-    // ... and find a good default target.
-    spamActionTargetFolder = chooseJunkTargetFolder(deferredToURI || aServerId, false);
-    spamActionTargetFolderElement.value = spamActionTargetFolder;
-  }
+  spamActionTargetAccountElement.value = spamActionTargetAccount;
+  spamActionTargetFolderElement.value = spamActionTargetFolder;
+  moveOnSpamCheckbox.checked = moveOnSpamValue;
 
   let server = GetMsgFolderFromUri(spamActionTargetAccount, false);
   document.getElementById("actionTargetAccount")
