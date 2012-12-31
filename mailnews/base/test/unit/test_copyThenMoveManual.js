@@ -72,9 +72,9 @@ const gTestArray =
   },
   // use the alternate call into the filter service
   function applyFiltersToFolders() {
-    let folders = Cc["@mozilla.org/supports-array;1"]
-                    .createInstance(Ci.nsISupportsArray);
-    folders.AppendElement(gLocalInboxFolder);
+    let folders = Cc["@mozilla.org/array;1"]
+                    .createInstance(Ci.nsIMutableArray);
+    folders.appendElement(gLocalInboxFolder, false);
     ++gCurTestNum;
     gFilterService.applyFiltersToFolders(gFilterList, folders, null);
   },

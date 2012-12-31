@@ -461,10 +461,13 @@ function runSelectedFilters()
   var folderURI = gRunFiltersFolderPicker.getAttribute("uri");
   var resource = gRDF.GetResource(folderURI);
   var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
+  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
+                                .getService(Components.interfaces.nsIMsgFilterService);
+
   var filterList = filterService.getTempFilterList(msgFolder);
-  var folders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  folders.AppendElement(msgFolder);
+  var folders = Components.classes["@mozilla.org/array;1"]
+                          .createInstance(Components.interfaces.nsIMutableArray);
+  folders.appendElement(msgFolder, false);
 
   // make sure the tmp filter list uses the real filter list log stream
   filterList.logStream = currentFilterList().logStream;

@@ -12,11 +12,10 @@ interface nsIMsgFilterCustomAction;
 interface nsISimpleEnumerator;
 interface nsIFile;
 interface nsIMsgFolder;
-interface nsISupportsArray;
 interface nsIMsgSearchCustomTerm;
 interface nsIArray;
 
-[scriptable, uuid(C1A5F1BB-4D6C-447a-B70F-A12BE767DC0A)]
+[scriptable, uuid(f2cd5e30-ac60-46c0-ad29-54321efd4128)]
 interface nsIMsgFilterService : nsISupports {
 
     nsIMsgFilterList OpenFilterList(in nsIFile filterFile, in nsIMsgFolder rootFolder, in nsIMsgWindow msgWindow);
@@ -24,10 +23,12 @@ interface nsIMsgFilterService : nsISupports {
 
     void SaveFilterList(in nsIMsgFilterList filterList,
                         in nsIFile filterFile);
-    
+
     void CancelFilterList(in nsIMsgFilterList filterList);
     nsIMsgFilterList getTempFilterList(in nsIMsgFolder aFolder);
-    void applyFiltersToFolders(in nsIMsgFilterList aFilterList, in nsISupportsArray aFolders, in nsIMsgWindow aMsgWindow);
+    void applyFiltersToFolders(in nsIMsgFilterList aFilterList,
+                               in nsIArray aFolders,
+                               in nsIMsgWindow aMsgWindow);
 
     /*
      * Apply filters to a specific list of messages in a folder.

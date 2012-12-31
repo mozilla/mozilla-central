@@ -2308,9 +2308,9 @@ function MsgApplyFilters()
                                 .getService(Components.interfaces.nsIMsgFilterService);
 
   var preselectedFolder = GetFirstSelectedMsgFolder();
-  var selectedFolders = Components.classes["@mozilla.org/supports-array;1"]
-                                  .createInstance(Components.interfaces.nsISupportsArray);
-  selectedFolders.AppendElement(preselectedFolder);
+  let selectedFolders = Components.classes["@mozilla.org/array;1"]
+                                  .createInstance(Components.interfaces.nsIMutableArray);
+  selectedFolders.appendElement(preselectedFolder, false);
 
   var curFilterList = preselectedFolder.getFilterList(msgWindow);
   // create a new filter list and copy over the enabled filters to it.

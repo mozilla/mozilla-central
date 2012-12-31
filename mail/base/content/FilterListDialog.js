@@ -507,9 +507,9 @@ function runSelectedFilters()
   var folder = gRunFiltersFolder._folder || gRunFiltersFolder.selectedItem._folder;
 
   let filterList = MailServices.filters.getTempFilterList(folder);
-  let folders = Components.classes["@mozilla.org/supports-array;1"]
-                          .createInstance(Components.interfaces.nsISupportsArray);
-  folders.AppendElement(folder);
+  let folders = Components.classes["@mozilla.org/array;1"]
+                          .createInstance(Components.interfaces.nsIMutableArray);
+  folders.appendElement(folder, false);
 
   // make sure the tmp filter list uses the real filter list log stream
   filterList.logStream = gCurrentFilterList.logStream;

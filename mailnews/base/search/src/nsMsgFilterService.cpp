@@ -245,7 +245,7 @@ nsMsgFilterService::ThrowAlertMsg(const char*aMsgName, nsIMsgWindow *aMsgWindow)
 class nsMsgFilterAfterTheFact : public nsIUrlListener, public nsIMsgSearchNotify, public nsIMsgCopyServiceListener
 {
 public:
-  nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList);
+  nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsIArray *aFolderList);
   virtual ~nsMsgFilterAfterTheFact();
   NS_DECL_ISUPPORTS
   NS_DECL_NSIURLLISTENER
@@ -259,32 +259,32 @@ protected:
   nsresult  OnEndExecution(nsresult executionStatus); // do what we have to do to cleanup.
   bool      ContinueExecutionPrompt();
   nsresult  DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, bool *confirmed);
-  nsCOMPtr <nsIMsgWindow>     m_msgWindow;
-  nsCOMPtr <nsIMsgFilterList> m_filters;
-  nsCOMPtr <nsISupportsArray> m_folders;
-  nsCOMPtr <nsIMsgFolder>     m_curFolder;
-  nsCOMPtr <nsIMsgDatabase>   m_curFolderDB;
-  nsCOMPtr <nsIMsgFilter>     m_curFilter;
+  nsCOMPtr<nsIMsgWindow>      m_msgWindow;
+  nsCOMPtr<nsIMsgFilterList>  m_filters;
+  nsCOMPtr<nsIArray>          m_folders;
+  nsCOMPtr<nsIMsgFolder>      m_curFolder;
+  nsCOMPtr<nsIMsgDatabase>    m_curFolderDB;
+  nsCOMPtr<nsIMsgFilter>      m_curFilter;
   uint32_t                    m_curFilterIndex;
   uint32_t                    m_curFolderIndex;
   uint32_t                    m_numFilters;
   uint32_t                    m_numFolders;
   nsTArray<nsMsgKey>          m_searchHits;
   nsCOMPtr<nsIMutableArray>   m_searchHitHdrs;
-  nsCOMPtr <nsIMsgSearchSession> m_searchSession;
+  nsCOMPtr<nsIMsgSearchSession> m_searchSession;
   uint32_t                    m_nextAction; // next filter action to perform
 };
 
 NS_IMPL_ISUPPORTS3(nsMsgFilterAfterTheFact, nsIUrlListener, nsIMsgSearchNotify, nsIMsgCopyServiceListener)
 
-nsMsgFilterAfterTheFact::nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList)
+nsMsgFilterAfterTheFact::nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsIArray *aFolderList)
 {
   m_curFilterIndex = m_curFolderIndex = m_nextAction = 0;
   m_msgWindow = aMsgWindow;
   m_filters = aFilterList;
   m_folders = aFolderList;
   m_filters->GetFilterCount(&m_numFilters);
-  m_folders->Count(&m_numFolders);
+  m_folders->GetLength(&m_numFolders);
 
   NS_ADDREF(this); // we own ourselves, and will release ourselves when execution is done.
 
@@ -791,7 +791,7 @@ NS_IMETHODIMP nsMsgFilterService::GetTempFilterList(nsIMsgFolder *aFolder, nsIMs
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilterService::ApplyFiltersToFolders(nsIMsgFilterList *aFilterList, nsISupportsArray *aFolders, nsIMsgWindow *aMsgWindow)
+NS_IMETHODIMP nsMsgFilterService::ApplyFiltersToFolders(nsIMsgFilterList *aFilterList, nsIArray *aFolders, nsIMsgWindow *aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aFilterList);
   NS_ENSURE_ARG_POINTER(aFolders);
@@ -875,7 +875,7 @@ nsMsgFilterService::GetCustomTerm(const nsACString& aId,
 class nsMsgApplyFiltersToMessages : public nsMsgFilterAfterTheFact
 {
 public:
-  nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType);
+  nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsIArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType);
 
 protected:
   virtual   nsresult  RunNextFilter();
@@ -884,7 +884,7 @@ protected:
   nsMsgFilterTypeType     m_filterType;
 };
 
-nsMsgApplyFiltersToMessages::nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsISupportsArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType)
+nsMsgApplyFiltersToMessages::nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindow, nsIMsgFilterList *aFilterList, nsIArray *aFolderList, nsIArray *aMsgHdrList, nsMsgFilterTypeType aFilterType)
 : nsMsgFilterAfterTheFact(aMsgWindow, aFilterList, aFolderList),
   m_filterType(aFilterType)
 {
@@ -988,10 +988,10 @@ NS_IMETHODIMP nsMsgFilterService::ApplyFilters(nsMsgFilterTypeType aFilterType,
   nsresult rv = aFolder->GetFilterList(aMsgWindow, getter_AddRefs(filterList));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray>    folderList;
-  rv = NS_NewISupportsArray( getter_AddRefs(folderList) );
+  nsCOMPtr<nsIMutableArray> folderList(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  folderList->AppendElement(aFolder);
+
+  folderList->AppendElement(aFolder, false);
 
   // Create our nsMsgApplyFiltersToMessages object which will be called when ApplyFiltersToHdr
   // finds one or more filters that hit.
