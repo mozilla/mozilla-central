@@ -222,9 +222,7 @@
                     this.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(this.timezone);
-                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth);
                     this.showDate(aDate);
-                    this.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="getRangeDescription">
