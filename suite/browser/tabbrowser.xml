@@ -39,16 +39,18 @@
           </xul:tooltip>
           <xul:menupopup anonid="tabContextMenu" onpopupshowing="return document.getBindingParent(this).updatePopupMenu(this);">
             <xul:menuitem label="&closeTab.label;" accesskey="&closeTab.accesskey;"
+                          tbattr="tabbrowser-tab"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
                                      tabbrowser.removeTab(tabbrowser.mContextTab);"/>
             <xul:menuitem label="&closeOtherTabs.label;" accesskey="&closeOtherTabs.accesskey;"
-                          tbattr="tabbrowser-multiple"
+                          tbattr="tabbrowser-multiple tabbrowser-tab"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
                                      tabbrowser.removeAllTabsBut(tabbrowser.mContextTab);"/>
             <xul:menuseparator/>
             <xul:menuitem label="&newTab.label;" accesskey="&newTab.accesskey;"
                           xbl:inherits="oncommand=onnewtab"/>
-            <xul:menuitem label="&undoCloseTab.label;" accesskey="&undoCloseTab.accesskey;" tbattr="tabbrowser-undoclosetab"
+            <xul:menuitem label="&undoCloseTab.label;" accesskey="&undoCloseTab.accesskey;"
+                          tbattr="tabbrowser-undoclosetab"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
                                      tabbrowser.undoCloseTab(0);"/>
             <xul:menuseparator/>
@@ -57,12 +59,13 @@
                           xbl:inherits="oncommand=onbookmarkgroup"/>
             <xul:menuseparator/>
             <xul:menuitem label="&reloadTab.label;" accesskey="&reloadTab.accesskey;"
+                          tbattr="tabbrowser-tab"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
                                      tabbrowser.reloadTab(tabbrowser.mContextTab);"/>
             <xul:menuitem label="&reloadAllTabs.label;" accesskey="&reloadAllTabs.accesskey;"
                           tbattr="tabbrowser-multiple"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
-                                     tabbrowser.reloadAllTabs(tabbrowser.mContextTab);"/>
+                                     tabbrowser.reloadAllTabs();"/>
           </xul:menupopup>
 
           <xul:tabs class="tabbrowser-tabs" closebutton="true" flex="1"
@@ -921,20 +924,22 @@
         <body>
           <![CDATA[
             this.mContextTab = document.popupNode;
-            // The user might right-click on a non-tab area of the tab strip.
-            if (this.mContextTab.localName != "tab")
-              return false;
+            // The user might right-click on a tab or an empty part of the tabbar.
+            var isTab = this.mContextTab.localName == "tab";
+            var isMultiple = this.tabs.length > 1;
+            var menuItems = aPopupMenu.getElementsByAttribute("tbattr", "*");
+            for (let menuitem of menuItems) {
+              let tbattr = menuitem.getAttribute("tbattr");
 
-            var disabled = this.tabs.length == 1;
-            var menuItems = aPopupMenu.getElementsByAttribute("tbattr", "tabbrowser-multiple");
-            for (var i = 0; i < menuItems.length; i++)
-              menuItems[i].setAttribute("disabled", disabled);
-
-            var undoItem = document.getAnonymousElementByAttribute(this, "tbattr", "tabbrowser-undoclosetab");
-            undoItem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
-            undoItem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 &&
-                              this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
-            return true;
+              if (tbattr.contains("tabbrowser-undoclosetab")) {
+                menuitem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
+                menuitem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 &&
+                                      this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+              }
+              else
+                menuitem.setAttribute("disabled", tbattr.contains("tabbrowser-multiple") && !isMultiple ||
+                                                  tbattr.contains("tabbrowser-tab") && !isTab)
+            }
           ]]>
         </body>
       </method>
@@ -2827,7 +2832,7 @@
           <xul:hbox>
             <xul:stack>
               <xul:spacer class="tabs-left"/>
-              <xul:toolbarbutton class="tabs-newbutton"
+              <xul:toolbarbutton class="tabs-newbutton" context=""
                                  anonid="tabstrip-newbutton"
                                  xbl:inherits="oncommand=onnewtab,onclick=onnewtabclick,tooltiptext=tooltiptextnew"/>
             </xul:stack>
@@ -2844,7 +2849,7 @@
             <xul:stack>
               <xul:spacer class="tabs-right"/>
               <xul:hbox class="tabs-closebutton-box" align="stretch" pack="end">
-                <xul:toolbarbutton class="tabs-alltabs-button"
+                <xul:toolbarbutton class="tabs-alltabs-button" context=""
                                    anonid="alltabs-button"
                                    type="menu"
                                    xbl:inherits="tooltiptext=tooltiptextalltabs">
@@ -2853,7 +2858,7 @@
                                  position="after_end"/>
                 </xul:toolbarbutton>
                 <xul:hbox align="center">
-                  <xul:toolbarbutton class="tabs-closebutton close-button"
+                  <xul:toolbarbutton class="tabs-closebutton close-button" context=""
                                      anonid="tabstrip-closebutton"
                                      xbl:inherits="disabled=disableclose,oncommand=onclosetab,tooltiptext=tooltiptextclose"/>
                 </xul:hbox>
