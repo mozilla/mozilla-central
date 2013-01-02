@@ -151,9 +151,7 @@
   <key id="key_renameAttachment"/>
 </keyset>
 
-  <popupset id="contentAreaContextSet">
-    <menupopup id="contentAreaContextMenu"/>
-  </popupset>
+  <popupset id="contentAreaContextSet"/>
 
   <popupset id="msgComposePopupSet">
     <menupopup id="sidebarPopup"/>

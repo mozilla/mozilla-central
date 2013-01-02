@@ -54,9 +54,7 @@
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
-  <popupset id="contentAreaContextSet">
-    <menupopup id="contentAreaContextMenu"/>
-  </popupset>
+  <popupset id="contentAreaContextSet"/>
   <menupopup id="structToolbarContext"/>
   <menupopup id="sidebarPopup"/>
   <menupopup id="popupNotificationMenu"/>
