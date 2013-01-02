@@ -36,6 +36,7 @@ MailGlue.prototype = {
     Services.obs.addObserver(this, "xpcom-shutdown", false);
     Services.obs.addObserver(this, "final-ui-startup", false);
     Services.obs.addObserver(this, "mail-startup-done", false);
+    Services.obs.addObserver(this, "handle-xul-text-link", false);
   },
 
   // cleanup (called at shutdown)
@@ -43,6 +44,7 @@ MailGlue.prototype = {
     Services.obs.removeObserver(this, "xpcom-shutdown");
     Services.obs.removeObserver(this, "final-ui-startup");
     Services.obs.removeObserver(this, "mail-startup-done");
+    Services.obs.removeObserver(this, "handle-xul-text-link");
   },
 
   // nsIObserver implementation
@@ -56,6 +58,9 @@ MailGlue.prototype = {
       break;
     case "mail-startup-done":
       this._onMailStartupDone();
+      break;
+    case "handle-xul-text-link":
+      this._handleLink(aSubject, aData);
       break;
     }
   },
@@ -103,6 +108,30 @@ MailGlue.prototype = {
                           clickHandler: null });
       });
     });
+  },
+
+  _handleLink: function MailGlue__handleLink(aSubject, aData) {
+    let linkHandled = aSubject.QueryInterface(Ci.nsISupportsPRBool);
+    if (!linkHandled.data) {
+      let win = Services.wm.getMostRecentWindow("mail:3pane");
+      let tabParams = { contentPage: aData, clickHandler: null };
+      if (win) {
+        let tabmail = win.document.getElementById("tabmail");
+        if (tabmail) {
+          tabmail.openTab("contentTab", tabParams);
+          win.focus();
+          linkHandled.data = true;
+          return;
+        }
+      }
+
+      // If we didn't have an open 3 pane window, try and open one.
+      Services.ww.openWindow(null, "chrome://messenger/content/", "_blank",
+                             "chrome,dialog=no,all",
+                             { type: "contentTab",
+                               tabParams: tabParams });
+      linkHandled.data = true;
+    }
   },
 
   // for XPCOM
