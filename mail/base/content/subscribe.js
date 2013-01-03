@@ -105,7 +105,7 @@ function SetUpTree(forceToServer, getOnlyNew)
   {
     CleanUpSearchView();
     gSubscribableServer = server.QueryInterface(Components.interfaces.nsISubscribableServer);
-    gSubscribeTree.setAttribute('ref',null);
+    gSubscribeTree.setAttribute('ref', '');
 
     // enable (or disable) the search related UI
     EnableSearchUI();
