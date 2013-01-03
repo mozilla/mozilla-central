@@ -5,6 +5,7 @@
 
 #include "msgCore.h"
 #include "nsIMsgDBView.h"
+#include "nsIMsgThread.h"
 #include "nsNewsDatabase.h"
 #include "nsMsgKeySet.h"
 #include "nsCOMPtr.h"

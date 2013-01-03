@@ -5,7 +5,6 @@
 
 #include "nsISupports.idl"
 #include "nsIFolderListener.idl"
-#include "nsIMsgThread.idl"
 #include "nsIMsgIncomingServer.idl"
 #include "nsIMsgCopyServiceListener.idl"
 #include "nsIUrlListener.idl"
@@ -24,6 +23,7 @@ interface nsIOutputStream;
 interface nsIInputStream;
 interface nsIFile;
 interface nsIMsgIdentity;
+interface nsIMsgThread;
 interface nsIArray;
 interface nsIMutableArray;
 interface nsISupportsArray;

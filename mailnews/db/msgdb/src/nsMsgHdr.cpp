@@ -8,6 +8,7 @@
 #include "nsMsgDatabase.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgHeaderParser.h"
+#include "nsIMsgThread.h"
 #include "nsMsgMimeCID.h"
 #include "nsIMimeConverter.h"
 

@@ -39,6 +39,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgSearchCustomTerm.h"
 #include "nsIMsgSearchTerm.h"
+#include "nsIMsgThread.h"
 #include "nsAutoPtr.h"
 #include "nsIMsgFilter.h"
 
