@@ -142,9 +142,20 @@ EmailConfigWizard.prototype =
      * account or to show it to the user), you need to run replaceVariables().
      */
     this._currentConfig = null;
+
+    let userFullname;
+    try {
+      let userInfo = Cc["@mozilla.org/userinfo;1"].getService(Ci.nsIUserInfo);
+      userFullname = userInfo.fullname;
+    } catch(e) {
+      // nsIUserInfo may not be implemented on all platforms, and name might
+      // not be avaialble even if it is.
+    }
+
     this._domain = "";
     this._email = "";
-    this._realname = "";
+    this._realname = (userFullname) ? userFullname : "";
+    e("realname").value = this._realname;
     this._password = "";
     this._okCallback = null;
 

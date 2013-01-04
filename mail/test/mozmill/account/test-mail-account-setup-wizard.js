@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var MODULE_NAME = "test-mail-account-setup-wizard";
+const MODULE_NAME = "test-mail-account-setup-wizard";
 
-var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
-                       "account-manager-helpers", "keyboard-helpers" ];
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
+                         "account-manager-helpers", "keyboard-helpers" ];
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
@@ -18,7 +18,7 @@ Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-var wh, account, incoming, outgoing;
+var account, incoming, outgoing;
 
 var user = {
   name: "Yamato Nadeshiko",
@@ -29,21 +29,25 @@ var user = {
 };
 
 function setupModule(module) {
-  wh = collector.getModule("window-helpers");
-  wh.installInto(module);
-  var fdh = collector.getModule("folder-display-helpers");
-  fdh.installInto(module);
-  var amh = collector.getModule("account-manager-helpers");
-  amh.installInto(module);
-  var kh = collector.getModule("keyboard-helpers");
-  kh.installInto(module);
+  collector.getModule("window-helpers").installInto(module);
+  collector.getModule("folder-display-helpers").installInto(module);
+  collector.getModule("account-manager-helpers").installInto(module);
+  collector.getModule("keyboard-helpers").installInto(module);
+
+  try {
+    let userInfo = Cc["@mozilla.org/userinfo;1"].getService(Ci.nsIUserInfo);
+    user.name = userInfo.fullname;
+  } catch(e) {
+     // nsIUserInfo may not be implemented on all platforms, and name might
+     // not be avaialble even if it is.
+  }
 }
 
 // Select File > New > Mail Account to open the Mail Account Setup Wizard
 function open_mail_account_setup_wizard(k) {
-  wh.plan_for_modal_dialog("mail:autoconfig", k);
+  plan_for_modal_dialog("mail:autoconfig", k);
   mc.click(new elib.Elem(mc.menus.menu_File.menu_New.newMailAccountMenuItem));
-  return wh.wait_for_modal_dialog("mail:autoconfig");
+  return wait_for_modal_dialog("mail:autoconfig");
 }
 
 // Remove an account on the Account Manager
@@ -78,7 +82,10 @@ function test_mail_account_setup() {
   open_mail_account_setup_wizard(function (awc) {
     // Input user's account information
     awc.e("realname").focus();
-    input_value(awc, user.name);
+    if (!awc.e("realname").value) {
+       // Realname is likely already filled, if not, fill it now.
+      input_value(awc, user.name); 
+    }
     awc.keypress(null, "VK_TAB", {});
     input_value(awc, user.email);
     awc.keypress(null, "VK_TAB", {});
@@ -132,26 +139,22 @@ function subtest_verify_account(amc) {
     "user email address": { actual: identity.email, expected: user.email }
   };
 
-  let i, has_error = false;
-
-  for (i in config) {
-    if (config[i].actual != config[i].expected) {
-      has_error = true;
-      break;
+  try {
+    for (let i in config) {
+      if (config[i].actual != config[i].expected) {
+        throw new Error("Configured " + i + " is " + config[i].actual +
+                        ". It should be " + config[i].expected + ".");
+      }
     }
+  } finally {
+    remove_account(amc);
   }
-
-  remove_account(amc);
-
-  if (has_error)
-    throw new Error("Configured " + i + " is " + config[i].actual +
-                    ". It should be " + config[i].expected + ".");
 }
 
 /**
  * Make sure that we don't re-set the information we get from the config
  * file if the password is incorrect.
- **/
+ */
 function test_bad_password_uses_old_settings() {
   // Set the pref to load a local autoconfig file.
   let pref_name = "mailnews.auto_config_url";
@@ -166,7 +169,10 @@ function test_bad_password_uses_old_settings() {
     try {
       // Input user's account information
       awc.e("realname").focus();
-      input_value(awc, user.name);
+      if (!awc.e("realname").value) {
+         // Realname is likely already filled, if not, fill it now.
+        input_value(awc, user.name); 
+      }
       awc.keypress(null, "VK_TAB", {});
       input_value(awc, user.email);
       awc.keypress(null, "VK_TAB", {});
@@ -207,7 +213,8 @@ function test_remember_password() {
   remember_password_test(false);
 }
 
-/* Test remember_password checkbox behavior with
+/**
+ * Test remember_password checkbox behavior with
  * signon.rememberSignons set to "aPrefValue"
  */
 function remember_password_test(aPrefValue) {
@@ -249,3 +256,4 @@ function remember_password_test(aPrefValue) {
     }
   });
 }
+

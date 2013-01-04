@@ -169,9 +169,11 @@ function assert_previous_nodes(aNodeType, aStart, aNum) {
  */
 function wait_for_element_enabled(aController, aElement, aEnabled) {
   if (!("disabled" in aElement))
-    throw new Error("Element does not appear to have disabled property.");
+    throw new Error("Element does not appear to have disabled property; id=" +
+                    aElement.id);
 
   aController.waitFor(function() aElement.disabled != aEnabled,
                       "Element should have eventually been " +
-                      (aEnabled ? "enabled" : "disabled"));
+                      (aEnabled ? "enabled" : "disabled") +
+                      "; id=" + aElement.id);
 }
