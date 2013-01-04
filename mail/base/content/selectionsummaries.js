@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/gloda/connotent.js");
@@ -284,7 +283,7 @@ MultiMessageSummary.prototype = {
         countstring += "(";
         countstring += PluralForm.get(numMsgs, gSelectionSummaryStrings["numMsgs"]).replace('#1', numMsgs);
         if (countUnread)
-          countstring += PluralForm.get(numMsgs, gSelectionSummaryStrings["countUnread"]).replace('#1', countUnread);
+          countstring += PluralForm.get(countUnread, gSelectionSummaryStrings["countUnread"]).replace('#1', countUnread);
         countstring += ")";
       }
 
