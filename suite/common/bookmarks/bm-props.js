@@ -395,7 +395,7 @@ var BookmarkPropertiesPanel = {
     if (this._batching)
       return;
 
-    PlacesUtils.transactionManager.beginBatch(nullptr);
+    PlacesUtils.transactionManager.beginBatch(null);
     this._batching = true;
   },
 

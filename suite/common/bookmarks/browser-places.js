@@ -75,7 +75,7 @@ var StarUI = {
             case "remove": {
               // Remove all bookmarks for the bookmark's url, this also removes
               // the tags for the url.
-              PlacesUtils.transactionManager.beginBatch(nullptr);
+              PlacesUtils.transactionManager.beginBatch(null);
               let itemIds = PlacesUtils.getBookmarksForURI(this._uriForRemoval);
               for (let i = 0; i < itemIds.length; i++) {
                 let txn = new PlacesRemoveItemTransaction(itemIds[i]);
@@ -230,7 +230,7 @@ var StarUI = {
 
   beginBatch: function SU_beginBatch() {
     if (!this._batching) {
-      PlacesUtils.transactionManager.beginBatch(nullptr);
+      PlacesUtils.transactionManager.beginBatch(null);
       this._batching = true;
     }
   }
