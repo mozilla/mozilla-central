@@ -205,7 +205,7 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
     if (aRequest->m_allowUndo &&
         aRequest->m_copySourceArray.Length() > 1 &&
         aRequest->m_txnMgr)
-        aRequest->m_txnMgr->EndBatch();
+        aRequest->m_txnMgr->EndBatch(false);
 
     m_copyRequests.RemoveElement(aRequest);
     if (aRequest->m_listener)
@@ -525,7 +525,7 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   // undo stuff
   if (NS_SUCCEEDED(rv) && copyRequest->m_allowUndo && copyRequest->m_copySourceArray.Length() > 1 &&
       copyRequest->m_txnMgr)
-    copyRequest->m_txnMgr->BeginBatch();
+    copyRequest->m_txnMgr->BeginBatch(nullptr);
 
 done:
 

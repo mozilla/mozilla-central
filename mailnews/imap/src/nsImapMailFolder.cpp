@@ -7102,7 +7102,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
     if (msgWindow)
       msgWindow->GetTransactionManager(getter_AddRefs(txnMgr));
     if (txnMgr)
-      txnMgr->BeginBatch();
+      txnMgr->BeginBatch(nullptr);
     nsCOMPtr<nsIMsgDatabase> database;
     GetMsgDatabase(getter_AddRefs(database));
     if (database)
@@ -7357,7 +7357,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       srcFolder->SummaryChanged();
     }
     if (txnMgr)
-      txnMgr->EndBatch();
+      txnMgr->EndBatch(false);
   }
 
   // Do this before delete, as it destroys the messages
