@@ -50,7 +50,7 @@
               <xul:menuitem class="open-engine-manager"
                             anonid="open-engine-manager"
                             label="&cmd_engineManager.label;"
-                            oncommand="openManager(event);"/>
+                            oncommand="OpenSearchEngineManager();"/>
             </xul:menupopup>
           </xul:toolbarbutton>
         </xul:box>
@@ -373,25 +373,6 @@
           }
 
           this._needToBuildPopup = false;
-        ]]></body>
-      </method>
-
-      <method name="openManager">
-        <parameter name="aEvent"/>
-        <body><![CDATA[
-          var wm =
-                Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                          .getService(Components.interfaces.nsIWindowMediator);
-
-          var window = wm.getMostRecentWindow("Browser:SearchManager");
-          if (window)
-            window.focus()
-          else {
-            setTimeout(function () {
-              openDialog("chrome://communicator/content/search/engineManager.xul",
-                         "_blank", "chrome,dialog,modal,centerscreen,resizable");
-            }, 0);
-          }
         ]]></body>
       </method>
 
