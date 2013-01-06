@@ -1739,8 +1739,8 @@ calPropertyBagEnumerator.prototype = {
  */
 function calIterateEmailIdentities(func) {
     var accounts = MailServices.accounts.accounts;
-    for (var i = 0; i < accounts.Count(); ++i) {
-        var account = accounts.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgAccount);
+    for (var i = 0; i < accounts.length; ++i) {
+        var account = accounts.queryElementAt(i, Components.interfaces.nsIMsgAccount);
         var identities = account.identities;
         for (var j = 0; j < identities.length; ++j) {
             var identity = identities.queryElementAt(j, Components.interfaces.nsIMsgIdentity);
