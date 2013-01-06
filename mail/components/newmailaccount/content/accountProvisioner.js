@@ -250,15 +250,6 @@ var EmailAccountProvisioner = {
     // populate the search field with it.
     let name = EmailAccountProvisioner.storage.getItem("name") ||
                $("#name").text();
-    if (!name) {
-      try {
-        let userInfo = Cc["@mozilla.org/userinfo;1"].getService(Ci.nsIUserInfo);
-        name = userInfo.fullname;
-      } catch(e) {
-        // nsIUserInfo may not be implemented on all platforms, and name might
-        // not be avaialble even if it is.
-      }
-    }
     $("#name").val(name);
     EmailAccountProvisioner.saveName();
 
