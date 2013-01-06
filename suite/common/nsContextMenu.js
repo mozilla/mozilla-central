@@ -516,7 +516,7 @@ nsContextMenu.prototype = {
       else if (this.target instanceof HTMLInputElement) {
         this.onTextInput = this.isTargetATextBox(this.target);
         // allow spellchecking UI on all writable text boxes except passwords
-        if (!this.target.readOnly && !this.target.disabled &&
+        if (this.onTextInput && !this.target.readOnly &&
             this.target.mozIsTextField(true)) {
           this.possibleSpellChecking = true;
           InlineSpellCheckerUI.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
@@ -525,8 +525,8 @@ nsContextMenu.prototype = {
         this.onKeywordField = this.isTargetAKeywordField(this.target);
       }
       else if (this.target instanceof HTMLTextAreaElement) {
-        this.onTextInput = true;
-        if (!this.target.readOnly && !this.target.disabled) {
+        this.onTextInput = this.isTextBoxEnabled(this.target);
+        if (this.onTextInput && !this.target.readOnly) {
           this.possibleSpellChecking = true;
           InlineSpellCheckerUI.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
           InlineSpellCheckerUI.initFromEvent(aRangeParent, aRangeOffset);
@@ -1315,11 +1315,18 @@ nsContextMenu.prototype = {
            "contextMenu.hasBGImage = " + this.hasBGImage + "\n";
   },
 
+  isTextBoxEnabled: function(aNode) {
+    return !aNode.ownerDocument.defaultView
+                 .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                 .getInterface(Components.interfaces.nsIDOMWindowUtils)
+                 .isNodeDisabledForEvents(aNode);
+  },
+
   isTargetATextBox: function(aNode) {
     if (aNode instanceof HTMLInputElement)
-      return aNode.mozIsTextField(false);
+      return aNode.mozIsTextField(false) && this.isTextBoxEnabled(aNode);
 
-    return (aNode instanceof HTMLTextAreaElement);
+    return aNode instanceof HTMLTextAreaElement && this.isTextBoxEnabled(aNode);
   },
 
   isTargetAKeywordField: function(aNode) {
