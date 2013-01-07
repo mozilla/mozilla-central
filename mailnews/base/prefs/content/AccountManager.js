@@ -261,6 +261,106 @@ function checkDirectoryIsValid(aLocalPath) {
 }
 
 /**
+ * Even if the local path is usable, there are some special folders we do not
+ * want to allow for message storage as they cause problems (see e.g. bug 750781).
+ *
+ * aLocalPath  The nsIFile of a directory to check.
+ */
+function checkDirectoryIsAllowed(aLocalPath) {
+  /**
+   * Check if the directory contains/is/is a subfolder of the given special
+   * directory.
+   *
+   * @param aDirToCheck  array of { dir, subdirs[] } objects to check.
+   *                     'dir' is a property to retrieve from Directory service
+   *                     'subdirs' is an array of directory names that are
+   *                     are allowed to use inside 'dir'.
+   * aLocalPath  the nsIFile of the directory to check, intended for message storage.
+   */
+  function checkDirectoryIsNotSpecial(aDirToCheck, aLocalPath) {
+    if (aDirToCheck.OS) {
+      if (aDirToCheck.OS.split(",").indexOf(Services.appinfo.OS) == -1)
+        return true;
+    }
+
+    let testDir = null;
+    if ("dirsvc" in aDirToCheck) {
+      try {
+        testDir = Services.dirsvc.get(aDirToCheck.dirsvc, Components.interfaces.nsIFile);
+      } catch (e) {
+        Components.utils.reportError("The special folder " + aDirToCheck.dirsvc +
+          " cannot be retrieved on this platform: " + e);
+      }
+
+      if (!testDir)
+        return true;
+    }
+    else {
+      testDir = Components.classes["@mozilla.org/file/local;1"]
+                          .createInstance(Components.interfaces.nsIFile);
+      testDir.initWithPath(aDirToCheck.dir);
+      if (!testDir.exists())
+        return true;
+    }
+
+    testDir.normalize();
+
+    if (testDir.equals(aLocalPath) || aLocalPath.contains(testDir, true))
+      return false;
+
+    if (testDir.contains(aLocalPath, true)) {
+      // While the tested directory may not be safe,
+      // a subdirectory of some safe subdirectories may be fine.
+      let isInSubdir = false;
+      for each (let subDir in aDirToCheck.safeSubdirs) {
+        let checkDir = testDir.clone();
+        checkDir.append(subDir);
+        if (checkDir.contains(aLocalPath, true)) {
+          isInSubdir = true;
+          break;
+        }
+      }
+      return isInSubdir;
+    }
+
+    return true;
+  }
+
+  let kDangerousDirs = [
+    // profile folder
+    { dirsvc: "ProfD",    OS: null,           safeSubdirs: [ "Mail", "ImapMail", "News" ] },
+    // GRE install folder
+    { dirsvc: "GreD",     OS: null,           safeSubdirs: [ ] },
+    // Application install folder
+    { dirsvc: "CurProcD", OS: null,           safeSubdirs: [ ] },
+    // system temporary folder
+    { dirsvc: "TmpD",     OS: null,           safeSubdirs: [ ] },
+    // Windows system folder
+    { dirsvc: "SysD",     OS: "WINNT",        safeSubdirs: [ ] },
+    // Windows folder
+    { dirsvc: "WinD",     OS: "WINNT",        safeSubdirs: [ ] },
+    // Program Files folder
+    { dirsvc: "ProgF",    OS: "WINNT",        safeSubdirs: [ ] },
+    // trash folder
+    { dirsvc: "Trsh",     OS: "Darwin",       safeSubdirs: [ ] },
+    // Mac OS system folder
+    { dir:    "/System",  OS: "Darwin",       safeSubdirs: [ ] },
+    // devices folder
+    { dir:    "/dev",     OS: "Darwin,Linux", safeSubdirs: [ ] },
+    // process info folder
+    { dir:    "/proc",    OS: "Linux",        safeSubdirs: [ ] },
+    // system state folder
+    { dir:    "/sys",     OS: "Linux",        safeSubdirs: [ ] }
+    ];
+  for each (let tryDir in kDangerousDirs) {
+    if (!checkDirectoryIsNotSpecial(tryDir, aLocalPath))
+      return false;
+  }
+
+  return true;
+}
+
+/**
  * Check if the specified directory does meet all the requirements
  * for safe mail storage.
  *
@@ -269,6 +369,8 @@ function checkDirectoryIsValid(aLocalPath) {
 function checkDirectoryIsUsable(aLocalPath) {
   const kAlertTitle = document.getElementById("bundle_prefs")
                               .getString("prefPanel-server");
+  const originalPath = aLocalPath;
+
   let invalidPath = false;
   try{
     aLocalPath.normalize();
@@ -276,8 +378,17 @@ function checkDirectoryIsUsable(aLocalPath) {
 
   if (invalidPath || !checkDirectoryIsValid(aLocalPath)) {
     let alertString = document.getElementById("bundle_prefs")
-                              .getString("localDirectoryInvalid");
+                              .getFormattedString("localDirectoryInvalid",
+                                                  [originalPath.path]);
     Services.prompt.alert(window, kAlertTitle, alertString);
+    return false;
+  }
+
+  if (!checkDirectoryIsAllowed(aLocalPath)) {
+    let alertNotAllowed = document.getElementById("bundle_prefs")
+                                  .getFormattedString("localDirectoryNotAllowed",
+                                                      [originalPath.path]);
+    Services.prompt.alert(window, kAlertTitle, alertNotAllowed);
     return false;
   }
 
