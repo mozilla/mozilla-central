@@ -116,7 +116,7 @@ ICALContentHandler.prototype = {
         if (w) {
             w.focus();
         } else {
-            w = Services.appshell.hiddenDOMWindow;
+            w = Services.appShell.hiddenDOMWindow;
 
             let args = {};
             args.channel = channel;
