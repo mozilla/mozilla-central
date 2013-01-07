@@ -517,7 +517,8 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
             if (NS_SUCCEEDED(rv))
             {
               messageUrl->GetMessageFile(getter_AddRefs(m_tempMessageFile));
-              MsgNewBufferedFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
+              rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
+              NS_ENSURE_SUCCESS(rv, rv);
 
               bool addDummyEnvelope = false;
               messageUrl->GetAddDummyEnvelope(&addDummyEnvelope);
