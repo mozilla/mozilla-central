@@ -525,7 +525,7 @@ var GlodaIMIndexer = {
     while (sessions.hasMoreElements()) {
       let file = sessions.getNext().QueryInterface(Ci.nsIFile);
       let fileName = file.leafName;
-      if (!file.isFile() || !file.isReadable() || !/\.json$/.test(fileName))
+      if (!file.isFile() || !file.isReadable() || !fileName.endsWith(".json"))
         continue;
       // indexIMConversation may initiate an async grokNounItem sub-job.
       yield this.indexIMConversation(aCallbackHandle, file, aJob.convObj);

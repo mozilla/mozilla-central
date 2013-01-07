@@ -237,7 +237,7 @@ imContextMenu.prototype = {
     href = this.link.getAttributeNS("http://www.w3.org/1999/xlink",
                                     "href");
 
-    if (!href || !href.match(/\S/)) {
+    if (!href || (href.trim() == "")) {
       // Without this we try to save as the current doc,
       // for example, HTML case also throws if empty
       throw "Empty href";
@@ -267,11 +267,11 @@ imContextMenu.prototype = {
   // Get text of link.
   linkText: function() {
     var text = gatherTextUnder(this.link);
-    if (!text || !text.match(/\S/)) {
+    if (text == "") {
       text = this.link.getAttribute("title");
-      if (!text || !text.match(/\S/)) {
+      if (!text || (text.trim() == "")) {
         text = this.link.getAttribute("alt");
-        if (!text || !text.match(/\S/))
+        if (!text || (text.trim() == ""))
           text = this.linkURL;
       }
     }
@@ -325,9 +325,7 @@ function getBrowserSelection(aCharLen) {
       selection = RegExp.lastMatch;
     }
 
-    selection = selection.replace(/^\s+/, "")
-                         .replace(/\s+$/, "")
-                         .replace(/\s+/g, " ");
+    selection = selection.trim().replace(/\s+/g, " ");
 
     if (selection.length > charLen)
       selection = selection.substr(0, charLen);

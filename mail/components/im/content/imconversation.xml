@@ -188,7 +188,7 @@
         if (!aMsg)
           return;
 
-        if (aMsg[0] == "/") {
+        if (aMsg.startsWith("/")) {
           // The /say command is used to bypass command processing
           // (/say can be shortened to just /).
           // "/say" or "/say " should be ignored, as should "/" and "/ ".
@@ -429,7 +429,7 @@
 
           let isFirstWord = inputBox.selectionStart == word.length;
           // check if we are completing a command.
-          let completingCommand = isFirstWord && word[0] == "/";
+          let completingCommand = isFirstWord && word.startsWith("/");
           if (completingCommand) {
             for each (let cmd in Services.cmd.listCommandsForConversation(this._conv)) {
               // It's possible to have a global and a protocol specific command
@@ -463,9 +463,9 @@
           // Be case insensitive only if |word| is entirely lower case.
           let condition;
           if (word.toLocaleLowerCase() == word)
-            condition = function(c) c.toLocaleLowerCase().indexOf(word) == 0;
+            condition = function(c) c.toLocaleLowerCase().startsWith(word);
           else
-            condition = function(c) c.indexOf(word) == 0;
+            condition = function(c) c.startsWith(word);
           completions = completions.filter(condition);
           if (completions.length == 0)
             return;
@@ -540,10 +540,10 @@
             // typing a command in the conversation.
             // These checks are not perfect (especially if non-existing
             // commands are sent as regular messages on the in-use prpl).
-            if (! /^\//.test(text))
+            if (! text.startsWith("/"))
               this._conv.sendTyping(text.length);
             else
-              if (/^\/me /.test(text))
+              if (text.startsWith("/me "))
                 this._conv.sendTyping(text.length - 4);
           }).bind(this), 0);
           return;
@@ -708,8 +708,8 @@
         if (event.metaKey)
           modifiers |= masks.META_MASK;
         if (event.accelKey)
-          modifiers |= (navigator.platform.indexOf("Mac") >= 0) ? masks.META_MASK
-                                                                : masks.CONTROL_MASK;
+          modifiers |= (navigator.platform.contains("Mac")) ? masks.META_MASK
+                                                            : masks.CONTROL_MASK;
 
         // resend the event
         window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
@@ -770,7 +770,7 @@
        <![CDATA[
          let editor = this.editor;
          let currentEditorValue = editor.value;
-         if (currentEditorValue.indexOf(aPrompt) != 0)
+         if (!currentEditorValue.startsWith(aPrompt))
            editor.value = aPrompt + currentEditorValue;
          editor.focus();
        ]]>
