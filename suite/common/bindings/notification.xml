@@ -94,7 +94,7 @@
         </body>
       </method>
 
-      <field name="lastPrefix">"LeaveSecure"</field>
+      <field name="lastMessage">"EnterInsecureMessage"</field>
 
       <method name="onSecurityChange">
         <parameter name="aWebProgress"/>
@@ -104,32 +104,42 @@
           <![CDATA[
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             var pref = "security.warn_leaving_secure";
-            var prefix = "LeaveSecure";
+            var message = "EnterInsecureMessage";
+            var priority = this.PRIORITY_WARNING_LOW;
             if (aState & nsIWebProgressListener.STATE_IS_SECURE) {
               pref = "security.warn_entering_secure";
-              prefix = "EnterSecure";
+              message = "EnterSecureMessage";
+              priority = this.PRIORITY_INFO_LOW;
             } else if (aState & nsIWebProgressListener.STATE_IS_BROKEN) {
               pref = "security.warn_viewing_mixed";
-              prefix = "MixedContent";
+              message = "MixedContentMessage";
+              priority = this.PRIORITY_CRITICAL_LOW;
             }
 
-            if (this.lastPrefix == prefix)
+            if (this.lastMessage == message)
               return;
 
-            this.lastPrefix = prefix;
+            var box = this.getNotificationWithValue(this.lastMessage);
+            if (box)
+              box.close();
+
+            this.lastMessage = message;
 
             if (!this._prefs.getBoolPref(pref))
               return;
 
-            var warn = { value: true };
-            var prompt = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-            prompt.confirmEx(
-              this.activeBrowser.contentWindow,
-              this._stringBundle.GetStringFromName("SecurityTitle"),
-              this._stringBundle.GetStringFromName(prefix + "Message"),
-              prompt.BUTTON_TITLE_OK * prompt.BUTTON_POS_0, null, null, null,
-              this._stringBundle.GetStringFromName(prefix + "ShowAgain"), warn);
-            this._prefs.setBoolPref(pref, warn.value);
+            var buttons = "goPreferences" in window ? [{
+              label: this._stringBundle.GetStringFromName("SecurityPreferences.label"),
+              accessKey: this._stringBundle.GetStringFromName("SecurityPreferences.accesskey"),
+              callback: function() {
+                goPreferences("ssl_pane");
+                return true;
+              }
+            }] : null;
+            var text = this._stringBundle.GetStringFromName(message);
+            box = this.appendNotification(text, message, null, priority, buttons);
+            box.persistence = 1;
+            box.timeout = Date.now() + 20000; // 20 seconds
           ]]>
         </body>
       </method>
