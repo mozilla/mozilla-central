@@ -637,6 +637,7 @@ xpicleanup@BIN_SUFFIX@
   components/mdn-service.js
   components/msgAsyncPrompter.js
   components/NetworkGeolocationProvider.js
+  components/NotificationsComponents.manifest
   components/newsblog.js
   components/nsAbAutoCompleteMyDomain.js
   components/nsAbAutoCompleteSearch.js
@@ -1041,6 +1042,7 @@ xpicleanup@BIN_SUFFIX@
   modules/services-common/utils.js
   modules/services-crypto/utils.js
   modules/services-crypto/WeaveCrypto.js
+  modules/services-notifications/service.js
   modules/services-sync/addonsreconciler.js
   modules/services-sync/constants.js
   modules/services-sync/engines/addons.js
@@ -1139,9 +1141,7 @@ xpicleanup@BIN_SUFFIX@
   #ifndef MOZ_SERVICES_AITC
     defaults/pref/services-aitc.js
   #endif
-  #ifndef MOZ_SERVICES_NOTIFICATIONS
-    defaults/pref/services-notifications.js
-  #endif
+  defaults/pref/services-notifications.js
   #ifndef MOZ_SERVICES_SYNC
     defaults/pref/services-sync.js
   #endif

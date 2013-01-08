@@ -376,9 +376,6 @@
 @BINPATH@/components/messageWakeupService.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
-#ifdef MOZ_SERVICES_NOTIFICATIONS
-@BINPATH@/components/NotificationsComponents.manifest
-#endif
 @BINPATH@/components/nsAbout.js
 @BINPATH@/components/nsBadCertHandler.js
 @BINPATH@/components/nsBadCertHandler.manifest
@@ -584,9 +581,6 @@
 #endif
 #ifdef MOZ_SERVICES_AITC
 @BINPATH@/@PREF_DIR@/services-aitc.js
-#endif
-#ifdef MOZ_SERVICES_NOTIFICATIONS
-@BINPATH@/@PREF_DIR@/services-notifications.js
 #endif
 #ifdef MOZ_SERVICES_SYNC
 @BINPATH@/@PREF_DIR@/services-sync.js
