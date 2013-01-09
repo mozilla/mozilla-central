@@ -32,8 +32,6 @@ nsSuiteDirectoryProvider::GetFile(const char *aKey,
     leafName = "bookmarks.html";
   else if (!strcmp(aKey, NS_APP_USER_PANELS_50_FILE))
     leafName = "panels.rdf";
-  else if (!strcmp(aKey, NS_APP_SEARCH_50_FILE))
-    leafName = "search.rdf";
   else
     return NS_ERROR_FAILURE;
 

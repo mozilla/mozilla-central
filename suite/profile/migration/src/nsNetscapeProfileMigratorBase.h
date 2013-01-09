@@ -31,7 +31,6 @@ struct fileTransactionEntry {
 #define FILE_NAME_JUNKTRAINING    "training.dat"
 #define FILE_NAME_VIRTUALFOLDERS  "virtualFolders.dat"
 #define FILE_NAME_USERCONTENT     "userContent.css"
-#define FILE_NAME_SEARCH          "search.rdf"
 #define DIR_NAME_SEARCH           "searchplugins"
 #define FILE_NAME_DOWNLOADS       "downloads.rdf"
 
