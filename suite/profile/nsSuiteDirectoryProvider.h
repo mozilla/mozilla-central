@@ -2,12 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#ifndef SuiteDirectoryProvider_h__
+#define SuiteDirectoryProvider_h__
 
+#include "nsCOMArray.h"
 #include "nsIDirectoryService.h"
 #include "nsIFile.h"
 #include "nsISimpleEnumerator.h"
 #include "nsStringAPI.h"
 #include "nsCOMPtr.h"
+#include "nsIProperties.h"
 
 #define NS_SUITEDIRECTORYPROVIDER_CONTRACTID "@mozilla.org/suite/directory-provider;1"
 // {9aa21826-9d1d-433d-8c10-f313b26fa9dd}
@@ -24,6 +28,12 @@ public:
 private:
   void EnsureProfileFile(const nsACString& aLeafName,
 			 nsIFile* aParentDir, nsIFile* aTarget);
+
+  void AppendDistroSearchDirs(nsIProperties* aDirSvc,
+                              nsCOMArray<nsIFile> &array);
+
+  void AppendFileKey(const char *key, nsIProperties* aDirSvc,
+                     nsCOMArray<nsIFile> &array);
 
   class AppendingEnumerator : public nsISimpleEnumerator
   {
@@ -42,3 +52,5 @@ private:
     nsCOMPtr<nsIFile>             mNext;
   };
 };
+
+#endif
