@@ -19,8 +19,6 @@ ifdef MOZ_EXTENSIONS
 tier_app_dirs += extensions
 endif
 
-tier_app_dirs += services
-
 else # toplevel Makefile
 
 TIERS += app
