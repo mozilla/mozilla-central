@@ -837,7 +837,7 @@
         <setter>
           <![CDATA[
             if (this.internalValue == val)
-              return;
+              return val;
             this.internalValue = val;
             var menulist = document.getAnonymousNodes(this)[0];
             menulist.selectedItem = this.validMenuitem;
@@ -879,7 +879,7 @@
 
             // custom attribute to style the unavailable menulist item
             menulist.setAttribute("unavailable",
-              (this.valueIds.indexOf(typedValue) < 0) ? "true" : null);
+              this.valueIds.indexOf(typedValue) < 0);
 
             // add a hidden menulist item if value is missing
             let menuitem = menulist.getElementsByAttribute("value", this.value).item(0);
