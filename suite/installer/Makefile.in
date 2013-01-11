@@ -31,11 +31,7 @@ MOZ_LOCALIZED_PKG_LIST = \
 
 DEFINES += -DAB_CD=$(AB_CD) -DMOZ_APP_NAME=$(MOZ_APP_NAME) -DPREF_DIR=$(PREF_DIR)
 
-ifeq ($(MOZ_CHROME_FILE_FORMAT), jar)
-DEFINES += -DJAREXT=.jar
-else
 DEFINES += -DJAREXT=
-endif
 
 ifdef ENABLE_TESTS
 DEFINES += -DENABLE_TESTS=1
@@ -180,7 +176,7 @@ ifdef MOZ_PKG_MANIFEST_P
 	rm -f $(DIST)/pack-list.txt $(DIST)/bin-list.txt
 endif
 
-installer: removed-files
+installer:
 ifdef INSTALLER_DIR
 	$(MAKE) -C $(INSTALLER_DIR)
 endif

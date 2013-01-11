@@ -86,7 +86,7 @@ include $(topsrcdir)/config/rules.mk
 # defined in (mozilla/.../)package-name.mk
 export MOZ_SOURCE_STAMP
 
-DIST_GARBAGE = config.cache config.log config.status config-defs.h \
+DIST_GARBAGE = config.cache config.log config.status* config-defs.h \
    config/autoconf.mk \
    unallmakefiles comm-config.h \
    $(topsrcdir)/.mozconfig.mk $(topsrcdir)/.mozconfig.out

@@ -715,7 +715,7 @@ xpicleanup@BIN_SUFFIX@
   components/Webapps.js
   components/WebContentConverter.js
   components/browser.xpt
-  components/components.manifest
+  components/binary.manifest
   components/interfaces.manifest
   components/mail.xpt
   defaults/profile/bookmarks.html

@@ -414,7 +414,7 @@ regxpcom.exe
   components/addonManager.js
   components/amContentHandler.js
   components/amWebInstallListener.js
-  components/components.manifest
+  components/binary.manifest
   components/ConsoleAPI.js
   components/contentAreaDropListener.js
   components/contentSecurityPolicy.js
