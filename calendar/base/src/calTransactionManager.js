@@ -51,11 +51,11 @@ calTransactionManager.prototype = {
     },
 
     beginBatch: function cTM_beginBatch() {
-        this.transactionManager.beginBatch();
+        this.transactionManager.beginBatch(null);
     },
 
     endBatch: function cTM_endBatch() {
-        this.transactionManager.endBatch();
+        this.transactionManager.endBatch(false);
     },
 
     checkWritable: function cTM_checkWritable(transaction) {
