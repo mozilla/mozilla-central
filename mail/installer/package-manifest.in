@@ -466,6 +466,7 @@
 ; toolkit
 @BINPATH@/components/commandlines.xpt
 @BINPATH@/components/chrome.xpt
+@BINPATH@/components/cryptoComponents.manifest
 @BINPATH@/components/nsDefaultCLH.js
 @BINPATH@/components/nsDefaultCLH.manifest
 @BINPATH@/components/nsFormAutoComplete.js
@@ -481,6 +482,7 @@
 @BINPATH@/components/nsSearchSuggestions.js
 @BINPATH@/components/nsTaggingService.js
 @BINPATH@/components/PlacesCategoriesStarter.js
+@BINPATH@/components/servicesComponents.manifest
 @BINPATH@/components/TCPSocket.js
 @BINPATH@/components/TCPSocketParentIntermediary.js
 @BINPATH@/components/TCPSocket.manifest
