@@ -879,7 +879,7 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
         encoding.Adopt(MimeHeaders_get(hdrs,
                                        HEADER_CONTENT_TRANSFER_ENCODING,
                                        true, false));
-        if (encoding.EqualsLiteral(ENCODING_BASE64))
+        if (encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
           override_content_type = nullptr;
       }
 
