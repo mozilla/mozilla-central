@@ -704,7 +704,7 @@ function ircAccount(aProtocol, aImAccount) {
   this._requestedNickname = this._nickname;
 
   // For more information, see where these are defined in the prototype below.
-  this._isOnQueue = [];
+  this.trackQueue = [];
   this.pendingIsOnQueue = [];
   this.whoisInformation = {};
   this._chatRoomFieldsList = {};
@@ -968,7 +968,7 @@ ircAccount.prototype = {
 
   trackBuddy: function(aNick) {
     // Put the username as the first to be checked on the next ISON call.
-    this._isOnQueue.unshift(aNick);
+    this.trackQueue.unshift(aNick);
   },
   addBuddy: function(aTag, aName) {
     let buddy = new ircAccountBuddy(this, null, aTag, aName);
@@ -1066,7 +1066,7 @@ ircAccount.prototype = {
 
   // To check if users are online, we need to queue multiple messages.
   // An internal queue of all nicks that we wish to know the status of.
-  _isOnQueue: [],
+  trackQueue: [],
   // The nicks that were last sent to the server that we're waiting for a
   // response about.
   pendingIsOnQueue: [],
@@ -1078,12 +1078,8 @@ ircAccount.prototype = {
   _isOnLength: null,
   // Generate and send an ISON message to poll for each nick's status.
   sendIsOn: function() {
-    // Add any previously pending queue to the end of the ISON queue.
-    if (this.pendingIsOnQueue)
-      this._isOnQueue = this._isOnQueue.concat(this.pendingIsOnQueue);
-
     // If no buddies, just look again after the timeout.
-    if (this._isOnQueue.length) {
+    if (this.trackQueue.length) {
       // Calculate the possible length of names we can send.
       if (!this._isOnLength) {
         let length = this.countBytes(this.buildMessage("ISON", " ")) + 2;
@@ -1093,16 +1089,16 @@ ircAccount.prototype = {
       // Always add the next nickname to the pending queue, this handles a silly
       // case where the next nick is greater than or equal to the maximum
       // message length.
-      this.pendingIsOnQueue = [this._isOnQueue.shift()];
+      this.pendingIsOnQueue = [this.trackQueue.shift()];
 
       // Attempt to maximize the characters used in each message, this may mean
       // that a specific user gets sent very often since they have a short name!
       let buddiesLength = this.countBytes(this.pendingIsOnQueue[0]);
-      for (let i = 0; i < this._isOnQueue.length; i++) {
+      for (let i = 0; i < this.trackQueue.length; i++) {
         // If we can fit the nick, add it to the current buffer.
-        if ((buddiesLength + this.countBytes(this._isOnQueue[i])) < this._isOnLength) {
+        if ((buddiesLength + this.countBytes(this.trackQueue[i])) < this._isOnLength) {
           // Remove the name from the list and add it to the pending queue.
-          let nick = this._isOnQueue.splice(i--, 1)[0];
+          let nick = this.trackQueue.splice(i--, 1)[0];
           this.pendingIsOnQueue.push(nick);
 
           // Keep track of the length of the string, the + 1 is for the spaces.
@@ -1116,6 +1112,9 @@ ircAccount.prototype = {
 
       // Send the message.
       this.sendMessage("ISON", this.pendingIsOnQueue.join(" "));
+
+      // Append the pending nicks so trackQueue contains all the nicks.
+      this.trackQueue = this.trackQueue.concat(this.pendingIsOnQueue);
     }
 
     // Call this function again in _isOnDelay seconds.

@@ -142,8 +142,7 @@ var ircWATCH = {
       this.trackBuddy = trackBuddyWatch;
 
       // Build the watchlist from the current list of nicks.
-      this._isOnQueue = this._isOnQueue.concat(this.pendingIsOnQueue);
-      this.trackBuddy(this._isOnQueue);
+      this.trackBuddy(this.trackQueue);
 
       // Fall through to other handlers since we're only using this as an entry
       // point and not actually handling the message.
@@ -327,8 +326,7 @@ var ircMONITOR = {
       this.trackBuddy = trackBuddyMonitor;
 
       // Build the watchlist from the current list of nicks.
-      this._isOnQueue = this._isOnQueue.concat(this.pendingIsOnQueue);
-      this.trackBuddy(this._isOnQueue);
+      this.trackBuddy(this.trackQueue);
 
       // Fall through to other handlers since we're only using this as an entry
       // point and not actually handling the message.
