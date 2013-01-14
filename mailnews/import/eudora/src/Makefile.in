@@ -31,6 +31,7 @@ CPPSRCS		= \
 
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsEudoraWin32.cpp
+OS_CXXFLAGS += -DNOMINMAX
 endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))

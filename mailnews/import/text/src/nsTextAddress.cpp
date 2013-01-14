@@ -134,7 +134,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
       // considering that lineStream won't give us how many bytes
       // are actually left.
       bytesLeft -= line.Length();
-      *pProgress = std::min(totalBytes - bytesLeft, PR_UINT32_MAX);
+      *pProgress = std::min(totalBytes - bytesLeft, uint64_t(PR_UINT32_MAX));
     }
   }
 

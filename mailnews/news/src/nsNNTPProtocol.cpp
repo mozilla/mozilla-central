@@ -2118,7 +2118,7 @@ nsresult nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, uint32_t l
       uint64_t inlength = 0;
       mDisplayInputStream->Available(&inlength);
       if (inlength > 0) // broadcast our batched up ODA changes
-        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, std::min(inlength, PR_UINT32_MAX));
+        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, std::min(inlength, uint64_t(PR_UINT32_MAX)));
       SetFlag(NNTP_PAUSE_FOR_READ);
       PR_Free(line);
       return rv;
@@ -2137,7 +2137,7 @@ nsresult nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, uint32_t l
       uint64_t inlength = 0;
       mDisplayInputStream->Available(&inlength);
       if (inlength > 0) // broadcast our batched up ODA changes
-        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, std::min(inlength, PR_UINT32_MAX));
+        m_channelListener->OnDataAvailable(this, m_channelContext, mDisplayInputStream, 0, std::min(inlength, uint64_t(PR_UINT32_MAX)));
       PR_Free(line);
       return rv;
     }

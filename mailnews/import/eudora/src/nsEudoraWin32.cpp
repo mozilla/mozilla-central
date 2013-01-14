@@ -203,7 +203,7 @@ nsresult nsEudoraWin32::ScanMailDir(nsIFile *pFolder, nsISupportsArray *pArray, 
       inputStream->Close();
       return rv;
     }
-    uint32_t bytesLeft = std::min(PR_UINT32_MAX - 1, bytesLeft64);
+    uint32_t bytesLeft = std::min(uint64_t(PR_UINT32_MAX - 1), bytesLeft64);
     pContents = (char *) PR_Malloc(bytesLeft + 1);
     if (!pContents)
       return NS_ERROR_OUT_OF_MEMORY;

@@ -1083,7 +1083,7 @@ public:
 
         if (avail)
         {
-          rv = aOutStream->WriteFrom(mInStream, std::min(avail, 4096), &bytesWritten);
+          rv = aOutStream->WriteFrom(mInStream, std::min(avail, uint64_t(4096)), &bytesWritten);
           // if were full at the time, the input stream may be backed up and we need to read any remains from the last ODA call
           // before we'll get more ODA calls
           if (protInst->mSuspendedRead)
@@ -1408,7 +1408,7 @@ nsresult nsMsgAsyncWriteProtocol::UnblockPostReader()
       uint64_t avail = 0;
       mPostDataStream->Available(&avail);
 
-      m_outputStream->WriteFrom(mPostDataStream, std::min(avail, mSuspendedReadBytes), &amountWritten);
+      m_outputStream->WriteFrom(mPostDataStream, std::min(avail, uint64_t(mSuspendedReadBytes)), &amountWritten);
       // hmm sometimes my mSuspendedReadBytes is getting out of whack...so for now, reset it
       // if necessary.
       if (mSuspendedReadBytes > avail)

@@ -493,7 +493,7 @@ nsMimeBaseEmitter::WriteHelper(const char *buf, uint32_t count, uint32_t *countW
     rv = mInputStream->Available(&avail);
     if (NS_SUCCEEDED(rv) && avail) {
       mOutListener->OnDataAvailable(mChannel, mURL, mInputStream, 0, 
-                                    std::min(avail, PR_UINT32_MAX));
+                                    std::min(avail, uint64_t(PR_UINT32_MAX)));
 
       // try writing again...
       rv = mOutStream->Write(buf, count, countWritten);
@@ -1060,7 +1060,7 @@ nsMimeBaseEmitter::Complete()
     if (bytesInStream)
     {
       nsCOMPtr<nsIRequest> request = do_QueryInterface(mChannel);
-      mOutListener->OnDataAvailable(request, mURL, mInputStream, 0, std::min(bytesInStream, PR_UINT32_MAX));
+      mOutListener->OnDataAvailable(request, mURL, mInputStream, 0, std::min(bytesInStream, uint64_t(PR_UINT32_MAX)));
     }
   }
 
