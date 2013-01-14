@@ -26,6 +26,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsISupportsArray.h"
 #include "nsAlgorithm.h"
+#include <algorithm>
 
 // This stuff lives in the base class because the IMAP search syntax
 // is used by the Dredd SEARCH command as well as IMAP itself
@@ -898,7 +899,7 @@ nsMsgSearchValidityTable::GetAvailableOperators(nsMsgSearchAttribValue aAttribut
     if (aAttribute == nsMsgSearchAttrib::Default)
       attr = m_defaultAttrib;
     else
-      attr = NS_MIN(aAttribute,
+      attr = std::min(aAttribute,
                     (nsMsgSearchAttribValue)nsMsgSearchAttrib::OtherHeader);
 
     uint32_t totalOperators=0;
@@ -1166,7 +1167,7 @@ nsMsgSearchValidityManager::SetOtherHeadersInTable (nsIMsgSearchValidityTable *a
 
   NS_ASSERTION(nsMsgSearchAttrib::OtherHeader + numHeaders < nsMsgSearchAttrib::kNumMsgSearchAttributes, "more headers than the table can hold");
 
-  uint32_t maxHdrs = NS_MIN(nsMsgSearchAttrib::OtherHeader + numHeaders + 1,
+  uint32_t maxHdrs = std::min(nsMsgSearchAttrib::OtherHeader + numHeaders + 1,
                             (uint32_t)nsMsgSearchAttrib::kNumMsgSearchAttributes);
   for (uint32_t i=nsMsgSearchAttrib::OtherHeader+1;i< maxHdrs;i++)
   {

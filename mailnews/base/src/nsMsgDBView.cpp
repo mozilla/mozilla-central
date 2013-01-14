@@ -49,6 +49,7 @@
 #include "nsIAbCard.h"
 #include "mozilla/Services.h"
 #include "nsVoidArray.h"
+#include <algorithm>
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -4442,7 +4443,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   uint32_t maxSize = (keyOffset + maxLen) * (arraySize - numSoFar);
 
   const uint32_t maxBlockSize = (uint32_t) 0xf000L;
-  uint32_t allocSize = NS_MIN(maxBlockSize, maxSize);
+  uint32_t allocSize = std::min(maxBlockSize, maxSize);
   char *pTemp = (char *) PR_Malloc(allocSize);
   NS_ASSERTION(pTemp, "out of memory, can't sort");
   if (!pTemp)
@@ -4511,9 +4512,9 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     if ((uint32_t)(pTemp - pBase) + (keyOffset + actualFieldLen) >= allocSize)
     {
       maxSize = (keyOffset + maxLen) * (arraySize - numSoFar);
-      allocSize = NS_MIN(maxBlockSize, maxSize);
+      allocSize = std::min(maxBlockSize, maxSize);
       // make sure allocSize is big enough for the current value
-      allocSize = NS_MAX(allocSize, keyOffset + actualFieldLen);
+      allocSize = std::max(allocSize, keyOffset + actualFieldLen);
       pTemp = (char *) PR_Malloc(allocSize);
       NS_ASSERTION(pTemp, "out of memory, can't sort");
       if (!pTemp)
@@ -6362,7 +6363,7 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
             break;
         case nsMsgNavigationType::nextMessage:
             // return same index and id on next on last message
-            *pResultIndex = NS_MIN(startIndex + 1, lastIndex);
+            *pResultIndex = std::min(startIndex + 1, lastIndex);
             *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::previousMessage:
@@ -7128,7 +7129,7 @@ nsMsgDBView::GetMsgToSelectAfterDelete(nsMsgViewIndex *msgToSelectAfterDelete)
         NS_WARN_IF_FALSE(endFirstRange != startRange,
                          "goofy tree selection state: two ranges are adjacent!");
       }
-      *msgToSelectAfterDelete = NS_MIN(*msgToSelectAfterDelete,
+      *msgToSelectAfterDelete = std::min(*msgToSelectAfterDelete,
                                        (nsMsgViewIndex)startRange);
     }
 

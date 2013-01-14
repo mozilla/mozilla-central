@@ -44,6 +44,7 @@
 #include "nsTextFormatter.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgI18N.h"
+#include <algorithm>
 // for the memory cache...
 #include "nsICacheEntryDescriptor.h"
 #include "nsICacheSession.h"
@@ -872,7 +873,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
           // which should be rare, increase the timeout based on number
           // of messages. 40 messages per second should be sufficiently slow.
           if (copyCount > 2400) // 40 * 60, 60 is default read write timeout
-            readWriteTimeout = NS_MAX(readWriteTimeout, (int32_t)copyCount/40);
+            readWriteTimeout = std::max(readWriteTimeout, (int32_t)copyCount/40);
         }
       }
       m_transport->SetTimeout(nsISocketTransport::TIMEOUT_READ_WRITE, readWriteTimeout);

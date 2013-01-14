@@ -63,6 +63,7 @@
 #include "nsIPK11TokenDB.h"
 #include "nsIPK11Token.h"
 #include "nsMsgLocalFolderHdrs.h"
+#include <algorithm>
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
 #include "nsIMsgFilterService.h"
@@ -2048,7 +2049,7 @@ nsMsgDBFolder::GetPurgeThreshold(int32_t *aThreshold)
       (void) prefBranch->GetIntPref(PREF_MAIL_PURGE_THRESHOLD, aThreshold);
       if (*aThreshold/1024 != thresholdMB)
       {
-        thresholdMB = NS_MAX(1, *aThreshold/1024);
+        thresholdMB = std::max(1, *aThreshold/1024);
         prefBranch->SetIntPref(PREF_MAIL_PURGE_THRESHOLD_MB, thresholdMB);
       }
       prefBranch->SetBoolPref(PREF_MAIL_PURGE_MIGRATED, true);

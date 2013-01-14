@@ -20,6 +20,7 @@
 #include "TextDebugLog.h"
 #include "plstr.h"
 #include "msgCore.h"
+#include <algorithm>
 
 #ifndef MOZILLA_INTERNAL_API
 #include "nsMsgI18N.h"
@@ -133,7 +134,7 @@ nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, ns
       // considering that lineStream won't give us how many bytes
       // are actually left.
       bytesLeft -= line.Length();
-      *pProgress = NS_MIN(totalBytes - bytesLeft, PR_UINT32_MAX);
+      *pProgress = std::min(totalBytes - bytesLeft, PR_UINT32_MAX);
     }
   }
 

@@ -20,6 +20,7 @@
 #include "nsMemory.h"
 #include "nsAlgorithm.h"
 #include "mozilla/Services.h"
+#include <algorithm>
 
 #define MK_MIME_ERROR_WRITING_FILE -1
 
@@ -978,7 +979,7 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, int32_t
 
     while (inputBytesLeft) {
       const uint32_t spaceLeftInBuffer = eBufferSize - mBufferedBytes;
-      const uint32_t bytesToAppend = NS_MIN(inputBytesLeft, spaceLeftInBuffer);
+      const uint32_t bytesToAppend = std::min(inputBytesLeft, spaceLeftInBuffer);
 
       memcpy(mBuffer+mBufferedBytes, inputBytesIterator, bytesToAppend);
       mBufferedBytes += bytesToAppend;

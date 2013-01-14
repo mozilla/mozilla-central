@@ -25,6 +25,7 @@
 #include "nsIAutoSyncManager.h"
 #include "nsAlgorithm.h"
 #include "nsArrayUtils.h"
+#include <algorithm>
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -423,7 +424,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                 rv = NS_OK;
                 while (bytesLeft > 0 && NS_SUCCEEDED(rv))
                 {
-                  int32_t bytesToRead = NS_MIN(inputBufferSize, bytesLeft);
+                  int32_t bytesToRead = std::min(inputBufferSize, bytesLeft);
                   rv = offlineStoreInputStream->Read(inputBuffer, bytesToRead, &bytesRead);
                   if (NS_SUCCEEDED(rv) && bytesRead > 0)
                   {

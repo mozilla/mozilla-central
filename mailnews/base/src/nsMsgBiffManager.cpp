@@ -21,6 +21,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
+#include <algorithm>
 
 #define PREF_BIFF_JITTER "mail.biff.add_interval_jitter"
 
@@ -260,7 +261,7 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, PRTime curren
       // - minimum 1 second (to avoid a modulo with 0)
       // - maximum 30 seconds (to avoid problems when biffInterval is very large)
       int64_t jitter = (int64_t)(0.05 * (int64_t)chosenTimeInterval);
-      jitter = NS_MAX<int64_t>(1000000LL, NS_MIN<int64_t>(jitter, 30000000LL));
+      jitter = std::max<int64_t>(1000000LL, std::min<int64_t>(jitter, 30000000LL));
       jitter = ((rand() % 2) ? 1 : -1) * (rand() % jitter);
 
       biffEntry.nextBiffTime += jitter;

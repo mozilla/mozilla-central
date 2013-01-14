@@ -6,6 +6,7 @@
 #include <tchar.h>
 #include "nsWabAddressBook.h"
 #include "prlog.h"
+#include <algorithm>
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gWabAddressBookLog
@@ -49,7 +50,7 @@ BOOL nsWabAddressBook::LoadWabLibrary(void)
     else {
         if (GetSystemDirectory(wabDLLPath, MAX_PATH)) {
             _tcsncat(wabDLLPath, WAB_DLL_NAME,
-                     NS_MIN(_tcslen(WAB_DLL_NAME), MAX_PATH - _tcslen(wabDLLPath) - 1));
+                     std::min(_tcslen(WAB_DLL_NAME), MAX_PATH - _tcslen(wabDLLPath) - 1));
         }
         else {
             return FALSE;

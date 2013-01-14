@@ -48,6 +48,7 @@
 #include "nsIMsgPluggableStore.h"
 #include "nsAlgorithm.h"
 #include "nsArrayEnumerator.h"
+#include <algorithm>
 
 #if defined(DEBUG_sspitzer_) || defined(DEBUG_seth_)
 #define DEBUG_MSGKEYSET 1
@@ -721,7 +722,7 @@ nsresult nsMsgDatabase::AddHdrToUseCache(nsIMsgDBHdr *hdr, nsMsgKey key)
     mdb_count numHdrs = MSG_HASH_SIZE;
     if (m_mdbAllMsgHeadersTable)
       m_mdbAllMsgHeadersTable->GetCount(GetEnv(), &numHdrs);
-    m_headersInUse = PL_NewDHashTable(&gMsgDBHashTableOps, (void *) nullptr, sizeof(struct MsgHdrHashElement), NS_MAX((mdb_count)MSG_HASH_SIZE, numHdrs));
+    m_headersInUse = PL_NewDHashTable(&gMsgDBHashTableOps, (void *) nullptr, sizeof(struct MsgHdrHashElement), std::max((mdb_count)MSG_HASH_SIZE, numHdrs));
   }
   if (m_headersInUse)
   {
@@ -3849,7 +3850,7 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
 {
   uint32_t result;
   char *p = (char *) yarn->mYarn_Buf;
-  int32_t numChars = NS_MIN((mdb_fill)8, yarn->mYarn_Fill);
+  int32_t numChars = std::min((mdb_fill)8, yarn->mYarn_Fill);
   int32_t i;
 
   if (numChars > 0)
@@ -3876,7 +3877,7 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
 {
   uint64_t result;
   char *p = (char *) yarn->mYarn_Buf;
-  int32_t numChars = NS_MIN((mdb_fill)16, yarn->mYarn_Fill);
+  int32_t numChars = std::min((mdb_fill)16, yarn->mYarn_Fill);
   int32_t i;
 
   if (numChars > 0)

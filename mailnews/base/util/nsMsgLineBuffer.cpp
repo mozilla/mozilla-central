@@ -10,6 +10,7 @@
 #include "nsAlgorithm.h"
 #include "nsMsgUtils.h"
 #include "nsIInputStream.h" // used by nsMsgLineStreamBuffer
+#include <algorithm>
 
 nsByteArray::nsByteArray()
 {
@@ -366,7 +367,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, uint32
       NS_ASSERTION(m_startPos == 0, "m_startPos should be 0 .....\n");
     }
     
-    uint32_t numBytesToCopy = NS_MIN(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
+    uint32_t numBytesToCopy = std::min(numFreeBytesInBuffer - 1 /* leave one for a null terminator */, numBytesInStream);
     if (numBytesToCopy > 0)
     {
       // read the data into the end of our data buffer

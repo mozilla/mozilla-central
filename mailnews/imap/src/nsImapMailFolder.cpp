@@ -97,6 +97,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsAlgorithm.h"
 #include "nsMsgLineBuffer.h"
+#include <algorithm>
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -7016,8 +7017,8 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
         rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
         if (NS_SUCCEEDED(rv) && bytesRead > 0)
         {
-          rv = outputStream->Write(inputBuffer, NS_MIN((int32_t) bytesRead, bytesLeft), &bytesWritten);
-          NS_ASSERTION((int32_t) bytesWritten == NS_MIN((int32_t) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
+          rv = outputStream->Write(inputBuffer, std::min((int32_t) bytesRead, bytesLeft), &bytesWritten);
+          NS_ASSERTION((int32_t) bytesWritten == std::min((int32_t) bytesRead, bytesLeft), "wrote out incorrect number of bytes");
         }
         else
           break;

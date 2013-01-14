@@ -25,6 +25,7 @@
 #include <time.h>
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
+#include <algorithm>
 
 nsMsgMailNewsUrl::nsMsgMailNewsUrl()
 {
@@ -917,7 +918,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   }
   return rv;
   
-  //  rv = m_outputStream->WriteFrom(inStream, NS_MIN(available, count), &bytesWritten);
+  //  rv = m_outputStream->WriteFrom(inStream, std::min(available, count), &bytesWritten);
 }
 
 nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyEnvelope)

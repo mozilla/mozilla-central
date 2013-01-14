@@ -6,6 +6,7 @@
 #include "prio.h"
 #include "prmem.h"
 #include "nsAlgorithm.h"
+#include <algorithm>
 
 #define BUFFER_SIZE 16384
 
@@ -188,7 +189,7 @@ NS_IMETHODIMP nsMsgCompressIStream::Read(char * aBuf, uint32_t aCount, uint32_t 
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  *aResult = NS_MIN(m_dataleft, aCount);
+  *aResult = std::min(m_dataleft, aCount);
 
   if (*aResult)
   {

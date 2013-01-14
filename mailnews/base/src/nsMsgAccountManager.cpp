@@ -64,6 +64,7 @@
 #include "nsIMsgFilterList.h"
 #include "nsDirectoryServiceUtils.h"
 #include "mozilla/Services.h"
+#include <algorithm>
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -309,7 +310,7 @@ nsMsgAccountManager::getUniqueAccountKey(nsCString& aResult)
                                               dotPos - strlen(ACCOUNT_PREFIX)));
                 int32_t thisKey = keyString.ToInteger(&rv);
                 if (NS_SUCCEEDED(rv))
-                  lastKey = NS_MAX(lastKey, thisKey);
+                  lastKey = std::max(lastKey, thisKey);
               }
             }
           }
