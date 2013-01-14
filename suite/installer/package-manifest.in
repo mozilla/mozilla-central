@@ -363,6 +363,7 @@
 @BINPATH@/components/contentSecurityPolicy.js
 @BINPATH@/components/contentSecurityPolicy.manifest
 @BINPATH@/components/crypto-SDR.js
+@BINPATH@/components/cryptoComponents.manifest
 @BINPATH@/components/FeedConverter.js
 @BINPATH@/components/FeedProcessor.js
 @BINPATH@/components/FeedProcessor.manifest
@@ -450,6 +451,7 @@
 @BINPATH@/components/PermissionSettings.manifest
 @BINPATH@/components/PlacesCategoriesStarter.js
 @BINPATH@/components/pluginGlue.manifest
+@BINPATH@/components/servicesComponents.manifest
 @BINPATH@/components/SettingsManager.js
 @BINPATH@/components/SettingsManager.manifest
 @BINPATH@/components/SiteSpecificUserAgent.js
