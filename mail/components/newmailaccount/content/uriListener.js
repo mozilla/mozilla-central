@@ -57,7 +57,7 @@ httpRequestObserver.prototype = {
       return;
     }
 
-    if (contentType.toLowerCase().indexOf("text/xml") != 0)
+    if (!contentType.toLowerCase().startsWith("text/xml"))
       return;
 
     let requestWindow = this._getWindowForRequest(aSubject);

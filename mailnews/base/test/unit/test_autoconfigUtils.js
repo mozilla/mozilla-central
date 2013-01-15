@@ -18,14 +18,14 @@
 
 // Globals
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var loaded = false;
 try {
-  let loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                         .getService(Components.interfaces.mozIJSSubScriptLoader);
-  loader.loadSubScript("chrome://messenger/content/accountcreation/util.js");
-  loader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js");
-  loader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js");
-  loader.loadSubScript("chrome://messenger/content/accountcreation/guessConfig.js");
+  Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/util.js");
+  Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/accountConfig.js");
+  Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/sanitizeDatatypes.js");
+  Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/guessConfig.js");
   loaded = true;
 } catch (ex) {
   // The "accountcreation" files are not available in SeaMonkey (yet).

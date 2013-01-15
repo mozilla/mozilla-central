@@ -9,6 +9,9 @@
  */
 
 // Globals
+
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kXMLFile = "example.com.xml";
 var fetchConfigAbortable;
 var copyLocation;
@@ -21,18 +24,16 @@ var xmlReader =
 };
 
 try {
-  let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
-                 .getService(Ci.mozIJSSubScriptLoader);
-  loader.loadSubScript(
+  Services.scriptloader.loadSubScript(
     "chrome://messenger/content/accountcreation/util.js", xmlReader);
-  loader.loadSubScript(
+  Services.scriptloader.loadSubScript(
     "chrome://messenger/content/accountcreation/fetchConfig.js", xmlReader);
-  loader.loadSubScript(
+  Services.scriptloader.loadSubScript(
     "chrome://messenger/content/accountcreation/accountConfig.js", xmlReader);
-  loader.loadSubScript(
+  Services.scriptloader.loadSubScript(
     "chrome://messenger/content/accountcreation/sanitizeDatatypes.js",
     xmlReader);
-  loader.loadSubScript(
+  Services.scriptloader.loadSubScript(
     "chrome://messenger/content/accountcreation/readFromXML.js", xmlReader);
 } catch (ex) {
   dump(ex);

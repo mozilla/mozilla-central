@@ -1325,7 +1325,7 @@ EmailConfigWizard.prototype =
   onAdvancedSetup : function()
   {
     assert(this._currentConfig instanceof AccountConfig);
-    var configFilledIn = this.getConcreteConfig();
+    let configFilledIn = this.getConcreteConfig();
 
     if (checkIncomingServerAlreadyExists(configFilledIn)) {
       alertPrompt(gStringsBundle.getString("error_creating_account"),
@@ -1334,11 +1334,9 @@ EmailConfigWizard.prototype =
     }
 
     gEmailWizardLogger.info("creating account in backend");
-    var newAccount = createAccountInBackend(configFilledIn);
+    let newAccount = createAccountInBackend(configFilledIn);
 
-    var windowManager = Cc["@mozilla.org/appshell/window-mediator;1"]
-        .getService(Ci.nsIWindowMediator);
-    var existingAccountManager = windowManager
+    let existingAccountManager = Services.wm
         .getMostRecentWindow("mailnews:accountmanager");
     if (existingAccountManager) {
       existingAccountManager.focus();

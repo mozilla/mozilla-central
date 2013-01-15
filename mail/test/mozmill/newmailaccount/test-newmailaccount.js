@@ -458,11 +458,11 @@ function subtest_html_characters_and_ampersands(w) {
   // & should have been replaced with &amp;, and the
   // greater than / less than characters with &gt; and
   // &lt; respectively.
-  assert_true(displayedName.indexOf("&amp;") != -1,
+  assert_true(displayedName.contains("&amp;"),
               "Should have eliminated ampersands");
-  assert_true(displayedName.indexOf("&gt;") != -1,
+  assert_true(displayedName.contains("&gt;"),
               "Should have eliminated greater-than signs");
-  assert_true(displayedName.indexOf("&lt;") != -1,
+  assert_true(displayedName.contains("&lt;"),
               "Should have eliminated less-than signs");
 }
 
@@ -1195,13 +1195,10 @@ function test_search_button_disabled_if_no_query_on_init() {
   // We have to do a little bit of gymnastics to access the local storage
   // for the accountProvisioner dialog...
   let url = "chrome://content/messenger/accountProvisionerStorage/accountProvisioner";
-  let ssm = Cc["@mozilla.org/scriptsecuritymanager;1"]
-    .getService(Ci.nsIScriptSecurityManager);
-  let dsm = Cc["@mozilla.org/dom/storagemanager;1"]
-    .getService(Ci.nsIDOMStorageManager);
+  let dsm = Services.domStorageManager;
 
   let uri = Services.io.newURI(url, "", null);
-  let principal = ssm.getNoAppCodebasePrincipal(uri);
+  let principal = Services.scriptSecurityManager.getNoAppCodebasePrincipal(uri);
   let storage = dsm.getLocalStorageForPrincipal(principal, url);
 
   // Ok, got it. Now let's blank out the name.

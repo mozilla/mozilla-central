@@ -107,13 +107,11 @@ function fetchConfigFromISP(domain, emailAddress, successCallback,
 
 function fetchConfigFromDB(domain, successCallback, errorCallback)
 {
-  let pref = Cc["@mozilla.org/preferences-service;1"]
-             .getService(Ci.nsIPrefBranch);
-  let url = pref.getCharPref("mailnews.auto_config_url");
+  let url = Services.prefs.getCharPref("mailnews.auto_config_url");
   domain = sanitize.hostname(domain);
 
   // If we don't specify a place to put the domain, put it at the end.
-  if (url.indexOf("{{domain}}") == -1)
+  if (!url.contains("{{domain}}"))
     url = url + domain;
   else
     url = url.replace("{{domain}}", domain);
@@ -150,7 +148,7 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
  *   (e.g. yahoo.de -> yahoo.com).
  * - We make a look up for the base domain. E.g. if MX is
  *   mx1.incoming.servers.hoster.com, we look up hoster.com.
- *   Thanks to nsIEffectiveTLDService, we also get bbc.co.uk right.
+ *   Thanks to Services.eTLD, we also get bbc.co.uk right.
  *
  * Params @see fetchConfigFromISP()
  */
@@ -164,9 +162,7 @@ function fetchConfigForMX(domain, successCallback, errorCallback)
     function(mxHostname) // success
     {
       ddump("getmx took " + (Date.now() - time) + "ms");
-      var tldServ = Cc["@mozilla.org/network/effective-tld-service;1"]
-                      .getService(Ci.nsIEffectiveTLDService);
-      var sld = tldServ.getBaseDomainFromHost(mxHostname);
+      let sld = Services.eTLD.getBaseDomainFromHost(mxHostname);
       ddump("base domain " + sld + " for " + mxHostname);
       if (sld == domain)
       {
@@ -206,9 +202,7 @@ function getMX(domain, successCallback, errorCallback)
 {
   domain = sanitize.hostname(domain);
 
-  let pref = Cc["@mozilla.org/preferences-service;1"]
-               .getService(Ci.nsIPrefBranch);
-  let url = pref.getCharPref("mailnews.mx_service_url");
+  let url = Services.prefs.getCharPref("mailnews.mx_service_url");
   if (!url)
     errorCallback("no URL for MX service configured");
   url += domain;

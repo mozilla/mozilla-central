@@ -113,7 +113,7 @@ var sanitize =
   url : function (unchecked)
   {
     var str =  this.string(unchecked);
-    if (str.substr(0, 4) != "http" && str.substr(0, 5) != "https")
+    if (!str.startsWith("http") && !str.startsWith("https"))
       throw new MalformedException("url_scheme.error", unchecked);
 
     var uri;

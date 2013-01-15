@@ -15,6 +15,7 @@ try {
 } catch (e) { ddump(e); }
 
 Cu.import("resource:///modules/errUtils.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 /**
  * Create a subtype
@@ -59,7 +60,7 @@ function runAsync(func)
  */
 function makeNSIURI(uriStr)
 {
-  return ioService().newURI(uriStr, null, null);
+  return Services.io.newURI(uriStr, null, null);
 }
 
 
@@ -73,14 +74,14 @@ function readURLasUTF8(uri)
 {
   assert(uri instanceof Ci.nsIURI, "uri must be an nsIURI");
   try {
-    var chan = ioService().newChannelFromURI(uri);
-    var is = Cc["@mozilla.org/intl/converter-input-stream;1"]
+    let chan = Services.io.newChannelFromURI(uri);
+    let is = Cc["@mozilla.org/intl/converter-input-stream;1"]
              .createInstance(Ci.nsIConverterInputStream);
     is.init(chan.open(), "UTF-8", 1024,
             Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-    var content = "";
-    var strOut = new Object();
+    let content = "";
+    let strOut = new Object();
     try {
       while (is.readString(1024, strOut) != 0)
         content += strOut.value;
@@ -116,30 +117,13 @@ function splitLines(content)
 }
 
 /**
- * @return nsIIOService
- * @throws all errors to caller
- */
-function ioService()
-{
-  if (_gIOServiceCached)
-    return _gIOServiceCached;
-
-  _gIOServiceCached = Cc["@mozilla.org/network/io-service;1"]
-                      .getService(Ci.nsIIOService);
-  return _gIOServiceCached;
-}
-var _gIOServiceCached;
-
-/**
  * @param bundleURI {String}   chrome URL to properties file
  * @return nsIStringBundle
  */
 function getStringBundle(bundleURI)
 {
   try {
-    return Cc["@mozilla.org/intl/stringbundle;1"]
-           .getService(Ci.nsIStringBundleService)
-           .createBundle(bundleURI);
+    return Services.strings.createBundle(bundleURI);
   } catch (e) {
     throw new Exception("Failed to get stringbundle URI <" + bundleURI +
                         ">. Error: " + e);
@@ -329,7 +313,5 @@ function debugObject(obj, name, maxDepth, curDepth)
 
 function alertPrompt(alertTitle, alertMsg)
 {
-  Cc["@mozilla.org/embedcomp/prompt-service;1"]
-      .getService(Ci.nsIPromptService)
-      .alert(window, alertTitle, alertMsg);
+  Services.prompt.alert(window, alertTitle, alertMsg);
 }

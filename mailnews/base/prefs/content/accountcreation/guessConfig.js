@@ -618,7 +618,7 @@ HostDetector.prototype =
       result.push(Ci.nsMsgAuthMethod.passwordEncrypted);
     if (new RegExp(prefix + "(NTLM|MSN)").test(line))
       result.push(Ci.nsMsgAuthMethod.NTLM);
-    if ( ! (protocol == IMAP && /LOGINDISABLED/.test(line)))
+    if (protocol != IMAP || !line.contains("LOGINDISABLED"))
       result.push(Ci.nsMsgAuthMethod.passwordCleartext);
     return result;
   },
@@ -627,7 +627,7 @@ HostDetector.prototype =
   {
     var capa = thisTry.protocol == POP ? "STLS" : "STARTTLS";
     return thisTry.ssl == TLS &&
-        wiredata.join("").toUpperCase().indexOf(capa) != -1;
+        wiredata.join("").toUpperCase().contains(capa);
   },
 }
 
@@ -762,9 +762,9 @@ function getIncomingTryOrder(host, protocol, ssl, port)
   var lowerCaseHost = host.toLowerCase();
 
   if (protocol == UNKNOWN &&
-      (!lowerCaseHost.indexOf("pop.") || !lowerCaseHost.indexOf("pop3.")))
+      (lowerCaseHost.startsWith("pop.") || lowerCaseHost.startsWith("pop3.")))
     protocol = POP;
-  else if (protocol == UNKNOWN && !lowerCaseHost.indexOf("imap."))
+  else if (protocol == UNKNOWN && lowerCaseHost.startsWith("imap."))
     protocol = IMAP;
 
   if (protocol != UNKNOWN) {

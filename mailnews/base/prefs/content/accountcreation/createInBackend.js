@@ -11,6 +11,9 @@
  *
  * @return - the account created.
  */
+
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function createAccountInBackend(config)
 {
   var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
@@ -41,14 +44,12 @@ function createAccountInBackend(config)
 
   inServer.doBiff = true;
   inServer.biffMinutes = config.incoming.checkInterval;
-  let prefs = Cc["@mozilla.org/preferences-service;1"]
-              .getService(Ci.nsIPrefBranch);
   const loginAtStartupPrefTemplate =
     "mail.server.%serverkey%.login_at_startup";
   var loginAtStartupPref =
     loginAtStartupPrefTemplate.replace("%serverkey%", inServer.key);
-  prefs.setBoolPref(loginAtStartupPref,
-                    config.incoming.loginAtStartup);
+  Services.prefs.setBoolPref(loginAtStartupPref,
+                             config.incoming.loginAtStartup);
   if (config.incoming.type == "pop3")
   {
     const leaveOnServerPrefTemplate =
@@ -71,16 +72,16 @@ function createAccountInBackend(config)
       deleteFromServerPrefTemplate.replace("%serverkey%", inServer.key);
     let downloadOnBiffPref =
       downloadOnBiffPrefTemplate.replace("%serverkey%", inServer.key);
-    prefs.setBoolPref(leaveOnServerPref,
-                      config.incoming.leaveMessagesOnServer);
-    prefs.setIntPref(daysToLeaveOnServerPref,
-                     config.incoming.daysToLeaveMessagesOnServer);
-    prefs.setBoolPref(deleteFromServerPref,
-                      config.incoming.deleteOnServerWhenLocalDelete);
-    prefs.setBoolPref(ageFromServerPref,
-                      config.incoming.deleteByAgeFromServer);
-    prefs.setBoolPref(downloadOnBiffPref,
-                      config.incoming.downloadOnBiff);
+    Services.prefs.setBoolPref(leaveOnServerPref,
+                               config.incoming.leaveMessagesOnServer);
+    Services.prefs.setIntPref(daysToLeaveOnServerPref,
+                              config.incoming.daysToLeaveMessagesOnServer);
+    Services.prefs.setBoolPref(deleteFromServerPref,
+                               config.incoming.deleteOnServerWhenLocalDelete);
+    Services.prefs.setBoolPref(ageFromServerPref,
+                               config.incoming.deleteByAgeFromServer);
+    Services.prefs.setBoolPref(downloadOnBiffPref,
+                               config.incoming.downloadOnBiff);
   }
   inServer.valid = true;
 
@@ -155,9 +156,7 @@ function createAccountInBackend(config)
   // save
   accountManager.saveAccountInfo();
   try {
-    Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService)
-    .savePrefFile(null);
+    Services.prefs.savePrefFile(null);
   } catch (ex) {
     ddump("Could not write out prefs: " + ex);
   }
@@ -197,14 +196,12 @@ function rememberPassword(server, password)
   else
     throw new NotReached("Server type not supported");
 
-  let lm = Cc["@mozilla.org/login-manager;1"]
-           .getService(Ci.nsILoginManager);
   let login = Cc["@mozilla.org/login-manager/loginInfo;1"]
               .createInstance(Ci.nsILoginInfo);
   login.init(passwordURI, null, passwordURI, server.username, password, "", "");
   try {
-    lm.addLogin(login);
-  } catch (e if e.message.indexOf("This login already exists") != -1) {
+    Services.logins.addLogin(login);
+  } catch (e if e.message.contains("This login already exists")) {
     // TODO modify
   }
 }
@@ -233,7 +230,7 @@ function checkIncomingServerAlreadyExists(config)
 
   // if username does not have an '@', also check the e-mail
   // address form of the name.
-  if (!existing && incoming.username.indexOf("@") == -1)
+  if (!existing && !incoming.username.contains("@"))
     existing = accountManager.findRealServer(config.identity.emailAddress,
           incoming.hostname,
           sanitize.enum(incoming.type, ["pop3", "imap", "nntp"]),
