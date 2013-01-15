@@ -22,15 +22,15 @@
 <!ENTITY success.title.before "Hello ">
 <!ENTITY success.title.after ", the following email addresses are available to you:">
 <!ENTITY success.tip "(You can also search for nicknames or any other term to find more emails)">
-<!ENTITY partnership.description "In partnership with several providers, &brandShortName; can offer you a new email account. Just fill in your first and last name, or any other words you’d like, in the fields above to get started.">
+<!ENTITY partnership.description "In partnership with several providers, &brandShortName; can offer you a new email account. Just fill in your first and last name, or any other words you'd like, in the fields above to get started.">
 <!ENTITY existing.header "Already have an address you want to use?">
 <!ENTITY tinyheader.title "Got an address?">
 <!ENTITY tinyheader.existing "Skip this and use my existing email">
-<!ENTITY content.close "I think I’ll configure my account later.">
+<!ENTITY content.close "I think I'll configure my account later.">
 <!ENTITY successful.title "Congratulations!">
 <!ENTITY successful.successMessage "You have successfully set up your account.">
 <!ENTITY successful.write "Write some email">
-<!ENTITY successful.write.desc "Let your friends and family know about your new address.<br/> That’s why you got this new account, isn’t it?">
+<!ENTITY successful.write.desc "Let your friends and family know about your new address.<br/> That's why you got this new account, isn't it?">
 <!ENTITY successful.customize "Customize &brandShortName; with some cool add-ons">
 <!ENTITY successful.customize.desc "There are thousands of add-ons that let you customize &brandShortName; to make it fit your specific needs.">
 <!ENTITY successful.attach "Attach a personal signature to my email">
