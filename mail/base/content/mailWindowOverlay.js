@@ -509,7 +509,7 @@ function InitAppMessageMenu()
 
   // Initialize the Open Feed Message handler menu
   let index = FeedMessageHandler.onOpenPref;
-  document.getElementById("appmenu_openFeedMessage")
+  document.getElementById("appmenu_openFeedMessagePopup")
           .childNodes[index]
           .setAttribute("checked", true);
 

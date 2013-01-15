@@ -1890,7 +1890,7 @@
                       command="cmd_openConversation"/>
             <menu id="appmenu_openFeedMessage"
                   label="&openFeedMessage.label;">
-              <menupopup id="appmenu_openFeedMessage">
+              <menupopup id="appmenu_openFeedMessagePopup">
                 <menuitem id="appmenu_openFeedWebPageInWindow"
                           type="radio"
                           name="openFeedGroup"
