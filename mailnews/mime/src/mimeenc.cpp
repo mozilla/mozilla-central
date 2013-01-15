@@ -3,14 +3,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 #include <stdio.h>
-#include "modmimee.h"
 #include "mimei.h"
 #include "prmem.h"
-#include "plstr.h"
-#include "prlog.h"
-#include "prprf.h"
 #include "mimeobj.h"
-#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
+#include "mozilla/RangedPtr.h"
+#include "mozilla/mailnews/MimeEncoder.h"
 
 typedef enum mime_encoding {
   mime_Base64, mime_QuotedPrintable, mime_uuencode, mime_yencode
@@ -833,166 +830,183 @@ MimeDecoderWrite (MimeDecoderData *data, const char *buffer, int32_t size,
 }
 
 
-/* ================== Encoders.
- */
+namespace mozilla {
+namespace mailnews {
 
-struct MimeEncoderData {
-  mime_encoding encoding;    /* Which encoding to use */
+MimeEncoder::MimeEncoder(OutputCallback callback, void *closure)
+: mCallback(callback),
+  mClosure(closure),
+  mCurrentColumn(0)
+{}
 
-  /* Buffer for the base64 encoder. */
+class Base64Encoder : public MimeEncoder {
   unsigned char in_buffer[3];
   int32_t in_buffer_count;
 
-  /* Buffer for uuencoded data. (Need a line because of the length byte.) */
-  unsigned char uue_line_buf[128];
-  bool uue_wrote_begin;
+public:
+  Base64Encoder(OutputCallback callback, void *closure)
+    : MimeEncoder(callback, closure),
+      in_buffer_count(0) {}
+  virtual ~Base64Encoder() {}
 
-  int32_t current_column, line_byte_count;
+  virtual nsresult Write(const char *buffer, int32_t size) MOZ_OVERRIDE;
+  virtual nsresult Flush() MOZ_OVERRIDE;
 
-  char *filename; /* filename for use with uuencoding */
-
-  /* Where to write the encoded data */
-  MimeConverterOutputCallback write_buffer;
-  void *closure;
+private:
+  static void Base64EncodeBits(RangedPtr<char> &out, uint32_t bits);
 };
 
-
-int
-mime_encode_base64_buffer (MimeEncoderData *data,
-               const char *buffer, int32_t size)
+nsresult Base64Encoder::Write(const char *buffer, int32_t size)
 {
-  int status = 0;
-  const unsigned char *in = (unsigned char *) buffer;
-  const unsigned char *end = in + size;
-  char out_buffer[80];
-  char *out = out_buffer;
-  uint32_t i = 0, n = 0;
-  uint32_t off;
-
   if (size == 0)
-  return 0;
+    return NS_OK;
   else if (size < 0)
   {
     NS_ERROR("Size is less than 0");
-    return -1;
+    return NS_ERROR_FAILURE;
+  }
+
+  // If this input buffer is too small, wait until next time.
+  if (size < (3 - in_buffer_count))
+  {
+    NS_ASSERTION(size == 1 || size == 2, "Unexpected size");
+    in_buffer[in_buffer_count++] = buffer[0];
+    if (size == 2)
+      in_buffer[in_buffer_count++] = buffer[1];
+    NS_ASSERTION(in_buffer_count < 3, "Unexpected out buffer size");
+    return NS_OK;
   }
 
 
-  /* If this input buffer is too small, wait until next time. */
-  if (size < (3 - data->in_buffer_count))
+  // If there are bytes that were put back last time, take them now.
+  uint32_t i = in_buffer_count, bits = 0;
+  if (in_buffer_count > 0) bits = in_buffer[0];
+  if (in_buffer_count > 1) bits = (bits << 8) + in_buffer[1];
+  in_buffer_count = 0;
+
+  // If this buffer is not a multiple of three, put one or two bytes back.
+  uint32_t excess = ((size + i) % 3);
+  if (excess)
   {
-    NS_ASSERTION(size < 3 && size > 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-    data->in_buffer[data->in_buffer_count++] = buffer[0];
-    if (size > 1)
-    data->in_buffer[data->in_buffer_count++] = buffer[1];
-    NS_ASSERTION(data->in_buffer_count < 3, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-    return 0;
-  }
-
-
-  /* If there are bytes that were put back last time, take them now.
-   */
-  i = 0;
-  if (data->in_buffer_count > 0) n = data->in_buffer[0];
-  if (data->in_buffer_count > 1) n = (n << 8) + data->in_buffer[1];
-  i = data->in_buffer_count;
-  data->in_buffer_count = 0;
-
-  /* If this buffer is not a multiple of three, put one or two bytes back.
-   */
-  off = ((size + i) % 3);
-  if (off)
-  {
-    data->in_buffer[0] = buffer [size - off];
-    if (off > 1)
-    data->in_buffer [1] = buffer [size - off + 1];
-    data->in_buffer_count = off;
-    size -= off;
+    in_buffer[0] = buffer[size - excess];
+    if (excess > 1)
+      in_buffer [1] = buffer[size - excess + 1];
+    in_buffer_count = excess;
+    size -= excess;
     NS_ASSERTION (! ((size + i) % 3), "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-    end = (unsigned char *) (buffer + size);
   }
 
-  /* Populate the out_buffer with base64 data, one line at a time.
-   */
+  const uint8_t *in = (const uint8_t *)buffer;
+  const uint8_t *end = (const uint8_t *)(buffer + size);
+  MOZ_ASSERT((end - in + i) % 3 == 0, "Need a multiple of 3 bytes to decode");
+
+  // Populate the out_buffer with base64 data, one line at a time.
+  char out_buffer[80]; // Max line length will be 80, so this is safe.
+  RangedPtr<char> out(out_buffer);
   while (in < end)
   {
-    int32_t j;
-
+    // Accumulate the input bits.
     while (i < 3)
     {
-      n = (n << 8) | *in++;
+      bits = (bits << 8) | *in++;
       i++;
     }
     i = 0;
 
-    for (j = 18; j >= 0; j -= 6)
-    {
-      unsigned int k = (n >> j) & 0x3F;
-      if (k < 26)       *out++ = k      + 'A';
-      else if (k < 52)  *out++ = k - 26 + 'a';
-      else if (k < 62)  *out++ = k - 52 + '0';
-      else if (k == 62) *out++ = '+';
-      else if (k == 63) *out++ = '/';
-      else abort ();
-    }
+    Base64EncodeBits(out, bits);
 
-    data->current_column += 4;
-    if (data->current_column >= 72)
+    mCurrentColumn += 4;
+    if (mCurrentColumn >= 72)
     {
-      /* Do a linebreak before column 76.  Flush out the line buffer. */
-      data->current_column = 0;
-      *out++ = '\015';
-      *out++ = '\012';
-      status = data->write_buffer (out_buffer, (out - out_buffer),
-                     data->closure);
+      // Do a linebreak before column 76.  Flush out the line buffer.
+      mCurrentColumn = 0;
+      *out++ = '\x0D';
+      *out++ = '\x0A';
+      nsresult rv = mCallback(out_buffer, (out.get() - out_buffer), mClosure);
+      NS_ENSURE_SUCCESS(rv, rv);
       out = out_buffer;
-      if (status < 0) return status;
     }
   }
 
-  /* Write out the unwritten portion of the last line buffer. */
-  if (out > out_buffer)
+  // Write out the unwritten portion of the last line buffer.
+  if (out.get() > out_buffer)
   {
-    status = data->write_buffer (out_buffer, (out - out_buffer),
-                   data->closure);
-    if (status < 0) return status;
+    nsresult rv = mCallback(out_buffer, out.get() - out_buffer, mClosure);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  return 0;
+  return NS_OK;
 }
 
-
-int
-mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, int32_t size)
+nsresult Base64Encoder::Flush()
 {
-  int status = 0;
-  static const char hexdigits[] = "0123456789ABCDEF";
-  const unsigned char *in = (unsigned char *) buffer;
-  const unsigned char *end = in + size;
+  if (in_buffer_count == 0)
+    return NS_OK;
+
+  // Since we need to some buffering to get a multiple of three bytes on each
+  // block, there may be a few bytes left in the buffer after the last block has
+  // been written. We need to flush those out now.
+  char buf[4];
+  RangedPtr<char> out(buf);
+  uint32_t bits = ((uint32_t)in_buffer[0]) << 16;
+  if (in_buffer_count > 1)
+    bits |= (((uint32_t)in_buffer[1]) << 8);
+
+  Base64EncodeBits(out, bits);
+
+  // Pad with equal-signs.
+  if (in_buffer_count == 1)
+    buf[2] = '=';
+  buf[3] = '=';
+
+  return mCallback(buf, 4, mClosure);
+}
+
+void Base64Encoder::Base64EncodeBits(RangedPtr<char> &out, uint32_t bits)
+{
+  // Convert 3 bytes to 4 base64 bytes
+  for (int32_t j = 18; j >= 0; j -= 6)
+  {
+    unsigned int k = (bits >> j) & 0x3F;
+    if (k < 26)       *out++ = k      + 'A';
+    else if (k < 52)  *out++ = k - 26 + 'a';
+    else if (k < 62)  *out++ = k - 52 + '0';
+    else if (k == 62) *out++ = '+';
+    else if (k == 63) *out++ = '/';
+    else MOZ_NOT_REACHED("6 bits should only be between 0 and 64");
+  }
+}
+
+class QPEncoder : public MimeEncoder {
+public:
+  QPEncoder(OutputCallback callback, void *closure)
+    : MimeEncoder(callback, closure) {}
+  virtual ~QPEncoder() {}
+
+  virtual nsresult Write(const char *buffer, int32_t size) MOZ_OVERRIDE;
+};
+
+nsresult QPEncoder::Write(const char *buffer, int32_t size)
+{
+  nsresult rv = NS_OK;
+  static const char *hexdigits = "0123456789ABCDEF";
   char out_buffer[80];
-  char *out = out_buffer;
+  RangedPtr<char> out(out_buffer);
   bool white = false;
-  bool mb_p = false;
 
-  /*
-  #### I don't know how to hook this back up:
-  ####  mb_p = INTL_DefaultWinCharSetID(state->context) & 0x300 ;
-  */
-
-
-  NS_ASSERTION(data->in_buffer_count == 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-
-  /* Populate the out_buffer with quoted-printable data, one line at a time.
-  */
+  // Populate the out_buffer with quoted-printable data, one line at a time.
+  const uint8_t *in = (uint8_t *)buffer;
+  const uint8_t *end = in + size;
   for (; in < end; in++)
   {
     if (*in == '\r' || *in == '\n')
     {
+      // If it's CRLF, swallow two chars instead of one.
+      if (in + 1 < end && in[0] == '\r' && in[1] == '\n')
+        in++;
 
-    /* Whitespace cannot be allowed to occur at the end of
-    the line, so we backup and replace the whitespace with
-    its code.
-      */
+      // Whitespace cannot be allowed to occur at the end of the line, so we
+      // back up and replace the whitespace with its code.
       if (white)
       {
         out--;
@@ -1002,215 +1016,92 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, int32_t size)
         *out++ = hexdigits[whitespace_char & 0xF];
       }
 
-      /* Now write out the newline. */
+      // Now write out the newline.
       *out++ = '\r';
       *out++ = '\n';
       white = false;
 
-      status = data->write_buffer (out_buffer, (out - out_buffer),
-        data->closure);
-      if (status < 0) return status;
+      rv = mCallback(out_buffer, out.get() - out_buffer, mClosure);
+      NS_ENSURE_SUCCESS(rv, rv);
       out = out_buffer;
-
-      /* If it's CRLF, swallow two chars instead of one. */
-      if (in + 1 < end && in[0] == '\r' && in[1] == '\n')
-        in++;
-
-      out = out_buffer;
-      white = false;
-      data->current_column = 0;
+      mCurrentColumn = 0;
     }
-    else if (data->current_column == 0 && *in == '.')
+    else if (mCurrentColumn == 0 && *in == '.')
     {
-      /* Just to be SMTP-safe, if "." appears in column 0, encode it.
-                  (mmencode does this too.)
-      */
+      // Just to be SMTP-safe, if "." appears in column 0, encode it.
       goto HEX;
     }
-    else if (data->current_column == 0 && *in == 'F'
-         && (in >= end-1 || in[1] == 'r')
-                           && (in >= end-2 || in[2] == 'o')
-                           && (in >= end-3 || in[3] == 'm')
-                           && (in >= end-4 || in[4] == ' '))
+    else if (mCurrentColumn == 0 && *in == 'F'
+               && (in >= end-1 || in[1] == 'r')
+               && (in >= end-2 || in[2] == 'o')
+               && (in >= end-3 || in[3] == 'm')
+               && (in >= end-4 || in[4] == ' '))
     {
-      /* If this line begins with 'F' and we cannot determine that
-                  this line does not begin with "From " then do the safe thing
-                  and assume that it does, and encode the 'F' in hex to avoid
-                  BSD mailbox lossage.  (We might not be able to tell that it
-                  is really "From " if the end of the buffer was early.  So
-                  this means that "\nFoot" will have the F encoded if the end of
-                  the buffer happens to fall just after the F; but will not have
-                  it encoded if it's after the first "o" or later.  Oh well.
-                  It's a little inconsistent, but it errs on the safe side.)
-      */
+      // If this line begins with "From " (or it could but we don't have enough
+      // data in the buffer to be certain), encode the 'F' in hex to avoid
+      // potential problems with BSD mailbox formats.
       goto HEX;
     }
-    else if ((*in >= 33 && *in <= 60) ||    /* safe printing chars */
-         (*in >= 62 && *in <= 126) ||
-                           (mb_p && (*in == 61 || *in == 127 || *in == 0x1B)))
+    else if ((*in >= 33 && *in <= 60) |
+             (*in >= 62 && *in <= 126)) // Printable characters except for '='
     {
       white = false;
       *out++ = *in;
-      data->current_column++;
+      mCurrentColumn++;
     }
-    else if (*in == ' ' || *in == '\t')    /* whitespace */
+    else if (*in == ' ' || *in == '\t') // Whitespace
     {
       white = true;
       *out++ = *in;
-      data->current_column++;
+      mCurrentColumn++;
     }
-    else                    /* print as =FF */
+    else
     {
+      // Encode the characters here
 HEX:
       white = false;
-                  *out++ = '=';
-                  *out++ = hexdigits[*in >> 4];
-                  *out++ = hexdigits[*in & 0xF];
-                  data->current_column += 3;
+      *out++ = '=';
+      *out++ = hexdigits[*in >> 4];
+      *out++ = hexdigits[*in & 0xF];
+      mCurrentColumn += 3;
     }
 
-    NS_ASSERTION (data->current_column <= 76, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00"); /* Hard limit required by spec */
+    MOZ_ASSERT(mCurrentColumn <= 76, "Why haven't we added a line break yet?");
 
-    if (data->current_column >= 73)    /* soft line break: "=\r\n" */
+    if (mCurrentColumn >= 73) // Soft line break for readability
     {
       *out++ = '=';
       *out++ = '\r';
       *out++ = '\n';
 
-      status = data->write_buffer (out_buffer, (out - out_buffer),
-        data->closure);
-      if (status < 0) return status;
+      rv = mCallback(out_buffer, out.get() - out_buffer, mClosure);
+      NS_ENSURE_SUCCESS(rv, rv);
       out = out_buffer;
       white = false;
-      data->current_column = 0;
+      mCurrentColumn = 0;
     }
   }
 
-  /* Write out the unwritten portion of the last line buffer. */
-  if (out > out_buffer)
+  // Write out the unwritten portion of the last line buffer.
+  if (out.get() != out_buffer)
   {
-    status = data->write_buffer (out_buffer, (out - out_buffer),
-      data->closure);
-    if (status < 0) return status;
+    rv = mCallback(out_buffer, out.get() - out_buffer, mClosure);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  return 0;
+  return NS_OK;
 }
 
-
-
-int
-MimeEncoderDestroy (MimeEncoderData *data, bool abort_p)
+MimeEncoder *MimeEncoder::GetBase64Encoder(OutputCallback callback,
+    void *closure)
 {
-  int status = 0;
-
-  /* Since Base64 output needs to do some buffering to get
-   a multiple of three bytes on each block, there may be a few bytes
-   left in the buffer after the last block has been written.  We need to
-   flush those out now.
-   */
-
-  NS_ASSERTION (data->encoding == mime_Base64 ||
-       data->in_buffer_count == 0, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-
-  if (!abort_p &&
-    data->in_buffer_count > 0)
-  {
-    char buf2 [6];
-    char *buf = buf2 + 2;
-    char *out = buf;
-    int j;
-    /* fixed bug 55998, 61302, 61866
-     * type casting to uint32_t before shifting
-     */
-    uint32_t n = ((uint32_t) data->in_buffer[0]) << 16;
-    if (data->in_buffer_count > 1)
-    n = n | (((uint32_t) data->in_buffer[1]) << 8);
-
-    buf2[0] = '\r';
-    buf2[1] = '\n';
-
-    for (j = 18; j >= 0; j -= 6)
-    {
-      unsigned int k = (n >> j) & 0x3F;
-      if (k < 26)       *out++ = k      + 'A';
-      else if (k < 52)  *out++ = k - 26 + 'a';
-      else if (k < 62)  *out++ = k - 52 + '0';
-      else if (k == 62) *out++ = '+';
-      else if (k == 63) *out++ = '/';
-      else abort ();
-    }
-
-    /* Pad with equal-signs. */
-    if (data->in_buffer_count == 1)
-    buf[2] = '=';
-    buf[3] = '=';
-
-    if (data->current_column >= 72)
-    status = data->write_buffer (buf2, 6, data->closure);
-    else
-    status = data->write_buffer (buf,  4, data->closure);
-  }
-
-  PR_FREEIF(data->filename);
-  PR_Free (data);
-  return status;
+  return new Base64Encoder(callback, closure);
 }
 
-
-static MimeEncoderData *
-mime_encoder_init (mime_encoding which,
-           MimeConverterOutputCallback output_fn,
-           void *closure)
+MimeEncoder *MimeEncoder::GetQPEncoder(OutputCallback callback, void *closure)
 {
-  MimeEncoderData *data = PR_NEW(MimeEncoderData);
-  if (!data) return 0;
-  memset(data, 0, sizeof(*data));
-  data->encoding = which;
-  data->write_buffer = output_fn;
-  data->closure = closure;
-  return data;
+  return new QPEncoder(callback, closure);
 }
 
-MimeEncoderData *
-MimeB64EncoderInit (MimeConverterOutputCallback output_fn, void *closure)
-{
-  return mime_encoder_init (mime_Base64, output_fn, closure);
-}
-
-MimeEncoderData *
-MimeQPEncoderInit (MimeConverterOutputCallback output_fn,
-           void *closure)
-{
-  return mime_encoder_init (mime_QuotedPrintable, output_fn, closure);
-}
-
-MimeEncoderData *
-MimeUUEncoderInit (const char *filename,
-          MimeConverterOutputCallback output_fn,
-          void *closure)
-{
-  MimeEncoderData *enc = mime_encoder_init (mime_uuencode, output_fn, closure);
-
-  if (filename)
-    enc->filename = strdup(filename);
-
-  return enc;
-}
-
-int
-MimeEncoderWrite (MimeEncoderData *data, const char *buffer, int32_t size)
-{
-  NS_ASSERTION(data, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
-  if (!data) return -1;
-  switch(data->encoding)
-  {
-  case mime_Base64:
-    return mime_encode_base64_buffer (data, buffer, size);
-  case mime_QuotedPrintable:
-    return mime_encode_qp_buffer (data, buffer, size);
-  default:
-    NS_ERROR("Invalid encoding");
-    return -1;
-  }
-}
+} // namespace mailnews
+} // namespace mozilla

@@ -20,7 +20,10 @@
 #include "nsMemory.h"
 #include "nsAlgorithm.h"
 #include "mozilla/Services.h"
+#include "mozilla/mailnews/MimeEncoder.h"
 #include <algorithm>
+
+using mozilla::mailnews::MimeEncoder;
 
 #define MK_MIME_ERROR_WRITING_FILE -1
 
@@ -34,57 +37,15 @@ static const char crypto_multipart_blurb[] = "This is a cryptographically signed
 
 static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
-static int mime_encoder_output_fn(const char *buf, int32_t size, void *closure);
-static int mime_nested_encoder_output_fn (const char *buf, int32_t size, void *closure);
+static nsresult mime_encoder_output_fn(const char *buf, int32_t size,
+                                       void *closure);
+static nsresult mime_nested_encoder_output_fn(const char *buf, int32_t size,
+                                              void *closure);
 static nsresult make_multipart_signed_header_string(bool outer_p,
                   char **header_return,
                   char **boundary_return);
 static char *mime_make_separator(const char *prefix);
 
-// mscott --> FIX ME...for now cloning code from compose\nsMsgEncode.h/.cpp
-
-MimeEncoderData *
-MIME_B64EncoderInit(MimeConverterOutputCallback output_fn, void *closure)
-{
-  MimeEncoderData *returnEncoderData = nullptr;
-  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nullptr);
-
-  nsresult res = converter->B64EncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
-}
-
-MimeEncoderData *
-MIME_QPEncoderInit(MimeConverterOutputCallback output_fn, void *closure)
-{
-  MimeEncoderData *returnEncoderData = nullptr;
-  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  NS_ENSURE_TRUE(converter, nullptr);
-
-  nsresult res = converter->QPEncoderInit(output_fn, closure, &returnEncoderData);
-  return NS_SUCCEEDED(res) ? returnEncoderData : nullptr;
-}
-
-nsresult
-MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
-{
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return converter->EncoderDestroy(data, abort_p);
-}
-
-nsresult
-MIME_EncoderWrite(MimeEncoderData *data, const char *buffer, int32_t size) 
-{
-  nsresult rv;
-  nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  int32_t written = 0;
-  return converter->EncoderWrite(data, buffer, size, &written);
-}
 
 static void
 GenerateGlobalRandomBytes(unsigned char *buf, int32_t len)
@@ -169,9 +130,7 @@ NS_IMPL_ISUPPORTS1(nsMsgComposeSecure, nsIMsgComposeSecure)
 nsMsgComposeSecure::nsMsgComposeSecure()
 {
   /* member initializers and constructor code */
-  mSigEncoderData = 0;
   mMultipartSignedBoundary  = 0;
-  mCryptoEncoderData = 0;
   mBuffer = 0;
   mBufferedBytes = 0;
 }
@@ -185,13 +144,6 @@ nsMsgComposeSecure::~nsMsgComposeSecure()
       mBufferedBytes = 0;
     }
     mEncryptionContext->Finish();
-  }
-
-  if (mSigEncoderData) {
-    MIME_EncoderDestroy (mSigEncoderData, true);
-  }
-  if (mCryptoEncoderData) {
-    MIME_EncoderDestroy (mCryptoEncoderData, true);
   }
 
   delete [] mBuffer;
@@ -551,13 +503,10 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
     if (numCerts == 0) return NS_ERROR_FAILURE;
   }
 
-  /* Initialize the base64 encoder. */
-  PR_ASSERT(!mCryptoEncoderData);
-  mCryptoEncoderData = MIME_B64EncoderInit(mime_encoder_output_fn,
+  // Initialize the base64 encoder
+  MOZ_ASSERT(!mCryptoEncoder, "Shouldn't have an encoder already");
+  mCryptoEncoder = MimeEncoder::GetBase64Encoder(mime_encoder_output_fn,
                           this);
-  if (!mCryptoEncoderData) {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
 
   /* Initialize the encrypter (and add the sender's cert.) */
   PR_ASSERT(mSelfEncryptionCert);
@@ -581,7 +530,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
 
   mBufferedBytes = 0;
 
-  rv = mEncryptionContext->Start(mEncryptionCinfo, mime_crypto_write_base64, mCryptoEncoderData);
+  rv = mEncryptionContext->Start(mEncryptionCinfo, mime_crypto_write_base64, mCryptoEncoder);
   if (NS_FAILED(rv)) {
     SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotEncrypt").get());
     goto FAIL;
@@ -689,23 +638,15 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
     goto FAIL;
   }
 
-  /* Initialize the base64 encoder for the signature data.
-   */
-  PR_ASSERT(!mSigEncoderData);
-  mSigEncoderData =
-  MIME_B64EncoderInit((aOuter
-            ? mime_encoder_output_fn
-            : mime_nested_encoder_output_fn),
-             this);
-  if (!mSigEncoderData) {
-    rv = NS_ERROR_OUT_OF_MEMORY;
-    goto FAIL;
-  }
+  // Initialize the base64 encoder for the signature data.
+  MOZ_ASSERT(!mSigEncoder, "Shouldn't already have a mSigEncoder");
+  mSigEncoder = MimeEncoder::GetBase64Encoder(
+    (aOuter ? mime_encoder_output_fn : mime_nested_encoder_output_fn), this);
 
   /* Write out the signature.
    */
   PR_SetError(0,0);
-  rv = encoder->Start(cinfo, mime_crypto_write_base64, mSigEncoderData);
+  rv = encoder->Start(cinfo, mime_crypto_write_base64, mSigEncoder);
   if (NS_FAILED(rv)) {
     SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSign").get());
     goto FAIL;
@@ -718,10 +659,9 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
     goto FAIL;
   }
 
-  /* Shut down the sig's base64 encoder.
-   */
-  rv = MIME_EncoderDestroy(mSigEncoderData, false);
-  mSigEncoderData = 0;
+  // Shut down the sig's base64 encoder.
+  rv = mSigEncoder->Flush();
+  mSigEncoder = nullptr;
   if (NS_FAILED(rv)) {
     goto FAIL;
   }
@@ -803,9 +743,9 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (bool aSign, nsIMsgSendReport 
     mEncryptionCinfo = 0;
   }
 
-  /* Shut down the base64 encoder. */
-  rv = MIME_EncoderDestroy(mCryptoEncoderData, false);
-  mCryptoEncoderData = 0;
+  // Shut down the base64 encoder.
+  mCryptoEncoder->Flush();
+  mCryptoEncoder = nullptr;
 
   uint32_t n;
   rv = mStream->Write(CRLF, 2, &n);
@@ -1057,26 +997,26 @@ make_multipart_signed_header_string(bool outer_p,
 /* Used as the output function of a SEC_PKCS7EncoderContext -- we feed
    plaintext into the crypto engine, and it calls this function with encrypted
    data; then this function writes a base64-encoded representation of that
-   data to the file (by filtering it through the given MimeEncoderData object.)
+   data to the file (by filtering it through the given MimeEncoder object.)
 
    Also used as the output function of SEC_PKCS7Encode() -- but in that case,
    it's used to write the encoded representation of the signature.  The only
-   difference is which MimeEncoderData object is used.
+   difference is which MimeEncoder object is used.
  */
 static void
 mime_crypto_write_base64 (void *closure, const char *buf, unsigned long size)
 {
-  MimeEncoderData *data = (MimeEncoderData *) closure;
-  nsresult rv = MIME_EncoderWrite (data, buf, size);
+  MimeEncoder *encoder = (MimeEncoder *) closure;
+  nsresult rv = encoder->Write(buf, size);
   PR_SetError(NS_FAILED(rv) ? static_cast<uint32_t>(rv) : 0, 0);
 }
 
 
-/* Used as the output function of MimeEncoderData -- when we have generated
+/* Used as the output function of MimeEncoder -- when we have generated
    the signature for a multipart/signed object, this is used to write the
    base64-encoded representation of the signature to the file.
  */
-int mime_encoder_output_fn(const char *buf, int32_t size, void *closure)
+nsresult mime_encoder_output_fn(const char *buf, int32_t size, void *closure)
 {
   nsMsgComposeSecure *state = (nsMsgComposeSecure *) closure;
   nsCOMPtr<nsIOutputStream> stream;
@@ -1084,9 +1024,9 @@ int mime_encoder_output_fn(const char *buf, int32_t size, void *closure)
   uint32_t n;
   nsresult rv = stream->Write((char *) buf, size, &n);
   if (NS_FAILED(rv) || n < size)
-    return MK_MIME_ERROR_WRITING_FILE;
+    return NS_ERROR_FAILURE;
   else
-    return 0;
+    return NS_OK;
 }
 
 /* Like mime_encoder_output_fn, except this is used for the case where we
@@ -1094,10 +1034,9 @@ int mime_encoder_output_fn(const char *buf, int32_t size, void *closure)
    signature should be fed into the crypto engine, rather than being written
    directly to the file.
  */
-static int
+static nsresult
 mime_nested_encoder_output_fn (const char *buf, int32_t size, void *closure)
 {
   nsMsgComposeSecure *state = (nsMsgComposeSecure *) closure;
-  // XXX MimeCryptoWriteBlock doesn't really return an nsresult, cast to int
-  return static_cast<int>(state->MimeCryptoWriteBlock ((char *) buf, size));
+  return state->MimeCryptoWriteBlock((char *) buf, size);
 }

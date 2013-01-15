@@ -32,7 +32,6 @@ CPPSRCS		= \
 		nsSmtpService.cpp \
 		nsMsgCopy.cpp \
 		nsMsgSendLater.cpp \
-		nsMsgEncoders.cpp \
 		nsMsgCompUtils.cpp \
 		nsMsgAttachment.cpp \
 		nsMsgAttachmentHandler.cpp \

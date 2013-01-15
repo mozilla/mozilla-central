@@ -11,15 +11,20 @@
 #include "nsCOMPtr.h"
 #include "nsICMSEncoder.h"
 #include "nsIX509Cert.h"
-#include "nsIMimeConverter.h"
 #include "nsIStringBundle.h"
 #include "nsICryptoHash.h"
 #include "nsICMSMessage.h"
 #include "nsIMutableArray.h"
 #include "nsStringGlue.h"
 #include "nsIOutputStream.h"
+#include "nsAutoPtr.h"
 
 class nsIMsgCompFields;
+namespace mozilla {
+namespace mailnews {
+class MimeEncoder;
+}
+}
 
 class nsMsgSMIMEComposeFields : public nsIMsgSMIMECompFields
 {
@@ -54,6 +59,7 @@ public:
   /* additional members */
   void GetOutputStream(nsIOutputStream **stream) { NS_IF_ADDREF(*stream = mStream);}
 private:
+  typedef mozilla::mailnews::MimeEncoder MimeEncoder;
   nsresult MimeInitMultipartSigned(bool aOuter, nsIMsgSendReport *sendReport);
   nsresult MimeInitEncryption(bool aSign, nsIMsgSendReport *sendReport);
   nsresult MimeFinishMultipartSigned (bool aOuter, nsIMsgSendReport *sendReport);
@@ -72,7 +78,7 @@ private:
   nsCOMPtr<nsIOutputStream> mStream;
   int16_t mHashType;
   nsCOMPtr<nsICryptoHash> mDataHash;
-  MimeEncoderData *mSigEncoderData;
+  nsAutoPtr<MimeEncoder> mSigEncoder;
   char *mMultipartSignedBoundary;
   nsString mSigningCertName;
   nsCOMPtr<nsIX509Cert> mSelfSigningCert;
@@ -83,7 +89,7 @@ private:
   nsCOMPtr<nsICMSEncoder> mEncryptionContext;
   nsCOMPtr<nsIStringBundle> mSMIMEBundle;
 
-  MimeEncoderData *mCryptoEncoderData;
+  nsAutoPtr<MimeEncoder> mCryptoEncoder;
   bool mIsDraft;
 
   enum {eBufferSize = 8192};

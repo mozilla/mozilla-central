@@ -156,8 +156,15 @@ class nsMsgCopy;
 class nsIPrompt;
 class nsIInterfaceRequestor;
 
+namespace mozilla {
+namespace mailnews {
+class MimeEncoder;
+}
+}
+
 class nsMsgComposeAndSend : public nsIMsgSend
 {
+  typedef mozilla::mailnews::MimeEncoder MimeEncoder;
 public:
   //
   // Define QueryInterface, AddRef and Release for this class
@@ -307,7 +314,7 @@ public:
   //
   char                    *m_attachment1_type;
   char                    *m_attachment1_encoding;
-  MimeEncoderData         *m_attachment1_encoder_data;
+  nsAutoPtr<MimeEncoder>  m_attachment1_encoder;
   char                    *m_attachment1_body;
   uint32_t                m_attachment1_body_length;
   char                    *mOriginalHTMLBody;

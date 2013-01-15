@@ -11,7 +11,7 @@
 #include "nsIURI.h"
 #include "mozITXTToHTMLConv.h"
 #include "nsIMsgSend.h"
-#include "nsIMimeConverter.h"
+#include "modmimee.h"
 #include "nsMsgAttachmentData.h"
 
 // SHERRY - Need to get these out of here eventually

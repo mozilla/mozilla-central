@@ -10,10 +10,17 @@
 #include "prprf.h" /* should be defined into msgCore.h? */
 #include "nsMsgSend.h"
 
+namespace mozilla {
+namespace mailnews {
+class MimeEncoder;
+}
+}
+
 typedef int (*MSG_SendPartWriteFunc)(const char* line, int32_t size,
 									                   bool isheader, void* closure);
 
 class nsMsgSendPart {
+  typedef mozilla::mailnews::MimeEncoder MimeEncoder;
 public:
     nsMsgSendPart(nsIMsgSend* state, const char *part_charset = NULL);
     virtual ~nsMsgSendPart();	  // Note that the destructor also destroys
@@ -38,12 +45,12 @@ public:
 
 	  virtual nsresult  SetMimeDeliveryState(nsIMsgSend* state);
 
-	// Note that the nsMsgSendPart class will take over ownership of the
-	// MimeEncoderData* object, deleting it when it chooses.  (This is
-	// necessary because deleting these objects is the only current way to
-	// flush out the data in them.)
-	nsresult            SetEncoderData(MimeEncoderData* data);
-	MimeEncoderData     *GetEncoderData() {return m_encoder_data;}
+  // Note that the nsMsgSendPart class will take over ownership of the
+  // MimeEncoderData* object, deleting it when it chooses.  (This is
+  // necessary because deleting these objects is the only current way to
+  // flush out the data in them.)
+  void                SetEncoder(MimeEncoder* encoder) {m_encoder = encoder;}
+  MimeEncoder         *GetEncoder() {return m_encoder;}
 
 	void                SetStripSensitiveHeaders(bool value)
                       {
@@ -75,7 +82,7 @@ protected:
   char                *m_other;
   char                m_charset_name[64+1];        // charset name associated with this part
 	bool                m_strip_sensitive_headers;
-	MimeEncoderData     *m_encoder_data;  /* Opaque state for base64/qp encoder. */
+  nsAutoPtr<MimeEncoder> m_encoder;
 
 	nsMsgSendPart       **m_children;
 	int32_t             m_numchildren;

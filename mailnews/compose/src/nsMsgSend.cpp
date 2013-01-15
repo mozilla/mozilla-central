@@ -16,7 +16,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIMsgMailNewsUrl.h"
-#include "nsMsgEncoders.h"
 #include "nsMsgCompUtils.h"
 #include "nsMsgI18N.h"
 #include "nsICharsetConverterManager.h"
@@ -76,6 +75,7 @@
 #include "nsIArray.h"
 #include "nsArrayUtils.h"
 #include "mozilla/Services.h"
+#include "mozilla/mailnews/MimeEncoder.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -265,7 +265,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_be_synchronous_p = false;
   m_attachment1_type = 0;
   m_attachment1_encoding = 0;
-  m_attachment1_encoder_data = nullptr;
   m_attachment1_body = 0;
   m_attachment1_body_length = 0;
   m_attachment_count = 0;
@@ -295,9 +294,6 @@ nsMsgComposeAndSend::~nsMsgComposeAndSend()
   PR_Free(m_attachment1_body);
   PR_Free(mOriginalHTMLBody);
 
-  if (m_attachment1_encoder_data)
-    MIME_EncoderDestroy(m_attachment1_encoder_data, true);
-
   if (m_plaintext)
   {
     if (m_plaintext->mTmpFile)
@@ -320,13 +316,6 @@ nsMsgComposeAndSend::~nsMsgComposeAndSend()
 
   if (m_attachments)
   {
-    uint32_t i;
-    for (i = 0; i < m_attachment_count; i++)
-    {
-      if (m_attachments [i].m_encoder_data)
-        MIME_EncoderDestroy(m_attachments[i].m_encoder_data, true);
-    }
-
     delete[] m_attachments;
   }
 }
@@ -729,23 +718,13 @@ nsMsgComposeAndSend::GatherMimeAttachments()
       // etc. into a nsMsgSendPart, then reshuffle the parts. Sigh.)
       if (m_plaintext->m_encoding.LowerCaseEqualsLiteral(ENCODING_QUOTED_PRINTABLE))
       {
-        MimeEncoderData *plaintext_enc = MIME_QPEncoderInit(mime_encoder_output_fn, this);
-        if (!plaintext_enc)
-        {
-          status = NS_ERROR_OUT_OF_MEMORY;
-          goto FAIL;
-        }
-        plainpart->SetEncoderData(plaintext_enc);
+        plainpart->SetEncoder(MimeEncoder::GetQPEncoder(
+          mime_encoder_output_fn, this));
       }
       else if (m_plaintext->m_encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
       {
-        MimeEncoderData *plaintext_enc = MIME_B64EncoderInit(mime_encoder_output_fn, this);
-        if (!plaintext_enc)
-        {
-          status = NS_ERROR_OUT_OF_MEMORY;
-          goto FAIL;
-        }
-        plainpart->SetEncoderData(plaintext_enc);
+        plainpart->SetEncoder(MimeEncoder::GetBase64Encoder(
+          mime_encoder_output_fn, this));
       }
     }
     else
@@ -837,17 +816,17 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   // Set up encoder for the first part (message body.)
   //
-  NS_ASSERTION(!m_attachment1_encoder_data, "not-null m_attachment1_encoder_data");
+  NS_ASSERTION(!m_attachment1_encoder, "not-null m_attachment1_encoder");
   if (!PL_strcasecmp(m_attachment1_encoding, ENCODING_BASE64))
   {
-    m_attachment1_encoder_data = MIME_B64EncoderInit(mime_encoder_output_fn, this);
-    if (!m_attachment1_encoder_data) goto FAILMEM;
+    m_attachment1_encoder = MimeEncoder::GetBase64Encoder(
+      mime_encoder_output_fn, this);
   }
-  else
-    if (!PL_strcasecmp(m_attachment1_encoding, ENCODING_QUOTED_PRINTABLE)) {
-      m_attachment1_encoder_data =
-      MIME_QPEncoderInit(mime_encoder_output_fn, this);
-    }
+  else if (!PL_strcasecmp(m_attachment1_encoding, ENCODING_QUOTED_PRINTABLE))
+  {
+    m_attachment1_encoder = MimeEncoder::GetQPEncoder(mime_encoder_output_fn,
+      this);
+  }
 
   // If we converted HTML into plaintext, the plaintext part
   // already has its type/encoding headers set. So, in the specific
@@ -882,10 +861,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
 
   PR_FREEIF(hdrs);
 
-  status = mainbody->SetEncoderData(m_attachment1_encoder_data);
-  m_attachment1_encoder_data = nullptr;
-  if (NS_FAILED(status))
-    goto FAIL;
+  mainbody->SetEncoder(m_attachment1_encoder.forget());
 
   //
   // Now we need to process attachments and slot them in the
@@ -1157,12 +1133,9 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   status = part->SetFile(ma->mTmpFile);
   if (NS_FAILED(status))
     return 0;
-  if (ma->m_encoder_data)
+  if (ma->m_encoder)
   {
-    status = part->SetEncoderData(ma->m_encoder_data);
-    if (NS_FAILED(status))
-      return 0;
-    ma->m_encoder_data = nullptr;
+    part->SetEncoder(ma->m_encoder.forget());
   }
 
   ma->m_current_column = 0;

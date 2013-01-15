@@ -8,7 +8,6 @@
 #include "nsIMimeConverter.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
-#include "nsMsgEncoders.h"
 #include "nsMsgI18N.h"
 #include "nsMsgCompUtils.h"
 #include "nsMsgMimeCID.h"
@@ -21,6 +20,7 @@
 #include "nsReadLine.h"
 #include "nsILineInputStream.h"
 #include "nsComposeStrings.h"
+#include "mozilla/mailnews/MimeEncoder.h"
 
 static char *mime_mailto_stream_read_buffer = 0;
 
@@ -41,7 +41,6 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
   m_type = nullptr;
   m_other = nullptr;
   m_strip_sensitive_headers = false;
-  m_encoder_data = nullptr;
   
   m_firstBlock = false;
   m_needIntlConversion = false;
@@ -53,10 +52,6 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
 
 nsMsgSendPart::~nsMsgSendPart()
 {
-  if (m_encoder_data) {
-    MIME_EncoderDestroy(m_encoder_data, false);
-    m_encoder_data = nullptr;
-  }
   for (int i=0 ; i < m_numchildren; i++)
     delete m_children[i];
 
@@ -143,12 +138,6 @@ nsresult nsMsgSendPart::AppendOtherHeaders(const char* more)
 }
 
 
-nsresult nsMsgSendPart::SetEncoderData(MimeEncoderData* data)
-{
-  m_encoder_data = data;
-  return NS_OK;
-}
-
 nsresult nsMsgSendPart::SetMainPart(bool value)
 {
   m_mainpart = value;
@@ -231,9 +220,9 @@ nsresult nsMsgSendPart::PushBody(const char* buffer, int32_t length)
   nsresult status = NS_OK;
   const char* encoded_data = buffer;
 
-  if (m_encoder_data)
+  if (m_encoder)
   {
-    status = MIME_EncoderWrite(m_encoder_data, encoded_data, length);
+    status = m_encoder->Write(encoded_data, length);
   }
   else
   {
@@ -731,10 +720,10 @@ nsMsgSendPart::Write()
     }
   }
 
-  if (m_encoder_data)
+  if (m_encoder)
   {
-    nsresult rv  = MIME_EncoderDestroy(m_encoder_data, false);
-    m_encoder_data = nullptr;
+    nsresult rv = m_encoder->Flush();
+    m_encoder = nullptr;
     needToWriteCRLFAfterEncodedBody = !m_parent;
     if (NS_FAILED(rv))
     {

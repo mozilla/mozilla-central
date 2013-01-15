@@ -13,7 +13,9 @@
 
 #include "nsError.h"
 #include "nscore.h" // for nullptr
-#include "nsIMimeConverter.h" // for MimeConverterOutputCallback
+
+typedef int (*MimeConverterOutputCallback)
+  (const char *buf, int32_t size, void *closure);
 
 /* This file defines interfaces to generic implementations of Base64,
    Quoted-Printable, and UU decoders; and of Base64 and Quoted-Printable
@@ -23,7 +25,6 @@
 
 /* Opaque objects used by the encoder/decoder to store state. */
 typedef struct MimeDecoderData MimeDecoderData;
-typedef struct MimeEncoderData MimeEncoderData;
 
 struct MimeObject;
 
@@ -41,25 +42,15 @@ MimeDecoderData *MimeUUDecoderInit (MimeConverterOutputCallback output_fn,
 MimeDecoderData *MimeYDecoderInit (MimeConverterOutputCallback output_fn,
                   void *closure);
 
-MimeEncoderData *MimeB64EncoderInit(MimeConverterOutputCallback output_fn,
-                  void *closure);
-MimeEncoderData *MimeQPEncoderInit (MimeConverterOutputCallback output_fn,
-                  void *closure);
-MimeEncoderData *MimeUUEncoderInit (const char *filename,
-                  MimeConverterOutputCallback output_fn,
-                  void *closure);
-
 /* Push data through the encoder/decoder, causing the above-provided write_fn
    to be called with encoded/decoded data. */
 int MimeDecoderWrite (MimeDecoderData *data, const char *buffer, int32_t size,
                   int32_t *outSize);
-int MimeEncoderWrite (MimeEncoderData *data, const char *buffer, int32_t size);
 
 /* When you're done encoding/decoding, call this to free the data.  If
    abort_p is false, then calling this may cause the write_fn to be called
    one last time (as the last buffered data is flushed out.)
  */
 int MimeDecoderDestroy(MimeDecoderData *data, bool abort_p);
-int MimeEncoderDestroy(MimeEncoderData *data, bool abort_p);
 
 #endif /* _MODMIMEE_H_ */

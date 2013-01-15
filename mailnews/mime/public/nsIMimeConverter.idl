@@ -5,25 +5,10 @@
 
 #include "nsISupports.idl"
 
-%{C++
-
-/* Opaque objects used by the encoder/decoder to store state. */
-typedef struct MimeDecoderData MimeDecoderData;
-typedef struct MimeEncoderData MimeEncoderData;
-
-typedef int (*PR_CALLBACK MimeConverterOutputCallback)
-    (const char *buf, int32_t size, void *closure);
-
-%}
-
-[ptr] native MimeDecoderDataPtr(MimeDecoderData);
-[ptr] native MimeEncoderDataPtr(MimeEncoderData);
-native MimeConverterOutputCallback(MimeConverterOutputCallback);
-
 /**
  * Encode/decode mail headers (via libmime).
  */
-[scriptable, uuid(879f3aeb-b48a-40c1-ae94-ed8f6ecdbc90)]
+[scriptable, uuid(a2f56836-0de6-41b9-8902-ac33e4993e6b)]
 interface nsIMimeConverter : nsISupports {
   /**
    * Suggested byte length limit for use when calling
@@ -102,21 +87,5 @@ interface nsIMimeConverter : nsISupports {
                            in string default_charset,
                            in boolean override_charset,
                            in boolean eatContinuations);
-
-  [noscript]
-  MimeEncoderDataPtr B64EncoderInit(in MimeConverterOutputCallback output_fn,
-                                    in voidPtr closure);
-
-  [noscript]
-  MimeEncoderDataPtr QPEncoderInit(in MimeConverterOutputCallback output_fn,
-                                   in voidPtr closure);
-
-  [noscript]
-  void EncoderDestroy(in MimeEncoderDataPtr data, in boolean abort_p);
-
-  [noscript]
-  long EncoderWrite(in MimeEncoderDataPtr data, in string buffer,
-                    in long size);
-
 };
 

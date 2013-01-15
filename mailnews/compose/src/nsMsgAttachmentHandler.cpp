@@ -12,7 +12,6 @@
 #include "nsIPrefBranch.h"
 #include "nsMsgSend.h"
 #include "nsMsgCompUtils.h"
-#include "nsMsgEncoders.h"
 #include "nsMsgI18N.h"
 #include "nsURLFetcher.h"
 #include "nsMimeTypes.h"
@@ -34,6 +33,7 @@
 #include "nsIZipWriter.h"
 #include "nsIDirectoryEnumerator.h"
 #include "mozilla/Services.h"
+#include "mozilla/mailnews/MimeEncoder.h"
 
 ///////////////////////////////////////////////////////////////////////////
 // Mac Specific Attachment Handling for AppleDouble Encoded Files
@@ -138,7 +138,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   m_file_analyzed(false),
 
   // Mime
-  m_encoder_data(nullptr)
+  m_encoder(nullptr)
 {
 }
 
@@ -373,22 +373,20 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
 
   /* Now that we've picked an encoding, initialize the filter.
   */
-  NS_ASSERTION(!m_encoder_data, "not-null m_encoder_data");
+  NS_ASSERTION(!m_encoder, "not-null m_encoder");
   if (m_encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
   {
-    m_encoder_data = MIME_B64EncoderInit(mime_encoder_output_fn,
+    m_encoder = MimeEncoder::GetBase64Encoder(mime_encoder_output_fn,
       mime_delivery_state);
-    if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
   }
   else if (m_encoding.LowerCaseEqualsLiteral(ENCODING_QUOTED_PRINTABLE))
   {
-    m_encoder_data = MIME_QPEncoderInit(mime_encoder_output_fn,
+    m_encoder = MimeEncoder::GetQPEncoder(mime_encoder_output_fn,
       mime_delivery_state);
-    if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
   }
   else
   {
-    m_encoder_data = 0;
+    m_encoder = nullptr;
   }
 
   /* Do some cleanup for documents with unknown content type.
