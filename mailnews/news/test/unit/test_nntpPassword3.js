@@ -5,6 +5,8 @@
 
 load("../../../resources/mailTestUtils.js");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const kUsername = "testnews";
 const kPassword = "newstest";
 const kProtocol = "nntp";
@@ -13,9 +15,6 @@ const kServerUrl = "news://" + kHostname;
 
 function run_test()
 {
-  // Login Manager
-  var loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
   // Passwords File (generated from Mozilla 1.8 branch).
   var signons = do_get_file("../../../data/signons-mailnews1.8.txt");
 
@@ -39,7 +38,7 @@ function run_test()
   var count = {};
 
   // Test - Check there is a password to begin with...
-  var logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
+  var logins = Services.logins.findLogins(count, kServerUrl, null, kServerUrl);
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUsername);
@@ -48,7 +47,7 @@ function run_test()
   // Test - Remove the news password login via the incoming server
   incomingServer.forgetPassword();
 
-  logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
+  logins = Services.logins.findLogins(count, kServerUrl, null, kServerUrl);
 
   // should be no passwords left...
   do_check_eq(count.value, 0);

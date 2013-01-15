@@ -26,11 +26,11 @@ function UpdateMailToolbar(caller)
 
 function isNewsURI(uri)
 {
-    if (!uri || uri[0] != 'n') {
+    if (!uri || !uri.startsWith('n')) {
         return false;
     }
     else {
-        return ((uri.substring(0,6) == "news:/") || (uri.substring(0,14) == "news-message:/"));
+        return ((uri.startsWith("news:/")) || (uri.startsWith("news-message:/")));
     }
 }
 

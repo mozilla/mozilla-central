@@ -25,17 +25,16 @@ function run_test() {
 
   // Add passwords to the manager
   var serverURI = "news://localhost/";
-  var loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
   var loginInfo1 = Cc["@mozilla.org/login-manager/loginInfo;1"]
                      .createInstance(Ci.nsILoginInfo);
   loginInfo1.init(serverURI + "test.subscribe.empty", null,
     serverURI + "test.subscribe.empty", "group1", "pass1", "", "");
-  loginMgr.addLogin(loginInfo1);
+  Services.logins.addLogin(loginInfo1);
   var loginInfo2 = Cc["@mozilla.org/login-manager/loginInfo;1"]
                      .createInstance(Ci.nsILoginInfo);
   loginInfo2.init(serverURI + "test.filter", null,
     serverURI + "test.filter", "group2", "pass2", "", "");
-  loginMgr.addLogin(loginInfo2);
+  Services.logins.addLogin(loginInfo2);
   try {
     var prefix = "news://localhost:"+NNTP_PORT+"/";
     var transaction;
