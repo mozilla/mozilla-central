@@ -1100,19 +1100,6 @@ function ClearCurrentHeaders()
 function ShowMessageHeaderPane()
 {
   document.getElementById("msgHeaderView").collapsed = false;
-
-  // We used to do this as a work-around for long-ago bug 39655
-  // there apparently was a layout bug where the message pane
-  // 'toolbar' was being hidden as a result of the folder change,
-  // then re-shown, but the layout would glitch and not show it.
-  // As much as I love cargo-culting, I am commenting this out
-  // because I have great respect for our layout ninjas and little
-  // respect for random global variables such as the one that
-  // controlled this.
-  //
-  //var el = document.getElementById("msgHeaderView");
-  //el.setAttribute("style", el.getAttribute("style"));
-  //
 }
 
 function HideMessageHeaderPane()
