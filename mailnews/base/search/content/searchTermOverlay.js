@@ -284,8 +284,8 @@ function updateSearchAttributes()
 
 function booleanChanged(event) {
     // when boolean changes, we have to update all the attributes on the search terms
-    var newBoolValue = (event.target.getAttribute("value") == "and") ? true : false;
-    var matchAllValue = (event.target.getAttribute("value") == "matchAll") ? true : false;
+    var newBoolValue = (event.target.getAttribute("value") == "and");
+    var matchAllValue = (event.target.getAttribute("value") == "matchAll");
     if (document.getElementById("abPopup")) {
       var selectedAB = document.getElementById("abPopup").selectedItem.value;
       setSearchScope(GetScopeForDirectoryURI(selectedAB));

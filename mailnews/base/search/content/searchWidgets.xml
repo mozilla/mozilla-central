@@ -127,7 +127,7 @@
             if (!this.getTemplates(false)) {
               elements = menupopup.getElementsByAttribute("value", "replytomessage");
               if (elements.length == 1)
-                menupopup.getElementsByAttribute("value", "replytomessage")[0].hidden = true;
+                elements[0].hidden = true;
             }
           ]]>
         </body>

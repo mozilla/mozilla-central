@@ -954,7 +954,7 @@ let MessageTextFilter = {
     }
 
     while (aSearchString) {
-      if (aSearchString[0] == '"') {
+      if (aSearchString.startsWith('"')) {
         let endIndex = aSearchString.indexOf(aSearchString[0], 1);
         // treat a quote without a friend as making a phrase containing the
         // rest of the string...

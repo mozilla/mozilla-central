@@ -870,7 +870,7 @@ function getFirstFolder(msgFolder)
  */
 function filterSearchMatch(aFilter, aKeyword)
 {
-  return (aFilter.filterName.toLocaleLowerCase().indexOf(aKeyword) != -1)
+  return (aFilter.filterName.toLocaleLowerCase().contains(aKeyword))
 }
 
 /**
