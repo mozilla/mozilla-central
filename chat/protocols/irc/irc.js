@@ -947,9 +947,10 @@ ircAccount.prototype = {
   // Write WHOIS information to a conversation.
   writeWhois: function(aConv, aNick, aTooltipInfo) {
     let nick = this.normalize(aNick);
+    let type = {system: true, noLog: true};
     // RFC 2812 errors 401 and 406 result in there being no entry for the nick.
     if (!hasOwnProperty(this.whoisInformation, nick)) {
-      aConv.writeMessage(null, _("message.unknownNick", nick), {system: true});
+      aConv.writeMessage(null, _("message.unknownNick", nick), type);
       return;
     }
     // If the nick is offline, tell the user. In that case, it's WHOWAS info.
@@ -968,7 +969,7 @@ ircAccount.prototype = {
           break;
       }
     }
-    aConv.writeMessage(null, msg, {system: true});
+    aConv.writeMessage(null, msg, type);
   },
 
   trackBuddy: function(aNick) {
