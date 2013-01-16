@@ -147,6 +147,7 @@ cal.itip = {
             return (cal.itip.isSchedulingCalendar(aCalendar)
                     && cal.userCanAddItemsToCalendar(aCalendar));
         }
+
         let writableCalendars = cal.getCalendarManager().getCalendars({}).filter(isWritableCalendar);
         if (writableCalendars.length > 0) {
             let compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
@@ -245,7 +246,10 @@ cal.itip = {
             data[btn] = { label: null, actionMethod: "" };
         }
 
-        if (Components.isSuccessCode(rc) && !actionFunc) {
+        if (rc == Components.interfaces.calIErrors.CAL_IS_READONLY) {
+            // No writable calendars, tell the user about it
+            data.label = _gs("imipBarNotWritable");
+        } else if (Components.isSuccessCode(rc) && !actionFunc) {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
             data.label = _gs("imipBarAlreadyProcessedText");
@@ -497,7 +501,9 @@ cal.itip = {
                 // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
                 // same ID, this simplifies our searching, we can just look for Item[0].id
                 let itemList = itipItem.getItemList({});
-                if (itemList.length > 0) {
+                if (!itipItem.targetCalendar) {
+                    optionsFunc(itipItem, Components.interfaces.calIErrors.CAL_IS_READONLY);
+                } else if (itemList.length > 0) {
                     ItipItemFinderFactory.findItem(itemList[0].id, itipItem, optionsFunc);
                 } else if (optionsFunc) {
                     optionsFunc(itipItem, Components.results.NS_OK);
