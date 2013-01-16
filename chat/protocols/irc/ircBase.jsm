@@ -777,8 +777,9 @@ var ircBase = {
      * LIST
      */
     "321": function(aMessage) { // RPL_LISTSTART
+      // Channel :Users Name
       // Obsolete. Not used.
-      return false;
+      return true;
     },
     "322": function(aMessage) { // RPL_LIST
       // <channel> <# visible> :<topic>
