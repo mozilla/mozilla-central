@@ -66,14 +66,20 @@ var ircCAP = {
       // [* | <nick>] <subcommand> :<parameters>
       let messages = capMessage(aMessage);
 
-      let handled = true;
-      for each (let message in messages)
-        handled &= ircHandlers.handleCAPMessage(this, message);
+      messages = messages.filter(function(aMessage)
+        !ircHandlers.handleCAPMessage(this, aMessage), this);
+      if (messages.length) {
+        // Display the list of unhandled CAP messages.
+        let unhandledMessages =
+          messages.map(function(aMsg) aMsg.cap.parameter).join(" ");
+        this.WARN("Unhandled CAP messages: " + unhandledMessages +
+                  "\nRaw message: " + aMessage.rawMessage);
+      }
 
       // If no CAP handlers were added, just tell the server we're done.
       if (!this._caps.length)
         this.sendMessage("CAP", "END");
-      return handled;
+      return true;
     },
 
     "410": function(aMessage) { // ERR_INVALIDCAPCMD

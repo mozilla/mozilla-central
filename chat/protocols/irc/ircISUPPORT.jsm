@@ -56,11 +56,17 @@ var ircISUPPORT = {
     "005": function(aMessage) {
       let messages = isupportMessage(aMessage);
 
-      let handled = true;
-      for each (let message in messages)
-        handled &= ircHandlers.handleISUPPORTMessage(this, message);
+      messages = messages.filter(function(aMessage)
+        !ircHandlers.handleISUPPORTMessage(this, aMessage), this);
+      if (messages.length) {
+        // Display the list of unhandled ISUPPORT messages.
+        let unhandledMessages =
+          messages.map(function(aMsg) aMsg.isupport.parameter).join(" ");
+        this.WARN("Unhandled ISUPPORT messages: " + unhandledMessages +
+                  "\nRaw message: " + aMessage.rawMessage);
+      }
 
-      return handled;
+      return true;
     }
   }
 }
