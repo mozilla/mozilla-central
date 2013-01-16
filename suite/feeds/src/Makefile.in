@@ -13,19 +13,11 @@ MODULE = suitefeeds
 LIBRARY_NAME = suitefeeds_s
 FORCE_STATIC_LIB = 1
 
-DEFINES += \
-	-DMOZ_APP_NAME=$(MOZ_APP_NAME) \
-	-DMOZ_MACBUNDLE_NAME=$(MOZ_MACBUNDLE_NAME) \
-	$(NULL)
-
 EXTRA_COMPONENTS = \
 	SuiteFeeds.manifest \
 	FeedConverter.js \
-	WebContentConverter.js \
-	$(NULL)
-
-EXTRA_PP_COMPONENTS = \
 	FeedWriter.js \
+	WebContentConverter.js \
 	$(NULL)
 
 CPPSRCS = \

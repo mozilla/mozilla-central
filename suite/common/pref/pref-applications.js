@@ -99,20 +99,18 @@ const kActionManageApp = -1;
 // Utilities
 
 function getFileDisplayName(aFile) {
-#ifdef XP_WIN
-  if (aFile instanceof Components.interfaces.nsILocalFileWin) {
+  if ("nsILocalFileWin" in Components.interfaces &&
+      aFile instanceof Components.interfaces.nsILocalFileWin) {
     try {
       return aFile.getVersionInfoField("FileDescription");
     } catch (e) {}
   }
-#endif
-#ifdef XP_MACOSX
-  if (aFile instanceof Components.interfaces.nsILocalFileMac) {
+  else if ("nsILocalFileMac" in Components.interfaces &&
+           aFile instanceof Components.interfaces.nsILocalFileMac) {
     try {
       return aFile.bundleDisplayName;
     } catch (e) {}
   }
-#endif
   return aFile.leafName;
 }
 
@@ -1248,21 +1246,12 @@ var gApplicationsPane = {
   },
 
   _isValidHandlerExecutable: function(aExecutable) {
+    var file = Services.dirsvc.get("XREExeF",
+                                   Components.interfaces.nsILocalFile);
     return aExecutable &&
            aExecutable.exists() &&
            aExecutable.isExecutable() &&
-// XXXben - we need to compare this with the running instance executable
-//          just don't know how to do that via script...
-// XXXmano TBD: can probably add this to nsIShellService
-#ifdef XP_WIN
-#expand    aExecutable.leafName != "__MOZ_APP_NAME__.exe";
-#else
-#ifdef XP_MACOSX
-#expand    aExecutable.leafName != "__MOZ_MACBUNDLE_NAME__";
-#else
-#expand    aExecutable.leafName != "__MOZ_APP_NAME__-bin";
-#endif
-#endif
+           aExecutable.leafName != file.leafName;
   },
 
   /**

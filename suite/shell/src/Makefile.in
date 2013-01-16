@@ -33,10 +33,6 @@ EXTRA_COMPONENTS = nsSetDefault.manifest nsSetDefault.js
 LIBRARY_NAME = shellservice_s
 endif
 
-DEFINES += \
-	-DMOZ_APP_NAME=\"$(MOZ_APP_NAME)\" \
-	$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
 CXXFLAGS += $(TK_CFLAGS)

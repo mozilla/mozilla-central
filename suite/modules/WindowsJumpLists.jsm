@@ -419,10 +419,7 @@ var WinTaskbarJumpList =
   _getHandlerAppItem: function WTBJL__getHandlerAppItem(name, description,
                                                         args, iconIndex,
                                                         faviconPageUri) {
-    var file = Services.dirsvc.get("XCurProcD", Ci.nsILocalFile);
-
-    // XXX where can we grab this from in the build? Do we need to?
-    file.append("seamonkey.exe");
+    var file = Services.dirsvc.get("XREExeF", Ci.nsILocalFile);
 
     var handlerApp = Cc["@mozilla.org/uriloader/local-handler-app;1"].
                      createInstance(Ci.nsILocalHandlerApp);

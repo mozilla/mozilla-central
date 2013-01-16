@@ -642,20 +642,18 @@ FeedWriter.prototype = {
    * @returns The display name of the application represented by the file.
    */
   _getFileDisplayName: function getFileDisplayName(file) {
-#ifdef XP_WIN
-    if (file instanceof Components.interfaces.nsILocalFileWin) {
+    if ("nsILocalFileWin" in Components.interfaces &&
+        file instanceof Components.interfaces.nsILocalFileWin) {
       try {
         return file.getVersionInfoField("FileDescription");
       } catch (e) {}
     }
-#endif
-#ifdef XP_MACOSX
-    if (file instanceof Components.interfaces.nsILocalFileMac) {
+    else if ("nsILocalFileMac" in Components.interfaces &&
+             file instanceof Components.interfaces.nsILocalFileMac) {
       try {
         return file.bundleDisplayName;
       } catch (e) {}
     }
-#endif
     return file.leafName;
   },
 
@@ -714,18 +712,11 @@ FeedWriter.prototype = {
       if (fp.show() == Components.interfaces.nsIFilePicker.returnOK) {
         this._selectedApp = fp.file;
         if (this._selectedApp) {
-          // XXXben - we need to compare this with the running instance executable
-          //          just don't know how to do that via script...
-          // XXXmano TBD: can probably add this to nsIShellService
-#ifdef XP_WIN
-#expand           if (fp.file.leafName != "__MOZ_APP_NAME__.exe") {
-#else
-#ifdef XP_MACOSX
-#expand           if (fp.file.leafName != "__MOZ_MACBUNDLE_NAME__") {
-#else
-#expand           if (fp.file.leafName != "__MOZ_APP_NAME__-bin") {
-#endif
-#endif
+          var dirsvc = Components.classes["@mozilla.org/file/directory_service;1"]
+                                 .getService(Components.interfaces.nsIProperties);
+
+          var file = dirsvc.get("XREExeF", Components.interfaces.nsILocalFile);
+          if (fp.file.leafName != file.leafName) {
             this._initMenuItemWithFile(this._contentSandbox.selectedAppMenuItem,
                                        this._selectedApp);
 

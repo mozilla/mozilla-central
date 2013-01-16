@@ -24,6 +24,7 @@
 #include "nsIProcess.h"
 #include "prenv.h"
 #include "mozilla/Util.h"
+#include "nsXULAppAPI.h"
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtk.h>
@@ -125,11 +126,7 @@ nsGNOMEShellService::Init()
   }
 
   nsCOMPtr<nsIFile> appPath;
-  rv = NS_GetSpecialDirectory(NS_XPCOM_CURRENT_PROCESS_DIR,
-                              getter_AddRefs(appPath));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = appPath->AppendNative(NS_LITERAL_CSTRING(MOZ_APP_NAME));
+  rv = NS_GetSpecialDirectory(XRE_EXECUTABLE_FILE, getter_AddRefs(appPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return appPath->GetNativePath(mAppPath);
