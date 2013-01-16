@@ -832,6 +832,28 @@ function updateItem(item, itipItemItem) {
 }
 
 /** local to this module file
+ * Copies the provider-specified properties from the itip item to the passed
+ * item. Special case property "METHOD" uses the itipItem's receivedMethod.
+ *
+ * @param itipItem      The itip item containing the receivedMethod.
+ * @param itipItemItem  The calendar item inside the itip item.
+ * @param item          The target item to copy to.
+ */
+function copyProviderProperties(itipItem, itipItemItem, item) {
+    // Copy over itip properties to the item if requested by the provider
+    let copyProps = item.calendar.getProperty("itip.copyProperties") || [];
+    for each (let prop in copyProps) {
+        if (prop == "METHOD") {
+            // Special case, this copies over the received method
+            item.setProperty("METHOD", itipItem.receivedMethod.toUpperCase());
+        } else if (itipItemItem.hasProperty(prop)) {
+            // Otherwise just copy from the item contained in the itipItem
+            item.setProperty(prop, itipItemItem.getProperty(prop));
+        }
+    }
+}
+
+/** local to this module file
  * Creates an organizer calIAttendee object based on the calendar's configured organizer id.
  *
  * @return calIAttendee object
@@ -1127,6 +1149,7 @@ ItipItemFinder.prototype = {
                                     itipItemItem = itipItemItem.parentItem;
                                 }
                             }
+
                             switch (method) {
                                 case "REFRESH": { // xxx todo test
                                     let attendees = itipItemItem.getAttendees({});
@@ -1206,6 +1229,10 @@ ItipItemFinder.prototype = {
                                         setReceivedInfo(att, itipItemItem);
                                         att.participationStatus = attendees[0].participationStatus;
                                         newItem.addAttendee(att);
+
+                                        // Make sure the provider-specified properties are copied over
+                                        copyProviderProperties(this.mItipItem, itipItemItem, newItem);
+
                                         let action = function(opListener) {
                                             return newItem.calendar.modifyItem(
                                                 newItem, item,
@@ -1233,6 +1260,10 @@ ItipItemFinder.prototype = {
                                     if (!newItem) {
                                         newItem = item.clone();
                                         modifiedItems[item.id] = newItem;
+
+                                        // Make sure the provider-specified properties are copied over
+                                        copyProviderProperties(this.mItipItem, itipItemItem, newItem);
+
                                         operations.push(
                                             function(opListener) {
                                                 return newItem.calendar.modifyItem(newItem, item, opListener);
