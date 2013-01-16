@@ -935,10 +935,11 @@ nsresult nsParseMailMessageState::StartNewEnvelope(const char *line, uint32_t li
 nsresult nsParseMailMessageState::ParseHeaders ()
 {
   char *buf = m_headers.GetBuffer();
-  char *buf_end = buf + m_headers.GetBufferPos();
+  uint32_t buf_length = m_headers.GetBufferPos();
+  char *buf_end = buf + buf_length;
   while (buf < buf_end)
   {
-    char *colon = PL_strchr (buf, ':');
+    char *colon = PL_strnchr(buf, ':', buf_length);
     char *end;
     char *value = 0;
     struct message_header *header = 0;
