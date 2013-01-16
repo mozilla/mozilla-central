@@ -380,7 +380,12 @@ ircChannel.prototype = {
         let newFields = this.name;
         if (addNewMode) {
           let key = getNextParam();
-          // A new channel key was set.
+          // A new channel key was set, display a message if this key is not
+          // already known.
+          if (this._chatRoomFields &&
+              this._chatRoomFields.getValue("password") == key) {
+            continue;
+          }
           msg = _("message.channelKeyAdded", aSetter, key);
           newFields += " " + key;
         }
