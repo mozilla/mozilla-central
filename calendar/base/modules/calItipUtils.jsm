@@ -232,7 +232,7 @@ cal.itip = {
      * @param rc              The result of retrieving the item
      * @param actionFunc      The action function.
      */
-    getOptionsText: function getOptionsText(itipItem, rc, actionFunc) {
+    getOptionsText: function getOptionsText(itipItem, rc, actionFunc, foundItems) {
         function _gs(strName) {
             return cal.calGetString("lightning", strName, null, "lightning");
         }
@@ -249,8 +249,11 @@ cal.itip = {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
             data.label = _gs("imipBarAlreadyProcessedText");
-            data.button1.label = _gs("imipDetails.label");
-            data.button1.actionMethod = "X-SHOWDETAILS"; // not a real method, but helps us decide
+            if (foundItems && foundItems.length) {
+                data.button1.label = _gs("imipDetails.label");
+                // Not a real method, but helps us decide
+                data.button1.actionMethod = "X-SHOWDETAILS";
+            }
         } else if (Components.isSuccessCode(rc)) {
 
             cal.LOG("iTIP options on: " + actionFunc.method);

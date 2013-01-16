@@ -118,7 +118,7 @@ var ltnImipBar = {
      */
     setupOptions: function setupOptions(itipItem, rc, actionFunc, foundItems) {
         let imipBar =  document.getElementById("imip-bar");
-        let data = cal.itip.getOptionsText(itipItem, rc, actionFunc);
+        let data = cal.itip.getOptionsText(itipItem, rc, actionFunc, foundItems);
 
         if (Components.isSuccessCode(rc)) {
             ltnImipBar.itipItem = itipItem;
