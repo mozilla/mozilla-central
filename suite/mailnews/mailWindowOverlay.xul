@@ -1259,13 +1259,13 @@
                     name="viewFeedBodyHTMLGroup"
                     label="&bodySanitized.label;" 
                     accesskey="&bodySanitized.accesskey;"
-                    oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
+                    oncommand="MsgFeedBodyRenderPrefs(false, 3, disallow_classes_no_html)"/>
           <menuitem id="bodyFeedSummaryAsPlaintext" 
                     type="radio" 
                     name="viewFeedBodyHTMLGroup"
                     label="&bodyAsPlaintext.label;" 
                     accesskey="&bodyAsPlaintext.accesskey;"
-                    oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
+                    oncommand="MsgFeedBodyRenderPrefs(true, 1, disallow_classes_no_html)"/>
           <menuseparator id="viewFeedSummarySeparator"/>
           <menuitem id="bodyFeedGlobalWebPage" 
                     type="radio" 
