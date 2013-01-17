@@ -61,8 +61,6 @@ void nsMsgRDFDataSource::Cleanup()
   mInitialized = false;
 }
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(nsMsgRDFDataSource)
-
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsMsgRDFDataSource)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mObservers)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mWindow)
