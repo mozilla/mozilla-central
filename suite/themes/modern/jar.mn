@@ -387,6 +387,7 @@ modern.jar:
   skin/modern/messenger/messageKeywords.css                        (messenger/messageKeywords.css)
   skin/modern/messenger/messageWindow.css                          (messenger/messageWindow.css)
   skin/modern/messenger/messenger.css                              (messenger/messenger.css)
+  skin/modern/messenger/newmailalert.css                           (messenger/newmailalert.css)
   skin/modern/messenger/prefPanels.css                             (messenger/prefPanels.css)
   skin/modern/messenger/searchDialog.css                           (messenger/searchDialog.css)
   skin/modern/messenger/subscribe.css                              (messenger/subscribe.css)

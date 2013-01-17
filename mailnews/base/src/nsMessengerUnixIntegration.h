@@ -45,12 +45,10 @@ private:
   void FillToolTipInfo();
   nsresult GetMRUTimestampForFolder(nsIMsgFolder *aFolder, uint32_t *aLastMRUTime);
 
-#ifdef MOZ_THUNDERBIRD
   bool BuildNotificationBody(nsIMsgDBHdr *aHdr, nsIStringBundle *Bundle, nsString &aBody);
   bool BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle);
   nsresult ShowNewAlertNotification(bool aUserInitiated);
   nsresult PutMRUTimestampForFolder(nsIMsgFolder *aFolder, uint32_t aLastMRUTime);
-#endif
 
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;

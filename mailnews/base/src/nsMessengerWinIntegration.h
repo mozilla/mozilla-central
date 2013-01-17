@@ -56,9 +56,8 @@ public:
   NS_DECL_NSIFOLDERLISTENER
   NS_DECL_NSIOBSERVER
 
-#ifdef MOZ_THUNDERBIRD
   nsresult ShowNewAlertNotification(bool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText);
-#else
+#ifndef MOZ_THUNDERBIRD
   nsresult ShowAlertMessage(const nsString& aAlertTitle, const nsString& aAlertText, const nsACString& aFolderURI);
 #endif
 

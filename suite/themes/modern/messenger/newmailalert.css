@@ -1,0 +1,67 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* ===== alert.css =====================================================
+  == Styles specific to the alerts dialog.
+  ======================================================================= */
+
+@import url("chrome://messenger/skin/");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+#newMailAlertNotification {
+  min-height: 60px;
+  border: ridge #5486DA 4px;
+}
+
+#alertImage {
+  list-style-image: url("chrome://branding/content/icon64.png");
+}
+
+#alertImageBox {
+  padding: 4px;
+}
+
+#alertTitle {
+  font-weight: bold;
+}
+
+#alertTextBox {
+  padding: 4px;
+  -moz-padding-end: 16px;
+}
+
+.folderSummary-message-row
+{
+  /* This max width ends up dictating the overall width of the alert window
+     because it controls how large the preview, subject and sender text can be
+     before cropping kicks in */
+  max-width: 450px;
+  padding: 0px 5px;
+}
+
+.folderSummary-subject {
+  font-weight: bold;
+}
+
+.folderSummary-sender, .folderSummary-subject {
+  cursor: inherit;
+}
+
+.folderSummary-previewText {
+  color: #8C99AB;
+}
+
+.folderSummaryMessage:hover > .folderSummary-message-row {
+  cursor: pointer;
+  color: #0000FF;
+}
+
+#closeButton {
+  list-style-image: url("chrome://global/skin/icons/closebox.gif");
+  -moz-appearance: none;
+  border: none !important;
+  padding: 2px 0px 0px;
+}

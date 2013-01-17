@@ -256,6 +256,7 @@ classic.jar:
   skin/classic/messenger/addressingWidget.css                           (messenger/addressingWidget.css)
   skin/classic/messenger/messageWindow.css                              (messenger/messageWindow.css)
   skin/classic/messenger/messenger.css                                  (messenger/messenger.css)
+  skin/classic/messenger/newmailalert.css                               (messenger/newmailalert.css)
   skin/classic/messenger/prefPanels.css                                 (messenger/prefPanels.css)
   skin/classic/messenger/subscribe.css                                  (messenger/subscribe.css)
   skin/classic/messenger/threadPane.css                                 (messenger/threadPane.css)

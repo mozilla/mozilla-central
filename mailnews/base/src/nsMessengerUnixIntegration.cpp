@@ -150,7 +150,6 @@ nsresult nsMessengerUnixIntegration::GetStringBundle(nsIStringBundle **aBundle)
   return NS_OK;
 }
 
-#ifdef MOZ_THUNDERBIRD
 bool
 nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle)
 {
@@ -334,7 +333,6 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   aBody.Assign(alertBody);
   return true;
 }
-#endif
 
 nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI)
 {
@@ -351,7 +349,6 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
   if (showAlert)
   {
     mAlertInProgress = true;
-#ifdef MOZ_THUNDERBIRD
     nsCOMPtr<nsIAlertsService> alertsService(do_GetService(NS_SYSTEMALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv)) {
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON),
@@ -367,16 +364,6 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
     AlertFinished();
     rv = ShowNewAlertNotification(false);
 
-#else
-    nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
-    if (NS_SUCCEEDED(rv))
-    {
-      rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
-                                                aAlertText, true,
-                                                NS_ConvertASCIItoUTF16(aFolderURI), this,
-                                                EmptyString());
-    }
-#endif
   }
 
   if (NS_FAILED(rv)) // go straight to showing the system tray icon.
@@ -385,7 +372,6 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
   return rv;
 }
 
-#ifdef MOZ_THUNDERBIRD
 // Opening Thunderbird's new mail alert notification window for not supporting libnotify
 // aUserInitiated --> true if we are opening the alert notification in response to a user action
 //                    like clicking on the biff icon
@@ -445,7 +431,6 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
 
   return rv;
 }
-#endif
 
 nsresult nsMessengerUnixIntegration::AlertFinished()
 {
@@ -496,7 +481,6 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
 
   if (folder && folderWithNewMail)
   {
-#ifdef MOZ_THUNDERBIRD
     nsCOMPtr<nsIStringBundle> bundle;
     GetStringBundle(getter_AddRefs(bundle));
 
@@ -578,33 +562,6 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     // Write the newest message timestamp to the appropriate
     // mapping in our hashtable of MRUTime's.
     PutMRUTimestampForFolder(folder, dateInSeconds);
-#else
-    nsString accountName;
-    folder->GetPrettiestName(accountName);
-
-    nsCOMPtr<nsIStringBundle> bundle;
-    GetStringBundle(getter_AddRefs(bundle));
-    if (bundle)
-    {
-      int32_t numNewMessages = 0;
-      folder->GetNumNewMessages(true, &numNewMessages);
-      nsAutoString numNewMsgsText;
-      numNewMsgsText.AppendInt(numNewMessages);
-
-      const PRUnichar *formatStrings[] =
-      {
-        numNewMsgsText.get(),
-      };
-
-      nsString finalText;
-      if (numNewMessages == 1)
-        bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_message").get(), formatStrings, 1, getter_Copies(finalText));
-      else
-        bundle->FormatStringFromName(NS_LITERAL_STRING("biffNotification_messages").get(), formatStrings, 1, getter_Copies(finalText));
-
-      ShowAlertMessage(accountName, finalText, EmptyCString());
-    } // if we got a bundle
-#endif
   } // if we got a folder
 }
 
@@ -775,11 +732,9 @@ nsMessengerUnixIntegration::OnStartRunningUrl(nsIURI *aUrl)
 NS_IMETHODIMP
 nsMessengerUnixIntegration::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 {
-#ifdef MOZ_THUNDERBIRD
   if (NS_SUCCEEDED(aExitCode))
     // preview fetch is done.
     FillToolTipInfo();
-#endif
   return NS_OK;
 }
 
@@ -799,7 +754,6 @@ nsMessengerUnixIntegration::GetMRUTimestampForFolder(nsIMsgFolder *aFolder,
   return NS_OK;
 }
 
-#ifdef MOZ_THUNDERBIRD
 nsresult
 nsMessengerUnixIntegration::PutMRUTimestampForFolder(nsIMsgFolder *aFolder,
                                                      uint32_t aLastMRUTime)
@@ -815,5 +769,3 @@ nsMessengerUnixIntegration::PutMRUTimestampForFolder(nsIMsgFolder *aFolder,
 
   return NS_OK;
 }
-#endif
-

@@ -68,6 +68,8 @@
 #define SHOW_ALERT_PREF     "mail.biff.show_alert"
 #define SHOW_TRAY_ICON_PREF "mail.biff.show_tray_icon"
 #define SHOW_BALLOON_PREF   "mail.biff.show_balloon"
+#define SHOW_NEW_ALERT_PREF "mail.biff.show_new_alert"
+#define ALERT_ORIGIN_PREF   "ui.alertNotificationOrigin"
 
 // since we are including windows.h in this file, undefine get user name....
 #ifdef GetUserName
@@ -84,6 +86,13 @@
 
 #ifndef NIN_BALOONUSERCLICK
 #define NIN_BALLOONUSERCLICK (WM_USER + 5)
+#endif
+
+#ifndef MOZ_THUNDERBIRD
+// from LookAndFeel.h
+#define NS_ALERT_HORIZONTAL 1
+#define NS_ALERT_LEFT       2
+#define NS_ALERT_TOP        4
 #endif
 
 using namespace mozilla;
@@ -165,7 +174,6 @@ static void CALLBACK delayedSingleClick(HWND msgWindow, UINT msg, INT_PTR idEven
 {
   ::KillTimer(msgWindow, idEvent);
 
-#ifdef MOZ_THUNDERBIRD
   // single clicks on the biff icon should re-open the alert notification
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMessengerOSIntegration> integrationService =
@@ -177,7 +185,6 @@ static void CALLBACK delayedSingleClick(HWND msgWindow, UINT msg, INT_PTR idEven
                                                                    (static_cast<nsIMessengerOSIntegration*>(integrationService.get()));
     winIntegrationService->ShowNewAlertNotification(true, EmptyString(), EmptyString());
   }
-#endif
 }
 
 // Window proc.
@@ -448,7 +455,7 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
 
   return rv;
 }
-#else
+#endif
 // Opening Thunderbird's new mail alert notification window
 // aUserInitiated --> true if we are opening the alert notification in response to a user action
 //                    like clicking on the biff icon
@@ -519,9 +526,47 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
     nsCOMPtr<nsISupportsPRUint8> scriptableOrigin (do_CreateInstance(NS_SUPPORTS_PRUINT8_CONTRACTID));
     NS_ENSURE_TRUE(scriptableOrigin, NS_ERROR_FAILURE);
     scriptableOrigin->SetData(0);
-    int32_t origin = LookAndFeel::GetInt(LookAndFeel::eIntID_AlertNotificationOrigin);
-    if (origin && origin >= 0 && origin <= 7)
-      scriptableOrigin->SetData(origin);
+    int32_t origin = 0;
+#ifdef MOZ_THUNDERBIRD
+    origin = LookAndFeel::GetInt(LookAndFeel::eIntID_AlertNotificationOrigin);
+#else
+    // Get task bar window handle
+    HWND shellWindow = FindWindowW(L"Shell_TrayWnd", NULL);
+
+    rv = prefBranch->GetIntPref(ALERT_ORIGIN_PREF, &origin);
+    if (NS_FAILED(rv) && (shellWindow != NULL))
+    {
+      // Determine position
+      APPBARDATA appBarData;
+      appBarData.hWnd = shellWindow;
+      appBarData.cbSize = sizeof(appBarData);
+      if (SHAppBarMessage(ABM_GETTASKBARPOS, &appBarData))
+      {
+        // Set alert origin as a bit field - see LookAndFeel.h
+        // 0 represents bottom right, sliding vertically.
+        switch(appBarData.uEdge)
+        {
+          case ABE_LEFT:
+            origin = NS_ALERT_HORIZONTAL | NS_ALERT_LEFT;
+            break;
+          case ABE_RIGHT:
+            origin = NS_ALERT_HORIZONTAL;
+            break;
+          case ABE_TOP:
+            origin = NS_ALERT_TOP;
+            // fall through for the right-to-left handling.
+          case ABE_BOTTOM:
+            // If the task bar is right-to-left,
+            // move the origin to the left
+            if (::GetWindowLong(shellWindow, GWL_EXSTYLE) &
+                  WS_EX_LAYOUTRTL)
+              origin |= NS_ALERT_LEFT;
+            break;
+        }
+      }
+    }
+#endif
+    scriptableOrigin->SetData(origin);
 
     rv = argsArray->AppendElement(scriptableOrigin, false);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -542,7 +587,6 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
 
   return rv;
 }
-#endif
 
 nsresult nsMessengerWinIntegration::AlertFinished()
 {
@@ -567,7 +611,6 @@ nsresult nsMessengerWinIntegration::AlertFinished()
 
 nsresult nsMessengerWinIntegration::AlertClicked()
 {
-#ifdef MOZ_THUNDERBIRD
   nsresult rv;
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -583,7 +626,6 @@ nsresult nsMessengerWinIntegration::AlertClicked()
       return NS_OK;
     }
   }
-#endif
   // make sure we don't insert the icon in the system tray since the user clicked on the alert.
   mSuppressBiffIcon = true;
   nsCString folderURI;
@@ -700,10 +742,17 @@ void nsMessengerWinIntegration::FillToolTipInfo()
   if (!mBiffIconVisible)
   {
 #ifndef MOZ_THUNDERBIRD
+  nsresult rv;
+  bool showNewAlert = false;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  prefBranch->GetBoolPref(SHOW_NEW_ALERT_PREF, &showNewAlert);
+  if (!showNewAlert)
     ShowAlertMessage(accountName, animatedAlertText, EmptyCString());
-#else
-    ShowNewAlertNotification(false, accountName, animatedAlertText);
+  else
 #endif
+    ShowNewAlertNotification(false, accountName, animatedAlertText);
   }
   else
    GenericShellNotify( NIM_MODIFY);
