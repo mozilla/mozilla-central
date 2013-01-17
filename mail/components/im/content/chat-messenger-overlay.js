@@ -1106,7 +1106,7 @@ chatLogTreeView.prototype = {
                              nowDate.getDate());
 
     // Build a chatLogTreeLogItem for each log, and put it in the right group.
-    let msgBundle = document.getElementById("bundle_messenger");
+    let chatBundle = document.getElementById("chatBundle");
 
     for each (let log in fixIterator(this._logs)) {
       let logDate = new Date(log.time * 1000);
@@ -1114,11 +1114,11 @@ chatLogTreeView.prototype = {
       let title = formatDate(logDate);
       let group;
       if (timeFromToday <= 0) {
-        today = new chatLogTreeLogItem(log, msgBundle.getString("today"), 0);
+        today = new chatLogTreeLogItem(log, chatBundle.getString("log.today"), 0);
         continue;
       }
       else if (timeFromToday <= kDayInMsecs) {
-        yesterday = new chatLogTreeLogItem(log, msgBundle.getString("yesterday"), 0);
+        yesterday = new chatLogTreeLogItem(log, chatBundle.getString("log.yesterday"), 0);
         continue;
       }
       else if (timeFromToday <= kWeekInMsecs)
@@ -1154,7 +1154,7 @@ chatLogTreeView.prototype = {
       }
       else {
         // Otherwise, get the appropriate string for this group.
-        groupName = msgBundle.getString(groupId);
+        groupName = chatBundle.getString("log." + groupId);
       }
       this._rowMap.push(new chatLogTreeGroupItem(groupName, group));
     }
