@@ -61,7 +61,7 @@ function ircMessage(aData, aAccount) {
     message.params.push(temp[4]);
 
   // The source string can be split into multiple parts as:
-  //   :(server|nickname[[!user]@host]
+  //   :(server|nickname[[!user]@host])
   // If the source contains a . or a :, assume it's a server name. See RFC
   // 2812 Section 2.3 definition of servername vs. nickname.
   if (prefix &&

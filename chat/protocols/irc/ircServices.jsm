@@ -36,8 +36,9 @@ function ServiceMessage(aAccount, aMessage) {
   // map "bar": "NickServ"). Note that the keys of this map should be
   // normalized.
   let nicknameToServiceName = {
-    "nickserv": "NickServ",
-    "chanserv": "ChanServ"
+    "chanserv": "ChanServ",
+    "infoserv": "InfoServ",
+    "nickserv": "NickServ"
   }
 
   let nickname = aAccount.normalize(aMessage.nickname);
@@ -147,6 +148,33 @@ var servicesBase = {
       this.getConversation(channel)
           .writeMessage(aMessage.nickname, message, params);
       return true;
+    },
+
+    "InfoServ": function(aMessage) {
+      let text = aMessage.params[1];
+
+      // Show the message of the day in the server tab.
+      if (text == "*** \u0002Message(s) of the Day\u0002 ***") {
+        this._infoServMotd = [text];
+        return true;
+      }
+      else if (text == "*** \u0002End of Message(s) of the Day\u0002 ***") {
+        if (this._showServerTab && this._infoServMotd) {
+          this._infoServMotd.push(text);
+          this.getConversation(aMessage.servername || this._currentServerName)
+              .writeMessage(aMessage.servername || aMessage.nickname,
+                            this._infoServMotd.join("\n"),
+                            {incoming: true});
+          delete this._infoServMotd;
+        }
+        return true;
+      }
+      else if (this.hasOwnProperty("_infoServMotd")) {
+        this._infoServMotd.push(text);
+        return true;
+      }
+
+      return false;
     },
 
     "NickServ": function(aMessage) {
