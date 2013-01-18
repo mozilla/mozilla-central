@@ -96,6 +96,11 @@ var ircNonStandard = {
       return true;
     },
 
+    "335": function(aMessage) { // RPL_WHOISBOT (Unreal)
+      // <nick> :is a \002Bot\002 on <network>
+      return this.setWhois(aMessage.params[1], {bot: true});
+    },
+
     "378": function(aMessage) { // RPL_WHOISHOST (Unreal & Charybdis)
       // <nick> :is connecting from <host> <ip>
       let [host, ip] = aMessage.params[2].split(" ").slice(-2);

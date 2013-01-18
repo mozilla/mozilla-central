@@ -893,6 +893,7 @@ ircAccount.prototype = {
       secure: normalizeBool,
       away: null,
       ircOp: normalizeBool,
+      bot: normalizeBool,
       idleTime: null,
       channels: null
     };
