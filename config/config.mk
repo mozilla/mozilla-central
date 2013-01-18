@@ -695,7 +695,6 @@ CREATE_PRECOMPLETE_CMD = $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/
 # MDDEPDIR is the subdirectory where dependency files are stored
 MDDEPDIR := .deps
 
-LIBS_DESC_SUFFIX = desc
 EXPAND_LIBS = $(PYTHON) -I$(MOZDEPTH)/config $(MOZILLA_SRCDIR)/config/expandlibs.py
 EXPAND_LIBS_EXEC = $(PYTHON) $(MOZILLA_SRCDIR)/config/pythonpath.py -I$(MOZDEPTH)/config $(MOZILLA_SRCDIR)/config/expandlibs_exec.py $(if $@,--depend $(MDDEPDIR)/$(basename $(@F)).pp --target $@)
 EXPAND_LIBS_GEN = $(PYTHON) $(MOZILLA_SRCDIR)/config/pythonpath.py -I$(MOZDEPTH)/config $(MOZILLA_SRCDIR)/config/expandlibs_gen.py $(if $@,--depend $(MDDEPDIR)/$(basename $(@F)).pp)
