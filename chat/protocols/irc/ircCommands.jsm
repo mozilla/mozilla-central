@@ -361,12 +361,20 @@ var commands = [
   },
   {
     name: "whois",
-    get helpString() _("command.whois", "whois"),
+    get helpString() _("command.whois2", "whois"),
     run: function(aMsg, aConv) {
-      // Note that this will automatically run whowas is the nick is offline.
+      // Note that this will automatically run whowas if the nick is offline.
       aMsg = aMsg.trim();
-      if (!aMsg || aMsg.contains(" "))
+      // If multiple parameters are given, this is an error.
+      if (aMsg.contains(" "))
         return false;
+      // If the user does not provide a nick, but is in a private conversation,
+      // assume the user is trying to whois the person they are talking to.
+      if (!aMsg) {
+        if (aConv.isChat)
+          return false;
+        aMsg = aConv.name;
+      }
       getConv(aConv).requestBuddyInfo(aMsg);
       return true;
     }
