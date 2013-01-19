@@ -934,7 +934,7 @@
               if (tbattr.contains("tabbrowser-undoclosetab")) {
                 menuitem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
                 menuitem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 &&
-                                      this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+                                  this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
               }
               else
                 menuitem.setAttribute("disabled", tbattr.contains("tabbrowser-multiple") && !isMultiple ||
