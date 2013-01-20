@@ -252,18 +252,52 @@ calDavCalendar.prototype = {
             cal.ERROR("CalDAV: calendar storage does not support meta data");
         }
     },
+
+    /**
+     * Ensure that cached items have associated meta data, otherwise server side
+     * changes may not be reflected
+     */
+    ensureMetaData: function caldav_ensureMetaData() {
+        let self = this;
+        let refreshNeeded = false;
+        let getMetaListener = {
+            onGetResult: function meta_onGetResult(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+                for each (let item in aItems) {
+                    if (!(item.id in self.mItemInfoCache)) {
+                        let path = self.getItemLocationPath(item);
+                        cal.LOG("Adding meta-data for cached item " + item.id);
+                        self.mItemInfoCache[item.id] = { etag: null,
+                                                         isNew: false,
+                                                         locationPath: path,
+                                                         isInboxItem: false};
+                        self.mHrefIndex[self.mLocationPath + path] = item.id;
+                        refreshNeeded = true;
+                    }
+                }
+            },
+            onOperationComplete: function meta_onOperationComplete(aCalendar, aStatus, aOpType, aId, aDetail) {
+                if (refreshNeeded) {
+                    // reseting the cached ctag forces an item refresh when
+                    // safeRefresh is called later
+                    self.mCtag = null;
+                }
+            }
+        };
+        this.mOfflineStorage.getItems(calICalendar.ITEM_FILTER_ALL_ITEMS,
+                                      0, null, null, getMetaListener);
+    },
+
     fetchCachedMetaData: function caldav_fetchCachedMetaData() {
         cal.LOG("CalDAV: Retrieving server info from cache for " + this.name);
-        var cacheIds = {};
-        var cacheValues = {};
+        let cacheIds = {};
+        let cacheValues = {};
         this.mOfflineStorage.getAllMetaData({}, cacheIds, cacheValues);
         cacheIds = cacheIds.value;
         cacheValues = cacheValues.value;
-        let needsResave = false;
-        let calendarProperties = null;
-        for (var count = 0; count < cacheIds.length; count++) {
-            var itemId = cacheIds[count];
-            var itemData = cacheValues[count];
+
+        for (let count = 0; count < cacheIds.length; count++) {
+            let itemId = cacheIds[count];
+            let itemData = cacheValues[count];
             if (itemId == "ctag") {
                 this.mCtag = itemData;
                 this.mOfflineStorage.deleteMetaData("ctag");
@@ -277,15 +311,15 @@ calDavCalendar.prototype = {
                     cal.getFreeBusyService().addProvider(this);
                 }
             } else {
-                var itemDataArray = itemData.split("\u001A");
-                var etag = itemDataArray[0];
-                var resourcePath = itemDataArray[1];
-                var isInboxItem = itemDataArray[2];
+                let itemDataArray = itemData.split("\u001A");
+                let etag = itemDataArray[0];
+                let resourcePath = itemDataArray[1];
+                let isInboxItem = itemDataArray[2];
                 if (itemDataArray.length == 3) {
                     this.mHrefIndex[resourcePath] = itemId;
-                    var locationPath = resourcePath
+                    let locationPath = resourcePath
                         .substr(this.mLocationPath.length);
-                    var item = { etag: etag,
+                    let item = { etag: etag,
                                  isNew: false,
                                  locationPath: locationPath,
                                  isInboxItem: (isInboxItem == "true")};
@@ -293,6 +327,8 @@ calDavCalendar.prototype = {
                 }
             }
         }
+
+        this.ensureMetaData();
     },
 
     //
