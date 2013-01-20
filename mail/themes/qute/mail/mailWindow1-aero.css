@@ -6,7 +6,7 @@
 
 @media (-moz-windows-default-theme) {
   #messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
-    margin-top: -6px;
+    margin-top: -8px;
   }
 }
 
