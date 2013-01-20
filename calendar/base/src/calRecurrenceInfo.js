@@ -349,11 +349,11 @@ calRecurrenceInfo.prototype = {
                 }
 
                 // As decided in bug 734245, an EXDATE of type DATE shall also match a DTSTART of type DATE-TIME
-                let isInExceptionMap = this.mExceptionMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
-                                       this.mExceptionMap[getRidKey(nextOccurrences[i])];
-                let isInNegMap = negMap[getRidKey(nextOccurrences[i]).substring(0,8)] ||
-                                 negMap[getRidKey(nextOccurrences[i])];
                 let nextKey = getRidKey(nextOccurrences[i]);
+                let isInExceptionMap = nextKey && (this.mExceptionMap[nextKey.substring(0,8)] ||
+                                                   this.mExceptionMap[nextKey]);
+                let isInNegMap = nextKey && (negMap[nextKey.substring(0,8)] ||
+                                             negMap[nextKey]);
                 if (nextKey && (isInNegMap || isInExceptionMap)) {
                     // If the found recurrence id points to either an exception
                     // (will handle later) or an EXDATE, then nextOccurrences[i]
