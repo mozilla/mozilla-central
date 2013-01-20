@@ -172,9 +172,21 @@ function view_init()
     messagePaneMenuItem.disabled = accountCentralDisplayed;
   }
 
+  let messagePaneAppMenuItem = document.getElementById("appmenu_showMessage");
+  if (!messagePaneAppMenuItem.hidden) { // Hidden in the standalone msg window.
+    messagePaneAppMenuItem.setAttribute("checked",
+      accountCentralDisplayed ? false : gMessageDisplay.visible);
+    messagePaneAppMenuItem.disabled = accountCentralDisplayed;
+  }
+
   let folderPaneMenuItem = document.getElementById("menu_showFolderPane");
   if (!folderPaneMenuItem.hidden) { // Hidden in the standalone msg window.
     folderPaneMenuItem.setAttribute("checked", gFolderDisplay.folderPaneVisible);
+  }
+
+  let folderPaneAppMenuItem = document.getElementById("appmenu_showFolderPane");
+  if (!folderPaneAppMenuItem.hidden) { // Hidden in the standalone msg window.
+    folderPaneAppMenuItem.setAttribute("checked", gFolderDisplay.folderPaneVisible);
   }
 
   // Disable some menus if account manager is showing
