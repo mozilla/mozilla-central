@@ -90,10 +90,10 @@ interface nsIImapServerSink : nsISupports {
   /**
    * Alerts the user with the given string (FE = 'Front End').
    *
-   * @param aAlertSring  The string to alert the user with.
+   * @param aAlertString The string to alert the user with.
    * @param aUrl         The running url.
    */
-  void fEAlert(in AString aAlertSring, in nsIMsgMailNewsUrl aUrl);
+  void fEAlert(in AString aAlertString, in nsIMsgMailNewsUrl aUrl);
 
   /**
    * Alerts the user with a localized string. It will attempt to fill in

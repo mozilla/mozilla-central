@@ -1788,7 +1788,8 @@ nsImapIncomingServer::PromptLoginFailed(nsIMsgWindow *aMsgWindow,
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
+nsImapIncomingServer::FEAlert(const nsAString& aAlertString,
+                              nsIMsgMailNewsUrl *aUrl)
 {
   GetStringBundle();
 
@@ -1799,7 +1800,7 @@ nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
     if (NS_SUCCEEDED(rv))
     {
       nsString message;
-      nsString tempString(aString);
+      nsString tempString(aAlertString);
       const PRUnichar *params[] = { hostName.get(), tempString.get() };
 
       rv = m_stringBundle->FormatStringFromID(IMAP_SERVER_ALERT, params, 2,
@@ -1808,7 +1809,7 @@ nsImapIncomingServer::FEAlert(const nsAString& aString, nsIMsgMailNewsUrl *aUrl)
         return AlertUser(message, aUrl);
     }
   }
-  return AlertUser(aString, aUrl);
+  return AlertUser(aAlertString, aUrl);
 }
 
 nsresult nsImapIncomingServer::AlertUser(const nsAString& aString,
@@ -1854,12 +1855,12 @@ nsImapIncomingServer::FEAlertWithID(int32_t aMsgId, nsIMsgMailNewsUrl *aUrl)
   return NS_OK;
 }
 
-NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString,
+NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aServerString,
                                                        nsIMsgMailNewsUrl *aUrl)
 {
-  NS_ENSURE_TRUE(!aString.IsEmpty(), NS_OK);
+  NS_ENSURE_TRUE(!aServerString.IsEmpty(), NS_OK);
 
-  nsCString message(aString);
+  nsCString message(aServerString);
   message.Trim(" \t\b\r\n");
   if (message.Last() != '.')
     message.Append('.');
