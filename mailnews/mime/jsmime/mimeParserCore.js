@@ -95,6 +95,9 @@
  *        raw: the body of the part is passed through raw
  *        nodecode: the body is passed through without decoding QP/Base64
  *        decode: quoted-printable and base64 are fully decoded
+ *    stripcontinuations: <boolean> [default=true]
+ *      If true, then the newlines in headers are removed in the returned
+ *      header objects.
  *    onerror: <function(thrown error)> [default = nop-function]
  *      An error function that is called if an emitter callback throws an error.
  *      By default, such errors are swallowed by the parser. If you want the
@@ -107,6 +110,7 @@ function Parser(emitter, options) {
   this._options = {
     pruneat: "",
     bodyformat: "nodecode",
+    stripcontinuations: true,
     onerror: function swallow(error) {}
   };
   // Load the options as a copy here (prevents people from changing on the fly).
@@ -464,7 +468,9 @@ Parser.prototype._parseHeaders = function Parser_parseHeaders() {
     let colon = values[i].indexOf(":");
     if (colon >= 0) {
       var header = values[i].substring(0, colon);
-      var val = values[i].substring(colon + 1).trim().replace(/[\r\n]/g,'');
+      var val = values[i].substring(colon + 1).trim();
+      if (this._options.stripcontinuations)
+        val = val.replace(/[\r\n]/g, '');
     } else {
       var header = values[i];
       var val = null;

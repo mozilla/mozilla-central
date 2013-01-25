@@ -1,6 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 // This file implements test NNTP servers
 
+Components.utils.import("resource:///modules/mimeParser.jsm");
+
 function nntpDaemon(flags) {
   this._groups = {};
   this._messages = {};
@@ -66,29 +68,17 @@ function newsArticle(text) {
   this.messageID = "";
   this.fullText = text;
 
-  var lines = text.split("\n"), passedHeaders = false;
-  var preamble = "";
-  for each(var line in lines) {
-    if (!passedHeaders) {
-      if (line.length == 0) {
-        passedHeaders = true;
-        continue;
-      }
-      preamble += line + '\n';
-      var parts = line.split(/:[ \t]*/);
-      this.headers[parts[0].toLowerCase()] = parts[1];
-      switch (parts[0].toLowerCase()) {
-        case "message-id":
-          var start = parts[1].indexOf('<');
-          var end = parts[1].indexOf('>', start);
-          this.messageID = parts[1].substring(start, end+1);
-          break;
-        case "newsgroups":
-          this.groups = parts[1].split(/[ \t]*,[ \t]*/);
-          break;
-      }
-    } else {
-      this.body += line + "\n";
+  var headerMap;
+  [headerMap, this.body] = MimeParser.extractHeadersAndBody(text);
+  for (var [header, values] of headerMap) {
+    var value = values[0];
+    this.headers[header] = value;
+    if (header == "message-id") {
+      var start = value.indexOf('<');
+      var end = value.indexOf('>', start);
+      this.messageID = value.substring(start, end+1);
+    } else if (header == "newsgroups") {
+      this.groups = value.split(/[ \t]*,[ \t]*/);
     }
   }
 
@@ -97,10 +87,7 @@ function newsArticle(text) {
   {
     let lines = this.body.split('\n').length;
     this.headers["lines"] = lines;
-    preamble += "Lines: "+lines;
   }
-
-  this.fulltext = preamble + '\n' + this.body;
 }
 
 /**

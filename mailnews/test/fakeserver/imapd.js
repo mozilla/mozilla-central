@@ -41,6 +41,10 @@
 // |   perform various (potentially expensive) actions.                       //
 // + Messages: A message is represented internally as an annotated URI.       //
 ////////////////////////////////////////////////////////////////////////////////
+
+if (!("MimeParser" in this))
+  Components.utils.import("resource:///modules/mimeParser.jsm", this);
+
 function imapDaemon(flags, syncFunc) {
   this._flags = flags;
 
@@ -370,66 +374,37 @@ imapMessage.prototype = {
     str = bstream.readBytes(length);
     return str;
   },
-  getPart : function (partNum, wantHeaders) {
-    // Long explanation of what's going on here:
-    // Most of the confusing parts are due to the foibles of libmime.
-    // The first thing we do is select how we want the output--raw for when we
-    // just need to spit back data, header-land for when we need to actually
-    // look at stuff.
-    // Next we form the URIs to feed the converter. However, libmime doesn't do
-    // part numbers the same way that IMAP does it: where we want 4.2.2.1 in the
-    // example, libmime wants 1.4.2.1.2.1. This means we have to collect the
-    // headers first to find where the message/rfc822's exist. Yuck.
-    // After that, we run the mime converter. Unfortunately, it only acts async,
-    // so we do some ugly stuff to make it all sync.
-    var converter = Cc["@mozilla.org/streamconv;1?from=message/rfc822&to=*/*"]
-                      .createInstance(Ci.nsIMimeStreamConverter)
-                      .QueryInterface(Ci.nsIStreamConverter);
-    converter.SetMimeOutputType(wantHeaders ? 1 : 11);
 
-    if (partNum == "") {
-      var URI = this._URI;
-    } else {
-      throw "Can't get subparts!";
-    }
-
-    if (!gIOService)
-      gIOService = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService);
-    var channel = gIOService.newChannel(URI, null, null);
-    var requestListener = {
-       onStreamComplete : function(loader, context, status, length, result) {
-         this.answer = String.fromCharCode.apply(null, result);
-         this.complete = true;
-       },
-       complete: false
-    };
-    var sl = Cc["@mozilla.org/network/stream-loader;1"]
-               .createInstance(Ci.nsIStreamLoader);
-    sl.init(requestListener);
-    converter.asyncConvertData("message/rfc822", "text/plain", sl, channel);
-
-    channel.asyncOpen(converter, null);
-    while (!requestListener.complete)
-      gThreadManager.currentThread.processNextEvent(true);
-
-    if (wantHeaders) {
-      // It's an XML string... we now need to parse it
-      var dmParser = Cc["@mozilla.org/xmlextras/domparser;1"]
-                       .createInstance(Ci.nsIDOMParser)
-                       .QueryInterface(Ci.nsIDOMParserJS);
-      var doc = dmParser.parseFromString(requestListener.answer, "text/xml");
-      var children = doc.documentElement.firstChild.childNodes;
-      var headers = {}
-      for (var i=0; i < children.length; i++) {
-        var element = children.item(i);
-        headers[element.getAttribute("field")] = element.lastChild.nodeValue;
+  get _partMap() {
+    if (this.__partMap)
+      return this.__partMap;
+    var partMap = {};
+    var emitter = {
+      startPart: function imap_buildMap_startPart(partNum, headers) {
+        var imapPartNum = partNum.replace('$','');
+        // If there are multiple imap parts that this represents, we'll
+        // overwrite with the latest. This is what we want (most deeply nested).
+        partMap[imapPartNum] = [partNum, headers];
       }
-
-      return headers;
-    }
-
-    return requestListener.answer;
+    };
+    MimeParser.parseSync(this.getText(), emitter,
+      {bodyformat: 'none', stripcontinuations: false});
+    return this.__partMap = partMap;
+  },
+  getPartHeaders: function (partNum) {
+    return this._partMap[partNum][1];
+  },
+  getPartBody: function (partNum) {
+    var body = '';
+    var emitter = {
+      deliverPartData: function (partNum, data) {
+        body += data;
+      }
+    };
+    var mimePartNum = this._partMap[partNum][0];
+    MimeParser.parseSync(this.getText(), emitter,
+      { pruneat: mimePartNum, bodyformat: 'raw'});
+    return body;
   }
 }
 // IMAP FLAGS
@@ -845,6 +820,7 @@ IMAP_RFC3501_handler.prototype = {
     return undefined;
   },
   _dispatchCommand : function (command, args) {
+    this.sendingLiteral = false;
     command = command.toUpperCase();
     if (command == this._daemon.commandToFail.toUpperCase())
       return this._tag + " NO " + command + " failed";
@@ -1509,7 +1485,7 @@ IMAP_RFC3501_handler.prototype = {
   },
   _FETCH_BODY : function (message, query) {
     if (query == "BODY")
-      throw "No BODYSTRUCTURE or BODY yet";
+      return "BODYSTRUCTURE " + bodystructure(message.getText(), false);
     // parts = [ name, section, empty, {, partial, empty } ]
     var parts = query.split(/[[\]<>]/);
 
@@ -1550,19 +1526,12 @@ IMAP_RFC3501_handler.prototype = {
     else
       var queryArgs = [];
 
-    //var raw = query == "TEXT" || query == "";
     // Now we have three parameters representing the part number (empty for top-
     // level), the subportion representing what we want to find (empty for the
     // body), and an array of arguments if we have a subquery. If we made an
     // error here, it will pop until it gets to FETCH, which will just pop at a
     // BAD response, which is what should happen if the query is malformed.
     // Now we dump it all off onto imapMessage to mess with.
-    let information = "";
-    let bodyPart = new createBodyPart(message.getText());
-    if (partNum == "")
-      information = message.getPart(partNum, false);
-    else
-      bodyPart.partNum = partNum.split(/\./);
 
     // Start off the response
     var response = "BODY[" + parts[1] + "]";
@@ -1570,70 +1539,50 @@ IMAP_RFC3501_handler.prototype = {
       response += "<" + parts[3][0] + ">";
     response += " ";
 
-    var reconverter = Cc["@mozilla.org/messenger/mimeconverter;1"]
-                        .createInstance(Ci.nsIMimeConverter);
     var data = "";
-    var lines = information.split(/\r\n|\n/);
     switch (query) {
     case "":
     case "TEXT":
-      data +=  bodyPart.bodyText;
+      data += message.getPartBody(partNum);
       break;
     case "HEADER": // I believe this specifies mime for an RFC822 message only
-      for each (let line in lines) {
-        // End of headers
-        if (line == '')
-          break;
-        data += line + "\r\n";
-      }
+      data += message.getPartHeaders(partNum).rawHeaderText + "\r\n";
       break;
     case "MIME":
-      data += bodyPart.mime + "\r\n\r\n";
+      data += message.getPartHeaders(partNum).rawHeaderText + "\r\n\r\n";
       break;
     case "HEADER.FIELDS":
       var joinList = [];
-      /*for each (let header in queryArgs) {
-        if (header in information) {
-          joinList.push(reconverter.encodeMimePartIIStr_UTF8(
-            header + ': ' + information[header],
-            false,
-            "UTF-8",
-            header.length + 2,
-            72));
-        }
-      }*/
-      var wantFold = false;
-      for each (let line in lines) {
-        // End of headers
-        if (line == '')
-          break;
-        if (line[0] == ' ' || line[0] == '\t') {
-          if (wantFold)
-            joinList.push(line);
-          continue;
-        }
-        wantFold = false;
-        var header = line.substring(0, line.indexOf(':'));
-        if (queryArgs.indexOf(header.toUpperCase()) >= 0) {
-          joinList.push(line);
-          wantFold = true;
-        }
+      var headers = message.getPartHeaders(partNum);
+      for (let header of queryArgs) {
+        header = header.toLowerCase();
+        if (headers.has(header))
+          joinList.push([header + ": " + value
+                         for (value of headers.get(header))].join('\r\n'));
       }
-      data = joinList.join('\r\n') + "\r\n";
+      data += joinList.join('\r\n') + "\r\n";
       break;
     case "HEADER.FIELDS.NOT":
-      data += partNum + query + " not yet supported\r\n";
+      var joinList = [];
+      var headers = message.getPartHeaders(partNum);
+      for (let header of headers) {
+        if (!(header in queryArgs))
+          joinList.push([header + ": " + value
+                         for (value of headers.get(header))].join('\r\n'));
+      }
+      data += joinList.join('\r\n') + "\r\n";
       break;
     default:
-      data += bodyPart.bodyText;
+      data += message.getPartBody(partNum);
     }
 
+    this.sendingLiteral = true;
     response += '{' + data.length + '}\r\n';
     response += data;
     return response;
   },
   _FETCH_BODYSTRUCTURE : function (message, query) {
-    return "BODYSTRUCTURE " + bodystructure(message.getText());
+    return "BODYSTRUCTURE " + bodystructure(message.getText(), true);
   },
   //_FETCH_ENVELOPE,
   _FETCH_FLAGS : function (message) {
@@ -2212,172 +2161,73 @@ var IMAP_RFC2195_extension = {
   },
 };
 
-// FETCH BODY PARTS
-// part number is assumed valid
-function createBodyPart(msg, apn) {
-  if (!msg || msg == "") {
-    this.index = null;
-    this.mime = "";
-    this.bodyText = "";
-    return;
-  }
-  this.BndryAttrRE = /boundary="([^"]+)"/img; // g is to continue where left off
-                                              // and enable use of lastIndex
-  this._msg = msg;
-  if (apn) {
-    this._pn  = apn;
-    this.init();
-  }
-}
-
-createBodyPart.prototype = {
-  set msg(x){
-    if (!x || x == "") {
-      this.index = null;
-      this.mime = "";
-      this.bodyText = "";
-      this._msg = "";
-      return;
-    }
-    this._msg = x;
-  },
-
-  // setting the partnum here will re-init if we have a msg
-  set partNum(x){
-    if (!x || x.length == 0)
-      return;
-    this._pn = x;
-    if (this._msg.length > 0)
-      this.init();
-  },
-
-  init : function() {
-    this.BndryAttrRE.lastIndex = 0;
-    for each (let x in this._pn) {
-      var bndryAttrArray = this.BndryAttrRE.exec(this._msg);
-
-      if (!bndryAttrArray)  // FIXME--must have done a BODY[0] of a non-multipart
-        return;             // message. This may not be possible but let it be
-                            // known it needs a fix if this is done in real world
-                            // The RFC specs indicate bodyparts start at 1. Our
-                            // backend code uses bodypart 0 internally only.
-                            // We may want to throw here if we are asking server
-                            // for BODY[0]
-
-      var bndryTag = Array.map("--" + bndryAttrArray[1],
-                               function(a) {
-                                 return '\\x' + parseInt(a.charCodeAt(0),10)
-                                                          .toString(16);})
-                          .join('');// now have a pattern like '\xnn\xnn\xnn\xnn'
-                                    // to allow boundaries with '+' and other
-                                    // regex metacharacters
-      var bndryRE = new RegExp(bndryTag + "([\\s\\S]*?)\\r\\n", "gm");
-      while (x > 0) {
-        bndryRE.exec(this._msg); //need a check for null maybe. nah.
-        --x;
-      }
-    }
-    this.index = bndryRE.lastIndex; // start of mime
-    var mimeArrayRE = /[\s\S]*?\r\n\r\n/g;
-    mimeArrayRE.lastIndex = this.index;
-    var mimeArray = mimeArrayRE.exec(this._msg);
-    this.mime = mimeArray[0];
-    this.mime = this.mime.replace(/\r\n\s+/g," ");
-    var textRE;
-
-    // if we have a mime part and it is a multipart find its terminator
-    if (mimeArray && /boundary=/.test(mimeArray[0]))
-      textRE= new RegExp("([\\s\\S]*?)\\r\\n" + bndryTag + "--", "mg");
-    // else just find next boundary
-    else
-      textRE = new RegExp("([\\s\\S]*?)\\r\\n" + bndryTag , "mg");
-
-    textRE.lastIndex = mimeArrayRE.lastIndex;
-    this.bodyText = textRE.exec(this._msg)[1];
-  }
-}
-
 // FETCH BODYSTRUCTURE
-function bodystructure(msg) {
+function bodystructure(msg, extension) {
   if (!msg || msg == "")
     return "";
-  var res = "";
-  const MimeRE = /([\s\S]*?)\r\n\r\n/gm;
-  MimeRE.lastIndex = 0;
-  const BndryAttrRE = /boundary="([^"]+)"/img; // g is to continue where left off
-                                               // and enable use of lastIndex
-  BndryAttrRE.lastIndex = 0;
 
-  var filterBodyStructure = function(aStr, aBndryTag)
-  {
-    var isTerm;
-    if (!aStr || aStr == "")
-      return;
-
-    var mime = MimeRE.exec(aStr); // mime[1] is mime string
-    var contentType = [];
-    var contentTransferEncoding;
-    if (mime[1]){
-      mime[1] = mime[1].replace(/\r\n\s*/g," "); // folding
-
-      // save mime info
-      // contentType[1] is type and contentType[2] is subtype
-      contentType = /content-type:[^\S]*([^\/]*)\/([^\/;\s]*)/im.exec(mime[1]);
-      contentType[1] = contentType[1].toUpperCase();
-      contentType[2] = contentType[2].toUpperCase();
-      contentTransferEncoding = /Content-Transfer-Encoding:[^\S]*([^;\s]*)/im.exec(mime[1]);
-      contentTransferEncoding = contentTransferEncoding ?
-                                contentTransferEncoding[1].toUpperCase() :
-                                "7BIT";
-    } else {  //default to plain/text
-      contentType[1] = "TEXT";
-      contentType[2] = "PLAIN";
-      contentTransferEncoding = "7BIT";
-    }
-    if (contentType[1] == "MULTIPART") {
-      res += "(";
-
-      // get boundary. Local scope lastIndex
-      BndryAttrRE.lastIndex = 0;
-      var bndryAttrArray = BndryAttrRE.exec(mime[1]);
-      var bndryTag = Array.map("--" + bndryAttrArray[1],
-                           function(a) {
-                             return '\\x' + parseInt(a.charCodeAt(0),10).toString(16);})
-                          .join('');
-      var bndryRE = new RegExp(bndryTag + "(..)?", "gm");
-
-      // goto boundary
-      bndryRE.lastIndex = MimeRE.lastIndex;
-      // find boundary tag and check if terminated)
-      isTerm = bndryRE.exec(aStr)[1] == "--";
-
-      // loop to get all parts
-      while(MimeRE.lastIndex > 0 && !isTerm) {
-        MimeRE.lastIndex = bndryRE.lastIndex;
-        filterBodyStructure(aStr, bndryTag);
-        isTerm = bndryRE.exec(aStr)[1] == "--";
-      }
-
-      // write mime info
-      res += ' "'+contentType[2]+'" ("BOUNDARY" "'+bndryAttrArray[1]+'") NIL NIL)';
-    } else {
-      var tmpRE = new RegExp("([\\s\\S]*?)\\r\\n" + aBndryTag, "gm");
-      tmpRE.lastIndex = MimeRE.lastIndex;
-      var tmpArr = tmpRE.exec(aStr);
-      var lines = 0;
-      var len;
-      if (tmpArr) {
-        len = tmpArr[1].length;
-        for each (let i in tmpArr[1]) {
-          lines += (i == '\r') ? 1 : 0 ;
+  // Use the mime parser emitter to generate body structure data. Most of the
+  // string will be built as we exit a part. Currently not working:
+  // 1. Some of the fields return NIL instead of trying to calculate them.
+  // 2. MESSAGE is missing the ENVELOPE and the lines at the end.
+  var bodystruct = '';
+  function paramToString(params) {
+    let paramList = [];
+    for (var param in params)
+      paramList.push('"' + param.toUpperCase() + '" "' + params[param] + '"');
+    return paramList.length == 0 ? 'NIL' : '(' + paramList.join(' ') + ')';
+  }
+  var headerStack = [];
+  var BodyStructureEmitter = {
+    startPart: function bodystructure_startPart(partNum, headers) {
+      bodystruct += '(';
+      headerStack.push(headers);
+      this.numLines = 0;
+      this.length = 0;
+    },
+    deliverPartData: function bodystructure_deliverPartData(partNum, data) {
+      this.length += data.length;
+      this.numLines += [x for each (x in data) if (x == '\n')].length;
+    },
+    endPart: function bodystructure_endPart(partNum) {
+      // Grab the headers from before
+      let headers = headerStack.pop();
+      let contentType = headers.has('content-type') ?
+        headers.get('content-type')[0] : 'text/plain';
+      let [type, params] = MimeParser.parseHeaderField(contentType,
+        MimeParser.HEADER_PARAMETER);
+      // Use uppercase canonicalization for now
+      type = type.toUpperCase();
+      let [media, sub] = type.split('/', 2);
+      if (media == "MULTIPART") {
+        bodystruct += ' "' + sub + '"';
+        if (extension) {
+          bodystruct += ' ' + paramToString(params);
+          // XXX: implement the rest
+          bodystruct += ' NIL NIL NIL';
         }
+      } else {
+        bodystruct += '"' + media + '" "' + sub + '"';
+        bodystruct += ' ' + paramToString(params);
+
+        // XXX: Content ID, Content description
+        bodystruct += ' NIL NIL';
+
+        let cte = headers.has('content-transfer-encoding') ?
+          headers.get('content-transfer-encoding')[0].toUpperCase() : '7BIT';
+        bodystruct += ' "' + cte + '"';
+
+        bodystruct += ' ' + this.length;
+        if (media == "TEXT")
+          bodystruct += ' ' + this.numLines;
+
+        // XXX: I don't want to implement these yet
+        if (extension)
+          bodystruct += ' NIL NIL NIL NIL';
       }
-      res += '("' + contentType[1] + '" "' + contentType[2] +
-             '" NIL NIL NIL "' +  contentTransferEncoding + '" ' + len +
-             ((contentType[1] == "TEXT") ? (" " + lines) : "") +
-             ' NIL NIL NIL)';
+      bodystruct += ')';
     }
   };
-  filterBodyStructure(msg);
-  return res;
+  MimeParser.parseSync(msg, BodyStructureEmitter, {});
+  return bodystruct;
 }
