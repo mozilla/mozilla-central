@@ -1,4 +1,5 @@
 flight.mk
+mozconfig.common
 
 # Ignore detritus left lying around by editing tools.
 *~
