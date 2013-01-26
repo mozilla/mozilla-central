@@ -13,6 +13,7 @@
 #include "nsIMsgWindow.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsCOMPtr.h"
+#include "nsCOMArray.h"
 #include "nsIMimeHeaders.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIURL.h"
@@ -57,7 +58,7 @@ protected:
   nsCOMPtr<nsIMsgSearchSession> m_searchSession;
   nsCOMPtr<nsICacheEntryDescriptor> m_memCacheEntry;
   nsCOMPtr<nsICacheSession> m_imageCacheSession;
-  nsCOMPtr<nsISupportsArray> m_cachedMemCacheEntries;
+  nsCOMArray<nsICacheEntryDescriptor> m_cachedMemCacheEntries;
   nsCOMPtr<nsIMsgHeaderSink> mMsgHeaderSink;
   char *m_errorMessage;
   int64_t mMaxProgress;

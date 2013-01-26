@@ -718,7 +718,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetImageCacheSession(nsICacheSession *imageCache
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl:: GetImageCacheSession(nsICacheSession **imageCacheSession)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetImageCacheSession(nsICacheSession **imageCacheSession)
 {
   NS_ENSURE_ARG(imageCacheSession);
 
@@ -727,28 +727,16 @@ NS_IMETHODIMP nsMsgMailNewsUrl:: GetImageCacheSession(nsICacheSession **imageCac
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl:: CacheCacheEntry(nsICacheEntryDescriptor *cacheEntry)
+NS_IMETHODIMP nsMsgMailNewsUrl::CacheCacheEntry(nsICacheEntryDescriptor *cacheEntry)
 {
-  if (!m_cachedMemCacheEntries)
-    NS_NewISupportsArray(getter_AddRefs(m_cachedMemCacheEntries));
-  if (m_cachedMemCacheEntries)
-  {
-    nsCOMPtr<nsISupports> cacheEntrySupports(do_QueryInterface(cacheEntry));
-    if(cacheEntrySupports)
-      m_cachedMemCacheEntries->AppendElement(cacheEntrySupports);
-  }
+  m_cachedMemCacheEntries.AppendObject(cacheEntry);
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl:: RemoveCacheEntry(nsICacheEntryDescriptor *cacheEntry)
+NS_IMETHODIMP nsMsgMailNewsUrl::RemoveCacheEntry(nsICacheEntryDescriptor *cacheEntry)
 {
-  if (m_cachedMemCacheEntries)
-  {
-    nsCOMPtr<nsISupports> cacheEntrySupports(do_QueryInterface(cacheEntry));
-    if(cacheEntrySupports)
-      m_cachedMemCacheEntries->RemoveElement(cacheEntrySupports);
-  }
+  m_cachedMemCacheEntries.RemoveObject(cacheEntry);
   return NS_OK;
 }
 
