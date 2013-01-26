@@ -54,7 +54,7 @@ protected:
 
   void AdvanceToNextToken();
   void AdvanceToNextLine();
-  void AdvanceTokenizerStartingPoint(int32 bytesToAdvance);
+  void AdvanceTokenizerStartingPoint(int32_t bytesToAdvance);
   void ResetLexAnalyzer();
 
 protected:

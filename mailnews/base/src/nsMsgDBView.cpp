@@ -3547,7 +3547,7 @@ nsMsgDBView::PerformActionsOnJunkMsgs(bool msgsAreJunk)
       nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(srcFolder));
       nsTArray<nsMsgKey> imapUids;
       imapUids.SetLength(numJunkHdrs);
-      for (uint32 i = 0; i < numJunkHdrs; i++)
+      for (uint32_t i = 0; i < numJunkHdrs; i++)
       {
         nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(mJunkHdrs, i);
         msgHdr->GetMessageKey(&imapUids[i]);

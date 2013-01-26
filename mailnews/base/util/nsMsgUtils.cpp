@@ -288,7 +288,7 @@ static uint32_t StringHash(const char *ubuf, int32_t len = -1)
   uint32_t h=1;
   unsigned char *end = buf + (len == -1 ? strlen(ubuf) : len);
   while(buf < end) {
-    h = 0x63c63cd9*h + 0x9c39c33d + (int32)*buf;
+    h = 0x63c63cd9*h + 0x9c39c33d + (int32_t)*buf;
     buf++;
   }
   return h;

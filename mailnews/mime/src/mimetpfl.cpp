@@ -274,7 +274,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
   NS_ASSERTION(length > 0, "zero length");
   if (length <= 0) return 0;
 
-  uint32 linequotelevel = 0;
+  uint32_t linequotelevel = 0;
   nsAutoCString real_line(aLine, length);
   char *line = real_line.BeginWriting();
   const char *linep = real_line.BeginReading();
@@ -386,7 +386,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, int32_t length, MimeObj
   nsAutoCString preface;
 
   /* Correct number of blockquotes */
-  int32 quoteleveldiff=linequotelevel - exdata->quotelevel;
+  int32_t quoteleveldiff=linequotelevel - exdata->quotelevel;
   if((quoteleveldiff != 0) && flowed && exdata->inflow) {
     // From RFC 2646 4.5
     // The receiver SHOULD handle this error by using the 'quote-depth-wins' rule,

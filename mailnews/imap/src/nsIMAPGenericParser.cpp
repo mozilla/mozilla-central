@@ -174,7 +174,7 @@ void nsIMAPGenericParser::AdvanceToNextLine()
 }
 
 // advances |fLineOfTokens| by |bytesToAdvance| bytes
-void nsIMAPGenericParser::AdvanceTokenizerStartingPoint(int32 bytesToAdvance)
+void nsIMAPGenericParser::AdvanceTokenizerStartingPoint(int32_t bytesToAdvance)
 {
   NS_PRECONDITION(bytesToAdvance>=0, "bytesToAdvance must not be negative");
   if (!fStartOfLineOfTokens)
@@ -196,7 +196,7 @@ void nsIMAPGenericParser::AdvanceTokenizerStartingPoint(int32 bytesToAdvance)
   }
 
   NS_ASSERTION(bytesToAdvance + (fLineOfTokens-fStartOfLineOfTokens) <=
-    (int32)strlen(fCurrentLine), "cannot advance beyond end of fLineOfTokens");
+    (int32_t)strlen(fCurrentLine), "cannot advance beyond end of fLineOfTokens");
   fLineOfTokens += bytesToAdvance;
   fCurrentTokenPlaceHolder = fLineOfTokens;
 }
@@ -350,8 +350,8 @@ char *nsIMAPGenericParser::CreateQuoted(bool /*skipToEnd*/)
 //                       ; any OCTET except NUL, %x00
 char *nsIMAPGenericParser::CreateLiteral()
 {
-  int32 numberOfCharsInMessage = atoi(fNextToken + 1);
-  uint32 numBytes = numberOfCharsInMessage + 1;
+  int32_t numberOfCharsInMessage = atoi(fNextToken + 1);
+  uint32_t numBytes = numberOfCharsInMessage + 1;
   NS_ASSERTION(numBytes, "overflow!");
   if (!numBytes)
     return nullptr;
@@ -362,9 +362,9 @@ char *nsIMAPGenericParser::CreateLiteral()
     return nullptr;
   }
 
-  int32 currentLineLength = 0;
-  int32 charsReadSoFar = 0;
-  int32 bytesToCopy = 0;
+  int32_t currentLineLength = 0;
+  int32_t charsReadSoFar = 0;
+  int32_t bytesToCopy = 0;
   while (charsReadSoFar < numberOfCharsInMessage)
   {
     AdvanceToNextLine();

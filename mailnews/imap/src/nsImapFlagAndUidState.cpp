@@ -102,14 +102,14 @@ nsImapFlagAndUidState::~nsImapFlagAndUidState()
 }
 
 NS_IMETHODIMP
-nsImapFlagAndUidState::OrSupportedUserFlags(uint16 flags)
+nsImapFlagAndUidState::OrSupportedUserFlags(uint16_t flags)
 {
   fSupportedUserFlags |= flags;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsImapFlagAndUidState::GetSupportedUserFlags(uint16 *aFlags)
+nsImapFlagAndUidState::GetSupportedUserFlags(uint16_t *aFlags)
 {
   NS_ENSURE_ARG_POINTER(aFlags);
   *aFlags = fSupportedUserFlags;

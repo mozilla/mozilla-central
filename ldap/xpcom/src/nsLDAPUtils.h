@@ -20,7 +20,7 @@
 
 /* This macro has been copied from msgcore.h */
 #define IS_SPACE(VAL) \
-  (((((intn)(VAL)) & 0x7f) == ((intn)(VAL))) && isspace((intn)(VAL)))
+  (((((PRIntn)(VAL)) & 0x7f) == ((PRIntn)(VAL))) && isspace((PRIntn)(VAL)))
 
 /* This function has been copied from nsMsgUtils.cpp */
 inline void LdapCompressWhitespace(nsCString& aString)

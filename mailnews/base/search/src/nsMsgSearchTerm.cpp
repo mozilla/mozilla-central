@@ -277,7 +277,7 @@ nsresult NS_MsgGetStringForOperator(int16_t op, const char **string)
   return (found) ? NS_OK : NS_ERROR_INVALID_ARG;
 }
 
-void NS_MsgGetUntranslatedStatusName (uint32 s, nsCString *outName)
+void NS_MsgGetUntranslatedStatusName (uint32_t s, nsCString *outName)
 {
   const char *tmpOutName = NULL;
 #define MSG_STATUS_MASK (nsMsgMessageFlags::Read | nsMsgMessageFlags::Replied |\
@@ -921,7 +921,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
 
   nsAutoCString buf;
   bool endOfFile = false;  // if retValue == 0, we've hit the end of the file
-  uint32 lines = 0;
+  uint32_t lines = 0;
 
   // Change the sense of the loop so we don't bail out prematurely
   // on negative terms. i.e. opDoesntContain must look at all lines

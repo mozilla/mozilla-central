@@ -10,6 +10,7 @@
 #define msgCore_h__
 
 #include "nscore.h"
+#include "nspr.h"
 #include "plstr.h"
 #include "nsCRTGlue.h"
 
@@ -67,7 +68,7 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define NS_MSG_FAILURE NS_MSG_GENERATE_FAILURE(0)
 
 #define IS_SPACE(VAL) \
-  (((((intn)(VAL)) & 0x7f) == ((intn)(VAL))) && isspace((intn)(VAL)))
+  (((((PRIntn)(VAL)) & 0x7f) == ((PRIntn)(VAL))) && isspace((PRIntn)(VAL)))
 
 #define IS_DIGIT(i)   ((((unsigned int) (i)) > 0x7f) ? (int) 0 : isdigit(i))
 #if defined(XP_WIN) || defined(XP_OS2)

@@ -73,7 +73,7 @@ void  nsImapSearchResultIterator::ResetIterator()
 
 int32_t nsImapSearchResultIterator::GetNextMessageNumber()
 {
-  int32 returnValue = 0;
+  int32_t returnValue = 0;
   if (fPositionInCurrentLine)
   {	
     returnValue = atoi(fPositionInCurrentLine);
@@ -93,5 +93,3 @@ int32_t nsImapSearchResultIterator::GetNextMessageNumber()
   
   return returnValue;
 }
-
-

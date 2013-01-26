@@ -45,6 +45,7 @@ PREF_JS_EXPORTS = $(srcdir)/mailnews.js
 
 DEFINES += -DOS_ARCH=$(OS_ARCH) \
            -DMOZ_WIDGET_TOOLKIT=$(MOZ_WIDGET_TOOLKIT) \
+           -DNO_NSPR_10_SUPPORT \
            $(NULL)
 
 include $(topsrcdir)/config/rules.mk

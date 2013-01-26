@@ -2789,7 +2789,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
         break;
       case nsIImapUrl::nsImapDeleteAllMsgs:
         {
-          uint32 numberOfMessages = GetServerStateParser().NumberOfMessages();
+          uint32_t numberOfMessages = GetServerStateParser().NumberOfMessages();
           if (numberOfMessages)
           {
             Store(NS_LITERAL_CSTRING("1:*"), "+FLAGS.SILENT (\\Deleted)",
@@ -3215,7 +3215,7 @@ void nsImapProtocol::PipelinedFetchMessageParts(const char *uid, nsIMAPMessagePa
 
   // build up a string to fetch
   nsCString stringToFetch, what;
-  int32 currentPartNum = 0;
+  int32_t currentPartNum = 0;
   while ((parts->GetNumParts() > currentPartNum) && !DeathSignalReceived())
   {
     nsIMAPMessagePartID *currentPart = parts->GetPart(currentPartNum);
@@ -3642,7 +3642,7 @@ void nsImapProtocol::PipelinedFetchMessageParts(nsCString &uid, nsIMAPMessagePar
   nsCString stringToFetch;
   nsCString what;
 
-  int32 currentPartNum = 0;
+  int32_t currentPartNum = 0;
   while ((parts->GetNumParts() > currentPartNum) && !DeathSignalReceived())
   {
     nsIMAPMessagePartID *currentPart = parts->GetPart(currentPartNum);
@@ -6986,7 +6986,7 @@ void nsImapProtocol::OnDeleteFolder(const char * sourceMailbox)
 
 void nsImapProtocol::RemoveMsgsAndExpunge()
 {
-  uint32 numberOfMessages = GetServerStateParser().NumberOfMessages();
+  uint32_t numberOfMessages = GetServerStateParser().NumberOfMessages();
   if (numberOfMessages)
   {
     // Remove all msgs and expunge the folder (ie, compact it).
@@ -8058,8 +8058,8 @@ void nsImapProtocol::ProcessStoreFlags(const nsCString &messageIdsString,
 {
   nsCString flagString;
 
-  uint16 userFlags = GetServerStateParser().SupportsUserFlags();
-  uint16 settableFlags = GetServerStateParser().SettablePermanentFlags();
+  uint16_t userFlags = GetServerStateParser().SupportsUserFlags();
+  uint16_t settableFlags = GetServerStateParser().SettablePermanentFlags();
 
   if (!addFlags && (flags & userFlags) && !(flags & settableFlags))
   {
