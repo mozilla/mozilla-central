@@ -730,3 +730,5 @@ export CL_INCLUDES_PREFIX
 # autoconf.mk sets OBJ_SUFFIX to an error to avoid use before including
 # this file
 OBJ_SUFFIX := $(_OBJ_SUFFIX)
+
+DEFINES += -DNO_NSPR_10_SUPPORT
