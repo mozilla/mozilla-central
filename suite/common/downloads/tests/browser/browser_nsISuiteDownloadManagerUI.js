@@ -5,19 +5,19 @@
 function test_visibility_open()
 {
   var dmui = Components.classes["@mozilla.org/download-manager-ui;1"]
-                       .getService(Components.interfaces.nsIDownloadManagerUI);
-  is(dmui.visible, true,
+                       .getService(Components.interfaces.nsISuiteDownloadManagerUI);
+  isnot(dmui.recentWindow, null,
      "nsIDownloadManagerUI indicates that the UI is visible");
 }
 
 function test_visibility_closed(aWin)
 {
   var dmui = Components.classes["@mozilla.org/download-manager-ui;1"]
-                       .getService(Components.interfaces.nsIDownloadManagerUI);
+                       .getService(Components.interfaces.nsISuiteDownloadManagerUI);
 
   function dmWindowClosedListener() {
     aWin.removeEventListener("unload", dmWindowClosedListener, false);
-    is(dmui.visible, false,
+    is(dmui.recentWindow, null,
        "nsIDownloadManagerUI indicates that the UI is not visible");
     finish();
   }

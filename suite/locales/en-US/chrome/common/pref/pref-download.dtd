@@ -5,14 +5,14 @@
 <!ENTITY pref.download.title            "Downloads">
 
 <!ENTITY downloadBehavior.label         "When starting a download">
-<!ENTITY focusWhenStarting.label        "Flash the download manager if it is already open, otherwise:">
-<!ENTITY focusWhenStarting.accesskey    "F">
-<!ENTITY openDM.label                   "Open the download manager">
-<!ENTITY openDM.accesskey               "m">
-<!ENTITY openProgressDialog.label       "Open a progress dialog">
-<!ENTITY openProgressDialog.accesskey   "O">
 <!ENTITY doNothing.label                "Don't open anything">
 <!ENTITY doNothing.accesskey            "D">
+<!ENTITY openProgressDialog.label       "Open a progress dialog">
+<!ENTITY openProgressDialog.accesskey   "O">
+<!ENTITY openDM.label                   "Open the download manager">
+<!ENTITY openDM.accesskey               "m">
+<!ENTITY flashWhenOpen.label            "Just flash the download manager if it is already open">
+<!ENTITY flashWhenOpen.accesskey        "f">
 
 <!ENTITY downloadLocation.label         "When saving a file">
 <!ENTITY saveTo.label                   "Save files to">

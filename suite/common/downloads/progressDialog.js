@@ -32,7 +32,7 @@ function progressStartup() {
   if (recentDMWindow && recentDMWindow.gDownloadTreeView.rowCount > 0) {
     // we have been opened by a download manager, get the end time from there
     let dmtree = recentDMWindow.gDownloadTreeView;
-    let dldata = dmtree.getRowData(dmtree._getIdxForID(gDownload.id));
+    let dldata = dmtree.getRowData(dmtree._getIdxForGUID(gDownload.guid));
     gEndTime = dldata.endTime;
   }
 
@@ -336,14 +336,14 @@ var ProgressDlgController = {
   doCommand: function(aCommand) {
     switch (aCommand) {
       case "cmd_pause":
-        pauseDownload(gDownload.id);
+        gDownload.pause();
         break;
       case "cmd_resume":
-        resumeDownload(gDownload.id);
+        gDownload.resume();
         break;
       case "cmd_retry":
         gRetrying = true;
-        retryDownload(gDownload.id);
+        retryDownload(gDownload);
         break;
       case "cmd_cancel":
         cancelDownload(gDownload);

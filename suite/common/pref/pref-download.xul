@@ -16,12 +16,12 @@
             script="chrome://communicator/content/pref/pref-download.js">
 
     <preferences>
-      <preference id="browser.download.manager.focusWhenStarting"
-                  name="browser.download.manager.focusWhenStarting"
-                  type="bool" inverted="true"/>
       <preference id="browser.download.manager.behavior"
                   name="browser.download.manager.behavior"
                   type="int"/>
+      <preference id="browser.download.manager.focusWhenStarting"
+                  name="browser.download.manager.focusWhenStarting"
+                  type="bool" inverted="true"/>
       <preference id="browser.download.useDownloadDir"
                   name="browser.download.useDownloadDir"
                   type="bool"/>
@@ -49,23 +49,23 @@
 
     <groupbox>
       <caption label="&downloadBehavior.label;"/>
-      <checkbox id="focusWhenStarting"
-                label="&focusWhenStarting.label;"
-                preference="browser.download.manager.focusWhenStarting"
-                accesskey="&focusWhenStarting.accesskey;"/>
       <radiogroup id="downloadBehavior"
-                  class="indent"
                   preference="browser.download.manager.behavior">
-        <radio value="0"
-               label="&openDM.label;"
-               accesskey="&openDM.accesskey;"/>
-        <radio value="1"
-               label="&openProgressDialog.label;"
-               accesskey="&openProgressDialog.accesskey;"/>
         <radio value="2"
                label="&doNothing.label;"
                accesskey="&doNothing.accesskey;"/>
+        <radio value="1"
+               label="&openProgressDialog.label;"
+               accesskey="&openProgressDialog.accesskey;"/>
+        <radio value="0"
+               label="&openDM.label;"
+               accesskey="&openDM.accesskey;"/>
       </radiogroup>
+      <checkbox id="focusWhenStarting"
+                class="indent"
+                preference="browser.download.manager.focusWhenStarting"
+                label="&flashWhenOpen.label;"
+                accesskey="&flashWhenOpen.accesskey;"/>
     </groupbox>
 
     <groupbox>

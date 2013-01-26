@@ -11,11 +11,13 @@ const nsITreeView = Components.interfaces.nsITreeView;
 function DownloadTreeView(aDownloadManager) {
   this._dm = aDownloadManager;
   this._dlList = [];
+  this._dlMap = {};
   this._searchTerms = [];
 }
 
 DownloadTreeView.prototype = {
-  QueryInterface: XPCOMUtils.generateQI([nsITreeView]),
+  QueryInterface: XPCOMUtils.generateQI([nsITreeView,
+                             Components.interfaces.nsIDownloadManagerResult]),
 
   // ***** nsITreeView attributes and methods *****
   get rowCount() {
@@ -135,7 +137,7 @@ DownloadTreeView.prototype = {
         return dl.progress;
       case "TimeRemaining":
         if (dl.isActive) {
-          var dld = this._dm.getDownload(dl.dlid);
+          var dld = dl.dld;
           var lastSec = (dl.lastSec == null) ? Infinity : dl.lastSec;
           // Calculate the time remaining if we have valid values
           var seconds = (dld.speed > 0) && (dl.maxBytes > 0)
@@ -151,7 +153,7 @@ DownloadTreeView.prototype = {
       case "TransferRate":
         switch (dl.state) {
           case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
-            var speed = this._dm.getDownload(dl.dlid).speed;
+            var speed = dl.dld.speed;
             this._dlList[aRow]._speed = speed; // used for sorting
             var [rate, unit] = DownloadUtils.convertByteUnits(speed);
             return this._dlbundle.getFormattedString("speedFormat", [rate, unit]);
@@ -202,24 +204,22 @@ DownloadTreeView.prototype = {
       case "ActionPlay":
         switch (dl.state) {
           case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
-            pauseDownload(dl.dlid);
+            dl.dld.pause();
             break;
           case nsIDownloadManager.DOWNLOAD_PAUSED:
-            resumeDownload(dl.dlid);
+            dl.dld.resume();
             break;
           case nsIDownloadManager.DOWNLOAD_FAILED:
           case nsIDownloadManager.DOWNLOAD_CANCELED:
-            retryDownload(dl.dlid);
+            retryDownload(dl.dld);
             break;
         }
         break;
       case "ActionStop":
         if (dl.isActive)
-          // fake an nsIDownload with the properties needed by that function
-          cancelDownload({id: dl.dlid,
-                          targetFile: GetFileFromString(dl.file)});
+          cancelDownload(dl.dld);
         else
-          removeDownload(dl.dlid);
+          dl.dld.remove();
         break;
     }
   },
@@ -235,7 +235,7 @@ DownloadTreeView.prototype = {
 
   addDownload: function(aDownload) {
     var attrs = {
-      dlid: aDownload.id,
+      guid: aDownload.guid,
       file: aDownload.target.spec,
       target: aDownload.displayName,
       uri: aDownload.source.spec,
@@ -249,6 +249,7 @@ DownloadTreeView.prototype = {
       currBytes: aDownload.amountTransferred,
       maxBytes: aDownload.size,
       lastSec: Infinity, // For calculations of remaining time
+      dld: aDownload
     };
     switch (attrs.state) {
       case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
@@ -276,6 +277,7 @@ DownloadTreeView.prototype = {
 
     // Prepend data to the download list
     this._dlList.unshift(attrs);
+    this._dlMap[attrs.guid] = attrs;
 
     // Tell the tree we added 1 row at index 0
     this._tree.rowCountChanged(0, 1);
@@ -287,7 +289,7 @@ DownloadTreeView.prototype = {
   },
 
   updateDownload: function(aDownload) {
-    var row = this._getIdxForID(aDownload.id);
+    var row = this._getIdxForGUID(aDownload.guid);
     if (row == -1) {
       // No download row found to update, but as it's obviously going on,
       // add it to the list now (can happen with very fast, e.g. local dls)
@@ -337,8 +339,8 @@ DownloadTreeView.prototype = {
     window.updateCommands("tree-select");
   },
 
-  removeDownload: function(aDownloadID) {
-    var row = this._getIdxForID(aDownloadID);
+  removeDownload: function(aGUID) {
+    var row = this._getIdxForGUID(aGUID);
     // Make sure we have an item to remove
     if (row < 0) return;
 
@@ -347,6 +349,7 @@ DownloadTreeView.prototype = {
 
     // Remove data from the download list
     this._dlList.splice(row, 1);
+    delete this._dlMap[aGUID];
 
     // Tell the tree we removed 1 row at the given row index
     this._tree.rowCountChanged(row, -1);
@@ -368,6 +371,7 @@ DownloadTreeView.prototype = {
     // or because we need to recreate it
     this._tree.beginUpdateBatch();
     this._dlList = [];
+    this._dlMap = {};
     this._lastListIndex = 0;
 
     this.selection.clearSelection();
@@ -375,8 +379,8 @@ DownloadTreeView.prototype = {
     // sort in reverse and prepend to the list to get continuous list indexes
     // with increasing negative numbers for default-sort in ascending order
     var statement = this._dm.DBConnection.createStatement(
-      "SELECT id, target, name, source, state, startTime, endTime, referrer, " +
-            "currBytes, maxBytes, state IN (?1, ?2, ?3, ?4, ?5) AS isActive " +
+      "SELECT guid, target, name, source, state, startTime, endTime, referrer" +
+           ", currBytes, maxBytes, state IN (?1, ?2, ?3, ?4, ?5) AS isActive " +
       "FROM moz_downloads " +
       "ORDER BY isActive ASC, endTime ASC, startTime ASC, id DESC");
 
@@ -389,37 +393,25 @@ DownloadTreeView.prototype = {
     while (statement.executeStep()) {
       // Try to get the attribute values from the statement
       let attrs = {
-        dlid: statement.getInt64(0),
+        guid: statement.getString(0),
         file: statement.getString(1),
         target: statement.getString(2),
         uri: statement.getString(3),
         state: statement.getInt32(4),
+        progress: 100,
+        progressMode: nsITreeView.PROGRESS_NONE,
+        resumable: false,
         startTime: Math.round(statement.getInt64(5) / 1000),
         endTime: Math.round(statement.getInt64(6) / 1000),
         referrer: statement.getString(7),
         currBytes: statement.getInt64(8),
         maxBytes: statement.getInt64(9),
+        isActive: statement.getInt32(10),
         lastSec: Infinity, // For calculations of remaining time
+        dld: null
       };
 
-      // If the download is active, grab the real progress, otherwise default 100
-      attrs.isActive = statement.getInt32(10);
-      if (attrs.isActive) {
-        let dld = this._dm.getDownload(attrs.dlid);
-        attrs.progress = dld.percentComplete;
-        attrs.progressMode = attrs.progress == -1 ?
-                             nsITreeView.PROGRESS_UNDETERMINED :
-                             nsITreeView.PROGRESS_NORMAL;
-        attrs.resumable = dld.resumable;
-      }
-      else {
-        attrs.progress = 100;
-        attrs.progressMode = nsITreeView.PROGRESS_NONE;
-        attrs.resumable = false;
-      }
-
       // Only actually add item to the tree if it's active or matching search
-
       let matchSearch = true;
       if (this._searchTerms) {
         // Search through the download attributes that are shown to the user and
@@ -430,7 +422,7 @@ DownloadTreeView.prototype = {
           combinedSearch = combinedSearch + " " + attrs.target.toLowerCase();
 
         if (!attrs.isActive)
-          for each (let term in this._searchTerms)
+          for (let term of this._searchTerms)
             if (combinedSearch.indexOf(term) == -1)
               matchSearch = false;
       }
@@ -439,9 +431,25 @@ DownloadTreeView.prototype = {
       if (matchSearch) {
         attrs.listIndex = this._lastListIndex--;
         this._dlList.unshift(attrs);
+        this._dlMap[attrs.guid] = attrs;
       }
     }
     statement.finalize();
+    // now read active downloads
+    var downloads = this._dm.activeDownloads;
+    while (downloads.hasMoreElements()) {
+      let dld = downloads.getNext()
+                         .QueryInterface(Components.interfaces.nsIDownload);
+      if (dld.guid in this._dlMap) {
+        var dl = this._dlMap[dld.guid];
+        dl.progress = dld.percentComplete;
+        dl.progressMode = dl.progress == -1 ?
+                          nsITreeView.PROGRESS_UNDETERMINED :
+                          nsITreeView.PROGRESS_NORMAL;
+        dl.resumable = dld.resumable;
+        dl.dld = dld;
+      }
+    }
     // find sorted column and sort the tree
     var sortedColumn = this._tree.columns.getSortedColumn();
     if (sortedColumn) {
@@ -452,9 +460,19 @@ DownloadTreeView.prototype = {
 
     window.updateCommands("tree-select");
 
+    // ask for nsIDownload objects for finished downloads
+    for (let dl of this._dlList)
+      if (!dl.dld)
+        this._dm.getDownloadByGUID(dl.guid, this);
+
     // Send a notification that we finished
     setTimeout(function()
       Services.obs.notifyObservers(window, "download-manager-ui-done", null), 0);
+  },
+
+  handleResult: function(aStatus, aDownload) {
+    if (aDownload)
+      this._dlMap[aDownload.guid].dld = aDownload;
   },
 
   searchView: function(aInput) {
@@ -609,12 +627,9 @@ DownloadTreeView.prototype = {
   },
 
   // Get array index in _dlList for a given download ID
-  _getIdxForID: function(aDlID) {
-    var len = this._dlList.length;
-    for (let idx = 0; idx < len; idx++) {
-      if (this._dlList[idx].dlid == aDlID)
-        return idx;
-    }
+  _getIdxForGUID: function(aGUID) {
+    if (aGUID in this._dlMap)
+      return this._dlList.indexOf(this._dlMap[aGUID]);
     return -1;
   },
 
@@ -635,7 +650,7 @@ DownloadTreeView.prototype = {
     for (let rg = 0; rg < numRanges; rg++){
       this.selection.getRangeAt(rg, start, end);
       for (let row = start.value; row <= end.value; row++){
-        this._selectionCache.push(this._dlList[row].dlid);
+        this._selectionCache.push(this._dlList[row].guid);
       }
     }
   },
@@ -647,9 +662,9 @@ DownloadTreeView.prototype = {
       return;
 
     this.selection.clearSelection();
-    for each (let dlid in this._selectionCache) {
+    for (let guid of this._selectionCache) {
       // Find out what row this is now and if possible, add it to the selection
-      var row = this._getIdxForID(dlid);
+      var row = this._getIdxForGUID(guid);
       if (row != -1)
         this.selection.rangedSelect(row, row, true);
     }

@@ -12,6 +12,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const TOOLKIT_MANAGER_URL = "chrome://mozapps/content/downloads/downloads.xul";
 const DOWNLOAD_MANAGER_URL = "chrome://communicator/content/downloads/downloadmanager.xul";
+const PREF_FOCUS_WHEN_STARTING = "browser.download.manager.focusWhenStarting";
 const PREF_FLASH_COUNT = "browser.download.manager.flashCount";
 const PREF_DM_BEHAVIOR = "browser.download.manager.behavior";
 const PREF_FORCE_TOOLKIT_UI = "browser.download.manager.useToolkitUI";
@@ -27,11 +28,13 @@ nsDownloadManagerUI.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   //// nsIDownloadManagerUI
 
-  show: function show(aWindowContext, aID, aReason)
+  show: function show(aWindowContext, aDownload, aReason, aUsePrivateUI)
   {
     var behavior = 0;
     if (aReason != Ci.nsIDownloadManagerUI.REASON_USER_INTERACTED) {
-      try {
+      if (aUsePrivateUI)
+        behavior = 1;
+      else try {
         var prefs = Cc["@mozilla.org/preferences-service;1"].
                     getService(Ci.nsIPrefBranch);
         behavior = prefs.getIntPref(PREF_DM_BEHAVIOR);
@@ -42,22 +45,21 @@ nsDownloadManagerUI.prototype = {
 
     switch (behavior) {
       case 0:
-        this.showManager(aWindowContext, aID, aReason);
+        this.showManager(aWindowContext, aDownload, aReason);
         break;
       case 1:
-        this.showProgress(aWindowContext, aID, aReason);
+        this.showProgress(aWindowContext, aDownload, aReason);
     }
 
     return; // No UI for behavior >= 2
   },
 
-  get visible() {
-    return this.recentWindow != null;
-  },
+  visible: false, // needed for private downloads to work
 
   getAttention: function getAttention()
   {
-    if (!this.visible)
+    var window = this.recentWindow;
+    if (!window)
       throw Cr.NS_ERROR_UNEXPECTED;
 
     var prefs = Cc["@mozilla.org/preferences-service;1"].
@@ -68,11 +70,11 @@ nsDownloadManagerUI.prototype = {
       flashCount = prefs.getIntPref(PREF_FLASH_COUNT);
     } catch (e) { }
 
-    this.recentWindow.getAttentionWithCycleCount(flashCount);
+    window.getAttentionWithCycleCount(flashCount);
   },
 
   //////////////////////////////////////////////////////////////////////////////
-  //// nsDownloadManagerUI
+  //// nsISuiteDownloadManagerUI
 
   get recentWindow() {
     var wm = Cc["@mozilla.org/appshell/window-mediator;1"].
@@ -80,19 +82,18 @@ nsDownloadManagerUI.prototype = {
     return wm.getMostRecentWindow("Download:Manager");
   },
 
-  //////////////////////////////////////////////////////////////////////////////
-  //// nsISuiteDownloadManagerUI
-  showManager: function showManager(aWindowContext, aID, aReason)
+  showManager: function showManager(aWindowContext, aDownload, aReason)
   {
     // First we see if it is already visible
     let window = this.recentWindow;
     if (window) {
-      window.focus();
-
-      // If we are being asked to show again, with a user interaction reason,
-      // set the appropriate variable.
-      if (aReason == Ci.nsIDownloadManagerUI.REASON_USER_INTERACTED)
-        window.gUserInteracted = true;
+      var prefs = Cc["@mozilla.org/preferences-service;1"].
+                  getService(Ci.nsIPrefBranch);
+      var focus = prefs.getBoolPref(PREF_FOCUS_WHEN_STARTING);
+      if (focus || aReason == Ci.nsIDownloadManagerUI.REASON_USER_INTERACTED)
+        window.focus();
+      else
+        this.getAttention();
       return;
     }
 
@@ -108,15 +109,7 @@ nsDownloadManagerUI.prototype = {
     // We pass the download manager and the nsIDownload we want selected (if any)
     var params = Cc["@mozilla.org/array;1"].
                  createInstance(Ci.nsIMutableArray);
-
-    // Don't fail if our passed in ID is invalid
-    var download = null;
-    try {
-      let dm = Cc["@mozilla.org/download-manager;1"].
-               getService(Ci.nsIDownloadManager);
-      download = dm.getDownload(aID);
-    } catch (ex) {}
-    params.appendElement(download, false);
+    params.appendElement(aDownload, false);
 
     // Pass in the reason as well
     let reason = Cc["@mozilla.org/supports-PRInt16;1"].
@@ -141,9 +134,11 @@ nsDownloadManagerUI.prototype = {
                   params);
   },
 
-  showProgress: function showProgress(aWindowContext, aID, aReason)
+  showProgress: function showProgress(aWindowContext, aDownload, aReason)
   {
-    var params = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    // Fail if our passed in download is invalid
+    if (!aDownload)
+      return;
 
     var parent = null;
     // We try to get a window to use as the parent here.  If we don't have one,
@@ -154,11 +149,8 @@ nsDownloadManagerUI.prototype = {
         parent = aWindowContext.getInterface(Ci.nsIDOMWindow);
     } catch (e) { /* it's OK to not have a parent window */ }
 
-    // Fail if our passed in ID is invalid
-    var download = Cc["@mozilla.org/download-manager;1"].
-                   getService(Ci.nsIDownloadManager).
-                   getDownload(aID);
-    params.appendElement(download, false);
+    var params = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+    params.appendElement(aDownload, false);
 
     // Pass in the reason as well
     let reason = Cc["@mozilla.org/supports-PRInt16;1"].
@@ -184,6 +176,4 @@ nsDownloadManagerUI.prototype = {
 ////////////////////////////////////////////////////////////////////////////////
 //// Module
 
-let components = [nsDownloadManagerUI];
-
-var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
+var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsDownloadManagerUI]);

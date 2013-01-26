@@ -4,14 +4,16 @@
 
 #include "nsISupports.idl"
 #include "nsIDownloadManagerUI.idl"
+interface nsIDOMWindow;
 
-[scriptable, uuid(b2180611-e56e-4831-9770-15a53aacb36a)]
+[scriptable, uuid(23e0112d-2924-4e74-8886-157b60c4af24)]
 interface nsISuiteDownloadManagerUI : nsIDownloadManagerUI
 {
+  readonly attribute nsIDOMWindow recentWindow;
   void showManager([optional] in nsIInterfaceRequestor aWindowContext,
-                    [optional] in unsigned long aID,
-                    [optional] in short aReason);
+                   [optional] in nsIDownload aDownload,
+                   [optional] in short aReason);
   void showProgress([optional] in nsIInterfaceRequestor aWindowContext,
-                     [optional] in unsigned long aID,
-                     [optional] in short aReason);
+                    [optional] in nsIDownload aDownload,
+                    [optional] in short aReason);
 };
