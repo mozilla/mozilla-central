@@ -319,6 +319,8 @@
         <editor editortype="html"
                 type="content-primary"
                 id="content-frame"
+                onclick="EditorClick(event);"
+                ondblclick="EditorDblClick(event);"
                 context="contentAreaContextMenu"
                 flex="1"
                 tooltip="aHTMLTooltip"/>

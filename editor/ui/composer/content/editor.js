@@ -214,15 +214,6 @@ var DocumentReloadListener =
   }
 };
 
-function addEditorClickEventListener()
-{
-  try {
-    var bodyelement = GetBodyElement();
-    if (bodyelement)
-      bodyelement.addEventListener("click", EditorClick, false);
-  } catch (e) {}
-}
-
 // implements nsIObserver
 var gEditorDocumentObserver =
 { 
@@ -381,8 +372,6 @@ var gEditorDocumentObserver =
         // Add mouse click watcher if right type of editor
         if (IsHTMLEditor())
         {
-          addEditorClickEventListener();
-
           // Force color widgets to update
           onFontColorChange();
           onBackgroundColorChange();
@@ -1452,20 +1441,10 @@ function EditorDblClick(event)
 
 function EditorClick(event)
 {
-  if (!event)
-    return;
-
-  if (event.detail == 2)
-  {
-    EditorDblClick(event);
-    return;
-  }
-
   // For Web Composer: In Show All Tags Mode,
   // single click selects entire element,
   //  except for body and table elements
-  if (IsWebComposer() && event.explicitOriginalTarget && IsHTMLEditor() &&
-      gEditorDisplayMode == kDisplayModeAllTags)
+  if (gEditorDisplayMode == kDisplayModeAllTags)
   {
     try
     {

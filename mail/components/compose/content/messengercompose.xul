@@ -945,6 +945,7 @@
     </toolbox>
 
     <editor type="content-primary" id="content-frame" src="about:blank" name="browser.message.body" flex="1"
+            ondblclick="EditorDblClick(event);"
             context="msgComposeContext"/>
   </vbox>
 
