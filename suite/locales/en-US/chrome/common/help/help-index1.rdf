@@ -120,7 +120,7 @@
      <rdf:li>
        <rdf:Description ID="add-ons:manager"
          nc:name="Add-ons Manager"
-         nc:link="customize_help.xhtml#using_the_add-on_manager"/>
+         nc:link="customize_help.xhtml#using_the_add-ons_manager"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -138,9 +138,9 @@
          nc:link="customize_help.xhtml#the_extensions_panel"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="add-ons:themes_panel"
-         nc:name="Themes Panel"
-         nc:link="customize_help.xhtml#the_themes_panel"/>
+       <rdf:Description ID="add-ons:appearance_panel"
+         nc:name="Appearance Panel"
+         nc:link="customize_help.xhtml#the_appearance_panel"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="add-ons:languages_panel"
@@ -2088,9 +2088,9 @@
          nc:link="customize_help.xhtml#changing_the_theme"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="themes_panel"
-         nc:name="themes panel"
-         nc:link="customize_help.xhtml#the_themes_panel"/>
+       <rdf:Description ID="appearance_panel"
+         nc:name="appearance panel"
+         nc:link="customize_help.xhtml#the_appearance_panel"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="toolbar"
