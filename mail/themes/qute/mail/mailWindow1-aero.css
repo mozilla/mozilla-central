@@ -369,7 +369,9 @@ menulist > .menulist-label-box {
     border-radius: 1px 1px 0 0;
     background-clip: padding-box;
   }
+}
 
+@media (-moz-windows-glass) {
   /* lesser transparency on Glass background */
   #tabbar-toolbar menulist:not(:-moz-lwtheme):not([open="true"]) {
     background-color: rgba(227, 237, 246, .7);

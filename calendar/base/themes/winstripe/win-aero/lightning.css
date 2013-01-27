@@ -35,7 +35,7 @@
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
-@media (-moz-windows-compositor) {
+@media (-moz-windows-glass) {
     #tabbar-toolbar #calendar-tab-button,
     #tabbar-toolbar #task-tab-button {
       list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);

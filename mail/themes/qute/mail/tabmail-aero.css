@@ -88,6 +88,15 @@
   }
 }
 
+/* Apply only on Win8 */
+@media (-moz-windows-compositor) {
+  @media not all and (-moz-windows-glass) {
+    .tabmail-tab {
+      text-shadow: none;
+    }
+  }
+}
+
 .tabmail-tab:not([selected]):not(:hover) +
 .tabmail-tab:not([selected]):not(:hover)::before {
   content: "";
@@ -260,9 +269,9 @@ tabpanels {
 }
 
 .tabmail-arrowscrollbox >
-  .scrollbutton-up:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+  .scrollbutton-up:-moz-system-metric(windows-glass):not(:-moz-lwtheme),
 .tabmail-arrowscrollbox > stack >
-  .scrollbutton-down:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+  .scrollbutton-down:-moz-system-metric(windows-glass):not(:-moz-lwtheme),
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
 .tabmail-arrowscrollbox > stack > .scrollbutton-down:-moz-lwtheme-brighttext {
   list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left-inverted.png);
@@ -291,7 +300,7 @@ tabpanels {
   -moz-image-region: rect(0, 13px, 11px, 0);
 }
 
-.tabs-alltabs-button:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+.tabs-alltabs-button:-moz-system-metric(windows-glass):not(:-moz-lwtheme),
 .tabs-alltabs-button:-moz-lwtheme-brighttext {
   list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
 }
@@ -302,6 +311,21 @@ tabpanels {
 
 .tabs-alltabs-button > .toolbarbutton-icon {
   margin: 3px 0;
+}
+
+/* Apply only on Win8 */
+@media (-moz-windows-compositor) {
+  @media not all and (-moz-windows-glass) {
+    .tabs-alltabs-button:not(:-moz-lwtheme) {
+      list-style-image: url(chrome://messenger/skin/icons/toolbarbutton-arrow.png);
+      width: 22px;
+      -moz-padding-start: 6px;
+    }
+
+    .tabs-alltabs-button > .toolbarbutton-icon {
+      margin: 4px 0 0;
+    }
+  }
 }
 
 .tabs-alltabs-button > .toolbarbutton-menu-dropmarker {

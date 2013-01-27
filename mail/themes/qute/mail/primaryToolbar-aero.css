@@ -333,36 +333,10 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 }
 
 @media (-moz-windows-compositor) {
-  #messengerWindow {
-    -moz-appearance: -moz-win-borderless-glass;
-    background: transparent;
-  }
-
   #navigation-toolbox:not(:-moz-lwtheme),
   #tabs-toolbar {
     background: transparent !important;
     border-style: none;
-  }
-
-  #tabs-toolbar:not(:-moz-lwtheme) {
-    margin-left: 1px;
-    margin-right: 1px;
-    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 0),
-                      -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14),
-                      -moz-image-rect(url(icons/tabbar-background.png), 0, 29, 30, 14) !important;
-    background-position: left 0,
-                         15px 0,
-                         right 0 !important;
-    background-size: 15px 100%,
-                     calc(100% - 30px) 100%,
-                     15px 100% !important;
-    background-repeat: no-repeat !important;
-  }
-
-  #messengerWindow[sizemode="maximized"] #tabs-toolbar:not(:-moz-lwtheme) {
-    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14) !important;
-    background-position: left 0 !important;
-    background-size: 100% 100% !important;
   }
 
   #mail-toolbox:not(:-moz-lwtheme),
@@ -398,6 +372,34 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
   #mail-toolbar-menubar2 {
     -moz-box-ordinal-group: 20;
+  }
+}
+
+@media (-moz-windows-glass) {
+  #messengerWindow {
+    -moz-appearance: -moz-win-borderless-glass;
+    background: transparent;
+  }
+
+  #tabs-toolbar:not(:-moz-lwtheme) {
+    margin-left: 1px;
+    margin-right: 1px;
+    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 0),
+                      -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14),
+                      -moz-image-rect(url(icons/tabbar-background.png), 0, 29, 30, 14) !important;
+    background-position: left 0,
+                         15px 0,
+                         right 0 !important;
+    background-size: 15px 100%,
+                     calc(100% - 30px) 100%,
+                     15px 100% !important;
+    background-repeat: no-repeat !important;
+  }
+
+  #messengerWindow[sizemode="maximized"] #tabs-toolbar:not(:-moz-lwtheme) {
+    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14) !important;
+    background-position: left 0 !important;
+    background-size: 100% 100% !important;
   }
 
   #tabbar-toolbar .toolbarbutton-1 {
