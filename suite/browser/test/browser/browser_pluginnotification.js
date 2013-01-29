@@ -76,7 +76,6 @@ function finishTest() {
   finish();
 }
 
-
 function handleBindingAttached(evt) {
   if (evt.target instanceof Ci.nsIObjectLoadingContent &&
       evt.target.pluginFallbackType == Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY)
@@ -436,8 +435,7 @@ function test13b() {
   var objLoadingContent = plugin.QueryInterface(Ci.nsIObjectLoadingContent);
   ok(!objLoadingContent.activated, "Test 13b, Plugin should not be activated");
   var overlay = gTestBrowser.contentDocument.getAnonymousElementByAttribute(plugin, "class", "mainBox");
-  // See Bug 807644 on this
-  todo(overlay.style.visibility == "hidden", "Test 13b, Plugin should not have visible overlay");
+  ok(overlay.style.visibility == "hidden", "Test 13b, Plugin should not have visible overlay");
 
   gNextTest = test13c;
   gTestBrowser.reload();

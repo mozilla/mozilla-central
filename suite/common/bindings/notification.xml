@@ -580,7 +580,7 @@
           ]]>
         </body>
       </method>
-      
+
       <method name="activateSinglePlugin">
         <parameter name="aPlugin"/>
         <body>
@@ -588,7 +588,7 @@
             var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
             if (this.canActivatePlugin(objLoadingContent))
               objLoadingContent.playPlugin();
-        
+
             var haveUnplayedPlugins = this.contentWindowUtils.plugins.some(function(plugin) {
               var hupObjLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
               return plugin != aPlugin && this.canActivatePlugin(hupObjLoadingContent);
@@ -2278,6 +2278,7 @@
                                                                       this.activeBrowser);
                 if (notification)
                   notification.remove();
+                this.removeClickToPlayOverlays();
               }).bind(this)
             }];
             var options = {
@@ -2286,6 +2287,19 @@
             PopupNotifications.show(this.activeBrowser, "click-to-play-plugins",
                                     messageString, "plugins-notification-icon",
                                     mainAction, secondaryActions, options);
+           ]]>
+        </body>
+      </method>
+
+      <method name="removeClickToPlayOverlays">
+        <body>
+          <![CDATA[
+            var doc = this.activeBrowser.contentWindow.document;
+            var plugins = this.contentWindowUtils.plugins;
+            for (let plugin of plugins) {
+              let overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+              overlay.style.visibility = "hidden";
+            }
            ]]>
         </body>
       </method>
