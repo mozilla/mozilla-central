@@ -574,7 +574,7 @@ Account.prototype = {
       if (id.length > lastMsgId.length ||
           (id.length == lastMsgId.length && id > lastMsgId))
         lastMsgId = id;
-      this._knownMessageIds[id] = tweet;
+      this._knownMessageIds[id] = true;
       if ("description" in tweet.user)
         this.setUserInfo(tweet.user);
       this.timeline.displayTweet(tweet);
