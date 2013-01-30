@@ -1,0 +1,31 @@
+if [ "$MOZ_UPDATE_CHANNEL" == "beta" ]; then
+  ac_add_options --with-l10n-base=../../releases/l10n/mozilla-beta
+fi;
+if [ "$MOZ_UPDATE_CHANNEL" == "release" ]; then
+  ac_add_options --with-l10n-base=../../releases/l10n/mozilla-release
+fi;
+ac_add_options --enable-application=suite
+ac_add_options --enable-optimize
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+
+CC=/tools/gcc-4.5/bin/gcc
+CXX=/tools/gcc-4.5/bin/g++
+
+export LDFLAGS="-static-libstdc++"
+export HOST_LDFLAGS="-static-libstdc++"
+export CFLAGS="-gdwarf-2"
+export CXXFLAGS="-gdwarf-2"
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+ac_add_options --enable-debug-symbols="-gdwarf-2"
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
+
+# Enable parallel compiling
+mk_add_options MOZ_MAKE_FLAGS="-j2"
+
+#Use ccache
+ac_add_options --with-ccache=/usr/bin/ccache
