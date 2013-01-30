@@ -410,7 +410,6 @@ PlacesController.prototype = {
    *    "tagChild"          node is a child of a tag
    *    "folder"            node is a folder
    *    "query"             node is a query
-   *    "dynamiccontainer"  node is a dynamic container
    *    "separator"         node is a separator line
    *    "host"              node is a host
    *
@@ -453,9 +452,6 @@ PlacesController.prototype = {
             }
           }
           break;
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_DYNAMIC_CONTAINER:
-          nodeData["dynamiccontainer"] = true;
-          break;
         case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER:
         case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT:
           nodeData["folder"] = true;
@@ -465,7 +461,6 @@ PlacesController.prototype = {
           break;
         case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_URI:
         case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_VISIT:
-        case Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_FULL_VISIT:
           nodeData["link"] = true;
           uri = PlacesUtils._uri(node.uri);
           if (PlacesUtils.nodeIsBookmark(node)) {
