@@ -28,7 +28,7 @@ function run_test()
       " name=\"Presentation.pptx\"\r\n" +
       "\r\n",
       result:
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation;\r\n" +
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation;" +
       " name=\"Presentation.pptx\""
     },
     { header:
@@ -38,13 +38,13 @@ function run_test()
       "Content-Disposition: inline\r\n" +
       "\r\n",
       result:
-      null
+      ""
     },
     { header:
       "Content-Type:\r\n" +
       "\r\n",
       result:
-      null
+      ""
     },
     /* possible crash case for Bug 574961 */
     { header:
@@ -59,7 +59,7 @@ function run_test()
       "                                " +
       "              \r\n",
       result:
-      null,
+      "",
     }
   ];
 

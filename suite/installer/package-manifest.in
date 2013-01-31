@@ -747,7 +747,9 @@ bin/libfreebl_32int64_3.so
 ; MailNews JS components
 @BINPATH@/components/mdn-service.js
 @BINPATH@/components/mdn-service.manifest
+@BINPATH@/components/mimeJSComponents.js
 @BINPATH@/components/msgAsyncPrompter.js
+@BINPATH@/components/msgMime.manifest
 @BINPATH@/components/newsblog.js
 @BINPATH@/components/newsblog.manifest
 @BINPATH@/components/nsAbAutoCompleteMyDomain.js

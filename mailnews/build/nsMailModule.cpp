@@ -247,7 +247,6 @@
 #include "nsMimeObjectClassAccess.h"
 #include "nsMimeConverter.h"
 #include "nsMsgHeaderParser.h"
-#include "nsMimeHeaders.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // mime emitter includes
@@ -675,13 +674,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeObjectClassAccess)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeConverter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsStreamConverter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgHeaderParser)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMimeHeaders)
 
 NS_DEFINE_NAMED_CID(NS_MIME_OBJECT_CLASS_ACCESS_CID);
 NS_DEFINE_NAMED_CID(NS_MIME_CONVERTER_CID);
 NS_DEFINE_NAMED_CID(NS_MSGHEADERPARSER_CID);
 NS_DEFINE_NAMED_CID(NS_MAILNEWS_MIME_STREAM_CONVERTER_CID);
-NS_DEFINE_NAMED_CID(NS_IMIMEHEADERS_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 // mime emitter factories
@@ -986,7 +983,6 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_MIME_CONVERTER_CID, false, NULL, nsMimeConverterConstructor },
   { &kNS_MSGHEADERPARSER_CID, false, NULL, nsMsgHeaderParserConstructor },
   { &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID, false, NULL, nsStreamConverterConstructor },
-  { &kNS_IMIMEHEADERS_CID, false, NULL, nsMimeHeadersConstructor },
   { &kNS_HTML_MIME_EMITTER_CID, false, NULL, nsMimeHtmlDisplayEmitterConstructor},
   { &kNS_XML_MIME_EMITTER_CID, false, NULL, nsMimeXmlEmitterConstructor},
   { &kNS_PLAIN_MIME_EMITTER_CID, false, NULL, nsMimePlainEmitterConstructor},
@@ -1210,7 +1206,6 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
   { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID },
   { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID1, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID },
   { NS_MAILNEWS_MIME_STREAM_CONVERTER_CONTRACTID2, &kNS_MAILNEWS_MIME_STREAM_CONVERTER_CID },
-  { NS_IMIMEHEADERS_CONTRACTID, &kNS_IMIMEHEADERS_CID },
   { NS_HTML_MIME_EMITTER_CONTRACTID, &kNS_HTML_MIME_EMITTER_CID },
   { NS_XML_MIME_EMITTER_CONTRACTID, &kNS_XML_MIME_EMITTER_CID },
   { NS_PLAIN_MIME_EMITTER_CONTRACTID, &kNS_PLAIN_MIME_EMITTER_CID },

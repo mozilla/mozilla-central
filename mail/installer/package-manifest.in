@@ -158,6 +158,8 @@
 ; go into the package, so the test related interfaces aren't included.
 @BINPATH@/components/jetpack.xpt
 @BINPATH@/components/mime.xpt
+@BINPATH@/components/mimeJSComponents.js
+@BINPATH@/components/msgMime.manifest
 @BINPATH@/components/steel.xpt
 @BINPATH@/components/msgAsyncPrompter.js
 @BINPATH@/components/msgbase.xpt

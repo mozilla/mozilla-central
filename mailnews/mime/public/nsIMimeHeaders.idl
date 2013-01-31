@@ -9,10 +9,6 @@
 %{C++
 #define NS_IMIMEHEADERS_CONTRACTID \
   "@mozilla.org/messenger/mimeheaders;1"
-// {9C4DA772-07EB-11d3-8EE5-00A024669799}
-#define NS_IMIMEHEADERS_CID \
-    { 0x13e16677, 0x6648, 0x11d3, \
-    { 0xa7, 0x2f, 0x0, 0x60, 0xb0, 0xeb, 0x39, 0xb5 } }
 %}
 
 /** 
@@ -28,8 +24,7 @@ interface nsIMimeHeaders : nsISupports {
    *
    * Leading and trailing whitespace from headers will be stripped from the
    * return value. If getAllOfThem is set to true, then the returned string will
-   * have all of the values of the header, in order, joined with the ',\n\t',
-   * where the newline is the appropriate newline for the current platform.
+   * have all of the values of the header, in order, joined with the ',\r\n\t'.
    *
    * If the header is not present, then the returned value is NULL.
    */
