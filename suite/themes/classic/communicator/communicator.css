@@ -162,3 +162,7 @@ treecols:-moz-lwtheme {
 .messageImage[value="popup-blocked"] {
   list-style-image: url("chrome://navigator/skin/icons/popup-blocked.png");
 }
+
+.messageImage[value="blocked-badware-page"] {
+  list-style-image: url("chrome://global/skin/icons/blacklist_favicon.png");
+}

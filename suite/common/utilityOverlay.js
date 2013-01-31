@@ -1092,12 +1092,13 @@ function BrowserOnCommand(event)
 
   const ot = event.originalTarget;
   const ownerDoc = ot.ownerDocument;
+  const docURI = ownerDoc.documentURI;
+  const buttonID = ot.getAttribute("anonid");
 
   // If the event came from an ssl error page, it is probably either the "Add
   // Exception" or "Get Me Out Of Here" button
-  if (/^about:neterror\?e=nssBadCert/.test(ownerDoc.documentURI) ||
-      /^about:certerror\?/.test(ownerDoc.documentURI)) {
-    if (ot.getAttribute('anonid') == 'exceptionDialogButton') {
+  if (docURI.startsWith("about:certerror?")) {
+    if (buttonID == "exceptionDialogButton") {
       var params = { exceptionAdded : false };
 
       switch (GetIntPref("browser.ssl_override_behavior", 2)) {
@@ -1115,12 +1116,70 @@ function BrowserOnCommand(event)
       if (params.exceptionAdded)
         ownerDoc.location.reload();
     }
-    else if (ot.getAttribute('anonid') == 'getMeOutOfHereButton') {
+    else if (buttonID == "getMeOutOfHereButton") {
       // Redirect them to a known-functioning page, default start page
-      content.location = GetLocalizedStringPref("browser.startup.homepage",
-                                                "about:blank");
+      getMeOutOfHere();
     }
   }
+  else if (docURI.startsWith("about:blocked")) {
+    // The event came from a button on a malware/phishing block page
+    // First check whether it's malware or phishing, so that we can
+    // use the right strings/links
+    let isMalware = /e=malwareBlocked/.test(docURI);
+
+    switch (buttonID) {
+      case "getMeOutOfHereButton":
+        getMeOutOfHere();
+        break;
+
+      case "reportButton":
+        // This is the "Why is this site blocked" button.  For malware,
+        // we can fetch a site-specific report, for phishing, we redirect
+        // to the generic page describing phishing protection.
+
+        if (isMalware) {
+          // Get the stop badware "why is this blocked" report url,
+          // append the current url, and go there.
+          try {
+            let reportURL = Services.urlFormatter.formatURLPref("browser.safebrowsing.malware.reportURL");
+            reportURL += ownerDoc.location.href;
+            loadURI(reportURL);
+          } catch (e) {
+            Components.utils.reportError("Couldn't get malware report URL: " + e);
+          }
+        }
+        else { // It's a phishing site, not malware
+          try {
+            loadURI(Services.urlFormatter.formatURLPref("browser.safebrowsing.warning.infoURL"));
+          } catch (e) {
+            Components.utils.reportError("Couldn't get phishing info URL: " + e);
+          }
+        }
+        break;
+
+      case "ignoreWarningButton":
+        getBrowser().getNotificationBox().ignoreSafeBrowsingWarning(isMalware);
+        break;
+    }
+  }
+}
+
+/**
+ * Re-direct the browser to a known-safe page.  This function is
+ * used when, for example, the user browses to a known malware page
+ * and is presented with about:blocked.  The "Get me out of here!"
+ * button should take the user to the default start page so that even
+ * when their own homepage is infected, we can get them somewhere safe.
+ */
+function getMeOutOfHere() {
+  // Get the start page from the *default* pref branch, not the user's
+  var prefs = Services.prefs.getDefaultBranch(null);
+  var url = "about:blank";
+  try {
+    url = prefs.getComplexValue("browser.startup.homepage",
+                                Components.interfaces.nsIPrefLocalizedString).data;
+  } catch(e) {}
+  loadURI(url);
 }
 
 function popupNotificationMenuShowing(event)

@@ -397,6 +397,44 @@ pref("browser.feeds.handler", "ask");
 pref("browser.videoFeeds.handler", "ask");
 pref("browser.audioFeeds.handler", "ask");
 
+pref("browser.safebrowsing.enabled", true);
+pref("browser.safebrowsing.malware.enabled", true);
+pref("browser.safebrowsing.debug", true);
+
+// Normally the "client ID" sent in updates is appinfo.name, but
+// official Firefox releases from Mozilla use a special identifier.
+// This is currently unused as we are using the apikey method.
+pref("browser.safebrowsing.id", "SeaMonkey");
+
+pref("browser.safebrowsing.updateURL", "http://safebrowsing.clients.google.com/safebrowsing/downloads?client=api&apikey=ABQIAAAALT_LuARPWqUj7bX2mqWTJRQt2QEr-yGktcva5ZhZnWk7HItT7w&appver=%VERSION%&pver=2.2");
+pref("browser.safebrowsing.keyURL", "https://sb-ssl.google.com/safebrowsing/newkey?client=api&apikey=ABQIAAAALT_LuARPWqUj7bX2mqWTJRQt2QEr-yGktcva5ZhZnWk7HItT7w&appver=%VERSION%&pver=2.2");
+pref("browser.safebrowsing.gethashURL", "http://safebrowsing.clients.google.com/safebrowsing/gethash?client=api&apikey=ABQIAAAALT_LuARPWqUj7bX2mqWTJRQt2QEr-yGktcva5ZhZnWk7HItT7w&appver=%VERSION%&pver=2.2");
+pref("browser.safebrowsing.reportURL", "http://safebrowsing.clients.google.com/safebrowsing/report?");
+pref("browser.safebrowsing.reportGenericURL", "http://%LOCALE%.phish-generic.mozilla.com/?hl=%LOCALE%");
+pref("browser.safebrowsing.reportErrorURL", "http://%LOCALE%.phish-error.mozilla.com/?hl=%LOCALE%");
+pref("browser.safebrowsing.reportPhishURL", "http://%LOCALE%.phish-report.mozilla.com/?hl=%LOCALE%");
+pref("browser.safebrowsing.reportMalwareURL", "http://%LOCALE%.malware-report.mozilla.com/?hl=%LOCALE%");
+pref("browser.safebrowsing.reportMalwareErrorURL", "http://%LOCALE%.malware-error.mozilla.com/?hl=%LOCALE%");
+
+pref("browser.safebrowsing.warning.infoURL", "http://www.mozilla.org/%LOCALE%/firefox/phishing-protection/");
+pref("browser.safebrowsing.malware.reportURL", "http://safebrowsing.clients.google.com/safebrowsing/diagnostic?client=Firefox&hl=%LOCALE%&site=");
+
+// Name of the about: page contributed by safebrowsing to handle display of error
+// pages on phishing/malware hits.  (bug 399233)
+pref("urlclassifier.alternate_error_page", "blocked");
+
+// The number of random entries to send with a gethash request.
+pref("urlclassifier.gethashnoise", 4);
+
+// The list of tables that use the gethash request to confirm partial results.
+// pref("urlclassifier.gethashtables", "goog-phish-shavar,goog-malware-shavar");
+pref("urlclassifier.gethashtables", "googpub-phish-shavar,goog-malware-shavar");
+
+// If an urlclassifier table has not been updated in this number of seconds,
+// a gethash request will be forced to check that the result is still in
+// the database.
+pref("urlclassifier.max-complete-age", 2700);
+
 pref("browser.sessionstore.resume_from_crash", true);
 pref("browser.sessionstore.resume_session_once", false);
 

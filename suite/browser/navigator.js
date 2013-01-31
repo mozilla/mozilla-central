@@ -15,6 +15,9 @@ __defineSetter__("PluralForm", function (val) {
   return this.PluralForm = val;
 });
 
+XPCOMUtils.defineLazyModuleGetter(this, "SafeBrowsing",
+  "resource://gre/modules/SafeBrowsing.jsm");
+
 const REMOTESERVICE_CONTRACTID = "@mozilla.org/toolkit/remote-service;1";
 const XUL_NAMESPACE = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var gURLBar = null;
@@ -664,6 +667,9 @@ function Startup()
 
   // initialize the session-restore service
   setTimeout(InitSessionStoreCallback, 0);
+
+  // Bug 778855 - Perf regression if we do this here. To be addressed in bug 779008.
+  setTimeout(function() { SafeBrowsing.init(); }, 2000);
 }
 
 function UpdateNavBar()

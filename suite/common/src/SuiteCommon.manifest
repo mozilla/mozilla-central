@@ -2,6 +2,7 @@ component {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c} nsSuiteDownloadManagerUI.js
 contract @mozilla.org/download-manager-ui;1 {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c}
 component {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f} nsAbout.js
 contract @mozilla.org/network/protocol/about;1?what= {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=blocked {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=certerror {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=data {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=feeds {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}

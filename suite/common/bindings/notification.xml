@@ -996,7 +996,7 @@
               return;
 
             var message = this._stringBundle.formatStringFromName("offlineApps.quota", [host, warnQuota / 1024], 2);
-              var priority = this.PRIORITY_WARNING_MEDIUM;
+            var priority = this.PRIORITY_WARNING_MEDIUM;
             this.appendNotification(message, "offline-app-usage", null,
                                     priority, null);
             pm.add(aURI, "offline-app",
@@ -1645,6 +1645,69 @@
             installInfo.installs.forEach(function(aInstall) {
               aInstall.addListener(box);
             });
+          ]]>
+        </body>
+      </method>
+
+      <method name="ignoreSafeBrowsingWarning">
+        <parameter name="aIsMalware"/>
+        <body>
+          <![CDATA[
+            var uri = this.activeBrowser.currentURI;
+            var asciiSpec = uri.asciiSpec;
+            var flag = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_BYPASS_CLASSIFIER;
+            this.activeBrowser.loadURIWithFlags(asciiSpec, flag,
+                                                null, null, null);
+
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            pm.add(uri, "safe-browsing", nsIPermissionManager.ALLOW_ACTION,
+                                         nsIPermissionManager.EXPIRE_SESSION);
+
+            var title, label, accessKey, reportName;
+            if (aIsMalware) {
+              title = "safebrowsing.reportedAttackSite";
+              label = "safebrowsing.notAnAttackButton.label";
+              accessKey = "safebrowsing.notAnAttackButton.accessKey";
+              reportName = "MalwareError";
+            }
+            else {
+              title = "safebrowsing.reportedWebForgery";
+              label = "safebrowsing.notAForgeryButton.label";
+              accessKey = "safebrowsing.notAForgeryButton.accessKey";
+              reportName = "Error";
+            }
+            title = this._stringBundle.GetStringFromName(title);
+
+            var tmp = {};
+            Components.utils.import("resource://gre/modules/SafeBrowsing.jsm", tmp);
+            var reportUrl = tmp.SafeBrowsing.getReportURL(reportName);
+            reportUrl += "&url=" + encodeURIComponent(asciiSpec);
+
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName("safebrowsing.getMeOutOfHereButton.label"),
+              accessKey: this._stringBundle.GetStringFromName("safebrowsing.getMeOutOfHereButton.accessKey"),
+              callback: getMeOutOfHere
+            }, {
+              label: this._stringBundle.GetStringFromName(label),
+              accessKey: this._stringBundle.GetStringFromName(accessKey),
+              callback: function () { openUILinkIn(reportUrl, "tabfocused"); }
+            }];
+
+            var type = "blocked-badware-page";
+            var notification = this.getNotificationWithValue(type);
+            if (notification)
+              this.removeNotification(notification);
+
+            var box = this.appendNotification(title, type, null,
+                                              this.PRIORITY_CRITICAL_HIGH,
+                                              buttons);
+
+            // Persist the notification until the user removes so it
+            // doesn't get removed on redirects.
+            box.persistence = -1;
+
           ]]>
         </body>
       </method>

@@ -62,7 +62,7 @@ ul {
   background-image: url("chrome://global/skin/icons/alert-security.gif");
 }
 
-body[dir="rtl"] #errorPageContainer {
+#errorPageContainer:-moz-dir(rtl) {
   background-position: right 0;
 }
 
@@ -100,7 +100,7 @@ body[dir="rtl"] #errorPageContainer {
   opacity: .6;
 }
 
-body[dir="rtl"] #brand {
+#brand:-moz-dir(rtl) {
   right: auto;
   left: 0;
 }
@@ -122,4 +122,15 @@ body[dir="rtl"] #brand {
   color: #000000;
   padding: 10px;
   border-radius: 10px;
+}
+
+/* Custom styling for 'blacklist' error class */
+:root.blacklist #errorPageContainer {
+  background-image: url("chrome://global/skin/icons/blacklist_large.png");
+  background-color: #772222;
+  color: #FFFFFF;
+}
+
+:root.blacklist {
+  background: #333333;
 }

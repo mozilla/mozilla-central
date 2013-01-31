@@ -1090,14 +1090,12 @@
               var uri = this.mIOService.newURI(href, targetDoc.characterSet, null);
 
               // Verify that the load of this icon is legal.
-              // error pages can load their favicon, to be on the safe side,
-              // only allow chrome:// favicons
-              const aboutNeterr = /^about:neterror\?/;
-              const aboutCerterr = /^about:certerror\?/;
-              if (!(aboutNeterr.test(targetDoc.documentURI) ||
-                    aboutCerterr.test(targetDoc.documentURI)) ||
-                  !uri.schemeIs("chrome")) {
+              // Some error or special pages can load their favicon.
+              // To be on the safe side, only allow chrome:// favicons.
+              const re = /^about:(neterror|certerror|blocked)\?/;
+              var isAllowedPage = re.test(targetDoc.documentURI);
 
+              if (!isAllowedPage || !uri.schemeIs("chrome")) {
                 const secMan =
                   Components.classes["@mozilla.org/scriptsecuritymanager;1"]
                             .getService(nsIScriptSecurityManager);

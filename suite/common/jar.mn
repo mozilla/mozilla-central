@@ -52,6 +52,7 @@ comm.jar:
    content/communicator/aboutSessionRestore.xhtml
    content/communicator/askViewZoom.xul
    content/communicator/askViewZoom.js
+   content/communicator/blockedSite.xhtml
    content/communicator/certError.css
    content/communicator/certError.xhtml
    content/communicator/certError.xml

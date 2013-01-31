@@ -270,6 +270,8 @@ modern.jar:
   skin/modern/global/icons/alert-question.gif                      (global/icons/alert-question.gif)
   skin/modern/global/icons/alert-security.gif                      (global/icons/alert-security.gif)
   skin/modern/global/icons/autoscroll.png                          (/mozilla/toolkit/themes/winstripe/global/icons/autoscroll.png)
+  skin/modern/global/icons/blacklist_favicon.png                   (global/icons/blacklist_favicon.png)
+  skin/modern/global/icons/blacklist_large.png                     (global/icons/blacklist_large.png)
   skin/modern/global/icons/close-act.gif                           (global/icons/close-act.gif)
   skin/modern/global/icons/close-dis.gif                           (global/icons/close-dis.gif)
   skin/modern/global/icons/close-hov.gif                           (global/icons/close-hov.gif)

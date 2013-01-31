@@ -13,6 +13,8 @@ function About() { }
 About.prototype = {
   Flags: SCRIPT,
   URI: "chrome://communicator/content/about.xhtml",
+  blockedFlags: SCRIPT | UNTRUSTED | HIDE,
+  blockedURI: "chrome://communicator/content/blockedSite.xhtml",
   certerrorFlags: SCRIPT | UNTRUSTED | HIDE,
   certerrorURI: "chrome://communicator/content/certError.xhtml",
   dataFlags: SCRIPT,
