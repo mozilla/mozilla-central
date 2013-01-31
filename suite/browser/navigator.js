@@ -177,7 +177,7 @@ const gFormSubmitObserver = {
     var style = win.getComputedStyle(element, null);
     var scale = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                    .getInterface(Components.interfaces.nsIDOMWindowUtils)
-                   .screenPixelsPerCSSPixel;
+                   .fullZoom;
 
     var offset = style.direction == 'rtl' ? parseInt(style.paddingRight) +
                                             parseInt(style.borderRightWidth) :
