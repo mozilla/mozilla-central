@@ -17,6 +17,7 @@
         Components.utils.import("resource:///modules/mailServices.js", this);
         Components.utils.import("resource:///modules/MailUtils.js", this);
         Components.utils.import("resource:///modules/folderUtils.jsm", this);
+        Components.utils.import("resource:///modules/iteratorUtils.jsm", this);
 
         // If we are a child of a menulist, and we aren't in a wrapper, we
         // need to build our content right away, otherwise the menulist
@@ -277,7 +278,7 @@
           // I really wish they'd just make this global...
           const Ci = Components.interfaces;
 
-          let folders = [];
+          let folders;
 
           // Figure out which folders to build.  If we don't have a parent, then
           // we assume we should build the top-level accounts. (Actually we
@@ -290,11 +291,9 @@
             folders = accounts.map(function(acct) acct.incomingServer.rootFolder);
           } else {
             // If we do have a parent folder, then we just build based on those
-            // subFolders for that parent
-            let myenum = this._parentFolder.subFolders;
-            while (myenum.hasMoreElements()) {
-              folders.push(myenum.getNext().QueryInterface(Ci.nsIMsgFolder));
-            }
+            // subFolders for that parent.
+            folders = this.toArray(this.fixIterator(this._parentFolder.subFolders,
+                                                    Ci.nsIMsgFolder));
           }
 
           this._build(folders);
@@ -505,83 +504,80 @@
         <body><![CDATA[
           const Ci = Components.interfaces;
           // Iterate through all folders in all accounts, and check MRM_Time,
-          // then take the most current 15.
-          /**
-           * This function will iterate through any existing sub-folders and
-           * (1) check if they're recent and (2) recursively call this function
-           * to iterate through any sub-sub-folders.
-           *
-           * @param aFolder  the folder to check
-           */
-          function checkSubFolders(aFolder) {
-            if (!aFolder.hasSubFolders)
-              return;
+          // then take the most current 15 (_MAXRECENT).
 
-            var myenum = aFolder.subFolders;
-            while (myenum.hasMoreElements()) {
-              var folder = myenum.getNext().QueryInterface(Ci.nsIMsgFolder);
-              addIfRecent(folder);
-              checkSubFolders(folder);
-            }
+          let recentFolders = [];
+          let thisObj = this;
+
+          function sort_folders_by_MRMTime(a, b) {
+            return a.getStringProperty("MRMTime") < b.getStringProperty("MRMTime");
           }
-
-          var recentFolders = [];
-          var oldestTime = 0;
 
           /**
            * This function will add a folder to the recentFolders array if it
-           * is among the 15 most recent.  If we exceed 15 folders, it will pop
-           * the oldest folder, ensuring that we end up with the right number
+           * is among the 15 (_MAXRECENT) most recent. If we exceed 15 folders,
+           * it will pop the oldest folder, ensuring that we end up with the
+           * right number.
            *
-           * @param aFolder the folder to check
+           * @param aFolder  the folder to check
            */
-          var menu = this;
+          let oldestTime = 0;
           function addIfRecent(aFolder) {
             if (!aFolder.canFileMessages)
               return;
 
-            var time = 0;
+            let time = 0;
             try {
               time = aFolder.getStringProperty("MRMTime");
             } catch(ex) {}
             if (time <= oldestTime)
               return;
 
-            if (recentFolders.length == menu._MAXRECENT) {
-              recentFolders.sort(sorter);
+            if (recentFolders.length == thisObj._MAXRECENT) {
+              recentFolders.sort(sort_folders_by_MRMTime);
               recentFolders.pop();
-              oldestTime = recentFolders[recentFolders.length-1].getStringProperty("MRMTime");
+              oldestTime = recentFolders[recentFolders.length - 1]
+                                        .getStringProperty("MRMTime");
             }
-            recentFolders.push(aFolder);
+            recentFolders.push({folder: aFolder});
           }
 
-          // Start iterating at the top of the hierarchy, that is, with the root
-          // folders for each incoming server.
-          let servers = this.MailServices.accounts.allServers;
-          let count = servers.length;
-          for (var i = 0; i < count; i++) {
-            var incomingServer = servers.queryElementAt(i, Ci.nsIMsgIncomingServer);
-            addIfRecent(incomingServer.rootFolder);
-            checkSubFolders(incomingServer.rootFolder);
+          // Check all folders if they are recent.
+          for (let folder in this.fixIterator(this.MailServices.accounts.allFolders,
+                                              Ci.nsIMsgFolder)) {
+            addIfRecent(folder);
           }
-
-          function sorter(a, b) {
-             return a.getStringProperty("MRMTime") < b.getStringProperty("MRMTime");
-          }
-          recentFolders.sort(sorter);
 
           // Because we're scanning across multiple accounts, we can end up with
-          // two folders with the same name.  In this case, we append the name
-          // of the account as well, to distingiush.
-          var dupeNames = [];
-          for (var i = 0; i < recentFolders.length; i++) {
-            for (var j = i + 1; j < recentFolders.length; j++) {
-              // We can end up with the same name in dupeNames more than once,
-              // but that's ok.
-              if (recentFolders[i].prettyName == recentFolders[j].prettyName)
-                dupeNames.push(recentFolders[i].prettyName);
+          // several folders with the same name. Find those dupes.
+          let dupeNames = new Set();
+          for (let i = 0; i < recentFolders.length; i++) {
+            for (let j = i + 1; j < recentFolders.length; j++) {
+              if (recentFolders[i].folder.prettyName == recentFolders[j].folder.prettyName)
+                dupeNames.add(recentFolders[i].folder.prettyName);
             }
           }
+
+          for (let folderItem of recentFolders) {
+            // If this folder name appears multiple times in the recent list,
+            // append the server name to disambiguate.
+            // TODO:
+            // - maybe this could use verboseFolderFormat from messenger.properties
+            //   instead of hardcoded " - ".
+            // - disambiguate folders with same name in same account
+            //   (in different subtrees).
+            let label = folderItem.folder.prettyName;
+            if (dupeNames.has(label))
+              label += " - " + folderItem.folder.server.prettyName;
+
+            folderItem.label = label;
+          }
+
+          // Make sure the entries are sorted alphabetically.
+          recentFolders.sort(function sort_folders_by_name(a, b) {
+            return a.label.localeCompare(b.label);
+          });
+
           // Now create the Recent folder and its children
           var menu = document.createElement("menu");
           menu.setAttribute("label", this.getAttribute("recentLabel"));
@@ -591,29 +587,15 @@
           popup.setAttribute("generated", "true");
           menu.appendChild(popup);
 
-          // Make sure the entries are sorted alphabetically.
-          recentFolders.sort(function rf_sort(a, b){
-            var aLabel = a.prettyName;
-            if (dupeNames.indexOf(aLabel) != -1)
-              aLabel += " - " + a.server.prettyName;
-            var bLabel = b.prettyName;
-            if (dupeNames.indexOf(bLabel) != -1)
-              bLabel += " - " + b.server.prettyName;
-            return aLabel.toLocaleLowerCase() > bLabel.toLocaleLowerCase();
-          });
-
           // Create entries for each of the recent folders.
-          for each (var folder in recentFolders) {
-            var node = document.createElement("menuitem");
+          for (let folderItem of recentFolders) {
+            let node = document.createElement("menuitem");
 
-            var label = folder.prettyName;
-            if (dupeNames.indexOf(label) != -1)
-              label += " - " + folder.server.prettyName;
-            node.setAttribute("label", label);
-            node._folder = folder;
+            node.setAttribute("label", folderItem.label);
+            node._folder = folderItem.folder;
 
             node.setAttribute("class", "folderMenuItem menuitem-iconic");
-            this._setCssSelectors(folder, node);
+            this._setCssSelectors(folderItem.folder, node);
             node.setAttribute("generated", "true");
             popup.appendChild(node);
           }
