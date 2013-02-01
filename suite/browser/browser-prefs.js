@@ -325,10 +325,6 @@ pref("browser.offline-apps.notify", true);
 
 pref("browser.formfill.expire_days",        180);
 
-pref("mail.biff.alert.show_preview", true);
-pref("mail.biff.alert.show_subject", true);
-pref("mail.biff.alert.show_sender",  true);
-pref("mail.biff.alert.preview_length", 40);
 pref("mail.biff.show_new_alert",     true);
 
 pref("mailnews.ui.deleteMarksRead", true);
@@ -669,7 +665,7 @@ pref("browser.throbber.url","chrome://navigator-region/locale/region.properties"
 // pref to control the alert notification 
 pref("alerts.slideIncrement", 1);
 pref("alerts.slideIncrementTime", 10);
-pref("alerts.totalOpenTime", 4000);
+pref("alerts.totalOpenTime", 10000);
 
 // 0 opens the download manager
 // 1 opens a progress dialog

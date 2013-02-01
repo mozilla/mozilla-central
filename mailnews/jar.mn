@@ -126,3 +126,6 @@ messenger.jar:
     content/messenger/dateFormat.js                                            (base/content/dateFormat.js)
     content/messenger/shutdownWindow.xul                                       (base/content/shutdownWindow.xul)
     content/messenger/shutdownWindow.js                                        (base/content/shutdownWindow.js)
+    content/messenger/newmailalert.css                                         (base/content/newmailalert.css)
+    content/messenger/newmailalert.js                                          (base/content/newmailalert.js)
+    content/messenger/newmailalert.xul                                         (base/content/newmailalert.xul)

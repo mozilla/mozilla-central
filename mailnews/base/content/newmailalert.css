@@ -10,14 +10,26 @@
   opacity: 1;
 }
 
-#alertContainer[animate] {
+#alertContainer[fade-in] {
   animation-timing-function: ease-out;
-  animation-duration: 4s;
+  animation-duration: 2s;
   animation-fill-mode: both;
-  animation-name: alert-animation;
+  animation-name: fade-in;
 }
 
-@keyframes alert-animation {
+@keyframes fade-in {
   from {opacity: 0;}
   to {opacity: 1;}
+}
+
+#alertContainer[fade-out] {
+  animation-timing-function: ease-in;
+  animation-duration: 2s;
+  animation-fill-mode: both;
+  animation-name: fade-out;
+}
+
+@keyframes fade-out {
+  from {opacity: 1;}
+  to {opacity: 0;}
 }

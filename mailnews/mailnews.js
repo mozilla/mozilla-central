@@ -608,6 +608,11 @@ pref("mailnews.append_preconfig_accounts.version", 1);
 // pref mail.smtpservers.appendsmtpservers
 pref("mail.append_preconfig_smtpservers.version", 1);
 
+pref("mail.biff.alert.show_preview", true);
+pref("mail.biff.alert.show_subject", true);
+pref("mail.biff.alert.show_sender",  true);
+pref("mail.biff.alert.preview_length", 40);
+
 pref("mail.biff.play_sound", true);
 // 0 == default system sound, 1 == user specified wav
 pref("mail.biff.play_sound.type", 0);

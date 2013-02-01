@@ -11,19 +11,10 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/*
- * See bug 332160. Apply these rules on #alertContainer instead of on
- * #newMailAlertNotification like on windows.
- */
-#alertContainer {
+#newMailAlertNotification {
+  -moz-appearance: none;
   min-height: 60px;
   border: ridge #5486DA 4px;
-  background-color: -moz-Dialog;
-  color: -moz-DialogText;
-}
-
-#newMailAlertNotification {
-  border: none; /* See bug 332160. */
 }
 
 #alertImage {
@@ -31,24 +22,16 @@
 }
 
 #alertImageBox {
-  -moz-margin-start: 4px;
-  -moz-margin-end: 6px;
-  min-height: 46px;
+  padding: 4px;
 }
 
 #alertTitle {
   font-weight: bold;
-  text-align: center;
-  /* this right margin keeps us from overlapping with the
-     close button. It's value should be related to the width
-     of the closeButtonImage
-  */
-  -moz-margin-end: 16px;
 }
 
 #alertTextBox {
-  -moz-padding-end: 10px;
-  padding-top: 5px;
+  padding: 4px;
+  -moz-padding-end: 20px;
 }
 
 .folderSummary-message-row
@@ -82,11 +65,7 @@
   -moz-image-region: rect(0px, 16px, 16px, 0px);
   -moz-appearance: none;
   border: none !important;
-  padding: 2px 0px 0px;
-}
-
-#closeButton > .toolbarbutton-icon {
-  -moz-margin-end: 0px; /* override toolkit's default value */
+  padding: 2px;
 }
 
 #closeButton:hover {
