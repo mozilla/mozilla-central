@@ -32,8 +32,7 @@ var cloudFileAccounts = {
     let branch = Services.prefs.getBranch(ACCOUNT_ROOT);
     let children = branch.getChildList("", {});
     for (let [,child] in Iterator(children)) {
-      let dot = child.indexOf(".");
-      let subbranch = dot == -1 ? child : child.slice(0, dot);
+      let subbranch = child.substr(0, child.indexOf("."));
       accountKeySet[subbranch] = 1;
     }
 

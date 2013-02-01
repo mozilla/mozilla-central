@@ -724,7 +724,7 @@ function parseMultipartForm(request)
     if (bits[0] == "multipart/form-data") {
       for (let i = 1; i < bits.length; i++) {
         let b = bits[i].trimLeft();
-        if (b.indexOf("boundary=") == 0) {
+        if (b.startsWith("boundary=")) {
           // grab everything after boundary=
           boundary = "--" + b.substring(9);
           break;
@@ -787,13 +787,13 @@ function parseMultipartForm(request)
       if (bits[0] == 'form-data') {
         for (let i = 0; i < bits.length; i++) {
           let b = bits[i].trimLeft();
-          if (b.indexOf('name=') == 0) {
+          if (b.startsWith('name=')) {
             //TODO: handle non-ascii here?
             let name = b.substring(6, b.length - 1);
             //TODO: handle multiple-value properties?
             formData[name] = part;
           }
-          if (b.indexOf('filename=') == 0) {
+          if (b.startsWith('filename=')) {
             let filename = b.substring(10, b.length - 1);
             formData['filename'] = filename;
           }

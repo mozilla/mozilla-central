@@ -186,13 +186,13 @@ var nsBoxAuth = {
         let doc = aRequest.responseXML;
         let docResponse = doc.documentElement;
         if (docResponse && docResponse.nodeName == "response") {
-          let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+          let docStatus = doc.querySelector("status").firstChild.nodeValue;
           log.info("status = " + docStatus);
           if (docStatus != "get_ticket_ok") {
             failureCallback(aRequest);
             return;
           }
-          let ticket = doc.getElementsByTagName("ticket")[0].firstChild.nodeValue;
+          let ticket = doc.querySelector("ticket").firstChild.nodeValue;
           log.info("Auth ticket = " + ticket);
           successCallback(ticket);
         }

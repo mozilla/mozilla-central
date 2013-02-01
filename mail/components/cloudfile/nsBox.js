@@ -287,7 +287,7 @@ nsBox.prototype = {
         let doc = aRequest.responseXML;
         let docResponse = doc.documentElement;
         if (docResponse && docResponse.nodeName == "response") {
-         let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+         let docStatus = doc.querySelector("status").firstChild.nodeValue;
          this.log.info("get_account_info status = " + docStatus);
          if (docStatus != "get_account_info_ok") {
            this.failureCallback();
@@ -295,9 +295,9 @@ nsBox.prototype = {
          }
          this._userInfo = aResponseText;
 
-         this._totalStorage = doc.getElementsByTagName("space_amount")[0].firstChild.nodeValue;
-         this._fileSpaceUsed = doc.getElementsByTagName("space_used")[0].firstChild.nodeValue;
-         this._maxFileSize = doc.getElementsByTagName("max_upload_size")[0].firstChild.nodeValue;
+         this._totalStorage = doc.querySelector("space_amount").firstChild.nodeValue;
+         this._fileSpaceUsed = doc.querySelector("space_used").firstChild.nodeValue;
+         this._maxFileSize = doc.querySelector("max_upload_size").firstChild.nodeValue;
          this.log.info("storage total = " + this._totalStorage);
          this.log.info("storage used = " + this._fileSpaceUsed);
          this.log.info("max file size = " + this._maxFileSize);
@@ -423,13 +423,13 @@ nsBox.prototype = {
         let doc = aRequest.responseXML;
         let docResponse = doc.documentElement;
         if (docResponse && docResponse.nodeName == "response") {
-          let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+          let docStatus = doc.querySelector("status").firstChild.nodeValue;
           if (docStatus != "create_ok" && docStatus != "s_folder_exists") {
             this._lastErrorText = "Create folder failure";
             this._lastErrorStatus = docStatus;
             return;
           }
-          let folderId = doc.getElementsByTagName("folder_id")[0].firstChild.nodeValue;
+          let folderId = doc.querySelector("folder_id").firstChild.nodeValue;
           this.log.info("folder id = " + folderId);
           aSuccessCallback(folderId);
         }
@@ -538,7 +538,7 @@ nsBox.prototype = {
         let doc = aRequest.responseXML;
         let docResponse = doc.documentElement;
         if (docResponse && docResponse.nodeName == "response") {
-          let docStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+          let docStatus = doc.querySelector("status").firstChild.nodeValue;
           this.log.info("delete status = " + docStatus);
           if (docStatus != "s_delete_node") {
             aCallback.onStopRequest(null, null, Cr.NS_ERROR_FAILURE);
@@ -638,7 +638,7 @@ nsBox.prototype = {
             delete this.window;
           },
           _checkForRedirect: function(aURL) {
-            if (aURL.indexOf(this._parent.completionURI) != 0)
+            if (!aURL.startsWith(this._parent.completionURI))
               return;
 
             let ticket = this._parent._getUrlParameter(aURL, "ticket");
@@ -761,7 +761,7 @@ nsBoxFileUploader.prototype = {
           let doc = req.responseXML;
           let uploadResponse = doc.documentElement;
           if (uploadResponse && uploadResponse.nodeName == "response") {
-            let uploadStatus = doc.getElementsByTagName("status")[0].firstChild.nodeValue;
+            let uploadStatus = doc.querySelector("status").firstChild.nodeValue;
             this.log.info("upload status = " + uploadStatus);
             if (uploadStatus != "upload_ok") {
               this.callback(this.requestObserver,
@@ -770,7 +770,7 @@ nsBoxFileUploader.prototype = {
               return;
             }
 
-            let file = doc.getElementsByTagName("file")[0];
+            let file = doc.querySelector("file");
             let pn = file.getAttribute("public_name");
             this.log.info("public_name = " + pn);
             this.box._uploadInfo[this.file.path].fileId = file.getAttribute("id");

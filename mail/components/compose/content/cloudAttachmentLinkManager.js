@@ -41,7 +41,7 @@ var gCloudAttachmentLinkManager = {
       return;
 
     let mailDoc = document.getElementById("content-frame").contentDocument;
-    let mailBody = mailDoc.getElementsByTagName("body")[0];
+    let mailBody = mailDoc.querySelector("body");
     let editor = GetCurrentEditor();
     let selection = editor.selection;
 
@@ -154,7 +154,7 @@ var gCloudAttachmentLinkManager = {
   },
 
   _findInsertionPoint: function(aDocument) {
-    let mailBody = aDocument.getElementsByTagName("body")[0];
+    let mailBody = aDocument.querySelector("body");
     let editor = GetCurrentEditor();
     let selection = editor.selection;
 
