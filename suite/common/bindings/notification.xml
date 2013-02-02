@@ -1242,7 +1242,6 @@
             if (!this.clickToPlayPromptShown)
               this.showPluginClickToPlayPrompt();
 
-            let overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
             if (this.isTooSmall(pluginElement, overlay))
               overlay.style.visibility = "hidden";
           ]]>
