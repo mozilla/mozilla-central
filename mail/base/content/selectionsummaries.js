@@ -109,6 +109,12 @@ function _mm_FormatDisplayName(aHeaderParser, aHeaderValue, aContext)
   }
 }
 
+function _mm_escapeHTML(aUnescaped) {
+  return aUnescaped.replace('&', "&amp;", 'g')
+                   .replace('<', "&lt;", 'g')
+                   .replace('>', "&gt;", 'g');
+}
+
 /**
  * the MultiMessageSummary class is responsible for populating the message pane
  * with a reasonable summary of a set of messages that span more than one
@@ -287,23 +293,25 @@ MultiMessageSummary.prototype = {
         countstring += ")";
       }
 
-      let msgContents = <div class="row">
-                          <div class="star"/>
-                          <div class="header">
-                            <div class="wrappedsubject">
-                              <div class="author">{author}</div>
-                              <div class="subject link">{subject}</div>
-                              <div class="count">{countstring}</div>
-                              <div class="tags"></div>
-                            </div>
-                            <div class="snippet"></div>
-                          </div>
-                        </div>;
+      let msgContents = '<div class="row">' +
+                        '  <div class="star"/>' +
+                        '  <div class="header">' +
+                        '    <div class="wrappedsubject">' +
+                        '      <div class="author">' +
+                                  _mm_escapeHTML(author) + '</div>' +
+                        '      <div class="subject link">' +
+                                  _mm_escapeHTML(subject) + '</div>' +
+                        '      <div class="count">' + countstring + '</div>' +
+                        '      <div class="tags"></div>' +
+                        '    </div>' +
+                        '    <div class="snippet"></div>' +
+                        '  </div>' +
+                        '</div>';
 
       let msgNode = htmlpane.contentDocument.createElement("div");
       // innerHTML is safe here because all of the data in msgContents is
       // either generated from integers or escaped to be safe.
-      msgNode.innerHTML = msgContents.toXMLString();
+      msgNode.innerHTML = msgContents;
       _mm_addClass(msgNode, msg_classes);
       messagesElt.appendChild(msgNode);
 
@@ -558,22 +566,23 @@ ThreadSummary.prototype = {
       let senderName = _mm_FormatDisplayName(headerParser, msgHdr.mime2DecodedAuthor, "from");
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
 
-      let msgContents = <div class="row">
-                          <div class="star"/>
-                          <div class="header">
-                            <div class="wrappedsender">
-                              <div class="sender link">{senderName}</div>
-                              <div class="date">{date}</div>
-                              <div class="tags"></div>
-                            </div>
-                            <div class="snippet"></div>
-                          </div>
-                        </div>;
+      let msgContents = '<div class="row">' +
+                        '  <div class="star"/>' +
+                        '  <div class="header">' +
+                        '    <div class="wrappedsender">' +
+                        '      <div class="sender link">' +
+                                 _mm_escapeHTML(senderName) + '</div>' +
+                        '      <div class="date">' + date + '</div>' +
+                        '      <div class="tags"></div>' +
+                        '    </div>' +
+                        '    <div class="snippet"></div>' +
+                        '  </div>' +
+                        '</div>';
 
       let msgNode = htmlpane.contentDocument.createElement("div");
       // innerHTML is safe here because all of the data in msgContents is
       // either generated from integers or escaped to be safe.
-      msgNode.innerHTML = msgContents.toXMLString();
+      msgNode.innerHTML = msgContents;
       _mm_addClass(msgNode, msg_classes);
       messagesElt.appendChild(msgNode);
 
