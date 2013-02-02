@@ -496,30 +496,21 @@
       </method>
 
       <method name="pluginUnavailable">
-        <parameter name="aEvent"/>
+        <parameter name="aPlugin"/>
         <parameter name="aNotification"/>
         <parameter name="aMessage"/>
         <parameter name="aButtons"/>
         <parameter name="aPref"/>
         <body>
           <![CDATA[
-            var plugin = aEvent.target;
-            // Since we are expecting also untrusted events, make sure
-            // that the target is a plugin.
-            if (!(plugin instanceof Components.interfaces.nsIObjectLoadingContent))
-              return;
-
             // Save information on the plugin to give to the plugin finder.
-            var pluginInfo = this.getPluginInfo(plugin);
+            var pluginInfo = this.getPluginInfo(aPlugin);
             this.missingPlugins.set(pluginInfo.mimetype, pluginInfo);
 
-            // Force a style flush, so that we ensure our binding is attached.
-            plugin.clientTop;
-
             // Hide the in-content UI if it's too big. The crashed plugin handler already does this.
-            var doc = plugin.ownerDocument;
-            var overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
-            if (this.isTooSmall(plugin, overlay))
+            var doc = aPlugin.ownerDocument;
+            var overlay = doc.getAnonymousElementByAttribute(aPlugin, "class", "mainBox");
+            if (this.isTooSmall(aPlugin, overlay))
               overlay.style.visibility = "hidden";
 
             if (this._prefs.getBoolPref(aPref || "plugins.hide_infobar_for_missing_plugin"))
@@ -1218,13 +1209,10 @@
         <body>
           <![CDATA[
             if (this.clickToPlayPluginsActivated) {
-              let objLoadingContent = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
-              objLoadingContent.playPlugin();
+              pluginElement.playPlugin();
               return;
             }
 
-            // Force a style flush, so that we ensure our binding is attached.
-            pluginElement.clientTop;
             var doc = pluginElement.ownerDocument;
             var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
 
@@ -1254,12 +1242,6 @@
           <![CDATA[
             var doc = pluginElement.ownerDocument;
             var previewContent = doc.getAnonymousElementByAttribute(pluginElement, "class", "previewPluginContent");
-            if (!previewContent) {
-            // If the XBL binding is not attached (element is display:none),
-            // fallback to click-to-play logic.
-              this.stopPlayPreview(pluginElement, false);
-              return;
-            }
 
             var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
             if (!iframe) {
@@ -1267,9 +1249,6 @@
               iframe = doc.createElementNS("http://www.w3.org/1999/xhtml", "iframe");
               iframe.className = "previewPluginContentFrame";
               previewContent.appendChild(iframe);
-
-              // Force a style flush, so that we ensure our binding is attached.
-              pluginElement.clientTop;
             }
 
             var pluginInfo = this.getPluginInfo(pluginElement);
@@ -1972,30 +1951,23 @@
             case nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE:
               // fall through
             case nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY:
-              this.setupPluginClickToPlay(event.target);
+              this.setupPluginClickToPlay(plugin);
               return;
 
             case nsIObjectLoadingContent.PLUGIN_PLAY_PREVIEW:
-              this.handlePlayPreviewEvent(event.target);
+              this.handlePlayPreviewEvent(plugin);
               return;
 
             default:
               return;
           }
-          this.pluginUnavailable(event, notification, message, buttons, pref);
+          this.pluginUnavailable(plugin, notification, message, buttons, pref);
         ]]>
       </handler>
 
       <handler event="PluginCrashed" phase="capturing">
         <![CDATA[
           var plugin = event.target;
-          // Since we are expecting also untrusted events, make sure
-          // that the target is a plugin
-          if (!(plugin instanceof Components.interfaces.nsIObjectLoadingContent))
-            return;
-
-          if (!(event instanceof Components.interfaces.nsIDOMDataContainerEvent))
-            return;
 
           var submittedReport = event.getData("submittedCrashReport");
           var doPrompt        = true; // XXX followup for .getData("doPrompt");
@@ -2114,6 +2086,10 @@
 
       <handler event="npapi-carbon-event-model-failure" phase="capturing">
         <![CDATA[
+          var plugin = event.target;
+          // Force a style flush, so that we ensure our binding is attached.
+          plugin.clientTop;
+
           function callback() {
             // Notify all windows that an application quit has been requested.
             var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
@@ -2154,7 +2130,7 @@
             callback: callback
           }];
 
-          this.pluginUnavailable(event, notification, message, buttons, pref);
+          this.pluginUnavailable(plugin, notification, message, buttons, pref);
         ]]>
       </handler>
 
