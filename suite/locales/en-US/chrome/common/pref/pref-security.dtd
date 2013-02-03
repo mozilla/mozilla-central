@@ -6,23 +6,27 @@
 <!ENTITY pref.security.title              "Privacy &amp; Security">
 
 <!ENTITY tracking.label                   "User Tracking">
-<!ENTITY doNotTrack.label                 "Tell web sites I do not want to be tracked">
-<!ENTITY doNotTrack.accesskey             "T">
+<!ENTITY trackingIntro.label              "Websites may track how you use them, thus affecting your privacy.">
 
-<!ENTITY privateData.label                "Private Data">
+<!ENTITY dntTellSites.label               "Tell websites about my tracking preference">
+<!ENTITY dntTellSites.accesskey           "T">
+<!ENTITY dntTrackingNotOkay.label         "I do not want to be tracked">
+<!ENTITY dntTrackingNotOkay.accesskey     "n">
+<!ENTITY dntTrackingOkay.label            "I consent to being tracked">
+<!ENTITY dntTrackingOkay.accesskey        "c">
 
-<!ENTITY alwaysClear.label                "Always clear my private data when I close &brandShortName;">
-<!ENTITY alwaysClear.accesskey            "w">
 
-<!ENTITY askBeforeClear.label             "Ask me before clearing private data">
-<!ENTITY askBeforeClear.accesskey         "A">
-
-<!ENTITY clearDataSettings.label          "When I ask &brandShortName; to clear my private data, it should erase:">
-
-<!--LOCALIZATION NOTE (clearDataDialog.label, clearDataSilent.label, clearDataDialog.accesskey):
-  The only difference bettween the two labels is that one calls a dialog, the other doesn't.
-  The same accesskey is used for both labels.
+<!-- LOCALIZATION NOTE (safeBrowsing.label, blockWebForgeries.label, blockAttackSites.label):
+  The methods by which forged (phished) and attack sites will be detected by
+  phishing providers will vary from human review to machine-based heuristics
+  to a combination of both, so it's important that these strings convey the
+  meaning "reported" (and not something like "known").
 -->
-<!ENTITY clearDataDialog.label            "Clear Now…">
-<!ENTITY clearDataSilent.label            "Clear Now">
-<!ENTITY clearDataDialog.accesskey        "N">
+<!ENTITY safeBrowsing.label               "Safe Browsing">
+<!ENTITY safeBrowsingIntro.label          "&brandShortName; can block websites reported to contain malicious content.">
+
+<!ENTITY blockAttackSites.label           "Block reported attack sites (malware, viruses)">
+<!ENTITY blockAttackSites.accesskey       "B">
+
+<!ENTITY blockWebForgeries.label          "Block reported web forgeries (Phishing)">
+<!ENTITY blockWebForgeries.accesskey      "P">

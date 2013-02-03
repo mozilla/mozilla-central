@@ -24,7 +24,7 @@
             autopanes="true"> 
 
   <script type="application/javascript" src="chrome://communicator/content/pref/preferences.js"/>
-  <!-- Used by pref-smartupdate, pref-security, pref-cookies, pref-images, pref-popups and pref-passwords, as well as pref-sync (gSyncUtils.*open* -> openUILinkIn) -->
+  <!-- Used by pref-smartupdate, pref-privatedata, pref-cookies, pref-images, pref-popups and pref-passwords, as well as pref-sync (gSyncUtils.*open* -> openUILinkIn) -->
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/tasksOverlay.js"/>
 
@@ -144,6 +144,11 @@
                 helpTopic="sec_gen"
                 url="chrome://communicator/content/pref/pref-security.xul">
         <treechildren id="securityChildren">
+          <treeitem id="privatedataItem"
+                    label="&privatedata.label;"
+                    prefpane="privatedata_pane"
+                    helpTopic="privatedata_prefs"
+                    url="chrome://communicator/content/pref/pref-privatedata.xul"/>
           <treeitem id="cookiesItem"
                     label="&cookies.label;"
                     prefpane="cookies_pane"

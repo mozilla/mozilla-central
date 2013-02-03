@@ -9,54 +9,27 @@
 %brandDTD;
 <!ENTITY % prefSecurityDTD SYSTEM "chrome://communicator/locale/pref/pref-security.dtd">
 %prefSecurityDTD;
-<!ENTITY % prefSanitizeDTD SYSTEM "chrome://communicator/locale/sanitize.dtd">
-%prefSanitizeDTD;
 ]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="security_pane" label="&pref.security.title;"
-            script="chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-security.js">
+            script="chrome://communicator/content/pref/pref-security.js">
     <preferences id="security_preferences">
       <!-- Do Not Track -->
       <preference id="privacy.donottrackheader.enabled"
                   name="privacy.donottrackheader.enabled"
+                  onchange="SetDntValueEnabled(this.value);"
                   type="bool"/>
+      <preference id="privacy.donottrackheader.value"
+                  name="privacy.donottrackheader.value"
+                  type="int"/>
 
-      <!-- Clear Private Data -->
-      <preference id="privacy.sanitize.sanitizeOnShutdown"
-                  name="privacy.sanitize.sanitizeOnShutdown"
+      <!-- Safe Browsing -->
+      <preference id="browser.safebrowsing.malware.enabled"
+                  name="browser.safebrowsing.malware.enabled"
                   type="bool"/>
-      <preference id="privacy.sanitize.promptOnSanitize"
-                  name="privacy.sanitize.promptOnSanitize"
-                  type="bool"
-                  onchange="updateClearNowButtonLabel();"/>
-
-      <preference id="privacy.item.history"
-                  name="privacy.item.history"
-                  type="bool"/>
-      <preference id="privacy.item.urlbar"
-                  name="privacy.item.urlbar"
-                  type="bool"/>
-      <preference id="privacy.item.formdata"
-                  name="privacy.item.formdata"
-                  type="bool"/>
-      <preference id="privacy.item.passwords"
-                  name="privacy.item.passwords"
-                  type="bool"/>
-      <preference id="privacy.item.downloads"
-                  name="privacy.item.downloads"
-                  type="bool"/>
-      <preference id="privacy.item.cookies"
-                  name="privacy.item.cookies"
-                  type="bool"/>
-      <preference id="privacy.item.cache"
-                  name="privacy.item.cache"
-                  type="bool"/>
-      <preference id="privacy.item.offlineApps"
-                  name="privacy.item.offlineApps"
-                  type="bool"/>
-      <preference id="privacy.item.sessions"
-                  name="privacy.item.sessions"
+      <preference id="browser.safebrowsing.enabled"
+                  name="browser.safebrowsing.enabled"
                   type="bool"/>
     </preferences>
 
@@ -64,69 +37,33 @@
     <groupbox id="doNotTrackGroup">
       <caption label="&tracking.label;"/>
 
-      <hbox id="doNotTrackBox" align="center">
-        <checkbox id="privacyDoNotTrackPrefs"
-                  flex="1"
-                  label="&doNotTrack.label;"
-                  accesskey="&doNotTrack.accesskey;"
-                  preference="privacy.donottrackheader.enabled"/>
-      </hbox>
+      <description>&trackingIntro.label;</description>
+      <checkbox id="dntTellSites"
+                label="&dntTellSites.label;"
+                accesskey="&dntTellSites.accesskey;"
+                preference="privacy.donottrackheader.enabled"/>
+      <radiogroup id="dntSelection" orient="vertical" class="indent"
+                  preference="privacy.donottrackheader.value">
+        <radio id="dntNoTrack" value="1" label="&dntTrackingNotOkay.label;"
+               accesskey="&dntTrackingNotOkay.accesskey;"/>
+        <radio id="dntDoTrack" value="0" label="&dntTrackingOkay.label;"
+               accesskey="&dntTrackingOkay.accesskey;"/>
+      </radiogroup>
     </groupbox>
 
-    <!-- Private Data -->
-    <groupbox id="privateDataGroup">
-      <caption label="&privateData.label;"/>
+    <!-- Safe Browsing -->
+    <groupbox id="safeBrowsingGroup">
+      <caption label="&safeBrowsing.label;"/>
 
-      <hbox id="clearDataBox" align="center">
-        <checkbox id="alwaysClear" flex="1"
-                  preference="privacy.sanitize.sanitizeOnShutdown"
-                  label="&alwaysClear.label;"
-                  accesskey="&alwaysClear.accesskey;"/>
-      </hbox>
-      <hbox id="askClearBox">
-        <checkbox id="askBeforeClear" flex="1"
-                  preference="privacy.sanitize.promptOnSanitize"
-                  label="&askBeforeClear.label;"
-                  accesskey="&askBeforeClear.accesskey;"/>
-        <button id="clearDataNow" icon="clear"
-                labelDialog="&clearDataDialog.label;"
-                labelSilent="&clearDataSilent.label;"
-                accesskey="&clearDataDialog.accesskey;"
-                oncommand="clearPrivateDataNow();"/>
-      </hbox>
-
-      <separator class="thin" />
-      <description>&clearDataSettings.label;</description>
-
-      <vbox class="indent">
-        <checkbox label="&itemHistory.label;"
-                  accesskey="&itemHistory.accesskey;"
-                  preference="privacy.item.history"/>
-        <checkbox label="&itemUrlBar.label;"
-                  accesskey="&itemUrlBar.accesskey;"
-                  preference="privacy.item.urlbar"/>
-        <checkbox label="&itemDownloads.label;"
-                  accesskey="&itemDownloads.accesskey;"
-                  preference="privacy.item.downloads"/>
-        <checkbox label="&itemFormSearchHistory.label;"
-                  accesskey="&itemFormSearchHistory.accesskey;"
-                  preference="privacy.item.formdata"/>
-        <checkbox label="&itemCache.label;"
-                  accesskey="&itemCache.accesskey;"
-                  preference="privacy.item.cache"/>
-        <checkbox label="&itemCookies.label;"
-                  accesskey="&itemCookies.accesskey;"
-                  preference="privacy.item.cookies"/>
-        <checkbox label="&itemOfflineApps.label;"
-                  accesskey="&itemOfflineApps.accesskey;"
-                  preference="privacy.item.offlineApps"/>
-        <checkbox label="&itemPasswords.label;"
-                  accesskey="&itemPasswords.accesskey;"
-                  preference="privacy.item.passwords"/>
-        <checkbox label="&itemSessions.label;"
-                  accesskey="&itemSessions.accesskey;"
-                  preference="privacy.item.sessions"/>
-      </vbox>
+      <description>&safeBrowsingIntro.label;</description>
+      <checkbox id="blockAttackSites"
+                label="&blockAttackSites.label;"
+                accesskey="&blockAttackSites.accesskey;"
+                preference="browser.safebrowsing.malware.enabled"/>
+      <checkbox id="blockWebForgeries"
+                label="&blockWebForgeries.label;"
+                accesskey="&blockWebForgeries.accesskey;"
+                preference="browser.safebrowsing.enabled"/>
     </groupbox>
   </prefpane>
 </overlay>

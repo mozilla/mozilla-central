@@ -182,6 +182,7 @@
   locale/@AB_CD@/communicator/pref/pref-passwords.dtd                       (%chrome/common/pref/pref-passwords.dtd)
   locale/@AB_CD@/communicator/pref/pref-policies.dtd                        (%chrome/common/pref/pref-policies.dtd)
   locale/@AB_CD@/communicator/pref/pref-popups.dtd                          (%chrome/common/pref/pref-popups.dtd)
+  locale/@AB_CD@/communicator/pref/pref-privatedata.dtd                     (%chrome/common/pref/pref-privatedata.dtd)
   locale/@AB_CD@/communicator/pref/pref-proxies.dtd                         (%chrome/common/pref/pref-proxies.dtd)
   locale/@AB_CD@/communicator/pref/pref-proxies-advanced.dtd                (%chrome/common/pref/pref-proxies-advanced.dtd)
   locale/@AB_CD@/communicator/pref/pref-scripts.dtd                         (%chrome/common/pref/pref-scripts.dtd)
