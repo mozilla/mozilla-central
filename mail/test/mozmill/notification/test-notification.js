@@ -18,6 +18,7 @@ var gFolder2 = null;
 // An object to keep track of the boolean preferences we change, so that
 // we can put them back.
 var gOrigBoolPrefs = {};
+var gTotalOpenTime;
 
 // Used by make_gradually_newer_sets_in_folders
 var gMsgMinutes = 9000;
@@ -127,6 +128,7 @@ function setupModule(module) {
 
 function teardownModule(module) {
   put_bool_prefs_back();
+  Services.prefs.setIntPref("alerts.totalOpenTime", gTotalOpenTime);
 }
 
 function setupTest(test) {
@@ -140,6 +142,8 @@ function setupTest(test) {
   remember_and_set_bool_pref("mail.biff.alert.show_subject", true);
   remember_and_set_bool_pref("mail.biff.alert.show_sender", true);
   remember_and_set_bool_pref("mail.biff.alert.show_preview", true);
+  gTotalOpenTime = Services.prefs.getIntPref("alerts.totalOpenTime");
+  Services.prefs.setIntPref("alerts.totalOpenTime", 3000);
 }
 
 function put_bool_prefs_back() {
@@ -152,7 +156,7 @@ function remember_and_set_bool_pref(aPrefString, aBoolValue) {
   if (!gOrigBoolPrefs[aPrefString])
     gOrigBoolPrefs[aPrefString] = Services.prefs.getBoolPref(aPrefString);
 
-  Services.prefs.setBoolPref(aPrefString, true);
+  Services.prefs.setBoolPref(aPrefString, aBoolValue);
 }
 
 /* This function wraps up make_new_sets_in_folder, and takes the
