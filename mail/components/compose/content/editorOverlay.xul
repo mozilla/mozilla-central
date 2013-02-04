@@ -142,8 +142,8 @@
     <command id="cmd_fontFace"        state=""         oncommand="doStatefulCommand('cmd_fontFace', event.target.value)"/>
 
     <!-- No "oncommand", use EditorSelectColor() to bring up color dialog -->
-    <command id="cmd_fontColor"       state=""/>
-    <command id="cmd_backgroundColor" state=""/>
+    <command id="cmd_fontColor"       state=""        disabled="false"/>
+    <command id="cmd_backgroundColor" state=""        disabled="false"/>
     <command id="cmd_highlight"       state="transparent"  oncommand="EditorSelectColor('Highlight', event);"/>
 
     <command id="cmd_fontSize"                         oncommand="goDoCommand('cmd_fontSize')"/>
@@ -928,13 +928,17 @@
     <observes element="cmd_fontColor"       attribute="state" onbroadcast="onFontColorChange()"/>
     <observes element="cmd_backgroundColor" attribute="state" onbroadcast="onBackgroundColorChange()"/>
     <box class="color-button" id="BackgroundColorButton"
-         onclick="if (!gWindowLocked) { EditorSelectColor('', event); }"
+         onclick="if (!this.hasAttribute('disabled')) { EditorSelectColor('', event); }"
          tooltiptext="&BackgroundColorButton.tooltip;"
-         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */"/>
+         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */">
+      <observes element="cmd_backgroundColor" attribute="disabled"/>
+    </box>
     <box class="color-button" id="TextColorButton"
-         onclick="if (!gWindowLocked) { EditorSelectColor('Text', event); }"
+         onclick="if (!this.hasAttribute('disabled')) { EditorSelectColor('Text', event); }"
          tooltiptext="&TextColorButton.tooltip;"
-         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */"/>
+         oncommand="/* See MsgComposeCommands.js::updateAllItems for why this attribute is needed here. */">
+      <observes element="cmd_fontColor" attribute="disabled"/>
+    </box>
   </stack>
 </toolbaritem>
   <toolbarbutton id="HighlightColorButton"

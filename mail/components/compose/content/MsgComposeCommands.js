@@ -847,6 +847,8 @@ function updateComposeItems()
     if (gMsgCompose && gMsgCompose.composeHTML)
     {
       goUpdateCommand("cmd_renderedHTMLEnabler");
+      goUpdateCommand("cmd_fontColor");
+      goUpdateCommand("cmd_backgroundColor");
       goUpdateCommand("cmd_decreaseFont");
       goUpdateCommand("cmd_increaseFont");
       goUpdateCommand("cmd_bold");
