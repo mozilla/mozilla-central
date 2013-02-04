@@ -191,6 +191,7 @@ components/nsIQTScriptablePlugin.xpt
 #endif
 D3DCompiler_42.dll
 d3dx9_42.dll
+d3dx9_43.dll
 #ifdef UNIX_BUT_NOT_MAC
 components/nsFilePicker.js
 #endif
