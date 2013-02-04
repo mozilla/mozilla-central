@@ -130,10 +130,10 @@ var gDisplayPane = {
     let element = document.getElementById("defaultFont");
     let preference = document.getElementById(element.getAttribute("preference"));
     if (preference.value) {
-      var fontItems = element.getElementsByAttribute("value", preference.value);
+      let fontItem = element.querySelector('[value="' + preference.value + '"]');
 
       // There is a setting that actually is in the list. Respect it.
-      if (fontItems.length > 0)
+      if (fontItem)
         return undefined;
     }
 
@@ -148,9 +148,9 @@ var gDisplayPane = {
     let fontNames = listPref.value.split(",");
 
     for (let [, fontName] in Iterator(fontNames)) {
-      let fontItems = element.getElementsByAttribute("value", fontName.trim());
-      if (fontItems.length)
-        return fontItems[0].getAttribute("value");
+      let fontItem = element.querySelector('[value="' + fontName.trim() + '"]');
+      if (fontItem)
+        return fontItem.getAttribute("value");
     }
     return defaultValue;
   },

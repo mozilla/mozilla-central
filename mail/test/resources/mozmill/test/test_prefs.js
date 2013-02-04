@@ -26,7 +26,7 @@ var test_ContentTab = function() {
   // Click on the proper Tab Button
   controller.click(new elementslib.Elem( controller.tabs.Content.button ));
   controller.sleep(1000);
-  
+
   // disable "Block popups"
   controller.click(new elementslib.ID(controller.window.document, 'popupPolicy'));
   // disable "Load Images"
@@ -39,26 +39,26 @@ var test_ContentTab = function() {
   // Set Default Font
   // controller.click(new elementslib.ID(controller.window.document, 'defaultFont'))
   // controller.click(new elementslib.XPATH(controller.window.document, '/prefwindow[@id='BrowserPreferences']/prefpane[@id='paneContent']/xul:vbox'))
-  
+
 }
 
 var test_ApplicationsTab = function() {
   e = new elementslib.Elem( controller.tabs.Applications.button );
-  controller.click(e);  
+  controller.click(e);
   controller.sleep(500);
-  
+
   // // Click on the search box
   // var node = controller.window.document.getAnonymousElementByAttribute(
-  //    controller.window.document.getElementById('paneApplications').getElementsByTagName(
-  //     'hbox')[0].getElementsByTagName('textbox')[0], 
-  //     'class', 
+  //    controller.window.document.getElementById('paneApplications').querySelector(
+  //     'hbox').querySelector('textbox'),
+  //     'class',
   //     'textbox-input-box');
-  //     
+  //
   // e = new elementslib.Elem(node.childNodes[0]);
-  // 
+  //
   // controller.click(new elementslib.Elem(node.childNodes[0]));
   // controller.sleep(1000);
-  
+
 }
 
 var test_PrivacyTab = function() {

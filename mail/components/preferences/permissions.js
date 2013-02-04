@@ -99,8 +99,8 @@ var gPermissionManager = {
     }
 
     if (!exists) {
-      host = (host.charAt(0) == ".") ? host.substring(1,host.length) : host;
-      var uri = Services.io.newURI("http://" + host, null, null);
+      host = host.startsWith(".") ? host.substr(1) : host;
+      let uri = Services.io.newURI("http://" + host, null, null);
       Services.perms.add(uri, this._type, aCapability);
     }
     textbox.value = "";
@@ -306,7 +306,7 @@ var gPermissionManager = {
       var host = aPermission.host;
       var capabilityString = this._getCapabilityString(aPermission.capability);
       var p = new Permission(host,
-                             (host.charAt(0) == ".") ? host.substring(1,host.length) : host,
+                             (host.startsWith(".")) ? host.substring(1, host.length) : host,
                              aPermission.type,
                              capabilityString,
                              aPermission.capability);

@@ -259,10 +259,6 @@ function onLockPreference()
     var initPrefString = "mail.server"; 
     var finalPrefString; 
 
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"];
-    prefService = prefService.getService();
-    prefService = prefService.QueryInterface(Components.interfaces.nsIPrefService);
-
     // This panel does not use the code in AccountManager.js to handle
     // the load/unload/disable.  keep in mind new prefstrings and changes
     // to code in AccountManager, and update these as well.
@@ -285,7 +281,7 @@ function onLockPreference()
     ];
 
     finalPrefString = initPrefString + "." + gIncomingServer.key + ".";
-    gPref = prefService.getBranch(finalPrefString);
+    gPref = Services.prefs.getBranch(finalPrefString);
 
     disableIfLocked( allPrefElements );
 } 

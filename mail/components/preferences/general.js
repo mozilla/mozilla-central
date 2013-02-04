@@ -86,7 +86,7 @@ var gGeneralPane = {
     soundLocation = document.getElementById('soundType').value == 1 ?
                     document.getElementById('soundUrlLocation').value : "_moz_mailbeep"
 
-    if (soundLocation.indexOf("file://") == -1)
+    if (!soundLocation.contains("file://"))
       sound.playSystemSound(soundLocation);
     else
       sound.play(Services.io.newURI(soundLocation, null, null));

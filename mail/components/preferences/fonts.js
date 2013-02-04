@@ -77,31 +77,32 @@ var gFontsDialog = {
     // - there is no setting
     // - the font selected by the user is no longer present (e.g. deleted from
     //   fonts folder)
-    var preference = document.getElementById(aElement.getAttribute("preference"));
+    let preference = document.getElementById(aElement.getAttribute("preference"));
+    let fontItem;
     if (preference.value) {
-      var fontItems = aElement.getElementsByAttribute("value", preference.value);
+      fontItem = aElement.querySelector('[value="' + preference.value + '"]');
 
       // There is a setting that actually is in the list. Respect it.
-      if (fontItems.length > 0)
+      if (fontItem)
         return undefined;
     }
 
-    var defaultValue = aElement.firstChild.firstChild.getAttribute("value");
-    var languagePref = document.getElementById("font.language.group");
+    let defaultValue = aElement.firstChild.firstChild.getAttribute("value");
+    let languagePref = document.getElementById("font.language.group");
     preference = document.getElementById("font.name-list." + aElement.id + "." + languagePref.value);
     if (!preference)
       return defaultValue;
 
-    var fontNames = preference.value.split(",");
+    let fontNames = preference.value.split(",");
 
-    for (var i = 0; i < fontNames.length; ++i) {
-      var fontName = fontNames[i].trim();
-      fontItems = aElement.getElementsByAttribute("value", fontName);
-      if (fontItems.length)
+    for (let i = 0; i < fontNames.length; ++i) {
+      let fontName = fontNames[i].trim();
+      fontItem = aElement.querySelector('[value="' + fontName + '"]');
+      if (fontItem)
         break;
     }
-    if (fontItems.length)
-      return fontItems[0].getAttribute("value");
+    if (fontItem)
+      return fontItem.getAttribute("value");
     return defaultValue;
   },
 

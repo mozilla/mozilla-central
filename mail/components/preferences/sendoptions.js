@@ -91,10 +91,10 @@ var gSendOptionsDialog = {
 
   domainAlreadyPresent: function(aDomainName)
   {
-    var matchingDomains = this.mHTMLListBox.getElementsByAttribute('label', aDomainName);
+    let matchingDomains = this.mHTMLListBox.querySelectorAll('[label="' + aDomainName + '"]');
 
     if (!matchingDomains.length)
-      matchingDomains = this.mPlainTextListBox.getElementsByAttribute('label', aDomainName);
+      matchingDomains = this.mPlainTextListBox.querySelectorAll('[label="' + aDomainName + '"]');
 
     if (matchingDomains.length)
     {

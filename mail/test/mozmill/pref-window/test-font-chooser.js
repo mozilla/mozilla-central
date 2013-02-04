@@ -16,11 +16,12 @@ var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
                        "pref-window-helpers"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // We can't initialize them h because the global scope is read far too
 // early.
 var Cc, Ci;
 
-var gPrefBranch;
 var gFontEnumerator;
 
 // We'll test with Western. Unicode has issues on Windows (bug 550443).
@@ -42,8 +43,6 @@ function setupModule(module) {
 
   Cc = Components.classes;
   Ci = Components.interfaces;
-  gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
-                  .getService(Ci.nsIPrefBranch);
 
   gFontEnumerator = Cc["@mozilla.org/gfx/fontenumerator;1"]
                       .createInstance(Ci.nsIFontEnumerator);
@@ -71,7 +70,7 @@ function assert_fonts_equal(aDescription, aExpected, aActual) {
  */
 function _verify_fonts_displayed(aSerif, aSansSerif, aMonospace) {
   function verify_display_pane(prefc) {
-    let isSansDefault = (gPrefBranch.getCharPref("font.default." + kLanguage) ==
+    let isSansDefault = (Services.prefs.getCharPref("font.default." + kLanguage) ==
                          "sans-serif");
     let displayPaneExpected = isSansDefault ? aSansSerif : aSerif;
     let displayPaneActual = prefc.e("defaultFont").value;
@@ -104,7 +103,7 @@ function _verify_fonts_displayed(aSerif, aSansSerif, aMonospace) {
  * present on the cocomputer).
  */
 function test_font_name_displayed() {
-  gPrefBranch.setCharPref("font.language.group", kLanguage);
+  Services.prefs.setCharPref("font.language.group", kLanguage);
 
   // Pick the first font for each font type and set it.
   let expected = {};
@@ -113,8 +112,8 @@ function test_font_name_displayed() {
     // substituted with Courier New) by getting the standard (substituted) family
     // name for each font.
     let standardFamily = gFontEnumerator.getStandardFamilyName(fontList[0]);
-    gPrefBranch.setCharPref("font.name." + fontType + "." + kLanguage,
-                            standardFamily);
+    Services.prefs.setCharPref("font.name." + fontType + "." + kLanguage,
+                               standardFamily);
     expected[fontType] = standardFamily;
   }
 
@@ -136,7 +135,7 @@ const kFakeFonts = {
  * font.name-list.<type>.<language>.
  */
 function test_font_name_not_present() {
-  gPrefBranch.setCharPref("font.language.group", kLanguage);
+  Services.prefs.setCharPref("font.language.group", kLanguage);
 
   // The fonts we're expecting to see selected in the font chooser for
   // test_font_name_not_present.
@@ -145,7 +144,7 @@ function test_font_name_not_present() {
     // Look at the font.name-list. We need to verify that the first font is the
     // fake one, and that the second one is present on the user's computer.
     let listPref = "font.name-list." + fontType + "." + kLanguage;
-    let fontList = gPrefBranch.getCharPref(listPref);
+    let fontList = Services.prefs.getCharPref(listPref);
     let fonts = [s.trim() for ([, s] in Iterator(fontList.split(",")))];
     if (fonts.length != 2)
       throw new Error(listPref + " should have exactly two fonts, but it is " +
@@ -162,7 +161,7 @@ function test_font_name_not_present() {
 
     // Set font.name to be the fake font. font.name-list is handled by
     // wrapper.py.
-    gPrefBranch.setCharPref("font.name." + fontType + "." + kLanguage, fakeFont);
+    Services.prefs.setCharPref("font.name." + fontType + "." + kLanguage, fakeFont);
   }
 
   _verify_fonts_displayed.apply(null, [expected[k]

@@ -152,10 +152,8 @@ var gConnectionsDialog = {
   {
     var autoURL = document.getElementById("networkProxyAutoconfigURL");
     var autoURLPref = document.getElementById("network.proxy.autoconfig_url");
-    var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                             .getService(Components.interfaces.nsIURIFixup);
     try {
-      autoURLPref.value = autoURL.value = URIFixup.createFixupURI(autoURL.value, 0).spec;
+      autoURLPref.value = autoURL.value = Services.uriFixup.createFixupURI(autoURL.value, 0).spec;
     } catch(ex) {}
   },
 

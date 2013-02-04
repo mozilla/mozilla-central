@@ -446,8 +446,8 @@ var gCookiesWindow = {
 
   _makeStrippedHost: function (aHost)
   {
-    var formattedHost = aHost.charAt(0) == "." ? aHost.substring(1, aHost.length) : aHost;
-    return formattedHost.substring(0, 4) == "www." ? formattedHost.substring(4, formattedHost.length) : formattedHost;
+    let formattedHost = aHost.startsWith(".") ? aHost.substring(1, aHost.length) : aHost;
+    return formattedHost.startsWith("www.") ? formattedHost.substring(4, formattedHost.length) : formattedHost;
   },
 
   _addCookie: function (aStrippedHost, aCookie, aHostCount)
@@ -468,9 +468,9 @@ var gCookiesWindow = {
 
   _makeCookieObject: function (aStrippedHost, aCookie)
   {
-    var host = aCookie.host;
-    var formattedHost = host.charAt(0) == "." ? host.substring(1, host.length) : host;
-    var c = { name        : aCookie.name,
+    let host = aCookie.host;
+    let formattedHost = host.startsWith(".") ? host.substring(1) : host;
+    let c = { name        : aCookie.name,
               value       : aCookie.value,
               isDomain    : aCookie.isDomain,
               host        : aCookie.host,
@@ -813,9 +813,9 @@ var gCookiesWindow = {
 
   _cookieMatchesFilter: function (aCookie)
   {
-    return aCookie.rawHost.indexOf(this._view._filterValue) != -1 ||
-           aCookie.name.indexOf(this._view._filterValue) != -1 ||
-           aCookie.value.indexOf(this._view._filterValue) != -1;
+    return aCookie.rawHost.contains(this._view._filterValue) ||
+           aCookie.name.contains(this._view._filterValue) ||
+           aCookie.value.contains(this._view._filterValue);
   },
 
   _filterCookies: function (aFilterValue)

@@ -154,9 +154,9 @@ var gSmtpServerListWindow =
                          MailServices.smtp.defaultServer);
 
     if (aServerKeyToSelect)
-      this.setSelectedServer(this.mServerList.getElementsByAttribute("key", aServerKeyToSelect)[0]);
+      this.setSelectedServer(this.mServerList.querySelector('[key="' + aServerKeyToSelect + '"]'));
     else // select the default server
-      this.setSelectedServer(this.mServerList.getElementsByAttribute("default", "true")[0]);
+      this.setSelectedServer(this.mServerList.querySelector('[default="true"]'));
 
     if (aFocusList)
       this.mServerList.focus();

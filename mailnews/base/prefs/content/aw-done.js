@@ -167,8 +167,7 @@ function hideShowDownloadMsgsUI(isPop)
   // from the 3 pane
   var downloadMsgs = document.getElementById("downloadMsgs");
   if (isPop) {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    if (!ioService.offline) {
+    if (!Services.io.offline) {
       if (window.opener.location.href == "chrome://messenger/content/messenger.xul") {
         downloadMsgs.hidden = false;
         return;

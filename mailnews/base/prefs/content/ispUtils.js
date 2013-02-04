@@ -39,7 +39,7 @@ function getIspDefaultsForUri(domainURI)
     // aol.com is the domain name to use for all email addresses). If
     // it does not match this pattern, then it is possible no domain
     // has been specified, so we should leave it uninitialized.
-    if (/^domain:/.test(domainURI)) {
+    if (domainURI.startsWith("domain:")) {
         // add this extra attribute which is the domain itself
         var domainData = domainURI.split(':');
         if (domainData.length > 1) {

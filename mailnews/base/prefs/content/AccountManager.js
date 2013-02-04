@@ -73,15 +73,15 @@ function updateElementWithKeys(account, element, type) {
 }
 
 function hideShowControls(serverType) {
-  var controls = document.getElementsByAttribute("hidefor", "*");
-  for (var controlNo = 0; controlNo < controls.length; controlNo++) {
-    var control = controls[controlNo];
-    var hideFor = control.getAttribute("hidefor");
+  let controls = document.querySelectorAll("[hidefor]");
+  for (let controlNo = 0; controlNo < controls.length; controlNo++) {
+    let control = controls[controlNo];
+    let hideFor = control.getAttribute("hidefor");
 
     // Hide unsupported server types using hideFor="servertype1,servertype2".
-    var hide = false;
-    var hideForTokens = hideFor.split(",");
-    for (var tokenNo = 0; tokenNo < hideForTokens.length; tokenNo++) {
+    let hide = false;
+    let hideForTokens = hideFor.split(",");
+    for (let tokenNo = 0; tokenNo < hideForTokens.length; tokenNo++) {
       if (hideForTokens[tokenNo] == serverType) {
         hide = true;
         break;
@@ -149,8 +149,7 @@ function selectServer(server, selectPageId)
     let pageId = accountNode.getAttribute("PageTag");
     if (pageId != selectPageId) {
       // ... or one of its children.
-      let pages = accountNode.getElementsByAttribute("PageTag", selectPageId);
-      pageToSelect = pages[0];
+      pageToSelect = accountNode.querySelector('[PageTag="' + selectPageId + '"]');
     }
   }
 

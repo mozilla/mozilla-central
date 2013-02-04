@@ -277,11 +277,11 @@ function buildServerFilterListFromDir(aDir, aISPHeaderList)
   {
     let entry = entries.nextFile;
     // we only care about files that end in .sfd
-    if (entry.isFile() && /\.sfd$/.test(entry.leafName))
+    if (entry.isFile() && entry.leafName.endsWith(".sfd"))
     {
       let fileName = RegExp.leftContext;
       // if we've already added an item with this name, then don't add it again.
-      if (!aISPHeaderList.getElementsByAttribute("value", fileName).item(0))
+      if (!aISPHeaderList.querySelector('[value="'+ fileName + '"]'))
         aISPHeaderList.appendItem(fileName, fileName);
     }
   }

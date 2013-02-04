@@ -1128,8 +1128,8 @@ var gApplicationsPane = {
 
   _matchesFilter: function(aType) {
     var filterValue = this._filter.value.toLowerCase();
-    return this._describeType(aType).toLowerCase().indexOf(filterValue) != -1 ||
-           this._describePreferredAction(aType).toLowerCase().indexOf(filterValue) != -1;
+    return this._describeType(aType).toLowerCase().contains(filterValue) ||
+           this._describePreferredAction(aType).toLowerCase().contains(filterValue);
   },
 
   /**
@@ -1257,7 +1257,7 @@ var gApplicationsPane = {
     if (!lastSelectedType)
       return;
 
-    var item = this._list.getElementsByAttribute("type", lastSelectedType)[0];
+    let item = this._list.querySelector('[type="' + lastSelectedType + '"]');
     if (!item)
       return;
 

@@ -122,7 +122,7 @@ function get_account_tree_row(aAccountKey, aPaneId, aController) {
       let accountHead = accountTreeNode.childNodes[i];
       if (aAccountKey == accountHead._account.key) {
         // If this is the wanted account, find the wanted settings pane.
-        let accountBlock = accountHead.getElementsByAttribute("PageTag", "*");
+        let accountBlock = accountHead.querySelectorAll("[PageTag]");
         // A null aPaneId means the main pane.
         if (!aPaneId)
           return rowIndex;
@@ -138,7 +138,7 @@ function get_account_tree_row(aAccountKey, aPaneId, aController) {
         return -1;
       }
       // If this is not the wanted account, skip all of its settings panes.
-      rowIndex += accountHead.getElementsByAttribute("PageTag", "*").length;
+      rowIndex += accountHead.querySelectorAll("[PageTag]").length;
     } else {
       // A row without _account should be the SMTP server.
       if (aAccountKey == null)
