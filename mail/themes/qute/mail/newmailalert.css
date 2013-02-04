@@ -14,6 +14,8 @@
 #newMailAlertNotification {
   min-height: 60px;
   border: ridge #5486DA 4px;
+  background-color: -moz-Dialog;
+  color: -moz-DialogText;
 }
 
 #alertImage {
@@ -21,16 +23,24 @@
 }
 
 #alertImageBox {
-  padding: 4px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 6px;
+  min-height: 46px;
 }
 
 #alertTitle {
   font-weight: bold;
+  text-align: center;
+  /* this right margin keeps us from overlapping with the
+     close button. It's value should be related to the width
+     of the closeButtonImage
+  */
+  -moz-margin-end: 16px;
 }
 
 #alertTextBox {
-  padding: 4px;
-  -moz-padding-end: 20px;
+  -moz-padding-end: 10px;
+  padding-top: 5px;
 }
 
 .folderSummary-message-row
@@ -64,7 +74,11 @@
   -moz-image-region: rect(0px, 16px, 16px, 0px);
   -moz-appearance: none;
   border: none !important;
-  padding: 2px;
+  padding: 2px 0px 0px;
+}
+
+#closeButton > .toolbarbutton-icon {
+  -moz-margin-end: 0px; /* override toolkit's default value */
 }
 
 #closeButton:hover {

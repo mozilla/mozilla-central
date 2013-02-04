@@ -214,6 +214,11 @@ pref("general.autoScroll", true);
 pref("mail.shell.checkDefaultClient", true);
 pref("mail.spellcheck.inline", true);
 
+pref("mail.biff.alert.show_preview", true);
+pref("mail.biff.alert.show_subject", true);
+pref("mail.biff.alert.show_sender",  true);
+pref("mail.biff.alert.preview_length", 40);
+
 pref("mail.folder.views.version", 0);
 
 // target folder URI used for the last move or copy
@@ -395,7 +400,7 @@ pref("profile.force.migration", "");
 
 // prefs to control the mail alert notification
 pref("alerts.slideIncrementTime", 50);
-pref("alerts.totalOpenTime", 10000);
+pref("alerts.totalOpenTime", 3000);
 
 // analyze urls in mail messages for scams
 pref("mail.phishing.detection.enabled", true);
