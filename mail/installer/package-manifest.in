@@ -76,8 +76,9 @@
 #endif
 #endif
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@soundtouch@DLL_SUFFIX@
+#ifdef MOZ_SHARED_MOZGLUE
 @BINPATH@/@DLL_PREFIX@mozglue@DLL_SUFFIX@
+#endif
 #ifdef XP_MACOSX
 @BINPATH@/XUL
 #else
@@ -144,7 +145,9 @@
 
 @BINPATH@/isp/*
 
+#ifndef XP_WIN
 @BINPATH@/components/components.manifest
+#endif
 @BINPATH@/components/aboutRedirector.js
 @BINPATH@/components/activity.xpt
 @BINPATH@/components/activityComponents.manifest
@@ -155,7 +158,6 @@
 ; interfaces.manifest doesn't get packaged because it is dynamically
 ; re-created at packaging time when linking the xpts that will actually
 ; go into the package, so the test related interfaces aren't included.
-@BINPATH@/components/jetpack.xpt
 @BINPATH@/components/mime.xpt
 @BINPATH@/components/mimeJSComponents.js
 @BINPATH@/components/msgMime.manifest
@@ -181,7 +183,6 @@
 @BINPATH@/components/nsYouSendIt.js
 @BINPATH@/components/nsUbuntuOne.js
 @BINPATH@/components/nsBox.js
-@BINPATH@/components/cloudFileAccounts.js
 @BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 @BINPATH@/components/services-crypto-component.xpt
@@ -535,7 +536,7 @@
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
-@BINPATH@/componnets/dom_power.xpt
+@BINPATH@/components/dom_power.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
 @BINPATH@/components/dom_sms.xpt
@@ -643,7 +644,6 @@
 @BINPATH@/components/jsinspector.xpt
 @BINPATH@/components/fastfind.xpt
 @BINPATH@/components/find.xpt
-@BINPATH@/components/chardet.xpt
 @BINPATH@/components/ConsoleAPI.js
 @BINPATH@/components/ConsoleAPI.manifest
 @BINPATH@/components/ContactManager.js

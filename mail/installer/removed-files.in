@@ -44,6 +44,7 @@ components/airbag.xpt
   components/libalerts_s.dylib
 #endif
 components/bookmarks.xpt
+components/chardet.xpt
 components/downloadmanager.xpt
 components/compreg.dat
 components/components.list
@@ -899,7 +900,6 @@ components/xmlextras.xpt
   components/appshell.xpt
   components/autocomplete.xpt
   components/caps.xpt
-  components/chardet.xpt
   components/chrome.xpt
   components/commandhandler.xpt
   components/composer.xpt
@@ -1029,7 +1029,6 @@ components/xmlextras.xpt
   components/autocomplete.xpt
   components/autoconfig.xpt
   components/caps.xpt
-  components/chardet.xpt
   components/chrome.xpt
   components/commandhandler.xpt
   components/commandlines.xpt
