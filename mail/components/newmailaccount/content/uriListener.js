@@ -178,7 +178,10 @@ TracingListener.prototype = {
       let data = this.chunks.join("");
 
       // Attempt to derive email account information
-      let accountConfig = accountCreationFuncs.readFromXML(JXON.build(data));
+      let domParser = Cc["@mozilla.org/xmlextras/domparser;1"]
+                       .createInstance(Ci.nsIDOMParser);
+      let accountConfig = accountCreationFuncs.readFromXML(JXON.build(
+        domParser.parseFromString(data, "text/xml")));
       accountCreationFuncs.replaceVariables(accountConfig,
                                             this.params.realName,
                                             this.params.email);

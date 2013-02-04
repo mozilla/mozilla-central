@@ -6,8 +6,6 @@
 // <https://developer.mozilla.org/en-US/docs/JXON>
 
 var EXPORTED_SYMBOLS = ["JXON"];
-let Cc = Components.classes;
-let Ci = Components.interfaces;
 
 const JXON = new (function() {
   const sValueProp = "value"; /* you can customize these values */
