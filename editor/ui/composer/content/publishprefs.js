@@ -3,7 +3,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 /****************** Get publishing data methods *******************/
 
 // Build an array of all publish site data obtained from prefs
@@ -542,8 +541,7 @@ function SetDefaultSiteName(name)
 function SavePrefFile()
 {
   try {
-    if (gPrefsService)
-      gPrefsService.savePrefFile(null);
+    Services.prefs.savePrefFile(null);
   }
   catch (e) {}
 }
@@ -552,11 +550,7 @@ function SavePrefFile()
 
 function GetPublishPrefsBranch()
 {
-  var prefsService = GetPrefsService();
-  if (!prefsService)
-    return null;
-
-  return prefsService.getBranch("editor.publish.");
+  return Services.prefs.getBranch("editor.publish.");
 }
 
 function GetSiteNameList(doSort, defaultFirst)

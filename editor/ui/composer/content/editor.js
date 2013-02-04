@@ -47,7 +47,6 @@ var gDefaultBackgroundColor = "";
 var gCSSPrefListener;
 var gEditorToolbarPrefListener;
 var gReturnInParagraphPrefListener;
-var gPrefs;
 var gLocalFonts = null;
 
 var gLastFocusNode = null;
@@ -85,14 +84,14 @@ function ShowHideToolbarSeparators(toolbar) {
 
 function ShowHideToolbarButtons()
 {
-  var array = gPrefs.getChildList(kEditorToolbarPrefs);
-  for (var i in array) {
-    var prefName = array[i];
-    var id = prefName.substr(kEditorToolbarPrefs.length);
-    var button = document.getElementById(id + "Button") ||
+  let array = Services.prefs.getChildList(kEditorToolbarPrefs);
+  for (let i in array) {
+    let prefName = array[i];
+    let id = prefName.substr(kEditorToolbarPrefs.length);
+    let button = document.getElementById(id + "Button") ||
                  document.getElementById(id + "-button");
     if (button)
-      button.hidden = !gPrefs.getBoolPref(prefName);
+      button.hidden = !Services.prefs.getBoolPref(prefName);
   }
   ShowHideToolbarSeparators(document.getElementById("EditToolbar"));
   ShowHideToolbarSeparators(document.getElementById("FormatToolbar"));
@@ -129,18 +128,19 @@ nsPrefListener.prototype =
     if (!IsHTMLEditor())
       return;
     // verify that we're changing a button pref
-    if (topic != "nsPref:changed") return;
+    if (topic != "nsPref:changed")
+      return;
     
-    var editor = GetCurrentEditor();
+    let editor = GetCurrentEditor();
     if (prefName == kUseCssPref)
     {
-      var cmd = document.getElementById("cmd_highlight");
+      let cmd = document.getElementById("cmd_highlight");
       if (cmd) {
-        var useCSS = gPrefs.getBoolPref(prefName);
+        let useCSS = Services.prefs.getBoolPref(prefName);
 
         if (useCSS && editor) {
-          var mixedObj = {};
-          var state = editor.getHighlightColorState(mixedObj);
+          let mixedObj = {};
+          let state = editor.getHighlightColorState(mixedObj);
           cmd.setAttribute("state", state);
           cmd.collapsed = false;
         }      
@@ -155,15 +155,15 @@ nsPrefListener.prototype =
     }
     else if (prefName.substr(0, kEditorToolbarPrefs.length) == kEditorToolbarPrefs)
     {
-      var id = prefName.substr(kEditorToolbarPrefs.length) + "Button";
-      var button = document.getElementById(id);
+      let id = prefName.substr(kEditorToolbarPrefs.length) + "Button";
+      let button = document.getElementById(id);
       if (button) {
-        button.hidden = !gPrefs.getBoolPref(prefName);
+        button.hidden = !Services.prefs.getBoolPref(prefName);
         ShowHideToolbarSeparators(button.parentNode);
       }
     }
     else if (editor && (prefName == kCRInParagraphsPref))
-      editor.returnInParagraphCreatesNewParagraph = gPrefs.getBoolPref(prefName);
+      editor.returnInParagraphCreatesNewParagraph = Services.prefs.getBoolPref(prefName);
   }
 }
 
@@ -289,7 +289,7 @@ var gEditorDocumentObserver =
           InlineSpellCheckerUI.init(editor);
           document.getElementById('menu_inlineSpellCheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);
 
-          editor.returnInParagraphCreatesNewParagraph = gPrefs.getBoolPref(kCRInParagraphsPref);
+          editor.returnInParagraphCreatesNewParagraph = Services.prefs.getBoolPref(kCRInParagraphsPref);
 
           // Set focus to content window if not a mail composer
           // Race conditions prevent us from setting focus here
@@ -475,8 +475,6 @@ function EditorSharedStartup()
 
   // hide UI that we don't have components for
   RemoveInapplicableUIElements();
-
-  gPrefs = GetPrefs();
 
   // Use browser colors as initial values for editor's default colors
   var BrowserColors = GetDefaultBrowserColors();
@@ -1153,10 +1151,10 @@ function GetBackgroundElementWithColor()
   }
   else
   {
-    var IsCSSPrefChecked = gPrefs.getBoolPref(kUseCssPref);
+    let IsCSSPrefChecked = Services.prefs.getBoolPref(kUseCssPref);
     if (IsCSSPrefChecked && IsHTMLEditor())
     {
-      var selection = editor.selection;
+      let selection = editor.selection;
       if (selection)
       {
         element = selection.focusNode;
@@ -1577,7 +1575,7 @@ function SetEditMode(mode)
       ? kOutputEncodeLatin1Entities
       : kOutputEncodeBasicEntities;
     try { 
-      var encodeEntity = gPrefs.getCharPref("editor.encode_entity");
+      let encodeEntity = Services.prefs.getCharPref("editor.encode_entity");
       switch (encodeEntity) {
         case "basic"  : flags = kOutputEncodeBasicEntities; break;
         case "latin1" : flags = kOutputEncodeLatin1Entities; break;
@@ -1586,12 +1584,8 @@ function SetEditMode(mode)
       }
     } catch (e) { }
 
-    try { 
-      var prettyPrint = gPrefs.getBoolPref("editor.prettyprint");
-      if (prettyPrint)
-        flags |= kOutputFormatted;
-
-    } catch (e) {}
+    if (Services.prefs.getBoolPref("editor.prettyprint"))
+      flags |= kOutputFormatted;
 
     flags |= kOutputLFLineBreak;
     var source = editor.outputToString(editor.contentsMIMEType, flags);
@@ -1843,14 +1837,8 @@ function UpdateWindowTitle()
 
 function SaveRecentFilesPrefs(aTitle, aFileType)
 {
-  // Can't do anything if no prefs
-  if (!gPrefs) return;
-
   var curUrl = StripPassword(GetDocumentUrl());
-  var historyCount = 10;
-  try {
-    historyCount = gPrefs.getIntPref("editor.history.url_maximum"); 
-  } catch(e) {}
+  var historyCount = Services.prefs.getIntPref("editor.history.url_maximum");
 
   var titleArray = [];
   var urlArray = [];
@@ -1863,9 +1851,9 @@ function SaveRecentFilesPrefs(aTitle, aFileType)
     typeArray.push(aFileType);
   }
 
-  for (var i = 0; i < historyCount && urlArray.length < historyCount; i++)
+  for (let i = 0; i < historyCount && urlArray.length < historyCount; i++)
   {
-    var url = GetUnicharPref("editor.history_url_"+i);
+    let url = GetStringPref("editor.history_url_" + i);
 
     // Continue if URL pref is missing because 
     //  a URL not found during loading may have been removed
@@ -1873,8 +1861,8 @@ function SaveRecentFilesPrefs(aTitle, aFileType)
     // Skip over current an "data" URLs
     if (url && url != curUrl && GetScheme(url) != "data")
     {
-      var title = GetUnicharPref("editor.history_title_"+i);
-      var fileType = GetUnicharPref("editor.history_type_" + i);
+      let title = GetStringPref("editor.history_title_" + i);
+      let fileType = GetStringPref("editor.history_type_" + i);
       titleArray.push(title);
       urlArray.push(url);
       typeArray.push(fileType);
@@ -1882,11 +1870,11 @@ function SaveRecentFilesPrefs(aTitle, aFileType)
   }
 
   // Resave the list back to prefs in the new order
-  for (i = 0; i < urlArray.length; i++)
+  for (let i = 0; i < urlArray.length; i++)
   {
-    SetUnicharPref("editor.history_title_"+i, titleArray[i]);
-    SetUnicharPref("editor.history_url_"+i, urlArray[i]);
-    SetUnicharPref("editor.history_type_" + i, typeArray[i]);
+    SetStringPref("editor.history_title_" + i, titleArray[i]);
+    SetStringPref("editor.history_url_" + i, urlArray[i]);
+    SetStringPref("editor.history_type_" + i, typeArray[i]);
   }
 }
 
@@ -2185,8 +2173,8 @@ function EditorSetDefaultPrefsAndDoctype()
     var prefCharsetString = 0;
     try
     {
-      prefCharsetString = gPrefs.getComplexValue("intl.charset.default",
-                                                 Components.interfaces.nsIPrefLocalizedString).data;
+      prefCharsetString = Services.prefs.getComplexValue("intl.charset.default",
+                                                         Components.interfaces.nsIPrefLocalizedString).data;
     }
     catch (ex) {}
     if ( prefCharsetString && prefCharsetString != 0)
@@ -2213,8 +2201,8 @@ function EditorSetDefaultPrefsAndDoctype()
     var prefAuthorString = 0;
     try
     {
-      prefAuthorString = gPrefs.getComplexValue("editor.author",
-                                                Components.interfaces.nsISupportsString).data;
+      prefAuthorString = Services.prefs.getComplexValue("editor.author",
+                                                        Components.interfaces.nsISupportsString).data;
     }
     catch (ex) {}
     if ( prefAuthorString && prefAuthorString != 0)
@@ -2242,57 +2230,28 @@ function EditorSetDefaultPrefsAndDoctype()
        headelement.appendChild(titleElement);
   }
 
-  // Get editor color prefs
-  var use_custom_colors = false;
-  try {
-    use_custom_colors = gPrefs.getBoolPref("editor.use_custom_colors");
-  }
-  catch (ex) {}
-
   // find body node
   var bodyelement = GetBodyElement();
   if (bodyelement)
   {
-    if ( use_custom_colors )
+    if (Services.prefs.getBoolPref("editor.use_custom_colors"))
     {
-      // try to get the default color values.  ignore them if we don't have them.
-      var text_color;
-      var link_color;
-      var active_link_color;
-      var followed_link_color;
-      var background_color;
-
-      try { text_color = gPrefs.getCharPref("editor.text_color"); } catch (e) {}
-      try { link_color = gPrefs.getCharPref("editor.link_color"); } catch (e) {}
-      try { active_link_color = gPrefs.getCharPref("editor.active_link_color"); } catch (e) {}
-      try { followed_link_color = gPrefs.getCharPref("editor.followed_link_color"); } catch (e) {}
-      try { background_color = gPrefs.getCharPref("editor.background_color"); } catch(e) {}
+      let text_color = Services.prefs.getCharPref("editor.text_color");
+      let background_color = Services.prefs.getCharPref("editor.background_color");
 
       // add the color attributes to the body tag.
       // and use them for the default text and background colors if not empty
-      try {
-        if (text_color)
-        {
-          editor.setAttributeOrEquivalent(bodyelement, "text", text_color, true);
-          gDefaultTextColor = text_color;
-        }
-        if (background_color)
-        {
-          editor.setAttributeOrEquivalent(bodyelement, "bgcolor", background_color, true);
-          gDefaultBackgroundColor = background_color
-        }
-
-        if (link_color)
-          bodyelement.setAttribute("link", link_color);
-        if (active_link_color)
-          bodyelement.setAttribute("alink", active_link_color);
-        if (followed_link_color)
-          bodyelement.setAttribute("vlink", followed_link_color);
-      } catch (e) {}
+      editor.setAttributeOrEquivalent(bodyelement, "text", text_color, true);
+      gDefaultTextColor = text_color;
+      editor.setAttributeOrEquivalent(bodyelement, "bgcolor", background_color, true);
+      gDefaultBackgroundColor = background_color
+      bodyelement.setAttribute("link", Services.prefs.getCharPref("editor.link_color"));
+      bodyelement.setAttribute("alink", Services.prefs.getCharPref("editor.active_link_color"));
+      bodyelement.setAttribute("vlink", Services.prefs.getCharPref("editor.followed_link_color"));
     }
     // Default image is independent of Custom colors???
     try {
-      var background_image = gPrefs.getCharPref("editor.default_background_image");
+      let background_image = Services.prefs.getCharPref("editor.default_background_image");
       if (background_image)
         editor.setAttributeOrEquivalent(bodyelement, "background", background_image, true);
     } catch (e) {dump("BACKGROUND EXCEPTION: "+e+"\n"); }

@@ -108,9 +108,7 @@ function InitDialog()
   if (!gAuthor)
   {
     // Fill in with value from editor prefs
-    var prefs = GetPrefs();
-    if (prefs) 
-      gAuthor = prefs.getCharPref("editor.author");
+    gAuthor = Services.prefs.getCharPref("editor.author");
   }
   gDialog.AuthorInput.value = gAuthor;
   gDialog.DescriptionInput.value = gDescriptionElement.getAttribute("content");

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 //Cancel() is in EdDialogCommon.js
+
 var gTableElement;
 var gCellElement;
 var gTableCaptionElement;
@@ -59,7 +60,6 @@ var gApplyUsed = false;
 var gSelection;
 var gCellDataChanged = false;
 var gCanDelete = false;
-var gPrefs = GetPrefs();
 var gUseCSS = true;
 var gActiveEditor;
 
@@ -86,7 +86,7 @@ function Startup()
   gDialog.TableHeightInput = document.getElementById("TableHeightInput");
   gDialog.TableHeightUnits = document.getElementById("TableHeightUnits");
   try {
-    if (!gPrefs.getBoolPref("editor.use_css") || (gActiveEditor.flags & 1))
+    if (!Services.prefs.getBoolPref("editor.use_css") || (gActiveEditor.flags & 1))
     {
       gUseCSS = false;
       var tableHeightLabel = document.getElementById("TableHeightLabel");

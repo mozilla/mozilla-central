@@ -2,8 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
 const browserPrefsObserver =
 {
   observe: function(aSubject, aTopic, aData)
@@ -14,16 +12,16 @@ const browserPrefsObserver =
     switch (aData)
     {
       case "browser.anchor_color":
-        SetColorPreview("linkText", gPrefService.getCharPref(aData));
+        SetColorPreview("linkText", Services.prefs.getCharPref(aData));
         break;
       case "browser.active_color":
-        SetColorPreview("activeLinkText", gPrefService.getCharPref(aData));
+        SetColorPreview("activeLinkText", Services.prefs.getCharPref(aData));
         break;
       case "browser.visited_color":
-        SetColorPreview("visitedLinkText", gPrefService.getCharPref(aData));
+        SetColorPreview("visitedLinkText", Services.prefs.getCharPref(aData));
         break;
       default:
-        SetBgAndFgColors(gPrefService.getBoolPref("browser.display.use_system_colors"))
+        SetBgAndFgColors(Services.prefs.getBoolPref("browser.display.use_system_colors"))
     }
   }
 };
@@ -31,12 +29,12 @@ const browserPrefsObserver =
 function Startup()
 {
   // Add browser prefs observers
-  gPrefService.addObserver("browser.display.use_system_colors", browserPrefsObserver, false);
-  gPrefService.addObserver("browser.display.foreground_color", browserPrefsObserver, false);
-  gPrefService.addObserver("browser.display.background_color", browserPrefsObserver, false);
-  gPrefService.addObserver("browser.anchor_color", browserPrefsObserver, false);
-  gPrefService.addObserver("browser.active_color", browserPrefsObserver, false);
-  gPrefService.addObserver("browser.visited_color", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.display.use_system_colors", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.display.foreground_color", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.display.background_color", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.anchor_color", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.active_color", browserPrefsObserver, false);
+  Services.prefs.addObserver("browser.visited_color", browserPrefsObserver, false);
 
   // Add event listener so we can remove our observers
   window.addEventListener("unload", WindowOnUnload, false);
@@ -83,10 +81,10 @@ function UpdateDependent(aCustomEnabled)
   }
   else
   { // Set current browser colors on preview
-    SetBgAndFgColors(gPrefService.getBoolPref("browser.display.use_system_colors"));
-    SetColorPreview("linkText", gPrefService.getCharPref("browser.anchor_color"));
-    SetColorPreview("activeLinkText", gPrefService.getCharPref("browser.active_color"));
-    SetColorPreview("visitedLinkText", gPrefService.getCharPref("browser.visited_color"));
+    SetBgAndFgColors(Services.prefs.getBoolPref("browser.display.use_system_colors"));
+    SetColorPreview("linkText", Services.prefs.getCharPref("browser.anchor_color"));
+    SetColorPreview("activeLinkText", Services.prefs.getCharPref("browser.active_color"));
+    SetColorPreview("visitedLinkText", Services.prefs.getCharPref("browser.visited_color"));
   }
 }
 
@@ -153,8 +151,8 @@ function SetBgAndFgColors(aSysPrefEnabled)
   }
   else
   {
-    SetColorPreview("normalText", gPrefService.getCharPref("browser.display.foreground_color"));
-    SetColorPreview("ColorPreview", gPrefService.getCharPref("browser.display.background_color"));
+    SetColorPreview("normalText", Services.prefs.getCharPref("browser.display.foreground_color"));
+    SetColorPreview("ColorPreview", Services.prefs.getCharPref("browser.display.background_color"));
   }
 }
 
@@ -177,11 +175,11 @@ function ChooseImageFile()
 
 function WindowOnUnload()
 {
-  gPrefService.removeObserver("browser.display.use_system_colors", browserPrefsObserver, false);
-  gPrefService.removeObserver("browser.display.foreground_color", browserPrefsObserver, false);
-  gPrefService.removeObserver("browser.display.background_color", browserPrefsObserver, false);
-  gPrefService.removeObserver("browser.anchor_color", browserPrefsObserver, false);
-  gPrefService.removeObserver("browser.active_color", browserPrefsObserver, false);
-  gPrefService.removeObserver("browser.visited_color", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.display.use_system_colors", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.display.foreground_color", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.display.background_color", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.anchor_color", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.active_color", browserPrefsObserver, false);
+  Services.prefs.removeObserver("browser.visited_color", browserPrefsObserver, false);
   window.removeEventListener("unload", WindowOnUnload, false);
 }

@@ -55,7 +55,7 @@ function EditorOnLoad()
   // and tell the editor if a CR in a paragraph creates a new paragraph.
   var cmd = document.getElementById("cmd_highlight");
   if (cmd) {
-    if (!gPrefs.getBoolPref(kUseCssPref))
+    if (!Services.prefs.getBoolPref(kUseCssPref))
       cmd.collapsed = true;
   }
 
@@ -95,9 +95,6 @@ function EditorStartup(aUrl, aCharset)
 
   root.QueryInterface(Components.interfaces.nsIDocShell).appType =
     Components.interfaces.nsIDocShell.APP_TYPE_EDITOR;
-
-  // Set up our global prefs object.
-  GetPrefsService();
 
   // EditorSharedStartup also used by Message Composer.
   EditorSharedStartup();

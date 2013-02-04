@@ -51,7 +51,7 @@ function Startup()
   gDialog.PasswordInput       = document.getElementById("PasswordInput");
   gDialog.SavePassword        = document.getElementById("SavePassword");
 
-  gPasswordManagerOn = GetBoolPref("signon.rememberSignons");
+  gPasswordManagerOn = Services.prefs.getBoolPref("signon.rememberSignons");
   gDialog.SavePassword.disabled = !gPasswordManagerOn;
 
   gPublishSiteData = GetPublishSiteData();

@@ -38,7 +38,7 @@ function Startup()
   gDefaultSiteName = GetDefaultPublishSiteName();
   gPreviousDefaultSite = gDefaultSiteName;
 
-  gPasswordManagerOn = GetBoolPref("signon.rememberSignons");
+  gPasswordManagerOn = Services.prefs.getBoolPref("signon.rememberSignons");
   gDialog.SavePassword.disabled = !gPasswordManagerOn;
 
   InitDialog();

@@ -643,17 +643,12 @@ var nsPublishCommand =
   {
     if (GetCurrentEditor())
     {
-      var docUrl = GetDocumentUrl();
-      var filename = GetFilename(docUrl);
-      var publishData;
-      var showPublishDialog = false;
+      let docUrl = GetDocumentUrl();
+      let filename = GetFilename(docUrl);
+      let publishData;
 
       // First check pref to always show publish dialog
-      try {
-        var prefs = GetPrefs();
-        if (prefs)
-          showPublishDialog = prefs.getBoolPref("editor.always_show_publish_dialog");
-      } catch(e) {}
+      let showPublishDialog = Services.prefs.getBoolPref("editor.always_show_publish_dialog");
 
       if (!showPublishDialog && filename)
       {
@@ -670,7 +665,7 @@ var nsPublishCommand =
         // Show the publish dialog
         publishData = {};
         window.ok = false;
-        var oldTitle = GetDocumentTitle();
+        let oldTitle = GetDocumentTitle();
         window.openDialog("chrome://editor/content/EditorPublish.xul","_blank", 
                           "chrome,close,titlebar,modal", "", "", publishData);
         if (GetDocumentTitle() != oldTitle)
@@ -965,15 +960,13 @@ function GetOutputFlags(aMimeType, aWrapColumn)
   }
   else
   {
-    try {
-      // Should we prettyprint? Check the pref
-      var prefs = GetPrefs();
-      if (prefs.getBoolPref("editor.prettyprint"))
-        outputFlags |= webPersist.ENCODE_FLAGS_FORMATTED;
+    // Should we prettyprint? Check the pref
+    if (Services.prefs.getBoolPref("editor.prettyprint"))
+      outputFlags |= webPersist.ENCODE_FLAGS_FORMATTED;
 
+    try {
       // How much entity names should we output? Check the pref
-      var encodeEntity = prefs.getCharPref("editor.encode_entity");
-      switch (encodeEntity) {
+      switch (Services.prefs.getCharPref("editor.encode_entity")) {
         case "basic"  : outputEntity = webPersist.ENCODE_FLAGS_ENCODE_BASIC_ENTITIES; break;
         case "latin1" : outputEntity = webPersist.ENCODE_FLAGS_ENCODE_LATIN1_ENTITIES; break;
         case "html"   : outputEntity = webPersist.ENCODE_FLAGS_ENCODE_HTML_ENTITIES; break;
@@ -1711,16 +1704,9 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
     // this is the location where the related files will go
     var relatedFilesDir = null;
     
-    // First check pref for saving associated files
-    var saveAssociatedFiles = false;
-    try {
-      var prefs = GetPrefs();
-      saveAssociatedFiles = prefs.getBoolPref("editor.save_associated_files");
-    } catch (e) {}
-
     // Only change links or move files if pref is set 
-    //  and we are saving to a new location
-    if (saveAssociatedFiles && aSaveAs)
+    // and we are saving to a new location
+    if (Services.prefs.getBoolPref("editor.save_associated_files") && aSaveAs)
     {
       try {
         if (tempLocalFile)
@@ -2714,8 +2700,7 @@ var nsHLineCommand =
         hLine = editor.createElementWithDefaults(tagName);
 
         // We change the default attributes to those saved in the user prefs
-        var prefs = GetPrefs();
-        var align = prefs.getIntPref("editor.hrule.align");
+        let align = Services.prefs.getIntPref("editor.hrule.align");
         if (align == 0)
           editor.setAttributeOrEquivalent(hLine, "align", "left", true);
         else if (align == 2)
@@ -2723,18 +2708,16 @@ var nsHLineCommand =
 
         //Note: Default is center (don't write attribute)
   
-        var width = prefs.getIntPref("editor.hrule.width");
-        var percent = prefs.getBoolPref("editor.hrule.width_percent");
-        if (percent)
+        let width = Services.prefs.getIntPref("editor.hrule.width");
+        if (Services.prefs.getBoolPref("editor.hrule.width_percent"))
           width = width +"%";
 
         editor.setAttributeOrEquivalent(hLine, "width", width, true);
 
-        var height = prefs.getIntPref("editor.hrule.height");
+        let height = Services.prefs.getIntPref("editor.hrule.height");
         editor.setAttributeOrEquivalent(hLine, "size", String(height), true);
 
-        var shading = prefs.getBoolPref("editor.hrule.shading");
-        if (shading)
+        if (Services.prefs.getBoolPref("editor.hrule.shading"))
           hLine.removeAttribute("noshade");
         else
           hLine.setAttribute("noshade", "noshade");

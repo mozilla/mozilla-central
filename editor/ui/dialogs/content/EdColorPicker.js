@@ -4,6 +4,7 @@
 
 
 //Cancel() is in EdDialogCommon.js
+
 var insertNew = true;
 var tagname = "TAG NAME"
 var gColor = "";
@@ -47,8 +48,7 @@ function Startup()
     ColorType = gColorObj.Type;
     // Get string for dialog title from passed-in type 
     //   (note constraint on editor.properties string name)
-    var prefs = GetPrefs();
-    var IsCSSPrefChecked = prefs.getBoolPref("editor.use_css");
+    let IsCSSPrefChecked = Services.prefs.getBoolPref("editor.use_css");
 
     if (GetCurrentEditor())
     {

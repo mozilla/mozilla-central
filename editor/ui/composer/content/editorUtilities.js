@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /**** NAMESPACES ****/
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
@@ -22,8 +24,6 @@ const kOutputWrap = Components.interfaces.nsIDocumentEncoder.OutputWrap;
 
 var gStringBundle;
 var gIOService;
-var gPrefsService;
-var gPrefsBranch;
 var gFilePickerDirectory;
 
 var gOS = "";
@@ -466,84 +466,23 @@ function GetFileProtocolHandler()
   return handler.QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 }
 
-function GetPrefsService()
-{
-  if (gPrefsService)
-    return gPrefsService;
-
-  try {
-    gPrefsService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-  }
-  catch(ex) {
-    dump("failed to get prefs service!\n");
-  }
-
-  return gPrefsService;
-}
-
-function GetPrefs()
-{
-  if (gPrefsBranch)
-    return gPrefsBranch;
-
-  try {
-    var prefService = GetPrefsService();
-    if (prefService)
-      gPrefsBranch = prefService.getBranch(null);
-
-    if (gPrefsBranch)
-      return gPrefsBranch;
-    else
-      dump("failed to get root prefs!\n");
-  }
-  catch(ex) {
-    dump("failed to get root prefs!\n");
-  }
-  return null;
-}
-
 function GetStringPref(name)
 {
   try {
-    return GetPrefs().getComplexValue(name, Components.interfaces.nsISupportsString).data;
+    return Services.prefs.getComplexValue(name, Components.interfaces.nsISupportsString).data;
   } catch (e) {}
   return "";
 }
 
-function GetBoolPref(name)
+function SetStringPref(aPrefName, aPrefValue)
 {
   try {
-    return GetPrefs().getBoolPref(name);
-  } catch (e) {}
-  return false;
-}
-
-function SetUnicharPref(aPrefName, aPrefValue)
-{
-  var prefs = GetPrefs();
-  if (prefs)
-  {
-    try {
-      var str = Components.classes["@mozilla.org/supports-string;1"]
-                          .createInstance(Components.interfaces.nsISupportsString);
-      str.data = aPrefValue;
-      prefs.setComplexValue(aPrefName, Components.interfaces.nsISupportsString, str);
-    }
-    catch(e) {}
+    let str = Components.classes["@mozilla.org/supports-string;1"]
+                        .createInstance(Components.interfaces.nsISupportsString);
+    str.data = aPrefValue;
+    Services.prefs.setComplexValue(aPrefName, Components.interfaces.nsISupportsString, str);
   }
-}
-
-function GetUnicharPref(aPrefName, aDefVal)
-{
-  var prefs = GetPrefs();
-  if (prefs)
-  {
-    try {
-      return prefs.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;
-    }
-    catch(e) {}
-  }
-  return "";
+  catch(e) {}
 }
 
 // Set initial directory for a filepicker from URLs saved in prefs
@@ -552,16 +491,13 @@ function SetFilePickerDirectory(filePicker, fileType)
   if (filePicker)
   {
     try {
-      var prefBranch = GetPrefs();
-      if (prefBranch)
-      {
-        // Save current directory so we can reset it in SaveFilePickerDirectory
-        gFilePickerDirectory = filePicker.displayDirectory;
+      // Save current directory so we can reset it in SaveFilePickerDirectory
+      gFilePickerDirectory = filePicker.displayDirectory;
 
-        var location = prefBranch.getComplexValue("editor.lastFileLocation."+fileType, Components.interfaces.nsILocalFile);
-        if (location)
-          filePicker.displayDirectory = location;
-      }
+      let location = Services.prefs.getComplexValue("editor.lastFileLocation."+fileType,
+                                                    Components.interfaces.nsILocalFile);
+      if (location)
+        filePicker.displayDirectory = location;
     }
     catch(e) {}
   }
@@ -573,17 +509,14 @@ function SaveFilePickerDirectory(filePicker, fileType)
   if (filePicker && filePicker.file)
   {
     try {
-      var prefBranch = GetPrefs();
-
       var fileDir;
       if (filePicker.file.parent)
         fileDir = filePicker.file.parent.QueryInterface(Components.interfaces.nsILocalFile);
 
-      if (prefBranch)
-       prefBranch.setComplexValue("editor.lastFileLocation."+fileType, Components.interfaces.nsILocalFile, fileDir);
-    
-      var prefsService = GetPrefsService();
-        prefsService.savePrefFile(null);
+        Services.prefs.setComplexValue("editor.lastFileLocation." + fileType,
+                                       Components.interfaces.nsILocalFile, fileDir);
+
+        Services.prefs.savePrefFile(null);
     } catch (e) {}
   }
 
@@ -597,16 +530,15 @@ function SaveFilePickerDirectory(filePicker, fileType)
 
 function GetDefaultBrowserColors()
 {
-  var prefs = GetPrefs();
   var colors = { TextColor:0, BackgroundColor:0, LinkColor:0, ActiveLinkColor:0 , VisitedLinkColor:0 };
   var useSysColors = false;
-  try { useSysColors = prefs.getBoolPref("browser.display.use_system_colors"); } catch (e) {}
+  try { useSysColors = Services.prefs.getBoolPref("browser.display.use_system_colors"); } catch (e) {}
 
   if (!useSysColors)
   {
-    try { colors.TextColor = prefs.getCharPref("browser.display.foreground_color"); } catch (e) {}
+    try { colors.TextColor = Services.prefs.getCharPref("browser.display.foreground_color"); } catch (e) {}
 
-    try { colors.BackgroundColor = prefs.getCharPref("browser.display.background_color"); } catch (e) {}
+    try { colors.BackgroundColor = Services.prefs.getCharPref("browser.display.background_color"); } catch (e) {}
   }
   // Use OS colors for text and background if explicitly asked or pref is not set
   if (!colors.TextColor)
@@ -615,9 +547,9 @@ function GetDefaultBrowserColors()
   if (!colors.BackgroundColor)
     colors.BackgroundColor = "window";
 
-  colors.LinkColor = prefs.getCharPref("browser.anchor_color");
-  colors.ActiveLinkColor = prefs.getCharPref("browser.active_color");
-  colors.VisitedLinkColor = prefs.getCharPref("browser.visited_color");
+  colors.LinkColor = Services.prefs.getCharPref("browser.anchor_color");
+  colors.ActiveLinkColor = Services.prefs.getCharPref("browser.active_color");
+  colors.VisitedLinkColor = Services.prefs.getCharPref("browser.visited_color");
 
   return colors;
 }
@@ -1064,10 +996,8 @@ function ConvertRGBColorIntoHEXColor(color)
 
 function GetHTMLOrCSSStyleValue(element, attrName, cssPropertyName)
 {
-  var prefs = GetPrefs();
-  var IsCSSPrefChecked = prefs.getBoolPref("editor.use_css");
   var value;
-  if (IsCSSPrefChecked && IsHTMLEditor())
+  if (Services.prefs.getBoolPref("editor.use_css") && IsHTMLEditor())
     value = element.style.getPropertyValue(cssPropertyName);
 
   if (!value)

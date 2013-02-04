@@ -71,7 +71,7 @@ function SelectCharacter(radioGroupIndex)
 function onAccept()
 {
   var sepCharacter = "";
-  switch ( gIndex )
+  switch (gIndex)
   {
     case gCommaIndex:
       sepCharacter = ",";
@@ -140,7 +140,7 @@ function onAccept()
       {
         var tagContent = TrimString(str.slice(start+1, end));
 
-        if ( /^ol|^ul|^dl/.test(tagContent) )
+        if (/^ol|^ul|^dl/.test(tagContent))
         {
           //  Replace list tag with <BR> to start new row 
           //   at begining of second or greater list tag
@@ -151,7 +151,7 @@ function onAccept()
           // Reset for list item separation into cells
           listItemSeparator = "";
         }
-        else if ( /^li|^dt|^dd/.test(tagContent) )
+        else if (/^li|^dt|^dd/.test(tagContent))
         {
           // Start a new row if this is first item after the ending the last list
           if (endList)
@@ -169,7 +169,7 @@ function onAccept()
         {
           // Find end tags
           endList = /^\/ol|^\/ul|^\/dl/.test(tagContent);
-          if ( endList || /^\/li|^\/dt|^\/dd/.test(tagContent) )
+          if (endList || /^\/li|^\/dt|^\/dd/.test(tagContent))
           {
             // Strip out tag
             str = str.slice(0, start) + str.slice(end+1);
@@ -292,10 +292,9 @@ function onAccept()
   if (table)
   {
     // Fixup table only if pref is set
-    var prefs = GetPrefs();
     var firstRow;
     try {
-      if (prefs && prefs.getBoolPref("editor.table.maintain_structure") )
+      if (Services.prefs.getBoolPref("editor.table.maintain_structure"))
         editor.normalizeTable(table);
 
       firstRow = editor.getFirstRow(table);

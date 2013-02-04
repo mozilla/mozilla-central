@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 //Cancel() is in EdDialogCommon.js
+
 var gTableElement = null;
 var gRows;
 var gColumns;
@@ -39,7 +40,7 @@ function Startup()
   // Make a copy to use for AdvancedEdit
   globalElement = gTableElement.cloneNode(false);
   try {
-    if (GetPrefs().getBoolPref("editor.use_css") && IsHTMLEditor()
+    if (Services.prefs.getBoolPref("editor.use_css") && IsHTMLEditor()
         && !(gActiveEditor.flags & Components.interfaces.nsIPlaintextEditor.eEditorMailMask))
     {
       // only for Composer and not for htmlmail
