@@ -1041,11 +1041,27 @@
                         label="&redoCmd.label;"
                         key="key_redo"
                         command="cmd_redo"/>
-              <menuseparator/>
+              <menuseparator id="appmenu_messageAfterRedoEditSeparator"/>
+              <menuitem id="appmenu_delete"
+                        label="&deleteCmd.label;"
+#ifdef XP_MACOSX
+                        acceltext="⌫"
+#else
+                        key="key_delete"
+#endif
+                        command="cmd_delete"/>
+              <menuseparator id="appmenu_messageAfterDeleteEditSeparator"/>
               <menuitem id="appmenu-editmenu-selectAll"
                         label="&selectAllCmd.label;"
                         key="key_selectAll"
                         command="cmd_selectAll"/>
+              <menuitem id="appmenu_selectThread"
+                        label="&appmenuSelectThread.label;"
+                        key="key_selectThread"
+                        command="cmd_selectThread"/>
+              <menuitem id="appmenu_selectFlagged"
+                        label="&appmenuSelectFlagged.label;"
+                        command="cmd_selectFlagged"/>
             </menupopup>
           </menu>
         </hbox>

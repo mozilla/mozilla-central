@@ -562,6 +562,8 @@
 <!ENTITY appmenuEditMenu.label "Edit">
 <!ENTITY appmenuQFBMenu.label "Quick Filter Bar">
 <!ENTITY appmenuToolbarLayout.label "Toolbar Layout…">
+<!ENTITY appmenuSelectThread.label "Select Thread">
+<!ENTITY appmenuSelectFlagged.label "Select Starred Messages">
 
 <!-- Tags Menu Popup -->
 <!ENTITY addNewTag.label "New Tag…">
