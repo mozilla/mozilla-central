@@ -14,12 +14,9 @@ include $(topsrcdir)/config/rules.mk
 MOZ_PKG_REMOVALS = $(srcdir)/removed-files.in
 
 MOZ_PKG_MANIFEST_P = $(srcdir)/package-manifest.in
-# XXX Bug 835309 - this causes errors on Mac currently
-ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # Some files have been already bundled with xulrunner
 ifndef SYSTEM_LIBXUL
 MOZ_PKG_FATAL_WARNINGS = 1
-endif
 endif
 
 MOZ_NONLOCALIZED_PKG_LIST = \
