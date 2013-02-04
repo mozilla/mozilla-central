@@ -1250,9 +1250,6 @@ function getFormElementValue(formElement) {
 
 // sets the value of a widget
 function setFormElementValue(formElement, value) {
-
-  //formElement.value = formElement.defaultValue;
-  //  formElement.checked = formElement.defaultChecked;
   var type = formElement.localName;
   if (type == "checkbox") {
     if (value == undefined) {
@@ -1267,20 +1264,11 @@ function setFormElementValue(formElement, value) {
         formElement.checked = value;
     }
   }
-
   else if (type == "radiogroup" || type =="menulist") {
-
-    var selectedItem;
-    if (value == undefined) {
-      if (type == "radiogroup")
-        selectedItem = formElement.firstChild;
-      else
-        selectedItem = formElement.firstChild.firstChild;
-    }
+    if (value == undefined)
+      formElement.selectedIndex = 0;
     else
-      selectedItem = formElement.getElementsByAttribute("value", value)[0];
-
-    formElement.selectedItem = selectedItem;
+      formElement.value = value;
   }
   // handle nsILocalFile
   else if (type == "textbox" &&
