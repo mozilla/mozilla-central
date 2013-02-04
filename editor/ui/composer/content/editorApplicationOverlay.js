@@ -118,9 +118,7 @@ function editPage(url, aFileType)
 function createURI(urlstring)
 {
   try {
-    var ioserv = Components.classes["@mozilla.org/network/io-service;1"]
-               .getService(Components.interfaces.nsIIOService);
-    return ioserv.newURI(urlstring, null, null);
+    return Services.io.newURI(urlstring, null, null);
   } catch (e) {}
 
   return null;

@@ -748,15 +748,14 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
   if (aDocumentURLString && !IsUrlAboutBlank(aDocumentURLString))
   {
     try {
-      var ioService = GetIOService();
-      var docURI = ioService.newURI(aDocumentURLString,
+      let docURI = Services.io.newURI(aDocumentURLString,
         GetCurrentEditor().documentCharacterSet, null);
       docURI = docURI.QueryInterface(Components.interfaces.nsIURL);
 
       // grab the file name
-      var url = validateFileName(decodeURIComponent(docURI.fileBaseName));
+      let url = validateFileName(decodeURIComponent(docURI.fileBaseName));
       if (url)
-        return url+extension;
+        return url + extension;
     } catch(e) {}
   } 
 
@@ -805,12 +804,11 @@ function PromptForSaveLocation(aDoSaveAsText, aEditorType, aMIMEType, aDocumentU
   // set the file picker's current directory
   // assuming we have information needed (like prior saved location)
   try {
-    var ioService = GetIOService();
     var fileHandler = GetFileProtocolHandler();
     
     var isLocalFile = true;
     try {
-      var docURI = ioService.newURI(aDocumentURLString, GetCurrentEditor().documentCharacterSet, null);
+      let docURI = Services.io.newURI(aDocumentURLString, GetCurrentEditor().documentCharacterSet, null);
       isLocalFile = docURI.schemeIs("file");
     }
     catch (e) {}
@@ -1183,7 +1181,7 @@ var gEditorOutputProgressListener =
             // Make a new docURI from the "browse location" in case "publish location" was FTP
             // We need to set document uri before notifying listeners
             var docUrl = GetDocUrlFromPublishData(gPublishData);
-            SetDocumentURI(GetIOService().newURI(docUrl, editor.documentCharacterSet, null));
+            SetDocumentURI(Services.io.newURI(docUrl, editor.documentCharacterSet, null));
 
             UpdateWindowTitle();
 
@@ -1684,15 +1682,13 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
   } // mustShowFileDialog
 
   var success = true;
-  var ioService;
   try {
     // if somehow we didn't get a local file but we did get a uri, 
     // attempt to create the localfile if it's a "file" url
     var docURI;
     if (!tempLocalFile)
     {
-      ioService = GetIOService();
-      docURI = ioService.newURI(urlstring, editor.documentCharacterSet, null);
+      docURI = Services.io.newURI(urlstring, editor.documentCharacterSet, null);
       
       if (docURI.schemeIs("file"))
       {
@@ -1734,8 +1730,7 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
           if (lastSlash != -1)
           {
             var relatedFilesDirString = urlstring.slice(0, lastSlash + 1);  // include last slash
-            ioService = GetIOService();
-            relatedFilesDir = ioService.newURI(relatedFilesDirString, editor.documentCharacterSet, null);
+            relatedFilesDir = Services.io.newURI(relatedFilesDirString, editor.documentCharacterSet, null);
           }
         }
       } catch(e) { relatedFilesDir = null; }
@@ -1952,8 +1947,7 @@ function CreateURIFromPublishData(publishData, doDocUri)
     else
       spec += FormatDirForPublishing(publishData.otherDir);
 
-    var ioService = GetIOService();
-    URI = ioService.newURI(spec, GetCurrentEditor().documentCharacterSet, null);
+    URI = Services.io.newURI(spec, GetCurrentEditor().documentCharacterSet, null);
 
     if (publishData.username)
       URI.username = publishData.username;

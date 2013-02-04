@@ -23,7 +23,6 @@ const kOutputSelectionOnly = Components.interfaces.nsIDocumentEncoder.OutputSele
 const kOutputWrap = Components.interfaces.nsIDocumentEncoder.OutputWrap;
 
 var gStringBundle;
-var gIOService;
 var gFilePickerDirectory;
 
 var gOS = "";
@@ -448,21 +447,9 @@ function SetElementEnabled(element, doEnable)
 
 /************* Services / Prefs ***************/
 
-function GetIOService()
-{
-  if (gIOService)
-    return gIOService;
-
-  gIOService = Components.classes["@mozilla.org/network/io-service;1"]
-               .getService(Components.interfaces.nsIIOService);
-
-  return gIOService;
-}
-
 function GetFileProtocolHandler()
 {
-  var ios = GetIOService();
-  var handler = ios.getProtocolHandler("file");
+  let handler = Services.io.getProtocolHandler("file");
   return handler.QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 }
 
@@ -587,10 +574,6 @@ function MakeRelativeUrl(url)
   if (docScheme != urlScheme)
     return inputUrl;
 
-  var IOService = GetIOService();
-  if (!IOService)
-    return inputUrl;
-
   // Host must be the same
   var docHost = GetHost(docUrl);
   var urlHost = GetHost(inputUrl);
@@ -600,8 +583,8 @@ function MakeRelativeUrl(url)
 
   // Get just the file path part of the urls
   // XXX Should we use GetCurrentEditor().documentCharacterSet for 2nd param ?
-  var docPath = IOService.newURI(docUrl, GetCurrentEditor().documentCharacterSet, null).path;
-  var urlPath = IOService.newURI(inputUrl, GetCurrentEditor().documentCharacterSet, null).path;
+  let docPath = Services.io.newURI(docUrl, GetCurrentEditor().documentCharacterSet, null).path;
+  let urlPath = Services.io.newURI(inputUrl, GetCurrentEditor().documentCharacterSet, null).path;
 
   // We only return "urlPath", so we can convert
   //  the entire docPath for case-insensitive comparisons
@@ -694,30 +677,26 @@ function MakeRelativeUrl(url)
 
 function MakeAbsoluteUrl(url)
 {
-  var resultUrl = TrimString(url);
+  let resultUrl = TrimString(url);
   if (!resultUrl)
     return resultUrl;
 
   // Check if URL is already absolute, i.e., it has a scheme
-  var urlScheme = GetScheme(resultUrl);
+  let urlScheme = GetScheme(resultUrl);
 
   if (urlScheme)
     return resultUrl;
 
-  var docUrl = GetDocumentBaseUrl();
-  var docScheme = GetScheme(docUrl);
+  let docUrl = GetDocumentBaseUrl();
+  let docScheme = GetScheme(docUrl);
 
   // Can't relativize if no doc scheme (page hasn't been saved)
   if (!docScheme)
     return resultUrl;
 
-  var  IOService = GetIOService();
-  if (!IOService)
-    return resultUrl;
-  
   // Make a URI object to use its "resolve" method
-  var absoluteUrl = resultUrl;
-  var docUri = IOService.newURI(docUrl, GetCurrentEditor().documentCharacterSet, null);
+  let absoluteUrl = resultUrl;
+  let docUri = Services.io.newURI(docUrl, GetCurrentEditor().documentCharacterSet, null);
 
   try {
     absoluteUrl = docUri.resolve(resultUrl);
@@ -771,14 +750,10 @@ function GetScheme(urlspec)
   if (!resultUrl || IsUrlAboutBlank(resultUrl))
     return "";
 
-  var IOService = GetIOService();
-  if (!IOService)
-    return "";
-
   var scheme = "";
   try {
     // This fails if there's no scheme
-    scheme = IOService.extractScheme(resultUrl);
+    scheme = Services.io.extractScheme(resultUrl);
   } catch (e) {}
 
   return scheme ? scheme.toLowerCase() : "";
@@ -789,13 +764,9 @@ function GetHost(urlspec)
   if (!urlspec)
     return "";
 
-  var IOService = GetIOService();
-  if (!IOService)
-    return "";
-
   var host = "";
   try {
-    host = IOService.newURI(urlspec, null, null).host;
+    host = Services.io.newURI(urlspec, null, null).host;
    } catch (e) {}
 
   return host;
@@ -806,13 +777,9 @@ function GetUsername(urlspec)
   if (!urlspec)
     return "";
 
-  var IOService = GetIOService();
-  if (!IOService)
-    return "";
-
   var username = "";
   try {
-    username = IOService.newURI(urlspec, null, null).username;
+    username = Services.io.newURI(urlspec, null, null).username;
   } catch (e) {}
 
   return username;
@@ -823,17 +790,13 @@ function GetFilename(urlspec)
   if (!urlspec || IsUrlAboutBlank(urlspec))
     return "";
 
-  var IOService = GetIOService();
-  if (!IOService)
-    return "";
-
   var filename;
 
   try {
-    var uri = IOService.newURI(urlspec, null, null);
+    let uri = Services.io.newURI(urlspec, null, null);
     if (uri)
     {
-      var url = uri.QueryInterface(Components.interfaces.nsIURL);
+      let url = uri.QueryInterface(Components.interfaces.nsIURL);
       if (url)
         filename = url.fileName;
     }
@@ -861,13 +824,9 @@ function StripUsernamePassword(urlspec, usernameObj, passwordObj)
   if (atIndex > 0)
   {
     try {
-      var IOService = GetIOService();
-      if (!IOService)
-        return urlspec;
-
-      var uri = IOService.newURI(urlspec, null, null);
-      var username = uri.username;
-      var password = uri.password;
+      let uri = Services.io.newURI(urlspec, null, null);
+      let username = uri.username;
+      let password = uri.password;
 
       if (usernameObj && username)
         usernameObj.value = username;
@@ -875,7 +834,7 @@ function StripUsernamePassword(urlspec, usernameObj, passwordObj)
         passwordObj.value = password;
       if (username)
       {
-        var usernameStart = urlspec.indexOf(username);
+        let usernameStart = urlspec.indexOf(username);
         if (usernameStart != -1)
           return urlspec.slice(0, usernameStart) + urlspec.slice(atIndex+1);
       }
@@ -898,18 +857,14 @@ function StripPassword(urlspec, passwordObj)
   if (atIndex > 0)
   {
     try {
-      var IOService = GetIOService();
-      if (!IOService)
-        return urlspec;
-
-      var password = IOService.newURI(urlspec, null, null).password;
+      let password = Services.io.newURI(urlspec, null, null).password;
 
       if (passwordObj && password)
         passwordObj.value = password;
       if (password)
       {
         // Find last ":" before "@"
-        var colon = urlspec.lastIndexOf(":", atIndex);
+        let colon = urlspec.lastIndexOf(":", atIndex);
         if (colon != -1)
         {
           // Include the "@"
@@ -946,8 +901,7 @@ function InsertUsernameIntoUrl(urlspec, username)
     return urlspec;
 
   try {
-    var ioService = GetIOService();
-    var URI = ioService.newURI(urlspec, GetCurrentEditor().documentCharacterSet, null);
+    let URI = Services.io.newURI(urlspec, GetCurrentEditor().documentCharacterSet, null);
     URI.username = username;
     return URI.spec;
   } catch (e) {}

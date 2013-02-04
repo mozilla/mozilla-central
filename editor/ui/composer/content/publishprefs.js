@@ -879,9 +879,7 @@ function GetUrlForPasswordManager(publishData)
   if (!publishData || !publishData.publishUrl)
     return false;
 
-  var url = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService)
-                      .newURI(publishData.publishUrl, null, null);
+  let url = Services.io.newURI(publishData.publishUrl, null, null);
 
   if (url.scheme == "ftp" && publishData.username)
     // Include username in the URL so we can handle multiple users per server
