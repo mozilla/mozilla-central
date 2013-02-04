@@ -2125,12 +2125,10 @@ var nsPreviewCommand =
     // Check if we saved again just in case?
     if (DocumentHasBeenSaved())
     {
-      var browser;
+      let browser;
       try {
         // Find a browser with this URL
-        var windowManager = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService();
-        var windowManagerInterface = windowManager.QueryInterface(Components.interfaces.nsIWindowMediator);
-        var enumerator = windowManagerInterface.getEnumerator("navigator:browser");
+        let enumerator = Services.wm.getEnumerator("navigator:browser");
 
         var documentURI = GetDocumentUrl();
         while (enumerator.hasMoreElements())
@@ -2628,7 +2626,7 @@ var nsHLineCommand =
 
     var tagName = "hr";
     var editor = GetCurrentEditor();
-      
+
     var hLine;
     try {
       hLine = editor.getSelectedElement(tagName);
@@ -2638,7 +2636,7 @@ var nsHLineCommand =
     {
       // We only open the dialog for an existing HRule
       window.openDialog("chrome://editor/content/EdHLineProps.xul", "_blank", "chrome,close,titlebar,modal");
-    } 
+    }
     else
     {
       try {
@@ -2652,7 +2650,7 @@ var nsHLineCommand =
           editor.setAttributeOrEquivalent(hLine, "align", "right", true);
 
         //Note: Default is center (don't write attribute)
-  
+
         let width = Services.prefs.getIntPref("editor.hrule.width");
         if (Services.prefs.getBoolPref("editor.hrule.width_percent"))
           width = width +"%";

@@ -811,26 +811,15 @@ function FormatDirForPublishing(dir)
   return dir;
 }
 
-var gLoginManager;
-function GetLoginManager()
-{
-  if (!gLoginManager)
-    gLoginManager = Components.classes["@mozilla.org/login-manager;1"]
-                              .getService(Components.interfaces.nsILoginManager);
-
-  return gLoginManager;
-}
-
 function GetSavedPassword(publishData)
 {
   if (!publishData || !publishData.publishUrl)
     return "";
 
-  var loginManager = GetLoginManager();
-  var url = GetUrlForPasswordManager(publishData);
-  var logins = loginManager.findLogins({}, url, null, url);
+  let url = GetUrlForPasswordManager(publishData);
+  let logins = Services.logins.findLogins({}, url, null, url);
 
-  for (var i = 0; i < logins.length; i++) {
+  for (let i = 0; i < logins.length; i++) {
     if (logins[i].username == publishData.username)
       return logins[i].password;
   }
@@ -843,35 +832,29 @@ function SavePassword(publishData)
   if (!publishData || !publishData.publishUrl || !publishData.username)
     return false;
 
-  var loginManager = GetLoginManager();
-  if (loginManager)
-  {
-    var url = GetUrlForPasswordManager(publishData);
+  let url = GetUrlForPasswordManager(publishData);
 
-    // Remove existing entry by finding all logins that match
-    var logins = loginManager.findLogins({}, url, null, url);
+  // Remove existing entry by finding all logins that match.
+  let logins = Services.logins.findLogins({}, url, null, url);
 
-    for (var i = 0; i < logins.length; i++) {
-      if (logins[i].username == publishData.username) {
-        loginManager.removeLogin(logins[i]);
-        break;
-      }
+  for (let i = 0; i < logins.length; i++) {
+    if (logins[i].username == publishData.username) {
+      Services.logins.removeLogin(logins[i]);
+      break;
     }
-
-    // If SavePassword is true, add new password
-    if (publishData.savePassword)
-    {
-      var authInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
-                               .createInstance(Components.interfaces.nsILoginInfo);
-      authInfo.init(url, null, url, publishData.username, publishData.password,
-                    "", "");
-      loginManager.addLogin(authInfo);
-    }
-
-    return true;
   }
 
-  return false;
+  // If SavePassword is true, add new password.
+  if (publishData.savePassword)
+  {
+    let authInfo = Components.classes["@mozilla.org/login-manager/loginInfo;1"]
+                             .createInstance(Components.interfaces.nsILoginInfo);
+    authInfo.init(url, null, url, publishData.username, publishData.password,
+                  "", "");
+    Services.logins.addLogin(authInfo);
+  }
+
+  return true;
 }
 
 function GetUrlForPasswordManager(publishData)

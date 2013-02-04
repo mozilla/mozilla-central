@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const nsICommandLineHandler = Components.interfaces.nsICommandLineHandler;
@@ -42,10 +43,8 @@ nsComposerCmdLineHandler.prototype = {
       args.data = "about:blank";
     }
 
-    var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                           .getService(nsIWindowWatcher);
-    wwatch.openWindow(null, "chrome://editor/content", "_blank",
-                      "chrome,dialog=no,all", args);
+    Services.ww.openWindow(null, "chrome://editor/content", "_blank",
+                           "chrome,dialog=no,all", args);
     cmdLine.preventDefault = true;
   },
 

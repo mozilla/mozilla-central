@@ -2787,11 +2787,9 @@ function FindEditorWithInsertCharDialog()
 {
   try {
     // Find window with an InsertCharsWindow and switch association to this one
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    var windowManagerInterface = windowManager.QueryInterface( Components.interfaces.nsIWindowMediator);
-    var enumerator = windowManagerInterface.getEnumerator( null );
+    let enumerator = Services.wm.getEnumerator(null);
 
-    while ( enumerator.hasMoreElements()  )
+    while (enumerator.hasMoreElements())
     {
       var tempWindow = enumerator.getNext();
 
@@ -2833,11 +2831,9 @@ function SwitchInsertCharToAnotherEditorOrClose()
 {
   if ("InsertCharWindow" in window && window.InsertCharWindow)
   {
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
     var enumerator;
     try {
-      var windowManagerInterface = windowManager.QueryInterface( Components.interfaces.nsIWindowMediator);
-      enumerator = windowManagerInterface.getEnumerator( null );
+      enumerator = Services.wm.getEnumerator(null);
     }
     catch(e) {}
     if (!enumerator) return;

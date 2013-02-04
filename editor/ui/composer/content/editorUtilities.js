@@ -61,13 +61,7 @@ function GetString(name)
   if (!gStringBundle)
   {
     try {
-      var strBundleService =
-          Components.classes["@mozilla.org/intl/stringbundle;1"].getService(); 
-      strBundleService = 
-          strBundleService.QueryInterface(Components.interfaces.nsIStringBundleService);
-
-      gStringBundle = strBundleService.createBundle("chrome://editor/locale/editor.properties"); 
-
+      gStringBundle = Services.strings.createBundle("chrome://editor/locale/editor.properties");
     } catch (ex) {}
   }
   if (gStringBundle)
@@ -84,11 +78,7 @@ function GetFormattedString(aName, aVal)
   if (!gStringBundle)
   {
     try {
-      var gStringBundle =
-          Components.classes["@mozilla.org/intl/stringbundle;1"]
-                    .getService(Components.interfaces.nsIStringBundleService)
-                    .createBundle("chrome://editor/locale/editor.properties"); 
-
+      gStringBundle = Services.strings.createBundle("chrome://editor/locale/editor.properties");
     } catch (ex) {}
   }
   if (gStringBundle)
@@ -214,7 +204,7 @@ function GetCurrentTableEditor()
 function GetCurrentEditorElement()
 {
   var tmpWindow = window;
-  
+
   do {
     // Get the <editor> element(s)
     var editorList = tmpWindow.document.getElementsByTagName("editor");
@@ -224,7 +214,7 @@ function GetCurrentEditorElement()
       return editorList.item(0);
 
     tmpWindow = tmpWindow.opener;
-  } 
+  }
   while (tmpWindow);
 
   return null;
@@ -602,12 +592,12 @@ function MakeRelativeUrl(url)
 
       // Remove filename for named anchors in the same file
       if (nextDocSlash == -1 && docFilename)
-      { 
+      {
         var anchorIndex = urlPath.indexOf("#");
         if (anchorIndex > 0)
         {
           var urlFilename = doCaseInsensitive ? urlPath.toLowerCase() : urlPath;
-        
+
           if (urlFilename.indexOf(docFilename) == 0)
             urlPath = urlPath.slice(anchorIndex);
         }
@@ -634,8 +624,8 @@ function MakeRelativeUrl(url)
         // No match, we're done
         done = true;
 
-        // Be sure we are on the same local drive or volume 
-        //   (the first "dir" in the path) because we can't 
+        // Be sure we are on the same local drive or volume
+        //   (the first "dir" in the path) because we can't
         //   relativize to different drives/volumes.
         // UNIX doesn't have volumes, so we must not do this else
         //  the first directory will be misinterpreted as a volume name
@@ -684,7 +674,7 @@ function MakeAbsoluteUrl(url)
 
   try {
     absoluteUrl = docUri.resolve(resultUrl);
-    // This is deprecated and buggy! 
+    // This is deprecated and buggy!
     // If used, we must make it a path for the parent directory (remove filename)
     //absoluteUrl = IOService.resolveRelativePath(resultUrl, docUrl);
   } catch (e) {}
@@ -699,7 +689,7 @@ function GetDocumentBaseUrl()
   try {
     var docUrl;
 
-    // if document supplies a <base> tag, use that URL instead 
+    // if document supplies a <base> tag, use that URL instead
     var baseList = GetCurrentEditor().document.getElementsByTagName("base");
     if (baseList)
     {
@@ -874,7 +864,7 @@ function StripUsernamePasswordFromURI(uri)
         start = urlspec.indexOf(userPass);
         urlspec = urlspec.slice(0, start) + urlspec.slice(start+userPass.length+1);
       }
-    } catch (e) {}    
+    } catch (e) {}
   }
   return urlspec;
 }
@@ -949,8 +939,8 @@ function GetHTMLOrCSSStyleValue(element, attrName, cssPropertyName)
 
 /************* Miscellaneous ***************/
 // Clone simple JS objects
-function Clone(obj) 
-{ 
+function Clone(obj)
+{
   var clone = {};
   for (var i in obj)
   {

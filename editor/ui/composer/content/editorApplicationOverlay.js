@@ -71,12 +71,10 @@ function editPage(url, aFileType)
     charsetArg = "charset=" + content.document.characterSet;
 
   try {
-    var uri = createURI(url, null, null);
+    let uri = createURI(url, null, null);
 
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    var windowManagerInterface = windowManager.QueryInterface( Components.interfaces.nsIWindowMediator);
-    var enumerator = windowManagerInterface.getEnumerator("composer:" + aFileType);
-    var emptyWindow;
+    let enumerator = Services.wm.getEnumerator("composer:" + aFileType);
+    let emptyWindow;
     while ( enumerator.hasMoreElements() )
     {
       var win = enumerator.getNext();

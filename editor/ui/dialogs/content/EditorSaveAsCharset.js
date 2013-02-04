@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 var gCharset="";
 var gTitleWasEdited = false;
 var gCharsetWasChanged = false;
@@ -21,8 +20,7 @@ function Startup()
     return;
   }
 
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(null, "charsetmenu-selected", "other");
+  Services.obs.notifyObservers(null, "charsetmenu-selected", "other");
 
   gDialog.TitleInput    = document.getElementById("TitleInput");
   gDialog.charsetTree   = document.getElementById('CharsetTree'); 
