@@ -295,19 +295,16 @@ function onClose()
 {
   if (!gFinished)
   {
-    const nsIPromptService = Components.interfaces.nsIPromptService;
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(nsIPromptService);
-    const buttonFlags = (nsIPromptService.BUTTON_TITLE_IS_STRING *
-                         nsIPromptService.BUTTON_POS_0) +
-                        (nsIPromptService.BUTTON_TITLE_CANCEL *
-                         nsIPromptService.BUTTON_POS_1);
-    var button = promptService.confirmEx(window,
-                                         GetString("CancelPublishTitle"),
-                                         GetString("CancelPublishMessage"),
-                                         buttonFlags,
-                                         GetString("CancelPublishContinue"),
-                                         null, null, null, {});
+    const buttonFlags = (Services.prompt.BUTTON_TITLE_IS_STRING *
+                         Services.prompt.BUTTON_POS_0) +
+                        (Services.prompt.BUTTON_TITLE_CANCEL *
+                         Services.prompt.BUTTON_POS_1);
+    let button = Services.prompt.confirmEx(window,
+                                           GetString("CancelPublishTitle"),
+                                           GetString("CancelPublishMessage"),
+                                           buttonFlags,
+                                           GetString("CancelPublishContinue"),
+                                           null, null, null, {});
     if (button == 0)
       return false;
   }

@@ -38,39 +38,20 @@ var gIsHTMLEditor;
 
 function AlertWithTitle(title, message, parentWindow)
 {
-  if (!parentWindow)
-    parentWindow = window;
-
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-  promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
-
-  if (promptService)
-  {
-    if (!title)
-      title = GetString("Alert");
-
-    // "window" is the calling dialog window
-    promptService.alert(parentWindow, title, message);
-  }
+  // "window" is the calling dialog window
+  Services.prompt.alert(parentWindow || window, title || GetString("Alert"), message);
 }
 
 // Optional: Caller may supply text to substitue for "Ok" and/or "Cancel"
 function ConfirmWithTitle(title, message, okButtonText, cancelButtonText)
 {
-  var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-  promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
+  let okFlag = okButtonText ? Services.prompt.BUTTON_TITLE_IS_STRING : Services.prompt.BUTTON_TITLE_OK;
+  let cancelFlag = cancelButtonText ? Services.prompt.BUTTON_TITLE_IS_STRING : Services.prompt.BUTTON_TITLE_CANCEL;
 
-  if (promptService)
-  {
-    var okFlag = okButtonText ? promptService.BUTTON_TITLE_IS_STRING : promptService.BUTTON_TITLE_OK;
-    var cancelFlag = cancelButtonText ? promptService.BUTTON_TITLE_IS_STRING : promptService.BUTTON_TITLE_CANCEL;
-
-    return promptService.confirmEx(window, title, message,
-                            (okFlag * promptService.BUTTON_POS_0) +
-                            (cancelFlag * promptService.BUTTON_POS_1),
-                            okButtonText, cancelButtonText, null, null, {value:0}) == 0;
-  }
-  return false;
+  return Services.prompt.confirmEx(window, title, message,
+                                   (okFlag * Services.prompt.BUTTON_POS_0) +
+                                   (cancelFlag * Services.prompt.BUTTON_POS_1),
+                                   okButtonText, cancelButtonText, null, null, {value:0}) == 0;
 }
 
 /************* String Utilities ***************/
@@ -121,20 +102,23 @@ function GetFormattedString(aName, aVal)
 
 function TrimStringLeft(string)
 {
-  if(!string) return "";
+  if (!string)
+    return "";
   return string.trimLeft();
 }
 
 function TrimStringRight(string)
 {
-  if (!string) return "";
+  if (!string)
+    return "";
   return string.trimRight();
 }
 
 // Remove whitespace from both ends of a string
 function TrimString(string)
 {
-  if (!string) return "";
+  if (!string)
+    return "";
   return string.trim();
 }
 
@@ -970,7 +954,7 @@ function Clone(obj)
   var clone = {};
   for (var i in obj)
   {
-    if( typeof obj[i] == 'object')
+    if (typeof obj[i] == 'object')
       clone[i] = Clone(obj[i]);
     else
       clone[i] = obj[i];
