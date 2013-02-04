@@ -47,11 +47,18 @@
       <preference id="msgcompose.font_face"      name="msgcompose.font_face" type="string"/>
       <preference id="msgcompose.font_size"      name="msgcompose.font_size" type="string"/>
       <preference id="msgcompose.text_color"     name="msgcompose.text_color" type="string"/>
-      <preference id="msgcompose.background_color" name="msgcompose.background_color" type="string"/>      
+      <preference id="msgcompose.background_color" name="msgcompose.background_color" type="string"/>
       <preference id="mail.compose.attachment_reminder"
                   name="mail.compose.attachment_reminder"
                   type="bool"/>
     </preferences>
+
+    <commandset id="compositionGeneralCommandSet">
+      <command id="cmd_toggleAutosave"
+               oncommand="gComposePane.updateAutosave();"/>
+      <command id="cmd_toggleAttachmentCheck"
+               oncommand="gComposePane.updateAttachmentCheck();"/>
+    </commandset>
 
     <tabbox id="composePrefs" flex="1" onselect="gComposePane.tabSelectionChanged();">
       <tabs>
@@ -77,8 +84,9 @@
 
             <hbox align="center" pack="start">
               <checkbox id="autoSave" label="&autoSave.label;" preference="mail.compose.autosave"
-                        accesskey="&autoSave.accesskey;"/>
-              <textbox id="autoSaveInterval" size="2" type="number" max="35790"
+                        accesskey="&autoSave.accesskey;" command="cmd_toggleAutosave"/>
+              <textbox id="autoSaveInterval"
+                       size="2" type="number" min="1" max="35790"
                        preference="mail.compose.autosaveinterval"
                        aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
               <label id="autoSaveEnd" value="&autoSaveEnd.label;"/>
@@ -93,6 +101,7 @@
                         label="&attachmentReminder.label;"
                         accesskey="&attachmentReminder.accesskey;"
                         preference="mail.compose.attachment_reminder"
+                        command="cmd_toggleAttachmentCheck"
                         flex="1"/>
               <button id="attachment_reminder_button"
                       label="&attachmentReminderOptions.label;"

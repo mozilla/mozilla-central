@@ -16,6 +16,10 @@ var gComposePane = {
 
     this.populateFonts();
 
+    this.updateAutosave();
+
+    this.updateAttachmentCheck();
+
     if (!(("arguments" in window) && window.arguments[1])) {
       // If no tab was specified, select the last used tab.
       let preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
@@ -50,12 +54,23 @@ var gComposePane = {
     document.documentElement.openSubDialog("chrome://messenger/content/preferences/htmlcompose.xul","", null);
   },
 
+  updateAutosave: function()
+  {
+    this.enableElement(document.getElementById("autoSaveInterval"),
+      document.getElementById("autoSave").checked);
+  },
+
+  updateAttachmentCheck: function()
+  {
+    this.enableElement(document.getElementById("attachment_reminder_button"),
+      document.getElementById("attachment_reminder_label").checked);
+  },
+
   enableElement: function(aElement, aEnable)
   {
-    var pref = document.getElementById(aElement.getAttribute("preference"));
-    var enabled = aEnable && !pref.locked;
-
-    aElement.disabled = !enabled;
+    let pref = aElement.getAttribute("preference");
+    let prefIsLocked = pref ? document.getElementById(pref).locked : false;
+    aElement.disabled = !aEnable || prefIsLocked;
   },
 
   enableAutocomplete: function()
