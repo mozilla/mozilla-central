@@ -1355,15 +1355,13 @@ NS_IMETHODIMP nsImapMailFolder::CompactAll(nsIUrlListener *aListener,
   nsCOMPtr<nsIMutableArray> folderArray, offlineFolderArray;
 
   nsCOMPtr<nsIMsgFolder> rootFolder;
-  nsCOMPtr<nsISupportsArray> allDescendents;
+  nsCOMPtr<nsIArray> allDescendents;
   rv = GetRootFolder(getter_AddRefs(rootFolder));
   if (NS_SUCCEEDED(rv) && rootFolder)
   {
-    allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-    NS_ENSURE_TRUE(allDescendents, rv);
-    rootFolder->ListDescendents(allDescendents);
+    rootFolder->GetDescendants(getter_AddRefs(allDescendents));
     uint32_t cnt = 0;
-    rv = allDescendents->Count(&cnt);
+    rv = allDescendents->GetLength(&cnt);
     NS_ENSURE_SUCCESS(rv, rv);
     folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_TRUE(folderArray, rv);

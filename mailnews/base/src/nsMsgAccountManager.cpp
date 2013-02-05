@@ -531,18 +531,16 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
   m_incomingServers.Remove(serverKey);
 
   nsCOMPtr<nsIMsgFolder> rootFolder;
-  nsCOMPtr<nsISupportsArray> allDescendents;
+  nsCOMPtr<nsIArray> allDescendants;
 
   rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
+  rv = rootFolder->GetDescendants(getter_AddRefs(allDescendants));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rootFolder->ListDescendents(allDescendents);
-
   uint32_t cnt = 0;
-  rv = allDescendents->Count(&cnt);
+  rv = allDescendants->GetLength(&cnt);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolderNotificationService> notifier =
@@ -552,7 +550,7 @@ nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
 
   for (uint32_t i = 0; i < cnt; i++)
   {
-    nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
+    nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendants, i);
     if (folder)
     {
       folder->ForceDBClosed();
@@ -3299,6 +3297,7 @@ nsresult nsMsgAccountManager::RemoveVFListenerForVF(nsIMsgFolder *virtualFolder,
 NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
 {
   NS_ENSURE_ARG_POINTER(aAllFolders);
+
   nsCOMPtr<nsIArray> servers;
   nsresult rv = GetAllServers(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -3307,11 +3306,7 @@ NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
   rv = servers->GetLength(&numServers);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> allDescendents;
-  rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  nsCOMPtr<nsIMutableArray> allFolders(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   uint32_t i;
@@ -3320,25 +3315,15 @@ NS_IMETHODIMP nsMsgAccountManager::GetAllFolders(nsIArray **aAllFolders)
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(servers, i);
     if (server)
     {
-      nsCOMPtr <nsIMsgFolder> rootFolder;
+      nsCOMPtr<nsIMsgFolder> rootFolder;
       server->GetRootFolder(getter_AddRefs(rootFolder));
       if (rootFolder)
-        rootFolder->ListDescendents(allDescendents);
+        rootFolder->ListDescendants(allFolders);
     }
   }
-  uint32_t folderCount;
-  rv = allDescendents->Count(&folderCount);
-  NS_ENSURE_SUCCESS(rv, rv);
 
-  // Create an nsIMutableArray from the nsISupportsArray
-  nsCOMPtr<nsIMsgFolder> folder;
-  for (i = 0; i < folderCount; i++)
-  {
-    folder = do_QueryElementAt(allDescendents, i);
-    folderArray->AppendElement(folder, false);
-  }
-  NS_ADDREF(*aAllFolders = folderArray);
-  return rv;
+  allFolders.forget(aAllFolders);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupports *item)
@@ -3428,18 +3413,18 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
           // New sent or archive folder, need to add sub-folders to smart folder.
           if (vfFolderFlag & (nsMsgFolderFlags::Archive | nsMsgFolderFlags::SentMail))
           {
-            nsCOMPtr<nsISupportsArray> allDescendents;
-            rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
+            nsCOMPtr<nsIArray> allDescendants;
+            rv = folder->GetDescendants(getter_AddRefs(allDescendants));
             NS_ENSURE_SUCCESS(rv, rv);
-            folder->ListDescendents(allDescendents);
+
             uint32_t cnt = 0;
-            rv = allDescendents->Count(&cnt);
+            rv = allDescendants->GetLength(&cnt);
             NS_ENSURE_SUCCESS(rv, rv);
 
             nsCOMPtr<nsIMsgFolder> parent;
             for (uint32_t j = 0; j < cnt; j++)
             {
-              nsCOMPtr<nsIMsgFolder> subFolder = do_QueryElementAt(allDescendents, j);
+              nsCOMPtr<nsIMsgFolder> subFolder = do_QueryElementAt(allDescendants, j);
               if (subFolder)
               {
                 subFolder->GetParent(getter_AddRefs(parent));
@@ -3585,18 +3570,18 @@ nsMsgAccountManager::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
       // sent|archive flag removed, remove sub-folders from smart folder.
       if (smartFlagsChanged & (nsMsgFolderFlags::Archive | nsMsgFolderFlags::SentMail))
       {
-        nsCOMPtr<nsISupportsArray> allDescendents;
-        nsresult rv = NS_NewISupportsArray(getter_AddRefs(allDescendents));
+        nsCOMPtr<nsIArray> allDescendants;
+        nsresult rv = aFolder->GetDescendants(getter_AddRefs(allDescendants));
         NS_ENSURE_SUCCESS(rv, rv);
-        aFolder->ListDescendents(allDescendents);
+
         uint32_t cnt = 0;
-        rv = allDescendents->Count(&cnt);
+        rv = allDescendants->GetLength(&cnt);
         NS_ENSURE_SUCCESS(rv, rv);
 
         nsCOMPtr<nsIMsgFolder> parent;
         for (uint32_t j = 0; j < cnt; j++)
         {
-          nsCOMPtr<nsIMsgFolder> subFolder = do_QueryElementAt(allDescendents, j);
+          nsCOMPtr<nsIMsgFolder> subFolder = do_QueryElementAt(allDescendants, j);
           if (subFolder)
             RemoveFolderFromSmartFolder(subFolder, smartFlagsChanged);
         }

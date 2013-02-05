@@ -773,27 +773,26 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
       continue;
 
     nsCOMPtr<nsIMsgFolder> rootFolder;
-    nsCOMPtr<nsISupportsArray> allDescendents;
+    nsCOMPtr<nsIArray> allDescendants;
 
     rv = incomingServer->GetRootFolder(getter_AddRefs(rootFolder));
     if (rootFolder)
     {
-      allDescendents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
       if (NS_FAILED(rv))
         continue;
 
-      rv = rootFolder->ListDescendents(allDescendents);
-      if (!allDescendents)
+      rv = rootFolder->GetDescendants(getter_AddRefs(allDescendants));
+      if (!allDescendants)
         continue;
 
       uint32_t cnt = 0;
-      rv = allDescendents->Count(&cnt);
+      rv = allDescendants->GetLength(&cnt);
       if (NS_FAILED(rv))
         continue;
 
       for (uint32_t i = 0; i < cnt; i++)
       {
-        nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(allDescendents, i, &rv));
+        nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(allDescendants, i, &rv));
         if (NS_FAILED(rv))
           continue;
 

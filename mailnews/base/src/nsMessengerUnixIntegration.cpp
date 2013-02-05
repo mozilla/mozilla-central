@@ -48,6 +48,7 @@
 #include "msgCore.h"
 #include "nsCOMArray.h"
 #include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 #include "nsMemory.h"
 #include "mozilla/Services.h"
 
@@ -236,11 +237,11 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   bool localOnly;
 
   uint32_t msgURIIndex = mFetchingURIs.IndexOf(msgURI);
-  if (msgURIIndex == -1)
+  if (msgURIIndex == mFetchingURIs.NoIndex)
   {
     localOnly = false;
     mFetchingURIs.AppendElement(msgURI);
-  } 
+  }
   else
     localOnly = true;
 
@@ -260,7 +261,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
 
   // If we got here, that means that we've retrieved the message preview,
   // so we can stop tracking it with our mFetchingURIs array.
-  if (msgURIIndex != -1)
+  if (msgURIIndex != mFetchingURIs.NoIndex)
     mFetchingURIs.RemoveElementAt(msgURIIndex);
 
   nsCString utf8previewString;
@@ -599,13 +600,12 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
       continue;
     // enumerate over the folders under this root folder till we find one with new mail....
     nsCOMPtr<nsIMsgFolder> msgFolder;
-    nsCOMPtr<nsISupportsArray> allFolders;
-    NS_NewISupportsArray(getter_AddRefs(allFolders));
-    rv = folder->ListDescendents(allFolders);
+    nsCOMPtr<nsIArray> allFolders;
+    rv = folder->GetDescendants(getter_AddRefs(allFolders));
     NS_ENSURE_SUCCESS(rv, rv);
 
     uint32_t subfolderCount = 0;
-    allFolders->Count(&subfolderCount);
+    allFolders->GetLength(&subfolderCount);
     uint32_t j;
     for (j = 0; j < subfolderCount; j++)
     {
