@@ -154,7 +154,7 @@ function test_get_account_details() {
 
   // Our first check is to see that no sensitive data has crept in
   for (let [, data] in Iterator(gSensitiveData))
-    do_check_eq(accountDetailsText.indexOf(data), -1);
+    do_check_false(accountDetailsText.contains(data));
 
   for (let [, details] in Iterator(accountDetails)) {
     // We're going to make one exception: for the local folders server. We don't
