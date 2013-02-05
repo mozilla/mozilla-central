@@ -318,11 +318,8 @@ let SearchSupport =
 
     for each (var server in fixIterator(servers, Ci.nsIMsgIncomingServer))
     {
-      let rootFolder = server.rootFolder;
-      let allFolders = Cc["@mozilla.org/supports-array;1"]
-                         .createInstance(Ci.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      let numFolders = allFolders.Count();
+      let allFolders = server.rootFolder.descendants;
+      let numFolders = allFolders.length;
       this._log.debug("in find next folder, lastFolderIndexedUri = " +
                       this._lastFolderIndexedUri);
 

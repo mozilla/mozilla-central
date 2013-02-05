@@ -234,11 +234,13 @@ imIncomingServer.prototype = {
       get abbreviatedName() this.server.prettyName + "abbreviatedName",
       AddFolderListener: function() {},
       RemoveFolderListener: function() {},
-      ListDescendents: function(descendents) {},
+      descendants: Components.classes["@mozilla.org/array;1"]
+                  .createInstance(Components.interfaces.nsIArray),
+      ListDescendants: function(descendants) {},
       getFolderWithFlags: function(aFlags) null,
       getFoldersWithFlags: function(aFlags)
         Components.classes["@mozilla.org/array;1"]
-                  .createInstance(Components.interfaces.nsIMutableArray),
+                  .createInstance(Components.interfaces.nsIArray),
       get subFolders() EmptyEnumerator,
       getStringProperty: function(aPropertyName) "",
       getNumUnread: function(aDeep) 0,
