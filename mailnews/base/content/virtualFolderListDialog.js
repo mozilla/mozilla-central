@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 var gFolderPickerTree = null;
 
@@ -62,25 +63,10 @@ function processSearchSettingForFolder(aFolder, aCurrentSearchURIString)
 // warning: this routine also clears out the search property list from all of the msg folders
 function generateFoldersToSearchList()
 {
-  var uriSearchString = "";
-
-  var allServers = MailServices.accounts.allServers;
-  var numServers = allServers.length;
-  for (var index = 0; index < numServers; index++)
-  {
-    var rootFolder =
-      allServers.queryElementAt(index,
-                                Components.interfaces.nsIMsgIncomingServer).rootFolder;
-    if (rootFolder)
-    {
-      uriSearchString = processSearchSettingForFolder(rootFolder, uriSearchString);
-      var allFolders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      var numFolders = allFolders.Count();
-      for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
-        uriSearchString = processSearchSettingForFolder(allFolders.GetElementAt(folderIndex).QueryInterface(Components.interfaces.nsIMsgFolder), uriSearchString);
-    }
-  } // for each account
+  let uriSearchString = "";
+  let allFolders = MailServices.accounts.allFolders;
+  for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
+    uriSearchString = processSearchSettingForFolder(folder, uriSearchString);
 
   return uriSearchString;
 }
@@ -89,22 +75,9 @@ function resetFolderToSearchAttribute()
 {
   // iterates over all accounts and all folders, clearing out the inVFEditScope property in case
   // we set it.
-  var allServers = MailServices.accounts.allServers;
-  var numServers = allServers.length;
-  for (var index = 0; index < numServers; index++)
-  {
-    var rootFolder =
-      allServers.queryElementAt(index,
-                                Components.interfaces.nsIMsgIncomingServer).rootFolder;
-    if (rootFolder)
-    {
-      var allFolders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      var numFolders = allFolders.Count();
-      for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
-        allFolders.GetElementAt(folderIndex).QueryInterface(Components.interfaces.nsIMsgFolder).setInVFEditSearchScope(false, false);
-    }
-  } // for each account
+  let allFolders = MailServices.accounts.allFolders;
+  for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
+    folder.setInVFEditSearchScope(false, false);
 }
 
 function ReverseStateFromNode(row)

@@ -1180,13 +1180,8 @@ var Gloda = {
               continue;
             seenRootFolders[rootFolder.URI] = true;
 
-            let allFolders = Cc["@mozilla.org/supports-array;1"].
-              createInstance(Ci.nsISupportsArray);
-            rootFolder.ListDescendents(allFolders);
-            let numFolders = allFolders.Count();
-            for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-              let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
-                Ci.nsIMsgFolder);
+            let allFolders = rootFolder.descendants;
+            for (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
               let folderFlags = folder.flags;
 
               // Ignore virtual folders, non-mail folders.

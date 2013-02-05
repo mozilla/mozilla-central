@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
+
 var gIncomingServer;
 var gServerType;
 var gImapIncomingServer;
@@ -300,55 +302,30 @@ function onCheckItem(changeElementId, checkElementId)
 
 function toggleOffline()
 {
-    var offline = document.getElementById("offline.folders").checked;
-    var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
-                               .createInstance(Components.interfaces.nsISupportsArray);
-    rootFolder.ListDescendents(allFolders);
-    var numFolders = allFolders.Count();
-    var folder;
-    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
-    {
-      folder = allFolders.QueryElementAt(folderIndex,
-                                         Components.interfaces.nsIMsgFolder);
+    let offline = document.getElementById("offline.folders").checked;
+    let allFolders = gIncomingServer.rootFolder.descendants;
+    for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder)) {
       if (offline)
         folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       else
         folder.clearFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
-    
 }
 
 function collectOfflineFolders()
 {
-    var offlineFolderMap = {};
-    var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
-                               .createInstance(Components.interfaces.nsISupportsArray);
-    rootFolder.ListDescendents(allFolders);
-    var numFolders = allFolders.Count();
-    var folder;
-    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
-    {
-      folder = allFolders.QueryElementAt(folderIndex,
-                                         Components.interfaces.nsIMsgFolder);
+    let offlineFolderMap = {};
+    let allFolders = gIncomingServer.rootFolder.descendants;
+    for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
       offlineFolderMap[folder.folderURL] = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
-    }
+
     return offlineFolderMap;
 }
 
 function restoreOfflineFolders(offlineFolderMap)
 {
-    var rootFolder = gIncomingServer.rootFolder;
-    var allFolders = Components.classes["@mozilla.org/supports-array;1"]
-                               .createInstance(Components.interfaces.nsISupportsArray);
-    rootFolder.ListDescendents(allFolders);
-    var numFolders = allFolders.Count();
-    var folder;
-    for (var folderIndex = 0; folderIndex < numFolders; folderIndex++)
-    {
-      folder = allFolders.QueryElementAt(folderIndex,
-                                         Components.interfaces.nsIMsgFolder);
+    let allFolders = gIncomingServer.rootFolder.descendants;
+    for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder)) {
       if (offlineFolderMap[folder.folderURL])
         folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       else

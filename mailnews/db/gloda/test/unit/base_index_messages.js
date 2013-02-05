@@ -1034,9 +1034,7 @@ function test_folder_deletion_nested() {
   let trash = make_empty_folder(null, [Ci.nsMsgFolderFlags.Trash]);
   yield move_folder(folder1, trash);
 
-  let descendentFolders = Cc["@mozilla.org/supports-array;1"]
-                          .createInstance(Ci.nsISupportsArray);
-  get_nsIMsgFolder(trash).ListDescendents(descendentFolders);
+  let descendentFolders = get_nsIMsgFolder(trash).descendants;
   let folders = [folder for (folder in fixIterator(descendentFolders, Ci.nsIMsgFolder))];
   do_check_eq(folders.length, 2);
   let [newFolder1, newFolder2] = folders;

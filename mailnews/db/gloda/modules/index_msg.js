@@ -21,6 +21,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/MailUtils.js");
 
 Cu.import("resource:///modules/gloda/log4moz.js");
@@ -1001,25 +1002,10 @@ var GlodaMsgIndexer = {
       //  sort them by their indexing priority.
       let foldersToProcess = aJob.foldersToProcess = [];
 
-      let accountManager = Cc["@mozilla.org/messenger/account-manager;1"].
-                           getService(Ci.nsIMsgAccountManager);
-      let servers = accountManager.allServers;
-      for (let i = 0; i < servers.length; i++) {
-        let server = servers.queryElementAt(i, Ci.nsIMsgIncomingServer);
-        let rootFolder = server.rootFolder;
-
-        let allFolders = Cc["@mozilla.org/supports-array;1"].
-          createInstance(Ci.nsISupportsArray);
-        rootFolder.ListDescendents(allFolders);
-        let numFolders = allFolders.Count();
-        for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-          let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
-            Ci.nsIMsgFolder);
-          if (!this.shouldIndexFolder(folder))
-            continue;
-
+      let allFolders = MailServices.accounts.allFolders;
+      for (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
+        if (this.shouldIndexFolder(folder))
           foldersToProcess.push(Gloda.getFolderForFolder(folder));
-        }
       }
 
       // sort the folders by priority (descending)
@@ -1921,14 +1907,9 @@ var GlodaMsgIndexer = {
     if (rootFolder instanceof Ci.nsIMsgFolder) {
       this._log.info("Queueing account folders for indexing: " + aAccount.key);
 
-      let allFolders = Cc["@mozilla.org/supports-array;1"]
-                         .createInstance(Ci.nsISupportsArray);
-      rootFolder.ListDescendents(allFolders);
-      let numFolders = allFolders.Count();
+      let allFolders = rootFolder.descendants;
       let folderJobs = [];
-      for (let folderIndex = 0; folderIndex < numFolders; folderIndex++) {
-        let folder = allFolders.GetElementAt(folderIndex).QueryInterface(
-                                                            Ci.nsIMsgFolder);
+      for (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
         if (this.shouldIndexFolder(folder))
           GlodaIndexer.indexJob(
             new IndexingJob("folder", GlodaDatastore._mapFolder(folder).id));
@@ -2605,10 +2586,7 @@ var GlodaMsgIndexer = {
           }
         };
 
-        let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-        createInstance(Ci.nsISupportsArray);
-        aFolder.ListDescendents(descendentFolders);
-
+        let descendentFolders = aFolder.descendants;
         // (the order of operations does not matter; child, non-child, whatever.)
         // delete the parent
         delFunc(aFolder, this.indexer);
@@ -2661,9 +2639,7 @@ var GlodaMsgIndexer = {
       let newFolder = MailUtils.getFolderForURI(aNewURI);
       let specialFolderFlags = Ci.nsMsgFolderFlags.Trash | Ci.nsMsgFolderFlags.Junk;
       if (newFolder.isSpecialFolder(specialFolderFlags, true)) {
-        let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-                                  createInstance(Ci.nsISupportsArray);
-        newFolder.ListDescendents(descendentFolders);
+        let descendentFolders = newFolder.descendants;
 
         // First thing to do: make sure we don't index the resulting folder and
         //  its descendents.
@@ -2675,9 +2651,7 @@ var GlodaMsgIndexer = {
         // Remove from the index messages from the original folder
         this.folderDeleted(aOrigFolder);
       } else {
-        let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-                                  createInstance(Ci.nsISupportsArray);
-        aOrigFolder.ListDescendents(descendentFolders);
+        let descendentFolders = aOrigFolder.descendants;
 
         let origURI = aOrigFolder.URI;
         // this rename is straightforward.
