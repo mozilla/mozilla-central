@@ -523,6 +523,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(19px, 395px, 35px, 379px);
 }
 
+toolbar:not([mode="text"]) > #button-chat > stack,
+toolbar:not([mode="text"]) > toolbarpaletteitem > #button-chat > stack {
+  margin: 1px;
+}
+
 toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
   -moz-margin-start: 6px;
   margin-bottom: 6px;
