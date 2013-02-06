@@ -345,7 +345,7 @@ let autosyncModule =
 
     for (let i = 1; i < this._inQFolderList.length; i++) {
       // do not include already existing account names
-      if (accountList.search(this._inQFolderList[i].server.prettyName) == -1)
+      if (!accountList.contains(this._inQFolderList[i].server.prettyName))
         accountList = accountList + ", " + this._inQFolderList[i].server.prettyName;
     }
     return accountList;
