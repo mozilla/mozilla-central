@@ -14,7 +14,6 @@
 #include "nsIDBFolderInfo.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsArrayUtils.h"
 #include "nsMsgUtils.h"
 
 nsrefcnt nsRssIncomingServer::gInstanceCount    = 0;
@@ -251,19 +250,20 @@ nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, bool aUnsubsc
       // If the user was moving a set of nested folders, we only
       // get a single notification, so we need to iterate over all of the
       // descedent folders of the folder whose location has changed.
-      nsCOMPtr<nsIArray> allDescendents;
-      rv = aFolder->GetDescendants(getter_AddRefs(allDescendents));
+      nsCOMPtr<nsISupportsArray> allDescendents;
+      NS_NewISupportsArray(getter_AddRefs(allDescendents));
+      rv = aFolder->ListDescendents(allDescendents);
       NS_ENSURE_SUCCESS(rv, rv);
 
       uint32_t cnt = 0;
-      allDescendents->GetLength(&cnt);
+      allDescendents->Count(&cnt);
 
       nsCOMPtr<nsIMsgFolder> rssFolder;
 
       for (uint32_t index = 0; index < cnt; index++)
       {
         rssFolder = do_QueryElementAt(allDescendents, index, &rv);
-        if (NS_SUCCEEDED(rv) && rssFolder)
+        if (rssFolder)
           rssDownloader->UpdateSubscriptionsDS(rssFolder, aUnsubscribe);
       }
     }

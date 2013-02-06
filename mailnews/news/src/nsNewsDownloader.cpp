@@ -378,27 +378,27 @@ nsMsgDownloadAllNewsgroups::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   return rv;
 }
 
-/**
- * Leaves m_currentServer at the next nntp "server" that
- * might have folders to download for offline use. If no more servers,
- * m_currentServer will be left at nullptr and the function returns false.
- * Also, sets up m_serverEnumerator to enumerate over the server.
- * If no servers found, m_serverEnumerator will be left at null.
- */
-bool nsMsgDownloadAllNewsgroups::AdvanceToNextServer()
+// leaves m_currentServer at the next nntp "server" that
+// might have folders to download for offline use. If no more servers,
+// m_currentServer will be left at nullptr.
+// Also, sets up m_serverEnumerator to enumerate over the server
+// If no servers found, m_serverEnumerator will be left at null,
+nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(bool *done)
 {
   nsresult rv;
 
+  NS_ENSURE_ARG(done);
+
+  *done = true;
   if (!m_allServers)
   {
     nsCOMPtr<nsIMsgAccountManager> accountManager =
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     NS_ASSERTION(accountManager && NS_SUCCEEDED(rv), "couldn't get account mgr");
-    if (!accountManager || NS_FAILED(rv))
-      return false;
+    if (!accountManager || NS_FAILED(rv)) return rv;
 
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
-    NS_ENSURE_SUCCESS(rv, false);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   uint32_t serverIndex = 0;
   if (m_currentServer)
@@ -422,39 +422,36 @@ bool nsMsgDownloadAllNewsgroups::AdvanceToNextServer()
     nsCOMPtr <nsINntpIncomingServer> newsServer = do_QueryInterface(server);
     if (!newsServer) // we're only looking for news servers
       continue;
-
     if (server)
     {
       m_currentServer = server;
       server->GetRootFolder(getter_AddRefs(rootFolder));
       if (rootFolder)
       {
-        rv = rootFolder->GetDescendants(getter_AddRefs(m_allFolders));
+        NS_NewISupportsArray(getter_AddRefs(m_allFolders));
+        rv = rootFolder->ListDescendents(m_allFolders);
         if (NS_SUCCEEDED(rv))
+          m_allFolders->Enumerate(getter_AddRefs(m_serverEnumerator));
+        if (NS_SUCCEEDED(rv) && m_serverEnumerator)
         {
-          rv = m_allFolders->Enumerate(getter_AddRefs(m_serverEnumerator));
-          if (NS_SUCCEEDED(rv) && m_serverEnumerator)
+          rv = m_serverEnumerator->First();
+          if (NS_SUCCEEDED(rv))
           {
-            bool hasMore = false;
-            rv = m_serverEnumerator->HasMoreElements(&hasMore);
-            if (NS_SUCCEEDED(rv) && hasMore)
-              return true;
+            *done = false;
+            break;
           }
         }
       }
     }
   }
-  return false;
+  return rv;
 }
 
-/**
- * Sets m_currentFolder to the next usable folder.
- *
- * @return  False if no more folders found, otherwise true.
- */
-bool nsMsgDownloadAllNewsgroups::AdvanceToNextGroup()
+nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(bool *done)
 {
-  nsresult rv = NS_OK;
+  nsresult rv;
+  NS_ENSURE_ARG(done);
+  *done = true;
 
   if (m_currentFolder)
   {
@@ -476,20 +473,23 @@ bool nsMsgDownloadAllNewsgroups::AdvanceToNextGroup()
     m_currentFolder = nullptr;
   }
 
-  bool hasMore = false;
-  if (m_currentServer)
-    m_serverEnumerator->HasMoreElements(&hasMore);
-  if (!hasMore)
-    hasMore = AdvanceToNextServer();
+  *done = false;
 
-  if (hasMore)
+  if (!m_currentServer)
+     rv = AdvanceToNextServer(done);
+  else
+     rv = m_serverEnumerator->Next();
+  if (NS_FAILED(rv))
+    rv = AdvanceToNextServer(done);
+
+  if (NS_SUCCEEDED(rv) && !*done && m_serverEnumerator)
   {
-    nsCOMPtr<nsISupports> supports;
-    rv = m_serverEnumerator->GetNext(getter_AddRefs(supports));
-    if (NS_SUCCEEDED(rv))
-      m_currentFolder = do_QueryInterface(supports);
+    nsCOMPtr <nsISupports> supports;
+    rv = m_serverEnumerator->CurrentItem(getter_AddRefs(supports));
+    m_currentFolder = do_QueryInterface(supports);
+    *done = false;
   }
-  return m_currentFolder;
+  return rv;
 }
 
 nsresult DownloadMatchingNewsArticlesToNewsDB::RunSearch(nsIMsgFolder *folder, nsIMsgDatabase *newsDB, nsIMsgSearchSession *searchSession)
@@ -513,12 +513,13 @@ nsresult DownloadMatchingNewsArticlesToNewsDB::RunSearch(nsIMsgFolder *folder, n
 
 nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
 {
+  nsresult rv = NS_OK;
   bool done = false;
 
-  while (!done)
+  while (NS_SUCCEEDED(rv) && !done)
   {
-    done = !AdvanceToNextGroup();
-    if (!done && m_currentFolder)
+    rv = AdvanceToNextGroup(&done);
+    if (m_currentFolder)
     {
       uint32_t folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
@@ -526,7 +527,7 @@ nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
         break;
     }
   }
-  if (done)
+  if (NS_FAILED(rv) || done)
   {
     if (m_listener)
       return m_listener->OnStopRunningUrl(nullptr, NS_OK);

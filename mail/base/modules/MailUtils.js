@@ -329,10 +329,12 @@ var MailUtils =
                                                                  aPropertyValue,
                                                                  aFolder,
                                                                  aCallback) {
-    // We need to add the base folder as it does not get added by ListDescendants.
-    let allFolders = toXPCOMArray(aFolder, Ci.nsIMutableArray);
-    // - get all the descendants
-    aFolder.ListDescendants(allFolders);
+    // - get all the descendents
+    let allFolders = Cc["@mozilla.org/supports-array;1"].
+                       createInstance(Ci.nsISupportsArray);
+    // we need to add the base folder; it does not get added by ListDescendents
+    allFolders.AppendElement(aFolder);
+    aFolder.ListDescendents(allFolders);
 
     // - worker function
     function folder_string_setter_worker() {

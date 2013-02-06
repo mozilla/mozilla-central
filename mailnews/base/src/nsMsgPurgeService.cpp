@@ -168,12 +168,12 @@ nsresult nsMsgPurgeService::PerformPurge()
           rv = server->GetRootFolder(getter_AddRefs(rootFolder));
           NS_ENSURE_SUCCESS(rv, rv);
 
-          nsCOMPtr<nsIArray> childFolders;
-          rv = rootFolder->GetDescendants(getter_AddRefs(childFolders));
+          nsCOMPtr <nsISupportsArray> childFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
           NS_ENSURE_SUCCESS(rv, rv);
+          rv = rootFolder->ListDescendents(childFolders);
 
           uint32_t cnt = 0;
-          childFolders->GetLength(&cnt);
+          childFolders->Count(&cnt);
 
           nsCOMPtr<nsISupports> supports;
           nsCOMPtr<nsIUrlListener> urlListener;

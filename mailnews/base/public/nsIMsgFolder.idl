@@ -33,7 +33,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(bc4c8fff-0352-4e28-abda-db7f86a9e5f7)]
+[scriptable, uuid(bc4c8fff-0352-4e28-abda-db7f86a9e5f6)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -687,15 +687,8 @@ interface nsIMsgFolder : nsISupports {
   //  void NotifyFolderLoaded();
   //  void NotifyDeleteOrMoveMessagesCompleted(in nsIMsgFolder folder);
 
-  // Gets all descendants, not just first level children.
-  readonly attribute nsIArray descendants;
-  /*
-   * Lists all the folders that are subfolders of the current folder,
-   * all levels of children.
-   *
-   * @param aDescendants  The array in which to append the found folder(s).
-   */
-  void ListDescendants(in nsIMutableArray aDescendants);
+  // lists all descendents, not just first level children
+  void ListDescendents(in nsISupportsArray descendents);
   void Shutdown(in boolean shutdownChildren);
 
   readonly attribute boolean inVFEditSearchScope;

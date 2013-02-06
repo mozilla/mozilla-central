@@ -25,25 +25,23 @@ var nsNewsBlogFeedDownloader =
       return;
     }
 
-    let allFolders = Cc["@mozilla.org/array;1"].
-                     createInstance(Ci.nsIMutableArray);
-    if (!aFolder.isServer) {
-      // Add the base folder; it does not get returned by ListDescendants. Do not
+    let allFolders = Cc["@mozilla.org/supports-array;1"].
+                     createInstance(Ci.nsISupportsArray);
+    if (!aFolder.isServer)
+      // Add the base folder; it does not get added by ListDescendents.  Do not
       // add the account folder as it doesn't have the feedUrl property or even
       // a msgDatabase necessarily.
-      allFolders.appendElement(aFolder, false);
-    }
+      allFolders.AppendElement(aFolder);
 
-    aFolder.ListDescendants(allFolders);
-
+    aFolder.ListDescendents(allFolders);
+    let numFolders = allFolders.Count();
     let trashFolder =
         aFolder.rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Trash);
 
     function feeder() {
       let folder;
-      let numFolders = allFolders.length;
       for (let i = 0; i < numFolders; i++) {
-        folder = allFolders.queryElementAt(i, Ci.nsIMsgFolder);
+        folder = allFolders.GetElementAt(i).QueryInterface(Ci.nsIMsgFolder);
         FeedUtils.log.debug("downloadFeed: START x/# foldername:uri - " +
                             (i+1) + "/" + numFolders + " " +
                             folder.name + ":" + folder.URI);

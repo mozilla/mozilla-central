@@ -105,8 +105,8 @@ public:
   nsresult ProcessNextGroup();
 
 protected:
-  bool     AdvanceToNextServer();
-  bool     AdvanceToNextGroup();
+  nsresult AdvanceToNextServer(bool *done);
+  nsresult AdvanceToNextGroup(bool *done);
   nsresult DownloadMsgsForCurrentGroup();
 
   DownloadMatchingNewsArticlesToNewsDB *m_downloaderForGroup;
@@ -114,9 +114,9 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_currentFolder;
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIArray> m_allServers;
-  nsCOMPtr <nsIArray> m_allFolders;
+  nsCOMPtr <nsISupportsArray> m_allFolders;
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
-  nsCOMPtr <nsISimpleEnumerator> m_serverEnumerator;
+  nsCOMPtr <nsIEnumerator> m_serverEnumerator;
   nsCOMPtr <nsIUrlListener> m_listener;
 
   bool m_downloadedHdrsForCurGroup;

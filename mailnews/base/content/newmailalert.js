@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 // Copied from nsILookAndFeel.h, see comments on eMetric_AlertNotificationOrigin
 const NS_ALERT_HORIZONTAL = 1;
@@ -52,11 +51,16 @@ function prefillAlertInfo()
 
   // This is really the root folder and we have to walk through the list to
   // find the real folder that has new mail in it...:(
-  let allFolders = rootFolder.descendants;
+  var allFolders = Components.classes["@mozilla.org/supports-array;1"]
+                             .createInstance(Components.interfaces.nsISupportsArray);
+  rootFolder.ListDescendents(allFolders);
+  var numFolders = allFolders.Count();
   var folderSummaryInfoEl = document.getElementById('folderSummaryInfo');
   folderSummaryInfoEl.mMaxMsgHdrsInPopup = gNumNewMsgsToShowInAlert;
-  for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
+  for (let folderIndex = 0; folderIndex < numFolders; folderIndex++)
   {
+    var folder = allFolders.GetElementAt(folderIndex)
+                           .QueryInterface(Components.interfaces.nsIMsgFolder);
     const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
     if (folder.hasNewMessages && !(folder.flags & nsMsgFolderFlags.Virtual))
     {

@@ -43,8 +43,8 @@ public: // set to one folder to playback one folder only
 protected:
   bool      CreateOfflineFolders();
   bool      DestFolderOnSameServer(nsIMsgFolder *destFolder);
-  bool      AdvanceToNextServer();
-  bool      AdvanceToNextFolder();
+  nsresult  AdvanceToNextServer();
+  nsresult  AdvanceToNextFolder();
   void      AdvanceToFirstIMAPFolder();
   void      DeleteAllOfflineOpsForCurrentDB();
   void      ClearCurrentOps();
@@ -62,11 +62,11 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_singleFolderToUpdate;
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIArray> m_allServers;
-  nsCOMPtr <nsIArray> m_allFolders;
+  nsCOMPtr <nsISupportsArray> m_allFolders;
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
-  nsCOMPtr <nsISimpleEnumerator> m_serverEnumerator;
+  nsCOMPtr <nsIEnumerator> m_serverEnumerator;
   nsCOMPtr <nsIFile> m_curTempFile;
-
+  
   nsTArray<nsMsgKey> m_CurrentKeys;
   nsCOMArray<nsIMsgOfflineImapOperation> m_currentOpsToClear;
   uint32_t      m_KeyIndex;

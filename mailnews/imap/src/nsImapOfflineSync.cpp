@@ -108,7 +108,8 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   // go to the next folder.
   else if (!m_singleFolderToUpdate)
   {
-    if (AdvanceToNextFolder())
+    rv = AdvanceToNextFolder();
+    if (NS_SUCCEEDED(rv))
       rv = ProcessNextOperation();
     else if (m_listener)
       m_listener->OnStopRunningUrl(url, rv);
@@ -117,13 +118,11 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   return rv;
 }
 
-/**
- * Leaves m_currentServer at the next imap or local mail "server" that
- * might have offline events to playback. If no more servers,
- * m_currentServer will be left at nullptr and the function returns false.
- * Also, sets up m_serverEnumerator to enumerate over the server.
- */
-bool nsImapOfflineSync::AdvanceToNextServer()
+// leaves m_currentServer at the next imap or local mail "server" that
+// might have offline events to playback. If no more servers,
+// m_currentServer will be left at nullptr.
+// Also, sets up m_serverEnumerator to enumerate over the server
+nsresult nsImapOfflineSync::AdvanceToNextServer()
 {
   nsresult rv = NS_OK;
 
@@ -134,11 +133,10 @@ bool nsImapOfflineSync::AdvanceToNextServer()
     nsCOMPtr<nsIMsgAccountManager> accountManager = 
              do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     NS_ASSERTION(accountManager && NS_SUCCEEDED(rv), "couldn't get account mgr");
-    if (!accountManager || NS_FAILED(rv))
-      return false;
+    if (!accountManager || NS_FAILED(rv)) return rv;
 
     rv = accountManager->GetAllServers(getter_AddRefs(m_allServers));
-    NS_ENSURE_SUCCESS(rv, false);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   uint32_t serverIndex = 0;
   if (m_currentServer)
@@ -151,7 +149,7 @@ bool nsImapOfflineSync::AdvanceToNextServer()
     ++serverIndex;
   }
   m_currentServer = nullptr;
-  uint32_t numServers;
+  uint32_t numServers; 
   m_allServers->GetLength(&numServers);
   nsCOMPtr <nsIMsgFolder> rootFolder;
 
@@ -160,41 +158,35 @@ bool nsImapOfflineSync::AdvanceToNextServer()
     nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(m_allServers, serverIndex));
     serverIndex++;
 
-    nsCOMPtr<nsINntpIncomingServer> newsServer = do_QueryInterface(server);
+    nsCOMPtr <nsINntpIncomingServer> newsServer = do_QueryInterface(server);
     if (newsServer) // news servers aren't involved in offline imap
       continue;
-
     if (server)
     {
       m_currentServer = server;
       server->GetRootFolder(getter_AddRefs(rootFolder));
       if (rootFolder)
       {
-        rv = rootFolder->GetDescendants(getter_AddRefs(m_allFolders));
+        m_allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+        NS_ENSURE_TRUE(m_allFolders, rv);
+        rv = rootFolder->ListDescendents(m_allFolders);
         if (NS_SUCCEEDED(rv))
+          m_allFolders->Enumerate(getter_AddRefs(m_serverEnumerator));
+        if (NS_SUCCEEDED(rv) && m_serverEnumerator)
         {
-          rv = m_allFolders->Enumerate(getter_AddRefs(m_serverEnumerator));
-          if (NS_SUCCEEDED(rv) && m_serverEnumerator)
-          {
-            bool hasMore = false;
-            rv = m_serverEnumerator->HasMoreElements(&hasMore);
-            if (NS_SUCCEEDED(rv) && hasMore)
-              return true;
-          }
+          rv = m_serverEnumerator->First();
+          if (NS_SUCCEEDED(rv))
+            break;
         }
       }
     }
   }
-  return false;
+  return rv;
 }
 
-/**
- * Sets m_currentFolder to the next folder to process.
- *
- * @return  True if next folder to process was found, otherwise false.
- */
-bool nsImapOfflineSync::AdvanceToNextFolder()
+nsresult nsImapOfflineSync::AdvanceToNextFolder()
 {
+  nsresult rv;
   // we always start by changing flags
   mCurrentPlaybackOpType = nsIMsgOfflineImapOperation::kFlagsChanged;
 
@@ -204,31 +196,35 @@ bool nsImapOfflineSync::AdvanceToNextFolder()
     m_currentFolder = nullptr;
   }
 
-  bool hasMore = false;
-  if (m_currentServer)
-    m_serverEnumerator->HasMoreElements(&hasMore);
-  if (!hasMore)
-    hasMore = AdvanceToNextServer();
+  if (!m_currentServer)
+     rv = AdvanceToNextServer();
+  else
+    rv = m_serverEnumerator->Next();
+  if (NS_FAILED(rv))
+    rv = AdvanceToNextServer();
 
-  if (hasMore)
+  if (NS_SUCCEEDED(rv) && m_serverEnumerator)
   {
-    nsCOMPtr<nsISupports> supports;
-    nsresult rv = m_serverEnumerator->GetNext(getter_AddRefs(supports));
-    if (NS_SUCCEEDED(rv))
-      m_currentFolder = do_QueryInterface(supports);
+    nsCOMPtr <nsISupports> supports;
+    rv = m_serverEnumerator->CurrentItem(getter_AddRefs(supports));
+    m_currentFolder = do_QueryInterface(supports);
   }
   ClearDB();
-  return m_currentFolder;
+  return rv;
 }
 
 void nsImapOfflineSync::AdvanceToFirstIMAPFolder()
 {
+  nsresult rv;
   m_currentServer = nullptr;
-  nsCOMPtr<nsIMsgImapMailFolder> imapFolder;
-  while (!imapFolder && AdvanceToNextFolder())
+  nsCOMPtr <nsIMsgImapMailFolder> imapFolder;
+  do
   {
-    imapFolder = do_QueryInterface(m_currentFolder);
+    rv = AdvanceToNextFolder();
+    if (m_currentFolder)
+      imapFolder = do_QueryInterface(m_currentFolder);
   }
+  while (NS_SUCCEEDED(rv) && m_currentFolder && !imapFolder);
 }
 
 void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
@@ -1112,7 +1108,8 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
   }
   if (!m_mailboxupdatesFinished)
   {
-    if (AdvanceToNextServer())
+    AdvanceToNextServer();
+    if (m_currentServer)
     {
       nsCOMPtr <nsIMsgFolder> rootMsgFolder;
       m_currentServer->GetRootFolder(getter_AddRefs(rootMsgFolder));
@@ -1167,8 +1164,9 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
       m_mailboxupdatesFinished = true;
     }
   }
+  AdvanceToNextFolder();
 
-  while (AdvanceToNextFolder())
+  while (m_currentFolder)
   {
     uint32_t folderFlags;
 
@@ -1186,6 +1184,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
         return rv;
       // if this fails and the user didn't cancel/stop, fall through to code that advances to next folder
     }
+    AdvanceToNextFolder();
   }
   if (m_listener)
     m_listener->OnStopRunningUrl(nullptr, NS_OK);
