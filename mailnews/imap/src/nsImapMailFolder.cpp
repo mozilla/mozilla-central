@@ -11,7 +11,6 @@
 #include "prmem.h"
 #include "nsMsgImapCID.h"
 #include "nsImapMailFolder.h"
-#include "nsIEnumerator.h"
 #include "nsIFile.h"
 #include "nsIFolderListener.h"
 #include "nsCOMPtr.h"

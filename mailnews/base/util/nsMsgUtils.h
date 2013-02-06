@@ -8,7 +8,6 @@
 
 #include "nsIURL.h"
 #include "nsStringGlue.h"
-#include "nsIEnumerator.h"
 #include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "MailNewsTypes2.h"
