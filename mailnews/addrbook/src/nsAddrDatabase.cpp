@@ -2694,7 +2694,7 @@ class nsListAddressEnumerator : public nsISimpleEnumerator
 public:
     NS_DECL_ISUPPORTS
 
-    // nsISimpleEnumerator methods:
+    // nsIEnumerator methods:
     NS_DECL_NSISIMPLEENUMERATOR
 
     // nsListAddressEnumerator methods:

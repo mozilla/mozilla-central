@@ -15,6 +15,7 @@
 #include "nsMailDatabase.h"
 #include "nsDBFolderInfo.h"
 #include "nsMsgKeySet.h"
+#include "nsIEnumerator.h"
 #include "nsMsgThread.h"
 #include "nsIMsgSearchTerm.h"
 #include "nsIMsgHeaderParser.h"

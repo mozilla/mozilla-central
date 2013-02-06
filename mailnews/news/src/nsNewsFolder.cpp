@@ -52,6 +52,7 @@
 #include "prsystem.h"
 #include "nsIArray.h"
 #include "nsIServiceManager.h"
+#include "nsIEnumerator.h"
 #include "nsINntpService.h"
 #include "nsIFolderListener.h"
 #include "nsCOMPtr.h"

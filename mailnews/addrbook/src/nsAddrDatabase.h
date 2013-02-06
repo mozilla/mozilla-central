@@ -12,6 +12,7 @@
 #include "nsIAddrDBListener.h"
 #include "nsCOMPtr.h"
 #include "nsTObserverArray.h"
+#include "nsIEnumerator.h"
 #include "nsWeakPtr.h"
 #include "nsIWeakReferenceUtils.h"
 
@@ -333,6 +334,7 @@ protected:
   nsresult      UpdateLowercaseEmailListName();
   nsresult      ConvertAndAddLowercaseColumn(nsIMdbRow * row, mdb_token fromCol, mdb_token toCol);
   nsresult      AddUnicodeToColumn(nsIMdbRow * row, mdb_token colToken, mdb_token lowerCaseColToken, const PRUnichar* pUnicodeStr);
+  nsresult      CreateCardsForMailList(nsIMdbRow *pListRow, nsIEnumerator **result);
 
   nsresult      DeleteRow(nsIMdbTable* dbTable, nsIMdbRow* dbRow);
 

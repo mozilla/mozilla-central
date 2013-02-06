@@ -18,6 +18,7 @@
 #include "nsISupportsArray.h"
 #include "nsIArray.h"
 #include "nsIServiceManager.h"
+#include "nsIEnumerator.h"
 #include "nsIMailboxService.h"
 #include "nsParseMailbox.h"
 #include "nsIMsgAccountManager.h"
