@@ -782,21 +782,20 @@ nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(nsACString& aFolde
   {
     nsCOMPtr<nsIMsgFolder> msgFolder;
     // enumerate over the folders under this root folder till we find one with new mail....
-    nsCOMPtr<nsISupportsArray> allFolders;
-    NS_NewISupportsArray(getter_AddRefs(allFolders));
-    rv = folder->ListDescendents(allFolders);
+    nsCOMPtr<nsIArray> allFolders;
+    rv = folder->GetDescendants(getter_AddRefs(allFolders));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIEnumerator> enumerator;
-    allFolders->Enumerate(getter_AddRefs(enumerator));
-    if (enumerator)
+    nsCOMPtr<nsISimpleEnumerator> enumerator;
+    rv = allFolders->Enumerate(getter_AddRefs(enumerator));
+    if (NS_SUCCEEDED(rv) && enumerator)
     {
       nsCOMPtr<nsISupports> supports;
-      nsresult more = enumerator->First();
-      while (NS_SUCCEEDED(more))
+      bool hasMore = false;
+      while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
       {
-        rv = enumerator->CurrentItem(getter_AddRefs(supports));
-        if (supports)
+        rv = enumerator->GetNext(getter_AddRefs(supports));
+        if (NS_SUCCEEDED(rv) && supports)
         {
           msgFolder = do_QueryInterface(supports, &rv);
           if (msgFolder)
@@ -805,7 +804,6 @@ nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(nsACString& aFolde
             msgFolder->GetNumNewMessages(false, &numNewMessages);
             if (numNewMessages)
               break; // kick out of the while loop
-            more = enumerator->Next();
           }
         } // if we have a folder
       }  // if we have more potential folders to enumerate

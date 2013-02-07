@@ -591,7 +591,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMutableArray> folderArray;
   nsCOMPtr<nsIMsgFolder> rootFolder;
-  nsCOMPtr<nsISupportsArray> allDescendents;
+  nsCOMPtr<nsIArray> allDescendents;
   rv = GetRootFolder(getter_AddRefs(rootFolder));
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
   GetMsgStore(getter_AddRefs(msgStore));
@@ -602,10 +602,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::CompactAll(nsIUrlListener *aListener,
 
   if (NS_SUCCEEDED(rv) && rootFolder)
   {
-    NS_NewISupportsArray(getter_AddRefs(allDescendents));
-    rootFolder->ListDescendents(allDescendents);
-    uint32_t cnt =0;
-    rv = allDescendents->Count(&cnt);
+    rv = rootFolder->GetDescendants(getter_AddRefs(allDescendents));
+    NS_ENSURE_SUCCESS(rv, rv);
+    uint32_t cnt = 0;
+    rv = allDescendents->GetLength(&cnt);
     NS_ENSURE_SUCCESS(rv, rv);
     folderArray = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     uint32_t expungedBytes = 0;
@@ -660,7 +660,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EmptyTrash(nsIMsgWindow *msgWindow,
     trashFolder->GetFlags(&flags);
     int32_t totalMessages = 0;
     rv = trashFolder->GetTotalMessages(true, &totalMessages);
-
     if (totalMessages <= 0)
     {
       nsCOMPtr<nsISimpleEnumerator> enumerator;

@@ -1857,11 +1857,10 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
         {
           rv = server->GetOfflineSupportLevel(&offlineSupportLevel);
           NS_ENSURE_SUCCESS(rv, rv);
-          nsCOMPtr<nsISupportsArray> allDescendents;
-          NS_NewISupportsArray(getter_AddRefs(allDescendents));
-          rootFolder->ListDescendents(allDescendents);
+          nsCOMPtr<nsIArray> allDescendents;
+          rootFolder->GetDescendants(getter_AddRefs(allDescendents));
           uint32_t cnt = 0;
-          rv = allDescendents->Count(&cnt);
+          rv = allDescendents->GetLength(&cnt);
           NS_ENSURE_SUCCESS(rv, rv);
           uint32_t expungedBytes=0;
           if (offlineSupportLevel > 0)

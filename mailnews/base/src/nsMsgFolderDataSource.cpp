@@ -2164,56 +2164,29 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::GetTargets(nsIRDFResource* source,
 
 void nsMsgFlatFolderDataSource::EnsureFolders()
 {
-  if (!m_builtFolders)
+  if (m_builtFolders)
+    return;
+
+  m_builtFolders = true; // in case something goes wrong
+
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  nsCOMPtr<nsIArray> allFolders;
+  rv = accountManager->GetAllFolders(getter_AddRefs(allFolders));
+  if (NS_FAILED(rv) || !allFolders)
+    return;
+
+  uint32_t count;
+  rv = allFolders->GetLength(&count);
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  for (uint32_t i = 0; i < count; i++)
   {
-    m_builtFolders = true; // in case something goes wrong
-
-    // need an enumerator that gives all folders with unread
-    nsresult rv;
-    nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    if (NS_FAILED(rv))
-      return;
-
-    nsCOMPtr<nsIArray> allServers;
-    rv = accountManager->GetAllServers(getter_AddRefs(allServers));
-    if (NS_FAILED(rv))
-      return;
-
-    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && allServers)
-    {
-      uint32_t count = 0;
-      allServers->GetLength(&count);
-      uint32_t i;
-      for (i = 0; i < count; i++)
-      {
-        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
-        if (server)
-        {
-          nsCOMPtr <nsIMsgFolder> rootFolder;
-          server->GetRootFolder(getter_AddRefs(rootFolder));
-          if (rootFolder)
-          {
-            nsCOMPtr<nsISimpleEnumerator> subFolders;
-            rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
-
-            uint32_t lastEntry;
-            allFolders->Count(&lastEntry);
-            rv = rootFolder->ListDescendents(allFolders);
-            uint32_t newLastEntry;
-            allFolders->Count(&newLastEntry);
-            for (uint32_t newEntryIndex = lastEntry; newEntryIndex < newLastEntry; newEntryIndex++)
-            {
-              nsCOMPtr <nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, newEntryIndex);
-              if (WantsThisFolder(curFolder))
-              {
-                m_folders.AppendObject(curFolder);
-              }
-            }
-          }
-        }
-      }
-    }
+    nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, i);
+    if (WantsThisFolder(curFolder))
+      m_folders.AppendObject(curFolder);
   }
 }
 
@@ -2367,105 +2340,82 @@ void nsMsgRecentFoldersDataSource::Cleanup()
 
 void nsMsgRecentFoldersDataSource::EnsureFolders()
 {
-  if (!m_builtFolders)
+  if (m_builtFolders)
+    return;
+
+  m_builtFolders = true; // in case something goes wrong
+
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  nsCOMPtr<nsIArray> allFolders;
+  rv = accountManager->GetAllFolders(getter_AddRefs(allFolders));
+  if (NS_FAILED(rv) || !allFolders)
+    return;
+
+  uint32_t count;
+  rv = allFolders->GetLength(&count);
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  for (uint32_t i = 0; i < count; i++)
   {
-    m_builtFolders = true;
-
-    nsresult rv;
-    nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+    nsCOMPtr<nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, i);
+    nsCString dateStr;
+    curFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
+    uint32_t curFolderDate = (uint32_t) dateStr.ToInteger(&rv);
     if (NS_FAILED(rv))
-      return;
+      curFolderDate = 0;
 
-    nsCOMPtr<nsIArray> allServers;
-    rv = accountManager->GetAllServers(getter_AddRefs(allServers));
-    if (NS_FAILED(rv))
-      return;
-
-    nsCOMPtr <nsISupportsArray> allFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv) && allServers)
+    if (curFolderDate > m_cutOffDate)
     {
-      uint32_t count = 0;
-      allServers->GetLength(&count);
-      uint32_t i;
-      for (i = 0; i < count; i++)
+      // if m_folders is "full", replace oldest folder with this folder,
+      // and adjust m_cutOffDate so that it's the mrutime
+      // of the "new" oldest folder.
+      uint32_t curFaveFoldersCount = m_folders.Count();
+      if (curFaveFoldersCount > m_maxNumFolders)
       {
-        nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, i);
-        if (server)
+        uint32_t indexOfOldestFolder = 0;
+        uint32_t oldestFaveDate = 0;
+        uint32_t newOldestFaveDate = 0;
+        for (uint32_t index = 0; index < curFaveFoldersCount; )
         {
-          nsCOMPtr <nsIMsgFolder> rootFolder;
-          server->GetRootFolder(getter_AddRefs(rootFolder));
-          if (rootFolder)
+          nsCString curFaveFolderDateStr;
+          m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, curFaveFolderDateStr);
+          uint32_t curFaveFolderDate = (uint32_t) curFaveFolderDateStr.ToInteger(&rv);
+          if (!oldestFaveDate || curFaveFolderDate < oldestFaveDate)
           {
-            nsCOMPtr<nsISimpleEnumerator> subFolders;
-            rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
-
-            uint32_t lastEntry;
-            allFolders->Count(&lastEntry);
-            rv = rootFolder->ListDescendents(allFolders);
-            uint32_t newLastEntry;
-            allFolders->Count(&newLastEntry);
-            for (uint32_t newEntryIndex = lastEntry; newEntryIndex < newLastEntry; newEntryIndex++)
-            {
-              nsCOMPtr <nsIMsgFolder> curFolder = do_QueryElementAt(allFolders, newEntryIndex);
-              nsCString dateStr;
-              nsresult err;
-              curFolder->GetStringProperty(MRU_TIME_PROPERTY, dateStr);
-              uint32_t curFolderDate = (uint32_t) dateStr.ToInteger(&err);
-              if (NS_FAILED(err))
-                curFolderDate = 0;
-              if (curFolderDate > m_cutOffDate)
-              {
-                // if m_folders is "full", replace oldest folder with this folder,
-                // and adjust m_cutOffDate so that it's the mrutime
-                // of the "new" oldest folder.
-                uint32_t curFaveFoldersCount = m_folders.Count();
-                if (curFaveFoldersCount > m_maxNumFolders)
-                {
-                  uint32_t indexOfOldestFolder = 0;
-                  uint32_t oldestFaveDate = 0;
-                  uint32_t newOldestFaveDate = 0;
-                  for (uint32_t index = 0; index < curFaveFoldersCount; )
-                  {
-                    nsCString curFaveFolderDateStr;
-                    m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, curFaveFolderDateStr);
-                    uint32_t curFaveFolderDate = (uint32_t) curFaveFolderDateStr.ToInteger(&err);
-                    if (!oldestFaveDate || curFaveFolderDate < oldestFaveDate)
-                    {
-                      indexOfOldestFolder = index;
-                      newOldestFaveDate = oldestFaveDate;
-                      oldestFaveDate = curFaveFolderDate;
-                    }
-                    if (!newOldestFaveDate || (index != indexOfOldestFolder
-                                                && curFaveFolderDate < newOldestFaveDate))
-                      newOldestFaveDate = curFaveFolderDate;
-                    index++;
-                  }
-                  if (curFolderDate > oldestFaveDate && m_folders.IndexOf(curFolder) == kNotFound)
-                    m_folders.ReplaceObjectAt(curFolder, indexOfOldestFolder);
-
-                  NS_ASSERTION(newOldestFaveDate >= m_cutOffDate, "cutoff date should be getting bigger");
-                  m_cutOffDate = newOldestFaveDate;
-                }
-                else if (m_folders.IndexOf(curFolder) == kNotFound)
-                  m_folders.AppendObject(curFolder);
-              }
-#ifdef DEBUG_David_Bienvenu
-              else
-              {
-                for (uint32_t index = 0; index < m_folders.Count(); index++)
-                {
-                  nsCString curFaveFolderDateStr;
-                  m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, curFaveFolderDateStr);
-                  uint32_t curFaveFolderDate = (uint32_t) curFaveFolderDateStr.ToInteger(&err);
-                  NS_ASSERTION(curFaveFolderDate > curFolderDate, "folder newer then faves but not added");
-                }
-              }
-#endif
-            }
+            indexOfOldestFolder = index;
+            newOldestFaveDate = oldestFaveDate;
+            oldestFaveDate = curFaveFolderDate;
           }
+          if (!newOldestFaveDate || (index != indexOfOldestFolder
+              && curFaveFolderDate < newOldestFaveDate)) {
+            newOldestFaveDate = curFaveFolderDate;
+          }
+          index++;
         }
+        if (curFolderDate > oldestFaveDate && m_folders.IndexOf(curFolder) == kNotFound)
+          m_folders.ReplaceObjectAt(curFolder, indexOfOldestFolder);
+
+        NS_ASSERTION(newOldestFaveDate >= m_cutOffDate, "cutoff date should be getting bigger");
+        m_cutOffDate = newOldestFaveDate;
+      }
+      else if (m_folders.IndexOf(curFolder) == kNotFound)
+        m_folders.AppendObject(curFolder);
+    }
+#ifdef DEBUG_David_Bienvenu
+    else
+    {
+      for (uint32_t index = 0; index < m_folders.Count(); index++)
+      {
+        nsCString curFaveFolderDateStr;
+        m_folders[index]->GetStringProperty(MRU_TIME_PROPERTY, curFaveFolderDateStr);
+        uint32_t curFaveFolderDate = (uint32_t) curFaveFolderDateStr.ToInteger(&rv);
+        NS_ASSERTION(curFaveFolderDate > curFolderDate, "folder newer then faves but not added");
       }
     }
+#endif
   }
 }
 
