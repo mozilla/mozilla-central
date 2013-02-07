@@ -184,15 +184,13 @@ function test_folder_flag_changes() {
                  .getCharProperty("searchFolderUri") + "|";
 
   // figure out what we expect the archiveScope to now be.
-  let allDescendents = Cc["@mozilla.org/supports-array;1"]
-                         .createInstance(Ci.nsISupportsArray);
   rootFolder = inboxFolder.server.rootFolder;
   let localArchiveFolder = rootFolder.getChildNamed("Archives");
-  localArchiveFolder.ListDescendents(allDescendents);
-  let numFolders = allDescendents.Count();
+  let allDescendants = localArchiveFolder.descendants;
   desiredScope = "|" + localArchiveFolder.URI + "|";
-  for each (let f in fixIterator(allDescendents, Ci.nsIMsgFolder))
-    desiredScope += f.URI + "|";
+  for (let folder in fixIterator(allDescendants, Ci.nsIMsgFolder)) {
+    desiredScope += folder.URI + "|";
+  }
 
   if (archiveScope != desiredScope)
     throw "archive scope wrong after removing folder";
@@ -203,24 +201,20 @@ function assert_folder_and_children_in_scope(folder, searchScope)
 {
   let folderURI = "|" + folder.URI + "|";
   assert_uri_found(folderURI, searchScope);
-  let allDescendents = Cc["@mozilla.org/supports-array;1"]
-                         .createInstance(Ci.nsISupportsArray);
-  folder.ListDescendents(allDescendents);
-  let numFolders = allDescendents.Count();
-  for each (let f in fixIterator(allDescendents, Ci.nsIMsgFolder))
-    assert_uri_found(f.URI, searchScope)
+  let allDescendants = folder.descendants;
+  for (let folder in fixIterator(allDescendants, Ci.nsIMsgFolder)) {
+    assert_uri_found(folder.URI, searchScope);
+  }
 }
 
 function assert_folder_and_children_not_in_scope(folder, searchScope)
 {
   let folderURI = "|" + folder.URI + "|";
   assert_uri_not_found(folderURI, searchScope);
-  let allDescendents = Cc["@mozilla.org/supports-array;1"]
-                     .createInstance(Ci.nsISupportsArray);
-  folder.ListDescendents(allDescendents);
-  let numFolders = allDescendents.Count();
-  for each (let f in fixIterator(allDescendents, Ci.nsIMsgFolder))
-    assert_uri_not_found(f.URI, searchScope)
+  let allDescendants = folder.descendants;
+  for (let folder in fixIterator(allDescendants, Ci.nsIMsgFolder)) {
+    assert_uri_not_found(folder.URI, searchScope);
+  }
 }
 
 function assert_uri_found(folderURI, scopeList)
