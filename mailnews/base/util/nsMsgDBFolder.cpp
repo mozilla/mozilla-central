@@ -5072,17 +5072,31 @@ NS_IMETHODIMP nsMsgDBFolder::GetMessageHeader(nsMsgKey msgKey, nsIMsgDBHdr **aMs
   return (database) ? database->GetMsgHdrForKey(msgKey, aMsgHdr) : NS_ERROR_FAILURE;
 }
 
-// this gets the deep sub-folders too, e.g., the children of the children
-NS_IMETHODIMP nsMsgDBFolder::ListDescendents(nsISupportsArray *descendents)
+NS_IMETHODIMP nsMsgDBFolder::GetDescendants(nsIArray** aDescendants)
 {
-  NS_ENSURE_ARG(descendents);
+  NS_ENSURE_ARG_POINTER(aDescendants);
 
-  int32_t count = mSubFolders.Count();
-  for (int32_t i = 0; i < count; i++)
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> allFolders(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = ListDescendants(allFolders);
+  allFolders.forget(aDescendants);
+  return NS_OK;
+}
+
+// this gets the deep sub-folders too, e.g., the children of the children
+NS_IMETHODIMP nsMsgDBFolder::ListDescendants(nsIMutableArray *aDescendants)
+{
+  NS_ENSURE_ARG_POINTER(aDescendants);
+
+  GetSubFolders(nullptr); // initialize mSubFolders
+  uint32_t count = mSubFolders.Count();
+  for (uint32_t i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolder> child(mSubFolders[i]);
-    descendents->AppendElement(child);
-    child->ListDescendents(descendents);  // recurse
+    aDescendants->AppendElement(child, false);
+    child->ListDescendants(aDescendants);  // recurse
   }
   return NS_OK;
 }
