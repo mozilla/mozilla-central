@@ -67,7 +67,7 @@ function accept_xpinstall_dialog(xpidlg) {
 }
 
 function click_notification_box_action_in_current_tab() {
-  let actionButton = gNotificationBox.currentNotification.getElementsByTagName("button")[0];
+  let actionButton = gNotificationBox.currentNotification.querySelector("button");
   mc.click(new elib.Elem(actionButton));
 }
 
@@ -93,7 +93,7 @@ function test_setup() {
 
   // make the animation only take one frame
   gNotificationBox =
-    mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+    mc.tabmail.selectedTab.panel.querySelector("notificationbox");
   gNotificationBox.slideSteps = 1;
 }
 

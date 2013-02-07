@@ -55,7 +55,7 @@ function setupModule(module) {
    */
   Components.utils.import("resource://gre/modules/Services.jsm");
   let is64BitOSX = (mc.mozmillModule.isMac &&
-                    Services.appinfo.XPCOMABI.match(/x86_64-/));
+                    Services.appinfo.XPCOMABI.contains("x86_64-"));
 
   // These tests are no good if the crash reporter is disabled, or if
   // we don't have out-of-process plugins enabled.

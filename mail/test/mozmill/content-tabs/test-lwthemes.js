@@ -35,7 +35,7 @@ const ALERT_TIMEOUT = 10000;
 function check_and_click_notification_box_action_in_current_tab(totalButtons,
                                                                 selectButton) {
   let notificationBox =
-    mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+    mc.tabmail.selectedTab.panel.querySelector("notificationbox");
 
   // This is a crude check to see that we've got the number of buttons we expect
   // and hence this is the right notification that is being shown.
@@ -48,7 +48,7 @@ function check_and_click_notification_box_action_in_current_tab(totalButtons,
 
 function close_notification_box_in_current_tab() {
   mc.tabmail.selectedTab.panel
-    .getElementsByTagName("notificationbox")[0]
+    .querySelector("notificationbox")
     .currentNotification.close();
 }
 
@@ -58,7 +58,7 @@ function currentLwTheme() {
 
 function install_theme(themeNo, previousThemeNo) {
   let notificationBox =
-    mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+    mc.tabmail.selectedTab.panel.querySelector("notificationbox");
 
   // Clicking the button will bring up a notification box requesting to allow
   // installation of the theme

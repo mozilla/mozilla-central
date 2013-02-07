@@ -103,12 +103,12 @@ function test_outdated_plugin_notification() {
   let notifValue = notificationBar.getNotificationWithValue("outdated-plugins");
   assert_not_equals(null, notifValue, "Notification value was not correct");
 
-  // buttons[0] should be the "update my plugins" button.
-  let buttons = notificationBar.getElementsByTagName("button");
+  // aButton should be the "update my plugins" button.
+  let aButton = notificationBar.querySelector("button");
 
   // Let's make sure that the "update my plugins" button opens up
   // a tab and takes us to the right place.
-  let updateTab = open_content_tab_with_click(buttons[0], kPluginUpdateUrl);
+  let updateTab = open_content_tab_with_click(aButton, kPluginUpdateUrl);
   assert_tab_has_title(updateTab, "Plugin Update Page");
   mc.tabmail.closeTab(updateTab);
 
