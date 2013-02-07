@@ -22,6 +22,7 @@ var gEndTime = null;
 var gItemDuration = null;
 var gStartTimezone = null;
 var gEndTimezone = null;
+var gUntilDate = null;
 var gIsReadOnly = false;
 var gPrivacy = null;
 var gAttachMap = {};
@@ -305,6 +306,7 @@ function onCommandCancel() {
 /**
  * Handler function to be called when the cancel button is pressed.
  *
+ * @return    Returns true if the window should be closed.
  */
 function onCancel() {
     // The datepickers need to remove the focus in order to trigger the
@@ -640,11 +642,13 @@ function dateTimeControls2State(aStartDatepicker) {
     if (warning) {
         gWarning = true;
         var callback = function func() {
+            enableAcceptCommand(false);
             Services.prompt.alert(
                 null,
                 document.title,
                 calGetString("calendar", "warningEndBeforeStart"));
-                gWarning = false;
+            gWarning = false;
+            enableAcceptCommand(true);
         }
         setTimeout(callback, 1);
     }
@@ -760,17 +764,16 @@ function loadRepeat(item) {
             if (calInstanceOf(rule, Components.interfaces.calIRecurrenceRule)) {
                 switch (rule.type) {
                     case 'DAILY':
-                        if (rule.interval == 1 && !rule.isFinite) {
-                            if (!checkRecurrenceRule(rule, ['BYSECOND',
-                                                            'BYMINUTE',
-                                                            'BYHOUR',
-                                                            'BYMONTHDAY',
-                                                            'BYYEARDAY',
-                                                            'BYWEEKNO',
-                                                            'BYMONTH',
-                                                            'BYSETPOS'])) {
-                                var ruleComp = rule.getComponent("BYDAY",
-                                                                 {});
+                        if (!checkRecurrenceRule(rule, ['BYSECOND',
+                                                        'BYMINUTE',
+                                                        'BYHOUR',
+                                                        'BYMONTHDAY',
+                                                        'BYYEARDAY',
+                                                        'BYWEEKNO',
+                                                        'BYMONTH',
+                                                        'BYSETPOS'])) {
+                            let ruleComp = rule.getComponent("BYDAY", {});
+                            if (rule.interval == 1) {
                                 if (ruleComp.length > 0) {
                                     if (ruleComp.length == 5) {
                                         for (var i = 0; i < 5; i++) {
@@ -779,12 +782,17 @@ function loadRepeat(item) {
                                             }
                                         }
                                         if (i==5) {
-                                            setElementValue("item-repeat",
-                                                            "every.weekday");
+                                            if (!rule.isFinite || !rule.isByCount) {
+                                                setElementValue("item-repeat", "every.weekday");
+                                                updateUntilControls(rule);
+                                            }
                                         }
                                     }
                                 } else {
-                                    setElementValue("item-repeat", "daily");
+                                    if (!rule.isFinite || !rule.isByCount) {
+                                        setElementValue("item-repeat", "daily");
+                                        updateUntilControls(rule);
+                                    }
                                 }
                             }
                         }
@@ -799,10 +807,11 @@ function loadRepeat(item) {
                                                         'BYWEEKNO',
                                                         'BYMONTH',
                                                         'BYSETPOS'])) {
-                            if (!rule.isFinite && rule.interval == 1) {
-                                setElementValue("item-repeat", "weekly");
-                            } else if (!rule.isFinite && rule.interval == 2) {
-                                setElementValue("item-repeat", "bi.weekly");
+                            let weekType=["weekly", "bi.weekly"];
+                            if ((rule.interval == 1 || rule.interval == 2) &&
+                                (!rule.isFinite || !rule.isByCount)) {
+                                  setElementValue("item-repeat", weekType[rule.interval - 1]);
+                                updateUntilControls(rule);
                             }
                         }
                         break;
@@ -816,8 +825,9 @@ function loadRepeat(item) {
                                                         'BYWEEKNO',
                                                         'BYMONTH',
                                                         'BYSETPOS'])) {
-                            if (!rule.isFinite && rule.interval == 1) {
+                            if (rule.interval == 1 && (!rule.isFinite || !rule.isByCount)) {
                                 setElementValue("item-repeat", "monthly");
+                                updateUntilControls(rule);
                             }
                         }
                         break;
@@ -831,8 +841,9 @@ function loadRepeat(item) {
                                                         'BYWEEKNO',
                                                         'BYMONTH',
                                                         'BYSETPOS'])) {
-                            if (!rule.isFinite && rule.interval == 1) {
+                            if (rule.interval == 1 && (!rule.isFinite || !rule.isByCount)) {
                                 setElementValue("item-repeat", "yearly");
+                                updateUntilControls(rule);
                             }
                         }
                         break;
@@ -846,7 +857,25 @@ function loadRepeat(item) {
 
     if (item.parentItem != item) {
         disableElement("item-repeat");
+        disableElement("repeat-until-datepicker");
     }
+}
+
+/**
+ * Shows the repeat-until-datepicker and sets its date
+ *
+ * @param rule    The recurrence rule.
+ */
+function updateUntilControls(rule) {
+    let untilDate = "forever";
+    if (!rule.isByCount) {
+        gUntilDate = rule.untilDate;
+        if (gUntilDate) {
+            untilDate = gUntilDate.getInTimezone(cal.floating()).jsDate;
+        }
+    }
+    document.getElementById("repeat-deck").selectedIndex = 0;
+    setElementValue("repeat-until-datepicker", untilDate);
 }
 
 /**
@@ -1120,14 +1149,22 @@ function updateAccept() {
         enableAccept = false;
     }
 
-    var accept = document.getElementById("cmd_accept");
-    if (enableAccept) {
+    enableAcceptCommand(enableAccept);
+
+    return enableAccept;
+}
+
+/* Enables/disables the cmd_accept command related to the save operation
+ *
+ * @param aEnable           true: enables the command
+ */
+function enableAcceptCommand(aEnable) {
+    let accept = document.getElementById("cmd_accept");
+    if (aEnable) {
         accept.removeAttribute('disabled');
     } else {
         accept.setAttribute('disabled', 'true');
     }
-
-    return enableAccept;
 }
 
 // Global variables used to restore start and end date-time when changing the
@@ -2123,6 +2160,7 @@ function updateCalendar() {
         var item = window.calendarItem;
         if (item.parentItem != item) {
             disableElement("item-repeat");
+            disableElement("repeat-until-datepicker");
             var repeatDetails = document.getElementById("repeat-details");
             var numChilds = repeatDetails.childNodes.length;
             for (var i = 0; i < numChilds; i++) {
@@ -2187,25 +2225,12 @@ function editRepeat() {
  *
  * @param aSuppressDialogs     If true, controls are updated without prompting
  *                               for changes with the recurrence dialog
+ * @param aItemRepeatCall      True when the function is being called from
+ *                               the item-repeat menu list. It allows to detect
+ *                               a change from the "custom" option.
  */
-function updateRepeat(aSuppressDialogs) {
-    var repeatMenu = document.getElementById("item-repeat");
-    var repeatItem = repeatMenu.selectedItem;
-    var repeatValue = repeatItem.getAttribute("value");
-
-    if (repeatValue == 'none') {
-        window.recurrenceInfo = null;
-        var item = window.calendarItem;
-        if (isToDo(item)) {
-            enableElementWithLock("todo-has-entrydate", "repeat-lock");
-        }
-    } else if (repeatValue == 'custom') {
-        // the user selected custom repeat pattern. we now need to bring
-        // up the appropriate dialog in order to let the user specify the
-        // new rule. first of all, retrieve the item we want to specify
-        // the custom repeat pattern for.
-        var item = window.calendarItem;
-
+function updateRepeat(aSuppressDialogs, aItemRepeatCall) {
+    function setUpEntrydateForTask(item) {
         // if this item is a task, we need to make sure that it has
         // an entry-date, otherwise we can't create a recurrence.
         if (isToDo(item)) {
@@ -2222,6 +2247,29 @@ function updateRepeat(aSuppressDialogs) {
             // revoked if the user turns off the repeat pattern.
             disableElementWithLock("todo-has-entrydate", "repeat-lock");
         }
+    }
+
+    let repeatMenu = document.getElementById("item-repeat");
+    let repeatValue = repeatMenu.selectedItem.getAttribute("value");
+    let repeatDeck = document.getElementById("repeat-deck");
+
+    if (repeatValue == 'none') {
+        repeatDeck.selectedIndex = -1;
+        window.recurrenceInfo = null;
+        var item = window.calendarItem;
+        if (isToDo(item)) {
+            enableElementWithLock("todo-has-entrydate", "repeat-lock");
+        }
+    } else if (repeatValue == 'custom') {
+        let lastRepeatDeck = repeatDeck.selectedIndex;
+        repeatDeck.selectedIndex = 1;
+        // the user selected custom repeat pattern. we now need to bring
+        // up the appropriate dialog in order to let the user specify the
+        // new rule. First of all, retrieve the item we want to specify
+        // the custom repeat pattern for.
+        var item = window.calendarItem;
+
+        setUpEntrydateForTask(item);
 
         // retrieve the current recurrence info, we need this
         // to find out whether or not the user really created
@@ -2236,71 +2284,126 @@ function updateRepeat(aSuppressDialogs) {
         }
 
         // we need to address two separate cases here.
-        // 1) we need to revoke the selection of the repeat
-        //    drop down list in case the user didn't specify
-        //    a new repeat pattern (i.e. canceled the dialog)
-        // 2) re-enable the 'has entrydate' option in case
-        //    we didn't end up with a recurrence rule.
+        // 1)- We need to revoke the selection of the repeat
+        //     drop down list in case the user didn't specify
+        //     a new repeat pattern (i.e. canceled the dialog);
+        //   - re-enable the 'has entrydate' option in case
+        //     we didn't end up with a recurrence rule.
+        // 2)  Check whether the new recurrence rule needs the
+        //     recurrence details text or it can be displayed
+        //     only with the repeat-until-datepicker.
         if (recurrenceInfo == window.recurrenceInfo) {
             repeatMenu.selectedIndex = gLastRepeatSelection;
+            repeatDeck.selectedIndex = lastRepeatDeck;
             if (isToDo(item)) {
                 if (!window.recurrenceInfo) {
                     enableElementWithLock("todo-has-entrydate", "repeat-lock");
                 }
             }
+        } else {
+            // From the Edit Recurrence dialog, the rules "every day" and
+            // "every weekday" don't need the recurrence details text when they
+            // have only the until date. The loadRepeat() function verifies
+            // whether this is the case and properly sets the controls.
+            loadRepeat(item);
         }
     } else {
-        var item = window.calendarItem;
-        var recurrenceInfo = window.recurrenceInfo || item.recurrenceInfo;
+        let item = window.calendarItem;
+        let recurrenceInfo = window.recurrenceInfo || item.recurrenceInfo;
+        let proposedUntilDate = (gStartTime || window.initialStartDateValue).clone();
+        let newUntilDate = false;
+
         if (recurrenceInfo) {
             recurrenceInfo = recurrenceInfo.clone();
-            var rrules = splitRecurrenceRules(recurrenceInfo);
+            let rrules = splitRecurrenceRules(recurrenceInfo);
+            let rule = rrules[0][0];
+
+            // If the previous rule was "custom" we have to recover the until
+            // date, or the last occurrence's date in order to set the
+            // repeat-until-datepicker with the same date.
+            if (aItemRepeatCall && repeatDeck.selectedIndex == 1) {
+                if (!rule.isByCount || !rule.isFinite) {
+                    setElementValue("repeat-until-datepicker",
+                                    !rule.isByCount ? rule.untilDate.getInTimezone(cal.floating()).jsDate
+                                                    : "forever");
+                } else {
+                    // Try to recover the last occurrence in 10(?) years.
+                    let endDate = gStartTime.clone();
+                    endDate.year += 10;
+                    let lastOccurrenceDate = null;
+                    let dates = recurrenceInfo.getOccurrenceDates(gStartTime, endDate, 0, {});
+                    if (dates) {
+                        lastOccurrenceDate = dates[dates.length - 1];
+                    }
+                    setElementValue("repeat-until-datepicker",
+                                    (lastOccurrenceDate || proposedUntilDate).getInTimezone(cal.floating()).jsDate);
+                }
+            }
             if (rrules[0].length > 0) {
-                recurrenceInfo.deleteRecurrenceItem(rrules[0][0]);
+                recurrenceInfo.deleteRecurrenceItem(rule);
             }
         } else {
+            // New event. We have to create a new recurrence rule and proposing
+            // an until date coherent with the type of recurrence.
             recurrenceInfo = createRecurrenceInfo(item);
+            newUntilDate = true;
         }
 
+        repeatDeck.selectedIndex = 0;
+
+        let recRule = createRecurrenceRule();
+        recRule.interval = 1;
         switch (repeatValue) {
             case 'daily':
-              var recRule = createRecurrenceRule();
               recRule.type = 'DAILY';
-              recRule.interval = 1;
-              recRule.count = -1;
+              proposedUntilDate.day += 4;
               break;
             case 'weekly':
-              var recRule = createRecurrenceRule();
               recRule.type = 'WEEKLY';
-              recRule.interval = 1;
-              recRule.count = -1;
+              proposedUntilDate.day += 28;
               break;
             case 'every.weekday':
-              var recRule = createRecurrenceRule();
               recRule.type = 'DAILY';
-              recRule.interval = 1;
-              recRule.count = -1;
-              var onDays = [2, 3, 4, 5, 6];
+              let onDays = [2, 3, 4, 5, 6];
               recRule.setComponent("BYDAY", onDays.length, onDays);
+              proposedUntilDate.day += 6;
               break;
             case 'bi.weekly':
-              var recRule = createRecurrenceRule();
               recRule.type = 'WEEKLY';
               recRule.interval = 2;
-              recRule.count = -1;
+              proposedUntilDate.day += 56;
               break;
             case 'monthly':
-              var recRule = createRecurrenceRule();
               recRule.type = 'MONTHLY';
-              recRule.interval = 1;
-              recRule.count = -1;
+              proposedUntilDate.month += 4;
               break;
             case 'yearly':
-              var recRule = createRecurrenceRule();
               recRule.type = 'YEARLY';
-              recRule.interval = 1;
-              recRule.count = -1;
+              proposedUntilDate.year += 4;
               break;
+        }
+
+        if (newUntilDate) {
+            setElementValue("repeat-until-datepicker", proposedUntilDate.getInTimezone(cal.floating()).jsDate);
+        }
+
+        setUpEntrydateForTask(item);
+        let repeatUntilDate = getElementValue("repeat-until-datepicker");
+
+        if (repeatUntilDate != "forever") {
+            let untilDate = cal.jsDateToDateTime(repeatUntilDate, gStartTime.timezone);
+            untilDate.isDate = gStartTime.isDate; // enforce same value type as DTSTART
+            if (!gStartTime.isDate) {
+                untilDate.hour = gStartTime.hour;
+                untilDate.minute = gStartTime.minute;
+                untilDate.second = gStartTime.second;
+            }
+            recRule.untilDate = untilDate;
+            gUntilDate = untilDate;
+        } else {
+            // Rule that recurs forever.
+            recRule.count = -1;
+            gUntilDate = null;
         }
 
         recurrenceInfo.insertRecurrenceItemAt(recRule, 0);
@@ -3147,11 +3250,11 @@ function updateAttendees() {
 function updateRepeatDetails() {
     // Don't try to show the details text for
     // anything but a custom recurrence rule.
-    let item = window.calendarItem;
     let recurrenceInfo = window.recurrenceInfo;
     let itemRepeat = document.getElementById("item-repeat");
     if (itemRepeat.value == "custom" && recurrenceInfo) {
-
+        let item = window.calendarItem;
+        document.getElementById("repeat-deck").selectedIndex = 1;
         // First of all collapse the details text. If we fail to
         // create a details string, we simply don't show anything.
         // this could happen if the repeat rule is something exotic
@@ -3377,4 +3480,46 @@ function capValues(aCap, aDefault) {
     let calendar = getCurrentCalendar();
     let vals = calendar.getProperty("capabilities." + aCap + ".values");
     return (vals === null ? aDefault : vals);
+}
+
+ /**
+ * Checks the until date just entered in the datepicker in order to avoid
+ * setting a date earlier than the start date.
+ * Restores the previous correct date; sets the warning flag to prevent closing
+ * the dialog when the user enters a wrong until date.
+ */
+function checkUntilDate() {
+    let repeatUntilDate = getElementValue("repeat-until-datepicker");
+    if (repeatUntilDate == "forever") {
+        updateRepeat();
+        // "forever" is never earlier than another date.
+        return;
+    }
+
+    let untilDate = cal.jsDateToDateTime(repeatUntilDate, gStartTime.timezone);
+    let startDate = gStartTime.clone();
+    startDate.isDate = true;
+    if (untilDate.compare(startDate) < 0) {
+        // Restore the previous date. Since we are checking an until date,
+        // a null value for gUntilDate means repeat "forever".
+        setElementValue("repeat-until-datepicker",
+                        gUntilDate ? gUntilDate.getInTimezone(cal.floating()).jsDate
+                                   : "forever");
+        gWarning = true;
+        let callback = function() {
+            // Disable the "Save" button until the warning dialog is showed
+            enableAcceptCommand(false);
+
+            Services.prompt.alert(
+                null,
+                document.title,
+                calGetString("calendar", "warningUntilBeforeStart"));
+            enableAcceptCommand(true);
+            gWarning = false;
+        };
+        setTimeout(callback, 1);
+    } else {
+        gUntilDate = untilDate;
+        updateRepeat();
+    }
 }

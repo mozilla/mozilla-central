@@ -6,6 +6,10 @@ datepicker {
   -moz-binding: url("chrome://calendar/content/datetimepickers/datetimepickers.xml#datepicker");
 }
 
+datepicker-forever {
+  -moz-binding: url("chrome://calendar/content/datetimepickers/datetimepickers.xml#datepicker-forever");
+}
+
 datetimepicker {
   -moz-binding: url("chrome://calendar/content/datetimepickers/datetimepickers.xml#datetimepicker");
 }

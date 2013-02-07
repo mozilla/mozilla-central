@@ -209,6 +209,7 @@
       </method>
     </implementation>
   </binding>
+
   <binding id="datepicker" extends="chrome://calendar/content/datetimepickers/datetimepickers.xml#datetimepicker-base">
     <!-- ::::::::::::::::: CONTENT ::::::::::::::::::::::::: -->
     <!-- Desired behavior: when user is done editing the date field 
@@ -280,6 +281,14 @@
         ]]>
       </destructor>
 
+      <!-- This property will be overlayed in some extended binding -->
+      <property name="valueValid" readonly="true">
+        <getter><![CDATA[
+            return (this.mValue != null);
+          ]]>
+        </getter>
+      </property>
+
       <method name="update">
         <parameter name="aValue"/>
         <parameter name="aRefresh"/>
@@ -287,15 +296,15 @@
           <![CDATA[
             if (aValue != null) {
               // format fails if year <= 1600 on win2k, so try format first.
-              var formattedValue = null;
-              try { 
+              let formattedValue = null;
+              try {
                 formattedValue = this.formatDate(aValue);
               } catch (ex) {} // fall thru
 
               if (formattedValue) {
                 // format succeeded, safe to set value
-                var dateChanged = true;
-                if (this.mValue != null) {
+                let dateChanged = true;
+                if (this.valueValid) {
                   dateChanged = (this.mValue.getDate() != aValue.getDate()) ||
                                 (this.mValue.getMonth() != aValue.getMonth()) ||
                                 (this.mValue.getFullYear() != aValue.getFullYear());
@@ -321,7 +330,7 @@
         <body>
           <![CDATA[
             this.mInPopup = true;
-            this.kMinimonth.update( this.mValue );
+            this.kMinimonth.update(this.mValue);
             this.mInPopup = false;
             // select all to remove cursor since can't type while popped-up
             this.select();
@@ -379,7 +388,132 @@
       </handlers>
 
   </binding>
-    
+
+  <binding id="datepicker-forever" extends="chrome://calendar/content/datetimepickers/datetimepickers.xml#datepicker">
+    <content>
+      <xul:hbox flex="1" id="hbox" class="datepicker-box-class">
+        <xul:menulist anonid="foreverMenulist" editable="true" sizetopopup="false"
+                      class="datepicker-text-class"
+                      onchange="this.kDatePicker.parseTextBoxDate(true);"
+                      onkeypress="if (event.keyCode == 13) this.kDatePicker.parseTextBoxDate(true);"
+                      xbl:inherits="disabled">
+          <xul:menupopup popupanchor="bottomright" popupalign="topright"
+                         anonid="datepopup"
+                         onpopupshowing="this.parentNode.kDatePicker.onPopup();"
+                         onpopuphiding="this.firstChild.hidePopupList();">
+            <xul:minimonth/>
+            <xul:menuseparator/>
+            <xul:menuitem anonid="menuitemForever"
+                          class="datepicker-text-menuItem-class"
+                          oncommand="onMenuitemForever();"/>
+          </xul:menupopup>
+        </xul:menulist>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+      <field name="mForeverStr">null</field>
+
+      <constructor>
+        <![CDATA[
+          this.mForeverStr = calGetString("calendar-event-dialog", "eventRecurrenceForeverLabel");
+          document.getAnonymousElementByAttribute(this, "anonid", "menuitemForever")
+              .setAttribute("label", this.mForeverStr);
+        ]]>
+      </constructor>
+
+      <method name="parseTextBoxDate">
+        <parameter name="aRefresh"/>
+        <body>
+          <![CDATA[
+            if (this.kTextBox.value.toLowerCase() == this.mForeverStr.toLowerCase()) {
+                this.mValue = "forever";
+                this.kTextBox.value = this.mForeverStr;
+            } else {
+                let date = this.parseDateTime(this.kTextBox.value);
+                if (date) {
+                    this.update(date, aRefresh);
+                } else {
+                    // Invalid date, revert to previous date.
+                    this.kTextBox.value = (this.mValue == "forever") ? this.mForeverStr
+                                                                     : this.formatDate(this.mValue);
+                }
+                this.lastDateParseIncludedTime = false;
+            }
+          ]]>
+        </body>
+      </method>
+
+      <method name="onMenuitemForever">
+        <body>
+          <![CDATA[
+            if (this.kTextBox.value.toLowerCase() == this.mForeverStr.toLowerCase()) {
+                this.mValue = "forever";
+            }
+          ]]>
+        </body>
+      </method>
+
+      <property name="value">
+        <getter>
+          <![CDATA[
+            return this.mValue;
+          ]]>
+        </getter>
+        <setter>
+          <![CDATA[
+            if (val == "forever") {
+                document.getAnonymousElementByAttribute(this, "anonid", "foreverMenulist").selectedIndex = 1;
+                this.mValue = "forever";
+                this.kTextBox.value = this.mForeverStr;
+            } else {
+                this.update(val, false);
+            }
+          ]]>
+        </setter>
+      </property>
+
+      <property name="menuitemForever" readonly="true">
+        <getter>
+          <![CDATA[
+            return document.getAnonymousElementByAttribute(this, "anonid", "menuitemForever");
+          ]]>
+        </getter>
+      </property>
+
+      <method name="onPopup">
+        <parameter name="aDate"/>
+        <body>
+          <![CDATA[
+            // avoid reinitializing during reshow, for bugs 273914 & 278877 workaround
+            if (!this.mIsReshowing) {
+                this.mInPopup = true;
+                if (this.mValue == "forever") {
+                    this.kMinimonth.update(null);
+                    this.menuitemForever.setAttribute("highlight", "true");
+                } else {
+                    this.kMinimonth.update(this.mValue);
+                    this.menuitemForever.removeAttribute("highlight");
+                }
+                this.mInPopup = false;
+                // select all to remove cursor since can't type while popped-up
+                this.select();
+            }
+          ]]>
+        </body>
+      </method>
+
+      <property name="valueValid" readonly="true">
+        <getter>
+          <![CDATA[
+            return (this.mValue != null && this.mValue != "forever");
+          ]]>
+        </getter>
+      </property>
+
+    </implementation>
+  </binding>
+
   <binding id="timepicker" extends="chrome://calendar/content/datetimepickers/datetimepickers.xml#datetimepicker-base">
     <!-- ::::::::::::::::: CONTENT ::::::::::::::::::::::::: -->
     <!-- Desired behavior: when user is done editing the time field 

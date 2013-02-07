@@ -19,6 +19,39 @@
 .datepicker-text-class input {
 }
 
+/*--------------------------------------------------------------------
+ *   Datepicker-forever (style for the "forever" option)
+ *-------------------------------------------------------------------*/
+
+.datepicker-text-menuItem-class {
+  margin: 2px 4px 4px;
+  color: #2E4E73;
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+.datepicker-text-menuItem-class[highlight="true"] {
+  color: #2E4E73;
+  background-color: #FFFABC;
+  border: 1px solid #D9C585;
+}
+
+.datepicker-text-menuItem-class:hover {
+  cursor: pointer;
+  border: 1px solid Highlight;
+}
+
+.datepicker-text-menuItem-class:hover[highlight="true"] {
+  color: #2E4E73;
+  background-color: #FFFABC;
+}
+
+.datepicker-text-menuItem-class:active,
+.datepicker-text-menuItem-class:active[highlight="true"] {
+  color: HighlightText;
+  background-color: Highlight;
+}
+
 /*-------------------------------------------------------------------
  *   Timepicker (text menulist with popup)
  *-------------------------------------------------------------------*/

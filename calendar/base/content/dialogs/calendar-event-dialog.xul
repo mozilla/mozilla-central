@@ -892,7 +892,7 @@
                       flex="1">
                     <menulist id="item-repeat"
                               disable-on-readonly="true"
-                              oncommand="updateRepeat()">
+                              oncommand="updateRepeat(null, true)">
                         <menupopup id="item-repeat-menupopup">
                             <menuitem id="repeat-none-menuitem"
                                       label="&event.repeat.does.not.repeat.label;"
@@ -922,14 +922,27 @@
                                       value="custom"/>
                         </menupopup>
                     </menulist>
-                    <vbox id="repeat-details" flex="1">
-                        <label class="text-link"
-                               crop="right"
-                               disable-on-readonly="true"
-                               hyperlink="true"
-                               flex="1"
-                               onclick="updateRepeat()"/>
-                    </vbox>
+                    <deck id="repeat-deck" selectedIndex="-1">
+                        <hbox id="repeat-untilDate" align="center">
+                            <label value="&event.until.label;"
+                                   accesskey="&event.until.accesskey;"
+                                   control="repeat-until-datepicker"
+                                   disable-on-readonly="true"/>
+                            <datepicker-forever id="repeat-until-datepicker" flex="1"
+                                                disable-on-readonly="true"
+                                                onchange="checkUntilDate();"
+                                                oncommand="checkUntilDate();"
+                                                value=""/>
+                        </hbox>
+                        <vbox id="repeat-details" flex="1">
+                            <label class="text-link"
+                                   crop="right"
+                                   disable-on-readonly="true"
+                                   hyperlink="true"
+                                   flex="1"
+                                   onclick="updateRepeat()"/>
+                        </vbox>
+                    </deck>
                 </hbox>
             </row>
 
