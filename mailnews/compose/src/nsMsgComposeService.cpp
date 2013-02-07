@@ -445,6 +445,9 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
     // two words selected in order to quote just the selected text
     if (requireMultipleWords)
     {
+      if (selPlain.IsEmpty())
+        return NS_ERROR_ABORT;
+
       nsCOMPtr<nsILineBreaker> lineBreaker = do_GetService(NS_LBRK_CONTRACTID, &rv);
 
       if (NS_SUCCEEDED(rv))
