@@ -27,15 +27,6 @@ var Utilities = {
     return this.bookmarksObserver;
   },
 
-  get livemarks() {
-    let livemarks =
-      Components.classes["@mozilla.org/browser/livemark-service;2"]
-                .getService(Components.interfaces.mozIAsyncLivemarks)
-                .QueryInterface(Components.interfaces.nsILivemarkService);
-    this.__defineGetter__("livemarks", function() livemarks);
-    return this.livemarks;
-  },
-
   get annotations() {
     let annotations =
       Components.classes["@mozilla.org/browser/annotation-service;1"]
@@ -71,7 +62,6 @@ var Utilities = {
   free: function smileutil_free() {
     delete this.bookmarks;
     delete this.bookmarksObserver;
-    delete this.livemarks
     delete this.annotations;
     delete this.history;
     delete this.windowMediator;
