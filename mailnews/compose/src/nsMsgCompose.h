@@ -28,6 +28,7 @@ class nsMsgComposeSendListener;
 class nsIEditorMailSupport;
 class nsIRDFService;
 class nsIArray;
+struct nsMsgMailList;
 
 class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 {
@@ -82,8 +83,10 @@ private:
   nsresult GetABDirectories(const nsACString& aDirUri,
                             nsCOMArray<nsIAbDirectory> &aDirArray);
   nsresult BuildMailListArray(nsIAbDirectory* parentDir,
-                              nsISupportsArray* array);
-  nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsIMutableArray** addresses);
+                              nsTArray<nsMsgMailList>& array);
+  nsresult GetMailListAddresses(nsString& name,
+                                nsTArray<nsMsgMailList>& mailListArray,
+                                nsIMutableArray** addresses);
   nsresult TagConvertible(nsIDOMNode *node,  int32_t *_retval);
   nsresult _BodyConvertible(nsIDOMNode *node, int32_t *_retval);
 
@@ -212,16 +215,10 @@ private:
 /******************************************************************************
  * nsMsgMailList
  ******************************************************************************/
-class nsMsgMailList : public nsISupports
+struct nsMsgMailList
 {
-public:
-  nsMsgMailList();
-  nsMsgMailList(nsString listName, nsString listDescription, nsIAbDirectory* directory);
-	virtual ~nsMsgMailList();
+  explicit nsMsgMailList(nsIAbDirectory* directory);
 
-  NS_DECL_ISUPPORTS
-  
-public:
   nsString mFullName;  /* full email address (name + email) */
   nsCOMPtr<nsIAbDirectory> mDirectory;
 };

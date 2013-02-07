@@ -4635,7 +4635,7 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
 }
 
 nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
-                                          nsISupportsArray* array)
+                                          nsTArray<nsMsgMailList>& array)
 {
   nsresult rv;
 
@@ -4657,23 +4657,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
 
           if (NS_SUCCEEDED(directory->GetIsMailList(&bIsMailList)) && bIsMailList)
           {
-            nsString listName;
-            nsString listDescription;
-
-            directory->GetDirName(listName);
-            directory->GetDescription(listDescription);
-
-            nsMsgMailList* mailList = new nsMsgMailList(listName,
-                  listDescription, directory);
-            if (!mailList)
-              return NS_ERROR_OUT_OF_MEMORY;
-            NS_ADDREF(mailList);
-
-            rv = array->AppendElement(mailList);
-            if (NS_FAILED(rv))
-              return rv;
-
-            NS_RELEASE(mailList);
+            array.AppendElement(directory);
           }
         }
       }
@@ -4682,34 +4666,19 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
   return rv;
 }
 
-
-nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsIMutableArray** addressesArray)
+struct nsMsgMailListComparator
 {
-  nsresult rv;
-  nsCOMPtr<nsIEnumerator> enumerator;
-
-  rv = mailListArray->Enumerate(getter_AddRefs(enumerator));
-  if (NS_SUCCEEDED(rv))
-  {
-    for (rv = enumerator->First(); NS_SUCCEEDED(rv); rv = enumerator->Next())
-    {
-      nsMsgMailList* mailList;
-      rv = enumerator->CurrentItem((nsISupports**)&mailList);
-      if (NS_SUCCEEDED(rv) && mailList)
-      {
-        if (name.Equals(mailList->mFullName, nsCaseInsensitiveStringComparator()))
-        {
-          if (!mailList->mDirectory)
-            return NS_ERROR_FAILURE;
-
-          mailList->mDirectory->GetAddressLists(addressesArray);
-          NS_RELEASE(mailList);
-          return NS_OK;
-        }
-        NS_RELEASE(mailList);
-      }
-    }
+  bool Equals(const nsMsgMailList& mailList, const nsString& name) const {
+    return mailList.mFullName.Equals(name, nsCaseInsensitiveStringComparator());
   }
+};
+
+nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsTArray<nsMsgMailList>& mailListArray, nsIMutableArray** addressesArray)
+{
+  uint32_t index = mailListArray.IndexOf(name, 0, nsMsgMailListComparator());
+  if (index != mailListArray.NoIndex &&
+      mailListArray[index].mDirectory)
+    return mailListArray[index].mDirectory->GetAddressLists(addressesArray);
 
   return NS_ERROR_FAILURE;
 }
@@ -4759,8 +4728,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
   nsCOMPtr<nsIAbCard> existingCard;
   nsCOMPtr<nsIMutableArray> mailListAddresses;
   nsCOMPtr<nsIMsgHeaderParser> parser(do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
-  nsCOMPtr<nsISupportsArray> mailListArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsTArray<nsMsgMailList> mailListArray;
 
   nsCOMArray<nsIAbDirectory> addrbookDirArray;
   rv = GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot),
@@ -4787,7 +4755,7 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
         continue;
 
       // Ensure the existing list is empty before filling it
-      mailListArray->Clear();
+      mailListArray.Clear();
 
       // Collect all mailing lists defined in this address book
       rv = BuildMailListArray(abDirectory, mailListArray);
@@ -5530,22 +5498,14 @@ NS_IMETHODIMP nsMsgCompose::CheckCharsetConversion(nsIMsgIdentity *identity, cha
   return NS_OK;
 }
 
-NS_IMPL_ADDREF(nsMsgMailList)
-NS_IMPL_RELEASE(nsMsgMailList)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgMailList)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsISupports)
-NS_INTERFACE_MAP_END
-
-
-nsMsgMailList::nsMsgMailList()
-{
-}
-
-nsMsgMailList::nsMsgMailList(nsString listName, nsString listDescription, nsIAbDirectory* directory) :
+nsMsgMailList::nsMsgMailList(nsIAbDirectory* directory) :
   mDirectory(directory)
 {
   nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
+
+  nsString listName, listDescription;
+  mDirectory->GetDirName(listName);
+  mDirectory->GetDescription(listDescription);
 
   if (parser)
     parser->MakeFullAddress(listName,
@@ -5565,8 +5525,4 @@ nsMsgMailList::nsMsgMailList(nsString listName, nsString listDescription, nsIAbD
   }
 
   mDirectory = directory;
-}
-
-nsMsgMailList::~nsMsgMailList()
-{
 }
