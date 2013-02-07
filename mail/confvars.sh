@@ -21,6 +21,10 @@ if test "$OS_ARCH" = "WINNT"; then
   fi
 fi
 
+# Disable WebRTC as we don't use it currently and to work around bug 837618
+# for Mac
+MOZ_WEBRTC=
+
 MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
 if test -z "$MOZ_INCOMPLETE_EXTERNAL_LINKAGE"; then
