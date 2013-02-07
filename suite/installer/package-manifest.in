@@ -190,6 +190,7 @@
 @BINPATH@/components/dom_json.xpt
 @BINPATH@/components/dom_loadsave.xpt
 @BINPATH@/components/dom_media.xpt
+@BINPATH@/components/dom_mobilemessage.xpt
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
@@ -340,10 +341,6 @@
 
 ; JavaScript components
 @BINPATH@/components/addonManager.js
-#ifdef MOZ_SERVICES_AITC
-@BINPATH@/components/Aitc.js
-@BINPATH@/components/AitcComponents.manifest
-#endif
 @BINPATH@/components/AlarmsManager.js
 @BINPATH@/components/AlarmsManager.manifest
 @BINPATH@/components/amContentHandler.js
@@ -579,9 +576,6 @@
 @BINPATH@/@PREF_DIR@/browser-prefs.js
 #ifdef LIBXUL_SDK
 @BINPATH@/@PREF_DIR@/channel-prefs.js
-#endif
-#ifdef MOZ_SERVICES_AITC
-@BINPATH@/@PREF_DIR@/services-aitc.js
 #endif
 #ifdef MOZ_SERVICES_SYNC
 @BINPATH@/@PREF_DIR@/services-sync.js

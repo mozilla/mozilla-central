@@ -1132,16 +1132,12 @@ xpicleanup@BIN_SUFFIX@
     update.locale
   #endif
 #else
-  #ifndef MOZ_SERVICES_AITC
-    components/Aitc.js
-  #endif
+  components/Aitc.js
   components/binary.manifest
   #ifndef MOZ_SERVICES_SYNC
     components/Weave.js
   #endif
-  #ifndef MOZ_SERVICES_AITC
-    defaults/pref/services-aitc.js
-  #endif
+  defaults/pref/services-aitc.js
   defaults/pref/services-notifications.js
   #ifndef MOZ_SERVICES_SYNC
     defaults/pref/services-sync.js
