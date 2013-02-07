@@ -107,10 +107,6 @@ GenericImportHelper.prototype =
   }
 };
 
-function endsWith(string, suffix) {
-  return string.indexOf(suffix, string.length - suffix.length) != -1;
-}
-
 /**
  * AbImportHelper
  * A helper for Address Book imports. To use, supply at least the file and type.
@@ -153,13 +149,13 @@ function AbImportHelper(aFile, aModuleSearchString, aAbName, aJsonName)
      "Custom1", "Custom2", "Custom3", "Custom4", "Notes", "_AimScreenName"];
 
   // get the extra attributes supported for the given type of import
-  if (endsWith(this.mFile.leafName.toLowerCase(), ".ldif")) {
+  if (this.mFile.leafName.toLowerCase().endsWith(".ldif")) {
     // LDIF: add PreferMailFormat
     this.mSupportedAttributes = supportedAttributes.concat(["PreferMailFormat"]);
-  } else if (endsWith(this.mFile.leafName.toLowerCase(), ".csv")) {
+  } else if (this.mFile.leafName.toLowerCase().endsWith(".csv")) {
     this.mSupportedAttributes = supportedAttributes;
     this.setFieldMap(this.getDefaultFieldMap(true));
-  } else if (endsWith(this.mFile.leafName.toLowerCase(), ".vcf")) {
+  } else if (this.mFile.leafName.toLowerCase().endsWith(".vcf")) {
     this.mSupportedAttributes = supportedAttributes;
   };
 

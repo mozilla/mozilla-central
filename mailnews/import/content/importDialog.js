@@ -66,7 +66,7 @@ function SetUpImportType()
   document.getElementById("importFields").value = importType;
   
   // Mac migration not working right now, so disable it
-  if (navigator.platform.match("^Mac"))
+  if (navigator.platform.startsWith("Mac"))
   {
     document.getElementById("allRadio").setAttribute("disabled", "true");
     if (importType == "all")
@@ -419,7 +419,7 @@ function ListFeedAccounts() {
 }
 
 function ContinueImport( info) {
-  var isMail = info.importType == 'mail' ? true : false;
+  var isMail = info.importType == 'mail';
   var clear = true;
   var deck;
   var pcnt;
@@ -552,7 +552,7 @@ function ShowImportResultsRaw(title, results, good)
 
   // If the Local Folder is not existed, create it after successfully 
   // import "mail" and "settings"
-  var checkLocalFolder = (top.progressInfo.importType == 'mail' || top.progressInfo.importType == 'settings') ? true : false;
+  var checkLocalFolder = (top.progressInfo.importType == 'mail' || top.progressInfo.importType == 'settings');
   if (good && checkLocalFolder && !top.progressInfo.localFolderExists) {
     var am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
     if (am)
