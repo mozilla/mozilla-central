@@ -16,7 +16,6 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"
-#include "nsIEnumerator.h"
 #include "nsIImportModule.h"
 #include "nsIImportService.h"
 #include "nsImportMailboxDescriptor.h"

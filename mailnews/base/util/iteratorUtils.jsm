@@ -50,7 +50,9 @@ function toArray(aObj, aUseKeys) {
  * Currently, we support the following types of xpcom iterators:
  *   nsIArray
  *   nsISupportsArray
- *   nsIEnumerator
+ *   nsIEnumerator // We must support this until there are no uses of nsIEnumerator
+ *                    in mozilla-central and comm-central. E.g. it can be created
+ *                    via nsISupportsArray.enumerate().
  *   nsISimpleEnumerator
  *
  *   @param aEnum  the enumerator to convert

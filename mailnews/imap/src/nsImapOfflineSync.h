@@ -14,7 +14,6 @@
 #include "nsIMsgFolder.h"
 #include "nsCOMArray.h"
 #include "nsIDBChangeListener.h"
-#include "nsIEnumerator.h"
 
 class nsImapOfflineSync : public nsIUrlListener,
                           public nsIMsgCopyServiceListener,
