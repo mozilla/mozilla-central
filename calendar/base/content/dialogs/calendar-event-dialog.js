@@ -1091,17 +1091,24 @@ function onPopupShowing(menuPopup) {
  * constraining factors like
  */
 function updateAccept() {
-    var enableAccept = true;
-
-    var kDefaultTimezone = calendarDefaultTimezone();
+    let enableAccept = true;
+    let kDefaultTimezone = calendarDefaultTimezone();
+    let startDate;
+    let endDate;
+    let isEvent = cal.isEvent(window.calendarItem);
 
     // don't allow for end dates to be before start dates
-    var startDate;
-    var endDate;
-    if (isEvent(window.calendarItem)) {
+    if (isEvent) {
         startDate = cal.jsDateToDateTime(getElementValue("event-starttime"));
         endDate = cal.jsDateToDateTime(getElementValue("event-endtime"));
+    } else {
+        startDate = getElementValue("todo-has-entrydate", "checked") ?
+            cal.jsDateToDateTime(getElementValue("todo-entrydate")) : null;
+        endDate = getElementValue("todo-has-duedate", "checked") ?
+            cal.jsDateToDateTime(getElementValue("todo-duedate")) : null;
+    }
 
+    if (startDate && endDate) {
         var menuItem = document.getElementById('options-timezone-menuitem');
         if (menuItem.getAttribute('checked') == 'true') {
             var startTimezone = gStartTimezone;
@@ -1124,7 +1131,7 @@ function updateAccept() {
 
         // For all-day events we are not interested in times and compare only
         // dates.
-        if (getElementValue("event-all-day", "checked")) {
+        if (isEvent && getElementValue("event-all-day", "checked")) {
             // jsDateToDateTime returnes the values in UTC. Depending on the
             // local timezone and the values selected in datetimepicker the date
             // in UTC might be shifted to the previous or next day.
@@ -1138,11 +1145,6 @@ function updateAccept() {
             startDate.isDate = true;
             endDate.isDate = true;
         }
-    } else {
-        startDate = getElementValue("todo-has-entrydate", "checked") ?
-            cal.jsDateToDateTime(getElementValue("todo-entrydate")) : null;
-        endDate = getElementValue("todo-has-duedate", "checked") ?
-            cal.jsDateToDateTime(getElementValue("todo-duedate")) : null;
     }
 
     if (endDate && startDate && endDate.compare(startDate) == -1) {
