@@ -715,7 +715,7 @@
             roleStatusIcon.setAttribute("class", "role-icon");
             roleStatusIcon.setAttribute("role", newAttendee.role);
 
-            let userTypeIcon = document.getAnonymousElementByAttribute(listitem, "anonid", "userstatus-icon");
+            let userTypeIcon = document.getAnonymousElementByAttribute(listitem, "anonid", "usertype-icon");
             userTypeIcon.removeAttribute("disabled");
             userTypeIcon.setAttribute("id", "attendeeCol2#" + rowNumber);
             userTypeIcon.setAttribute("cutype", newAttendee.userType);
