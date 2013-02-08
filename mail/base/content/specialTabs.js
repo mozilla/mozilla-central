@@ -241,7 +241,11 @@ const DOMLinkHandler = {
 
 const kTelemetryPrompted    = "toolkit.telemetry.prompted";
 const kTelemetryEnabled     = "toolkit.telemetry.enabled";
+const kTelemetryRejected    = "toolkit.telemetry.rejected";
 const kTelemetryServerOwner = "toolkit.telemetry.server_owner";
+// This value should be kept synchronized to the value of TELEMETRY_PROMPT_REV
+// in mozilla-central/source/browser/components/nsBrowserGlue.js .
+const kTelemetryPromptRev   = 2;
 
 var contentTabBaseType = {
   inContentWhitelist: ['about:addons'],
@@ -739,8 +743,7 @@ var specialTabs = {
   shouldShowTelemetryNotification: function() {
     // toolkit has decided that the pref should have no default value
     try {
-      if (Services.prefs.getBoolPref(kTelemetryPrompted) ||
-          Services.prefs.getBoolPref(kTelemetryEnabled))
+      if (Services.prefs.getIntPref(kTelemetryPrompted) >= kTelemetryPromptRev)
         return false;
     } catch (e) { }
     return true;
@@ -758,6 +761,10 @@ var specialTabs = {
     var serverOwner = Services.prefs.getCharPref(kTelemetryServerOwner);
     var telemetryText = telemetryBundle.get("telemetryText", [productName, serverOwner]);
 
+    Services.prefs.clearUserPref(kTelemetryPrompted);
+    Services.prefs.clearUserPref(kTelemetryEnabled);
+    Services.prefs.clearUserPref(kTelemetryRejected);
+
     var buttons = [
       {
         label:     telemetryBundle.get("telemetryYesButtonLabel"),
@@ -771,12 +778,14 @@ var specialTabs = {
         label:     telemetryBundle.get("telemetryNoButtonLabel"),
         accessKey: telemetryBundle.get("telemetryNoButtonAccessKey"),
         popup:     null,
-        callback:  function(aNotificationBar, aButton) {}
+        callback:  function(aNotificationBar, aButton) {
+          Services.prefs.setBoolPref(kTelemetryRejected, true);
+        }
       }
     ];
 
     // Set pref to indicate we've shown the notification.
-    Services.prefs.setBoolPref(kTelemetryPrompted, true);
+    Services.prefs.setIntPref(kTelemetryPrompted, kTelemetryPromptRev);
 
     var notification = notifyBox.appendNotification(telemetryText, "telemetry", null, notifyBox.PRIORITY_INFO_LOW, buttons);
     notification.persistence = 3; // arbitrary number, just so bar sticks around for a bit
