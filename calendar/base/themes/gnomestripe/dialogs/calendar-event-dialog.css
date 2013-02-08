@@ -138,7 +138,7 @@ toolbar[iconsize="small"] #button-save:hover {
  *   delete button
  *-------------------------------------------------------------------*/
 
-#button-delete {
+#button-delete.cal-event-toolbarbutton {
     -moz-image-region: rect(0px 408px 24px 384px);
 }
 #button-delete[disabled="true"],
