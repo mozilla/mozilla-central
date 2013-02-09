@@ -99,18 +99,18 @@ function setupWindowAndTest(hotkeyToHit, hotkeyModifiers) {
   plan_for_new_window("msgcompose");
   msgWin.keypress(null, hotkeyToHit, hotkeyModifiers);
   let compWin = wait_for_compose_window(msgWin);
-  
+
   let bodyText= compWin.e("content-frame").contentDocument
-                        .getElementsByTagName("body")[0].textContent;
-  if (bodyText.indexOf("html") != -1)
+                       .querySelector("body").textContent;
+  if (bodyText.contains("html"))
     throw new Error("body text contains raw html; bodyText=" + bodyText);
 
-  if (bodyText.indexOf(msgbodyA) == -1)
+  if (!bodyText.contains(msgbodyA))
     throw new Error("body text didn't contain the body text; msgbodyA=" +
                     msgbodyB + ", bodyText=" + bodyText);
 
   let subjectText = compWin.e("msgSubject").value;
-  if (subjectText.indexOf(msgsubject) == -1)
+  if (!subjectText.contains(msgsubject))
     throw new Error("subject text didn't contain the original subject; " +
                     "msgsubject=" +  msgsubject + ", subjectText=" + subjectText);
 

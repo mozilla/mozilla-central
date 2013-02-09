@@ -85,7 +85,7 @@ function checkAttachment(expectedCD, expectedCT) {
     pos = contentDisposition.indexOf("\n", pos);
     do_check_neq(pos, -1);
     pos++;
-  } while (contentDisposition.substr(pos, 1) == " ");
+  } while (contentDisposition.startsWith(" ", pos));
   contentDisposition = contentDisposition.substr(0, pos);
   do_check_eq(contentDisposition, expectedCD);
 
@@ -103,7 +103,7 @@ function checkAttachment(expectedCD, expectedCT) {
     pos = contentType.indexOf("\n", pos);
     do_check_neq(pos, -1);
     pos++;
-  } while (contentType.substr(pos, 1) == " ");
+  } while (contentType.startsWith(" ", pos));
   contentType = contentType.substr(0, pos);
   do_check_eq(contentType, expectedCT);
 }

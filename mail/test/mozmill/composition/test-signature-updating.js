@@ -22,11 +22,10 @@ var jumlib = {};
 Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var composeHelper = null;
 var cwc = null; // compose window controller
-var prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                   .getService(Ci.nsIPrefService).getBranch(null);
 
 var setupModule = function (module) {
   let fdh = collector.getModule("folder-display-helpers");
@@ -56,12 +55,12 @@ function setupComposeWin(toAddr, subj, body) {
  * and has the correct signature after switching to another identity.
  */
 function plaintextComposeWindowSwitchSignatures(suppressSigSep) {
-  prefBranch.setBoolPref("mail.identity.id1.compose_html", false);
+  Services.prefs.setBoolPref("mail.identity.id1.compose_html", false);
   cwc = composeHelper.open_compose_new_mail();
-  prefBranch.setBoolPref("mail.identity.id1.suppress_signature_separator",
-                         suppressSigSep);
-  prefBranch.setBoolPref("mail.identity.id2.suppress_signature_separator",
-                         suppressSigSep);
+  Services.prefs.setBoolPref("mail.identity.id1.suppress_signature_separator",
+                             suppressSigSep);
+  Services.prefs.setBoolPref("mail.identity.id2.suppress_signature_separator",
+                             suppressSigSep);
 
   let contentFrame = cwc.e("content-frame");
   let mailBody = contentFrame.contentDocument.body;
@@ -157,11 +156,11 @@ function testPlaintextComposeWindowSwitchSignatures() {
  * Same test, but with an HTML compose window
  */
 function HTMLComposeWindowSwitchSignatures(suppressSigSep) {
-  prefBranch.setBoolPref("mail.identity.id1.compose_html", true);
-  prefBranch.setBoolPref("mail.identity.id1.suppress_signature_separator",
-                         suppressSigSep);
-  prefBranch.setBoolPref("mail.identity.id2.suppress_signature_separator",
-                         suppressSigSep);
+  Services.prefs.setBoolPref("mail.identity.id1.compose_html", true);
+  Services.prefs.setBoolPref("mail.identity.id1.suppress_signature_separator",
+                             suppressSigSep);
+  Services.prefs.setBoolPref("mail.identity.id2.suppress_signature_separator",
+                             suppressSigSep);
   cwc = composeHelper.open_compose_new_mail();
 
   setupComposeWin("", "HTML compose window", "Body, first line.");

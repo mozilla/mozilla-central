@@ -107,15 +107,15 @@ function test_reply_to_base64_eml() {
   let compWin = open_compose_with_reply(msgc);
 
   let bodyText = compWin.e("content-frame").contentDocument
-                        .getElementsByTagName("body")[0].textContent;
+                        .querySelector("body").textContent;
 
   const message = "You have decoded this text from base64.";
-  if (bodyText.indexOf(message) == -1)
+  if (!bodyText.contains(message))
     throw new Error("body text didn't contain the decoded text; message=" +
                     message + ", bodyText=" + bodyText);
 
-  close_compose_window(compWin); 
-  close_window(msgc); 
+  close_compose_window(compWin);
+  close_window(msgc);
 }
 
 /**
@@ -130,13 +130,13 @@ function test_forward_base64_eml() {
   let compWin = open_compose_with_forward(msgc);
 
   let bodyText = compWin.e("content-frame").contentDocument
-                        .getElementsByTagName("body")[0].textContent;
+                        .querySelector("body").textContent;
 
   const message = "You have decoded this text from base64.";
-  if (bodyText.indexOf(message) == -1)
+  if (!bodyText.contains(message))
     throw new Error("body text didn't contain the decoded text; message=" +
                     message + ", bodyText=" + bodyText);
 
-  close_compose_window(compWin); 
-  close_window(msgc); 
+  close_compose_window(compWin);
+  close_window(msgc);
 }

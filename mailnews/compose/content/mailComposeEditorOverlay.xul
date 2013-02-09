@@ -85,7 +85,7 @@
           if (gMsgCompProcessLink)
           {
             //is it a Windows remote file?
-            if (/^\s*file:\/\/\/\/\//i.test(gMsgCompInputElement.value))
+            if (gMsgCompInputElement.value.trimLeft().toLowerCase().startsWith("file://///"))
             {
               try {
                 let dontAttachPref =
@@ -95,7 +95,7 @@
               } catch(ex) {};
             }
             //is it not a file: location at all?
-            else if (!/^\s*file:\/\//i.test(gMsgCompInputElement.value))
+            else if (!gMsgCompInputElement.value.trimLeft().toLowerCase().startsWith("file://"))
               attach = false;
           }
         }

@@ -49,9 +49,9 @@ function test_forwarded_subj() {
   let fwdWin = open_compose_with_forward();
 
   let headerTableText  = fwdWin.e("content-frame").contentDocument
-                          .getElementsByTagName("table")[0].textContent;
-  if (headerTableText.indexOf(msg.mime2DecodedSubject) == -1) {
-    throw new Error("Subject not set correctly in header table: subject=" + 
+                          .querySelector("table").textContent;
+  if (!headerTableText.contains(msg.mime2DecodedSubject)) {
+    throw new Error("Subject not set correctly in header table: subject=" +
                     msg.mime2DecodedSubject + ", header table text=" +
                     headerTableText);
   }

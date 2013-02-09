@@ -356,7 +356,7 @@ function test_attachment_renamed() {
   let originalName1 = lastEvent.detail;
   assert_true(renamedAttachment1 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo1, renamedAttachment1.name);
-  assert_true(renamedAttachment1.url.indexOf("http://www.example.com/1") != -1);
+  assert_true(renamedAttachment1.url.contains("http://www.example.com/1"));
   assert_equals("www.example.com/1", originalName1);
 
   // Ok, let's try renaming the same attachment.
@@ -372,7 +372,7 @@ function test_attachment_renamed() {
   let originalName2 = lastEvent.detail;
   assert_true(renamedAttachment2 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo2, renamedAttachment2.name);
-  assert_true(renamedAttachment2.url.indexOf("http://www.example.com/1") != -1);
+  assert_true(renamedAttachment2.url.contains("http://www.example.com/1"));
   assert_equals(kRenameTo1, originalName2);
 
   // Ok, let's rename another attachment
@@ -391,7 +391,7 @@ function test_attachment_renamed() {
   let originalName3 = lastEvent.detail;
   assert_true(renamedAttachment3 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo3, renamedAttachment3.name);
-  assert_true(renamedAttachment3.url.indexOf("http://www.example.com/2") != -1);
+  assert_true(renamedAttachment3.url.contains("http://www.example.com/2"));
   assert_equals("www.example.com/2", originalName3);
 
   // Unregister the Mock Prompt service, and remove our observer.

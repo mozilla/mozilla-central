@@ -227,7 +227,7 @@ function wait_for_compose_window(aController) {
 
   let replyWindow = windowHelper.wait_for_new_window("msgcompose");
 
-  let editor = replyWindow.window.document.getElementsByTagName("editor")[0];
+  let editor = replyWindow.window.document.querySelector("editor");
 
   if (editor.webNavigation.busyFlags != Ci.nsIDocShell.BUSY_FLAGS_NONE) {
     let editorObserver = {

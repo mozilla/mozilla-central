@@ -16,6 +16,7 @@ var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var EventUtils = {};
 Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
+Cu.import("resource://gre/modules/Services.jsm");
 
 var folder;
 
@@ -135,9 +136,7 @@ var setupModule = function (module) {
  *        false otherwise
  */
 function ensure_starts_expanded(expand) {
-  Components.classes["@mozilla.org/preferences-service;1"]
-            .getService(Components.interfaces.nsIPrefBranch2)
-            .setBoolPref("mailnews.attachments.display.start_expanded", expand);
+  Services.prefs.setBoolPref("mailnews.attachments.display.start_expanded", expand);
 }
 
 function test_attachment_view_collapsed() {

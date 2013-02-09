@@ -227,7 +227,7 @@ function test_rename_attachment() {
 
   // Now, rename the attachment.
   let bucket = cwc.e("attachmentBucket");
-  let node = bucket.getElementsByTagName("attachmentitem")[0];
+  let node = bucket.querySelector("attachmentitem");
   cwc.click(new elib.Elem(node));
   plan_for_modal_dialog("commonDialog", subtest_rename_attachment);
   cwc.window.RenameSelectedAttachment();
@@ -260,7 +260,7 @@ function test_open_attachment() {
 
   // Now, open the attachment.
   let bucket = cwc.e("attachmentBucket");
-  let node = bucket.getElementsByTagName("attachmentitem")[0];
+  let node = bucket.querySelector("attachmentitem");
   plan_for_modal_dialog("unknownContentType", subtest_open_attachment);
   cwc.doubleClick(new elib.Elem(node));
   wait_for_modal_dialog("unknownContentType");

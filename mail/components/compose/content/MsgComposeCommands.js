@@ -172,7 +172,7 @@ function updateEditableFields(aDisable)
   else
     gMsgCompose.editor.flags &= ~nsIPlaintextEditorMail.eEditorReadonlyMask;
 
-  let elements = document.getElementsByAttribute("disableonsend", "true");
+  let elements = document.querySelectorAll('[disableonsend="true"]');
   for (let i = 0; i < elements.length; i++)
     elements[i].disabled = aDisable;
 }
@@ -897,8 +897,8 @@ function updateAllItems(aDisable)
   let commandItemCollections = [];
   commandItemCollections.push(document.getElementsByTagName("menu"));
   commandItemCollections.push(document.getElementsByTagName("toolbarbutton"));
-  commandItemCollections.push(document.getElementsByAttribute("command", "*"));
-  commandItemCollections.push(document.getElementsByAttribute("oncommand", "*"));
+  commandItemCollections.push(document.querySelectorAll('[command]'));
+  commandItemCollections.push(document.querySelectorAll('[oncommand]'));
   for each (let itemCollection in commandItemCollections) {
     for (let item = 0; item < itemCollection.length; item++) {
       let commandItem = itemCollection[item];
@@ -1912,7 +1912,7 @@ function GetArgs(originalData)
       continue;
     var argname = pairs[i].substring(0, pos);
     var argvalue = pairs[i].substring(pos + 1);
-    if (argvalue.charAt(0) == "'" && argvalue.charAt(argvalue.length - 1) == "'")
+    if (argvalue.startsWith("'") && argvalue.endsWith("'"))
       args[argname] = argvalue.substring(1, argvalue.length - 1);
     else
       try {
@@ -1945,13 +1945,13 @@ function ComposeFieldsReady()
 function handleMailtoArgs(mailtoUrl)
 {
   // see if the string is a mailto url....do this by checking the first 7 characters of the string
-  if (mailtoUrl.startsWith("mailto:"))
+  if (mailtoUrl.toLowerCase().startsWith("mailto:"))
   {
     // if it is a mailto url, turn the mailto url into a MsgComposeParams object....
     let uri = Services.io.newURI(mailtoUrl, null, null);
 
     if (uri) {
-      var composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
+      let composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
                                  .getService(Components.interfaces.nsIMsgComposeService);
       return composeSvc.getParamsForMailto(uri);
     }
@@ -2071,7 +2071,7 @@ function ShouldShowAttachmentNotification(async)
       "mail.compose.attachment_reminder_keywords",
       Components.interfaces.nsIPrefLocalizedString).data;
     let mailBody = document.getElementById("content-frame")
-                           .contentDocument.getElementsByTagName("body")[0];
+                           .contentDocument.querySelector("body");
     let mailBodyNode = mailBody.cloneNode(true);
 
     // Don't check quoted text from reply.
@@ -2082,10 +2082,9 @@ function ShouldShowAttachmentNotification(async)
 
     // For plaintext composition the quotes we need to find and exclude are
     // <span _moz_quote="true">.
-    let spans = mailBodyNode.getElementsByTagName("span");
+    let spans = mailBodyNode.querySelectorAll("span[_moz_quote]");
     for (let i = spans.length - 1; i >= 0; i--) {
-      if (spans[i].hasAttribute("_moz_quote"))
-        spans[i].parentNode.removeChild(spans[i]);
+      spans[i].parentNode.removeChild(spans[i]);
     }
 
     // Ignore signature (html compose mode).
@@ -2176,8 +2175,8 @@ function ComposeStartup(recycled, aParams)
   if (!document.documentElement.hasAttribute("width"))
   {
     // Prefer 860x800.
-    let defaultHeight = (screen.availHeight >= 800) ? 800 : screen.availHeight;
-    let defaultWidth = (screen.availWidth >= 860) ? 860 : screen.availWidth;
+    let defaultHeight = Math.min(screen.availHeight, 800);
+    let defaultWidth = Math.min(screen.availWidth, 860);
 
     // On small screens, default to maximized state.
     if (defaultHeight <= 600)
@@ -2684,8 +2683,7 @@ function GenericSendMessage(msgType)
 
     // Strip trailing spaces and long consecutive WSP sequences from the
     // subject line to prevent getting only WSP chars on a folded line.
-    var fixedSubject = subject.replace(/\s{74,}/g, "    ")
-                              .replace(/\s*$/, "");
+    let fixedSubject = subject.replace(/\s{74,}/g, "    ").trimRight();
     if (fixedSubject != subject)
     {
       subject = fixedSubject;
@@ -2900,11 +2898,11 @@ function CheckValidEmailAddress(to, cc, bcc)
   var invalidStr = null;
   // crude check that the to, cc, and bcc fields contain at least one '@'.
   // We could parse each address, but that might be overkill.
-  if (to.length > 0 && (to.indexOf("@") <= 0 && to.toLowerCase() != "postmaster" || to.indexOf("@") == to.length - 1))
+  if (to.length > 0 && (!to.contains("@", 1) && to.toLowerCase() != "postmaster" || to.endsWith("@")))
     invalidStr = to;
-  else if (cc.length > 0 && (cc.indexOf("@") <= 0 && cc.toLowerCase() != "postmaster" || cc.indexOf("@") == cc.length - 1))
+  else if (cc.length > 0 && (!cc.contains("@", 1) && cc.toLowerCase() != "postmaster" || cc.endsWith("@")))
     invalidStr = cc;
-  else if (bcc.length > 0 && (bcc.indexOf("@") <= 0 && bcc.toLowerCase() != "postmaster" || bcc.indexOf("@") == bcc.length - 1))
+  else if (bcc.length > 0 && (!bcc.contains("@", 1) && bcc.toLowerCase() != "postmaster" || bcc.endsWith("@")))
     invalidStr = bcc;
   if (invalidStr)
   {
@@ -3035,8 +3033,8 @@ function updatePriorityMenu()
     if (msgCompFields && msgCompFields.priority)
     {
       var priorityMenu = document.getElementById('priorityMenu' );
-      priorityMenu.getElementsByAttribute( "checked", 'true' )[0].removeAttribute('checked');
-      priorityMenu.getElementsByAttribute( "value", msgCompFields.priority )[0].setAttribute('checked', 'true');
+      priorityMenu.querySelector('[checked="true"]').removeAttribute('checked');
+      priorityMenu.querySelector('[value="' + msgCompFields.priority + '"]').setAttribute('checked', 'true');
     }
   }
 }
@@ -3215,11 +3213,11 @@ function InitLanguageMenu()
 function OnShowDictionaryMenu(aTarget)
 {
   InitLanguageMenu();
-  var spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
-  var curLang = spellChecker.GetCurrentDictionary();
-  var languages = aTarget.getElementsByAttribute("value", curLang);
-  if (languages.length > 0)
-    languages[0].setAttribute("checked", true);
+  let spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
+  let curLang = spellChecker.GetCurrentDictionary();
+  let language = aTarget.querySelector('[value="' + curLang + '"]');
+  if (language)
+    language.setAttribute("checked", true);
 }
 
 function ChangeLanguage(event)
@@ -4266,10 +4264,9 @@ var envelopeDragObserver = {
         {
           if (item.flavour.contentType == "application/x-moz-file")
           {
-            var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
-                                        .getService(Components.interfaces.nsIIOService)
-                                        .getProtocolHandler("file")
-                                        .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+            let fileHandler = Services.io
+                                      .getProtocolHandler("file")
+                                      .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 
             size = rawData.fileSize;
             rawData = fileHandler.getURLSpecFromFile(rawData);
@@ -4294,7 +4291,7 @@ var envelopeDragObserver = {
             // if this is a url (or selected text)
             // see if it's a valid url by checking
             // if we can extract a scheme
-            // using the ioservice
+            // using Services.io
             //
             // also skip mailto:, since it doesn't make sense
             // to attach and send mailto urls
