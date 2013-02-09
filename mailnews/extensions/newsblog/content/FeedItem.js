@@ -300,7 +300,7 @@ FeedItem.prototype =
     this.mUnicodeConverter.charset = this.characterSet;
 
     // If the sender isn't a valid email address, quote it so it looks nicer.
-    if (this.author && this.author.indexOf("@") == -1)
+    if (this.author && !this.author.contains("@"))
       this.author = "<" + this.author + ">";
 
     // Convert the title to UTF-16 before performing our HTML entity

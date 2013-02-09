@@ -307,7 +307,7 @@ Feed.prototype =
     if (quickMode)
     {
       quickMode = quickMode.QueryInterface(Ci.nsIRDFLiteral);
-      quickMode = quickMode.Value == "true" ? true : false;
+      quickMode = quickMode.Value == "true";
     }
 
     return quickMode;

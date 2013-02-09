@@ -1282,7 +1282,7 @@ var FeedSubscriptions = {
  */
   moveCopyFeed: function(aOldFeedIndex, aNewParentIndex, aMoveCopy)
   {
-    let moveFeed = aMoveCopy == "move" ? true : false;
+    let moveFeed = aMoveCopy == "move";
     let currentItem = this.mView.getItemAtIndex(aOldFeedIndex);
     if (!currentItem ||
         this.mView.getParentIndex(aOldFeedIndex) == aNewParentIndex)
@@ -2147,7 +2147,7 @@ var FeedSubscriptions = {
       stream.close();
     }
 
-    let body = opmlDom ? opmlDom.getElementsByTagName("body")[0] : null;
+    let body = opmlDom ? opmlDom.querySelector("body") : null;
 
     // Return if the OPML file is invalid or empty.
     if (!body || !body.childElementCount ||
@@ -2243,8 +2243,8 @@ var FeedSubscriptions = {
 
           // Create the feed.
           let quickMode = outline.hasAttribute("fz:quickMode") ?
-                          outline.getAttribute("fz:quickMode") == "true" ?
-                          true : false : rssServer.getBoolValue("quickMode");
+                          outline.getAttribute("fz:quickMode") == "true" :
+                          rssServer.getBoolValue("quickMode");
 
           if (firstFeedInFolderQuickMode === null)
             // The summary/web page pref applies to all feeds in a folder,
