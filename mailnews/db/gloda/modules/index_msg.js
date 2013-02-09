@@ -2331,8 +2331,7 @@ var GlodaMsgIndexer = {
                  GlodaFolder.prototype.kFolderFilthy)) {
             // Local case, just modify the destination headers directly.
             if (aDestMsgHdrs) {
-              for each (let destMsgHdr in fixIterator(aDestMsgHdrs.enumerate(),
-                                                      nsIMsgDBHdr)) {
+              for (let destMsgHdr in fixIterator(aDestMsgHdrs, nsIMsgDBHdr)) {
                 // zero it out if it exists
                 // (no need to deal with pending commit issues here; a filthy
                 //  folder by definition has nothing indexed in it.)
@@ -2364,8 +2363,7 @@ var GlodaMsgIndexer = {
                                        " Gloda corruption possible.");
                 return;
               }
-              for each (let srcMsgHdr in fixIterator(aSrcMsgHdrs.enumerate(),
-                                                     nsIMsgDBHdr)) {
+              for (let srcMsgHdr in fixIterator(aSrcMsgHdrs, nsIMsgDBHdr)) {
                 // zero it out if it exists
                 // (no need to deal with pending commit issues here; a filthy
                 //  folder by definition has nothing indexed in it.)
@@ -2480,8 +2478,7 @@ var GlodaMsgIndexer = {
           // -- Do not propagate gloda-id's for copies
           // (Only applies if we have the destination header, which means local)
           if (aDestMsgHdrs) {
-            for each (let destMsgHdr in fixIterator(aDestMsgHdrs.enumerate(),
-                                                    nsIMsgDBHdr)) {
+            for (let destMsgHdr in fixIterator(aDestMsgHdrs, nsIMsgDBHdr)) {
               let glodaId = destMsgHdr.getUint32Property(
                 GLODA_MESSAGE_ID_PROPERTY);
               if (glodaId)

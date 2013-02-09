@@ -50,10 +50,10 @@ function toArray(aObj, aUseKeys) {
  * Currently, we support the following types of xpcom iterators:
  *   nsIArray
  *   nsISupportsArray
- *   nsIEnumerator // We must support this until there are no uses of nsIEnumerator
- *                    in mozilla-central and comm-central. E.g. it can be created
- *                    via nsISupportsArray.enumerate().
  *   nsISimpleEnumerator
+ *
+ *   This intentionally does not support nsIEnumerator as it is obsolete and
+ *   no longer used in the base code.
  *
  *   @param aEnum  the enumerator to convert
  *   @param aIface (optional) an interface to QI each object to prior to
@@ -99,24 +99,8 @@ function fixIterator(aEnum, aIface) {
     }
     return { __iterator__: iter };
   }
-  
-  // Now try nsIEnumerator
-  if (aEnum instanceof Ci.nsIEnumerator) {
-    let done = false;
-    let iter = function() {
-      while (!done) {
-        try {
-          yield aEnum.currentItem().QueryInterface(face);
-          aEnum.next();
-        } catch(ex) {
-          done = true;
-        }
-      }
-    };
-    return { __iterator__: iter };
-  }
-  
-  // how about nsISimpleEnumerator? this one is nice and simple
+
+  // How about nsISimpleEnumerator? This one is nice and simple.
   if (aEnum instanceof Ci.nsISimpleEnumerator) {
     let iter = function () {
       while (aEnum.hasMoreElements())
