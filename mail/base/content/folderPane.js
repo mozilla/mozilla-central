@@ -919,8 +919,8 @@ let gFolderTreeView = {
     for each (let acct in accounts) {
       let foldersWithFlag = acct.incomingServer.rootFolder.getFoldersWithFlags(aFolderFlag);
       if (foldersWithFlag.length > 0) {
-        for each (let folderWithFlag in fixIterator(foldersWithFlag.enumerate(),
-                                                Components.interfaces.nsIMsgFolder)) {
+        for (let folderWithFlag in fixIterator(foldersWithFlag,
+                                               Components.interfaces.nsIMsgFolder)) {
           folders.push(folderWithFlag);
           // Add sub-folders of Sent and Archive to the result.
           if (deep && (aFolderFlag & (nsMsgFolderFlags.SentMail | nsMsgFolderFlags.Archive)))

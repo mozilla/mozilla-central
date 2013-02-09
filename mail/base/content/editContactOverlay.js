@@ -146,7 +146,7 @@ var editContactInlineUI = {
             !list.isMailList)
           continue;
 
-        for (let card in fixIterator(list.addressLists.enumerate())) {
+        for (let card in fixIterator(list.addressLists)) {
           if (card instanceof Components.interfaces.nsIAbCard &&
               card.primaryEmail == this._cardDetails.card.primaryEmail) {
             inMailList = true;

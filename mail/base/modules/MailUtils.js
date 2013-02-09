@@ -59,7 +59,7 @@ var MailUtils =
                            .getService(Ci.nsIMsgAccountManager);
     let folders = accountManager.allFolders;
 
-    for each (let folder in fixIterator(folders.enumerate(), Ci.nsIMsgFolder)) {
+    for (let folder in fixIterator(folders, Ci.nsIMsgFolder)) {
       if (folder.filePath.equals(aFile))
         return folder;
     }

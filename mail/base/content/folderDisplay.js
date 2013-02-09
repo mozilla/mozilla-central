@@ -1988,9 +1988,9 @@ FolderDisplayWidget.prototype = {
     // getMsgHdrsForSelection returns an nsIMutableArray.  We want our callers
     //  to have a user-friendly JS array and not have to worry about
     //  QueryInterfacing the values (or needing to know to use fixIterator).
-    return [msgHdr for each
+    return [msgHdr for
               (msgHdr in fixIterator(
-                          this.view.dbView.getMsgHdrsForSelection().enumerate(),
+                          this.view.dbView.getMsgHdrsForSelection(),
                           Components.interfaces.nsIMsgDBHdr))];
   },
 
