@@ -426,7 +426,7 @@ SyntheticMessage.prototype = {
    */
   _formatMailFromNameAndAddress: function(aNameAndAddress) {
     // if the name is encoded, do not put it in quotes!
-    return (aNameAndAddress[0][0] == "=" ?
+    return (aNameAndAddress[0].startsWith("=") ?
               (aNameAndAddress[0] + " ") :
               ('"' + aNameAndAddress[0] + '" ')) +
            '<' + aNameAndAddress[1] + '>';
@@ -876,7 +876,7 @@ MessageGenerator.prototype = {
       msg.parent = srcMsg;
       msg.parent.children.push(msg);
 
-      msg.subject = (srcMsg.subject.substring(0, 4) == "Re: ") ? srcMsg.subject
+      msg.subject = (srcMsg.subject.startsWith("Re: ")) ? srcMsg.subject
                     : ("Re: " + srcMsg.subject);
       if (aArgs.replyAll)
         msg.to = [srcMsg.from].concat(srcMsg.to.slice(1));

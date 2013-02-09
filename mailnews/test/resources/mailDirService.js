@@ -53,7 +53,7 @@ function initializeDirServer() {
           }
           if (prop == "resource:app") {
             // app should return the same as gre...
-            return dirSvc.get("GreD", Ci.nsIFile);
+            return Services.dirsvc.get("GreD", Ci.nsIFile);
           }
           if (prop == "TmpD") {
             throw Components.results.NS_ERROR_FAILURE;
@@ -68,21 +68,20 @@ function initializeDirServer() {
           XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
       };
       gProfileDirProvider = provider;
-      dirSvc.QueryInterface(Ci.nsIDirectoryService).registerProvider(gProfileDirProvider);
+      Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
+                     .registerProvider(gProfileDirProvider);
     }
   };
 
   // If there's no location registered for the profile directory, register one
-  var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIProperties);
   var profileDir;
   try {
-    profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
+    profileDir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
   } catch (e) { }
 
   if (!profileDir) {
     MailTestDirServer.makeDirectoryService();
-    profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
+    profileDir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
   }
   return profileDir;
 }

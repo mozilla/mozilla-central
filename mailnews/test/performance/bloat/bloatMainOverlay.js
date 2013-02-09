@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Milliseconds. Decided on MacBook 2.4GHz Intel (Dual Core).
 // 4s seemed a resonable time for the main window to be displayed.
 const kMailStartup = 4000;
@@ -29,10 +31,7 @@ function startMainTest()
 
 function shutdownMainWindow()
 {
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-
-  var window = wm.getMostRecentWindow("msgcompose");
+  var window = Services.wm.getMostRecentWindow("msgcompose");
 
   // Double-check because of bug 321783
   if (window)
