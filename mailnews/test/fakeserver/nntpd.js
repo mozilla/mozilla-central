@@ -301,7 +301,7 @@ NNTP_RFC977_handler.prototype = {
     }
 
     if (this.posting) {
-      if (line.charAt(0) == '.')
+      if (line.startsWith('.'))
         line = line.substring(1);
 
       this.post += line+'\n';
@@ -332,7 +332,7 @@ NNTP_RFC977_handler.prototype = {
 
       art = this.group[this.articleKey];
       key = this.articleKey;
-    } else if (args.charAt(0) == '<') {
+    } else if (args.startsWith('<')) {
       art = this._daemon.getArticle(args);
       key = 0;
 

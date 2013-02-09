@@ -64,16 +64,16 @@ function verifyContentLength() {
   messageService.GetUrlForUri(messageUri, neckoURL, null);
   // Don't use the necko URL directly. Instead, get the spec and create a new
   // URL using the IO service
-  let urlToRun = gIOService.newURI(neckoURL.value.spec, null, null);
+  let urlToRun = Services.io.newURI(neckoURL.value.spec, null, null);
 
   // Get a channel from this URI, and check its content length
-  let channel = gIOService.newChannelFromURI(urlToRun);
+  let channel = Services.io.newChannelFromURI(urlToRun);
   do_check_eq(channel.contentLength, gFile.fileSize);
 
   // Now try an attachment. &part=1.2
-  let attachmentURL = gIOService.newURI(neckoURL.value.spec + "&part=1.2",
+  let attachmentURL = Services.io.newURI(neckoURL.value.spec + "&part=1.2",
                                         null, null);
-  let attachmentChannel = gIOService.newChannelFromURI(attachmentURL);
+  let attachmentChannel = Services.io.newChannelFromURI(attachmentURL);
   // Currently attachments have their content length set to the length of the
   // entire message
   do_check_eq(attachmentChannel.contentLength, gFile.fileSize);

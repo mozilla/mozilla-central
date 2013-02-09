@@ -317,7 +317,7 @@ function nsMailReader(server, handler, transport, debug, logTransaction) {
   // Send response line
   var response = this._handler.onStartup();
   response = response.replace(/([^\r])\n/g,"$1\r\n");
-  if (response.charAt(response.length-1) != '\n')
+  if (!response.endsWith('\n'))
     response = response + "\r\n";
   if (this.transaction)
     this.transaction.us.push(response);
@@ -436,7 +436,7 @@ nsMailReader.prototype = {
       if (!this._preventLFMunge)
         response = response.replace(/([^\r])\n/g,"$1\r\n");
 
-      if (response.charAt(response.length-1) != '\n')
+      if (!response.endsWith('\n'))
        response = response + "\r\n";
 
       if (this._debug == fsDebugRecvSend) {

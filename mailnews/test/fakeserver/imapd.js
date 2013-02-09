@@ -42,6 +42,8 @@
 // + Messages: A message is represented internally as an annotated URI.       //
 ////////////////////////////////////////////////////////////////////////////////
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 if (!("MimeParser" in this))
   Components.utils.import("resource:///modules/mimeParser.jsm", this);
 
@@ -87,12 +89,12 @@ imapDaemon.prototype = {
     if (name == "")
       return this.root;
     // INBOX is case-insensitive, no matter what
-    if (name.substr(0, 5).toUpperCase() == "INBOX")
+    if (name.toUpperCase().startsWith("INBOX"))
       name = "INBOX" + name.substr(5);
     // We want to find a child who has the same name, but we don't quite know
     // what the delimiter is. The convention is that different namespaces use a
     // name starting with '#', so that's how we'll work it out.
-    if (name[0] == '#') {
+    if (name.startsWith('#')) {
       var root = null;
       for each (var mailbox in this.root._children) {
         if (mailbox.name.indexOf(name) == 0 &&
@@ -326,7 +328,6 @@ imapMailbox.prototype = {
   }
 }
 
-var gIOService;
 function imapMessage(URI, uid, flags) {
   this._URI = URI;
   this.uid = uid;
@@ -338,10 +339,7 @@ function imapMessage(URI, uid, flags) {
 }
 imapMessage.prototype = {
   get channel() {
-    if (!gIOService)
-      gIOService = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService);
-    return gIOService.newChannel(this._URI, null, null);
+    return Services.io.newChannel(this._URI, null, null);
   },
   setFlag : function (flag) {
    if (this.flags.indexOf(flag) == -1)
@@ -496,7 +494,7 @@ function parseCommand(text, partial) {
         current.push(atom);
         atom = '';
       }
-    } else if (text.substring(0,3).toUpperCase() == "NIL" &&
+    } else if (text.toUpperCase().startsWith("NIL") &&
                (text.length == 3 || text[3] == ' ')) {
       current.push(null);
       text = text.substring(4);
@@ -516,7 +514,7 @@ function parseCommand(text, partial) {
 function formatArg(argument, spec) {
   // Get NILs out of the way quickly
   var nilAccepted = false;
-  if (spec[0] == 'n' && spec[1] != 'u') {
+  if (spec.startsWith('n') && spec[1] != 'u') {
     spec = spec.substring(1);
     nilAccepted = true;
   }
@@ -528,9 +526,9 @@ function formatArg(argument, spec) {
   }
 
   // array!
-  if (spec[0] == '(') {
+  if (spec.startsWith('(')) {
     // typeof array is object. Don't ask me why.
-    if (typeof argument != "object")
+    if (!Array.isArray(argument))
       throw "Expected list!";
     // Strip the '(' and ')'...
     spec = spec.substring(1, spec.length - 1);
@@ -590,7 +588,7 @@ function formatArg(argument, spec) {
 function parseMailboxList(aList) {
 
   // strip enclosing parentheses
-  if (aList[0] == '(') {
+  if (aList.startsWith('(')) {
     aList = aList.substring(1, aList.length - 1);
   }
   let mailboxList = [];
@@ -863,7 +861,7 @@ IMAP_RFC3501_handler.prototype = {
     var lines = response.split(/\u0000/);
     response = "";
     for each (var line in lines) {
-      if (line[0] != '+' && line[0] != '*')
+      if (!line.startsWith('+') && !line.startsWith('*'))
         response += this._tag + " ";
       response += line + "\r\n";
     }
@@ -882,12 +880,12 @@ IMAP_RFC3501_handler.prototype = {
       }
 
       if (args.length == 0)
-        if (spec[0] == '[') // == optional arg
+        if (spec.startsWith('[')) // == optional arg
           continue;
         else
           throw "BAD not enough arguments";
 
-      if (spec[0] == '[') {
+      if (spec.startsWith('[')) {
         // We have an optional argument. See if the format matches and move on
         // if it doesn't. Ideally, we'd rethink our decision if a later
         // application turns out to be wrong, but that's ugly to do
@@ -1106,7 +1104,7 @@ IMAP_RFC3501_handler.prototype = {
     let requestedBoxes;
     // check for multiple mailbox patterns used by LIST-EXTENDED
     // and other related RFCs
-    if (args[1][0] == "(") {
+    if (args[1].startsWith("(")) {
       requestedBoxes = parseMailboxList(args[1]);
     } else {
       requestedBoxes = [ args[1] ];
@@ -1309,7 +1307,7 @@ IMAP_RFC3501_handler.prototype = {
     var messages = this._parseSequenceSet(args[0], uid, ids);
 
     args[1] = args[1].toUpperCase();
-    var silent = args[1].indexOf('.SILENT') > 0;
+    var silent = args[1].contains('.SILENT', 1);
     if (silent)
       args[1] = args[1].substring(0, args[1].indexOf('.'));
 
@@ -1442,7 +1440,7 @@ IMAP_RFC3501_handler.prototype = {
     var elements = set.split(/,/);
     set = [];
     for each (var part in elements) {
-      if (part.indexOf(':') == -1) {
+      if (!part.contains(':')) {
         set.push(part2num(part));
       } else {
         var range = part.split(/:/);
@@ -1516,12 +1514,12 @@ IMAP_RFC3501_handler.prototype = {
       query = data[2];
     } else {
       var partNum = "";
-      if (parts[1].indexOf(" ") > 0)
+      if (parts[1].contains(" ", 1))
         query = parts[1].substring(0, parts[1].indexOf(" "));
       else
         query = parts[1];
     }
-    if (parts[1].indexOf(" ") > 0)
+    if (parts[1].contains(" ", 1))
       var queryArgs = parseCommand(parts[1].substr(parts[1].indexOf(" ")))[0];
     else
       var queryArgs = [];
