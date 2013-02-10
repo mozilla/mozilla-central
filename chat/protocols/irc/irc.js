@@ -1203,7 +1203,7 @@ ircAccount.prototype = {
     // consider it to be a single parameter and put it into an array.
     let params = !aParams ? [] : Array.isArray(aParams) ? aParams : [aParams];
     if (params.length) {
-      if (params.slice(0, -1).some(function(p) p.indexOf(" ") != -1)) {
+      if (params.slice(0, -1).some(function(p) p.contains(" "))) {
         ERROR("IRC parameters cannot have spaces: " + params.slice(0, -1));
         return null;
       }
@@ -1213,7 +1213,7 @@ ircAccount.prototype = {
       //  2. If the first character of the last parameter is a colon.
       //  3. If the last parameter is an empty string.
       let trailing = params.slice(-1)[0];
-      if (!trailing.length || trailing.indexOf(" ") != -1 || trailing[0] == ":")
+      if (!trailing.length || trailing.contains(" ") || trailing.startsWith(":"))
         params.push(":" + params.pop());
       message += " " + params.join(" ");
     }

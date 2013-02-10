@@ -218,7 +218,7 @@
         <body>
           <![CDATA[
             // Enable auto-scroll if the scrollbar is at the bottom.
-            let body = this.contentDocument.getElementsByTagName("body")[0];
+            let body = this.contentDocument.querySelector("body");
             this._autoScrollEnabled =
               body.scrollHeight <= body.scrollTop + body.clientHeight + 10;
             return this._autoScrollEnabled;

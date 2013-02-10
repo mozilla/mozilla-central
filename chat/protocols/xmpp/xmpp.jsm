@@ -751,7 +751,7 @@ const XMPPAccountPrototype = {
       throw "The account isn't connected";
 
     let jid = this._normalizeJID(aName);
-    if (!jid || jid.indexOf("@") == -1)
+    if (!jid || !jid.contains("@"))
       throw "Invalid username";
 
     if (this._buddies.hasOwnProperty(jid)) {

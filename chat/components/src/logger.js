@@ -185,8 +185,8 @@ ConversationLog.prototype = {
       if (aMessage.autoResponse)
         line += sender + " <AUTO-REPLY>: " + msg;
       else {
-        if (/^\/me /.test(msg))
-          line += "***" + sender + " " + msg.replace(/^\/me /, "");
+        if (msg.startsWith("/me "))
+          line += "***" + sender + " " + msg.substr(4);
         else
           line += sender + ": " + msg;
       }

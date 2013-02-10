@@ -20,7 +20,7 @@ OdnoklassnikiAccount.prototype = {
   __proto__: XMPPAccountPrototype,
   get canJoinChat() false,
   connect: function() {
-    if (this.name.indexOf("@") == -1) {
+    if (!this.name.contains("@")) {
       let jid = this.name + "@odnoklassniki.ru/" + XMPPDefaultResource;
       this._jid = this._parseJID(jid);
     }

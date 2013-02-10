@@ -333,7 +333,7 @@ function cleanupImMarkup(aText, aRuleset, aTextModifiers)
   let parser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
                          .createInstance(Components.interfaces.nsIDOMParser);
   let doc = parser.parseFromString(aText, "text/html");
-  let div = doc.getElementsByTagName("body")[0];
+  let div = doc.querySelector("body");
   cleanupNode(div, aRuleset || gGlobalRuleset, aTextModifiers || []);
   return div.innerHTML;
 }

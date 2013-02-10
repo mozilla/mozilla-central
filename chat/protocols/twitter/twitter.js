@@ -317,7 +317,7 @@ Conversation.prototype = {
       name == this._account.name ? {outgoing: true} : {incoming: true};
     flags.time = Math.round(new Date(aTweet.created_at) / 1000);
     flags._iconURL = aTweet.user.profile_image_url;
-    if (text.indexOf("@" + this.nick) != -1)
+    if (text.contains("@" + this.nick))
       flags.containsNick = true;
 
     (new Tweet(aTweet, name, text, flags)).conversation = this;
@@ -829,7 +829,7 @@ Account.prototype = {
             delete this.window;
           },
           _checkForRedirect: function(aURL) {
-            if (aURL.indexOf(this._parent.completionURI) != 0)
+            if (!aURL.startsWith(this._parent.completionURI))
               return;
 
             this._parent.finishAuthorizationRequest();

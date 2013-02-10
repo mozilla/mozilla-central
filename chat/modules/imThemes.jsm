@@ -287,9 +287,8 @@ function getDirectoryEntries(aDir)
 function getThemeVariants(aTheme)
 {
   let variants = getDirectoryEntries(aTheme.baseURI + "Variants/");
-  let cssRe = /\.css$/;
-  return variants.filter(function(v) cssRe.test(v))
-                 .map(function(v) v.replace(cssRe, ""));
+  return variants.filter(function(v) v.endsWith(".css"))
+                 .map(function(v) v.substring(0, v.length - 4));
 }
 
 /* helper function for replacements in messages */

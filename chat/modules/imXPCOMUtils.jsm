@@ -25,6 +25,8 @@ const DEBUG_INFO = 2; // Verbose (= 'LOG')
 const DEBUG_WARNING = 3;
 const DEBUG_ERROR = 4;
 
+const kLogLevelPref = "purple.debug.loglevel";
+
 function scriptError(aModule, aLevel, aMessage) {
   // Figure out the log level, based on the module and the prefs set.
   // The module name is split on periods, and if no pref is set the pref with
@@ -85,7 +87,7 @@ XPCOMUtils.defineLazyGetter(Cu.getGlobalForObject({}), "gLogLevels", function() 
   // to avoid cycles with the pref service.
   let logLevels = {
     observe: function(aSubject, aTopic, aData) {
-      let module = "level" + aData.replace(/^purple.debug.loglevel/, "");
+      let module = "level" + aData.substr(kLogLevelPref.length);
       if (Services.prefs.getPrefType(aData) == Services.prefs.PREF_INT)
         gLogLevels[module] = Services.prefs.getIntPref(aData);
       else
@@ -96,13 +98,12 @@ XPCOMUtils.defineLazyGetter(Cu.getGlobalForObject({}), "gLogLevels", function() 
   };
 
   // Add weak pref observer to see log level pref changes.
-  Services.prefs.addObserver("purple.debug.loglevel", logLevels, true /* weak */);
+  Services.prefs.addObserver(kLogLevelPref, logLevels, true /* weak */);
 
   // Initialize with existing log level prefs.
-  for each (let pref in Services.prefs.getChildList("purple.debug.loglevel")) {
+  for each (let pref in Services.prefs.getChildList(kLogLevelPref)) {
     if (Services.prefs.getPrefType(pref) == Services.prefs.PREF_INT)
-      logLevels["level" + pref.replace(/^purple.debug.loglevel/, "")] =
-        Services.prefs.getIntPref(pref);
+      logLevels["level" + pref.substr(kLogLevelPref.length)] = Services.prefs.getIntPref(pref);
   }
 
   // Let environment variables override prefs.

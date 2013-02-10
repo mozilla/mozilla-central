@@ -100,7 +100,7 @@ UnknownProtocol.prototype = {
 // 2 values should be stored.
 function imAccount(aKey, aName, aPrplId)
 {
-  if (aKey.indexOf(kAccountKeyPrefix) != 0)
+  if (!aKey.startsWith(kAccountKeyPrefix))
     throw Cr.NS_ERROR_INVALID_ARG;
 
   this.id = aKey;
@@ -752,7 +752,7 @@ AccountsService.prototype = {
 
     this._accounts =
       this._accountList.split(",").map(String.trim)
-          .filter(function (k) k.indexOf(kAccountKeyPrefix) == 0)
+          .filter(function (k) k.startsWith(kAccountKeyPrefix))
           .map(function (k) parseInt(k.substr(kAccountKeyPrefix.length)))
           .map(this.getAccountByNumericId, this)
           .filter(function (a) a);
@@ -893,7 +893,7 @@ AccountsService.prototype = {
   },
 
   getAccountById: function(aAccountId) {
-    if (aAccountId.indexOf(kAccountKeyPrefix) != 0)
+    if (!aAccountId.startsWith(kAccountKeyPrefix))
       throw Cr.NS_ERROR_INVALID_ARG;
 
     let id = parseInt(aAccountId.substr(kAccountKeyPrefix.length));

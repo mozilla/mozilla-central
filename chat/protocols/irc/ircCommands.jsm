@@ -207,7 +207,7 @@ var commands = [
     get helpString() _("command.modeUser", "mode") + "\n" +
                      _("command.modeChannel", "mode"),
     run: function(aMsg, aConv) {
-      function isMode(aString) "+-".indexOf(aString[0]) != -1;
+      function isMode(aString) "+-".contains(aString[0]);
       let params = splitInput(aMsg);
 
       // Check if we have any params, we can't just check params.length, since
@@ -365,7 +365,7 @@ var commands = [
     run: function(aMsg, aConv) {
       // Note that this will automatically run whowas is the nick is offline.
       aMsg = aMsg.trim();
-      if (!aMsg || aMsg.indexOf(" ") != -1)
+      if (!aMsg || aMsg.contains(" "))
         return false;
       getConv(aConv).requestBuddyInfo(aMsg);
       return true;
