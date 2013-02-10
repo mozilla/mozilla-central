@@ -1176,6 +1176,8 @@ void icalcomponent_strip_errors(icalcomponent* component)
 	if(icalproperty_isa(p) == ICAL_XLICERROR_PROPERTY)
 	{
 	    icalcomponent_remove_property(component,p);
+	    icalproperty_free(p);
+	    p = NULL;
 	}
     }
     
@@ -1243,6 +1245,8 @@ void icalcomponent_convert_errors(icalcomponent* component)
 					   icalproperty_new_requeststatus(rst));
 		
 		icalcomponent_remove_property(component,p);
+		icalproperty_free(p);
+		p = NULL;
 	    }
 	}
     }
