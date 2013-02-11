@@ -239,7 +239,7 @@
       <xul:hbox flex="1" id="hbox" class="datepicker-box-class">
         <xul:menulist editable="true" sizetopopup="false"
                       class="datepicker-text-class"
-                      onchange="this.kDatePicker.parseTextBoxDate(true);"
+                      onchange="this.kDatePicker.parseTextBoxDate(true, event);"
                       onkeypress="if (event.keyCode == 13) this.kDatePicker.parseTextBoxDate(true);"
                       xbl:inherits="disabled">
           <xul:menupopup popupanchor="bottomright" popupalign="topright"
@@ -340,8 +340,14 @@
 
       <method name="parseTextBoxDate">
         <parameter name="aRefresh"/>
+        <parameter name="aEvent"/>
         <body>
           <![CDATA[
+            // Stop the "change" event propagation. It will be properly
+            // fired inside the update method.
+            if (aEvent) {
+                aEvent.stopPropagation();
+            }
             this.update(this.parseDateTime(this.kTextBox.value), aRefresh);
             this.lastDateParseIncludedTime = false;
           ]]>
@@ -394,7 +400,7 @@
       <xul:hbox flex="1" id="hbox" class="datepicker-box-class">
         <xul:menulist anonid="foreverMenulist" editable="true" sizetopopup="false"
                       class="datepicker-text-class"
-                      onchange="this.kDatePicker.parseTextBoxDate(true);"
+                      onchange="this.kDatePicker.parseTextBoxDate(true, event);"
                       onkeypress="if (event.keyCode == 13) this.kDatePicker.parseTextBoxDate(true);"
                       xbl:inherits="disabled">
           <xul:menupopup popupanchor="bottomright" popupalign="topright"
@@ -424,12 +430,18 @@
 
       <method name="parseTextBoxDate">
         <parameter name="aRefresh"/>
+        <parameter name="aEvent"/>
         <body>
           <![CDATA[
             if (this.kTextBox.value.toLowerCase() == this.mForeverStr.toLowerCase()) {
                 this.mValue = "forever";
                 this.kTextBox.value = this.mForeverStr;
             } else {
+                // Stop the "change" event propagation. It will be properly
+                // fired inside the update method.
+                if (aEvent) {
+                    aEvent.stopPropagation();
+                }
                 let date = this.parseDateTime(this.kTextBox.value);
                 if (date) {
                     this.update(date, aRefresh);
@@ -541,7 +553,7 @@
         <xul:menulist editable="true" sizetopopup="false"
                       id="timepicker-text"
                       class="timepicker-text-class"
-                      onchange="this.kTimePicker.parseTextBoxTime(true);"
+                      onchange="this.kTimePicker.parseTextBoxTime(true, event);"
                       onkeypress="if (event.keyCode == 13) this.kTimePicker.parseTextBoxTime(true);"
                       xbl:inherits="disabled">
           <xul:menupopup popupalign="topright" popupanchor="bottomright"
@@ -574,14 +586,19 @@
         <parameter name="aRefresh"/>
         <body>
           <![CDATA[
+            let timeChanged = false;
             if (aValue != null) {
+              if (this.mValue) {
+                timeChanged = this.mValue.getHours() != aValue.getHours() ||
+                              this.mValue.getMinutes() != aValue.getMinutes();
+              }
               this.mValue = aValue;
             }
             // set textBox.value property, not attribute
             this.kTextBox.value = this.formatTime(this.mValue);
 
-            if (aValue != null && aRefresh) {
-              var event = document.createEvent('Events');
+            if (aValue != null && aRefresh && timeChanged) {
+              let event = document.createEvent('Events');
               event.initEvent("change", true, true);
               this.dispatchEvent(event);;
             }
@@ -591,9 +608,15 @@
 
       <method name="parseTextBoxTime">
         <parameter name="aRefresh"/>
+        <parameter name="aEvent"/>
         <body>
           <![CDATA[
-            var time = this.parseTime(this.kTextBox.value);
+            // Stop the "change" event propagation. It will be properly
+            // fired inside the update method.
+            if (aEvent) {
+              aEvent.stopPropagation();
+            }
+            let time = this.parseTime(this.kTextBox.value);
             this.update(time, aRefresh);
             return time;
           ]]>
@@ -1429,7 +1452,6 @@
                                     tempTime.getSeconds());
             this.mValue = dateTime;
             this.kTimePicker.update(dateTime, false);
-            this.fireEvent("change");
           ]]>
         </body>
       </method>
@@ -1445,7 +1467,6 @@
             dateTime.setSeconds(newTime.getSeconds());
             this.mValue = dateTime;
             this.kDatePicker.update(dateTime, false);
-            this.fireEvent("change");
           ]]>
         </body>
       </method>

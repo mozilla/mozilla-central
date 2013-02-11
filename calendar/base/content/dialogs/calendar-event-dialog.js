@@ -638,18 +638,20 @@ function dateTimeControls2State(aStartDatepicker) {
 
     updateDateTime();
     updateTimezone();
+    updateAccept();
 
     if (warning) {
+        // Disable the "Save" and "Save and Close" commands as long as the
+        // warning dialog is showed.
+        enableAcceptCommand(false);
         gWarning = true;
-        var callback = function func() {
-            enableAcceptCommand(false);
-            Services.prompt.alert(
-                null,
-                document.title,
-                calGetString("calendar", "warningEndBeforeStart"));
+        let callback = function func() {
+            Services.prompt.alert(null,
+                                  document.title,
+                                  cal.calGetString("calendar", "warningEndBeforeStart"));
             gWarning = false;
-            enableAcceptCommand(true);
-        }
+            updateAccept();
+        };
         setTimeout(callback, 1);
     }
 }
@@ -1156,17 +1158,15 @@ function updateAccept() {
     return enableAccept;
 }
 
-/* Enables/disables the cmd_accept command related to the save operation
+/**
+ * Enables/disables the commands cmd_accept and cmd_save related to the
+ * save operation.
  *
  * @param aEnable           true: enables the command
  */
 function enableAcceptCommand(aEnable) {
-    let accept = document.getElementById("cmd_accept");
-    if (aEnable) {
-        accept.removeAttribute('disabled');
-    } else {
-        accept.setAttribute('disabled', 'true');
-    }
+    setElementValue("cmd_accept", !aEnable, "disabled");
+    setElementValue("cmd_save", !aEnable, "disabled");
 }
 
 // Global variables used to restore start and end date-time when changing the
@@ -3237,7 +3237,7 @@ function updateAttendees() {
         let callback = function func() {
             attendeeList.setAttribute('value', attendeeNames.join(', '));
             attendeeList.setAttribute('tooltiptext', attendeeEmails.join(', '));
-        }
+        };
         setTimeout(callback, 1);
     } else {
         attendeeRow.setAttribute('collapsed', 'true');
@@ -3498,6 +3498,8 @@ function checkUntilDate() {
         return;
     }
 
+    // The "time" part of the until date will be correctly assigned in the
+    // updateRepeat() function, but here we need to check only the date.
     let untilDate = cal.jsDateToDateTime(repeatUntilDate, gStartTime.timezone);
     let startDate = gStartTime.clone();
     startDate.isDate = true;
@@ -3509,7 +3511,8 @@ function checkUntilDate() {
                                    : "forever");
         gWarning = true;
         let callback = function() {
-            // Disable the "Save" button until the warning dialog is showed
+            // Disable the "Save" and "Save and Close" commands as long as the
+            // warning dialog is showed.
             enableAcceptCommand(false);
 
             Services.prompt.alert(
