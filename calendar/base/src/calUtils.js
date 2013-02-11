@@ -416,6 +416,19 @@ function isItemSupported(aItem, aCalendar) {
 }
 
 /**
+ * @deprecated This function has been replaced by cal.wrapInstance()
+ */
+function calInstanceOf(aObject, aInterface) {
+    if (!calInstanceOf.warningIssued) {
+        cal.WARN("Use of calInstanceOf() is deprecated and will be removed " +
+                 "with the next release. Use cal.wrapInstance() instead.\n" +
+                 cal.STACK(10));
+        calInstanceOf.warningIssued = true;
+    }
+    return (cal.wrapInstance(aObject, aInterface) != null);
+}
+
+/**
  * Determines whether or not the aObject is a calIEvent
  *
  * @param aObject  the object to test
