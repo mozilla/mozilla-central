@@ -670,7 +670,7 @@ calCachedCalendar.prototype = {
         return Services.io.offline;
     },
     get supportsChangeLog() {
-        return calInstanceOf(this.mUncachedCalendar, Components.interfaces.calIChangeLog);
+        return (cal.wrapInstance(this.mUncachedCalendar, Components.interfaces.calIChangeLog) != null);
     },
 
     get canRefresh() { // enable triggering sync using the reload button

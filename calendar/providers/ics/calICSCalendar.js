@@ -125,11 +125,11 @@ calICSCalendar.prototype = {
 
         // Use the ioservice, to create a channel, which makes finding the
         // right hooks to use easier.
-        var channel = Services.io.newChannelFromURI(this.mUri);
+        let channel = Services.io.newChannelFromURI(this.mUri);
 
-        if (calInstanceOf(channel, Components.interfaces.nsIHttpChannel)) {
+        if (cal.wrapInstance(channel, Components.interfaces.nsIHttpChannel)) {
             this.mHooks = new httpHooks(this);
-        } else if (calInstanceOf(channel, Components.interfaces.nsIFileChannel)) {
+        } else if (cal.wrapInstance(channel, Components.interfaces.nsIFileChannel)) {
             this.mHooks = new fileHooks(this);
         } else {
             this.mHooks = new dummyHooks(this);

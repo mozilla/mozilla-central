@@ -43,19 +43,21 @@ function calWcapCalendar_getRecurrenceParams(item, out_rrules, out_rdates, out_e
         var rItems = item.recurrenceInfo.getRecurrenceItems({});
         for each (var rItem in rItems) {
             var isNeg = rItem.isNegative;
-            if (calInstanceOf(rItem, Components.interfaces.calIRecurrenceRule)) {
-                var rule = ("\"" + encodeURIComponent(rItem.icalProperty.valueAsIcalString) + "\"");
+            let rRule = cal.wrapInstance(rItem, Components.interfaces.calIRecurrenceRule);
+            let rDate = cal.wrapInstance(rItem, Components.interfaces.calIRecurrenceDate);
+            if (rRule) {
+                let rule = ("\"" + encodeURIComponent(rRule.icalProperty.valueAsIcalString) + "\"");
                 if (isNeg) {
                     out_exrules.value.push(rule);
                 } else {
                     out_rrules.value.push(rule);
                 }
-            } else if (calInstanceOf(rItem, Components.interfaces.calIRecurrenceDate)) {
+            } else if (rDate) {
                 // cs does not accept DATEs here:
                 if (isNeg) {
-                    out_exdates.value.push(getIcalUTC(ensureDateTime(rItem.date)));
+                    out_exdates.value.push(getIcalUTC(ensureDateTime(rDate.date)));
                 } else {
-                    out_rdates.value.push(getIcalUTC(ensureDateTime(rItem.date)));
+                    out_rdates.value.push(getIcalUTC(ensureDateTime(rDate.date)));
                 }
             } else {
                 this.notifyError(NS_ERROR_UNEXPECTED,
@@ -500,10 +502,11 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
             if (attachments) {
                 var strings = [];
                 for each (var att in attachements) {
+                    let wrappedAttachment = cal.wrapInstance(att, Components.interfaces.calIAttachment);
                     if (typeof(att) == "string") {
                         strings.push(encodeURIComponent(att));
-                    } else if (calInstanceOf(att, Components.interfaces.calIAttachment) && att.uri) {
-                        strings.push(encodeURIComponent(att.uri.spec));
+                    } else if (wrappedAttachment && wrappedAttachment.uri) {
+                        strings.push(encodeURIComponent(wrappedAttachment.uri.spec));
                     } else { // xxx todo
                         logError("only URLs supported as attachment, not: " + att, this_);
                     }
@@ -973,12 +976,15 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             let recItems = item.recurrenceInfo.getRecurrenceItems({});
             for each (let recItem in recItems) {
                 // cs bug: workaround missing COUNT
-                if (calInstanceOf(recItem, Components.interfaces.calIRecurrenceRule)) {
+                if (cal.wrapInstance(recItem, Components.interfaces.calIRecurrenceRule)) {
+                    // Possible performance issue double QueryInterface calls
+                    recItem = recItem.QueryInterface(Components.interfaces.calIRecurrenceRule);
                     if (!recItem.isFinite && !recItem.isNegative) {
                         recItem.count = recurrenceBound;
                     }
                 } else if (recStartDate &&
-                           calInstanceOf(recItem, Components.interfaces.calIRecurrenceDate)) {
+                           cal.wrapInstance(recItem, Components.interfaces.calIRecurrenceDate)) {
+                    recItem = recItem.QueryInterface(Components.interfaces.calIRecurrenceDate);
                     // cs bug: always uses DATE-TIME even though the master item is all-day DATE:
                     //         get into startDate's timezone before cutting:
                     let date = recItem.date.getInTimezone(recStartDate.timezone);

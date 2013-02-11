@@ -53,10 +53,10 @@ function onLoad() {
 
     window.readOnly = !(isCalendarWritable(calendar)
                         && (userCanModifyItem(item)
-                            || (calInstanceOf(item.calendar, Components.interfaces.calISchedulingSupport)
+                            || (cal.wrapInstance(item.calendar, Components.interfaces.calISchedulingSupport))
                                 && item.calendar.isInvitation(item)
                                 && userCanRespondToInvitation(item))));
-    if (!window.readOnly && calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
+    if (!window.readOnly && cal.wrapInstance(calendar, Components.interfaces.calISchedulingSupport)) {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
             // if this is an unresponded invitation, preset our default alarm values:

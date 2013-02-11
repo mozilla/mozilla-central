@@ -414,7 +414,8 @@
         <body><![CDATA[
           let pendingRefresh = this.mRefreshPending;
           if (pendingRefresh) {
-              if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
+              pendingRefresh = cal.wrapInstance(pendingRefresh, Components.interfaces.calIOperation);
+              if (pendingRefresh) {
                   this.mRefreshPending = null;
                   pendingRefresh.cancel(null);
               } else {
