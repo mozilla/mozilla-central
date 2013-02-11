@@ -1004,6 +1004,5 @@ var gEditItemOverlay = {
   onItemRemoved: function() { },
   onBeginUpdateBatch: function() { },
   onEndUpdateBatch: function() { },
-  onBeforeItemRemoved: function() { },
   onItemVisited: function() { },
 };
