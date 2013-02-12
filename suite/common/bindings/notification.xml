@@ -696,6 +696,8 @@
                                       function(aEvent) {
                                         if (!aEvent.isTrusted)
                                           return;
+                                        if (aEvent.button != 0)
+                                          return;
                                         aEvent.preventDefault();
                                         aEvent.stopPropagation();
                                         if (callbackArgs.length == 0)
@@ -1225,13 +1227,18 @@
               return;
             }
 
-            this.addLinkClickCallback(overlay, this.activateSinglePlugin, pluginElement);
-
             if (!this.clickToPlayPromptShown)
               this.showPluginClickToPlayPrompt();
 
-            if (this.isTooSmall(pluginElement, overlay))
+            if (this.isTooSmall(pluginElement, overlay)) {
               overlay.style.visibility = "hidden";
+              return;
+            }
+
+            this.addLinkClickCallback(overlay, this.activateSinglePlugin, pluginElement);
+
+            var closeIcon = doc.getAnonymousElementByAttribute(pluginElement, "anonid", "closeIcon");
+            this.addLinkClickCallback(closeIcon, this.hideClickToPlayOverlay, pluginElement);
           ]]>
         </body>
       </method>
@@ -2332,13 +2339,22 @@
       <method name="removeClickToPlayOverlays">
         <body>
           <![CDATA[
-            var doc = this.activeBrowser.contentWindow.document;
             var plugins = this.contentWindowUtils.plugins;
-            for (let plugin of plugins) {
-              let overlay = doc.getAnonymousElementByAttribute(plugin, "class", "mainBox");
+            for (let plugin of plugins)
+              this.hideClickToPlayOverlay(plugin);
+          ]]>
+        </body>
+      </method>
+
+      <method name="hideClickToPlayOverlay">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            var doc = pluginElement.ownerDocument;
+            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+            if (overlay) // no overlay if plugin has been activated
               overlay.style.visibility = "hidden";
-            }
-           ]]>
+          ]]>
         </body>
       </method>
 
