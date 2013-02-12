@@ -2,14 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+@namespace html url("http://www.w3.org/1999/xhtml");
+
 /*
  * This file's style only applies to broken objects, not the rest
  * of the page.
  */
 
-@namespace html url("http://www.w3.org/1999/xhtml");
-
 .mainBox {
+  font: message-box;
+  font-size: 12px;
   text-align: center;
   background-image: repeating-linear-gradient(-45deg,
                                               rgba(65, 65, 65, 0.8),
@@ -17,12 +19,17 @@
                                               rgba(69, 69, 69, 0.8) 20px,
                                               rgba(69, 69, 69, 0.8) 40px);
   color: white;
+  text-shadow: 0 0 3.5px rgba(0, 0, 0, 0.8);
   border-radius: 12px;
   /* recessed effect with dark inner shadow and lightened bottom */
   box-shadow: inset 0 1px 3.5px rgba(0,0,0,0.8),
               0 1px 0 rgba(255,255,255,0.2);
-  padding: 5px;
   -moz-user-select: none;
+  position: relative;
+}
+
+.hoverBox {
+  padding: 5px;
 }
 
 html|a {
@@ -30,28 +37,38 @@ html|a {
 }
 
 .icon {
-  min-width: 48px;
-  min-height: 48px;
+  display: inline-block;
+  width: 48px;
+  height: 48px;
   background-position: center;
   background-repeat: no-repeat;
+  border-style: none;
+  background-color: transparent;
 }
-:-moz-type-unsupported .icon {
+
+:-moz-type-unsupported .icon,
+:-moz-type-unsupported-platform .icon {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginMissing.png);
 }
+
 :-moz-type-unsupported .icon[status="ready"] {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginDownload.png);
 }
+
 :-moz-handler-clicktoplay .icon,
 :-moz-handler-vulnerable-updatable .icon,
 :-moz-handler-vulnerable-no-update .icon {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginClickToPlay.png);
 }
+
 :-moz-handler-disabled .icon {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginDisabled.png);
 }
+
 :-moz-handler-blocked .icon {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginBlocked.png);
 }
+
 :-moz-handler-crashed .icon {
   background-image: url(chrome://mozapps/skin/plugins/contentPluginCrashed.png);
 }
@@ -63,12 +80,11 @@ html|a {
 }
 
 .msg {
-  font: message-box;
-  font-size: 12px;
   cursor: default;
-  text-shadow: rgba(0,0,0,0.8) 0 0 3.5px;
+  width: 100%;
 }
 
+:-moz-handler-clicktoplay .mainBox,
 :-moz-handler-clicktoplay .msgClickToPlay,
 :-moz-handler-vulnerable-updatable .msgClickToPlay,
 :-moz-handler-vulnerable-no-update .msgClickToPlay {
@@ -94,4 +110,36 @@ html|a {
   min-width: 16px;
   min-height: 16px;
   background: url(chrome://mozapps/skin/plugins/pluginHelp-16.png) no-repeat;
+}
+
+.closeIcon {
+  display: block;
+  position: absolute;
+  width: 15px;
+  height: 16px;
+  top: 4px;
+  right: 4px;
+  border-style: none;
+  background-color: transparent;
+  background-image: url(chrome://global/skin/icons/close.gif);
+  background-repeat: no-repeat;
+}
+
+.closeIcon:-moz-locale-dir(rtl) {
+  right: auto;
+  left: 4px;
+}
+
+.closeIcon:focus,
+.closeIcon:hover {
+  background-image: url(chrome://global/skin/icons/close-hov.gif);
+}
+
+.closeIcon:active {
+  background-image: url(chrome://global/skin/icons/close-act.gif);
+}
+
+.closeIcon::-moz-focus-inner {
+  padding: 0px;
+  border: 0px none;
 }
