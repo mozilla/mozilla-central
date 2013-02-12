@@ -20,7 +20,7 @@
                                               rgba(69, 69, 69, 0.8) 40px);
   color: white;
   text-shadow: 0 0 3.5px rgba(0, 0, 0, 0.8);
-  border-radius: 12px;
+  border-radius: 6px;
   /* recessed effect with dark inner shadow and lightened bottom */
   box-shadow: inset 0 1px 3.5px rgba(0,0,0,0.8),
               0 1px 0 rgba(255,255,255,0.2);
