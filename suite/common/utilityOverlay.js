@@ -37,6 +37,7 @@ const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
 var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
 var gShowBiDi = false;
 var gUtilityBundle = null;
+var gPrivate = null;
 
 function toggleOfflineStatus()
 {

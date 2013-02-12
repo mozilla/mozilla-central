@@ -463,13 +463,25 @@ function Startup()
   // set home button tooltip text
   updateHomeButtonTooltip();
 
-  // initialize observers and listeners
-  var xw = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+  var lc = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                  .getInterface(Components.interfaces.nsIWebNavigation)
-                 .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
-                 .treeOwner
-                 .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-                 .getInterface(Components.interfaces.nsIXULWindow);
+                 .QueryInterface(Components.interfaces.nsILoadContext);
+  if (lc.usePrivateBrowsing) {
+    gPrivate = window;
+    document.documentElement.setAttribute("windowtype", "navigator:private");
+    var titlemodifier = document.documentElement.getAttribute("titlemodifier");
+    if (titlemodifier)
+      titlemodifier += " ";
+    titlemodifier += document.documentElement.getAttribute("titleprivate");
+    document.documentElement.setAttribute("titlemodifier", titlemodifier);
+    document.title = titlemodifier;
+  }
+
+  // initialize observers and listeners
+  var xw = lc.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+             .treeOwner
+             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+             .getInterface(Components.interfaces.nsIXULWindow);
   xw.XULBrowserWindow = window.XULBrowserWindow = new nsBrowserStatusHandler();
 
   if (Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
@@ -617,7 +629,7 @@ function Startup()
   window.browserDOMWindow = new nsBrowserAccess();
 
   // hook up remote support
-  if (REMOTESERVICE_CONTRACTID in Components.classes) {
+  if (!gPrivate && REMOTESERVICE_CONTRACTID in Components.classes) {
     var remoteService =
       Components.classes[REMOTESERVICE_CONTRACTID]
                 .getService(Components.interfaces.nsIRemoteService);
@@ -660,13 +672,15 @@ function Startup()
   gBrowser.mPanelContainer.addEventListener("PreviewBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("ResetBrowserThemePreview", LightWeightThemeWebInstaller, false, true);
 
-  DownloadTaskbarIntegration.onBrowserWindowLoad(window);
+  if (!gPrivate) {
+    DownloadTaskbarIntegration.onBrowserWindowLoad(window);
 
-  // initialize the sync UI
-  gSyncUI.init();
+    // initialize the sync UI
+    gSyncUI.init();
 
-  // initialize the session-restore service
-  setTimeout(InitSessionStoreCallback, 0);
+    // initialize the session-restore service
+    setTimeout(InitSessionStoreCallback, 0);
+  }
 
   // Bug 778855 - Perf regression if we do this here. To be addressed in bug 779008.
   setTimeout(function() { SafeBrowsing.init(); }, 2000);

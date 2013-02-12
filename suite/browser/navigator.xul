@@ -30,6 +30,7 @@
         title="&mainWindow.title;" 
         titlemodifier="&mainWindow.titlemodifier;" 
         titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
+        titleprivate="&mainWindow.titleprivate;"
         toggletoolbar="true"
         lightweightthemes="true"
         lightweightthemesfooter="status-bar"

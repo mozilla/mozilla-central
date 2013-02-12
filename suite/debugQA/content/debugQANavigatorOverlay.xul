@@ -20,9 +20,13 @@
 
       var bundle = document.getElementById("debugQANavigatorBundle");
 
-      var titlemodifier = bundle.getFormattedString("titlemodifier",
-                                                    [appInfo.name,
-                                                     appInfo.appBuildID]);
+      var titlemodifier =
+          document.documentElement.getAttribute("titlemodifier") ||
+          document.documentElement.getAttribute("titledefault");
+
+      titlemodifier = bundle.getFormattedString("titlemodifier",
+                                                [titlemodifier,
+                                                 appInfo.appBuildID]);
 
       // On mac, with contenttitlesetting="true", the titlemodifier is removed
       // and replaced with a titledefault attribute that holds the value of the

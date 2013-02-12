@@ -198,6 +198,9 @@
 
   function addToUrlbarHistory(aUrlToAdd)
   {
+    if (gPrivate)
+      return;
+
     // Remove leading and trailing spaces first
     aUrlToAdd = aUrlToAdd.trim();
 
