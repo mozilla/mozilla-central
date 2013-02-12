@@ -28,30 +28,35 @@ let gSyncPane = {
     label.className = "error";
   },
 
+  topics: [ "weave:service:ready",
+            "weave:service:login:error",
+            "weave:service:login:finish",
+            "weave:service:start-over",
+            "weave:service:setup-complete",
+            "weave:service:logout:finish"],
+
   init: function () {
-    let topics = [
-      "weave:service:login:error",
-      "weave:service:login:finish",
-      "weave:service:start-over",
-      "weave:service:setup-complete",
-      "weave:service:logout:finish"];
+    for (var topic of this.topics)
+      Services.obs.addObserver(this, topic, false);
 
-    // Add the observers now and remove them on unload
-    //XXXzpao This should use Services.obs.* but Weave's Obs does nice handling
-    //        of `this`. Fix in a followup. (bug 583347)
-    topics.forEach(function(topic) {
-      Weave.Svc.Obs.add(topic, this.updateWeavePrefs, this);
-    }, this);
-    window.addEventListener("unload", function() {
-      topics.forEach(function (topic) {
-        Weave.Svc.Obs.remove(topic, this.updateWeavePrefs, this);
-      }, gSyncPane);
-    }, false);
+    window.addEventListener("unload", this);
 
-    this.updateWeavePrefs();
+    var xps = Components.classes["@mozilla.org/weave/service;1"]
+                        .getService().wrappedJSObject;
+    if (xps.ready)
+      this.observe(null, "weave:service:ready", null);
+    else
+      xps.ensureLoaded();
   },
 
-  updateWeavePrefs: function () {
+  handleEvent: function (aEvent) {
+    window.removeEventListener("unload", this);
+
+    for (var topic of this.topics)
+      Services.obs.removeObserver(this, topic);
+  },
+
+  observe: function (aSubject, aTopic, aData) {
     if (Weave.Status.service == Weave.CLIENT_NOT_CONFIGURED ||
         Weave.Svc.Prefs.get("firstSync", "") == "notReady") {
       this.page = PAGE_NO_ACCOUNT;
