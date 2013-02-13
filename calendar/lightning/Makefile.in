@@ -49,8 +49,9 @@ ifneq (,$(findstring a,$(LIGHTNING_VERSION)))
 DEFINES += -DLIGHTNING_PRERELEASE_VERSION=1
 endif
 
-ifdef LIGHTNING_UPDATE_LOCATION
-DEFINES += -DLIGHTNING_UPDATE_LOCATION=$(LIGHTNING_UPDATE_LOCATION)
+# Enable nightly updates on aurora and nightly channel
+ifeq (nightly,$(subst aurora,nightly,$(MOZ_UPDATE_CHANNEL)))
+DEFINES += -DLIGHTNING_UPDATE_LOCATION=https://calendar.mozilla.org/update.php
 endif
 
 # Gecko milestone

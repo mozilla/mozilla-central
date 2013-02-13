@@ -12,9 +12,6 @@ ac_add_options --enable-calendar
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
 
-# Don't install Lightning into Thunderbird
-export DISABLE_LIGHTNING_INSTALL=1
-
 if test -n "${_PYMAKE}"; then
   mk_add_options MOZ_MAKE_FLAGS=-j4
 else
