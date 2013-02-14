@@ -235,9 +235,8 @@ bool nsImapFlagAndUidState::IsLastMessageUnseen()
 imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(uint32_t uid, bool *foundIt, int32_t *ndx)
 {
   PR_CEnterMonitor(this);
-  *foundIt = fUids.GreatestIndexLtEq(uid,
-                                     nsDefaultComparator<uint32_t, uint32_t>(),
-                                    (uint32_t *) ndx);
+  *ndx = (int32_t) fUids.IndexOfFirstElementGt(uid) - 1;
+  *foundIt = *ndx >= 0 && fUids[*ndx] == uid;
   imapMessageFlagsType retFlags = (*foundIt) ? fFlags[*ndx] : kNoImapMsgFlag;
   PR_CExitMonitor(this);
   return retFlags;
