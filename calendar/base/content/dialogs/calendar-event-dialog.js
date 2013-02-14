@@ -2313,7 +2313,6 @@ function updateRepeat(aSuppressDialogs, aItemRepeatCall) {
         let item = window.calendarItem;
         let recurrenceInfo = window.recurrenceInfo || item.recurrenceInfo;
         let proposedUntilDate = (gStartTime || window.initialStartDateValue).clone();
-        let newUntilDate = false;
 
         if (recurrenceInfo) {
             recurrenceInfo = recurrenceInfo.clone();
@@ -2345,10 +2344,9 @@ function updateRepeat(aSuppressDialogs, aItemRepeatCall) {
                 recurrenceInfo.deleteRecurrenceItem(rule);
             }
         } else {
-            // New event. We have to create a new recurrence rule and proposing
-            // an until date coherent with the type of recurrence.
+            // New event proposes "forever" as default until date.
             recurrenceInfo = createRecurrenceInfo(item);
-            newUntilDate = true;
+            setElementValue("repeat-until-datepicker", "forever");
         }
 
         repeatDeck.selectedIndex = 0;
@@ -2358,35 +2356,25 @@ function updateRepeat(aSuppressDialogs, aItemRepeatCall) {
         switch (repeatValue) {
             case 'daily':
               recRule.type = 'DAILY';
-              proposedUntilDate.day += 4;
               break;
             case 'weekly':
               recRule.type = 'WEEKLY';
-              proposedUntilDate.day += 28;
               break;
             case 'every.weekday':
               recRule.type = 'DAILY';
               let onDays = [2, 3, 4, 5, 6];
               recRule.setComponent("BYDAY", onDays.length, onDays);
-              proposedUntilDate.day += 6;
               break;
             case 'bi.weekly':
               recRule.type = 'WEEKLY';
               recRule.interval = 2;
-              proposedUntilDate.day += 56;
               break;
             case 'monthly':
               recRule.type = 'MONTHLY';
-              proposedUntilDate.month += 4;
               break;
             case 'yearly':
               recRule.type = 'YEARLY';
-              proposedUntilDate.year += 4;
               break;
-        }
-
-        if (newUntilDate) {
-            setElementValue("repeat-until-datepicker", proposedUntilDate.getInTimezone(cal.floating()).jsDate);
         }
 
         setUpEntrydateForTask(item);
