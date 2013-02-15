@@ -44,7 +44,7 @@ user_pref("mailnews.database.global.indexer.enabled", false);
 user_pref("ldap_2.servers.osx.position", 0);
 user_pref("ldap_2.servers.oe.position", 0);
 // Suppress Telemetry opt-in prompt
-user_pref("toolkit.telemetry.prompted", 999);
+user_pref("toolkit.telemetry.prompted", true);
 
 //
 // SeaMonkey preferences.

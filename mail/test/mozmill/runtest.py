@@ -125,7 +125,7 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # Do not allow fonts to be upgraded
         'mail.font.windows.version': 2,
         # No, we don't want to be prompted about Telemetry
-        'toolkit.telemetry.prompted': 999,
+        'toolkit.telemetry.prompted': True,
         }
 
     # Dummied up local accounts to stop the account wizard
