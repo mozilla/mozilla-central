@@ -36,6 +36,9 @@ MOZ_SERVICES_COMMON=1
 MOZ_SERVICES_CRYPTO=1
 MOZ_SERVICES_SYNC=1
 MOZ_URL_CLASSIFIER=1
+# Disable WebRTC as we don't use it currently and to work around bug 837618
+# for Mac
+MOZ_WEBRTC=
 
 MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
