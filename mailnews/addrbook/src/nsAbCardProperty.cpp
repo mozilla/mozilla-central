@@ -100,7 +100,8 @@ static const AppendItem CHAT_ATTRS_ARRAY[] = {
   {kQQProperty, "propertyQQ", eAppendLabel},
   {kMSNProperty, "propertyMSN", eAppendLabel},
   {kICQProperty, "propertyICQ", eAppendLabel},
-  {kXMPPProperty, "propertyXMPP", eAppendLabel}
+  {kXMPPProperty, "propertyXMPP", eAppendLabel},
+  {kIRCProperty, "propertyIRC", eAppendLabel}
 };
 
 nsAbCardProperty::nsAbCardProperty()
@@ -1189,5 +1190,6 @@ NS_IMETHODIMP nsAbCardProperty::GenerateChatName(nsAString &aResult)
   CHECK_CHAT_PROPERTY(MSN);
   CHECK_CHAT_PROPERTY(ICQ);
   CHECK_CHAT_PROPERTY(XMPP);
+  CHECK_CHAT_PROPERTY(IRC);
   return NS_OK;
 }

@@ -39,6 +39,7 @@ var zQQ;
 var zMSN;
 var zICQ;
 var zXMPP;
+var zIRC;
 
 var cvData;
 
@@ -67,6 +68,7 @@ function OnLoadCardView()
   zMSN = gAddressBookBundle.getString("propertyMSN");
   zICQ = gAddressBookBundle.getString("propertyICQ");
   zXMPP = gAddressBookBundle.getString("propertyXMPP");
+  zIRC = gAddressBookBundle.getString("propertyIRC");
 
   var doc = document;
 
@@ -154,6 +156,7 @@ function OnLoadCardView()
   cvData.cvMSN        = doc.getElementById("cvMSN");
   cvData.cvICQ        = doc.getElementById("cvICQ");
   cvData.cvXMPP       = doc.getElementById("cvXMPP");
+  cvData.cvIRC        = doc.getElementById("cvIRC");
 }
 
 // XXX todo
@@ -332,6 +335,8 @@ function DisplayCardViewPane(realCard)
                                  card.getProperty("_ICQ")) || visible;
     visible = cvSetNodeWithLabel(data.cvXMPP, zXMPP,
                                  card.getProperty("_JabberId")) || visible;
+    visible = cvSetNodeWithLabel(data.cvIRC, zIRC,
+                                 card.getProperty("_IRC")) || visible;
     cvSetVisible(data.cvhChat, visible);
     cvSetVisible(data.cvbChat, visible);
 

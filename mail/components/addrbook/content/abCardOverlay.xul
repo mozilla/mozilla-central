@@ -435,6 +435,14 @@
               <textbox id="XMPP" flex="1" onchange="updateChatName();"/>
             </hbox>
           </hbox>
+          <hbox id="IRCContainer" align="center">
+            <spacer flex="1"/>
+            <label control="IRC" value="&IRC.label;"
+                   accesskey="&IRC.accesskey;"/>
+            <hbox class="CardEditWidth">
+              <textbox id="IRC" flex="1" onchange="updateChatName();"/>
+            </hbox>
+          </hbox>
         </vbox>
       </hbox>
 

@@ -351,6 +351,7 @@ interface nsIAbCard : nsIAbItem {
 #define kMSNProperty                "_MSN"
 #define kICQProperty                "_ICQ"
 #define kXMPPProperty               "_JabberId"
+#define kIRCProperty                "_IRC"
 
 #define kAnniversaryYearProperty    "AnniversaryYear"
 #define kAnniversaryMonthProperty   "AnniversaryMonth"

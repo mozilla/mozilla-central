@@ -64,7 +64,8 @@ const kVcardFields =
          ["QQ", "_QQ"],
          ["MSN", "_MSN"],
          ["ICQ", "_ICQ"],
-         ["XMPP", "_JabberId"]
+         ["XMPP", "_JabberId"],
+         ["IRC", "_IRC"]
         ];
 
 const kDefaultYear = 2000;
@@ -882,7 +883,7 @@ function modifyDatepicker(aDatepicker) {
 }
 
 const chatNameFieldIds =
-  ["Gtalk", "AIM", "Yahoo", "Skype", "QQ", "MSN", "ICQ", "XMPP"];
+  ["Gtalk", "AIM", "Yahoo", "Skype", "QQ", "MSN", "ICQ", "XMPP", "IRC"];
 
 /**
  * Show the 'Chat' tab and focus the first field that has a value, or
