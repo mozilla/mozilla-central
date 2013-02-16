@@ -105,8 +105,8 @@ var abDirTreeObserver = {
 
     // determine if we dragging from a mailing list on a directory x to the parent (directory x).
     // if so, don't allow the drop
-    if (srcURI.substring(0, targetURI.length) == targetURI)
-      return false
+    if (srcURI.startsWith(targetURI))
+      return false;
 
     // check if we can write to the target directory
     // e.g. LDAP is readonly currently

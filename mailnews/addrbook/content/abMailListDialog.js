@@ -148,13 +148,13 @@ function GetListValue(mailList, doAdd)
 function MailListOKButton()
 {
   var popup = document.getElementById('abPopup');
-  if ( popup )
+  if (popup)
   {
     var uri = popup.getAttribute('value');
 
     // FIX ME - hack to avoid crashing if no ab selected because of blank option bug from template
     // should be able to just remove this if we are not seeing blank lines in the ab popup
-    if ( !uri )
+    if (!uri)
       return false;  // don't close window
     // -----
 
@@ -215,7 +215,7 @@ function OnLoadNewMailList()
 
   // focus on first name
   var listName = document.getElementById('ListName');
-  if ( listName )
+  if (listName)
     setTimeout( function(firstTextBox) { firstTextBox.focus(); }, 0, listName );
 
   NotifyLoadListeners(directory);
@@ -259,23 +259,22 @@ function OnLoadEditList()
 
   if (gEditList.addressLists)
   {
-    var total = gEditList.addressLists.length;
+    let total = gEditList.addressLists.length;
     if (total)
     {
-      var listbox = document.getElementById('addressingWidget');
-      var newListBoxNode = listbox.cloneNode(false);
-      var templateNode = listbox.getElementsByTagName("listitem")[0];
+      let listbox = document.getElementById('addressingWidget');
+      let newListBoxNode = listbox.cloneNode(false);
+      let templateNode = listbox.querySelector("listitem");
 
       top.MAX_RECIPIENTS = 0;
-      for ( var i = 0;  i < total; i++ )
+      for (let i = 0; i < total; i++)
       {
-        var card = gEditList.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
+        let card = gEditList.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
         let address = MailServices.headerParser.makeFullAddress(card.displayName,
                                                                 card.primaryEmail);
         SetInputValue(address, newListBoxNode, templateNode);
       }
-      var parent = listbox.parentNode;
-      parent.replaceChild(newListBoxNode, listbox);
+      listbox.parentNode.replaceChild(newListBoxNode, listbox);
     }
   }
 
@@ -284,7 +283,7 @@ function OnLoadEditList()
   if (gEditList.readOnly) {
     const kMailListFields = [ 'ListName', 'ListNickName', 'ListDescription' ];
 
-    for (var i = 0; i < kMailListFields.length; ++i)
+    for (let i = 0; i < kMailListFields.length; ++i)
       document.getElementById(kMailListFields[i]).readOnly = true;
 
     document.documentElement.buttons = "accept";
@@ -314,14 +313,14 @@ function AppendLastRow()
 
   // focus on first name
   var listName = document.getElementById('ListName');
-  if ( listName )
+  if (listName)
     listName.focus();
 }
 
 function AppendNewRowAndSetFocus()
 {
   var lastInput = awGetInputElement(top.MAX_RECIPIENTS);
-  if ( lastInput && lastInput.value )
+  if (lastInput && lastInput.value)
     awAppendNewRow(true);
   else
     awSetFocus(top.MAX_RECIPIENTS, lastInput);
@@ -335,7 +334,7 @@ function SetInputValue(inputValue, parentNode, templateNode)
     parentNode.appendChild(newNode); // we need to insert the new node before we set the value of the select element!
 
     var input = newNode.getElementsByTagName(awInputElementName());
-    if ( input && input.length == 1 )
+    if (input && input.length == 1)
     {
     //We need to set the value using both setAttribute and .value else we will
     // lose the content when the field is not visible. See bug 37435
@@ -350,7 +349,7 @@ function awNotAnEmptyArea(event)
   //This is temporary until i figure out how to ensure to always having an empty space after the last row
 
   var lastInput = awGetInputElement(top.MAX_RECIPIENTS);
-  if ( lastInput && lastInput.value )
+  if (lastInput && lastInput.value)
     awAppendNewRow(false);
 
   event.stopPropagation();
@@ -366,7 +365,7 @@ function awClickEmptySpace(target, setFocus)
 
   var lastInput = awGetInputElement(top.MAX_RECIPIENTS);
 
-  if ( lastInput && lastInput.value )
+  if (lastInput && lastInput.value)
     awAppendNewRow(setFocus);
   else
     if (setFocus)
@@ -376,10 +375,10 @@ function awClickEmptySpace(target, setFocus)
 function awReturnHit(inputElement)
 {
   var row = awGetRowByInputElement(inputElement);
-  if ( inputElement.value )
+  if (inputElement.value)
   {
     var nextInput = awGetInputElement(row+1);
-    if ( !nextInput )
+    if (!nextInput)
       awAppendNewRow(true);
     else
       awSetFocus(row+1, nextInput);
@@ -406,7 +405,7 @@ function awInputChanged(inputElement)
 
   //Do we need to add a new row?
   var lastInput = awGetInputElement(top.MAX_RECIPIENTS);
-  if ( lastInput && lastInput.value && !top.doNotCreateANewRow)
+  if (lastInput && lastInput.value && !top.doNotCreateANewRow)
     awAppendNewRow(false);
   top.doNotCreateANewRow = false;
 }
@@ -423,8 +422,8 @@ function awAppendNewRow(setFocus)
   var body = document.getElementById("addressingWidget");
   var listitem1 = awGetListItem(1);
 
-  if ( body && listitem1 )
-  {  
+  if (body && listitem1)
+  {
     var nextDummy = awGetNextDummyRow();
     var newNode = listitem1.cloneNode(true);
     if (nextDummy)
@@ -435,14 +434,14 @@ function awAppendNewRow(setFocus)
     top.MAX_RECIPIENTS++;
 
     var input = newNode.getElementsByTagName(awInputElementName());
-    if ( input && input.length == 1 )
+    if (input && input.length == 1)
     {
       input[0].setAttribute("value", "");
       input[0].setAttribute("id", "addressCol1#" + top.MAX_RECIPIENTS);
-      
+
       //this copies the autocomplete sessions list from recipient#1 
       input[0].syncSessions(document.getElementById('addressCol1#1'));
-      
+
       if (input[0].getAttribute('focused') != '')
         input[0].removeAttribute('focused');
     }
@@ -504,8 +503,8 @@ function DragOverAddressListTree(event)
 
 function DropOnAddressListTree(event)
 {
-  var dragSession = gDragService.getCurrentSession();
-  var trans;
+  let dragSession = gDragService.getCurrentSession();
+  let trans;
 
   try {
    trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
@@ -516,18 +515,20 @@ function DropOnAddressListTree(event)
     return;
   }
 
-  for ( var i = 0; i < dragSession.numDropItems; ++i )
+  for (let i = 0; i < dragSession.numDropItems; ++i)
   {
-    dragSession.getData ( trans, i );
-    var dataObj = new Object();
-    var bestFlavor = new Object();
-    var len = new Object();
-    trans.getAnyTransferData ( bestFlavor, dataObj, len );
-    if ( dataObj )  dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
-    if ( !dataObj ) continue;
+    dragSession.getData(trans, i);
+    let dataObj = new Object();
+    let bestFlavor = new Object();
+    let len = new Object();
+    trans.getAnyTransferData(bestFlavor, dataObj, len);
+    if (dataObj)
+      dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
+    if (!dataObj)
+      continue;
 
     // pull the URL out of the data object
-    var address = dataObj.data.substring(0, len.value);
+    len address = dataObj.data.substring(0, len.value);
     if (!address)
       continue;
 

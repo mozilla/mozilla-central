@@ -74,7 +74,7 @@ var DirPaneController =
           // If the selected directory is an ldap directory
           // and if the prefs for this directory are locked
           // disable the delete button.
-          if (selectedDir.lastIndexOf(kLdapUrlPrefix, 0) == 0)
+          if (selectedDir.startsWith(kLdapUrlPrefix))
           {
             var disable = false;
             try {
@@ -526,11 +526,11 @@ function InitViewSortByMenu()
     }
 
     // this approach is necessary to support generic columns that get overlayed.
-    var elements = document.getElementsByAttribute("name","sortas");
-    for (var i=0; i<elements.length; i++) {
-        var cmd = elements[i].getAttribute("id");
-        var columnForCmd = cmd.split("cmd_SortBy")[1];
-        setSortByMenuItemCheckState(cmd, (sortColumn == columnForCmd));
+    let elements = document.querySelectorAll('[name="sortas"]');
+    for (let i = 0; i < elements.length; i++) {
+      let cmd = elements[i].id;
+      let columnForCmd = cmd.substr(10); // everything right of cmd_SortBy
+      setSortByMenuItemCheckState(cmd, (sortColumn == columnForCmd));
     }
 
     setSortByMenuItemCheckState("sortAscending", (sortDirection == kDefaultAscending));

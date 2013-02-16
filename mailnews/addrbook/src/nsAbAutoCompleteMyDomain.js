@@ -18,13 +18,13 @@ nsAbAutoCompleteMyDomain.prototype = {
   startSearch: function(aString, aParam, aResult, aListener) {
     const ACR = Components.interfaces.nsIAutoCompleteResult;
     var address = null;
-    if (aString && !/,/.test(aString)) {
+    if (aString && !aString.contains(",")) {
       if (aParam != this.cachedParam) {
         this.cachedIdentity = MailServices.accounts.getIdentity(aParam);
         this.cachedParam = aParam;
       }
       if (this.cachedIdentity.autocompleteToMyDomain)
-        address = /@/.test(aString) ? aString :
+        address = aString.contains("@") ? aString :
                   this.cachedIdentity.email.replace(/[^@]*/, aString);
     }
 

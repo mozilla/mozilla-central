@@ -183,13 +183,11 @@ nsAbAutoCompleteSearch.prototype = {
           this._addToResult(commentColumn, directory, card, "", false, result);
         else {
           let email = card.primaryEmail;
-          if (email && email.toLocaleLowerCase()
-                            .lastIndexOf(fullString, 0) == 0)
+          if (email && email.toLocaleLowerCase().startsWith(fullString))
             this._addToResult(commentColumn, directory, card, email, true, result);
 
           email = card.getProperty("SecondEmail", "");
-          if (email && email.toLocaleLowerCase()
-                            .lastIndexOf(fullString, 0) == 0)
+          if (email && email.toLocaleLowerCase().startsWith(fullString))
             this._addToResult(commentColumn, directory, card, email, false, result);
         }
       }
@@ -212,27 +210,27 @@ nsAbAutoCompleteSearch.prototype = {
                                     rest) {
     var i;
     if (card.isMailList) {
-      return card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.getProperty("Notes", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.getProperty("NickName", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0;
+      return card.displayName.toLocaleLowerCase().startsWith(fullString) ||
+        card.getProperty("Notes", "").toLocaleLowerCase().startsWith(fullString) ||
+        card.getProperty("NickName", "").toLocaleLowerCase().startsWith(fullString);
     }
 
     var firstName = card.firstName.toLocaleLowerCase();
     var lastName = card.lastName.toLocaleLowerCase();
-    if (card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        firstName.lastIndexOf(fullString, 0) == 0 ||
-        lastName.lastIndexOf(fullString, 0) == 0 ||
-        emailToUse.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
+    if (card.displayName.toLocaleLowerCase().startsWith(fullString) ||
+        firstName.startsWith(fullString) ||
+        lastName.startsWith(fullString) ||
+        emailToUse.toLocaleLowerCase().startsWith(fullString))
       return true;
 
     if (firstWord && rest &&
-        ((firstName.lastIndexOf(firstWord, 0) == 0 &&
-          lastName.lastIndexOf(rest, 0) == 0) ||
-         (firstName.lastIndexOf(rest, 0) == 0 &&
-          lastName.lastIndexOf(firstWord, 0) == 0)))
+        ((firstName.startsWith(firstWord) &&
+          lastName.startsWith(rest)) ||
+         (firstName.startsWith(rest) &&
+          lastName.startsWith(firstWord))))
       return true;
 
-    if (card.getProperty("NickName", "").toLocaleLowerCase().lastIndexOf(fullString, 0) == 0)
+    if (card.getProperty("NickName", "").toLocaleLowerCase().startsWith(fullString))
       return true;
 
     return false;
@@ -353,7 +351,7 @@ nsAbAutoCompleteSearch.prototype = {
     // result ignored.
     // The comma check is so that we don't autocomplete against the user
     // entering multiple addresses.
-    if (!aSearchString || /,/.test(aSearchString)) {
+    if (!aSearchString || aSearchString.contains(",")) {
       result.searchResult = ACR.RESULT_IGNORED;
       aListener.onSearchResult(this, result);
       return;
@@ -378,7 +376,7 @@ nsAbAutoCompleteSearch.prototype = {
     }
 
     if (aPreviousResult instanceof nsIAbAutoCompleteResult &&
-        aSearchString.lastIndexOf(aPreviousResult.searchString, 0) == 0 &&
+        aSearchString.startsWith(aPreviousResult.searchString) &&
         aPreviousResult.searchResult == ACR.RESULT_SUCCESS) {
       // We have successful previous matches, therefore iterate through the
       // list and reduce as appropriate

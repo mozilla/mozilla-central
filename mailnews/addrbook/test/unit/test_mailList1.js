@@ -17,7 +17,7 @@ function checkLists(childNodes, number) {
   while (childNodes.hasMoreElements()) {
     var list = childNodes.getNext();
     if (list instanceof Components.interfaces.nsIAbDirectory &&
-        list.isMailList && list.dirName.substr(0, 8) == 'TestList') {
+        list.isMailList && list.dirName.startsWith('TestList')) {
       var index = list.dirName.substr(8, list.dirName.length - 8);
       do_check_eq(mailListArray[index - 1], null);
       do_check_eq(list.URI, kPABData.URI + "/MailList" + index);

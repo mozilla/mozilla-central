@@ -41,7 +41,7 @@ function Startup()
   document.getElementById("download").accessKey =
     gReplicationBundle.getString("downloadButton.accesskey");
 
-  if ( "arguments" in window && window.arguments[0] ) {
+  if ("arguments" in window && window.arguments[0]) {
     gCurrentDirectory = window.arguments[0].selectedDirectory;
     try {
       fillSettings();
@@ -240,8 +240,8 @@ function DisableElementIfPrefIsLocked(aPrefName, aElementId)
 function DisableUriFields(aPrefName)
 {
   if (Services.prefs.prefIsLocked(aPrefName)) {
-    var lockedElements = document.getElementsByAttribute("disableiflocked", "true");
-    for (var i=0; i<lockedElements.length; i++)
+    let lockedElements = document.querySelectorAll('[disableiflocked="true"]');
+    for (let i = 0; i < lockedElements.length; i++)
       lockedElements[i].setAttribute('disabled', 'true');
   }
 }
@@ -268,19 +268,6 @@ function fillDefaultSettings()
                                       getString("abReplicationSaveSettings");
 }
 
-function hasOnlyWhitespaces(string)
-{
-  // get all the whitespace characters of string and assign them to str.
-  // string is not modified in this function
-  // returns true if string contains only whitespaces and/or tabs
-  var re = /[ \s]/g;
-  var str = string.match(re);
-  if (str && (str.length == string.length))
-    return true;
-  else
-    return false;
-}
-
 function hasCharacters(number)
 {
   var re = /[0-9]/g;
@@ -304,7 +291,7 @@ function onAccept()
     var results = document.getElementById("results").value;
     var errorValue = null;
     var saslMechanism = "";
-    if ((!description) || hasOnlyWhitespaces(description))
+    if ((!description) || (description.trim() == ""))
       errorValue = "invalidName";
     else if (!isLegalHostNameOrIP(hostname))
       errorValue = "invalidHostname";

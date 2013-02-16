@@ -107,8 +107,8 @@ nsAbLDAPAutoCompleteSearch.prototype = {
   // fullString is the full search string.
   // rest is anything after the first word.
   _checkEntry: function _checkEntry(card, search) {
-    return card.displayName.toLocaleLowerCase().lastIndexOf(search, 0) == 0 ||
-           card.primaryEmail.toLocaleLowerCase().lastIndexOf(search, 0) == 0;
+    return card.displayName.toLocaleLowerCase().startsWith(search) ||
+           card.primaryEmail.toLocaleLowerCase().startsWith(search);
   },
 
   _checkDuplicate: function _checkDuplicate(card, emailAddress) {
@@ -177,7 +177,7 @@ nsAbLDAPAutoCompleteSearch.prototype = {
     // result ignored.
     // The comma check is so that we don't autocomplete against the user
     // entering multiple addresses.
-    if (!aSearchString || /,/.test(aSearchString)) {
+    if (!aSearchString || aSearchString.contains(",")) {
       this._result.searchResult = ACR.RESULT_IGNORED;
       aListener.onSearchResult(this, this._result);
       return;
@@ -186,8 +186,8 @@ nsAbLDAPAutoCompleteSearch.prototype = {
     // Compare lowercase strings, because autocomplete may mangle the case
     // depending on the previous results.
     if (aPreviousResult instanceof nsIAbAutoCompleteResult &&
-        aSearchString.lastIndexOf(
-          aPreviousResult.searchString.toLocaleLowerCase(), 0) == 0 &&
+        aSearchString.startsWith(
+          aPreviousResult.searchString.toLocaleLowerCase()) &&
         aPreviousResult.searchResult == ACR.RESULT_SUCCESS) {
       // We have successful previous matches, therefore iterate through the
       // list and reduce as appropriate.

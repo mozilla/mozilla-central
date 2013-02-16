@@ -4,7 +4,6 @@
  * closed.
  */
 var ab_prefix       = "test-537815-";
-var re_prefix       = new RegExp(ab_prefix)
 var card_properties = { FirstName: "01-first-3", LastName: "02-last", PrimaryEmail: "08-email-1@zindus.invalid" };
 var max_addressbooks = 10;
 
@@ -26,7 +25,7 @@ function bug_537815_fixture_setup()
 
         dump("considering: j: " + j + " " + elem.dirName + "\n");
 
-        if (j == 1 && String(elem.dirName).match(re_prefix)) {
+        if (j == 1 && elem.dirName.startsWith(ab_prefix)) {
           for (i = 1; i <= 1000; i++) {
             let abCard = Cc["@mozilla.org/addressbook/cardproperty;1"].createInstance().QueryInterface(Ci.nsIAbCard);
 
@@ -52,7 +51,7 @@ function bug_537815_test()
     let uri  = elem.URI;
     let dir  = MailServices.ab.getDirectory(uri);
 
-    if (String(elem.dirName).match(re_prefix)) {
+    if (elem.dirName.startsWith(ab_prefix)) {
       let enm_cards = dir.childCards;
 
       while (enm_cards.hasMoreElements()) {
@@ -83,7 +82,7 @@ function bug_537815_fixture_tear_down()
   while (enm_dirs.hasMoreElements()) {
     let elem = enm_dirs.getNext().QueryInterface(Ci.nsIAbDirectory);
 
-    if (String(elem.dirName).match(re_prefix)) {
+    if (elem.dirName.startsWith(ab_prefix)) {
       a_uri[elem.URI] = true;
       dump("to be deleted: " + elem.dirName + "\n");
     }

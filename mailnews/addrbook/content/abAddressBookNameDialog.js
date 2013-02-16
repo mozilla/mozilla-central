@@ -62,5 +62,5 @@ function abNameOKButton()
 
 function abNameDoOkEnabling()
 {
-  gOkButton.disabled = !/\S/.test(gNameInput.value);
+  gOkButton.disabled = gNameInput.value.trim() == "";
 }
