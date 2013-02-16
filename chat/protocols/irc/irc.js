@@ -29,7 +29,7 @@ Cu.import("resource:///modules/socket.jsm");
  *              irc.mozilla.org) or an IPv4 address (e.g. 1.2.3.4) or IPv6
  *              address (e.g. 3ffe:1900:4545:3:200:f8ff:fe21:67cf).
  */
-function ircMessage(aData, aAccount) {
+function ircMessage(aData) {
   let message = {rawMessage: aData};
   let temp, prefix;
 
@@ -578,7 +578,9 @@ function ircSocket(aAccount) {
 }
 ircSocket.prototype = {
   __proto__: Socket,
-  delimiter: "\r\n",
+  // Although RFCs 1459 and 2812 explicitly say that \r\n is the message
+  // separator, some networks (euIRC) only send \n.
+  delimiter: /\r?\n/,
   connectTimeout: 60, // Failure to connect after 1 minute
   readWriteTimeout: 300, // Failure when no data for 5 minutes
   _converter: null,
@@ -628,9 +630,8 @@ ircSocket.prototype = {
 
     try {
       // If nothing handled the message, throw a warning.
-    if (!ircHandlers.handleMessage(this._account,
-                                   new ircMessage(aRawMessage, this._account)))
-      this.WARN("Unhandled IRC message: " + aRawMessage);
+      if (!ircHandlers.handleMessage(this._account, new ircMessage(aRawMessage)))
+        this.WARN("Unhandled IRC message: " + aRawMessage);
     } catch (e) {
       // Catch the error, display it and hope the connection can continue with
       // this message in error. Errors are also caught inside of handleMessage,
