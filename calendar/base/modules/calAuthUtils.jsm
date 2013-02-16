@@ -14,7 +14,8 @@ cal.auth = {
     /**
      * Auth prompt implementation - Uses password manager if at all possible.
      */
-    Prompt: function calPrompt() {
+    Prompt: function calPrompt(aProvider) {
+        this.mProvider = aProvider;
         this.mReturnedLogins = {};
     },
 
@@ -168,6 +169,8 @@ cal.auth = {
  * There is one instance of that object per calendar provider.
  */
 cal.auth.Prompt.prototype = {
+    mProvider: null,
+
     getPasswordInfo: function capGPI(aPasswordRealm) {
         let username;
         let password;
@@ -247,7 +250,7 @@ cal.auth.Prompt.prototype = {
         } else {
             let prompter2 = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                       .getService(Components.interfaces.nsIPromptFactory)
-                                      .getPrompt(null, Components.interfaces.nsIAuthPrompt2);
+                                      .getPrompt(this.mProvider, Components.interfaces.nsIAuthPrompt2);
             return prompter2.promptAuth(aChannel, aLevel, aAuthInfo);
         }
     },
