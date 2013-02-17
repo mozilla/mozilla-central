@@ -226,8 +226,7 @@ const Socket = {
     this.LOG("Sending:\n" + (aLoggedData || aData));
 
     try {
-      this._outputStream.write(aData + this.delimiter,
-                               aData.length + this.delimiter.length);
+      this._outputStream.write(aData, aData.length);
     } catch(e) {
       Cu.reportError(e);
     }
@@ -241,7 +240,7 @@ const Socket = {
     let converter = new ScriptableUnicodeConverter();
     converter.charset = aEncoding || "UTF-8";
     try {
-      let stream = converter.convertToInputStream(aString + this.delimiter);
+      let stream = converter.convertToInputStream(aString);
       this._outputStream.writeFrom(stream, stream.available());
     } catch(e) {
       Cu.reportError(e);

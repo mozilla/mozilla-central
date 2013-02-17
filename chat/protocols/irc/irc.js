@@ -1321,6 +1321,8 @@ ircAccount.prototype = {
                 this.maxMessageLength + "\n" + aMessage);
     }
 
+    aMessage += "\r\n";
+
     try {
       this._socket.sendString(aMessage, this._encoding, aLoggedData);
     } catch (e) {
