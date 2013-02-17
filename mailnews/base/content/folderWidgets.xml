@@ -509,10 +509,6 @@
           let recentFolders = [];
           let thisObj = this;
 
-          function sort_folders_by_MRMTime(a, b) {
-            return a.getStringProperty("MRMTime") < b.getStringProperty("MRMTime");
-          }
-
           /**
            * This function will add a folder to the recentFolders array if it
            * is among the 15 (_MAXRECENT) most recent. If we exceed 15 folders,
@@ -530,16 +526,18 @@
             try {
               time = aFolder.getStringProperty("MRMTime");
             } catch(ex) {}
-            if (time <= oldestTime)
+            if (!time || time <= oldestTime)
               return;
 
             if (recentFolders.length == thisObj._MAXRECENT) {
-              recentFolders.sort(sort_folders_by_MRMTime);
+              recentFolders.sort(function sort_folders_by_MRMTime(a, b) {
+                                 return a.MRMTime < b.MRMTime; });
               recentFolders.pop();
-              oldestTime = recentFolders[recentFolders.length - 1]
-                                        .getStringProperty("MRMTime");
+              oldestTime = recentFolders[recentFolders.length - 1].MRMTime;
             }
-            recentFolders.push({folder: aFolder});
+            recentFolders.push({ folder:  aFolder,
+                                 MRMTime: time,
+                                 name:    aFolder.prettyName });
           }
 
           // Check all folders if they are recent.
@@ -553,8 +551,8 @@
           let dupeNames = new Set();
           for (let i = 0; i < recentFolders.length; i++) {
             for (let j = i + 1; j < recentFolders.length; j++) {
-              if (recentFolders[i].folder.prettyName == recentFolders[j].folder.prettyName)
-                dupeNames.add(recentFolders[i].folder.prettyName);
+              if (recentFolders[i].name == recentFolders[j].name)
+                dupeNames.add(recentFolders[i].name);
             }
           }
 
@@ -566,7 +564,7 @@
             //   instead of hardcoded " - ".
             // - disambiguate folders with same name in same account
             //   (in different subtrees).
-            let label = folderItem.folder.prettyName;
+            let label = folderItem.name;
             if (dupeNames.has(label))
               label += " - " + folderItem.folder.server.prettyName;
 
