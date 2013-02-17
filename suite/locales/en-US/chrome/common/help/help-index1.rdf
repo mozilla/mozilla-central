@@ -28,6 +28,11 @@
          nc:link="mailnews_addressbooks.xhtml#about_address_books"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="appearance_panel"
+         nc:name="appearance panel"
+         nc:link="customize_help.xhtml#the_appearance_panel"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="attaching_files_to_messages"
          nc:name="attaching files to messages"
          nc:link="mailnews_using_mail.xhtml#attaching_a_file_or_web_page"/>
@@ -128,6 +133,11 @@
 <rdf:Description about="#add-ons:manager">
    <nc:subheadings>
      <rdf:Seq><rdf:li>
+       <rdf:Description ID="add-ons:searching_for_add-ons"
+         nc:name="Searching for Add-ons"
+         nc:link="customize_help.xhtml#searching_for_add-ons"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="add-ons:get_add-ons"
          nc:name="Get Add-ons Panel"
          nc:link="customize_help.xhtml#the_get_add-ons_panel"/>
@@ -143,14 +153,19 @@
          nc:link="customize_help.xhtml#the_appearance_panel"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="add-ons:plugins_panel"
+         nc:name="Plugins Panel"
+         nc:link="customize_help.xhtml#the_plugins_panel"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="add-ons:languages_panel"
          nc:name="Languages Panel"
          nc:link="customize_help.xhtml#the_languages_panel"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="add-ons:plugins_panel"
-         nc:name="Plugins Panel"
-         nc:link="customize_help.xhtml#the_plugins_panel"/>
+       <rdf:Description ID="add-ons:updating_add-ons"
+         nc:name="Updating Add-ons"
+         nc:link="customize_help.xhtml#updating_add-ons"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1848,6 +1863,11 @@
          nc:link="nav_help.xhtml#searching_the_web"/>
      </rdf:li>
      <rdf:li>
+       <rdf:Description ID="searching_for_add-ons"
+         nc:name="searching for add-ons"
+         nc:link="customize_help.xhtml#searching_for_add-ons"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="Sidebar"
          nc:name="Sidebar"
          nc:link="customize_help.xhtml#what_is_sidebar"/>
@@ -2088,11 +2108,6 @@
          nc:link="customize_help.xhtml#changing_the_theme"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="appearance_panel"
-         nc:name="appearance panel"
-         nc:link="customize_help.xhtml#the_appearance_panel"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="toolbar"
          nc:name="toolbar"/>
      </rdf:li></rdf:Seq>
@@ -2172,6 +2187,11 @@
 <rdf:Description about="help-indexAZ.rdf#u">
    <nc:subheadings>
      <rdf:Seq><rdf:li>
+       <rdf:Description ID="updating_add-ons"
+         nc:name="updating add-ons"
+         nc:link="customize_help.xhtml#updating_add-ons"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="uploading_pages"
          nc:name="uploading pages"
          nc:link="composer_help.xhtml#publishing_your_pages_on_the_web"/>
