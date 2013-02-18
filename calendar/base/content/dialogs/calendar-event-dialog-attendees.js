@@ -616,8 +616,7 @@ function onChangeCalendar(calendar) {
     // assume we're the organizer [in case that the calendar
     // does not support the concept of identities].
     gIsInvitation = false;
-    args.item.calendar = cal.wrapInstance(args.item.calendar, Components.interfaces.calISchedulingSupport);
-    if (args.item.calendar) {
+    if (calInstanceOf(args.item.calendar, Components.interfaces.calISchedulingSupport)) {
         gIsInvitation = args.item.calendar.isInvitation(args.item);
     }
 

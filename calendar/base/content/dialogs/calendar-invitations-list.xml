@@ -201,9 +201,8 @@
         <parameter name="aItem"/>
         <parameter name="aStatus"/>
         <body><![CDATA[
-          let wrappedCalendar = cal.wrapInstance(aItem.calendar, Components.interfaces.calISchedulingSupport);
-          if (wrappedCalendar) {
-              var att = wrappedCalendar.getInvitedAttendee(aItem);
+          if (calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
+              var att = aItem.calendar.getInvitedAttendee(aItem);
               if (att) {
                   var att_ = att.clone();
                   att_.participationStatus = aStatus;

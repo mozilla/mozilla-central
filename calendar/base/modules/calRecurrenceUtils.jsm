@@ -25,9 +25,9 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
     recurrenceInfo = recurrenceInfo.clone();
     let rrules = splitRecurrenceRules(recurrenceInfo);
     if (rrules[0].length == 1) {
-        let rule = cal.wrapInstance(rrules[0][0], Components.interfaces.calIRecurrenceRule);
+        let rule = rrules[0][0];
         // currently we don't allow for any BYxxx-rules.
-        if ((rule) &&
+        if (cal.calInstanceOf(rule, Components.interfaces.calIRecurrenceRule) &&
             !checkRecurrenceRule(rule, ['BYSECOND',
                                         'BYMINUTE',
                                         //'BYDAY',

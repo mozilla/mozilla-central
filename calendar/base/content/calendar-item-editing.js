@@ -316,8 +316,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
     // we'll open the summary dialog since the user is not allowed to change
     // the details of the item.
     var isInvitation = false;
-    calendar = cal.wrapInstance(calendar, Components.interfaces.calISchedulingSupport);
-    if (calendar) {
+    if (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
         isInvitation = calendar.isInvitation(calendarItem);
     }
     // open the dialog modeless

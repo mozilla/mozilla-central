@@ -446,9 +446,8 @@ function updateLink() {
 
         // Only show if its either an internal protcol handler, or its external
         // and there is an external app for the scheme
-        let handlerWrappedInstance = cal.wrapInstance(handler, Components.interfaces.nsIExternalProtocolHandler);
-        hideOrShow(!handlerWrappedInstance ||
-                   handlerWrappedInstance.externalAppExistsForScheme(uri.scheme));
+        hideOrShow(!calInstanceOf(handler, Components.interfaces.nsIExternalProtocolHandler) ||
+                   handler.externalAppExistsForScheme(uri.scheme));
 
         setTimeout(function() {
           // HACK the url-link doesn't crop when setting the value in onLoad

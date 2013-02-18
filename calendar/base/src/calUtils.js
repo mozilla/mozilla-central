@@ -429,13 +429,33 @@ function calInstanceOf(aObject, aInterface) {
 }
 
 /**
+ * (At least on branch 1.8), the js instanceof operator does not work to test
+ * interfaces on direct implementation objects, i.e. non-wrapped objects.
+ * This function falla back to using QueryInterface to check whether the interface
+ * is implemented.
+ */
+function calInstanceOf(aObject, aInterface) {
+    // We first try instanceof which is assumed to be faster than querying the object:
+    if (!(aObject instanceof aInterface)) {
+        // if the passed object in not wrapped (but a plain implementation),
+        // instanceof won't check QueryInterface.
+        try {
+            aObject.QueryInterface(aInterface);
+        } catch (exc) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Determines whether or not the aObject is a calIEvent
  *
  * @param aObject  the object to test
  * @returns        true if the object is a calIEvent, false otherwise
  */
 function isEvent(aObject) {
-    return (cal.wrapInstance(aObject, Components.interfaces.calIEvent) != null);
+    return calInstanceOf(aObject, Components.interfaces.calIEvent);
 }
 
 /**
@@ -445,7 +465,7 @@ function isEvent(aObject) {
  * @returns        true if the object is a calITodo, false otherwise
  */
 function isToDo(aObject) {
-    return (cal.wrapInstance(aObject, Components.interfaces.calITodo) != null);
+    return calInstanceOf(aObject, Components.interfaces.calITodo);
 }
 
 /**
@@ -1410,8 +1430,7 @@ function calGetProductVersion() {
  */
 function calSetProdidVersion(aIcalComponent) {
     // Throw for an invalid parameter
-    aIcalComponent = cal.wrapInstance(aIcalComponent, Components.interfaces.calIIcalComponent);
-    if (!aIcalComponent) {
+    if (!calInstanceOf(aIcalComponent, Components.interfaces.calIIcalComponent)) {
         throw Components.results.NS_ERROR_INVALID_ARG;
     }
     // Set the prodid and version

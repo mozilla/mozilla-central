@@ -648,8 +648,7 @@ calCalendarManager.prototype = {
         // providers (storage and memory). Otherwise we may nuke someone's
         // calendar stored on a server when all they really wanted to do was
         // unsubscribe.
-        calendar = cal.wrapInstance(calendar, Components.interfaces.calICalendarProvider);
-        if (calendar &&
+        if (cal.calInstanceOf(calendar, Components.interfaces.calICalendarProvider) &&
             (calendar.type == "storage" || calendar.type == "memory")) {
             try {
                 calendar.deleteCalendar(calendar, null);

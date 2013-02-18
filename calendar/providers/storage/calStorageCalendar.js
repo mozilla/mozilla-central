@@ -2116,9 +2116,8 @@ calStorageCalendar.prototype = {
             this.prepareStatement(this.mInsertProperty);
             var pp = this.mInsertProperty.params;
             pp.key = propName;
-            let propDateTimeVal = cal.wrapInstance(propValue, Components.interfaces.calIDateTime);
-            if (propDateTimeVal) {
-                pp.value = propDateTimeVal.nativeTime;
+            if (calInstanceOf(propValue, Components.interfaces.calIDateTime)) {
+                pp.value = propValue.nativeTime;
             } else {
                 try {
                     pp.value = propValue;

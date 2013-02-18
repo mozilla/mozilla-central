@@ -315,12 +315,10 @@ calRecurrenceInfo.prototype = {
             // If in a loop at least one rid is valid (i.e not an exception, not
             // an exdate, is after aTime), then remember the lowest one.
             for (var i = 0; i < this.mPositiveRules.length; i++) {
-                let rDateInstance = cal.wrapInstance(this.mPositiveRules[i], Components.interfaces.calIRecurrenceDate);
-                let rRuleInstance = cal.wrapInstance(this.mPositiveRules[i], Components.interfaces.calIRecurrenceRule);
-                if (rDateInstance) {
+                if (calInstanceOf(this.mPositiveRules[i], Components.interfaces.calIRecurrenceDate)) {
                     // RDATEs are special. there is only one date in this rule,
                     // so no need to search anything.
-                    var rdate = rDateInstance.date;
+                    var rdate = this.mPositiveRules[i].date;
                     if (!nextOccurrences[i] && rdate.compare(aTime) > 0) {
                         // The RDATE falls into range, save it.
                         nextOccurrences[i] = rdate;
@@ -330,7 +328,7 @@ calRecurrenceInfo.prototype = {
                         nextOccurrences[i] = null;
                         invalidOccurrences++;
                     }
-                } else if (rRuleInstance) {
+                } else if (calInstanceOf(this.mPositiveRules[i], Components.interfaces.calIRecurrenceRule)) {
                     // RRULEs must not start searching before |startDate|, since
                     // the pattern is only valid afterwards. If an occurrence
                     // was found in a previous round, we can go ahead and start
@@ -346,7 +344,7 @@ calRecurrenceInfo.prototype = {
                             nextOccurrences[i] :
                             aTime);
 
-                    nextOccurrences[i] = rRuleInstance
+                    nextOccurrences[i] = this.mPositiveRules[i]
                                              .getNextOccurrence(searchStart, searchDate);
                 }
 
@@ -646,7 +644,7 @@ calRecurrenceInfo.prototype = {
         this.ensureSortedRecurrenceRules();
 
         for (var i = 0; i < this.mRecurrenceItems.length; i++) {
-            if (cal.wrapInstance(this.mRecurrenceItems[i], Components.interfaces.calIRecurrenceDate)) {
+            if (calInstanceOf(this.mRecurrenceItems[i], Components.interfaces.calIRecurrenceDate)) {
                 var rd = this.mRecurrenceItems[i].QueryInterface(Components.interfaces.calIRecurrenceDate);
                 if (rd.isNegative && rd.date.compare(aRecurrenceId) == 0) {
                     return this.deleteRecurrenceItemAt(i);
@@ -769,9 +767,7 @@ calRecurrenceInfo.prototype = {
         const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
         let ritems = this.getRecurrenceItems({});
         for each (let ritem in ritems) {
-            if (cal.wrapInstance(ritem, kCalIRecurrenceDate)) {
-                // Possible performance issue with QueryInterface
-                // as cal.wrapInstance already tries to do one
+            if (cal.calInstanceOf(ritem, kCalIRecurrenceDate)) {
                 ritem = ritem.QueryInterface(kCalIRecurrenceDate);
                 let date = ritem.date;
                 date.addDuration(timeDiff);
@@ -779,7 +775,7 @@ calRecurrenceInfo.prototype = {
                     rdates[getRidKey(date)] = date;
                 }
                 ritem.date = date;
-            } else if (cal.wrapInstance(ritem, Components.interfaces.calIRecurrenceRule)) {
+            } else if (cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                 ritem = ritem.QueryInterface(Components.interfaces.calIRecurrenceRule);
                 if (!ritem.isByCount) {
                     let untilDate = ritem.untilDate;

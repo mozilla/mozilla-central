@@ -170,8 +170,8 @@ let cal = {
      */
     isInvitation: function cal_isInvitation(aItem) {
         let isInvitation = false;
-        let calendar = cal.wrapInstance(aItem.calendar, Components.interfaces.calISchedulingSupport);
-        if (calendar) {
+        let calendar = aItem.calendar;
+        if (cal.calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
             isInvitation = calendar.isInvitation(aItem);
         }
         return isInvitation;
@@ -184,7 +184,7 @@ let cal = {
      * @param aItem either calIAttendee or calIItemBase 
      */
     isOpenInvitation: function cal_isOpenInvitation(aItem) {
-        if (!cal.wrapInstance(aItem, Components.interfaces.calIAttendee)) {
+        if (!cal.calInstanceOf(aItem, Components.interfaces.calIAttendee)) {
             aItem = cal.getInvitedAttendee(aItem);
         }
         if (aItem) {
@@ -202,10 +202,10 @@ let cal = {
      */
     getInvitedAttendee: function cal_getInvitedAttendee(aItem, aCalendar) {
         if (!aCalendar) {
-            aCalendar = cal.wrapInstance(aItem.calendar, Components.interfaces.calISchedulingSupport);
+            aCalendar = aItem.calendar;
         }
         let invitedAttendee = null;
-        if (aCalendar) {
+        if (cal.calInstanceOf(aCalendar, Components.interfaces.calISchedulingSupport)) {
             invitedAttendee = aCalendar.getInvitedAttendee(aItem);
         }
         return invitedAttendee;
@@ -601,20 +601,6 @@ let cal = {
             }
         };
         Services.obs.addObserver(observer, topic, false /* don't hold weakly */);
-    },
-
-    /**
-     * Wraps an instance. Replaces calInstanceOf from calUtils.js
-     *
-     * @param aObj the object under consideration
-     * @param aInterface the interface to be wrapped
-     */
-    wrapInstance: function wrapInstance(aObj, aInterface) {
-        try {
-            return aObj.QueryInterface(aInterface);
-        } catch (e) {
-            return null;
-        }
     },
 
     /**
