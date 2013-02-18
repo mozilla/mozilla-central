@@ -131,7 +131,7 @@
         <rdf:li> <rdf:Description nc:name="trust" nc:link="glossary.xhtml#trust"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="URL" nc:link="glossary.xhtml#url"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="web page" nc:link="glossary.xhtml#web_page"/> </rdf:li>
-        <rdf:li> <rdf:Description nc:name="website" nc:link="glossary.xhtml#web_site"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="website" nc:link="glossary.xhtml#website"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="World Wide Web (WWW)" nc:link="glossary.xhtml#world_wide_web"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="WPAD" nc:link="glossary.xhtml#wpad"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="XML" nc:link="glossary.xhtml#xml"/> </rdf:li>

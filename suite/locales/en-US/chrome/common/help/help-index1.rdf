@@ -423,7 +423,7 @@
          nc:link="using_certs_help.xhtml#controlling_validation"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="Certificates:web_site"
+       <rdf:Description ID="Certificates:website"
          nc:name="website identity"
          nc:link="using_certs_help.xhtml#managing_certificates_that_identify_servers"/>
      </rdf:li>
