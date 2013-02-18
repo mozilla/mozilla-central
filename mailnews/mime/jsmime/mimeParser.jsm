@@ -8,7 +8,7 @@ Components.utils.import("resource:///modules/Services.jsm");
 
 // Load the core MIME parser. Since it doesn't define EXPORTED_SYMBOLS, we must
 // use the subscript loader instead.
-Services.scriptloader.loadSubScript("resource:///modules/mimeParserCore.js");
+Services.scriptloader.loadSubScript("resource:///modules/mime/mimeParserCore.js");
 
 var EXPORTED_SYMBOLS = ["MimeParser"];
 
