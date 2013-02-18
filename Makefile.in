@@ -54,6 +54,8 @@ mochitest-% :: $(SUBMAKEFILES)
 check-sync-dirs::
 	@$(PYTHON) $(topsrcdir)/mozilla/js/src/config/check-sync-dirs.py \
 	   $(topsrcdir)/build $(topsrcdir)/mozilla/build
+	@$(PYTHON) $(topsrcdir)/mozilla/js/src/config/check-sync-dirs.py \
+	   $(topsrcdir)/config/makefiles $(topsrcdir)/mozilla/config/makefiles
 
 check:: check-sync-dirs
 
