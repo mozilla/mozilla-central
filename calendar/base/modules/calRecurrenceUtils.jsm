@@ -149,8 +149,8 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         }
                     }
                     let weekdaysString = weekdaysString_every + weekdaysString_position;
-                    weekdaysString = weekdaysString.slice(0,-2).
-                                     replace(/,(?= [^,]*$)/, ' ' + getRString("repeatDetailsAnd"));
+                    weekdaysString = weekdaysString.slice(0,-2)
+                                     .replace(/,(?= [^,]*$)/, ' ' + getRString("repeatDetailsAnd"));
 
                     let monthlyString = weekdaysString_every ? "monthlyEveryOfEvery" : "monthlyRuleNthOfEvery";
                     monthlyString = nounClass("repeatDetailsDay" + day_of_week(firstDay), monthlyString);
@@ -161,29 +161,27 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     let component = rule.getComponent("BYMONTHDAY", {});
 
                     // First, find out if the 'BYMONTHDAY' component contains
-                    // any elements with a negative value. If so we currently
-                    // don't support anything but the 'last day of the month' rule.
+                    // any elements with a negative value lesser than -1 ("the
+                    // last day"). If so we currently don't support any rule
                     if (component.some(function(element, index, array) {
-                                           return element < 0;
+                                           return element < -1;
                                        })) {
+                        // we don't support any other combination for now...
+                        return getRString("ruleTooComplex");
+                    } else {
                         if (component.length == 1 && component[0] == -1) {
+                            // i.e. one day, the last day of the month
                             let monthlyString = getRString("monthlyLastDayOfNth");
                             ruleString = PluralForm.get(rule.interval, monthlyString)
                                                    .replace("#1", rule.interval);
-                        } else {
-                            // we don't support any other combination for now...
-                            return null;
-                        }
-                    } else {
-                        if (component.length == 31 &&
-                            component.every(function (element, index, array) {
-                                                for (let i = 0; i < array.length; i++) {
-                                                    if ((index + 1) == array[i]) {
-                                                        return true;
-                                                    }
-                                                }
-                                                return false;
-                                            })) {
+                        } else if (component.length == 31 &&
+                                    component.every(function (element, index, array) {
+                                                        for (let i = 0; i < array.length; i++) {
+                                                            if ((index + 1) == array[i])
+                                                                return true;
+                                                        }
+                                                        return false;
+                                                    })) {
                             // i.e. every day every N months
                             ruleString = getRString("monthlyEveryDayOfNth");
                             ruleString = PluralForm.get(rule.interval, ruleString)
@@ -191,15 +189,19 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         } else {
                             // i.e. one or more monthdays every N months
                             let day_string = "";
+                            let lastDay = false;
                             for (let i = 0; i < component.length; i++) {
-                                day_string += component[i];
-                                if (component.length > 1 &&
-                                    i == (component.length - 2)) {
-                                    day_string += ' ' + getRString("repeatDetailsAnd") + ' ';
-                                } else if (i < component.length-1) {
-                                    day_string += ', ';
+                                if (component[i] == -1) {
+                                    lastDay = true;
+                                    continue;
                                 }
+                                day_string += component[i] + ", ";
                             }
+                            if (lastDay) {
+                                day_string += getRString("monthlyLastDay") + ", ";
+                            }
+                            day_string = day_string.slice(0,-2)
+                                         .replace(/,(?= [^,]*$)/, ' ' + getRString("repeatDetailsAnd"));
                             let monthlyString = getRString("monthlyDayOfNth", [day_string]);
                             ruleString = PluralForm.get(rule.interval, monthlyString)
                                                    .replace("#2", rule.interval);

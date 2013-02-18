@@ -4,25 +4,34 @@
 
 daypicker {
   -moz-binding: url(chrome://calendar/content/calendar-daypicker.xml#daypicker);
-  list-style-image: url("chrome://calendar/skin/daypicker-background.png");
-  -moz-image-region: rect(0px 31px 30px 0px);
+  background-image: linear-gradient(rgba(0, 0, 0, .0) 5%, rgba(0, 0, 0, .20));
   background-color: -moz-Field;
   text-align: center;
 }
 
 daypicker[mode="monthly-days"] {
-  width: 21px;
+  width: 32px;
+  height: 15px;
+}
+
+daypicker[mode="daypicker-weekday"] {
+  min-width: 36px;
+  height: 32px;
+}
+
+daypicker[mode="monthly-days"][bottom="true"][right="true"] {
+  width: 128px;
   height: 15px;
 }
 
 daypicker:hover {
-  -moz-image-region: rect(0px 62px 30px 31px);
+  background-image: linear-gradient(rgba(255, 255, 255, .0), rgba(0, 0, 0, .10) 90%);
   cursor: pointer;
 }
 
 daypicker:hover:active,
 daypicker[open="true"] {
-  -moz-image-region: rect(0px 93px 30px 62px);
+  background-image: linear-gradient(rgba(0, 0, 0, .15), rgba(0, 0, 0, .01) 15%);
   cursor: pointer;
 }
 
@@ -31,14 +40,14 @@ daypicker[disabled="true"][checked="true"],
 daypicker[disabled="true"]:hover,
 daypicker[disabled="true"]:hover:active,
 daypicker[disabled="true"][open="true"] {
-  -moz-image-region: rect(0px 31px 30px 0px);
+  background-image: linear-gradient(rgba(0, 0, 0, .0) 5%, rgba(0, 0, 0, .20));
   color: GrayText;
   cursor: default;
   background-color: -moz-Dialog;
 }
 
 daypicker[checked="true"] {
-  -moz-image-region: rect(0px 124px 30px 93px);
+  background-image: linear-gradient(rgba(0, 0, 0, .30), rgba(255, 255, 255, .0) 35%);
   background-color: Highlight;
   color: HighlightText;
 }

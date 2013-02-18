@@ -9,7 +9,7 @@ daypicker {
   border-left: 1px solid ThreeDShadow;
 }
 
-daypicker [bottom="true"] {
+daypicker[bottom="true"] {
   border-bottom: 1px solid ThreeDShadow;
 }
 

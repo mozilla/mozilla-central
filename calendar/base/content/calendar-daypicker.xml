@@ -19,15 +19,12 @@
       <stylesheet src="chrome://calendar/skin/calendar-daypicker.css"/>
     </resources>
     <content>
-      <xul:stack anonid="stackid" class="daystack" xbl:inherits="bottom,right">
-        <xul:image anonid="imageid" xbl:inherits="mode,height,width"/>
-        <xul:hbox align="center">
-          <xul:label anonid="daytext" 
-                     class="toolbarbutton-text" 
-                     flex="1"
-                     xbl:inherits="value=label"/>
-        </xul:hbox>
-      </xul:stack>
+      <xul:hbox anonid="daypickerId" class="daypickerclass" align="center" flex="1">
+        <xul:label anonid="daytext"
+                   class="toolbarbutton-text"
+                   flex="1"
+                   xbl:inherits="value=label"/>
+      </xul:hbox>
     </content>
     <implementation>
       <method name="onmodified">
@@ -204,10 +201,7 @@
               <daypicker bottom="true" label="29" xbl:inherits="disabled, mode=id"/>
               <daypicker bottom="true" label="30" xbl:inherits="disabled, mode=id"/>
               <daypicker bottom="true" label="31" xbl:inherits="disabled, mode=id"/>
-              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
-              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
-              <daypicker disabled="true" bottom="true" xbl:inherits="mode=id"/>
-              <daypicker disabled="true" bottom="true" right="true" xbl:inherits="mode=id"/>
+              <daypicker bottom="true" right="true" label="" xbl:inherits="disabled, mode=id"/>
             </xul:hbox>
           </xul:vbox>
         </content>
@@ -229,7 +223,9 @@
               }
           }
           for (i = 0; i < val.length; i++) {
-              let index = (val[i] < 0 ? val[i] + days.length : val[i] - 1);
+              let lastDayOffset = val[i] == -1 ? 0 : -1;
+              let index = (val[i] < 0 ? val[i] + days.length + lastDayOffset
+                                      : val[i] - 1);
               days[index].setAttribute("checked", "true");
           }
           return val;
@@ -246,7 +242,7 @@
               for (var j = 0; j < numChilds; j++) {
                   var child = row.childNodes[j];
                   if (child.getAttribute("checked") == "true") {
-                      days.push(Number(child.label));
+                      days.push(Number(child.label) ? Number(child.label) : -1);
                   }
               }
           }
@@ -255,18 +251,21 @@
       </property>
 
       <constructor><![CDATA[
-        var mainbox =
+        let mainbox =
             document.getAnonymousElementByAttribute(
                 this, "anonid", "mainbox");
-        var numRows = mainbox.childNodes.length;
-        for (var i = 0; i < numRows; i++) {
-            var row = mainbox.childNodes[i];
-            var numChilds = row.childNodes.length;
-            for (var j = 0; j < numChilds; j++) {
-                var child = row.childNodes[j];
+        let numRows = mainbox.childNodes.length;
+        let child = null;
+        for (let i = 0; i < numRows; i++) {
+            let row = mainbox.childNodes[i];
+            let numChilds = row.childNodes.length;
+            for (let j = 0; j < numChilds; j++) {
+                child = row.childNodes[j];
                 child.calendar = this;
             }
         }
+        let labelLastDay = calGetString("calendar-event-dialog", "eventRecurrenceMonthlyLastDayLabel");
+        child.setAttribute("label", labelLastDay);
       ]]></constructor>
     </implementation>
   </binding>
