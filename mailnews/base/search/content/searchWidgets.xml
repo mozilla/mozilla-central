@@ -11,6 +11,7 @@
       -gFilter from FilterEditor.js
       -gCustomActions from FilterEditor.js
       -gFilterType from FilterEditor.js
+      -checkActionsReorder from FilterEditor.js
       -GetMsgFolderFromUri, SetFolderPickerElement from msgFolderPickerOverlay.js
 -->
 
@@ -278,6 +279,7 @@
       <handler event="command">
         <![CDATA[
           this.parentNode.setAttribute('value', this.menulist.value);
+          checkActionsReorder();
         ]]>
       </handler>
 
@@ -426,6 +428,7 @@
                     .value = filterActionStr;
             this.mRuleActionTargetInitialized = true;
             this.clearInitialActionIndex();
+            checkActionsReorder();
           ]]>
         </body>
       </method>
@@ -524,6 +527,24 @@
         </body>
       </method>
 
+      <method name="getActionStrings">
+        <parameter name="aActionStrings"/>
+        <body>
+          <![CDATA[
+            // Collect the action names and arguments in a plain string form.
+            let actionTarget = document.getAnonymousNodes(this)[1];
+            let actionItem = document.getAnonymousNodes(actionTarget);
+
+            aActionStrings.push({
+              label: document.getAnonymousNodes(this.mRuleActionType)[0].label,
+              argument: actionItem ?
+                        (actionItem[0].label ?
+                         actionItem[0].label : actionItem[0].value) : ""
+            });
+          ]]>
+        </body>
+      </method>
+
       <method name="updateRemoveButton">
         <body>
           <![CDATA[
@@ -543,6 +564,7 @@
 
             // make sure the first remove button is enabled
             this.updateRemoveButton();
+            checkActionsReorder();
           ]]>
         </body>
       </method>
@@ -556,6 +578,7 @@
               listBox.removeChild(this);
             // can't use 'this' as it is destroyed now
             listBox.getItemAtIndex(0).updateRemoveButton();
+            checkActionsReorder();
           ]]>
         </body>
       </method>

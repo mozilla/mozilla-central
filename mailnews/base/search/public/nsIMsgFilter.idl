@@ -43,7 +43,7 @@ interface nsIMsgRuleAction : nsISupports {
   
 };
 
-[scriptable, uuid(ed4b7a8e-3190-4b0b-b842-d4f1ca65216f)]
+[scriptable, uuid(ed4b7a8e-3190-4b0b-b842-d4f1ca652170)]
 interface nsIMsgFilter : nsISupports {
     attribute nsMsgFilterTypeType filterType;
     /**
@@ -95,6 +95,8 @@ interface nsIMsgFilter : nsISupports {
     nsIMsgRuleAction createAction();
 
     nsIMsgRuleAction getActionAt(in unsigned long aIndex);
+
+    long getActionIndex(in nsIMsgRuleAction aAction);
 
     void appendAction(in nsIMsgRuleAction action);
 

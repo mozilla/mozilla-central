@@ -390,6 +390,15 @@ nsMsgFilter::GetActionAt(uint32_t aIndex, nsIMsgRuleAction **aAction)
 }
 
 NS_IMETHODIMP
+nsMsgFilter::GetActionIndex(nsIMsgRuleAction *aAction, int32_t *aIndex)
+{
+  NS_ENSURE_ARG_POINTER(aIndex);
+
+  *aIndex = m_actionList.IndexOf(aAction);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsMsgFilter::GetActionCount(uint32_t *aCount)
 {
   NS_ENSURE_ARG_POINTER(aCount);

@@ -29,12 +29,17 @@ var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessa
                             "fetchfrompopserver", "copymessage", "addtagtomessage",
                             "ignoresubthread", "markasunread"];
 
-var nsMsgFilterAction = Components.interfaces.nsMsgFilterAction;
+// A temporary filter with the current state of actions in the UI.
+let gTempFilter = null;
+// A nsIArray of the currently defined actions in the order they will be run.
+let gActionListOrdered = null;
 
 var gFilterEditorMsgWindow = null;
 
-const nsMsgFilterType = Components.interfaces.nsMsgFilterType;
-const nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
+const nsMsgFilterAction = Components.interfaces.nsMsgFilterAction;
+const nsMsgFilterType   = Components.interfaces.nsMsgFilterType;
+const nsIMsgRuleAction  = Components.interfaces.nsIMsgRuleAction;
+const nsMsgSearchScope  = Components.interfaces.nsMsgSearchScope;
 
 function filterEditorOnLoad()
 {
@@ -320,7 +325,7 @@ function initializeDialog(filter)
     newActionRow.className = 'ruleaction';
     gFilterActionList.appendChild(newActionRow);
     newActionRow.setAttribute('value',
-        filterAction.type == Components.interfaces.nsMsgFilterAction.Custom ?
+        filterAction.type == nsMsgFilterAction.Custom ?
         filterAction.customId : gFilterActionStrings[filterAction.type]);
   }
 
@@ -484,10 +489,79 @@ function saveFilter()
   return true;
 }
 
+/**
+ * Check if the list of actions the user created will be executed in a different order.
+ * Exposes a note to the user if that is the case.
+ */
+function checkActionsReorder()
+{
+  setTimeout(_checkActionsReorder, 0);
+}
+
+/**
+ * This should be called from setTimeout otherwise some of the elements calling
+ * may not be fully initialized yet (e.g. we get ".saveToFilter is not a function").
+ * It is OK to schedule multiple timeouts with this function.
+ */
+function _checkActionsReorder() {
+  // Create a temporary disposable filter and add current actions to it.
+  if (!gTempFilter)
+    gTempFilter = gFilterList.createFilter("");
+  else
+    gTempFilter.clearActionList();
+
+  for (let index = 0; index < gFilterActionList.itemCount; index++)
+    gFilterActionList.getItemAtIndex(index).saveToFilter(gTempFilter);
+
+  // Now get the actions out of the filter in the order they will be executed in.
+  gActionListOrdered = gTempFilter.sortedActionList;
+
+  // Compare the two lists.
+  let statusBar = document.getElementById("statusbar");
+  for (let index = 0; index < gActionListOrdered.length; index++) {
+    if (index != gTempFilter.getActionIndex(
+        gActionListOrdered.queryElementAt(index, nsIMsgRuleAction)))
+    {
+      // If the lists are not the same unhide the status bar and show warning.
+      statusBar.style.visibility = "visible";
+      return;
+    }
+  }
+
+  statusBar.style.visibility = "hidden";
+}
+
+/**
+ * Show a dialog with the ordered list of actions.
+ * The fetching of action label and argument is separated from checkActionsReorder
+ * function to make that one more lightweight. The list is built only upon
+ * user request.
+ */
+function showActionsOrder()
+{
+  // Fetch the actions and arguments as a string.
+  let actionStrings = [];
+  for (let index = 0; index < gFilterActionList.itemCount; index++)
+    gFilterActionList.getItemAtIndex(index).getActionStrings(actionStrings);
+
+  // Present a nicely formatted list of action names and arguments.
+  let actionList = gFilterBundle.getString("filterActionOrderExplanation");
+  for (let i = 0; i < gActionListOrdered.length; i++) {
+    let actionIndex = gTempFilter.getActionIndex(
+      gActionListOrdered.queryElementAt(i, nsIMsgRuleAction));
+    let action = actionStrings[actionIndex];
+    actionList += gFilterBundle.getFormattedString("filterActionItem",
+      [(i + 1), action.label, action.argument]);
+  }
+
+  Services.prompt.confirmEx(window,
+                            gFilterBundle.getString("filterActionOrderTitle"),
+                            actionList, Services.prompt.BUTTON_TITLE_OK,
+                            null, null, null, null, {value:false});
+}
 
 function AssignMeaningfulName()
 {
-
   // termRoot points to the first search object, which is the one we care about.
   let termRoot = gSearchTerms[0].obj;
   // stub is used as the base name for a filter.

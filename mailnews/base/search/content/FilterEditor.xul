@@ -101,4 +101,12 @@
     </listbox>
   </vbox>
 
+  <vbox id="statusbar" style="visibility: hidden;">
+    <hbox align="center">
+      <label>
+        &filterActionOrderWarning.label;
+      </label>
+      <label class="text-link" onclick="showActionsOrder();">&filterActionOrder.label;</label>
+    </hbox>
+  </vbox>
 </dialog>
