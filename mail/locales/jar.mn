@@ -115,6 +115,7 @@
   locale/@AB_CD@/messenger/safeMode.dtd                                 (%chrome/messenger/safeMode.dtd)
   locale/@AB_CD@/messenger/taskbar.properties                           (%chrome/messenger/taskbar.properties)
   locale/@AB_CD@/messenger/junkLog.dtd                                  (%chrome/messenger/junkLog.dtd)
+  locale/@AB_CD@/messenger/msgPrintEngine.dtd                           (%chrome/messenger/msgPrintEngine.dtd)
   locale/@AB_CD@/messenger/addressbook/abMainWindow.dtd                 (%chrome/messenger/addressbook/abMainWindow.dtd)
   locale/@AB_CD@/messenger/addressbook/abNewCardDialog.dtd              (%chrome/messenger/addressbook/abNewCardDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/abContactsPanel.dtd              (%chrome/messenger/addressbook/abContactsPanel.dtd)

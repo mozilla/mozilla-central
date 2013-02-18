@@ -8,6 +8,8 @@
 
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 
+<!DOCTYPE window SYSTEM "chrome://messenger/locale/msgPrintEngine.dtd">
+
 <window id="printEngineWin"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="OnLoadPrintEngine()"
@@ -21,6 +23,10 @@
     <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
+
+  <!-- Provide shortcut keys for toolkit's print preview; commands will be overridden by printUtils.js -->
+  <key id="printKb" key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
+  <key id="key_close" key="&closeCmd.key;" command="cmd_close" modifiers="accel"/>
 
   <script type="application/javascript" src="chrome://global/content/printUtils.js"/>
   <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
