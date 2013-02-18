@@ -3,8 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 /*
- * Tests for iteratorUtils.jsm. Currently this tests
+ * Tests for iteratorUtils.jsm. Currently this tests:
  * - toArray
+ * - toXPCOMArray
+ * - fixIterator
  */
 
 var iteratorUtils = {};
@@ -23,6 +25,60 @@ function parse_xml_file(aFileName) {
   stream.init(file, -1, -1, Ci.nsIFileInputStream.CLOSE_ON_EOF);
   return gDOMParser.parseFromStream(stream, "UTF-8", file.fileSize,
                                     "application/xml");
+}
+
+/**
+ * Tests of the supported toArray and fixIterator arguments.
+ */
+function test_fixIterator() {
+  let JSIterator = Iterator([1, 2, 3, 4, 5]);
+  let JSIteratorArray = iteratorUtils.toArray(JSIterator, false);
+
+  let JSArray = [];
+  for (let [i,val] of JSIteratorArray) {
+    do_check_eq(val, i + 1);
+    JSArray.push(val);
+  }
+
+  let i = 0;
+  for (let val in iteratorUtils.fixIterator(JSArray)) {
+    do_check_eq(val, JSArray[i++]);
+  }
+
+  let nsIArrayJSArray = [];
+  for (let val of JSArray) {
+    let nsIArrayMember = Cc["@mozilla.org/supports-PRUint8;1"]
+                           .createInstance(Ci.nsISupportsPRUint8);
+    nsIArrayMember.data = val;
+    nsIArrayJSArray.push(nsIArrayMember);
+  }
+
+  let nsIArray = iteratorUtils.toXPCOMArray(nsIArrayJSArray, Ci.nsIMutableArray);
+  do_check_eq(nsIArray.length, 5);
+
+  i = 0;
+  for (let val in iteratorUtils.fixIterator(nsIArray)) {
+    do_check_eq(val, JSArray[i++]);
+  }
+
+  i = 0;
+  for (let val in iteratorUtils.fixIterator(nsIArray.enumerate())) {
+    do_check_eq(val, JSArray[i++]);
+  }
+
+  i = 0;
+  let JSIteratorArray2 = iteratorUtils.toArray(iteratorUtils.fixIterator(nsIArray));
+  for (let val of JSIteratorArray2) {
+    do_check_eq(val, JSArray[i++]);
+  }
+
+  let nsISupportsArray = iteratorUtils.toXPCOMArray(nsIArray, Ci.nsISupportsArray);
+  do_check_eq(nsISupportsArray.Count(), 5);
+
+  i = 0;
+  for (let val in iteratorUtils.fixIterator(nsISupportsArray)) {
+    do_check_eq(val, JSArray[i++]);
+  }
 }
 
 /**
@@ -80,6 +136,7 @@ function test_toArray_custom_iterator() {
 }
 
 var gTests = [
+  test_fixIterator,
   test_toArray_NodeList,
   test_toArray_builtin_iterator,
   test_toArray_custom_iterator,
