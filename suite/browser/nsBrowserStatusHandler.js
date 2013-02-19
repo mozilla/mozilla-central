@@ -337,7 +337,7 @@ nsBrowserStatusHandler.prototype =
       // actual load (or an error page).
       if (this.popupNotifications &&
           !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT))
-        this.popupNotifications.locationChange();
+        this.popupNotifications.locationChange(browser);
 
       PlacesStarButton.updateState();
 
