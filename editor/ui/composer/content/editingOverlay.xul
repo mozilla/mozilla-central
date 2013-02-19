@@ -69,6 +69,7 @@
           <menuitem id="menu_newEditor"/>
           <menuseparator id="sep_NewPopup"/>
           <menuitem id="menu_newNavigator"/>
+          <menuitem id="menu_newPrivateWindow"/>
         </menupopup>
       </menu>
       <menuitem id="menu_openRemote"

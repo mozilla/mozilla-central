@@ -29,6 +29,7 @@
   <window id="viewSource">
     <commandset id="tasksCommands"/>
     <command id="cmd_newNavigator"/>
+    <command id="cmd_newPrivateWindow"/>
     <command id="cmd_newEditor"/>
     <command id="cmd_editPage" oncommand="ViewSourceEditPage();"/>
     <command id="cmd_find"
@@ -45,6 +46,7 @@
     <keyset id="tasksKeys"/>
     <key id="key_newBlankPage"/>
     <key id="key_newNavigator"/>
+    <key id="key_newPrivateWindow"/>
     <key id="key_editPage" key="&editPageCmd.commandkey;"
          command="Browser:EditPage" modifiers="accel"/>
   </keyset>
@@ -57,6 +59,7 @@
         <menu id="menu_New" position="1">
           <menupopup id="menu_NewPopup">
             <menuitem id="menu_newNavigator"/>
+            <menuitem id="menu_newPrivateWindow"/>
             <menuitem id="menu_newEditor"/>
           </menupopup>
         </menu>

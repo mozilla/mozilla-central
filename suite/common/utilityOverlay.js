@@ -34,6 +34,8 @@ const kProxyManual = ["network.proxy.ftp",
 const kExistingWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_CURRENTWINDOW;
 const kNewWindow = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWWINDOW;
 const kNewTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_NEWTAB;
+const kExistingTab = Components.interfaces.nsIBrowserDOMWindow.OPEN_SWITCHTAB;
+const kNewPrivate = 5;
 var TAB_DROP_TYPE = "application/x-moz-tabbrowser-tab";
 var gShowBiDi = false;
 var gUtilityBundle = null;
@@ -244,7 +246,7 @@ function goPreferences(paneID)
     lastPrefWindow.focus();
   else
     openDialog("chrome://communicator/content/pref/preferences.xul",
-               "PrefWindow", "chrome,titlebar,dialog=no,resizable",
+               "PrefWindow", "non-private,chrome,titlebar,dialog=no,resizable",
                paneID);
 }
 
@@ -573,7 +575,7 @@ function goClickThrobber(urlPref, aEvent)
 
 function getTopWin()
 {
-  return Services.wm.getMostRecentWindow("navigator:browser");
+  return gPrivate || Services.wm.getMostRecentWindow("navigator:browser");
 }
 
 function isRestricted( url )
@@ -969,6 +971,7 @@ function openAsExternal(aURL)
 /**
  * openNewTabWith: opens a new tab with the given URL.
  * openNewWindowWith: opens a new window with the given URL.
+ * openNewPrivateWith: opens a private window with the given URL.
  *
  * @param aURL
  *        The URL to open (as a string).
@@ -992,6 +995,14 @@ function openAsExternal(aURL)
  *        If aDocument is null, then this will be used as the referrer.
  *        There will be no security check.
  */
+function openNewPrivateWith(aURL, aDoc, aPostData, aAllowThirdPartyFixup,
+                            aReferrer)
+{
+  return openNewTabWindowOrExistingWith(kNewPrivate, aURL, aDoc, false,
+                                        aPostData, aAllowThirdPartyFixup,
+                                        aReferrer);
+}
+
 function openNewWindowWith(aURL, aDoc, aPostData, aAllowThirdPartyFixup,
                            aReferrer)
 {
@@ -1036,7 +1047,7 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground,
 
   var browserWin;
   // if we're not opening a new window, try and find existing window
-  if (aType != kNewWindow)
+  if (aType != kNewWindow && aType != kNewPrivate)
     browserWin = getTopWin();
 
   // Where appropriate we want to pass the charset of the
@@ -1050,10 +1061,13 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground,
 
   // We want to open in a new window or no existing window can be found.
   if (!browserWin) {
+    var features = "private,chrome,all,dialog=no";
+    if (aType != kNewPrivate)
+      features = "non-" + features;
     var charsetArg = null;
     if (originCharset)
       charsetArg = "charset=" + originCharset;
-    return window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no",
+    return window.openDialog(getBrowserURL(), "_blank", features,
                              aURL, charsetArg, referrerURI, aPostData,
                              aAllowThirdPartyFixup);
   }

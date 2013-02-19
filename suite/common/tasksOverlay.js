@@ -97,7 +97,7 @@ function toOpenWindowByType( inType, uri, features )
     }
     // remember the newly loading window until it's fully loaded
     // or until the current window passes away
-    window[uri] = window.openDialog(uri, "", features || "all,dialog=no");
+    window[uri] = openDialog(uri, "", features || "non-private,all,dialog=no");
     window[uri].addEventListener("load", newWindowLoaded, false);
     window.addEventListener("unload", newWindowLoaded, false);
   }
@@ -105,6 +105,7 @@ function toOpenWindowByType( inType, uri, features )
 
 function OpenBrowserWindow()
 {
+  var win = Services.wm.getMostRecentWindow("navigator:browser");
   if (document.documentElement.getAttribute("windowtype") ==
       "navigator:browser" && window.content && window.content.document)
   {
@@ -115,10 +116,10 @@ function OpenBrowserWindow()
     window.openDialog(getBrowserURL(), "_blank",
                       "chrome,all,dialog=no", null,
                       "charset=" + window.content.document.characterSet);
-  } else if (Services.wm.getMostRecentWindow("navigator:browser")) {
+  } else if (win) {
     // if a browser window already exists then set startpage to null so
     // navigator.js can check pref for how new window should be opened
-    window.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", null);
+    win.openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", null);
   } else {
     // open the first browser window as if we were starting up
     var cmdLine = {

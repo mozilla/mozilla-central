@@ -20,6 +20,7 @@
   <keyset id="editorKeys">
     <!-- defined in globalOverlay -->
     <key id="key_newNavigator"/>
+    <key id="key_newPrivateWindow"/>
     <key id="key_newBlankPage"/>
     <key id="key_save"
          key="&saveCmd.key;"
@@ -281,6 +282,7 @@
     <command id="toggleSidebar"/>
     <!-- file menu -->
     <command id="cmd_newNavigator"/>
+    <command id="cmd_newPrivateWindow"/>
     <command id="cmd_newEditor"/>
     <command id="cmd_newEditorTemplate"/>
     <command id="cmd_newEditorDraft"/>

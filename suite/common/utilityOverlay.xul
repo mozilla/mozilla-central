@@ -153,6 +153,8 @@
   <!-- New SubMenu (Under File Menu) -->
   <command id="cmd_newNavigator"
            oncommand="OpenBrowserWindow()"/>
+  <command id="cmd_newPrivateWindow"
+           oncommand="openNewPrivateWith('about:privatebrowsing');"/>
   <command id="cmd_newEditor"
            oncommand="NewEditorWindow();"/>
 
@@ -188,6 +190,11 @@
             accesskey="&newNavigatorCmd.accesskey;"
             key="key_newNavigator"
             command="cmd_newNavigator"/>
+  <menuitem id="menu_newPrivateWindow"
+            label="&newPrivateWindowCmd.label;"
+            accesskey="&newPrivateWindowCmd.accesskey;"
+            key="key_newPrivateWindow"
+            command="cmd_newPrivateWindow"/>
   <menuitem id="menu_printSetup"
             label="&printSetupCmd.label;"
             accesskey="&printSetupCmd.accesskey;"
@@ -210,6 +217,10 @@
        key="&newNavigatorCmd.key;"
        command="cmd_newNavigator"
        modifiers="accel"/>
+  <key id="key_newPrivateWindow"
+       key="&newPrivateWindowCmd.key;"
+       command="cmd_newPrivateWindow"
+       modifiers="accel, shift"/>
   <key id="key_print"
        key="&printCmd.key;"
        command="cmd_print"

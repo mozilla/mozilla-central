@@ -6,7 +6,7 @@
 <!ENTITY  offlineGoOfflineCmd.label                 "Work Offline">
 <!ENTITY  offlineGoOfflineCmd.accesskey             "k">
 
-<!-- LOCALIZATION NOTE : FILE This file contains the global menu items --> 
+!-- LOCALIZATION NOTE : FILE This file contains the global menu items --> 
 
 <!ENTITY fileMenu.label                   "File">
 <!ENTITY fileMenu.accesskey               "F">
@@ -22,6 +22,9 @@
 <!ENTITY newNavigatorCmd.label "Browser Window">
 <!ENTITY newNavigatorCmd.key "N">
 <!ENTITY newNavigatorCmd.accesskey "B">
+<!ENTITY newPrivateWindowCmd.label "Private Window">
+<!ENTITY newPrivateWindowCmd.key "P">
+<!ENTITY newPrivateWindowCmd.accesskey "W">
 <!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
 <!ENTITY printPreviewCmd.label "Print Preview">

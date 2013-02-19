@@ -52,8 +52,9 @@
   <!-- Keysets -->
   <keyset id="navKeys">
     <!-- File Menu -->
-    <key id="key_newNavigator"/>
     <key id="key_newNavigatorTab" key="&tabCmd.commandkey;" modifiers="accel" command="cmd_newNavigatorTab"/>
+    <key id="key_newNavigator"/>
+    <key id="key_newPrivateWindow"/>
     <key id="key_restoreTab" key="&recentTabs.commandkey;" modifiers="accel,shift" oncommand="gBrowser.undoCloseTab(0);"/>
     <key id="key_restoreWindow" key="&recentWindows.commandkey;" modifiers="accel,shift" oncommand="undoCloseWindow();"/>
     <key id="key_newBlankPage"/>
@@ -115,8 +116,9 @@
   </keyset>
 
   <commandset id="commands">
-    <command id="cmd_newNavigator"/>
     <command id="cmd_newNavigatorTab" oncommand="BrowserOpenTab();"/>
+    <command id="cmd_newNavigator"/>
+    <command id="cmd_newPrivateWindow"/>
     <command id="cmd_newTabWithTarget" oncommand="contentAreaClick(event);"/>
     <command id="cmd_handleBackspace"  oncommand="BrowserHandleBackspace();" />
     <command id="cmd_handleShiftBackspace"  oncommand="BrowserHandleShiftBackspace();" />
@@ -228,9 +230,10 @@
         <menu id="menu_New">
           <menupopup id="menu_NewPopup">
             <!-- From utilityOverlay.xul -->
-            <menuitem id="menu_newNavigator" command="cmd_newNavigator"/>
             <menuitem id="menu_newNavigatorTab" command="cmd_newNavigatorTab" key="key_newNavigatorTab"
                       label="&tabCmd.label;" accesskey="&tabCmd.accesskey;"/>
+            <menuitem id="menu_newNavigator"/>
+            <menuitem id="menu_newPrivateWindow"/>
             <menuseparator id="navBeginGlobalNewItems"/>
             <menuitem id="menu_newEditor"    command="cmd_newEditor"/>
           </menupopup>

@@ -111,6 +111,7 @@
 
 <commandset id="mailCommands">
   <command id="cmd_newNavigator"/>
+  <command id="cmd_newPrivateWindow"/>
   <command id="cmd_newEditor"/>
   <command id="cmd_createFilterFromPopup" oncommand="goDoCommand('cmd_createFilterFromPopup')"/>
   <command id="cmd_pageSetup"/>
@@ -312,6 +313,7 @@
        modifiers="accel"
        oncommand="MsgOpenNewTab();"/>
   <key id="key_newNavigator"/>
+  <key id="key_newPrivateWindow"/>
   <key id="key_newBlankPage"/>
   <key id="key_close"/>
   <!-- Edit Menu -->
@@ -921,6 +923,7 @@
                     key="key_newTab"
                     oncommand="MsgOpenNewTab();"/>
           <menuitem id="menu_newNavigator"/>
+          <menuitem id="menu_newPrivateWindow"/>
           <menuitem id="menu_newEditor"/>
         </menupopup>
       </menu>

@@ -209,6 +209,7 @@
                   <menuseparator id="menuNewPopupSeparator"/>
                   <menuitem id="menu_newCard"/>
                   <menuitem id="menu_newNavigator"/>
+                  <menuitem id="menu_newPrivateWindow"/>
                   <menuitem id="menu_newEditor"/>
                 </menupopup>
               </menu>
