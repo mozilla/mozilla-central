@@ -120,6 +120,17 @@ var tasksCfg = [
                             //  shutdown.  Thus true for consistency.
   },
 
+  // Open private window
+  {
+    get title()       _getString("taskbar.tasks.newPrivate.label"),
+    get description() _getString("taskbar.tasks.newPrivate.description"),
+    args:             "-private",
+    iconIndex:        0, // SeaMonkey app icon
+    open:             true,
+    close:            true, // No point, but we don't always update the list on
+                            //  shutdown.  Thus true for consistency.
+  },
+
   // Open mailnews
   {
     get title()       _getString("taskbar.tasks.mailWindow.label"),

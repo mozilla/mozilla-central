@@ -347,6 +347,19 @@ var nsBrowserContentHandler = {
       }
     }
 
+    try {
+      var privateParam = cmdLine.handleFlagWithParam("private", false);
+      if (privateParam) {
+        openWindow(null, getBrowserURL(), "private," + features, privateParam);
+        cmdLine.preventDefault = true;
+      }
+    } catch (e) {
+      if (cmdLine.handleFlag("private", false)) {
+        openWindow(null, getBrowserURL(), "private," + features, "about:privatebrowsing");
+        cmdLine.preventDefault = true;
+      }
+    }
+
     // If we don't have a profile selected yet (e.g. the Profile Manager is
     // displayed) we will crash if we open an url and then select a profile. To
     // prevent this handle all url command line flag and set the command line's
@@ -535,6 +548,7 @@ var nsBrowserContentHandler = {
   },
 
   helpInfo: "  -browser <url>     Open a browser window.\n" +
+            "  -private <url>     Open a private window.\n" +
             "  -new-window <url>  Open <url> in a new browser window.\n" +
             "  -new-tab <url>     Open <url> in a new browser tab.\n" +
             "  -url <url>         Open the specified url.\n" +
