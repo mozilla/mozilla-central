@@ -6,7 +6,7 @@
 <!ENTITY  offlineGoOfflineCmd.label                 "Work Offline">
 <!ENTITY  offlineGoOfflineCmd.accesskey             "k">
 
-!-- LOCALIZATION NOTE : FILE This file contains the global menu items --> 
+<!-- LOCALIZATION NOTE : FILE This file contains the global menu items --> 
 
 <!ENTITY fileMenu.label                   "File">
 <!ENTITY fileMenu.accesskey               "F">
