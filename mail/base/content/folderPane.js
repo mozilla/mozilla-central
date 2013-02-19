@@ -2143,7 +2143,7 @@ let gFolderTreeController = {
                                  .getString("confirmSavedSearchDeleteMessage");
       let title = document.getElementById("bundle_messenger")
                           .getString("confirmSavedSearchTitle");
-      if (Servics.prompts
+      if (Services.prompt
             .confirmEx(window, title, confirmation,
                        Services.prompt.STD_YES_NO_BUTTONS + Services.prompt.BUTTON_POS_1_DEFAULT,
                        "", "", "", "", {}) != 0) /* the yes button is in position 0 */
