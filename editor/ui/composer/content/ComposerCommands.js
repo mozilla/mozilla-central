@@ -2096,6 +2096,9 @@ var nsOpenRemoteCommand =
         var browser = win.getBrowser();
         browser.selectedTab = browser.addTab(params.url, {allowThirdPartyFixup: true});
         break;
+      case "4": // private
+        openNewPrivateWith(params.url);
+        break;
       default:
         break;
     }

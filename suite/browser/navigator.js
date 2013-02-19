@@ -1302,6 +1302,9 @@ function BrowserOpenWindow()
     case "3": // new tab
       gBrowser.selectedTab = gBrowser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
       break;
+    case "4": // private
+      openNewPrivateWith(params.url);
+      break;
   }
 }
 

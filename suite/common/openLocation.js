@@ -70,8 +70,11 @@ function accept()
 {
   var params = window.arguments[0];
   params.url = gInput.value;
+  params.action = gOpenAppList.value;
+  if (params.action == "4")
+    return; // private, don't set any preferences
+
   if (gAction != "4") { // open web page
-    params.action = gOpenAppList.value;
     // If there were no browser windows open and not set to open in composer
     // then set to open in a new window.
     if (gAction == "-1" && params.action != "2")
