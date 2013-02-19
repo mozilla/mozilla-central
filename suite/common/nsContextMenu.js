@@ -76,8 +76,9 @@ nsContextMenu.prototype = {
 
   initOpenItems: function() {
     var showOpen = this.onSaveableLink || (this.inDirList && this.onLink);
-    this.showItem("context-openlink", showOpen);
     this.showItem("context-openlinkintab", showOpen);
+    this.showItem("context-openlink", showOpen && !gPrivate);
+    this.showItem("context-openlinkinprivatewindow", showOpen);
     this.showItem("context-sep-open", showOpen);
   },
 
@@ -737,17 +738,21 @@ nsContextMenu.prototype = {
     Services.perms.remove(uri.host, "image");
   },
 
-  // Open linked-to URL in a new window.
-  openLink: function() {
-    // Determine linked-to URL.
-    return openNewWindowWith(this.linkURL, this.target.ownerDocument);
-  },
-
   // Open linked-to URL in a new tab.
   openLinkInTab: function(aEvent) {
     // Determine linked-to URL.
     return openNewTabWith(this.linkURL, this.target.ownerDocument, null,
                           aEvent);
+  },
+
+  // Open linked-to URL in a new window.
+  openLinkInWindow: function() {
+    return openNewWindowWith(this.linkURL, this.target.ownerDocument);
+  },
+
+  // Open linked-to URL in a private window.
+  openLinkInPrivateWindow: function() {
+    return openNewPrivateWith(this.linkURL, this.target.ownerDocument);
   },
 
   // Open frame in a new tab.

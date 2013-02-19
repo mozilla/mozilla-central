@@ -145,7 +145,7 @@ function initMailContextMenuItems(aEvent)
 {
   var shouldShowSendPage = !(gContextMenu.onTextInput || gContextMenu.isContentSelected ||
                            gContextMenu.onVideo || gContextMenu.onAudio) &&
-                           !(gContextMenu.onLink && gContextMenu.onImage) &&
+                           !gContextMenu.onLink &&
                            !gUseExternalMailto;
   gContextMenu.showItem("context-sendpage", shouldShowSendPage);
 

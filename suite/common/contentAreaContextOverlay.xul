@@ -64,7 +64,11 @@
       <menuitem id="context-openlink"
                 label="&openLinkCmd.label;"
                 accesskey="&openLinkCmd.accesskey;"
-                oncommand="gContextMenu.openLink();"/>
+                oncommand="gContextMenu.openLinkInWindow();"/>
+      <menuitem id="context-openlinkinprivatewindow"
+                label="&openLinkCmdInPrivateWindow.label;"
+                accesskey="&openLinkCmdInPrivateWindow.accesskey;"
+                oncommand="gContextMenu.openLinkInPrivateWindow();"/>
       <menuseparator id="context-sep-open"/>
       <menuitem id="context-bookmarklink"
                 label="&bookmarkLinkCmd.label;"
