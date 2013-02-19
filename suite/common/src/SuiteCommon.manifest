@@ -7,6 +7,7 @@ contract @mozilla.org/network/protocol/about;1?what=certerror {d54f2c89-8fd6-4ee
 contract @mozilla.org/network/protocol/about;1?what=data {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=feeds {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=life {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=privatebrowsing {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=rights {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=sessionrestore {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 contract @mozilla.org/network/protocol/about;1?what=sync-tabs {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}

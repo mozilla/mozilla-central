@@ -1,0 +1,18 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!ENTITY privatebrowsingpage.title        "Private Browsing">
+<!-- LOCALIZATION NOTE: The experimental title is temporary -->
+<!ENTITY privatebrowsingpage.experimental "&privatebrowsingpage.title; is currently an experimental feature.">
+<!ENTITY privatebrowsingpage.description  "In a &privatebrowsingpage.title; window, &brandShortName; won't keep any disk cache, cookies or browser, search download or web form history. However downloaded files and bookmarks will still be saved.">
+<!ENTITY privatebrowsingpage.moreinfo     "While this computer won't have a record of your browsing history, your employer or Internet service provider might still be able to track the pages you visit.">
+<!ENTITY privatebrowsingpage.learnmore.label     "Learn more">
+<!ENTITY privatebrowsingpage.learnmore.accesskey "L">
+<!ENTITY privatebrowsingpage.private      "&brandShortName; won't remember any history for this window. Close the window to stop &privatebrowsingpage.title;.">
+<!ENTITY privatebrowsingpage.switch.label        "Switch to a normal window">
+<!ENTITY privatebrowsingpage.switch.accesskey    "S">
+<!ENTITY privatebrowsingpage.normal       "You are not currently using &privatebrowsingpage.title;.">
+<!ENTITY privatebrowsingpage.private.label       "Open a new private window">
+<!ENTITY privatebrowsingpage.private.accesskey   "O">
+<!ENTITY privatebrowsingpage.info         "To start &privatebrowsingpage.title;, you can also select File ― New ― Private Window.">
