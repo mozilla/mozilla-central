@@ -923,7 +923,7 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyE
   aFile->Remove(false);
 
   nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream),
-                                               aFile, -1, 00600);
+                                               aFile, -1, 0666);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (m_outputStream && addDummyEnvelope)
