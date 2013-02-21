@@ -4,7 +4,6 @@
    - file, You can obtain one at http://mozilla.org/MPL/2.0/.
    -->
 
-
 <?xml-stylesheet href="chrome://messenger/skin/virtualFolderListDialog.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://messenger/locale/virtualFolderListDialog.dtd">
@@ -40,14 +39,16 @@
       <template>
         <rule>
           <conditions>
-            <content uri="?container"/> 
-            <member container="?container" child="?member"/>
-            <triple subject="?member" predicate="http://home.netscape.com/NC-rdf#Virtual" object="false"/>
             <content uri="?container"/>
-            <member container="?container" child="?member" isDeferred="?isDeferred" />
-            <triple subject="?member" predicate="http://home.netscape.com/NC-rdf#IsDeferred" object="false"/>
+            <member container="?container" child="?member"/>
+            <triple subject="?member"
+                    predicate="http://home.netscape.com/NC-rdf#Virtual"
+                    object="false"/>
+            <triple subject="?member"
+                    predicate="http://home.netscape.com/NC-rdf#IsDeferred"
+                    object="false"/>
           </conditions>
-          
+
           <bindings>
             <binding subject="?member"
                     predicate="http://home.netscape.com/NC-rdf#FolderTreeName"
