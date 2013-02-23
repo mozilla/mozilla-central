@@ -69,11 +69,8 @@ EXTRA_JS_MODULES = \
 		mailServices.js \
 		msgDBCacheManager.js \
 		hostnameUtils.jsm \
+		JXON.js \
 		$(NULL)
-
-ifdef MOZ_THUNDERBIRD
-EXTRA_JS_MODULES += JXON.js
-endif
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
