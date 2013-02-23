@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1360959670000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1361213668000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -171,6 +171,8 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
+                        </emItem>
       <emItem  blockID="i258" id="helperbar@helperbar.com">
                         <versionRange  minVersion="0" maxVersion="1.0" severity="1">
                     </versionRange>
@@ -242,8 +244,10 @@
                           </targetApplication>
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
-                        </emItem>
+      <emItem  blockID="i286" id="{58bd07eb-0ee0-4df0-8121-dc9b693373df}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i13" id="{E8E88AB0-7182-11DF-904E-6045E0D72085}">
                         </emItem>
       <emItem  blockID="i83" id="flash@adobee.com">
