@@ -127,31 +127,12 @@ then
     break
   fi
 fi
+
+MOZ_BUILD_ROOT=`pwd`/mozilla
+MOZILLA_CENTRAL_PATH=$_topsrcdir/mozilla
+MOZ_PYTHON
+
 MOZ_BUILD_ROOT=`pwd`
-
-MOZ_PATH_PROGS(PYTHON, $PYTHON python2.7 python)
-if test -z "$PYTHON"; then
-    AC_MSG_ERROR([python was not found in \$PATH])
-fi
-
-AC_MSG_RESULT([Creating Python environment])
-dnl This verifies our Python version is sane and ensures the Python
-dnl virtualenv is present and up to date. It sanitizes the environment
-dnl for us, so we don't need to clean anything out.
-$PYTHON $_topsrcdir/mozilla/build/virtualenv/populate_virtualenv.py \
-    $_topsrcdir/mozilla $MOZ_BUILD_ROOT/_virtualenv || exit 1
-
-dnl Create a virtualenv where we can install local Python packages
-case "$host_os" in
-mingw*)
-    PYTHON=`cd $MOZ_BUILD_ROOT && pwd -W`/_virtualenv/Scripts/python.exe
-    ;;
-*)
-    PYTHON=$MOZ_BUILD_ROOT/_virtualenv/bin/python
-    ;;
-esac
-
-AC_SUBST(PYTHON)
 
 MOZ_DEFAULT_COMPILER
 
