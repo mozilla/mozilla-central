@@ -742,6 +742,18 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   list-style-image: url("icons/appmenu-icons.png");
 }
 
+.appmenu-edit-button:not([disabled="true"]):hover,
+.appmenu-edit-button:not([disabled="true"]):hover:active {
+  list-style-image: url("icons/appmenu-icons-active.png");
+  background-color: Highlight;
+}
+
+.appmenu-edit-button > .toolbarbutton-icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px;
+}
+
 #appmenu-cut {
   -moz-image-region: rect(0 16px 16px 0);
 }
