@@ -135,7 +135,7 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
   -moz-padding-end: 0px;
 }
 
-/* override winstripe */
+/* override windows */
 
 .toolbarbutton-icon[label]:not([label=""]),
 .toolbarbutton-icon[type="menu"] {
