@@ -61,6 +61,45 @@ radio[pane=paneAdvanced] {
   -moz-image-region: rect(0px, 256px, 32px, 224px)
 }
 
+@media (min-resolution: 2dppx) {
+  .paneSelector {
+    list-style-image: url("chrome://messenger/skin/preferences/mail-options@2x.png");
+  }
+
+  radio[pane=paneGeneral] {
+    -moz-image-region: rect(0px, 64px, 64px, 0px)
+  }
+
+  radio[pane=paneDisplay] {
+    -moz-image-region: rect(0px, 128px, 64px, 64px)
+  }
+
+  radio[pane=paneCompose] {
+    -moz-image-region: rect(0px, 192px, 64px, 128px)
+  }
+
+  radio[pane=paneChat] {
+    -moz-image-region: rect(0px, 576px, 64px, 512px);
+  }
+
+  radio[pane=paneSecurity] {
+    -moz-image-region: rect(0px, 256px, 64px, 192px);
+  }
+
+  radio[pane=paneApplications] {
+    -moz-image-region: rect(0px, 320px, 64px, 256px);
+  }
+
+  radio[pane=paneAdvanced] {
+    -moz-image-region: rect(0px, 512px, 64px, 448px)
+  }
+
+  .paneButtonIcon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 /* Attachments Pane */
 #MailPreferences[animated="true"] #handlersView {
   height: 17em;

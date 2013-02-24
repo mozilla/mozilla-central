@@ -80,3 +80,23 @@
 #GenericPhotoList[value="default"] {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic-tiny.png");
 }
+
+@media (min-resolution: 2dppx) {
+  .person-icon {
+    list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook@2x.png");
+    -moz-image-region: rect(0px 160px 32px 128px);
+  }
+
+  #photo {
+    list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic@2x.png");
+  }
+
+  #GenericPhotoList[value="default"] {
+    list-style-image: url("chrome://messenger/skin/addressbook/icons/contact-generic-tiny@2x.png");
+  }
+
+  #GenericPhotoList .menulist-icon {
+    width: 16px;
+    height: 16px;
+  }
+}

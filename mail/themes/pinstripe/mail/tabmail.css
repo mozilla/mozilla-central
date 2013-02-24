@@ -104,6 +104,30 @@
   opacity: .5;
 }
 
+@media (min-resolution: 2dppx) {
+  .tabmail-tab:hover > .tab-stack > .tab-background:not([selected=true]) {
+    background-image: url(tabs/tabHoverStart@2x.png),
+                      url(tabs/tabHoverMiddle@2x.png),
+                      url(tabs/tabHoverEnd@2x.png);
+  }
+
+  .tab-background[selected=true] {
+    background-image: url(tabs/tabActiveStart@2x.png),
+                      url(tabs/tabActiveMiddle@2x.png),
+                      url(tabs/tabActiveEnd@2x.png);
+  }
+
+  .tab-background[selected=true]:-moz-window-inactive {
+    background-image: url(tabs/tabInactiveStart@2x.png),
+                      url(tabs/tabInactiveMiddle@2x.png),
+                      url(tabs/tabInactiveEnd@2x.png);
+  }
+
+  .tabmail-tab[type="glodaSearch"] {
+    list-style-image: url("chrome://messenger/skin/icons/search-tab@2x.png");
+  }
+}
+
 .tabmail-tab:not([selected]):not(:hover) +
 .tabmail-tab:not([selected]):not(:hover)::before {
   content: '';
@@ -302,6 +326,35 @@ tabmail > tabbox > tabpanels {
   background-image: none !important;
 }
 
+@media (min-resolution: 2dppx) {
+  .tabmail-arrowscrollbox > .scrollbutton-up,
+  .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down {
+    list-style-image: url("chrome://messenger/skin/tabs/tab-arrow@2x.png");
+    -moz-image-region: rect(0, 26px, 40px, 0);
+  }
+
+  .tabmail-arrowscrollbox > .scrollbutton-up:hover,
+  .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down:hover {
+    -moz-image-region: rect(0, 52px, 40px, 26px);
+  }
+
+  .tabmail-arrowscrollbox > .scrollbutton-up:hover:active,
+  .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down:hover:active {
+    -moz-image-region: rect(0, 78px, 40px, 52px);
+  }
+
+  .tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"],
+  .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down[disabled="true"] {
+    -moz-image-region: rect(0, 26px, 40px, 0) !important;
+  }
+
+  .tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon,
+  .tabmail-arrowscrollbox > .scrollbutton-down-stack > .scrollbutton-down > .toolbarbutton-icon {
+    width: 13px;
+    height: 20px;
+  }
+}
+
 /**
  * New Tab & All Tabs Buttons
  */
@@ -367,7 +420,6 @@ tabmail > tabbox > tabpanels {
 .tabs-closebutton {
   -moz-padding-end: 4px;
   list-style-image: url("chrome://global/skin/icons/close.png") !important;
-  list-style-image: none;
   border: none;
   -moz-box-align: stretch;
   -moz-image-region: rect(0, 16px, 16px, 0);
@@ -377,8 +429,41 @@ tabmail > tabbox > tabpanels {
   background-image: none !important;
 }
 
-.tabs-closebutton:hover:active {
-  -moz-image-region: rect(0, 48px, 16px, 32px);
+@media (min-resolution: 2dppx) {
+  .tabs-alltabs-button {
+    list-style-image: url(chrome://messenger/skin/tabs/alltabs-box-bkgnd-icon@2x.png);
+    -moz-image-region: rect(0, 32px, 32px, 0);
+  }
+
+  .tabs-alltabs-button[open] {
+    -moz-image-region: rect(32px, 32px, 64px, 0);
+  }
+
+  .tabs-alltabs-button > .toolbarbutton-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tab-close-button,
+  .tabs-closebutton {
+    list-style-image: url("chrome://global/skin/icons/close@2x.png") !important;
+    -moz-image-region: rect(0, 32px, 32px, 0);
+  }
+
+  .tab-close-button:hover,
+  .tabs-closebutton:hover {
+    -moz-image-region: rect(0, 64px, 32px, 32px);
+  }
+
+  .tab-close-button:hover:active,
+  .tabs-closebutton:hover:active {
+    -moz-image-region: rect(0, 96px, 32px, 64px);
+  }
+
+  .tab-close-button > .toolbarbutton-icon,
+  .tabs-closebutton > .toolbarbutton-icon {
+    width: 16px;
+  }
 }
 
 tabpanels.plain {

@@ -30,6 +30,19 @@
   -moz-image-region: rect(18px 306px 36px 288px);
 }
 
+@media (min-resolution: 2dppx) {
+  .back {
+    width: 18px;
+    height: 18px;
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 612px 36px 576px);
+  }
+
+  .back:hover:active {
+    -moz-image-region: rect(36px 612px 72px 576px);
+  }
+}
+
 .back[disabled] {
   opacity: .5;
 }
@@ -41,6 +54,19 @@
 
 .forward:hover:active {
   -moz-image-region: rect(18px 324px 36px 306px);
+}
+
+@media (min-resolution: 2dppx) {
+  .forward {
+    width: 18px;
+    height: 18px;
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 648px 36px 612px);
+  }
+
+  .forward:hover:active {
+    -moz-image-region: rect(36px 648px 72px 612px);
+  }
 }
 
 .forward[disabled="true"] {

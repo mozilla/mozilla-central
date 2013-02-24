@@ -126,6 +126,17 @@ mailattachcount {
   -moz-image-region: rect(32px 32px 64px 0px);
 }
 
+@media (min-resolution: 2dppx) {
+  .moz-vcard-badge {
+    background-image: url("chrome://messenger/skin/addressbook/icons/addressbook-toolbar@2x.png");
+    -moz-image-region: rect(0px 64px 64px 0px);
+  }
+
+  .moz-vcard-badge:hover {
+    -moz-image-region: rect(64px 64px 128px 0px);
+  }
+}
+
 .moz-vcard-badge:focus {
   outline: none;
 }

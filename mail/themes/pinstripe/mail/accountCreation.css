@@ -52,6 +52,12 @@ window {
   background: url("chrome://messenger/skin/icons/identity.png") no-repeat;
 }
 
+@media (min-resolution: 2dppx) {
+  .secureLarry {
+    background: url("chrome://messenger/skin/icons/identity@2x.png") no-repeat;
+  }
+}
+
 .mastervbox {
   padding: 14px;
   background: #F4F4F4;

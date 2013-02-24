@@ -13,3 +13,15 @@ treechildren::-moz-tree-image(GeneratedName, MailList) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
 }
+
+@media (min-resolution: 2dppx) {
+  treechildren::-moz-tree-image(GeneratedName) {
+    list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook@2x.png");
+    -moz-image-region: rect(0px 160px 32px 128px);
+  }
+
+  treechildren::-moz-tree-image(GeneratedName, MailList) {
+    list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbook@2x.png");
+    -moz-image-region: rect(0px 64px 32px 32px);
+  }
+}

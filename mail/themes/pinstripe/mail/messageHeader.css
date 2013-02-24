@@ -405,6 +405,63 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   -moz-image-region: rect(0px 288px 18px 270px);
 }
 
+@media (min-resolution: 2dppx) {
+  .hdrReplyToSenderButton,
+  .hdrDummyReplyButton,
+  .hdrReplyButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 144px 36px 108px);
+  }
+  
+  .hdrReplyListButton,
+  .hdrFollowupButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 252px 36px 216px);
+  }
+
+  .hdrReplyAllButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 180px 36px 144px);
+  }
+
+  .hdrForwardButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 216px 36px 180px);
+  }
+
+  .hdrArchiveButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 720px 36px 684px);
+  }
+
+  .hdrJunkButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 324px 36px 288px);
+  }
+
+  .hdrTrashButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 288px 36px 252px);
+  }
+
+  .hdrTagButton {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 576px 36px 540px);
+  }
+
+  #attachmentSaveAllSingle,
+  #attachmentSaveAllMultiple {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 432px 36px 396px);
+  }
+
+  #attachmentSaveAllSingle:not([disabled="true"]):active,
+  #attachmentSaveAllMultiple:not([disabled="true"]):active {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(36px 432px 72px 396px);
+  }
+}
+
 window[inlinetoolbox] #wrapper-spring {
   display: none;
 }
@@ -665,6 +722,50 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 .emailPresence[chatStatus="away"] {
   list-style-image: url("chrome://messenger/skin/icons/status-small.png");
   -moz-image-region: rect(0px 40px 10px 30px);
+}
+
+@media (min-resolution: 2dppx) {
+  .emailStar {
+    width: 16px;
+    height: 16px;
+    list-style-image: url("chrome://messenger/skin/starIcons@2x.png");
+    -moz-image-region: rect(0px 32px 32px 0px);
+  }
+
+  .emailStar:hover {
+    -moz-image-region: rect(0px 64px 32px 32px);
+  }
+
+  .emailStar:hover:active {
+    -moz-image-region: rect(0px 96px 32px 64px);
+  }
+
+  .emailStar[hascard="true"] {
+    -moz-image-region: rect(32px 32px 64px 0px);
+  }
+
+  .emailStar:hover[hascard="true"] {
+    -moz-image-region: rect(32px 64px 64px 32px);
+  }
+
+  .emailStar:hover:active[hascard="true"] {
+    -moz-image-region: rect(32px 96px 64px 64px);
+  }
+
+  .emailPresence {
+    width: 10px;
+    height: 10px;
+  }
+
+  .emailPresence[chatStatus="available"] {
+    list-style-image: url("chrome://messenger/skin/icons/status-small@2x.png");
+    -moz-image-region: rect(0px 20px 20px 0px);
+  }
+
+  .emailPresence[chatStatus="away"] {
+    list-style-image: url("chrome://messenger/skin/icons/status-small@2x.png");
+    -moz-image-region: rect(0px 80px 20px 60px);
+  }
 }
 
 .emailPopup {

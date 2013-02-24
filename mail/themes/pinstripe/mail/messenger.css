@@ -60,6 +60,21 @@ toolbar[printpreview="true"] {
   list-style-image: url("chrome://messenger/skin/icons/online.png");
 }
 
+@media (min-resolution: 2dppx) {
+  #offline-status[offline="true"] {
+    list-style-image: url("chrome://messenger/skin/icons/offline@2x.png");
+  }
+
+  #offline-status {
+    list-style-image: url("chrome://messenger/skin/icons/online@2x.png");
+  }
+
+  #offline-status > .statusbarpanel-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 /* ::::: directional button icons ::::: */
 
 .up {

@@ -12,12 +12,26 @@
 }
 
 #qfb-show-filter-bar:not([disabled="true"]):active {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(18px 378px 36px 360px);
 }
 
 #qfb-show-filter-bar[checked="true"] {
   -moz-image-region: rect(36px 378px 54px 360px);
+}
+
+@media (min-resolution: 2dppx) {
+  #qfb-show-filter-bar {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 756px 36px 720px);
+  }
+
+  #qfb-show-filter-bar:not([disabled="true"]):active {
+    -moz-image-region: rect(36px 756px 72px 720px);
+  }
+
+  #qfb-show-filter-bar[checked="true"] {
+    -moz-image-region: rect(72px 756px 108px 720px);
+  }
 }
 
 /* :::: Filter Bar :::: */
@@ -82,9 +96,11 @@
   text-shadow: 0 1px rgba(0, 0, 0, .4);
 }
 
-#quick-filter-bar toolbarbutton > .toolbarbutton-icon {
+#quick-filter-bar-main-bar toolbarbutton > .toolbarbutton-icon {
   padding: 0;
   margin: 0;
+  width: 14px;
+  height: 14px;
 }
 
 #quick-filter-bar toolbarbutton > .toolbarbutton-text {
@@ -177,6 +193,88 @@
 
 #qfb-attachment[checked] {
   -moz-image-region: rect(28px 84px 42px 70px);
+}
+
+@media (min-resolution: 2dppx) {
+  #qfb-sticky {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 28px 28px 0px);
+  }
+
+  #qfb-sticky:active {
+    border-radius: 2px;
+    -moz-image-region: rect(28px 28px 56px 0px);
+  }
+
+  #qfb-sticky[checked] {
+    border-radius: 2px;
+    -moz-image-region: rect(56px 28px 84px 0px);
+  }
+
+  #qfb-unread {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 56px 28px 28px);
+  }
+
+  #qfb-unread:active {
+    -moz-image-region: rect(28px 56px 56px 28px);
+  }
+
+  #qfb-unread[checked] {
+    -moz-image-region: rect(56px 56px 84px 28px);
+  }
+
+  #qfb-starred {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 84px 28px 56px);
+  }
+
+  #qfb-starred:active {
+    -moz-image-region: rect(28px 84px 56px 56px);
+  }
+
+  #qfb-starred[checked] {
+    -moz-image-region: rect(56px 84px 84px 56px);
+  }
+
+  #qfb-inaddrbook {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 112px 28px 84px);
+  }
+
+  #qfb-inaddrbook:active {
+    -moz-image-region: rect(28px 112px 56px 84px);
+  }
+
+  #qfb-inaddrbook[checked] {
+    -moz-image-region: rect(56px 112px 84px 84px);
+  }
+
+  #qfb-tags {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 140px 28px 112px);
+  }
+
+  #qfb-tags:active {
+    -moz-image-region: rect(28px 140px 56px 112px);
+  }
+
+  #qfb-tags[checked] {
+    -moz-image-region: rect(56px 140px 84px 112px);
+  }
+
+  #qfb-attachment {
+    list-style-image: url("chrome://messenger/skin/icons/QFB-toolbar@2x.png");
+    -moz-image-region: rect(0px 168px 28px 140px);
+  }
+
+  #qfb-attachment:active {
+    -moz-image-region: rect(28px 168px 56px 140px);
+  }
+
+  #qfb-attachment[checked] {
+    -moz-image-region: rect(56px 168px 84px 140px);
+  }
 }
 
 #quick-filter-bar[filterActive="matches"] #qfb-results-label {

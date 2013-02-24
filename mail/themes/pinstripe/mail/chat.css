@@ -89,8 +89,18 @@
 }
 
 #button-add-buddy:not([disabled="true"]):active {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
   -moz-image-region: rect(18px 18px 36px 0px);
+}
+
+@media (min-resolution: 2dppx) {
+  #button-add-buddy {
+    list-style-image: url("chrome://messenger/skin/icons/chat-toolbar@2x.png");
+    -moz-image-region: rect(0px 36px 36px 0px);
+  }
+
+  #button-add-buddy:not([disabled="true"]):active {
+    -moz-image-region: rect(36px 36px 72px 0px);
+  }
 }
 
 #button-join-chat {
@@ -99,8 +109,18 @@
 }
 
 #button-join-chat:not([disabled="true"]):active {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
   -moz-image-region: rect(18px 36px 36px 18px);
+}
+
+@media (min-resolution: 2dppx) {
+  #button-join-chat {
+    list-style-image: url("chrome://messenger/skin/icons/chat-toolbar@2x.png");
+    -moz-image-region: rect(0px 72px 36px 36px);
+  }
+
+  #button-join-chat:not([disabled="true"]):active {
+    -moz-image-region: rect(36px 72px 72px 36px);
+  }
 }
 
 #button-chat-accounts {
@@ -109,8 +129,18 @@
 }
 
 #button-chat-accounts:not([disabled="true"]):active {
-  list-style-image: url("chrome://messenger/skin/icons/chat-toolbar.png");
   -moz-image-region: rect(18px 54px 36px 36px);
+}
+
+@media (min-resolution: 2dppx) {
+  #button-chat-accounts {
+    list-style-image: url("chrome://messenger/skin/icons/chat-toolbar@2x.png");
+    -moz-image-region: rect(0px 108px 36px 72px);
+  }
+
+  #button-chat-accounts:not([disabled="true"]):active {
+    -moz-image-region: rect(36px 108px 72px 72px);
+  }
 }
 
 #statusTypeIcon[status="available"],
@@ -152,6 +182,53 @@ richlistitem[state="disconnected"] .accountStateIcon {
   -moz-image-region: rect(0px 64px 16px 48px);
 }
 
+@media (min-resolution: 2dppx) {
+  #statusTypeIcon[status="available"],
+  #statusTypeAvailable,
+  .statusTypeIcon[status="available"],
+  #imStatusAvailable,
+  #appmenu_imStatusAvailable,
+  richlistitem[state="connected"] .accountStateIcon {
+    list-style-image: url("chrome://messenger/skin/icons/status@2x.png");
+    -moz-image-region: rect(0px 32px 32px 0px);
+  }
+
+  #statusTypeIcon[status="idle"],
+  .statusTypeIcon[status="idle"] {
+    list-style-image: url("chrome://messenger/skin/icons/status@2x.png");
+    -moz-image-region: rect(0px 64px 32px 32px);
+  }
+
+  #statusTypeIcon[status="offline"],
+  #statusTypeIcon[status="invisible"],
+  #statusTypeOffline,
+  .statusTypeIcon[status="offline"],
+  .statusTypeIcon[status="invisible"],
+  #imStatusOffline,
+  #appmenu_imStatusOffline,
+  richlistitem[state="disconnected"] .accountStateIcon {
+    list-style-image: url("chrome://messenger/skin/icons/status@2x.png");
+    -moz-image-region: rect(0px 96px 32px 64px);
+  }
+
+  #statusTypeIcon[status="unavailable"],
+  #statusTypeIcon[status="away"],
+  #statusTypeUnavailable,
+  .statusTypeIcon[status="unavailable"],
+  .statusTypeIcon[status="away"],
+  #imStatusUnavailable,
+  #appmenu_imStatusUnavailable {
+    list-style-image: url("chrome://messenger/skin/icons/status@2x.png");
+    -moz-image-region: rect(0px 128px 32px 96px);
+  }
+
+  .prplIcon,
+  #statusTypeIcon .button-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 :-moz-any(imconv, imcontact, imgroup)[selected] {
   background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
   color: HighlightText;
@@ -188,8 +265,36 @@ richlistitem[state="disconnected"] .accountStateIcon {
   margin-bottom: 18px;
 }
 
+@media (min-resolution: 2dppx) {
+  .closeConversationButton {
+    list-style-image: url("chrome://global/skin/icons/close@2x.png");
+    -moz-image-region: rect(0, 32px, 32px, 0);
+  }
+
+  .closeConversationButton:hover {
+    -moz-image-region: rect(0, 64px, 32px, 32px);
+  }
+
+  .closeConversationButton:hover:active {
+    -moz-image-region: rect(0, 96px, 32px, 64px);
+  }
+
+  .closeConversationButton > .button-image-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .tabmail-tab[type="chat"],
 .alltabs-item[type="chat"] {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(1px, 395px, 17px, 379px);
+}
+
+@media (min-resolution: 2dppx) {
+  .tabmail-tab[type="chat"],
+  .alltabs-item[type="chat"] {
+    list-style-image: url("chrome://messenger/skin/icons/mail-toolbar@2x.png");
+    -moz-image-region: rect(0px 792px 36px 756px);
+  }
 }

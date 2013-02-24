@@ -284,22 +284,6 @@ treechildren::-moz-tree-image(news, threadCol, container, hasUnread, ignore) {
   list-style-image: url("chrome://messenger/skin/icons/thread-new-closed-kill.png");
 }
 
-treechildren::-moz-tree-image(news, threadCol, container, hasUnread, watch, open) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-new-open-eye.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, container, hasUnread, ignore, open) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-new-open-kill.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, container, watch, open) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-open-eye.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, container, ignore, open) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-open-kill.png");
-}
-
 #sizeCol,
 #unreadCol,
 #totalCol {

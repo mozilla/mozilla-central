@@ -125,3 +125,60 @@ spacer {
 #OfflineSettings label {
   background: url("chrome://messenger/skin/accountcentral/offline.png")  no-repeat !important;
 }
+
+@media (min-resolution: 2dppx) {
+  #ReadMessages label {
+    background: url("chrome://messenger/skin/accountcentral/mailbox@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #ComposeMessage label {
+    background: url("chrome://messenger/skin/accountcentral/writemail@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #JunkSettingsMail label {
+    background: url("chrome://messenger/skin/accountcentral/junk@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #SubscribeNewsgroups label {
+    background: url("chrome://messenger/skin/accountcentral/manage-rss@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #AccountSettings label {
+    background: url("chrome://messenger/skin/accountcentral/accountsettings@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #CreateAccount label {
+    background: url("chrome://messenger/skin/accountcentral/newaccount@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #SearchMessages label {
+    background: url("chrome://messenger/skin/accountcentral/search-messages@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #CreateFilters label {
+    background: url("chrome://messenger/skin/accountcentral/mailbox@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #SubscribeImapFolders label {
+    background: url("chrome://messenger/skin/accountcentral/folder@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #SubscribeRSS label {
+    background: url("chrome://messenger/skin/accountcentral/manage-rss@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+
+  #OfflineSettings label {
+    background: url("chrome://messenger/skin/accountcentral/offline@2x.png")  no-repeat !important;
+    background-size: 32px 32px !important;
+  }
+}
