@@ -2578,7 +2578,7 @@ function MessageGetNumSelectedAttachments()
 
 function AttachPage()
 {
-  var params = { action: "4", url: null };
+  var params = { action: "5", url: null };
   window.openDialog("chrome://communicator/content/openLocation.xul",
                     "_blank", "chrome,close,titlebar,modal", params);
   if (params.url)

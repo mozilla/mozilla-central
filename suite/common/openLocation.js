@@ -22,7 +22,7 @@ function onLoad()
   window.arguments[0].action = "-1";
 
   switch (gAction) {
-    case "4": // attach web page
+    case "5": // attach web page
       document.title = gBundle.getString("attachTitle");
       document.getElementById("enterLabel").value = gBundle.getString("attachEnterLabel");
       document.getElementById("openWhereBox").setAttribute("hidden", true);
@@ -71,10 +71,10 @@ function accept()
   var params = window.arguments[0];
   params.url = gInput.value;
   params.action = gOpenAppList.value;
-  if (params.action == "4")
+  if (gAction == "4" || params.action == "4")
     return; // private, don't set any preferences
 
-  if (gAction != "4") { // open web page
+  if (gAction != "5") { // open web page
     // If there were no browser windows open and not set to open in composer
     // then set to open in a new window.
     if (gAction == "-1" && params.action != "2")
@@ -95,7 +95,7 @@ function onChooseFile()
   try {
     var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
     fp.init(window, gBundle.getString("chooseFileDialogTitle"), nsIFilePicker.modeOpen);
-    if (window.arguments[0].action != "4" && gOpenAppList.value == "2") {
+    if (window.arguments[0].action != "5" && gOpenAppList.value == "2") {
       // When loading into Composer, direct user to prefer HTML files and text
       // files, so we call separately to control the order of the filter list.
       fp.appendFilters(nsIFilePicker.filterHTML | nsIFilePicker.filterText);
