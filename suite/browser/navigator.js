@@ -484,15 +484,14 @@ function Startup()
              .getInterface(Components.interfaces.nsIXULWindow);
   xw.XULBrowserWindow = window.XULBrowserWindow = new nsBrowserStatusHandler();
 
-  if (Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
-    XPCOMUtils.defineLazyGetter(window, "PopupNotifications", function() {
-      var tmp = {};
-      Components.utils.import("resource://gre/modules/PopupNotifications.jsm", tmp);
-      return XULBrowserWindow.popupNotifications = new tmp.PopupNotifications(
-          getBrowser(),
-          document.getElementById("notification-popup"),
-          document.getElementById("notification-popup-box"));
-    });
+  if (!window.content.opener &&
+      Services.prefs.getBoolPref("browser.doorhanger.enabled")) {
+    var tmp = {};
+    Components.utils.import("resource://gre/modules/PopupNotifications.jsm", tmp);
+    window.PopupNotifications = new tmp.PopupNotifications(
+        getBrowser(),
+        document.getElementById("notification-popup"),
+        document.getElementById("notification-popup-box"));
     // Setting the popup notification attribute causes the XBL to bind
     // and call the constructor again, so we have to destroy it first.
     gBrowser.getNotificationBox().destroy();

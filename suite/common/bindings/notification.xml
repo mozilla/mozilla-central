@@ -80,6 +80,22 @@
         </getter>
       </property>
 
+      <method name="onDocumentChange">
+        <body>
+          <![CDATA[
+            this.missingPlugins = null;
+            this.crashNotified = false;
+            this.clickToPlayPromptShown = false;
+            this.clickToPlayPluginsActivated = false;
+            if (this.popupCount) {
+              this.popupCount = 0;
+              this.notifyPopupCountChanged();
+            }
+            this.removeTransientNotifications();
+          ]]>
+        </body>
+      </method>
+
       <method name="addProgressListener">
         <body>
           <![CDATA[
@@ -153,17 +169,8 @@
           <![CDATA[
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
-                !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
-              this.missingPlugins = null;
-              this.crashNotified = false;
-              this.clickToPlayPromptShown = false;
-              this.clickToPlayPluginsActivated = false;
-              if (this.popupCount) {
-                this.popupCount = 0;
-                this.notifyPopupCountChanged();
-              }
-              this.removeTransientNotifications();
-            }
+                !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT))
+              this.onDocumentChange();
           ]]>
         </body>
       </method>
@@ -2199,6 +2206,23 @@
   <binding id="popup-notification"
            extends="chrome://communicator/content/bindings/notification.xml#browser-notificationbox">
     <implementation>
+      <method name="onLocationChange">
+        <parameter name="aWebProgress" />
+        <parameter name="aRequest" />
+        <parameter name="aLocation" />
+        <parameter name="aFlags" />
+        <body>
+          <![CDATA[
+            const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
+            if (aWebProgress.DOMWindow == this.activeBrowser.contentWindow &&
+                !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
+              this.onDocumentChange();
+              PopupNotifications.locationChange(this.activeBrowser);
+            }
+          ]]>
+        </body>
+      </method>
+
       <method name="removeNotifications">
         <parameter name="aNotifications"/>
         <body>

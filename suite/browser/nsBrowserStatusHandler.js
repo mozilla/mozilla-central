@@ -17,7 +17,6 @@ nsBrowserStatusHandler.prototype =
   jsDefaultStatus : "",
   overLink : "",
   feeds : [],
-  popupNotifications : null,
 
   QueryInterface : function(aIID)
   {
@@ -332,12 +331,6 @@ nsBrowserStatusHandler.prototype =
         this.urlBar.value = userTypedValue;
         SetPageProxyState("invalid", null);
       }
-
-      // Only dismiss notifications if this onLocationChange represents an
-      // actual load (or an error page).
-      if (this.popupNotifications &&
-          !(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT))
-        this.popupNotifications.locationChange(browser);
 
       PlacesStarButton.updateState();
 
