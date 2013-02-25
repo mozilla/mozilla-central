@@ -104,7 +104,7 @@ nsMessengerUnixIntegration::nsMessengerUnixIntegration()
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mAlertInProgress = false;
   mLastMRUTimes.Init();
-  NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
+  mFoldersWithNewMail = do_CreateInstance(NS_ARRAY_CONTRACTID);
 }
 
 NS_IMPL_ISUPPORTS4(nsMessengerUnixIntegration, nsIFolderListener, nsIObserver,
@@ -401,7 +401,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
     nsCOMPtr<nsISupportsInterfacePointer> ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     ifptr->SetData(mFoldersWithNewMail);
-    ifptr->SetDataIID(&NS_GET_IID(nsISupportsArray));
+    ifptr->SetDataIID(&NS_GET_IID(nsIArray));
     argsArray->AppendElement(ifptr, false);
 
     // pass in the observer
@@ -464,8 +464,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
   GetFirstFolderWithNewMail(folderUri);
 
   uint32_t count = 0;
-  if (NS_FAILED(mFoldersWithNewMail->Count(&count)))
-    return;
+  NS_ENSURE_SUCCESS_VOID(mFoldersWithNewMail->GetLength(&count));
 
   nsCOMPtr<nsIWeakReference> weakReference;
   nsCOMPtr<nsIMsgFolder> folder = nullptr;
@@ -566,20 +565,19 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
   } // if we got a folder
 }
 
-// get the first top level folder which we know has new mail, then enumerate over all the subfolders
-// looking for the first real folder with new mail. Return the folderURI for that folder.
+// Get the first top level folder which we know has new mail, then enumerate over
+// all the subfolders looking for the first real folder with new mail.
+// Return the folderURI for that folder.
 nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFolderURI)
 {
-  nsresult rv;
   NS_ENSURE_TRUE(mFoldersWithNewMail, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIWeakReference> weakReference;
 
   uint32_t count = 0;
-  mFoldersWithNewMail->Count(&count);
-
-  if (!count)  // kick out if we don't have any folders with new mail
+  nsresult rv = mFoldersWithNewMail->GetLength(&count);
+  if (NS_FAILED(rv) || !count)  // kick out if we don't have any folders with new mail
     return NS_OK;
 
   uint32_t i;
@@ -689,7 +687,9 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {
     nsCOMPtr<nsIWeakReference> weakFolder = do_GetWeakReference(aItem);
-    int32_t indexInNewArray = mFoldersWithNewMail->IndexOf(weakFolder);
+    uint32_t indexInNewArray;
+    nsresult rv = mFoldersWithNewMail->IndexOf(0, weakFolder, &indexInNewArray);
+    bool folderFound = NS_SUCCEEDED(rv);
 
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail)
     {
@@ -703,14 +703,14 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
       if (!performingBiff)
         return NS_OK; // kick out right now...
 
-      if (indexInNewArray == -1)
-        mFoldersWithNewMail->AppendElement(weakFolder);
+      if (!folderFound)
+        mFoldersWithNewMail->AppendElement(weakFolder, false);
       // now regenerate the tooltip
       FillToolTipInfo();
     }
     else if (aNewValue == nsIMsgFolder::nsMsgBiffState_NoMail)
     {
-      if (indexInNewArray != -1) {
+      if (folderFound) {
         mFoldersWithNewMail->RemoveElementAt(indexInNewArray);
       }
     }

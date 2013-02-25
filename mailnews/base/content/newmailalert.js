@@ -20,8 +20,9 @@ var gOrigin = 0; // Default value: alert from bottom right.
 
 function prefillAlertInfo()
 {
+  const Ci = Components.interfaces;
   // unwrap all the args....
-  // arguments[0] --> array of folders with new mail
+  // arguments[0] --> nsIArray of folders with new mail
   // arguments[1] --> the observer to call back with notifications about the alert
   // arguments[2] --> user initiated boolean. true if the user initiated opening the alert
   //                 (which means skip the fade effect and don't auto close the alert)
@@ -34,12 +35,10 @@ function prefillAlertInfo()
   // For now just grab the first folder which should be a root folder
   // for the account that has new mail. If we can't find a folder, just
   // return to avoid the exception and empty dialog in upper left-hand corner.
-  var rootFolder;
-  if (!foldersWithNewMail || foldersWithNewMail.Count() < 1)
+  if (!foldersWithNewMail || foldersWithNewMail.length < 1)
     return;
-  rootFolder = foldersWithNewMail.GetElementAt(0)
-                                 .QueryInterface(Components.interfaces.nsIWeakReference)
-                                 .QueryReferent(Components.interfaces.nsIMsgFolder);
+  let rootFolder = foldersWithNewMail.queryElementAt(0, Ci.nsIWeakReference)
+                                     .QueryReferent(Ci.nsIMsgFolder);
 
   // Generate an account label string based on the root folder.
   var label = document.getElementById('alertTitle');
@@ -48,7 +47,8 @@ function prefillAlertInfo()
                                          : "newMailNotification_messages";
   label.value = document.getElementById('bundle_messenger')
                         .getFormattedString(message,
-                                            [rootFolder.prettiestName, totalNumNewMessages]);
+                                            [rootFolder.prettiestName,
+                                             totalNumNewMessages]);
 
   // This is really the root folder and we have to walk through the list to
   // find the real folder that has new mail in it...:(
@@ -57,8 +57,7 @@ function prefillAlertInfo()
   folderSummaryInfoEl.mMaxMsgHdrsInPopup = gNumNewMsgsToShowInAlert;
   for (let folder in fixIterator(allFolders, Components.interfaces.nsIMsgFolder))
   {
-    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
-    if (folder.hasNewMessages && !(folder.flags & nsMsgFolderFlags.Virtual))
+    if (folder.hasNewMessages && !folder.getFlag(Ci.nsMsgFolderFlags.Virtual))
     {
       var asyncFetch = {};
       folderSummaryInfoEl.parseFolder(folder, new urlListener(folder), asyncFetch);

@@ -17,7 +17,7 @@
 #include "nsITimer.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsIObserver.h"
 
 typedef enum tagMOZ_QUERY_USER_NOTIFICATION_STATE {
@@ -73,7 +73,7 @@ private:
   nsresult GetFirstFolderWithNewMail(nsACString& aFolderURI);
 
   nsresult GetStringBundle(nsIStringBundle **aBundle);
-  nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
+  nsCOMPtr<nsIMutableArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   uint32_t mCurrentBiffState;
 

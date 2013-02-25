@@ -9,7 +9,7 @@
 #include "nsIMessengerOSIntegration.h"
 #include "nsIFolderListener.h"
 #include "nsIUrlListener.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsIStringBundle.h"
 #include "nsIObserver.h"
 #include "nsIAtom.h"
@@ -50,7 +50,7 @@ private:
   nsresult ShowNewAlertNotification(bool aUserInitiated);
   nsresult PutMRUTimestampForFolder(nsIMsgFolder *aFolder, uint32_t aLastMRUTime);
 
-  nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
+  nsCOMPtr<nsIMutableArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
   bool mAlertInProgress;
