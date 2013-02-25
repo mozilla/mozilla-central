@@ -314,11 +314,10 @@ var ProgressDlgController = {
         return gDownload.state == nsIDownloadManager.DOWNLOAD_PAUSED &&
                gDownload.resumable;
       case "cmd_open":
-      case "cmd_show":
-        // we can't reveal until the download is complete, because we have not given
-        // the file its final name until them.
         return gDownload.state == nsIDownloadManager.DOWNLOAD_FINISHED &&
                gDownload.targetFile.exists();
+      case "cmd_show":
+        return gDownload.targetFile.exists();
       case "cmd_cancel":
         return gDlActive;
       case "cmd_retry":

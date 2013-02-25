@@ -470,11 +470,11 @@ var dlTreeController = {
         }
         return true;
       case "cmd_open":
-      case "cmd_show":
-        // we can't reveal until the download is complete, because we have not given
-        // the file its final name until them.
         return selectionCount == 1 &&
                selItemData[0].state == nsIDownloadManager.DOWNLOAD_FINISHED &&
+               GetFileFromString(selItemData[0].file).exists();
+      case "cmd_show":
+        return selectionCount == 1 &&
                GetFileFromString(selItemData[0].file).exists();
       case "cmd_cancel":
         if (!selectionCount)
