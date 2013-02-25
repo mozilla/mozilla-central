@@ -37,7 +37,7 @@ function init(aEvent)
   if (/a\d+(pre)?$/.test(version)) {
     let buildID = Services.appinfo.appBuildID;
     let buildDate = buildID.slice(0,4) + "-" + buildID.slice(4,6) + "-" + buildID.slice(6,8);
-    document.getElementById("version").value += " (" + buildDate + ")";
+    document.getElementById("version").textContent += " (" + buildDate + ")";
   }
 
 #ifdef MOZ_UPDATER
