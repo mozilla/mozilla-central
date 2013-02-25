@@ -38,9 +38,7 @@ MOZ_SERVICES_SYNC=1
 MOZ_URL_CLASSIFIER=1
 # Disable WebRTC as we don't use it currently and to work around bug 837618
 # for Mac
-if test "$OS_ARCH" == "Darwin"; then
-  MOZ_WEBRTC=
-fi
+MOZ_WEBRTC=
 
 MOZ_APP_VERSION_TXT=${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt
 MOZ_APP_VERSION=`cat $MOZ_APP_VERSION_TXT`
