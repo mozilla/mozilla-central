@@ -588,6 +588,211 @@
 <p>[<a href="#using_the_password_manager">Return to beginning of
   section</a>]</p>
 
+<h1 id="clearing_private_data">Clearing Private Data</h1>
+
+<p>While browsing the web, various items of potentially private information 
+  may be gathered and stored by &brandShortName;. This section describes the
+  types of such private data and options to remove them either manually by
+  request or automatically when shutting down &brandShortName;.</p>
+
+<div class="contentsBox">In this section:
+  <ul>
+    <li><a href="#types_of_private_data">Types of Private Data</a></li>
+    <li><a href="#private_data_prefs">Private Data Preferences</a></li>
+    <li><a href="#clear_private_data_now">Clear Private Data Now</a></li>
+  </ul>
+</div>
+
+<h2 id="types_of_private_data">Types of Private Data</h2>
+
+<p>Several types of information are gathered and kept by &brandShortName; while
+  you are browsing websites. Some of these data are necessary for those sites to
+  function properly or more efficiently, others are for your convenience.</p>
+
+<p>Privacy implications vary from type to type. For example, browsing history
+  and cache contents provide a snapshot of your recent browsing activity which
+  is local to your computer; cookies or offline web content may be used by a
+  website to track a user directly across visits (e.g., for statistical
+  purposes or for targeted advertisements).</p>
+
+<p>The following private information may be stored locally by
+  &brandShortName;:</p>
+
+<table class="defaultTable">
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Explanation</th>
+    </tr>
+  </thead>
+  <tbody class="tbody-default">
+    <tr>
+      <td>Browsing History</td>
+      <td>If enabled in the
+        <a href="cs_nav_prefs_navigator.xhtml#history">History preferences</a>,
+        a history of any website pages you have <em>visited</em> is kept and
+        may be suggested to complete website addresses in the location bar.</td>
+    </tr>
+    <tr>
+      <td>Location Bar History</td>
+      <td>This is a history of web addresses which were <em>entered</em>
+        manually or copy-pasted into the location bar of the browser. This
+        list is available in the location bar menu.</td>
+    </tr>
+    <tr>
+      <td>Download History</td>
+      <td>Depending on the options selected in the
+        <a href="cs_nav_prefs_navigator.xhtml#downloads">Downloads
+        preferences</a>, a history of <em>files downloaded</em> from
+        websites is maintained in the Download Manager.</td>
+    </tr>
+    <tr>
+      <td>Saved Form and Search History</td>
+      <td>If enabled in the
+        <a href="cs_nav_prefs_navigator.xhtml#history">History preferences</a>,
+        text entered into <em>elements of forms</em> (e.g., user names, but not
+        passwords) will be stored for the specified number of days; matches are
+        suggested in a list when you revisit that page. If you put the search
+        box onto your toolbar, the history of <em>search terms</em> will be
+        stored as well.</td>
+    </tr>
+    <tr>
+      <td>Cache</td>
+      <td>The cache is a <em>short-term store</em> for web pages and other
+        data (like e-mail attachments for IMAP accounts or remote images in
+        messages) to avoid having these items being requested again from the
+        server if they were just recently accessed. The cache on your disk
+        may contain data up to the limit specified in the
+        <a href="cs_nav_prefs_advanced.xhtml#cache">Cache preferences</a>.</td>
+    </tr>
+    <tr>
+      <td>Cookies</td>
+      <td>Cookies are <em>small pieces of information</em> that websites use to
+        keep track of users and sessions, or to store website preferences. Use
+        the <a href="using_priv_help.xhtml#cookies">Cookies preferences</a> to
+        specify to what extent cookies are permitted and for how long they are
+        kept.</td>
+    </tr>
+    <tr>
+      <td>Offline Website Data</td>
+      <td>Websites may be permitted to store their pages&apos; contents and
+        related data locally so that they are available for use <em>without
+        a network connection</em>. See the
+        <a href="cs_nav_prefs_advanced.xhtml#offline_apps">Offline Apps
+        preferences</a> for options to control this behavior and to inspect
+        the contents of stored offline website data.</td>
+    </tr>
+    <tr>
+      <td>Saved Passwords</td>
+      <td>If enabled in the
+        <a href="passwords_help.xhtml#passwords">Passwords preferences</a>,
+        &brandShortName; keeps <em>entered passwords</em> for later use, thus
+        you don&apos;t have to retype them every time you visit a website.</td>
+    </tr>
+    <tr>
+      <td>Authenticated Sessions</td>
+      <td>Websites may require <em>authentication</em> (username and password,
+        asked for with a pop-up dialog) and can keep track of such by
+        authenticated sessions. A site will ask you for your credentials
+        again when you proceed to the next page after this information is
+        cleared.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>[<a href="#clearing_private_data">Return to beginning of section</a>]</p>
+
+<h2 id="private_data_prefs">Privacy &amp; Security Preferences
+  - Private Data</h2>
+
+<p>This section describes how to use the Private Data preferences panel to
+  determine when and which type of private data should be deleted. If
+  you&apos;re not already viewing it, follow these steps:</p>
+
+<ol>
+  <li>Open the <span class="mac">&brandShortName;</span>
+    <span class="noMac">Edit</span> menu and choose Preferences.</li>
+  <li>Under the Privacy &amp; Security category, click Private Data. (If no
+    subcategories are visible, double-click Privacy &amp; Security to expand
+    the list.)</li>
+</ol>
+
+<p>The <strong>Clear Private Data</strong> section provides the following
+  options:</p>
+
+<ul>
+  <li><strong>Always clear my private data when I close
+    &brandShortName;</strong>: Check this option to always initiate clearing
+    of the selected private data when the application is shut down.</li>
+  <li><strong>Ask me before clearing private data</strong>: Check this option
+    for &brandShortName; to prompt you with a dialog box before clearing the
+    selected private data. The dialog box also allows you to change the
+    selection, rather than clearing them without any interaction.</li>
+  <li><strong>When I ask &brandShortName; to clear my private data, it should
+    erase</strong>: For each <a href="#types_of_private_data">type of private
+    data</a>, a separate option is provided whether or not to clear any
+    stored items of this specific type. Check the respective box for each
+    item to be deleted by default when clearing is requested by you or
+    initiated on shutdown.</li>
+  <li><strong>Clear Now</strong>: Click this button to initiate clearing of
+    private data immediately, depending on the preferences selected in
+    this panel:
+    <ul>
+      <li>When the <q>Ask me before clearing private data</q> option is checked,
+        &brandShortName; opens a dialog box where you can confirm and change
+        any items to be cleared.</li>
+      <li>When <q>Ask me before clearing private data</q> is <em>not</em>
+        checked, all types selected to be cleared by default will be deleted
+        immediately without the dialog box being shown.</li>
+    </ul>
+  </li>
+</ul>
+
+<!-- link up "Data Manager" below once bug 599097 has been taken care of -->
+
+<p><strong>Note</strong>: Also consider more selective alternatives to delete
+  private data. For example, the individual preference panels for each type may
+  provide additional options, and the Data Manager allows to clear private data
+  by type and the specific domain of a website. Rather than clearing all cookies
+  when shutting down &brandShortName;, you could specify to allow cookies for
+  sessions only, thus giving you the opportunity to establish exceptions for
+  selected websites for which you want to retain cookies.</p>
+
+<p>[<a href="#clearing_private_data">Return to beginning of section</a>]</p>
+
+<h2 id="clear_private_data_now">Clear Private Data Now</h2>
+
+<p>Private data can be cleared at any time, either from the
+  <a href="#private_data_prefs">Private Data preferences</a> by clicking
+  the Clear Now button, or by selecting Clear Private Data from the Tools
+  menu of a browser window. This initiates one of the following actions:</p>
+
+<ul>
+  <li>When the <q>Ask me before clearing private data</q> option is checked
+    in the <a href="#private_data_prefs">Private Data preference panel</a>,
+    &brandShortName; opens a dialog window where you can confirm and change
+    the <a href="#types_of_private_data">types of private data</a> to be
+    cleared as follows:
+    <ul>
+      <li>The defaults for the individual types are determined by the
+        <a href="#private_data_prefs">Private Data preferences</a>.
+        Note that individual boxes may be disabled if no items of that
+        type are available for deletion.</li>
+      <li>Check or uncheck boxes as desired if you want to clear a different
+        set of private data.</li>
+      <li>Click <q>Clear Private Data Now</q> to clear the selected items,
+        or Cancel to quit the dialog.</li>
+    </ul>
+  </li>
+  <li>When <q>Ask me before clearing private data</q> is <em>not</em> checked,
+    all types selected in the <a href="#private_data_prefs">Private Data
+    preferences</a> to be cleared by default will be deleted immediately
+    without the dialog box being shown.</li>
+</ul>
+
+
+<p>[<a href="#clearing_private_data">Return to beginning of section</a>]</p>
+
 <h1 id="encrypting_stored_sensitive_information">Encrypting Stored Sensitive
   Information</h1>
 

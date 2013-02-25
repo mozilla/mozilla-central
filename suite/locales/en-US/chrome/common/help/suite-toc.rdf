@@ -830,6 +830,7 @@
         <rdf:li><rdf:Description ID="privacy-doc" nc:name="Privacy on the Internet" nc:link="privacy_help.xhtml#privacy_on_the_internet"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-cookies" nc:name="Using the Cookie Manager" nc:link="using_priv_help.xhtml#using_the_cookie_manager"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-password" nc:name="Using the Password Manager" nc:link="using_priv_help.xhtml#using_the_password_manager"/> </rdf:li>
+        <rdf:li><rdf:Description ID="using-priv-help-private-data" nc:name="Clearing Private Data" nc:link="using_priv_help.xhtml#clearing_private_data"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-priv-help-encrypt" nc:name="Encrypting Stored Sensitive Information" nc:link="using_priv_help.xhtml#encrypting_stored_sensitive_information"/> </rdf:li>
         <rdf:li><rdf:Description ID="images-help-managing" nc:name="Managing Images" nc:link="using_priv_help.xhtml#managing_images"/> </rdf:li>
         <rdf:li><rdf:Description ID="pop_up_blocking" nc:name="Controlling Popups" nc:link="cs_priv_prefs_popup.xhtml"/> </rdf:li>
@@ -893,6 +894,16 @@
         <rdf:li><rdf:Description ID="master-prefs-timeout" nc:name="Master Password Timeout" nc:link="passwords_help.xhtml#master_password_timeout"/> </rdf:li>
         <rdf:li><rdf:Description ID="master-prefs-reset" nc:name="Reset Master Password" nc:link="passwords_help.xhtml#reset_master_password"/> </rdf:li>
         <rdf:li><rdf:Description ID="choosing-good-password" nc:name="Choosing a Good Password" nc:link="passwords_help.xhtml#choosing_a_good_password"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
+
+<rdf:Description about="#using-priv-help-private-data">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li><rdf:Description ID="types_of_private_data" nc:name="Types of Private Data" nc:link="using_priv_help.xhtml#types_of_private_data"/> </rdf:li>
+        <rdf:li><rdf:Description ID="privatedata_prefs" nc:name="Private Data Preferences" nc:link="using_priv_help.xhtml#private_data_prefs"/> </rdf:li>
+        <rdf:li><rdf:Description ID="clear_private_data_now" nc:name="Clear Private Data Now" nc:link="using_priv_help.xhtml#clear_private_data_now"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
