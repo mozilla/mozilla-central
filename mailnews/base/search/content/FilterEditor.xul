@@ -91,8 +91,11 @@
   <splitter id="gray_horizontal_splitter" persist="state"/>
 
   <vbox flex="1">
-    <label value="&filterActionDesc.label;" accesskey="&filterActionDesc.accesskey;" control="filterActionList"/>
-    <listbox id="filterActionList" flex="1" rows="4" minheight="35%">
+    <label value="&filterActionDesc.label;"
+           accesskey="&filterActionDesc.accesskey;"
+           control="filterActionList"/>
+    <listbox id="filterActionList" flex="1" rows="4" minheight="35%"
+             onfocus="setLastActionFocus();" focusedAction="0">
       <listcols>
         <listcol flex="&filterActionTypeFlexValue;"/>
         <listcol flex="&filterActionTargetFlexValue;"/>

@@ -327,6 +327,7 @@ function initializeDialog(filter)
     newActionRow.setAttribute('value',
         filterAction.type == nsMsgFilterAction.Custom ?
         filterAction.customId : gFilterActionStrings[filterAction.type]);
+    newActionRow.setAttribute('onfocus', 'this.storeFocus();');
   }
 
   var gSearchScope = getFilterScope(getScope(filter), filter.filterType, filter.filterList);
@@ -771,4 +772,12 @@ function getFilterScope(aServerFilterScope, aFilterType, aFilterList)
     return nsMsgSearchScope.offlineMail;
   // IMAP and NEWS online don't allow body
   return nsMsgSearchScope.onlineManual;
+}
+
+/**
+ * Re-focus the action that was focused before focus was lost.
+ */
+function setLastActionFocus() {
+  let lastAction = gFilterActionList.getAttribute("focusedAction");
+  gFilterActionList.getItemAtIndex(lastAction).mRuleActionType.menulist.focus();
 }
