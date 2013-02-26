@@ -964,7 +964,8 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   -moz-margin-start: 5px;
 }
 
-#appmenu-popup .menu-iconic-left {
+.splitmenu-menuitem > .menu-iconic-left,
+#appmenu-popup menuitem:not([type="radio"]) > .menu-iconic-left {
   display:none;
 }
 
