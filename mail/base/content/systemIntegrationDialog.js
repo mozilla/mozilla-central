@@ -45,6 +45,11 @@ let gSystemIntegrationDialog = {
       this._mailCheckbox.checked = true;
     } else {
       this._mailCheckbox.checked = this._mailCheckbox.disabled;
+
+      // If called from preferences, use only a simpler "Cancel" label on the
+      // cancel button.
+      document.documentElement.getButton("cancel").label =
+        document.documentElement.getAttribute("buttonlabelcancel2");
     }
 
     if (!this._mailCheckbox.disabled)

@@ -35,6 +35,7 @@
         buttons="accept,cancel"
         buttonlabelaccept="&acceptIntegration.label;"
         buttonlabelcancel="&cancelIntegration.label;"
+        buttonlabelcancel2="&cancelIntegration2.label;"
         onload="gSystemIntegrationDialog.onLoad();"
         ondialogaccept="return gSystemIntegrationDialog.onDialogClose(true);"
         ondialogcancel="return gSystemIntegrationDialog.onDialogClose(false);"

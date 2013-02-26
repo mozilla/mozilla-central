@@ -6,6 +6,7 @@
 var gAdvancedPane = {
   mPane: null,
   mInitialized: false,
+  mShellServiceWorking: false,
 
   init: function ()
   {
@@ -59,10 +60,12 @@ var gAdvancedPane = {
     try {
       let shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"]
                                .getService(Components.interfaces.nsIShellService);
+      this.mShellServiceWorking = true;
     } catch (ex) {
       document.getElementById("alwaysCheckDefault").disabled = true;
       document.getElementById("alwaysCheckDefault").checked = false;
       document.getElementById("checkDefaultButton").disabled = true;
+      this.mShellServiceWorking = false;
     }
 #endif
 
@@ -88,12 +91,8 @@ var gAdvancedPane = {
    */
   checkDefaultNow: function (aAppType)
   {
-    var nsIShellService = Components.interfaces.nsIShellService;
-    var shellSvc;
-    try {
-      shellSvc = Components.classes["@mozilla.org/mail/shell-service;1"]
-                           .getService(nsIShellService);
-    } catch (ex) { return; }
+    if (!this.mShellServiceWorking)
+      return;
 
     // otherwise, bring up the default client dialog
     window.openDialog("chrome://messenger/content/systemIntegrationDialog.xul",

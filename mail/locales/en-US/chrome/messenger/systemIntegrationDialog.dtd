@@ -5,6 +5,7 @@
 <!ENTITY systemIntegration.title  "System Integration">
 <!ENTITY acceptIntegration.label  "Set as Default">
 <!ENTITY cancelIntegration.label  "Skip Integration">
+<!ENTITY cancelIntegration2.label  "Cancel">
 <!ENTITY defaultClient.intro  "Use &brandShortName; as the default client for:">
 
 <!ENTITY email.label "E-Mail">
