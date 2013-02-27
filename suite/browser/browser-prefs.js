@@ -397,11 +397,6 @@ pref("browser.safebrowsing.enabled", true);
 pref("browser.safebrowsing.malware.enabled", true);
 pref("browser.safebrowsing.debug", true);
 
-// Whether to start the private browsing mode at application startup.
-// Unused in SeaMonkey but extensions that import PrivateBrowsingUtils.jsm
-// will encounter errors when this preference is tested for.
-pref("browser.privatebrowsing.autostart", false);
-
 // Normally the "client ID" sent in updates is appinfo.name, but
 // official Firefox releases from Mozilla use a special identifier.
 // This is currently unused as we are using the apikey method.
