@@ -43,6 +43,7 @@ toolbar:only-of-type {
 #folderTree {
   border-bottom: 1px solid ThreeDShadow;
   background-color: -moz-OddTreeRow;
+  background-image: url("chrome://messenger/skin/grain.png");
 }
 
 #threadTree {

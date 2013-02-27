@@ -13,6 +13,7 @@ classic.jar:
   skin/classic/messenger/accountWizard.css                    (mail/accountWizard.css)
 * skin/classic/messenger/chat.css                             (mail/chat.css)
   skin/classic/messenger/userIcon.png                         (mail/userIcon.png)
+  skin/classic/messenger/grain.png                            (mail/grain.png)
 * skin/classic/messenger/imAccounts.css                       (../../components/im/themes/imAccounts.css)
 * skin/classic/messenger/imAccountWizard.css                  (../../components/im/themes/imAccountWizard.css)
   skin/classic/messenger/imBuddytooltip.css                   (../../components/im/themes/imBuddytooltip.css)

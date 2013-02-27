@@ -46,8 +46,8 @@ treechildren::-moz-tree-twisty {
 }
 
 #folderTree {
-  background-image: none !important;
   -moz-appearance: none !important;
+  background-image: url("chrome://messenger/skin/grain.png");
 }
 
 #folderPaneHeader, #folderTree {
