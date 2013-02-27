@@ -1409,17 +1409,11 @@ let gFolderTreeView = {
         [nsMsgFolderFlags.Junk, "Junk", false, true],
         [nsMsgFolderFlags.Queue, "Outbox", true, true]
       ],
-      // hard code, this could be build from _flagNameList dynamically
-      _smartFlags: nsMsgFolderFlags.Inbox | nsMsgFolderFlags.Drafts |
-                    nsMsgFolderFlags.Trash | nsMsgFolderFlags.SentMail |
-                    nsMsgFolderFlags.Templates |
-                    nsMsgFolderFlags.Junk |
-                    nsMsgFolderFlags.Archive,
 
       /**
        * support for addons to add special folder types, this must be called
        * prior to onload.
-       * 
+       *
        * @param aFolderName  name of the folder
        * @param isDeep  include subfolders
        * @param folderOptions  object with searchStr and searchOnline options, or null
@@ -1429,11 +1423,11 @@ let gFolderTreeView = {
       },
 
       /**
-       * Returns a triple describing the smart folder if the given folder is a
-       * special folder, else returns null.
+       * Returns an array of 4 elements describing the smart folder
+       * if the given folder is a special folder, else returns null.
        */
       getSmartFolderTypeByName: function ftv_smart__getSmartFolderType(aName) {
-        for each (let [, type,,] in Iterator(this._flagNameList)) {
+        for (let type of this._flagNameList) {
           if (type[1] == aName)
             return type;
         }
@@ -1443,7 +1437,7 @@ let gFolderTreeView = {
        * check to see if a folder is a smart folder
        */
       isSmartFolder: function ftv_smart__isSmartFolder(aFolder) {
-        if (aFolder.flags & this._smartFlags)
+        if (aFolder.flags & this._allSmartFlags)
             return true;
         // Also check the folder name itself, as containers do not
         // have the smartFolderName property.  We check all folders here, since
@@ -1456,9 +1450,9 @@ let gFolderTreeView = {
       /**
        * All the flags above, bitwise ORed.
        */
-      get _allFlags() {
-        delete this._allFlags;
-        return this._allFlags = this._flagNameList.reduce(
+      get _allSmartFlags() {
+        delete this._allSmartFlags;
+        return this._allSmartFlags = this._flagNameList.reduce(
           function (res, [flag,, isDeep,]) res | flag, 0);
       },
 
@@ -1472,12 +1466,12 @@ let gFolderTreeView = {
       },
 
       /**
-       * Returns a triple describing the smart folder if the given folder is a
-       * special folder, else returns null.
+       * Returns an array of 4 elements describing the smart folder
+       * if the given folder is a special folder, else returns null.
        */
       _getSmartFolderType: function ftv_smart__getSmartFolderType(aFolder) {
         let smartFolderName = getSmartFolderName(aFolder);
-        for each (let [, type] in Iterator(this._flagNameList)) {
+        for (let type of this._flagNameList) {
           if (smartFolderName) {
             if (type[1] == smartFolderName)
               return type;
@@ -1510,7 +1504,7 @@ let gFolderTreeView = {
 
         let smartRoot = smartServer.rootFolder;
         let smartChildren = [];
-        for each (let [, [flag, name,,]] in Iterator(this._flagNameList)) {
+        for (let [flag, name,,] of this._flagNameList) {
           gFolderTreeView._addSmartFoldersForFlag(smartChildren, accounts,
                                                   smartRoot, flag, name);
         }
@@ -1548,8 +1542,7 @@ let gFolderTreeView = {
         let smartType = this._getSmartFolderType(aFolder);
         if (smartType) {
           // This is a special folder
-          let [, name,] = smartType;
-          let smartFolder = this._getSmartFolderNamed(name);
+          let smartFolder = this._getSmartFolderNamed(smartType[1]);
           if (smartFolder &&
               gFolderTreeView.getIndexOfFolder(smartFolder) != null)
             return smartFolder;
@@ -1576,8 +1569,7 @@ let gFolderTreeView = {
 
         let smartType = this._getSmartFolderType(folder);
         if (smartType) {
-          let [, name,] = smartType;
-          let smartFolder = this._getSmartFolderNamed(name);
+          let smartFolder = this._getSmartFolderNamed(smartType[1]);
           if (smartFolder &&
               gFolderTreeView.getIndexOfFolder(smartFolder) != null)
             return smartFolder;
@@ -1595,16 +1587,15 @@ let gFolderTreeView = {
        * - Otherwise, we need to add it as a child of its parent (as normal).
        */
       onFolderAdded: function ftv_smart_onFolderAdded(aParent, aFolder) {
-        if (aFolder.flags & this._allFlags) {
+        if (aFolder.flags & this._allSmartFlags) {
           // add as child of corresponding smart folder
           let smartServer = this._smartServer;
           let smartRoot = smartServer.rootFolder;
           // In theory, a folder can have multiple flags set, so we need to
           // check each flag separately.
-          for each (let [, [flag, name,,]] in Iterator(this._flagNameList)) {
+          for (let [flag, name,,] of this._flagNameList) {
             if (aFolder.flags & flag)
-              gFolderTreeView._addSmartSubFolder(aFolder, smartRoot, name,
-                                                 flag);
+              gFolderTreeView._addSmartSubFolder(aFolder, smartRoot, name, flag);
           }
         }
         else if (aParent.isSpecialFolder(this._allShallowFlags, false)) {
