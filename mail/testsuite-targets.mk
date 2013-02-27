@@ -82,6 +82,7 @@ stage-mozilla-tests: make-stage-dir
 	$(MAKE) -C $(DEPTH)/mozilla/layout/tools/reftest stage-package
 	$(MAKE) -C $(DEPTH)/mozilla/testing/mochitest stage-package
 	$(MAKE) -C $(DEPTH)/mozilla/testing/xpcshell stage-package
+	$(MAKE) -C $(DEPTH)/mozilla/testing/mozbase stage-package
 
 # Although we should probably depend on make-stage-dir here, we don't as the
 # make-stage-dir actually removes the package directory for us. Given that we
