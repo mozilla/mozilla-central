@@ -1128,7 +1128,8 @@ var gCookies = {
   },
 
   forget: function cookies_forget() {
-    for (let i = 0; i < this.cookies.length; i++) {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = this.cookies.length - 1; i >= 0; i--) {
       if (gDomains.hostMatchesSelected(this.cookies[i].rawHost)) {
         // Remove from internal list needs to be before actually deleting.
         let delCookie = this.cookies[i];
@@ -1467,12 +1468,14 @@ var gPerms = {
         delPerms.push({host: host, type: nextPermission.type});
       }
     }
-    for (let i = 0; i < delPerms.length; i++) {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = delPerms.length - 1; i >= 0; i--) {
       Services.perms.remove(delPerms[i].host, delPerms[i].type);
     }
     // Also remove all password rejects.
     let rejectHosts = Services.logins.getAllDisabledHosts();
-    for (let i = 0; i < rejectHosts.length; i++) {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = rejectHosts.length - 1; i >= 0; i--) {
       if (gDomains.hostMatchesSelected(rejectHosts[i])) {
         Services.logins.setLoginSavingEnabled(rejectHosts[i], true);
       }
@@ -1770,7 +1773,8 @@ var gPrefs = {
     finally {
       statement.reset();
     }
-    for (let i = 0; i < delPrefs.length; i++) {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = delPrefs.length - 1; i >= 0; i--) {
       Services.contentPrefs.removePref(delPrefs[i].host, delPrefs[i].name, null);
     }
     gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasPreferences");
@@ -2140,7 +2144,8 @@ var gPasswords = {
   },
 
   forget: function passwords_forget() {
-    for (let i = 0; i < this.allSignons.length; i++) {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = this.allSignons.length - 1; i >= 0; i--) {
       if (gDomains.hostMatchesSelected(this.allSignons[i].hostname)) {
         // Remove from internal list needs to be before actually deleting.
         let delSignon = this.allSignons[i];
