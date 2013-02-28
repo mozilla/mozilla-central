@@ -10,11 +10,4 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= modules components
-#DIRS        = components
-
-ifdef ENABLE_TESTS
-DIRS += test
-endif
-
 include $(topsrcdir)/config/rules.mk

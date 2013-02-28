@@ -13,10 +13,6 @@ include $(DEPTH)/config/autoconf.mk
 
 export MOZ_CHROME_FILE_FORMAT=jar
 
-ifeq ($(AB_CD),)
-DIRS = ../timezones
-endif
-
 include $(topsrcdir)/config/config.mk
 
 run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)

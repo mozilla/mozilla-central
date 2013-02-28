@@ -10,15 +10,8 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# these extensions are not optional
-PARALLEL_DIRS	= mdn mailviews bayesian-spam-filter offline-startup newsblog fts3
-
 ifdef MOZ_PSM
 BUILD_SMIME=1
-endif
-
-ifdef BUILD_SMIME
-PARALLEL_DIRS	+= smime
 endif
 
 include $(topsrcdir)/config/rules.mk

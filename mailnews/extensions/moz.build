@@ -1,0 +1,18 @@
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# These extensions are not optional.
+PARALLEL_DIRS += [
+    'mdn',
+    'mailviews',
+    'bayesian-spam-filter',
+    'offline-startup',
+    'newsblog',
+    'fts3',
+]
+
+if CONFIG['BUILD_SMIME'] or CONFIG['MOZ_PSM']:
+    PARALLEL_DIRS += ['smime']
+

@@ -269,8 +269,6 @@ $(CONFIGURES): %: %.in $(EXTRA_CONFIG_DEPS)
 
 CONFIG_STATUS_DEPS := \
 	$(wildcard $(CONFIGURES)) \
-	$(TOPSRCDIR)/allmakefiles.sh \
-	$(TOPSRCDIR)/mozilla/allmakefiles.sh \
 	$(wildcard $(TOPSRCDIR)/mozilla/nsprpub/configure) \
 	$(wildcard $(TOPSRCDIR)/mozilla/config/milestone.txt) \
 	$(wildcard $(TOPSRCDIR)/ldap/sdks/c-sdk/configure) \

@@ -10,21 +10,7 @@ VPATH		= @srcdir@
 
 include $(topsrcdir)/config/config.mk
 
-# app is always last as it packages up the built files on mac
-DIRS += base locales extensions steel themes jquery app
-
-# add components for external linkage build
-ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
-DIRS += components
-endif
-
-ifeq ($(OS_ARCH),WINNT)
-# though some lasts are more last than others
-DIRS += installer/windows
-endif
-
 ifdef ENABLE_TESTS
-DIRS += test/mozmill
 
 check-sync-dirs::
 	@$(PYTHON) $(topsrcdir)/mozilla/js/src/config/check-sync-dirs.py \

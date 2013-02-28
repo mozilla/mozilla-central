@@ -9,10 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS           = \
-               locales \
-               $(NULL)
-
 ifndef MOZ_STANDALONE_COMPOSER
 PREF_JS_EXPORTS = $(srcdir)/composer.js
 ifdef MOZ_SUITE

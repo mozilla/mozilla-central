@@ -35,7 +35,6 @@ DIST_FILES = install.rdf
 XPI_PKGNAME = calendar-timezones
 
 PREF_JS_EXPORTS = $(srcdir)/defaults/preferences.js
-DIRS = locales
 
 ifndef DISABLE_LIGHTNING_INSTALL
 # install as a global extension in dist/bin/extensions/

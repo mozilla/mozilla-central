@@ -12,11 +12,5 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgimap
 
-PARALLEL_DIRS	= public src
-
-ifdef ENABLE_TESTS
-TOOL_DIRS += test
-endif
-
 include $(topsrcdir)/config/rules.mk
 

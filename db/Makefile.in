@@ -10,10 +10,4 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-ifndef NSS_DISABLE_DBM
-ifdef MOZ_MORK
-PARALLEL_DIRS = mork
-endif
-endif 
-
 include $(topsrcdir)/config/rules.mk

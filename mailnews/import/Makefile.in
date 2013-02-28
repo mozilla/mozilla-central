@@ -12,23 +12,4 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= import
 
-PARALLEL_DIRS	= public src text/src vcard/src
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-PARALLEL_DIRS	+= eudora/src applemail/src
-endif
-
-ifeq ($(OS_ARCH),WINNT)
-PARALLEL_DIRS	+= eudora/src
-ifndef GNU_CC
-PARALLEL_DIRS	+= oexpress outlook/src winlivemail
-endif
-endif
-
-ifdef ENABLE_TESTS
-TOOL_DIRS += test
-endif
-
-DIRS = build
-
 include $(topsrcdir)/config/rules.mk

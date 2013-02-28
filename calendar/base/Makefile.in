@@ -13,8 +13,6 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = calbase
 MODULE_NAME = calBaseModule
 
-DIRS = public src modules build
-
 # Select a theme from which to pull our skin goodness
 # Linux: gnomestripe
 # OS X: pinstripe

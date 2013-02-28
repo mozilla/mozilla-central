@@ -1,0 +1,29 @@
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+PARALLEL_DIRS += [
+    'addrbook',
+    'base',
+    'compose',
+    'db/gloda',
+    'db/msgdb',
+    'extensions',
+    'imap',
+    'import',
+    'local',
+    'mime',
+    'news',
+]
+
+TEST_DIRS += ['test/performance/bloat']
+
+if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
+    PARALLEL_DIRS += [
+        'mapi/mapiDLL',
+        'mapi/mapihook',
+    ]
+
+DIRS += ['build']
+

@@ -9,6 +9,32 @@ ifndef topsrcdir
 $(error topsrcdir was not set))
 endif
 
+# Integrate with mozbuild-generated make files. We first verify that no
+# variables provided by the automatically generated .mk files are
+# present. If they are, this is a violation of the separation of
+# responsibility between Makefile.in and mozbuild files.
+_MOZBUILD_EXTERNAL_VARIABLES := \
+  DIRS \
+  PARALLEL_DIRS \
+  TEST_DIRS \
+  TIERS \
+  TOOL_DIRS \
+  $(NULL)
+
+ifndef EXTERNALLY_MANAGED_MAKE_FILE
+$(foreach var,$(_MOZBUILD_EXTERNAL_VARIABLES),$(if $($(var)),\
+    $(error Variable $(var) is defined in Makefile. It should only be defined in moz.build files.),\
+    ))
+
+# Import the automatically generated backend file. If this file doesn't exist,
+# the backend hasn't been properly configured. We want this to be a fatal
+# error, hence not using "-include".
+ifndef STANDALONE_MAKEFILE
+GLOBAL_DEPS += backend.mk
+include backend.mk
+endif
+endif
+
 ifndef MOZILLA_DIR
 MOZILLA_DIR = $(MOZILLA_SRCDIR)
 endif
@@ -73,6 +99,8 @@ endif
 testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
 
 ifdef ENABLE_TESTS
+
+DIRS += $(TEST_DIRS)
 
 ifdef XPCSHELL_TESTS
 ifndef relativesrcdir

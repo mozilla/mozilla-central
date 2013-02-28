@@ -95,20 +95,6 @@ INSTALL_EXTENSION_ID = $(XPI_EM_ID)
 endif
 endif
 
-DIRS = ../libical \
-       ../locales \
-       ../base \
-       ../providers \
-       ../import-export \
-       ../itip \
-       components \
-       locales \
-       $(NULL)
-
-ifdef ENABLE_TESTS
-DIRS += ../test
-endif
-
 # Select a theme from which to pull our skin goodness
 # Linux: gnomestripe
 # OS X: pinstripe

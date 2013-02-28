@@ -28,8 +28,6 @@ ifdef MOZILLA_OFFICIAL
 DEFINES += -DMOZILLA_OFFICIAL
 endif
 
-DIRS		= profile
-
 PREF_JS_EXPORTS = \
     $(srcdir)/profile/all-thunderbird.js \
     $(srcdir)/profile/channel-prefs.js \

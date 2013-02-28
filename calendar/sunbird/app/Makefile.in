@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= profile/extensions
-
 PREF_JS_EXPORTS = \
     $(srcdir)/profile/sunbird.js \
     $(srcdir)/profile/channel-prefs.js \

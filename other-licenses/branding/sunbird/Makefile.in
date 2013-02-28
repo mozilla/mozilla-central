@@ -43,10 +43,6 @@ VPATH = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = \
-	locales \
-	$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
 export::

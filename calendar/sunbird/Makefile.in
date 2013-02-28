@@ -9,10 +9,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = base locales app
-
 ifeq ($(OS_ARCH),WINNT)
-DIRS += ../installer/windows
 
 # For Windows build the uninstaller during the application build since the
 # uninstaller is included with the application for mar file generation.

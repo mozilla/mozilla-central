@@ -1,0 +1,24 @@
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+PARALLEL_DIRS += [
+    'components/public',
+    'components/src',
+    'modules',
+    'content',
+    'themes',
+    'locales',
+    'protocols/facebook',
+    'protocols/gtalk',
+    'protocols/irc',
+    'protocols/odnoklassniki',
+    'protocols/twitter',
+    'protocols/vkontakte',
+    'protocols/xmpp',
+]
+
+if CONFIG['MOZ_DEBUG']:
+    PARALLEL_DIRS += ['protocols/jsTest']
+

@@ -10,14 +10,8 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = mailviews
-
 ifdef MOZ_PSM
 BUILD_SMIME=1
-endif
-
-ifdef BUILD_SMIME
-DIRS		+= smime
 endif
 
 include $(topsrcdir)/config/rules.mk

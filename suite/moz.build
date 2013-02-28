@@ -1,0 +1,35 @@
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# This should match /suite/installer/moz.build.
+if 'pre' in CONFIG['MOZ_APP_VERSION'] or 'a' in CONFIG['MOZ_APP_VERSION']:
+    PARALLEL_DIRS += ['debugQA']
+
+PARALLEL_DIRS += [
+    'browser',
+    'common',
+    'feeds/public',
+    'feeds/src',
+    'locales',
+    'mailnews',
+    'modules',
+    'themes/classic',
+    'themes/modern',
+    'profile',
+    'security',
+    'shell/public',
+    'shell/src',
+    'smile',
+]
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    PARALLEL_DIRS += ['installer/windows']
+
+# app is always last as it packages up the built files on mac.
+DIRS += [
+    'build',
+    'app',
+]
+

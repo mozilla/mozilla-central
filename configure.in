@@ -6386,14 +6386,7 @@ case "$host" in
     ;;
 esac
 
-dnl Load the list of Makefiles to generate.
-dnl   To add new Makefiles, edit allmakefiles.sh.
-dnl   allmakefiles.sh sets the variable, MAKEFILES.
-. ${srcdir}/allmakefiles.sh
-
-echo $MAKEFILES > unallmakefiles
-
-AC_OUTPUT($MAKEFILES)
+AC_OUTPUT([comm-config.h config/autoconf.mk])
 
 dnl ========================================================
 dnl = Setup a nice relatively clean build environment for
@@ -6410,7 +6403,6 @@ HOST_CFLAGS="$_SUBDIR_HOST_CFLAGS"
 HOST_LDFLAGS="$_SUBDIR_HOST_LDFLAGS"
 RC=
 
-unset MAKEFILES
 unset CONFIG_FILES
 
 export WRAP_LDFLAGS
@@ -6429,8 +6421,9 @@ if test ! -d "mozilla"; then
 fi
 
 # --enable-application needs to find confvars.sh, build.mk, etc in the gived dir, so add ../
+# --external-source-dir is so the build system doesn't reject files outside known locations.
 # --disable-official-branding disables all checks for official branding, as we're doing this ourselves in our own repo
-ac_configure_args="$_SUBDIR_CONFIG_ARGS --enable-application=../$MOZ_BUILD_APP --disable-official-branding --with-branding=../$REAL_BRANDING_DIRECTORY"
+ac_configure_args="$_SUBDIR_CONFIG_ARGS --enable-application=../$MOZ_BUILD_APP --with-external-source-dir=$_topsrcdir --disable-official-branding --with-branding=../$REAL_BRANDING_DIRECTORY"
 if test -n "$L10NBASEDIR"; then
     dnl Override the initial value with the new one which is guaranteed to be an absolute path.
     ac_configure_args="$ac_configure_args --with-l10n-base=$L10NBASEDIR"

@@ -10,37 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# Check whether this build is an alpha or nightly:
-# replace "pre" with "a" in the version then look if "a" matches.
-# This should match /suite/installer/Makefile.in.
-ifneq (,$(findstring a,$(MOZ_APP_VERSION:pre=a)))
-PARALLEL_DIRS = debugQA
-endif
-
-PARALLEL_DIRS	+= \
-		browser \
-		common \
-		feeds/public \
-		feeds/src \
-		locales \
-		mailnews \
-		modules \
-		themes/classic \
-		themes/modern \
-		profile \
-		security \
-		shell/public \
-		shell/src \
-		smile \
-		$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-PARALLEL_DIRS += installer/windows
-endif
-
-# app is always last as it packages up the built files on mac
-DIRS = build app
-
 include $(topsrcdir)/config/rules.mk
 
 ifeq ($(OS_ARCH),WINNT)

@@ -10,10 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-ifdef ENABLE_TESTS
-PARALLEL_DIRS += test
-endif
-
 EXTRA_COMPONENTS = \
 	SuiteBrowser.manifest \
 	nsBrowserContentHandler.js \

@@ -14,14 +14,6 @@ EXTRA_PP_JS_MODULES = \
   SearchIntegration.js \
   $(NULL)
 
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-DIRS += mdimporter
-endif
-
-ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-DIRS += wsenable
-endif
-
 # If on Mac, build Spotlight integration
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 EXTRA_PP_JS_MODULES += \
@@ -42,8 +34,6 @@ endif
 CPPSRCS = \
   nsMailWinSearchHelper.cpp \
   $(NULL)
-
-DIRS += public
 
 # Windows Search component
 EXTRA_PP_JS_MODULES += \

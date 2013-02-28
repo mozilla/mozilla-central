@@ -9,30 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-PROTOCOLS = \
-		facebook \
-		gtalk \
-		irc \
-		odnoklassniki \
-		twitter \
-		vkontakte \
-		xmpp \
-		$(NULL)
-
-ifdef MOZ_DEBUG
-PROTOCOLS += jsTest
-endif
-
 PREF_JS_EXPORTS = $(srcdir)/chat-prefs.js
-
-PARALLEL_DIRS	= \
-		components/public \
-		components/src \
-		modules \
-		content \
-		themes \
-		locales \
-		$(foreach proto,$(PROTOCOLS),protocols/$(proto)) \
-		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

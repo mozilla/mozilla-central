@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS = modules
-
 PRE_RELEASE_SUFFIX := $(shell $(PYTHON) $(topsrcdir)/mozilla/config/printprereleasesuffix.py \
                       $(MOZ_APP_VERSION))
 
@@ -28,10 +26,6 @@ endif
 
 ifdef MOZ_UPDATER
 DEFINES += -DMOZ_UPDATER=1
-endif
-
-ifdef ENABLE_TESTS
-DIRS += test
 endif
 
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))

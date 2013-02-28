@@ -1,0 +1,31 @@
+# vim: set filetype=python:
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# Only Mac and Windows have search integration components, but we include at
+# least one module from search/ on all platforms
+DIRS += [
+    'compose',
+    'cloudfile',
+    'preferences',
+    'addrbook',
+    'migration',
+    'activity',
+    'search',
+    'about-support',
+    'wintaskbar',
+    'newmailaccount',
+    'im',
+]
+
+if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('windows', 'gtk2', 'cocoa', 'qt'):
+    DIRS += ['shell']
+
+if CONFIG['MOZ_SAFE_BROWSING']:
+    DIRS += ['phishing']
+
+TEST_DIRS += ['test']
+
+DIRS += ['build']
+
