@@ -48,7 +48,7 @@ function historyOnSelect()
 {
   gLastHostname = null;
   gLastDomain = null;
-  var url = null;
+  var url = "";
 
   var selectedNode = gHistoryTree.selectedNode;
   if (selectedNode) {
