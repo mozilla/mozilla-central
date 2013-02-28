@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html manifest="dataman_storage.appcache">
+<head>
+<script>
+var seenEvents = 0;
+function eventSeen(e){
+  seenEvents++;
+  document.getElementById("eventCnt").textContent = seenEvents;
+  if (seenEvents > 1)
+    setTimeout(close, 1000);
+}
+</script>
+</head>
+<body>
+<h1>Test</h1>
+<p id="eventCnt">*</p>
+<script>
+document.body.addEventListener('storage', eventSeen, false);
+document.addEventListener('idb-done', eventSeen, false);
+
+localStorage.setItem("localtest", "foo"); // issues no storage event (!?)
+globalStorage['mochi.test'].setItem("globaltest", "bar"); // issues a storage event
+
+var request = mozIndexedDB.open("test", "test-decription");
+request.onsuccess = function(e) {
+  var db = e.target.result;
+  var setVrequest = db.setVersion("1.0");
+  setVrequest.onsuccess = function(e) {
+    var store = db.createObjectStore("test", {keyPath: "foo"});
+    db.transaction(["test"], IDBTransaction.READ_WRITE, 0)
+      .objectStore("test").put({"foo": "bar"});
+    // create, define and dispatch the test-done event
+    var event = document.createEvent('Event');
+    event.initEvent('idb-done', true, true);
+    document.dispatchEvent(event);
+  }
+};
+</script>
+</body>
+</html>

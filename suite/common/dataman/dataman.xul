@@ -107,6 +107,18 @@
                 oncommand="gPasswords.selectAll();"/>
     </menupopup>
 
+    <menupopup id="storageTreeContextMenu"
+               onpopupshowing="gStorage.updateContext();">
+      <menuitem id="storage-context-remove"
+                label="&storage.ctx.remove.label;"
+                accesskey="&storage.ctx.remove.accesskey;"
+                oncommand="gStorage.delete();"/>
+      <menuitem id="storage-context-selectall"
+                label="&storage.ctx.selectAll.label;"
+                accesskey="&storage.ctx.selectAll.accesskey;"
+                oncommand="gStorage.selectAll();"/>
+    </menupopup>
+
     <menupopup id="formdataTreeContextMenu"
                onpopupshowing="gFormdata.updateContext();">
       <menuitem id="fdata-context-remove"
@@ -130,6 +142,7 @@
           <menuitem label="&select.permissions.label;" value="Permissions"/>
           <menuitem label="&select.preferences.label;" value="Preferences"/>
           <menuitem label="&select.passwords.label;" value="Passwords"/>
+          <menuitem label="&select.storage.label;" value="Storage"/>
         </menupopup>
       </menulist>
       <textbox id="domainSearch"
@@ -164,6 +177,7 @@
         <tab id="permissionsTab" label="&tab.permissions.label;" disabled="true"/>
         <tab id="preferencesTab" label="&tab.preferences.label;" disabled="true"/>
         <tab id="passwordsTab" label="&tab.passwords.label;" disabled="true"/>
+        <tab id="storageTab" label="&tab.storage.label;" disabled="true"/>
         <tab id="formdataTab" label="&tab.formdata.label;" disabled="true"/>
         <tab id="forgetTab" label="&tab.forget.label;" hidden="true"
              onkeypress="gForget.handleKeyPress(event);"/>
@@ -369,6 +383,41 @@
           </hbox>
         </vbox>
 
+        <vbox id="storagePanel">
+          <description>&storage.description;</description>
+          <tree id="storageTree"
+                flex="1"
+                hidecolumnpicker="true"
+                onkeypress="gStorage.handleKeyPress(event);"
+                onselect="gStorage.select();"
+                context="storageTreeContextMenu">
+            <treecols onclick="gStorage.sort(event.target, true, true);">
+              <treecol id="storageHostCol"
+                       label="&storage.tree.host.label;"
+                       flex="5"
+                       persist="width"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="storageTypeCol"
+                       label="&storage.tree.type.label;"
+                       flex="2"
+                       persist="width"/>
+              <splitter class="tree-splitter"/>
+              <treecol id="storageSizeCol"
+                       label="&storage.tree.size.label;"
+                       flex="2"
+                       persist="width"/>
+            </treecols>
+            <treechildren/>
+          </tree>
+          <hbox id="storageButtons">
+            <button id="storageRemove"
+                    label="&storage.button.remove.label;"
+                    accesskey="&storage.button.remove.accesskey;"
+                    disabled="true"
+                    oncommand="gStorage.delete();"/>
+          </hbox>
+        </vbox>
+
         <vbox id="formdataPanel">
           <textbox id="fdataSearch"
                    clickSelectsAll="true"
@@ -462,6 +511,16 @@
                       oncommand="gForget.updateOptions();"/>
             <label id="forgetPasswordsLabel"
                    value="&forget.passwords.label;"
+                   hidden="true"/>
+          </hbox>
+          <hbox>
+            <checkbox id="forgetStorage"
+                      label="&forget.storage.label;"
+                      accesskey="&forget.storage.accesskey;"
+                      disabled="true"
+                      oncommand="gForget.updateOptions();"/>
+            <label id="forgetStorageLabel"
+                   value="&forget.storage.label;"
                    hidden="true"/>
           </hbox>
           <hbox>

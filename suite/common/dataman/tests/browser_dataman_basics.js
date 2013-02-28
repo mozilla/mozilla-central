@@ -235,7 +235,7 @@ function test_fdata_panel(aWin) {
      "value0,value2,value3",
      "After sort, correct items are selected");
 
-   // Select only one for testing remove button, as catching the prompt is hard.
+  // Select only one for testing remove button, as catching the prompt is hard.
   aWin.gFormdata.tree.view.selection.select(5);
   aWin.document.getElementById("fdataRemove").click();
   is(aWin.gFormdata.tree.view.rowCount, 5,
@@ -324,8 +324,12 @@ function test_permissions_panel(aWin) {
                      "geo", Services.perms.ALLOW_ACTION);
   Services.perms.add(Services.io.newURI("http://image.getpersonas.com/", null, null),
                      "image", Services.perms.DENY_ACTION);
+  Services.perms.add(Services.io.newURI("http://indexedDB.getpersonas.com/", null, null),
+                     "indexedDB", Services.perms.ALLOW_ACTION);
   Services.perms.add(Services.io.newURI("http://install.getpersonas.com/", null, null),
                      "install", Services.perms.ALLOW_ACTION);
+  Services.perms.add(Services.io.newURI("http://offline.getpersonas.com/", null, null),
+                     "offline-app", Services.perms.ALLOW_ACTION);
   Services.perms.add(Services.io.newURI("http://popup.getpersonas.com/", null, null),
                      "popup", Services.perms.ALLOW_ACTION);
   Services.perms.add(Services.io.newURI("http://stsuse.getpersonas.com/", null, null),
@@ -337,7 +341,7 @@ function test_permissions_panel(aWin) {
   Services.perms.add(Services.io.newURI("http://xul.getpersonas.com/", null, null),
                      "allowXULXBL", Services.perms.ALLOW_ACTION);
   Services.logins.setLoginSavingEnabled("password.getpersonas.com", false);
-  is(aWin.gPerms.list.children.length, 12,
+  is(aWin.gPerms.list.children.length, 14,
      "The correct number of permissions is displayed in the list");
   for (let i = 1; i < aWin.gPerms.list.children.length; i++) {
     let perm = aWin.gPerms.list.children[i];
@@ -378,8 +382,26 @@ function test_permissions_panel(aWin) {
         is(perm.capability, 1,
            "Set back to correct default");
         break;
+      case "indexedDB":
+        is(perm.getAttribute("label"), "Store Local Databases",
+           "Correct label for type: " + perm.type);
+        is(perm.capability, 1,
+           "Correct capability for: " + perm.host);
+        perm.useDefault(true);
+        is(perm.capability, 2,
+           "Set back to correct default");
+        break;
       case "install":
         is(perm.getAttribute("label"), "Install Add-ons",
+           "Correct label for type: " + perm.type);
+        is(perm.capability, 1,
+           "Correct capability for: " + perm.host);
+        perm.useDefault(true);
+        is(perm.capability, 2,
+           "Set back to correct default");
+        break;
+      case "offline-app":
+        is(perm.getAttribute("label"), "Offline Web Applications",
            "Correct label for type: " + perm.type);
         is(perm.capability, 1,
            "Correct capability for: " + perm.host);
@@ -744,6 +766,70 @@ function test_idn(aWin) {
   aWin.document.getElementById("pwdRemove").click();
   is(aWin.gTabs.activePanel, "permissionsPanel",
      "After deleting, correctly switched back to permissions panel");
+
+  Services.obs.notifyObservers(window, TEST_DONE, null);
+},
+
+function test_storage_load(aWin) {
+  // Load the page that fills in several web storage entries.
+  Services.perms.add(Services.io.newURI("http://mochi.test:8888/", null, null),
+                     "offline-app", Services.perms.ALLOW_ACTION);
+
+  let rootDir = "http://mochi.test:8888/browser/extensions/dataman/tests/";
+  let testURL = rootDir + "dataman_storage.html";
+  let storagetab = gBrowser.addTab(testURL);
+  let stWin = storagetab.linkedBrowser.contentWindow.wrappedJSObject;
+  let dmStorageListener = {
+    handleEvent: function dmStorageHandler(aEvent) {
+      let tab = aEvent.target;
+      if (tab == storagetab) {
+        gBrowser.tabContainer.removeEventListener("TabClose", this, false);
+        // Force DOM Storage to write its data to the disk.
+        Services.obs.notifyObservers(null, "domstorage-flush-timer", "");
+        Services.perms.remove("mochi.test", "offline-app");
+        Services.obs.notifyObservers(window, TEST_DONE, null);
+      }
+    },
+  };
+  gBrowser.tabContainer.addEventListener("TabClose", dmStorageListener, false);
+},
+
+function test_storage_wait(aWin) {
+  // Wait to make sure that DOM Storage flushing has actually worked.
+  setTimeout(function foo() {
+      Services.obs.notifyObservers(window, TEST_DONE, null); }, 1000);
+},
+
+function test_storage(aWin) {
+  aWin.gStorage.reloadList();
+  info("appcache groups: " + aWin.gLocSvc.appcache.getGroups().length);
+  aWin.gDomains.tree.view.selection.select(8);
+  is(aWin.gDomains.selectedDomain.title, "mochi.test",
+    "For storage tests, correct domain is selected");
+  is(aWin.document.getElementById("storageTab").disabled, false,
+    "Storage panel is enabled");
+  aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("storageTab");
+  is(aWin.gTabs.activePanel, "storagePanel",
+    "Storage panel is selected");
+  is(aWin.gStorage.tree.view.rowCount, 3,
+    "The correct number of storages is listed");
+  is(aWin.gStorage.displayedStorages
+         .map(function(aStorage) { return aStorage.type; })
+         .sort().join(","),
+      "appCache,indexedDB,localStorage",
+      "The correct types of storage are listed");
+
+  for (let i = aWin.gStorage.tree.view.rowCount - 1; i >= 0; i--) {
+    let remType = aWin.gStorage.displayedStorages[0].type;
+    info("Removing " + remType);
+    aWin.gStorage.tree.view.selection.select(0);
+    aWin.document.getElementById("storageRemove").click();
+    is(aWin.gStorage.tree.view.rowCount, i,
+      remType + " entry removed");
+  }
+
+  isnot(aWin.gTabs.activePanel, "storagePanel",
+    "Storage panel is not selected any more");
 
   Services.obs.notifyObservers(window, TEST_DONE, null);
 },

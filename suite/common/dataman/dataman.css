@@ -20,8 +20,9 @@ richlistitem.permission[type="cookie"] {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-cookie-item');
 }
 
-/* geolocation item defaults to always ask */
-richlistitem.permission[type="geo"] {
+/* geolocation and indexedDB items default to always ask */
+richlistitem.permission[type="geo"],
+richlistitem.permission[type="indexedDB"] {
   -moz-binding: url('chrome://communicator/content/dataman/dataman.xml#perm-geo-item');
 }
 

@@ -4,6 +4,8 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+// Load DownloadUtils module for convertByteUnits
+Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 
 // locally loaded services
 var gLocSvc = {};
@@ -22,6 +24,18 @@ XPCOMUtils.defineLazyServiceGetter(gLocSvc, "clipboard",
 XPCOMUtils.defineLazyServiceGetter(gLocSvc, "idn",
                                    "@mozilla.org/network/idn-service;1",
                                    "nsIIDNService");
+XPCOMUtils.defineLazyServiceGetter(gLocSvc, "appcache",
+                                   "@mozilla.org/network/application-cache-service;1",
+                                   "nsIApplicationCacheService");
+XPCOMUtils.defineLazyServiceGetter(gLocSvc, "domstoremgr",
+                                   "@mozilla.org/dom/storagemanager;1",
+                                   "nsIDOMStorageManager");
+XPCOMUtils.defineLazyServiceGetter(gLocSvc, "idxdbmgr",
+                                   "@mozilla.org/dom/indexeddb/manager;1",
+                                   "nsIIndexedDatabaseManager");
+XPCOMUtils.defineLazyServiceGetter(gLocSvc, "ssm",
+                                   "@mozilla.org/scriptsecuritymanager;1",
+                                   "nsIScriptSecurityManager");
 
 // From nsContentBlocker.cpp
 const NOFOREIGN = 3;
@@ -30,6 +44,7 @@ const NOFOREIGN = 3;
 var gDataman = {
   bundle: null,
   debug: false,
+  timer: null,
   viewToLoad: ["*", "formdata"],
 
   initialize: function dataman_initialize() {
@@ -44,6 +59,11 @@ var gDataman = {
     Services.obs.addObserver(this, "passwordmgr-storage-changed", false);
     Services.contentPrefs.addObserver(null, this);
     Services.obs.addObserver(this, "satchel-storage-changed", false);
+    Services.obs.addObserver(this, "dom-storage-changed", false);
+    Services.obs.addObserver(this, "dom-storage2-changed", false);
+
+    this.timer = Components.classes["@mozilla.org/timer;1"]
+                           .createInstance(Components.interfaces.nsITimer);
 
     gTabs.initialize();
     gDomains.initialize();
@@ -55,6 +75,8 @@ var gDataman = {
     Services.obs.removeObserver(this, "passwordmgr-storage-changed");
     Services.contentPrefs.removeObserver(null, this);
     Services.obs.removeObserver(this, "satchel-storage-changed");
+    Services.obs.removeObserver(this, "dom-storage-changed");
+    Services.obs.removeObserver(this, "dom-storage2-changed");
 
     gDomains.shutdown();
   },
@@ -118,10 +140,19 @@ var gDataman = {
       case "satchel-storage-changed":
         gFormdata.reactToChange(aSubject, aData);
         break;
+      case "dom-storage2-changed": // sessionStorage, localStorage
+        gStorage.reactToChange(aSubject, aData);
+        break;
       default:
         gDataman.debugError("Unexpected change topic observed: " + aTopic);
         break;
     }
+  },
+
+  // Compat with nsITimerCallback so we can be used in a timer.
+  notify: function(timer) {
+    gDataman.debugMsg("Timer fired, reloading storage: " + Date.now()/1000);
+    gStorage.reloadList();
   },
 
   onContentPrefSet: function co_onContentPrefSet(aGroup, aName, aValue) {
@@ -170,7 +201,7 @@ var gDataman = {
     return selectionCache;
   },
 
-  restoreSelectionFromIDs: function dataman_getSelectedIDs(aTree, aIDFunction, aCachedIDs) {
+  restoreSelectionFromIDs: function dataman_restoreSelectionFromIDs(aTree, aIDFunction, aCachedIDs) {
     // Restore selection from cached IDs (as possible).
     if (!aCachedIDs.length)
       return;
@@ -296,6 +327,22 @@ var gDomains = {
       gDomains.search(gDomains.searchfield.value);
       yield setTimeout(nextStep, 0);
 
+      // Add domains for web storages.
+      gDataman.debugMsg("Add storages to domain list: " + Date.now()/1000);
+      // Force DOM Storage to write its data to the disk.
+      Services.obs.notifyObservers(window, "domstorage-flush-timer", "");
+      yield setTimeout(nextStep, 0);
+      gStorage.loadList();
+      for (let i = 0; i < gStorage.storages.length; i++) {
+        gDomains.addDomainOrFlag(gStorage.storages[i].rawHost, "hasStorage");
+      }
+      gDomains.search(gDomains.searchfield.value);
+      // As we don't get notified of storage changes properly, reload on timer.
+      // The repeat time is in milliseconds, we're using 10 min for now.
+      gDataman.timer.initWithCallback(gDataman, 10 * 60000,
+          Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+      yield setTimeout(nextStep, 0);
+
       gDataman.debugMsg("Domain list built: " + Date.now()/1000);
       gDomains.listLoadCompleted = true;
       gDomains.loadView();
@@ -306,6 +353,7 @@ var gDomains = {
   },
 
   shutdown: function domain_shutdown() {
+    gDataman.timer.cancel();
     gTabs.shutdown();
     this.tree.view = null;
   },
@@ -496,6 +544,7 @@ var gDomains = {
         !this.domainObjects[aDomain].hasPermissions &&
         !this.domainObjects[aDomain].hasPreferences &&
         !this.domainObjects[aDomain].hasPasswords &&
+        !this.domainObjects[aDomain].hasStorage &&
         !this.domainObjects[aDomain].hasFormData) {
       gDataman.debugMsg("removed domain: " + aDomain);
       // Get index in display tree.
@@ -541,6 +590,7 @@ var gDomains = {
           !this.domainObjects[domain].hasPermissions &&
           !this.domainObjects[domain].hasPreferences &&
           !this.domainObjects[domain].hasPasswords &&
+          !this.domainObjects[domain].hasStorage &&
           !this.domainObjects[domain].hasFormData) {
         delete this.domainObjects[domain];
       }
@@ -567,6 +617,7 @@ var gDomains = {
       gTabs.permissionsTab.disabled = true;
       gTabs.preferencesTab.disabled = true;
       gTabs.passwordsTab.disabled = true;
+      gTabs.storageTab.disabled = true;
       gTabs.formdataTab.hidden = true;
       gTabs.formdataTab.disabled = true;
       gTabs.forgetTab.hidden = true;
@@ -589,6 +640,7 @@ var gDomains = {
     gTabs.permissionsTab.disabled = !this.selectedDomain.hasPermissions;
     gTabs.preferencesTab.disabled = !this.selectedDomain.hasPreferences;
     gTabs.passwordsTab.disabled = !this.selectedDomain.hasPasswords;
+    gTabs.storageTab.disabled = !this.selectedDomain.hasStorage;
     gTabs.formdataTab.hidden = !this.selectedDomain.hasFormData;
     gTabs.formdataTab.disabled = !this.selectedDomain.hasFormData;
     gTabs.forgetTab.disabled = true;
@@ -710,6 +762,7 @@ var gTabs = {
   permissionsTab: null,
   preferencesTab: null,
   passwordsTab: null,
+  storageTab: null,
   formdataTab: null,
   forgetTab: null,
 
@@ -723,6 +776,7 @@ var gTabs = {
     this.permissionsTab = document.getElementById("permissionsTab");
     this.preferencesTab = document.getElementById("preferencesTab");
     this.passwordsTab = document.getElementById("passwordsTab");
+    this.storageTab = document.getElementById("storageTab");
     this.formdataTab = document.getElementById("formdataTab");
     this.forgetTab = document.getElementById("forgetTab");
 
@@ -731,6 +785,7 @@ var gTabs = {
       permissionsPanel: gPerms,
       preferencesPanel: gPrefs,
       passwordsPanel: gPasswords,
+      storagePanel: gStorage,
       formdataPanel: gFormdata,
       forgetPanel: gForget
     };
@@ -1227,9 +1282,10 @@ var gPerms = {
       // Show addition box, disable button.
       this.addButton.disabled = true;
       this.addType.removeAllItems(); // Make sure list is clean.
-      let permTypes = ["allowXULXBL", "cookie", "geo", "image", "install",
-                       "object", "offline-app", "password", "plugins",
-                       "popup", "script", "sts/use", "sts/subd", "stylesheet"];
+      let permTypes = ["allowXULXBL", "cookie", "geo", "image", "indexedDB",
+                       "install", "object", "offline-app", "password",
+                       "plugins", "popup", "script", "sts/use", "sts/subd",
+                       "stylesheet"];
       for (let i = 0; i < permTypes.length; i++) {
         let typeDesc = permTypes[i];
         try {
@@ -1278,6 +1334,8 @@ var gPerms = {
           return Components.interfaces.nsICookiePermission.ACCESS_SESSION;
         return Services.perms.ALLOW_ACTION;
       case "geo":
+        return Services.perms.DENY_ACTION;
+      case "indexedDB":
         return Services.perms.DENY_ACTION;
       case "install":
         if (Services.prefs.getBoolPref("xpinstall.whitelist.required"))
@@ -2034,7 +2092,7 @@ var gPasswords = {
         token.login(true);
         this.copySelPassword();
       } catch (ex) {
-      // If user cancels an exception is expected.
+        // If user cancels an exception is expected.
       }
     }
   },
@@ -2172,6 +2230,381 @@ var gPasswords = {
         return signon.username || "";
       case "pwdPasswordCol":
         return signon.password || "";
+    }
+  },
+};
+
+// :::::::::::::::::::: web storage panel ::::::::::::::::::::
+var gStorage = {
+  tree: null,
+  removeButton: null,
+
+  storages: [],
+  displayedStorages: [],
+
+  initialize: function storage_initialize() {
+    gDataman.debugMsg("Initializing storage panel");
+    this.tree = document.getElementById("storageTree");
+    this.tree.view = this;
+
+    this.removeButton = document.getElementById("storageRemove");
+
+    this.tree.treeBoxObject.beginUpdateBatch();
+    // this.loadList() is being called in gDomains.initialize() already
+    this.displayedStorages = this.storages.filter(
+      function (aStorage) {
+        return gDomains.hostMatchesSelected(aStorage.rawHost);
+      });
+    this.sort(null, false, false);
+    this.tree.treeBoxObject.endUpdateBatch();
+  },
+
+  shutdown: function storage_shutdown() {
+    gDataman.debugMsg("Shutting down storage panel");
+    this.tree.view.selection.clearSelection();
+    this.tree.view = null;
+    this.displayedStorages = [];
+  },
+
+  loadList: function storage_loadList() {
+    this.storages = [];
+
+    // Load appCache entries.
+    let groups = gLocSvc.appcache.getGroups();
+    gDataman.debugMsg("Loading " + groups.length + " appcache entries");
+    for (let i = 0; i < groups.length; i++) {
+      let uri = Services.io.newURI(groups[i], null, null);
+      let cache = gLocSvc.appcache.getActiveCache(groups[i]);
+      this.storages.push({host: uri.host,
+                          rawHost: uri.host,
+                          type: "appCache",
+                          size: cache.usage,
+                          groupID: groups[i]});
+    }
+
+    // Load DOM storage entries, unfortunately need to go to the DB. :(
+    // Bug 343163 would make this easier and clean.
+    let domstorelist = [];
+    let file = Components.classes["@mozilla.org/file/directory_service;1"]
+                         .getService(Components.interfaces.nsIProperties)
+                         .get("ProfD", Components.interfaces.nsIFile);
+    file.append("webappsstore.sqlite");
+    if (file.exists()) {
+      var connection = Components.classes["@mozilla.org/storage/service;1"]
+                                 .getService(Components.interfaces.mozIStorageService)
+                                 .openDatabase(file);
+      try {
+        if (connection.tableExists("webappsstore2")) {
+          var statement =
+              connection.createStatement("SELECT scope, key FROM webappsstore2");
+          while (statement.executeStep())
+            domstorelist.push({scope: statement.getString(0),
+                               key: statement.getString(1)});
+          statement.reset();
+          statement.finalize();
+        }
+      } finally {
+        connection.close();
+      }
+    }
+    gDataman.debugMsg("Loading " + domstorelist.length + " DOM Storage entries");
+    // Scopes are reversed, e.g. |moc.elgoog.www.:http:80| (for localStorage).
+    for (let i = 0; i < domstorelist.length; i++) {
+      // Get the host from the reversed scope.
+      let scopeparts = domstorelist[i].scope.split(":");
+      let host = "", type = "unknown";
+      let origHost = scopeparts[0].split("").reverse().join("");
+      let rawHost = host = origHost.replace(/^\./, "");
+      if (scopeparts.length > 1) {
+        // This is a localStore, [1] is protocol, [2] is port.
+        type = "localStorage";
+        host = scopeparts[1].length ? scopeparts[1] + "://" + host : host;
+        // Add port if it's not the default for this protocol.
+        if (scopeparts[2] &&
+            !((scopeparts[1] == "http" && scopeparts[2] == 80) ||
+              (scopeparts[1] == "https" && scopeparts[2] == 443))) {
+          host = host + ":" + scopeparts[2];
+        }
+      }
+      // Make sure we only add known/supported types
+      if (type != "unknown") {
+        // Merge entries for one scope into a single entry if possible.
+        let scopefound = false;
+        for (let j = 0; j < this.storages.length; j++) {
+          if (this.storages[j].type == type && this.storages[j].host == host) {
+            this.storages[j].keys.push(domstorelist[i].key);
+            scopefound = true;
+            break;
+          }
+        }
+        if (!scopefound) {
+          this.storages.push({host: host,
+                              rawHost: rawHost,
+                              type: type,
+                              size: gLocSvc.domstoremgr.getUsage(rawHost),
+                              origHost: origHost,
+                              keys: [domstorelist[i].key]});
+        }
+      }
+    }
+
+    // Load indexedDB entries, unfortunately need to read directory for now. :(
+    // Bug 630858 would make this easier and clean.
+    let dir = Components.classes["@mozilla.org/file/directory_service;1"]
+                        .getService(Components.interfaces.nsIProperties)
+                        .get("ProfD", Components.interfaces.nsIFile);
+    dir.append("indexedDB");
+    if (dir.exists() && dir.isDirectory()) {
+      // Enumerate subdir entries, names are like "http+++davidflanagan.com" or
+      // "https+++mochi.test+8888", and filter out the domain name and protocol
+      // from that.
+      // gLocSvc.idxdbmgr is usable as soon as we have a URI.
+      let files = dir.directoryEntries
+                     .QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
+      gDataman.debugMsg("Loading IndexedDB entries");
+
+      while (files.hasMoreElements()) {
+        let file = files.nextFile;
+        // Convert directory name to a URI.
+        let host = file.leafName.replace(/\+\+\+/, "://").replace(/\+(\d+)$/, ":$1");
+        let uri = Services.io.newURI(host, null, null);
+        this.storages.push({host: host,
+                            rawHost: uri.host,
+                            type: "indexedDB",
+                            size: 0,
+                            path: file.path});
+        // Get IndexedDB usage (DB size)
+        // See http://mxr.mozilla.org/mozilla-central/source/dom/indexedDB/nsIIndexedDatabaseManager.idl?mark=39-52#39
+        gLocSvc.idxdbmgr.getUsageForURI(uri,
+            function(aUri, aUsage) {
+              gStorage.storages.forEach(function(aElement) {
+                if (aUri.host == aElement.rawHost)
+                  aElement.size = aUsage;
+              });
+            });
+      }
+    }
+  },
+
+  _getObjID: function storage__getObjID(aIdx) {
+    var curStorage = gStorage.displayedStorages[aIdx];
+    return curStorage.host + "|" + curStorage.type;
+  },
+
+  select: function storage_select() {
+    var selections = gDataman.getTreeSelections(this.tree);
+    this.removeButton.disabled = !selections.length;
+    return true;
+  },
+
+  selectAll: function storage_selectAll() {
+    this.tree.view.selection.selectAll();
+  },
+
+  handleKeyPress: function storage_handleKeyPress(aEvent) {
+    if (aEvent.keyCode == KeyEvent.DOM_VK_DELETE) {
+      this.delete();
+    }
+  },
+
+  sort: function storage_sort(aColumn, aUpdateSelection, aInvertDirection) {
+    // Make sure we have a valid column.
+    let column = aColumn;
+    if (!column) {
+      let sortedCol = this.tree.columns.getSortedColumn();
+      if (sortedCol)
+        column = sortedCol.element;
+      else
+        column = document.getElementById("storageHostCol");
+    }
+    else if (column.localName == "treecols" || column.localName == "splitter")
+      return;
+
+    if (!column || column.localName != "treecol") {
+      Components.utils.reportError("No column found to sort form data by");
+      return;
+    }
+
+    let dirAscending = column.getAttribute("sortDirection") !=
+                       (aInvertDirection ? "ascending" : "descending");
+    let dirFactor = dirAscending ? 1 : -1;
+
+    // Clear attributes on all columns, we're setting them again after sorting.
+    for (let node = column.parentNode.firstChild; node; node = node.nextSibling) {
+      node.removeAttribute("sortActive");
+      node.removeAttribute("sortDirection");
+    }
+
+    // compare function for two content prefs
+    let compfunc = function storage_sort_compare(aOne, aTwo) {
+      switch (column.id) {
+        case "storageHostCol":
+          return dirFactor * aOne.host.localeCompare(aTwo.host);
+        case "storageTypeCol":
+          return dirFactor * aOne.type.localeCompare(aTwo.type);
+      }
+      return 0;
+    };
+
+    if (aUpdateSelection) {
+      var selectionCache = gDataman.getSelectedIDs(this.tree, this._getObjID);
+    }
+    this.tree.view.selection.clearSelection();
+
+    // Do the actual sorting of the array.
+    this.displayedStorages.sort(compfunc);
+    this.tree.treeBoxObject.invalidate();
+
+    if (aUpdateSelection) {
+      gDataman.restoreSelectionFromIDs(this.tree, this._getObjID, selectionCache);
+    }
+
+    // Set attributes to the sorting we did.
+    column.setAttribute("sortActive", "true");
+    column.setAttribute("sortDirection", dirAscending ? "ascending" : "descending");
+  },
+
+  delete: function storage_delete() {
+    var selections = gDataman.getTreeSelections(this.tree);
+
+    if (selections.length > 1) {
+      let title = gDataman.bundle.getString("storage.deleteSelectedTitle");
+      let msg = gDataman.bundle.getString("storage.deleteSelected");
+      let flags = ((Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0) +
+                   (Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1) +
+                   Services.prompt.BUTTON_POS_1_DEFAULT)
+      let yes = gDataman.bundle.getString("storage.deleteSelectedYes");
+      if (Services.prompt.confirmEx(window, title, msg, flags, yes, null, null,
+                                    null, {value: 0}) == 1) // 1=="Cancel" button
+        return;
+    }
+
+    this.tree.view.selection.clearSelection();
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = selections.length - 1; i >= 0; i--) {
+      let delStorage = this.displayedStorages[selections[i]];
+      this.storages.splice(
+          this.storages.indexOf(this.displayedStorages[selections[i]]), 1);
+      this.displayedStorages.splice(selections[i], 1);
+      this.tree.treeBoxObject.rowCountChanged(selections[i], -1);
+      // Remove the actual entry.
+      this._deleteItem(delStorage);
+    }
+    if (!this.displayedStorages.length)
+      gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasStorage");
+    // Select the entry after the first deleted one or the last of all entries.
+    if (selections.length && this.displayedStorages.length)
+      this.tree.view.selection.toggleSelect(selections[0] < this.displayedStorages.length ?
+                                            selections[0] :
+                                            this.displayedStorages.length - 1);
+  },
+
+  _deleteItem: function storage__deleteItem(aStorageItem) {
+    switch (aStorageItem.type) {
+      case "appCache":
+        gLocSvc.appcache.getActiveCache(aStorageItem.groupID).discard();
+        break;
+      case "localStorage":
+        let testHost = aStorageItem.host;
+        if (!/:/.test(testHost))
+          testHost = "http://" + testHost;
+        let uri = Services.io.newURI(testHost, null, null);
+        let principal = gLocSvc.ssm.getCodebasePrincipal(uri);
+        let storage = gLocSvc.domstoremgr
+                             .getLocalStorageForPrincipal(principal, "");
+        storage.clear();
+        break;
+      case "indexedDB":
+        gLocSvc.idxdbmgr.clearDatabasesForURI(
+            Services.io.newURI(aStorageItem.host, null, null));
+        break;
+    }
+  },
+
+  updateContext: function storage_updateContext() {
+    document.getElementById("storage-context-remove").disabled =
+      this.removeButton.disabled;
+    document.getElementById("storage-context-selectall").disabled =
+      this.tree.view.selection.count >= this.tree.view.rowCount;
+  },
+
+  reloadList: function storage_reloadList() {
+    // As many storage types don't have app-wide functions to notify us of
+    // changes, call this one periodically to completely redo the storage
+    // list and so keep the Data Manager up to date.
+    var selectionCache = [];
+    if (this.displayedStorages.length) {
+      selectionCache = gDataman.getSelectedIDs(this.tree, this._getObjID);
+      this.displayedStorages = [];
+    }
+    this.loadList();
+    var domainList = [];
+    for (let i = 0; i < this.storages.length; i++) {
+      let domain = gDomains.getDomainFromHost(this.storages[i].rawHost);
+      if (domainList.indexOf(domain) == -1)
+        domainList.push(domain);
+    }
+    gDomains.resetFlagToDomains("hasStorage", domainList);
+    // Restore the local panel display if needed.
+    if (gTabs.activePanel == "storagePanel" &&
+        gDomains.selectedDomain.hasStorage) {
+      this.tree.treeBoxObject.beginUpdateBatch();
+      this.displayedStorages = this.storages.filter(
+        function (aStorage) {
+          return gDomains.hostMatchesSelected(aStorage.rawHost);
+        });
+      this.sort(null, false, false);
+      gDataman.restoreSelectionFromIDs(this.tree, this._getObjID, selectionCache);
+      this.tree.treeBoxObject.endUpdateBatch();
+    }
+  },
+
+  reactToChange: function storage_reactToChange(aSubject, aData) {
+    // aData: null (sessionStorage, localStorage) + nsIDOMStorageEvent in aSubject
+    //        --- for appCache and indexedDB, no change notifications are known!
+    //        --- because of that, we don't do anything here and instead use
+    //            reloadList periodically
+    let type;
+    if (aSubject instanceof Components.interfaces.nsIDOMStorageEvent) {
+      type = "localStorage";
+      // session storage also comes here, but currently not supported
+      // aData: null, all data in aSubject
+      // see https://developer.mozilla.org/en/DOM/Event/StorageEvent
+    }
+    else {
+      Components.utils.reportError("Observed an unrecognized storage change of type " + aData);
+    }
+    gDataman.debugMsg("Found storage event for: " + type);
+  },
+
+  forget: function storage_forget() {
+    // Loop backwards so later indexes in the list don't change.
+    for (let i = this.storages.length - 1; i >= 0; i--) {
+      if (gDomains.hostMatchesSelected(this.storages[i].hostname)) {
+        // Remove from internal list should be before actually deleting.
+        let delStorage = this.storages[i];
+        this.storages.splice(i, 1);
+        this._deleteItem(delStorage);
+      }
+    }
+    gDomains.removeDomainOrFlag(gDomains.selectedDomain.title, "hasStorage");
+  },
+
+  // nsITreeView
+  __proto__: gBaseTreeView,
+  get rowCount() {
+    return this.displayedStorages.length;
+  },
+  getCellText: function(aRow, aColumn) {
+    let storage = this.displayedStorages[aRow];
+    switch (aColumn.id) {
+      case "storageHostCol":
+        return storage.host;
+      case "storageTypeCol":
+        return storage.type;
+      case "storageSizeCol":
+        return gDataman.bundle.getFormattedString("storageUsage",
+                   DownloadUtils.convertByteUnits(storage.size));
     }
   },
 };
@@ -2520,11 +2953,13 @@ var gForget = {
   forgetPermissions: null,
   forgetPreferences: null,
   forgetPasswords: null,
+  forgetStorage: null,
   forgetFormdata: null,
   forgetCookiesLabel: null,
   forgetPermissionsLabel: null,
   forgetPreferencesLabel: null,
   forgetPasswordsLabel: null,
+  forgetStorageLabel: null,
   forgetFormdataLabel: null,
   forgetButton: null,
 
@@ -2533,7 +2968,8 @@ var gForget = {
 
     this.forgetDesc = document.getElementById("forgetDesc");
     ["forgetCookies", "forgetPermissions", "forgetPreferences",
-     "forgetPasswords", "forgetFormdata"].forEach(function(elemID) {
+     "forgetPasswords", "forgetStorage", "forgetFormdata"]
+    .forEach(function(elemID) {
       gForget[elemID] = document.getElementById(elemID);
       gForget[elemID].hidden = false;
       gForget[elemID].checked = false;
@@ -2554,6 +2990,7 @@ var gForget = {
     this.forgetPermissions.disabled = !gDomains.selectedDomain.hasPermissions;
     this.forgetPreferences.disabled = !gDomains.selectedDomain.hasPreferences;
     this.forgetPasswords.disabled = !gDomains.selectedDomain.hasPasswords;
+    this.forgetStorage.disabled = !gDomains.selectedDomain.hasStorage;
     this.forgetFormdata.disabled = !gDomains.selectedDomain.hasFormData;
     this.forgetFormdata.hidden = !gDomains.selectedDomain.hasFormData;
     this.updateOptions();
@@ -2568,6 +3005,7 @@ var gForget = {
                                    this.forgetPermissions.checked ||
                                    this.forgetPreferences.checked ||
                                    this.forgetPasswords.checked ||
+                                   this.forgetStorage.checked ||
                                    this.forgetFormdata.checked);
   },
 
@@ -2608,6 +3046,12 @@ var gForget = {
       this.forgetPasswordsLabel.hidden = false;
     }
     this.forgetPasswords.hidden = true;
+
+    if (this.forgetStorage.checked) {
+      gStorage.forget();
+      this.forgetStorageLabel.hidden = false;
+    }
+    this.forgetStorage.hidden = true;
 
     if (this.forgetFormdata.checked) {
       gFormdata.forget();

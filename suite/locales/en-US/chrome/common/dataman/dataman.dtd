@@ -11,6 +11,7 @@
 <!ENTITY select.permissions.label "Permissions only">
 <!ENTITY select.preferences.label "Preferences only">
 <!ENTITY select.passwords.label "Passwords only">
+<!ENTITY select.storage.label "Storage only">
 
 <!ENTITY domain.search.placeholder "Search Domains">
 <!ENTITY domain.search.key "f">
@@ -28,6 +29,7 @@
 <!ENTITY tab.permissions.label "Permissions">
 <!ENTITY tab.preferences.label "Preferences">
 <!ENTITY tab.passwords.label "Passwords">
+<!ENTITY tab.storage.label "Storage">
 <!ENTITY tab.formdata.label "Form Data">
 <!ENTITY tab.forget.label "Forget">
 
@@ -104,6 +106,21 @@
 <!ENTITY pwd.button.remove.label "Remove">
 <!ENTITY pwd.button.remove.accesskey "R">
 
+<!-- storage -->
+<!ENTITY storage.description "This domain uses the following web storages on your computer:">
+
+<!ENTITY storage.tree.host.label "Website">
+<!ENTITY storage.tree.type.label "Type">
+<!ENTITY storage.tree.size.label "Size">
+
+<!ENTITY storage.ctx.remove.label "Remove">
+<!ENTITY storage.ctx.remove.accesskey "R">
+<!ENTITY storage.ctx.selectAll.label "Select All">
+<!ENTITY storage.ctx.selectAll.accesskey "A">
+
+<!ENTITY storage.button.remove.label "Remove">
+<!ENTITY storage.button.remove.accesskey "R">
+
 <!-- form data -->
 <!ENTITY fdata.search.placeholder "Search Field Data">
 
@@ -130,6 +147,8 @@
 <!ENTITY forget.preferences.accesskey "o">
 <!ENTITY forget.passwords.label "Passwords">
 <!ENTITY forget.passwords.accesskey "a">
+<!ENTITY forget.storage.label "Storage">
+<!ENTITY forget.storage.accesskey "S">
 <!ENTITY forget.formdata.label "Form Data">
 <!ENTITY forget.formdata.accesskey "D">
 
