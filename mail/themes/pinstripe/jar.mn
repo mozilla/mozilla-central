@@ -155,6 +155,8 @@ classic.jar:
   skin/classic/messenger/icons/attachment-selected.png           (mail/icons/attachment-selected.png)
   skin/classic/messenger/icons/attachment.png                    (mail/icons/attachment.png)
   skin/classic/messenger/icons/check.png                         (mail/icons/check.png)
+  skin/classic/messenger/icons/close-inverted.png                (mail/icons/close-inverted.png)
+  skin/classic/messenger/icons/close-inverted@2x.png             (mail/icons/close-inverted@2x.png)
   skin/classic/messenger/icons/dot.png                           (mail/icons/dot.png)
   skin/classic/messenger/icons/column-headers.png                (mail/icons/column-headers.png)
   skin/classic/messenger/icons/column-headers@2x.png            (mail/icons/column-headers@2x.png)

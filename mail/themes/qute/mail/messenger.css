@@ -171,7 +171,6 @@ treechildren::-moz-tree-cell-text {
 }
 
 notification[value="addon-install-blocked"],
-notification[value="addon-install-failed"],
 notification[value="addon-install-complete"] {
   background-image: url("chrome://mozapps/skin/extensions/stripes-info-negative.png"),
                     linear-gradient(rgba(255, 255, 255, 0),
@@ -179,8 +178,20 @@ notification[value="addon-install-complete"] {
   background-repeat: repeat-x;
 }
 
+notification[value="addon-install-failed"] {
+  background-image: linear-gradient(rgb(255, 100, 100), rgb(204, 85, 85));
+}
+
 notification[value="addon-install-blocked"] .notification-inner,
 notification[value="addon-install-failed"] .notification-inner,
 notification[value="addon-install-complete"] .notification-inner {
   border: none;
+}
+
+notification[value="addon-install-failed"] .messageCloseButton {
+  list-style-image: url("chrome://messenger/skin/icons/closeTab.png");
+}
+
+notification[value="addon-install-failed"] .messageCloseButton:not(:hover):not(:active) {
+  -moz-image-region: rect(0, 64px, 16px, 48px);
 }

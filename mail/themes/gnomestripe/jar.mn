@@ -166,6 +166,7 @@ classic.jar:
   skin/classic/messenger/icons/readcol.svg                    (mail/icons/readcol.svg)
   skin/classic/messenger/icons/search-arrow.png               (mail/icons/search-arrow.png)
   skin/classic/messenger/icons/close-button.png               (mail/icons/close-button.png)
+  skin/classic/messenger/icons/close-inverted.png             (mail/icons/close-inverted.png)
   skin/classic/messenger/icons/closeTab.svg                   (mail/icons/closeTab.svg)
   skin/classic/messenger/icons/closeTab-active.svg            (mail/icons/closeTab-active.svg)
   skin/classic/messenger/icons/remote-blocked.png             (mail/icons/remote-blocked.png)

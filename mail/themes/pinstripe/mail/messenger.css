@@ -110,13 +110,16 @@ treechildren::-moz-tree-cell-text {
 }
 
 notification[value="addon-install-blocked"],
-notification[value="addon-install-failed"],
 notification[value="addon-install-complete"] {
   background-image: url("chrome://mozapps/skin/extensions/stripes-info-negative.png"),
                     linear-gradient(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0));
   background-repeat: repeat-x;
   border-top: none;
   border-bottom: none;
+}
+
+notification[value="addon-install-failed"] {
+  background-image: linear-gradient(rgb(255, 100, 100), rgb(204, 85, 85));
 }
 
 notification[value="addon-install-complete"] {
@@ -153,4 +156,14 @@ notification[value="addon-install-complete"] > button:active:hover {
   background-image: linear-gradient(rgba(45, 54, 71, 0.3),
                                     rgba(45, 54, 71, 0.1));
   border-color: rgba(60, 73, 97, 0.7);
+}
+
+notification[value="addon-install-failed"] .messageCloseButton {
+  list-style-image: url("chrome://messenger/skin/icons/close-inverted.png");
+}
+
+@media (min-resolution: 2dppx) {
+  notification[value="addon-install-failed"] .messageCloseButton {
+    list-style-image: url("chrome://messenger/skin/icons/close-inverted@2x.png");
+  }
 }
