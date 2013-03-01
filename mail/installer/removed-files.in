@@ -48,6 +48,7 @@ components/chardet.xpt
 components/downloadmanager.xpt
 components/compreg.dat
 components/components.list
+components/dom_loadsave.xpt
 components/history.xpt
 components/jsconsole.xpt
 components/layout.xpt
@@ -1051,7 +1052,6 @@ components/xmlextras.xpt
   components/dom_geolocation.xpt
   components/dom_html.xpt
   components/dom_json.xpt
-  components/dom_loadsave.xpt
   components/dom_offline.xpt
   components/dom_range.xpt
   components/dom_sidebar.xpt

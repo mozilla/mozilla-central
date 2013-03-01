@@ -93,7 +93,6 @@ bin\components\dom_geolocation.xpt
 bin\components\dom_html.xpt
 bin\components\dom_indexeddb.xpt
 bin\components\dom_json.xpt
-bin\components\dom_loadsave.xpt
 bin\components\dom_offline.xpt
 bin\components\dom_range.xpt
 bin\components\dom_sidebar.xpt

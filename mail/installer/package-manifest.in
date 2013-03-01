@@ -548,7 +548,6 @@
 @BINPATH@/components/dom_traversal.xpt
 @BINPATH@/components/dom_xbl.xpt
 @BINPATH@/components/dom_xul.xpt
-@BINPATH@/components/dom_loadsave.xpt
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/GPSDGeolocationProvider.js

@@ -1269,6 +1269,8 @@ components/tkitcmps.dll
 components/xpautoc.dll
 #endif
 
+components/dom_loadsave.xpt
+
 # ****************************************************************************
 # * Remove the XPTs that were present at the time (2010-02) when we started  *
 # * linking XPTs on Mac. You don't want to add anything to this section.     *
@@ -1308,7 +1310,6 @@ components/dom_events.xpt
 components/dom_geolocation.xpt
 components/dom_html.xpt
 components/dom_json.xpt
-components/dom_loadsave.xpt
 components/dom_offline.xpt
 components/dom_range.xpt
 components/dom_sidebar.xpt
