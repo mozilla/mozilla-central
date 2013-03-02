@@ -36,6 +36,7 @@
     <li><a href="#keyboard_navigation">Keyboard Navigation</a></li>
     <li><a href="#fayt">Find As You Type</a></li>
     <li><a href="#cache">Cache</a></li>
+    <li><a href="#offline_apps">Offline Apps</a></li>
     <li><a href="#proxies">Proxies</a></li>
     <li><a href="#http_networking">HTTP Networking</a></li>
     <li><a href="#software_installation">Software Installation</a></li>
@@ -296,6 +297,76 @@
     Prefetching FAQ</a>.</li>
 </ul>
 
+<p>[<a href="#advanced_preferences">Return to beginning of section</a>]</p>
+
+<h2 id="offline_apps">Advanced Preferences - Offline Apps</h2>
+
+<p>This section describes how to use the Offline Web Applications preferences
+  panel. If you&apos;re not already viewing it, follow these steps:</p>
+
+<ol>
+  <li>Open the <span class="mac">&brandShortName;</span>
+    <span class="noMac">Edit</span> menu and choose Preferences.</li>
+  <li>Under the Advanced category, click Offline Apps. (If no subcategories are
+    visible, double-click Advanced to expand the list.)</li>
+</ol>
+
+<p>The Offline Web Applications panel allows you to control and monitor how
+  websites use &brandShortName;&apos;s offline storage. In general, websites
+  require you to stay online in order to use them, thus won&apos;t function
+  if you are disconnected from the network. If permitted, websites can store
+  their content and any data you entered locally in &brandShortName;. In this
+  way, they can be used even without a network connection.</p>
+
+<p>The <strong>Offline Web Content and User Data</strong> section provides the
+  following functions:</p>
+
+<ul>
+  <li><strong>Your application cache is currently using [__] of disk
+    space</strong>: This entry is informational and provides you with an
+    estimate of the offline data currently used by all web applications
+    combined.</li>
+  <li><strong>Clear</strong>: Immediately clears data that has been saved
+    by all websites for use when you are offline.</li>
+  <li><strong>Notify me when a website wants to store data for offline
+    use</strong>: Check this box if you want to be notified when a website
+    wants to utilize the offline feature but does not currently have the
+    permissions to do so. An information bar will appear for this site with
+    the following options:
+    <ul>
+      <li><strong>Allow</strong>: Permanently allow this site the use of the
+        offline storage for this and future accesses.</li>
+      <li><strong>Never for This Site</strong>: Permanently deny this site
+        the use of the offline storage for this and future accesses.</li>
+      <li><strong>Not Now</strong>: Deny this site the use of the offline
+        storage for this request but ask again for future accesses.</li>
+    </ul>
+    <p><strong>Note</strong>: If the notification box is <em>not</em> checked,
+      &brandShortName; will proceed as if <q>Not Now</q> was selected.</p>
+  </li>
+  <!-- NOTE: link "Data Manager" below once bug 599097 has been fixed -->
+  <li><strong>Manage Permissions</strong>: Opens the Data Manager in a new
+    tab or window where you can modify the Offline Web Applications permissions
+    for each domain:
+    <ul>
+      <li><strong>Use Default</strong>: Check this box to return to the default
+        behavior, thus presenting the information bar with the next request
+        from a site within each domain if the notification option is chosen
+        (effectively removes the entry from this listing).</li>
+      <li><strong>Allow</strong>: Select this option to allow this site
+        the use of the offline storage for all accesses.</li>
+      <li><strong>Block</strong>: Select this option to deny this site
+        the use of the offline storage for all accesses.</li>
+    </ul>
+  </li>
+  <li><strong>The following websites are allowed to store data for offline
+    use</strong>: Lists the domains of all websites which have stored offline
+    data, along with the amount of data currently used by this domain.</li>
+  <li><strong>Clear data</strong>: Select a website domain and click this
+    button to delete all offline data for the specified domain. Click <q>Remove
+    offline data</q> after being prompted for confirmation to do so.</li>
+</ul>
+       
 <p>[<a href="#advanced_preferences">Return to beginning of section</a>]</p>
 
 <h2 id="proxies">Advanced Preferences - Proxies</h2>

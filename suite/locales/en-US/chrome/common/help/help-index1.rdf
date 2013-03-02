@@ -1422,6 +1422,11 @@
          nc:link="mailnews_preferences.xhtml#network_and_storage_preferences"/>
      </rdf:li>
      <rdf:li>
+        <rdf:Description ID="Offline:offline_apps"
+          nc:name="Offline Web Applications"
+          nc:link="cs_nav_prefs_advanced.xhtml#offline_apps"/>
+     </rdf:li>
+     <rdf:li>
        <rdf:Description ID="Offline:Mail_and_Newsgroups"
          nc:name="Offline Mail and News"
          nc:link="mailnews_offline.xhtml#working_offline"/>
