@@ -49,6 +49,7 @@ components/downloadmanager.xpt
 components/compreg.dat
 components/components.list
 components/dom_loadsave.xpt
+components/dom_sms.xpt
 components/history.xpt
 components/jsconsole.xpt
 components/layout.xpt

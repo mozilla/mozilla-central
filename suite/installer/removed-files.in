@@ -110,6 +110,7 @@ components/@DLL_PREFIX@chrome@DLL_SUFFIX@
 components/components.list
 components/compreg.dat
 components/crashreporter.xpt
+components/dom_sms.xpt
 components/downloadmanager.xpt
 components/@DLL_PREFIX@intlapp@DLL_SUFFIX@
 components/@DLL_PREFIX@jar50@DLL_SUFFIX@
