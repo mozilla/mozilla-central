@@ -936,6 +936,21 @@
     </nc:subheadings>
   </rdf:Description>
 
+<rdf:Description about="#sec_gen">
+    <nc:subheadings>
+      <rdf:Seq>
+        <rdf:li><rdf:Description ID="sec_gen_private_data" nc:name="Private Data" nc:link="using_priv_help.xhtml#private_data_prefs"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_cookies" nc:name="Cookies" nc:link="using_priv_help.xhtml#cookies"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_images" nc:name="Images" nc:link="using_priv_help.xhtml#images"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_popup_windows" nc:name="Popup Windows" nc:link="cs_priv_prefs_popup.xhtml#privacy_and_security_preferences_popup_windows"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_passwords" nc:name="Passwords" nc:link="passwords_help.xhtml#passwords"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_master_passwords" nc:name="Master Passwords" nc:link="passwords_help.xhtml#master_passwords"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_ssl" nc:name="SSL" nc:link="ssl_help.xhtml#privacy_and_security_preferences_ssl"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_certificates" nc:name="Certificates" nc:link="certs_prefs_help.xhtml#privacy_and_security_preferences_certificates"/> </rdf:li>
+        <rdf:li><rdf:Description ID="sec_gen_validation" nc:name="Validation" nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/> </rdf:li>
+      </rdf:Seq>
+    </nc:subheadings>
+  </rdf:Description>
 
 <!-- USING CERTIFICATES CONTENT -->
 <rdf:Description about="#using-help-certs">
