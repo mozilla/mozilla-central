@@ -38,11 +38,14 @@
                label="&disableCookies.label;"
                accesskey="&disableCookies.accesskey;"/>
         <radio value="1"
-               label="&accOrgCookiesRadio.label;"
-               accesskey="&accOrgCookiesRadio.accesskey;"/>
+               label="&accNo3rdPartyCookies.label;"
+               accesskey="&accNo3rdPartyCookies.accesskey;"/>
+        <radio value="3"
+               label="&acc3rdPartyVisited.label;"
+               accesskey="&acc3rdPartyVisited.accesskey;"/>
         <radio value="0"
-               label="&accAllCookiesRadio.label;"
-               accesskey="&accAllCookiesRadio.accesskey;"/>
+               label="&accAllCookies.label;"
+               accesskey="&accAllCookies.accesskey;"/>
       </radiogroup>
     </groupbox>
     <groupbox id="networkCookieLifetimePolicy">
