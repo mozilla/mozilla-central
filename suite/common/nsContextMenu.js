@@ -245,7 +245,7 @@ nsContextMenu.prototype = {
                   !(this.isContentSelected || this.onTextInput ||
                     this.onStandaloneImage || this.onVideo || this.onAudio));
     this.showItem("context-bookmarklink", this.onLink && !this.onMailtoLink);
-    this.showItem("context-searchselect", this.isTextSelected && !this.onTextInput);
+    this.showItem("context-searchselect", this.isTextSelected);
     this.showItem("context-keywordfield", this.onTextInput && this.onKeywordField);
     this.showItem("frame", this.inFrame);
     this.showItem("frame-sep", this.inFrame);
@@ -1251,6 +1251,7 @@ nsContextMenu.prototype = {
    */
   isTextSelection: function() {
     var searchSelectText = this.searchSelected(16);
+
     if (!searchSelectText)
       return false;
 
@@ -1269,11 +1270,11 @@ nsContextMenu.prototype = {
 
     // format "Search <engine> for <selection>" string to show in menu
     const bundle = document.getElementById("contentAreaCommandsBundle");
-    var menuLabel = bundle.getFormattedString("contextMenuSearchText",
+    var menuLabel = bundle.getFormattedString("searchSelected",
                                               [engineName, searchSelectText]);
     this.setItemAttr("context-searchselect", "label", menuLabel);
     this.setItemAttr("context-searchselect", "accesskey",
-                     bundle.getString("contextMenuSearchText.accesskey"));
+                     bundle.getString("searchSelected.accesskey"));
 
     return true;
   },
@@ -1282,6 +1283,16 @@ nsContextMenu.prototype = {
     var focusedWindow = document.commandDispatcher.focusedWindow;
     var searchStr = focusedWindow.getSelection();
     searchStr = searchStr.toString();
+
+    if (this.onTextInput) {
+      var fElem = this.target;
+      if ((fElem instanceof HTMLInputElement &&
+           fElem.mozIsTextField(true)) ||
+           fElem instanceof HTMLTextAreaElement) {
+        searchStr = fElem.value.substring(fElem.selectionStart, fElem.selectionEnd);
+      }
+    }
+
     // searching for more than 150 chars makes no sense
     if (!aCharlen)
       aCharlen = 150;

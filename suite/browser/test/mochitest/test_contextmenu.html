@@ -319,10 +319,32 @@ function runTest(testNum) {
                           "---",                 null,
                           "spell-check-enabled", true]);
         closeContextMenu();
-        openContextMenuFor(img); // Invoke context menu for next test.
+        input_sel.value = "test";
+        input_sel.select();
+        openContextMenuFor(input_sel); // Invoke context menu for next test.
         break;
 
     case 6:
+        // Context menu for text input field with text
+        checkContextMenu(["popupwindow-reject",  true,
+                          "---",                 null,
+                          "context-undo",        false,
+                          "context-redo",        false,
+                          "---",                 null,
+                          "context-cut",         true,
+                          "context-copy",        true,
+                          "context-paste",       null, // ignore clipboard state
+                          "context-delete",      true,
+                          "---",                 null,
+                          "context-selectall",   true,
+                          "context-searchselect",     true,
+                          "---",                 null,
+                          "spell-check-enabled", true]);
+        closeContextMenu();
+        openContextMenuFor(img); // Invoke context menu for next test.
+        break;
+
+    case 7:
         // Context menu for an image
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -345,7 +367,7 @@ function runTest(testNum) {
         openContextMenuFor(canvas); // Invoke context menu for next test.
         break;
 
-    case 7:
+    case 8:
         // Context menu for a canvas
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -358,7 +380,7 @@ function runTest(testNum) {
         openContextMenuFor(video_ok); // Invoke context menu for next test.
         break;
 
-    case 8:
+    case 9:
         // Context menu for a video (with a VALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -378,7 +400,7 @@ function runTest(testNum) {
         openContextMenuFor(audio_in_video); // Invoke context menu for next test.
         break;
 
-    case 9:
+    case 10:
         // Context menu for a video (with an audio-only file)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -394,7 +416,7 @@ function runTest(testNum) {
         openContextMenuFor(video_bad); // Invoke context menu for next test.
         break;
 
-    case 10:
+    case 11:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -414,7 +436,7 @@ function runTest(testNum) {
         openContextMenuFor(video_bad2); // Invoke context menu for next test.
         break;
 
-    case 11:
+    case 12:
         // Context menu for a video (with an INVALID media source)
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -434,7 +456,7 @@ function runTest(testNum) {
         openContextMenuFor(iframe); // Invoke context menu for next test.
         break;
 
-    case 12:
+    case 13:
         // Context menu for an iframe
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -470,7 +492,7 @@ function runTest(testNum) {
         openContextMenuFor(video_in_iframe); // Invoke context menu for next test.
         break;
 
-    case 13:
+    case 14:
         // Context menu for a video in an iframe
         checkContextMenu(["popupwindow-reject",         true,
                           "---",                        null,
@@ -504,7 +526,7 @@ function runTest(testNum) {
         openContextMenuFor(image_in_iframe); // Invoke context menu for next test.
         break;
 
-    case 14:
+    case 15:
         // Context menu for an image in an iframe
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -541,14 +563,39 @@ function runTest(testNum) {
         openContextMenuFor(text); // Invoke context menu for next test.
         break;
 
-    case 15:
+    case 16:
         // Re-check context menu for plain text to make sure it hasn't changed
         checkContextMenu(plainTextItems);
-        closeContextMenu();        
+        closeContextMenu();
+        textarea_sel.select();
+        openContextMenuFor(textarea_sel, false, true);
+        break;
+
+    case 17:
+        // search for text with text area's selected value
+        checkContextMenu(["popupwindow-reject",  true,
+                          "---",                 null,
+                          "context-undo",        false,
+                          "context-redo",        false,
+                          "---",                 null,
+                          "context-cut",         true,
+                          "context-copy",        true,
+                          "context-paste",       true, // ignore clipboard state
+                          "context-delete",      true,
+                          "---",                 null,
+                          "context-selectall",   true,
+                          "context-searchselect",     true,
+                          "---",                 null,
+                          "spell-check-enabled", true,
+                          "spell-dictionaries",  true,
+                              ["spell-check-dictionary-en-US", true,
+                               "---",                          null,
+                               "spell-add-dictionaries",       true], null]);
+        closeContextMenu();
         openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
         break;
 
-    case 16:
+    case 18:
         // Context menu for textarea
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -578,7 +625,7 @@ function runTest(testNum) {
         openContextMenuFor(textarea, false, true); // Invoke context menu for next test.
         break;
 
-    case 17:
+    case 19:
         // Context menu for textarea after a word has been added
         // to the dictionary
         checkContextMenu(["popupwindow-reject",  true,
@@ -607,7 +654,7 @@ function runTest(testNum) {
         openContextMenuFor(contenteditable);
         break;
 
-    case 18:
+    case 20:
         // Context menu for contenteditable
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -636,7 +683,7 @@ function runTest(testNum) {
         openContextMenuFor(inputspell); // Invoke context menu for next test.
         break;
 
-    case 19:
+    case 21:
         // Context menu for spell-check input
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -665,13 +712,13 @@ function runTest(testNum) {
         openContextMenuFor(link); // Invoke context menu for next test.
         break;
 
-    case 20:
+    case 22:
         executeCopyCommand("cmd_copyLink", "http://mozilla.com/");
         closeContextMenu();
         openContextMenuFor(pagemenu); // Invoke context menu for next test.
         break;
 
-    case 21:
+    case 23:
         // Context menu for element with assigned content context menu
         checkContextMenu(["+Plain item",          {type: "", icon: "", checked: false, disabled: false},
                           "+Disabled item",       {type: "", icon: "", checked: false, disabled: true},
@@ -715,7 +762,7 @@ function runTest(testNum) {
         openContextMenuFor(pagemenu, true); // Invoke context menu for next test.
         break;
 
-    case 22:
+    case 24:
         // Context menu for element with assigned content context menu
         // The shift key should bypass content context menu processing
         checkContextMenu(["popupwindow-reject",   true,
@@ -740,7 +787,7 @@ function runTest(testNum) {
         openContextMenuFor(img_link); // Invoke context menu for next test.
         break;
 
-    case 23:
+    case 25:
         // Context menu for an image with a link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -769,7 +816,7 @@ function runTest(testNum) {
         openContextMenuFor(img_mailto); // Invoke context menu for next test.
         break;
 
-    case 24:
+    case 26:
         // Context menu for an image with a mailto: link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -846,6 +893,7 @@ function startTest() {
     link       = subwindow.document.getElementById("test-link");
     mailto     = subwindow.document.getElementById("test-mailto");
     input      = subwindow.document.getElementById("test-input");
+    input_sel  = subwindow.document.getElementById("test-input-select");
     img        = subwindow.document.getElementById("test-image");
     canvas     = subwindow.document.getElementById("test-canvas");
     video_ok   = subwindow.document.getElementById("test-video-ok");
@@ -858,6 +906,7 @@ function startTest() {
     video_in_iframe.pause();
     image_in_iframe = subwindow.document.getElementById("test-image-in-iframe").contentDocument.getElementsByTagName("img")[0];
     textarea   = subwindow.document.getElementById("test-textarea");
+    textarea_sel   = subwindow.document.getElementById("test-textarea-sel");
     contenteditable = subwindow.document.getElementById("test-contenteditable");
     contenteditable.focus(); // content editable needs to be focused to enable spellcheck
     inputspell = subwindow.document.getElementById("test-input-spellcheck");
