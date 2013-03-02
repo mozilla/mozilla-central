@@ -540,7 +540,6 @@
 @BINPATH@/components/dom_power.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
-@BINPATH@/components/dom_sms.xpt
 @BINPATH@/components/dom_smil.xpt
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt

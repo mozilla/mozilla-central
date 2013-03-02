@@ -198,7 +198,6 @@
 @BINPATH@/components/dom_settings.xpt
 @BINPATH@/components/dom_sidebar.xpt
 @BINPATH@/components/dom_smil.xpt
-@BINPATH@/components/dom_sms.xpt
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
 @BINPATH@/components/dom_svg.xpt
