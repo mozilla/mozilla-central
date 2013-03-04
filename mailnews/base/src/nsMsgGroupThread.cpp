@@ -236,15 +236,14 @@ nsresult nsMsgGroupThread::RemoveChild(nsMsgKey msgKey)
 
 NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAnnouncer *announcer)
 {
+  NS_ENSURE_ARG_POINTER(child);
+
   uint32_t flags;
   nsMsgKey key;
-  
-  if (!child)
-    return NS_ERROR_NULL_POINTER;
-  
+
   child->GetFlags(&flags);
   child->GetMessageKey(&key);
-  
+
   // if this was the newest msg, clear the newest msg date so we'll recalc.
   uint32_t date;
   child->GetDateInSeconds(&date);
@@ -261,7 +260,8 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   if (m_dummy && wasFirstChild && m_keys.Length() > 1)
   {
     nsIMsgDBHdr *newRootChild;
-    GetChildHdrAt(1, &newRootChild);
+    rv = GetChildHdrAt(1, &newRootChild);
+    NS_ENSURE_SUCCESS(rv, rv);
     SetMsgHdrAt(0, newRootChild);
   }
 
@@ -791,8 +791,7 @@ NS_IMETHODIMP nsMsgXFGroupThread::GetChildHdrAt(int32_t aIndex, nsIMsgDBHdr **aR
 {
   if (aIndex < 0 || aIndex >= m_folders.Count())
     return NS_MSG_MESSAGE_NOT_FOUND;
-  m_folders.ObjectAt(aIndex)->GetMessageHeader(m_keys[aIndex], aResult);
-  return NS_OK;
+  return m_folders.ObjectAt(aIndex)->GetMessageHeader(m_keys[aIndex], aResult);
 }
 
 NS_IMETHODIMP nsMsgXFGroupThread::GetChildKeyAt(int32_t aIndex, nsMsgKey *aResult)
