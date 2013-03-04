@@ -35,8 +35,8 @@ public:
                                       uint32_t aNewFlags, nsIDBChangeListener *aInstigator);
 
   NS_IMETHOD LoadMessageByViewIndex(nsMsgViewIndex aViewIndex);
-  NS_IMETHOD GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties);
-  NS_IMETHOD GetRowProperties(int32_t aRow, nsISupportsArray *aProperties);
+  NS_IMETHOD GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsAString& aProperties);
+  NS_IMETHOD GetRowProperties(int32_t aRow, nsAString& aProperties);
   NS_IMETHOD CellTextForColumn(int32_t aRow, const PRUnichar *aColumnName,
                                nsAString &aValue);
   NS_IMETHOD GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);

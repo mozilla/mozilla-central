@@ -53,34 +53,8 @@
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
-#ifdef SUPPORT_PRIORITY_COLORS
-nsIAtom * nsMsgDBView::kHighestPriorityAtom = nullptr;
-nsIAtom * nsMsgDBView::kHighPriorityAtom = nullptr;
-nsIAtom * nsMsgDBView::kLowestPriorityAtom = nullptr;
-nsIAtom * nsMsgDBView::kLowPriorityAtom = nullptr;
-#endif
-
-nsIAtom * nsMsgDBView::kUnreadMsgAtom  = nullptr;
-nsIAtom * nsMsgDBView::kNewMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kReadMsgAtom  = nullptr;
-nsIAtom * nsMsgDBView::kRepliedMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kForwardedMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kOfflineMsgAtom  = nullptr;
-nsIAtom * nsMsgDBView::kFlaggedMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kImapDeletedMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kAttachMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kHasUnreadAtom = nullptr;
-nsIAtom * nsMsgDBView::kWatchThreadAtom = nullptr;
-nsIAtom * nsMsgDBView::kIgnoreThreadAtom = nullptr;
-nsIAtom * nsMsgDBView::kIgnoreSubthreadAtom = nullptr;
-nsIAtom * nsMsgDBView::kHasImageAtom = nullptr;
-
 nsIAtom * nsMsgDBView::kJunkMsgAtom = nullptr;
 nsIAtom * nsMsgDBView::kNotJunkMsgAtom = nullptr;
-nsIAtom * nsMsgDBView::kDummyMsgAtom = nullptr;
-
-nsIAtom * nsMsgDBView::kLabelColorWhiteAtom = nullptr;
-nsIAtom * nsMsgDBView::kLabelColorBlackAtom = nullptr;
 
 PRUnichar * nsMsgDBView::kHighestPriorityString = nullptr;
 PRUnichar * nsMsgDBView::kHighPriorityString = nullptr;
@@ -175,29 +149,8 @@ nsMsgDBView::nsMsgDBView()
 
 void nsMsgDBView::InitializeAtomsAndLiterals()
 {
-  kUnreadMsgAtom = MsgNewAtom("unread");
-  kNewMsgAtom = MsgNewAtom("new");
-  kReadMsgAtom = MsgNewAtom("read");
-  kRepliedMsgAtom = MsgNewAtom("replied");
-  kForwardedMsgAtom = MsgNewAtom("forwarded");
-  kOfflineMsgAtom = MsgNewAtom("offline");
-  kFlaggedMsgAtom = MsgNewAtom("flagged");
-  kImapDeletedMsgAtom = MsgNewAtom("imapdeleted");
-  kAttachMsgAtom = MsgNewAtom("attach");
-  kHasUnreadAtom = MsgNewAtom("hasUnread");
-  kWatchThreadAtom = MsgNewAtom("watch");
-  kIgnoreThreadAtom = MsgNewAtom("ignore");
-  kIgnoreSubthreadAtom = MsgNewAtom("ignoreSubthread");
-  kHasImageAtom = MsgNewAtom("hasimage");
   kJunkMsgAtom = MsgNewAtom("junk");
   kNotJunkMsgAtom = MsgNewAtom("notjunk");
-  kDummyMsgAtom = MsgNewAtom("dummy");
-#ifdef SUPPORT_PRIORITY_COLORS
-  kHighestPriorityAtom = MsgNewAtom("priority-highest");
-  kHighPriorityAtom = MsgNewAtom("priority-high");
-  kLowestPriorityAtom = MsgNewAtom("priority-lowest");
-  kLowPriorityAtom = MsgNewAtom("priority-low");
-#endif
 
   // priority strings
   kHighestPriorityString = GetString(NS_LITERAL_STRING("priorityHighest").get());
@@ -205,9 +158,6 @@ void nsMsgDBView::InitializeAtomsAndLiterals()
   kLowestPriorityString = GetString(NS_LITERAL_STRING("priorityLowest").get());
   kLowPriorityString = GetString(NS_LITERAL_STRING("priorityLow").get());
   kNormalPriorityString = GetString(NS_LITERAL_STRING("priorityNormal").get());
-
-  kLabelColorWhiteAtom = MsgNewAtom("lc-white");
-  kLabelColorBlackAtom = MsgNewAtom("lc-black");
 
   kReadString = GetString(NS_LITERAL_STRING("read").get());
   kRepliedString = GetString(NS_LITERAL_STRING("replied").get());
@@ -223,33 +173,8 @@ nsMsgDBView::~nsMsgDBView()
   gInstanceCount--;
   if (gInstanceCount <= 0)
   {
-    NS_IF_RELEASE(kUnreadMsgAtom);
-    NS_IF_RELEASE(kNewMsgAtom);
-    NS_IF_RELEASE(kReadMsgAtom);
-    NS_IF_RELEASE(kRepliedMsgAtom);
-    NS_IF_RELEASE(kForwardedMsgAtom);
-    NS_IF_RELEASE(kOfflineMsgAtom);
-    NS_IF_RELEASE(kFlaggedMsgAtom);
-    NS_IF_RELEASE(kImapDeletedMsgAtom);
-    NS_IF_RELEASE(kAttachMsgAtom);
-    NS_IF_RELEASE(kHasUnreadAtom);
-    NS_IF_RELEASE(kWatchThreadAtom);
-    NS_IF_RELEASE(kIgnoreThreadAtom);
-    NS_IF_RELEASE(kIgnoreSubthreadAtom);
-    NS_IF_RELEASE(kHasImageAtom);
     NS_IF_RELEASE(kJunkMsgAtom);
     NS_IF_RELEASE(kNotJunkMsgAtom);
-    NS_IF_RELEASE(kDummyMsgAtom);
-
-#ifdef SUPPORT_PRIORITY_COLORS
-    NS_IF_RELEASE(kHighestPriorityAtom);
-    NS_IF_RELEASE(kHighPriorityAtom);
-    NS_IF_RELEASE(kLowestPriorityAtom);
-    NS_IF_RELEASE(kLowPriorityAtom);
-#endif
-
-    NS_IF_RELEASE(kLabelColorWhiteAtom);
-    NS_IF_RELEASE(kLabelColorBlackAtom);
 
     NS_Free(kHighestPriorityString);
     NS_Free(kHighPriorityString);
@@ -320,7 +245,7 @@ nsresult nsMsgDBView::GetPrefLocalizedString(const char *aPrefName, nsString& aR
   return rv;
 }
 
-nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords, nsISupportsArray *properties, bool addSelectedTextProperty)
+nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords, nsAString& properties, bool addSelectedTextProperty)
 {
   // get the top most keyword's color and append that as a property.
   nsresult rv;
@@ -341,12 +266,14 @@ nsresult nsMsgDBView::AppendKeywordProperties(const nsACString& keywords, nsISup
   if (NS_SUCCEEDED(rv) && !color.IsEmpty())
   {
     if (addSelectedTextProperty)
-      properties->AppendElement(color.EqualsLiteral(LABEL_COLOR_WHITE_STRING)
-        ? kLabelColorBlackAtom
-        : kLabelColorWhiteAtom);
+    {
+      if (color.EqualsLiteral(LABEL_COLOR_WHITE_STRING))
+        properties.AppendLiteral(" lc-black");
+      else
+        properties.AppendLiteral(" lc-white");
+    }
     color.Replace(0, 1, NS_LITERAL_CSTRING(LABEL_COLOR_STRING));
-    nsCOMPtr <nsIAtom> keywordAtom = MsgGetAtom(color.get());
-    properties->AppendElement(keywordAtom);
+    properties.AppendASCII(color.get());
   }
   return rv;
 }
@@ -1391,7 +1318,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsMsgViewIndexArray& selection)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetRowProperties(int32_t index, nsISupportsArray *properties)
+NS_IMETHODIMP nsMsgDBView::GetRowProperties(int32_t index, nsAString& properties)
 {
   if (!IsValidIndex(index))
     return NS_MSG_INVALID_DBVIEW_INDEX;
@@ -1414,17 +1341,25 @@ NS_IMETHODIMP nsMsgDBView::GetRowProperties(int32_t index, nsISupportsArray *pro
 
   // give the custom column handlers a chance to style the row.
   for (int i = 0; i < m_customColumnHandlers.Count(); i++)
-    m_customColumnHandlers[i]->GetRowProperties(index, properties);
+  {
+    nsString extra;
+    m_customColumnHandlers[i]->GetRowProperties(index, extra);
+    if (!extra.IsEmpty())
+    {
+      properties.Append(' ');
+      properties.Append(extra);
+    }
+  }
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetColumnProperties(nsITreeColumn* col, nsISupportsArray *properties)
+NS_IMETHODIMP nsMsgDBView::GetColumnProperties(nsITreeColumn* col, nsAString& properties)
 {
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, nsISupportsArray *properties)
+NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, nsAString& properties)
 {
   if (!IsValidIndex(aRow))
     return NS_MSG_INVALID_DBVIEW_INDEX;
@@ -1443,52 +1378,63 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
     return NS_MSG_INVALID_DBVIEW_INDEX;
   }
 
+  const PRUnichar* colID;
+  col->GetIdConst(&colID);
+  nsIMsgCustomColumnHandler* colHandler = GetColumnHandler(colID);
+  if (colHandler != nullptr)
+    colHandler->GetCellProperties(aRow, col, properties);
+
+  if (!properties.IsEmpty())
+    properties.Append(' ');
+
+  properties.Append(mMessageType);
+
   uint32_t flags;
   msgHdr->GetFlags(&flags);
 
   if (!(flags & nsMsgMessageFlags::Read))
-    properties->AppendElement(kUnreadMsgAtom);
+    properties.AppendLiteral(" unread");
   else
-    properties->AppendElement(kReadMsgAtom);
+    properties.AppendLiteral(" read");
 
   if (flags & nsMsgMessageFlags::Replied)
-    properties->AppendElement(kRepliedMsgAtom);
+    properties.AppendLiteral(" replied");
 
   if (flags & nsMsgMessageFlags::Forwarded)
-    properties->AppendElement(kForwardedMsgAtom);
+    properties.AppendLiteral(" forwarded");
 
   if (flags & nsMsgMessageFlags::New)
-    properties->AppendElement(kNewMsgAtom);
+    properties.AppendLiteral(" new");
+
+  if (m_flags[aRow] & nsMsgMessageFlags::Marked)
+    properties.AppendLiteral(" flagged");
 
   if (flags & nsMsgMessageFlags::Ignored)
-    properties->AppendElement(kIgnoreSubthreadAtom);
+    properties.AppendLiteral(" ignoreSubthread");
 
   nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
 
   if ((flags & nsMsgMessageFlags::Offline) || (localFolder && !(flags & nsMsgMessageFlags::Partial)))
-    properties->AppendElement(kOfflineMsgAtom);
+    properties.AppendLiteral(" offline");
 
   if (flags & nsMsgMessageFlags::Attachment)
-    properties->AppendElement(kAttachMsgAtom);
+    properties.AppendLiteral(" attach");
 
   if ((mDeleteModel == nsMsgImapDeleteModels::IMAPDelete) && (flags & nsMsgMessageFlags::IMAPDeleted))
-    properties->AppendElement(kImapDeletedMsgAtom);
-
-  if (mMessageTypeAtom)
-    properties->AppendElement(mMessageTypeAtom);
+    properties.AppendLiteral(" imapdeleted");
 
   nsCString imageSize;
   msgHdr->GetStringProperty("imageSize", getter_Copies(imageSize));
   if (!imageSize.IsEmpty())
-  {
-    properties->AppendElement(kHasImageAtom);
-  }
+    properties.AppendLiteral(" hasimage");
 
   nsCString junkScoreStr;
   msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   if (!junkScoreStr.IsEmpty()) {
-    properties->AppendElement(junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
-                              kJunkMsgAtom : kNotJunkMsgAtom);
+    if (junkScoreStr.ToInteger(&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)
+      properties.AppendLiteral(" junk");
+    else
+      properties.AppendLiteral(" notjunk");
     NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
   }
 
@@ -1505,17 +1451,14 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
   msgHdr->GetStringProperty("keywords", getter_Copies(keywordProperty));
   if (!keywordProperty.IsEmpty())
   {
-    nsAutoCString keywords(keywordProperty);
-    nsAutoCString nextKeyword;
+    NS_ConvertUTF8toUTF16 keywords(keywordProperty);
     int32_t spaceIndex = 0;
     do
     {
       spaceIndex = keywords.FindChar(' ');
       int32_t endOfKeyword = (spaceIndex == -1) ? keywords.Length() : spaceIndex;
-      nextKeyword.AssignLiteral("kw-");
-      nextKeyword.Append(StringHead(keywords, endOfKeyword));
-      nsCOMPtr <nsIAtom> keywordAtom = MsgGetAtom(nextKeyword.get());
-      properties->AppendElement(keywordAtom);
+      properties.AppendLiteral(" kw-");
+      properties.Append(StringHead(keywords, endOfKeyword));
       if (spaceIndex > 0)
         keywords.Cut(0, endOfKeyword + 1);
     }
@@ -1529,31 +1472,21 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
   switch (priority)
   {
   case nsMsgPriority::highest:
-    properties->AppendElement(kHighestPriorityAtom);
+    properties.append(" priority-highest");
     break;
   case nsMsgPriority::high:
-    properties->AppendElement(kHighPriorityAtom);
+    properties.append(" priority-high");
     break;
   case nsMsgPriority::low:
-    properties->AppendElement(kLowPriorityAtom);
+    properties.append(" priority-low");
     break;
   case nsMsgPriority::lowest:
-    properties->AppendElement(kLowestPriorityAtom);
+    properties.append(" priority-lowest");
     break;
   default:
     break;
   }
 #endif
-
-  const PRUnichar* colID;
-  col->GetIdConst(&colID);
-  if (colID[0] == 'f')
-  {
-    if (m_flags[aRow] & nsMsgMessageFlags::Marked)
-    {
-      properties->AppendElement(kFlaggedMsgAtom);
-    }
-  }
 
   if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
   {
@@ -1566,24 +1499,14 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
         uint32_t numUnreadChildren;
         thread->GetNumUnreadChildren(&numUnreadChildren);
         if (numUnreadChildren > 0)
-          properties->AppendElement(kHasUnreadAtom);
+          properties.AppendLiteral(" hasUnread");
         thread->GetFlags(&flags);
         if (flags & nsMsgMessageFlags::Watched)
-          properties->AppendElement(kWatchThreadAtom);
+          properties.AppendLiteral(" watch");
         if (flags & nsMsgMessageFlags::Ignored)
-          properties->AppendElement(kIgnoreThreadAtom);
+          properties.AppendLiteral(" ignore");
       }
     }
-  }
-
-  //custom column handlers are called at the end of getCellProperties
-  //to make life easier for extension writers
-  nsIMsgCustomColumnHandler* colHandler = GetColumnHandler(colID);
-
-  if (colHandler != nullptr)
-  {
-    colHandler->GetCellProperties(aRow, col, properties);
-    return NS_OK;
   }
 
   return NS_OK;
@@ -2310,10 +2233,11 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
     if (!mIsXFVirtual && MsgLowerCaseEqualsLiteral(type, "rss"))
       mIsRss = true;
 
-    if (type.IsEmpty())
-      mMessageTypeAtom = nullptr;
-    else  // special case nntp --> news since we'll break themes if we try to be consistent
-      mMessageTypeAtom = MsgGetAtom(mIsNews ? "news" : type.get());
+    // special case nntp --> news since we'll break themes if we try to be consistent
+    if (mIsNews)
+      mMessageType.AssignLiteral("news");
+    else
+      CopyUTF8toUTF16(type, mMessageType);
 
     GetImapDeleteModel(nullptr);
 

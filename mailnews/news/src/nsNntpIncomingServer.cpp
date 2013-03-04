@@ -1707,19 +1707,18 @@ nsNntpIncomingServer::SetSelection(nsITreeSelection * aSelection)
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetRowProperties(int32_t index, nsISupportsArray *properties)
+nsNntpIncomingServer::GetRowProperties(int32_t index, nsAString& properties)
 {
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetCellProperties(int32_t row, nsITreeColumn* col, nsISupportsArray *properties)
+nsNntpIncomingServer::GetCellProperties(int32_t row, nsITreeColumn* col, nsAString& properties)
 {
     if (!IsValidRow(row))
       return NS_ERROR_UNEXPECTED;
 
     NS_ENSURE_ARG_POINTER(col);
-    NS_ENSURE_ARG_POINTER(properties);
 
     const PRUnichar* colID;
     col->GetIdConst(&colID);
@@ -1730,19 +1729,19 @@ nsNntpIncomingServer::GetCellProperties(int32_t row, nsITreeColumn* col, nsISupp
         if (mSearchResultSortDescending)
           row = mSubscribeSearchResult.Length() - 1 - row;
         if (mTempSubscribed.IndexOf(mSubscribeSearchResult.ElementAt(row)) != mTempSubscribed.NoIndex) {
-          properties->AppendElement(mSubscribedAtom);
+          properties.AssignLiteral("subscribed");
         }
     }
     else if (colID[0] == 'n') {
       // add the "nntp" property to the "nameCol"
       // so we get the news folder icon in the search view
-      properties->AppendElement(mNntpAtom);
+      properties.AssignLiteral("nntp");
     }
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::GetColumnProperties(nsITreeColumn* col, nsISupportsArray *properties)
+nsNntpIncomingServer::GetColumnProperties(nsITreeColumn* col, nsAString& properties)
 {
     return NS_OK;
 }

@@ -690,23 +690,31 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   return rv;
 }
 
-NS_IMETHODIMP nsMsgGroupView::GetRowProperties(int32_t aRow, nsISupportsArray *aProperties)
+NS_IMETHODIMP nsMsgGroupView::GetRowProperties(int32_t aRow, nsAString& aProperties)
 {
   if (!IsValidIndex(aRow))
     return NS_MSG_INVALID_DBVIEW_INDEX;
 
   if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY)
-    return aProperties->AppendElement(kDummyMsgAtom);
+  {
+    aProperties.AssignLiteral("dummy");
+    return NS_OK;
+  }
+
   return nsMsgDBView::GetRowProperties(aRow, aProperties);
 }
 
-NS_IMETHODIMP nsMsgGroupView::GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties)
+NS_IMETHODIMP nsMsgGroupView::GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsAString& aProperties)
 {
   if (!IsValidIndex(aRow))
     return NS_MSG_INVALID_DBVIEW_INDEX;
 
   if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY)
-    return aProperties->AppendElement(kDummyMsgAtom);
+  {
+    aProperties.AssignLiteral("dummy");
+    return NS_OK;
+  }
+
   return nsMsgDBView::GetCellProperties(aRow, aCol, aProperties);
 }
 

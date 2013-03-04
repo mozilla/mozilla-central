@@ -67,7 +67,6 @@ private:
   nsCOMPtr<nsITreeSelection> mTreeSelection;
   nsCOMPtr <nsIAbDirectory> mDirectory;
   nsVoidArray mCards;
-  nsCOMPtr<nsIAtom> mMailListAtom;
   nsString mSortColumn;
   nsString mSortDirection;
   nsCOMPtr<nsICollation> mCollationKeyGenerator;

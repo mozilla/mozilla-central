@@ -169,20 +169,8 @@ var FeedSubscriptions = {
 //      aProperties.AppendElement(this._getAtomFor("folderNameCol"));
       let item = this.getItemAtIndex(aRow);
       let folder = item && item.folder ? item.folder : null;
-      if (folder)
-      {
-        if (folder.isServer)
-        {
-          aProperties.AppendElement(this._getAtomFor("serverType-rss"));
-          aProperties.AppendElement(this._getAtomFor("isServer-true"));
-        }
-        else
-          // It's a feed folder.
-          aProperties.AppendElement(this._getAtomFor("livemark"));
-      }
-      else
-        // It's a feed.
-        aProperties.AppendElement(this._getAtomFor("serverType-rss"));
+      return !folder ? "serverType-rss" :
+             folder.isServer ? "serverType=rss isServer-true" : "livemark";
     },
 
     isContainer: function (aRow)

@@ -13,8 +13,7 @@
  * attribute boolean open - whether or not this item's children are exposed
  * string getText(aColName) - return the text to display for this row in the
  *                            specified column
- * void getProperties(aProps) - set the css-selectors on aProps when this is
- *                              called
+ * void getProperties() - return the css-selectors
  * attribute array children - return an array of child-objects also meeting this
  *                            interface
  */
@@ -35,7 +34,7 @@ PROTO_TREE_VIEW.prototype = {
    * items so that custom data-displays can define their own properties
    */
   getCellProperties: function jstv_getCellProperties(aRow, aCol, aProps) {
-    this._rowMap[aRow].getProperties(aProps, aCol);
+    return this._rowMap[aRow].getProperties(aCol);
   },
 
   /**
@@ -65,7 +64,7 @@ PROTO_TREE_VIEW.prototype = {
    * want to do something special here
    */
   getRowProperties: function jstv_getRowProperties(aIndex, aProps) {
-    this._rowMap[aIndex].getProperties(aProps);
+    return this._rowMap[aIndex].getProperties();
   },
 
   /**
