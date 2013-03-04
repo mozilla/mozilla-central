@@ -109,19 +109,6 @@ var FeedSubscriptions = {
 
   mView:
   {
-    _atoms: [],
-    _getAtomFor: function(aName) {
-      if (!this._atoms[aName])
-        this._atoms[aName] = this._makeAtom(aName);
-      return this._atoms[aName];
-    },
-  
-    _makeAtom: function(aString) {
-      return Cc["@mozilla.org/atom-service;1"].
-             getService(Ci.nsIAtomService).
-             getAtom(aString);
-    },
-
     kRowIndexUndefined: -1,
 
     get currentItem() {
@@ -159,14 +146,13 @@ var FeedSubscriptions = {
     performAction: function(aAction)       {},
     performActionOnRow: function (aAction, aRow)       {},
     performActionOnCell: function(aAction, aRow, aCol) {},
-    getRowProperties: function(aRow, aProperties)      {},
-    getColumnProperties: function(aCol, aProperties)   {},
+    getRowProperties: function(aRow)                   { return ""; },
+    getColumnProperties: function(aCol)                { return ""; },
     getCellValue: function (aRow, aColumn)             {},
     setCellValue: function (aRow, aColumn, aValue)     {},
     setCellText: function (aRow, aColumn, aValue)      {},
 
-    getCellProperties: function (aRow, aColumn, aProperties) {
-//      aProperties.AppendElement(this._getAtomFor("folderNameCol"));
+    getCellProperties: function (aRow, aColumn) {
       let item = this.getItemAtIndex(aRow);
       let folder = item && item.folder ? item.folder : null;
       return !folder ? "serverType-rss" :

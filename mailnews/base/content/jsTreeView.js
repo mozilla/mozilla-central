@@ -13,7 +13,7 @@
  * attribute boolean open - whether or not this item's children are exposed
  * string getText(aColName) - return the text to display for this row in the
  *                            specified column
- * void getProperties() - return the css-selectors
+ * string getProperties() - return the css-selectors
  * attribute array children - return an array of child-objects also meeting this
  *                            interface
  */
@@ -33,7 +33,7 @@ PROTO_TREE_VIEW.prototype = {
    * CSS files will cue off of these.  Note that we reach into the rowMap's
    * items so that custom data-displays can define their own properties
    */
-  getCellProperties: function jstv_getCellProperties(aRow, aCol, aProps) {
+  getCellProperties: function jstv_getCellProperties(aRow, aCol) {
     return this._rowMap[aRow].getProperties(aCol);
   },
 
@@ -63,8 +63,8 @@ PROTO_TREE_VIEW.prototype = {
    * This is duplicative for our normal jstv views, but custom data-displays may
    * want to do something special here
    */
-  getRowProperties: function jstv_getRowProperties(aIndex, aProps) {
-    return this._rowMap[aIndex].getProperties();
+  getRowProperties: function jstv_getRowProperties(aRow) {
+    return this._rowMap[aRow].getProperties();
   },
 
   /**
@@ -198,7 +198,7 @@ PROTO_TREE_VIEW.prototype = {
   setCellText: function jstv_setCellText(aRow, aCol, aValue) {},
   setCellValue: function jstv_setCellValue(aRow, aCol, aValue) {},
   getCellValue: function jstv_getCellValue(aRow, aCol) {},
-  getColumnProperties: function jstv_getColumnProperties(aCol, aProps) {},
+  getColumnProperties: function jstv_getColumnProperties(aCol) { return ""; },
   getImageSrc: function jstv_getImageSrc(aRow, aCol) {},
   getProgressMode: function jstv_getProgressMode(aRow, aCol) {},
   cycleCell: function jstv_cycleCell(aRow, aCol) {},

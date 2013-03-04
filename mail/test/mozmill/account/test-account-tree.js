@@ -118,25 +118,18 @@ function subtest_check_default_account_highlight(amc)
   // We can't read the computed style of the tree cell directly, so at least see
   // if the isDefaultServer-true property is set on it. Hopefully the proper style
   // is attached to this property.
-  let propArray = Cc["@mozilla.org/supports-array;1"]
-                    .createInstance(Ci.nsISupportsArray);
-
-  accountTree.view.getCellProperties(accountRow, accountTree.columns.getColumnAt(0),
-                                     propArray);
-  assert_equals(propArray.Count(), 1);
-  assert_equals(propArray.QueryElementAt(0, Ci.nsIAtom).toString(), "isDefaultServer-true");
+  let propArray = accountTree.view
+    .getCellProperties(accountRow, accountTree.columns.getColumnAt(0)).split(" ");
+  assert_not_equals(propArray.indexOf("isDefaultServer-true"), -1);
 
   // Now select another account that is not default.
   accountRow = get_account_tree_row(gPopAccount.key, null, amc);
   click_account_tree_row(amc, accountRow);
 
-  cell = accountTree.view.getItemAtIndex(accountRow).firstChild.firstChild;
-  propArray.Clear();
-  accountTree.view.getCellProperties(accountRow, accountTree.columns.getColumnAt(0),
-                                     propArray);
-
-  // There should be no properties set on its tree cell.
-  assert_equals(propArray.Count(), 0);
+  // There should isDefaultServer-true on its tree cell.
+  propArray = accountTree.view
+    .getCellProperties(accountRow, accountTree.columns.getColumnAt(0)).split(" ");
+  assert_equals(propArray.indexOf("isDefaultServer-true"), -1);
 }
 /**
  * Bug 58713.

@@ -713,8 +713,8 @@ let gFolderTreeView = {
    * CSS files will cue off of these.  Note that we reach into the rowMap's
    * items so that custom data-displays can define their own properties
    */
-  getCellProperties: function ftv_getCellProperties(aRow, aCol, aProps) {
-    this._rowMap[aRow].getProperties(aProps, aCol);
+  getCellProperties: function ftv_getCellProperties(aRow, aCol) {
+    return this._rowMap[aRow].getProperties(aCol);
   },
 
   /**
@@ -745,8 +745,8 @@ let gFolderTreeView = {
    * This is duplicative for our normal ftv views, but custom data-displays may
    * want to do something special here
    */
-  getRowProperties: function ftv_getRowProperties(aIndex, aProps) {
-    this._rowMap[aIndex].getProperties(aProps);
+  getRowProperties: function ftv_getRowProperties(aRow) {
+    return this._rowMap[aRow].getProperties();
   },
 
   /**
@@ -1075,7 +1075,7 @@ let gFolderTreeView = {
   setCellText: function ftv_setCellText(aRow, aCol, aValue) {},
   setCellValue: function ftv_setCellValue(aRow, aCol, aValue) {},
   getCellValue: function ftv_getCellValue(aRow, aCol) {},
-  getColumnProperties: function ftv_getColumnProperties(aCol, aProps) {},
+  getColumnProperties: function ftv_getColumnProperties(aCol) { return ""; },
   getImageSrc: function ftv_getImageSrc(aRow, aCol) {},
   getProgressMode: function ftv_getProgressMode(aRow, aCol) {},
   cycleCell: function ftv_cycleCell(aRow, aCol) {},
@@ -1909,25 +1909,21 @@ ftvItem.prototype = {
     return this._level;
   },
 
-  getProperties: function ftvItem_getProperties(aProps) {
+  getProperties: function ftvItem_getProperties() {
     // From folderUtils.jsm
-    setPropertyAtoms(this._folder, aProps);
-    if (this._folder.flags & nsMsgFolderFlags.Virtual) {
-        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
-                             .getService(Components.interfaces.nsIAtomService)
-                             .getAtom("specialFolder-Smart"));
-        // a second possibility for customized smart folders
-        aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
-                             .getService(Components.interfaces.nsIAtomService)
-                             .getAtom("specialFolder-"+this._folder.name.replace(' ','')));
+    let properties = getFolderProperties(this._folder);
+    if (this._folder.getFlag(nsMsgFolderFlags.Virtual)) {
+      properties += " specialFolder-Smart";
+      // a second possibility for customized smart folders
+      properties += " specialFolder-" + this._folder.name.replace(' ','');
     }
     // if there is a smartFolder name property, add it
     let smartFolderName = getSmartFolderName(this._folder);
     if (smartFolderName) {
-      aProps.AppendElement(Components.classes["@mozilla.org/atom-service;1"]
-                         .getService(Components.interfaces.nsIAtomService)
-                         .getAtom("specialFolder-"+smartFolderName.replace(' ','')));
+      properties += " specialFolder-" + smartFolderName.replace(' ','');
     }
+
+    return properties;
   },
 
   command: function fti_command() {

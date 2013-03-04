@@ -44,12 +44,11 @@ var gPermissionManager = {
     getImageSrc: function(aRow, aColumn) {},
     getProgressMode: function(aRow, aColumn) {},
     getCellValue: function(aRow, aColumn) {},
-    cycleHeader: function(column) {},
-    getRowProperties: function(row,prop){},
-    getColumnProperties: function(column,prop){},
-    getCellProperties: function(row,column,prop){
-      if (column.element.getAttribute("id") == "siteCol")
-        prop.AppendElement(this._ltrAtom);
+    cycleHeader: function(aColumn) {},
+    getRowProperties: function(aRow) { return ""; },
+    getColumnProperties: function(aColumn) { return ""; },
+    getCellProperties: function(aRow, aColumn) {
+      return (aColumn.element.getAttribute("id") == "siteCol") ? "ltr" : "";
     }
   },
 
@@ -170,10 +169,6 @@ var gPermissionManager = {
     this._loadPermissions();
 
     urlField.focus();
-
-    this._ltrAtom = Components.classes["@mozilla.org/atom-service;1"]
-                              .getService(Components.interfaces.nsIAtomService)
-                              .getAtom("ltr");
   },
 
   uninit: function ()

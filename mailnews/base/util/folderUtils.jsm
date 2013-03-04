@@ -6,8 +6,8 @@
  * This file contains helper methods for dealing with nsIMsgFolders.
  */
 
-var EXPORTED_SYMBOLS = ["setPropertyAtoms", "getSpecialFolderString",
-                        "getFolderFromUri", "allAccountsSorted"];
+const EXPORTED_SYMBOLS = ["getFolderProperties", "getSpecialFolderString",
+                          "getFolderFromUri", "allAccountsSorted"];
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
@@ -41,48 +41,46 @@ function getSpecialFolderString(aFolder) {
 }
 
 /**
- * This function is meant to be used with trees. It adds atoms for all of the
- * common properties that css styling is based off of.
+ * This function is meant to be used with trees. It returns the property list
+ * for all of the common properties that css styling is based off of.
  *
- * @param aFolder     the folder whose properties should be added as atoms
- * @param aProperties the nsIProperties object where the atoms should be added
+ * @param aFolder  the folder whose properties should be returned as a string
+ *
+ * @return         A string of the property names, delimited by space.
  */
-function setPropertyAtoms(aFolder, aProperties) {
+function getFolderProperties(aFolder) {
   const Cc = Components.classes;
   const Ci = Components.interfaces;
-  let atomSvc = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-  function addAtom(aName) {
-    aProperties.AppendElement(atomSvc.getAtom(aName));
-  }
+  let properties = [];
 
-  addAtom("folderNameCol");
+  properties.push("folderNameCol");
   if (aFolder.getNumUnread(false) > 0)
-    addAtom("hasUnreadMessages-true");
+    properties.push("hasUnreadMessages-true");
 
   if (aFolder.isServer)
-    addAtom("isServer-true");
+    properties.push("isServer-true");
 
-  addAtom("serverType-" + aFolder.server.type);
+  properties.push("serverType-" + aFolder.server.type);
 
   // set the SpecialFolder attribute
-  addAtom("specialFolder-" + getSpecialFolderString(aFolder));
+  properties.push("specialFolder-" + getSpecialFolderString(aFolder));
 
   // Now set the biffState
   switch (aFolder.biffState) {
     case Ci.nsIMsgFolder.nsMsgBiffState_NewMail:
-      addAtom("biffState-NewMail");
+      properties.push("biffState-NewMail");
       break;
     case Ci.nsIMsgFolder.nsMsgBiffState_NoMail:
-      addAtom("biffState-NoMail");
+      properties.push("biffState-NoMail");
       break;
     default:
-      addAtom("biffState-UnknownMail");
+      properties.push("biffState-UnknownMail");
   }
 
-  addAtom("isSecure-" + aFolder.server.isSecure);
+  properties.push("isSecure-" + aFolder.server.isSecure);
 
   if (aFolder.hasNewMessages)
-    addAtom("newMessages-true");
+    properties.push("newMessages-true");
 
   // We only set this if we're not a server
   if (!aFolder.isServer) {
@@ -92,11 +90,13 @@ function setPropertyAtoms(aFolder, aProperties) {
       shallowUnread = 0;
     let deepUnread = aFolder.getNumUnread(true);
     if (deepUnread - shallowUnread > 0)
-      addAtom("subfoldersHaveUnreadMessages-true");
+      properties.push("subfoldersHaveUnreadMessages-true");
   }
 
-  addAtom("noSelect-" + aFolder.noSelect);
-  addAtom("imapShared-" + aFolder.imapShared);
+  properties.push("noSelect-" + aFolder.noSelect);
+  properties.push("imapShared-" + aFolder.imapShared);
+
+  return properties.join(" ");
 }
 
 /**

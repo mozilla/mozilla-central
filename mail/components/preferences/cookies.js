@@ -313,9 +313,9 @@ var gCookiesWindow = {
     _selection: null,
     get selection () { return this._selection; },
     set selection (val) { this._selection = val; return val; },
-    getRowProperties: function (aIndex, aProperties) {},
-    getCellProperties: function (aIndex, aColumn, aProperties) {},
-    getColumnProperties: function (aColumn, aProperties) {},
+    getRowProperties: function (aRow) { return ""; },
+    getCellProperties: function (aRow, aColumn) { return ""; },
+    getColumnProperties: function (aColumn) { return ""; },
     isContainer: function (aIndex)
     {
       if (!this._filtered) {

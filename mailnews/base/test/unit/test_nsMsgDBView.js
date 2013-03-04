@@ -215,8 +215,8 @@ var authorFirstLetterCustomColumn = {
     return true;
   },
 
-  getCellProperties:   function(row, col, props){},
-  getRowProperties:    function(row, props){},
+  getCellProperties:   function(row, col) { return ""; },
+  getRowProperties:    function(row) { return ""; },
   getImageSrc:         function(row, col) {return null;},
   getSortLongForRow:   function(hdr) {return 0;}
 };

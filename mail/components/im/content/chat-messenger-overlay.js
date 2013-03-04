@@ -1046,7 +1046,7 @@ chatLogTreeGroupItem.prototype = {
   get level() 0,
   get _parent() null,
   get children() this._children,
-  getProperties: function(aProps) {}
+  getProperties: function() ""
 };
 
 function chatLogTreeLogItem(aLog, aText, aLevel) {
@@ -1060,7 +1060,7 @@ chatLogTreeLogItem.prototype = {
   get open() false,
   get level() this._level,
   get children() [],
-  getProperties: function(aProps) {}
+  getProperties: function() ""
 };
 
 function chatLogTreeView(aTree, aLogs) {
