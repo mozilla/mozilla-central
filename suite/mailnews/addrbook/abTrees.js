@@ -65,16 +65,16 @@ abDirTreeItem.prototype =
     return this._children;
   },
 
-  getProperties: function atv_getProps(aProps)
+  getProperties: function atv_getProps()
   {
-    var atomSvc = Components.classes["@mozilla.org/atom-service;1"]
-                            .getService(Components.interfaces.nsIAtomService);
+    var properties = []
     if (this._directory.isMailList)
-      aProps.AppendElement(atomSvc.getAtom("IsMailList-true"));
+      properties.push("IsMailList-true");
     if (this._directory.isRemote)
-      aProps.AppendElement(atomSvc.getAtom("IsRemote-true"));
+      properties.push("IsRemote-true");
     if (this._directory.isSecure)
-      aProps.AppendElement(atomSvc.getAtom("IsSecure-true"));
+      properties.push("IsSecure-true");
+    return properties.join(" ");
   }
 };
 

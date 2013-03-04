@@ -26,45 +26,43 @@ DownloadTreeView.prototype = {
 
   selection: null,
 
-  getRowProperties: function(aRow, aProperties) {
+  getRowProperties: function(aRow) {
     var dl = this._dlList[aRow];
-    var atomService = Components.classes["@mozilla.org/atom-service;1"]
-                                .getService(Components.interfaces.nsIAtomService);
     // (in)active
-    var activeAtom = atomService.getAtom(dl.isActive ? "active": "inactive");
-    aProperties.AppendElement(activeAtom);
+    var properties = dl.isActive ? "active": "inactive";
     // resumable
     if (dl.resumable)
-      aProperties.AppendElement(atomService.getAtom("resumable"));
+      properties += " resumable";
     // Download states
     switch (dl.state) {
       case nsIDownloadManager.DOWNLOAD_PAUSED:
-        aProperties.AppendElement(atomService.getAtom("paused"));
+        properties += " paused";
         break;
       case nsIDownloadManager.DOWNLOAD_DOWNLOADING:
-        aProperties.AppendElement(atomService.getAtom("downloading"));
+        properties += " downloading";
         break;
       case nsIDownloadManager.DOWNLOAD_FINISHED:
-        aProperties.AppendElement(atomService.getAtom("finished"));
+        properties += " finished";
         break;
       case nsIDownloadManager.DOWNLOAD_FAILED:
-        aProperties.AppendElement(atomService.getAtom("failed"));
+        properties += " failed";
         break;
       case nsIDownloadManager.DOWNLOAD_CANCELED:
-        aProperties.AppendElement(atomService.getAtom("canceled"));
+        properties += " canceled";
         break;
       case nsIDownloadManager.DOWNLOAD_BLOCKED_PARENTAL: // Parental Controls
       case nsIDownloadManager.DOWNLOAD_BLOCKED_POLICY:   // Security Zone Policy
       case nsIDownloadManager.DOWNLOAD_DIRTY:            // possible virus/spyware
-        aProperties.AppendElement(atomService.getAtom("blocked"));
+        properties += " blocked";
         break;
     }
+    return properties;
   },
-  getCellProperties: function(aRow, aColumn, aProperties) {
+  getCellProperties: function(aRow, aColumn) {
     // Append all row properties to the cell
-    this.getRowProperties(aRow, aProperties);
+    return this.getRowProperties(aRow);
   },
-  getColumnProperties: function(aColumn, aProperties) { },
+  getColumnProperties: function(aColumn) { return ""; },
   isContainer: function(aRow) { return false; },
   isContainerOpen: function(aRow) { return false; },
   isContainerEmpty: function(aRow) { return false; },

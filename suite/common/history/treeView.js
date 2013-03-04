@@ -12,20 +12,6 @@ function PlacesTreeView() {
 }
 
 PlacesTreeView.prototype = {
-  _makeAtom: function PTV__makeAtom(aString) {
-    return Components.classes["@mozilla.org/atom-service;1"]
-                     .getService(Components.interfaces.nsIAtomService)
-                     .getAtom(aString);
-  },
-
-  _atoms: [],
-  _getAtomFor: function PTV__getAtomFor(aName) {
-    if (!this._atoms[aName])
-      this._atoms[aName] = this._makeAtom(aName);
-
-    return this._atoms[aName];
-  },
-
   __dateService: null,
   get _dateService() {
     if (!this.__dateService) {
@@ -882,32 +868,30 @@ PlacesTreeView.prototype = {
     return this._selection = val;
   },
 
-  getRowProperties: function PTV_getRowProperties(aRow, aProperties) { },
+  getRowProperties: function PTV_getRowProperties(aRow) { return ""; },
 
-  getCellProperties: function PTV_getCellProperties(aRow, aColumn, aProperties) {
+  getCellProperties: function PTV_getCellProperties(aRow, aColumn) {
     if (aColumn.id != "Name")
-      return;
+      return "";
 
     let node = this._getNodeForRow(aRow);
-    let properties = this._cellProperties.get(node, null);
+    let properties = this._cellProperties.get(node);
     if (!properties) {
-      properties = [];
+      properties = "Name";
       if (node.type == Components.interfaces.nsINavHistoryResultNode.RESULT_TYPE_QUERY) {
-        properties.push(this._getAtomFor("query"));
+        properties += " query";
         if (PlacesUtils.nodeIsDay(node))
-          properties.push(this._getAtomFor("dayContainer"));
+          properties += " dayContainer";
         else if (PlacesUtils.nodeIsHost(node))
-          properties.push(this._getAtomFor("hostContainer"));
+          properties += " hostContainer";
       }
 
       this._cellProperties.set(node, properties);
     }
-    for (let property of properties) {
-      aProperties.AppendElement(property);
-    }
+    return properties;
   },
 
-  getColumnProperties: function(aColumn, aProperties) { },
+  getColumnProperties: function(aColumn) { return ""; },
 
   isContainer: function PTV_isContainer(aRow) {
     // Only leaf nodes aren't listed in the rows array.

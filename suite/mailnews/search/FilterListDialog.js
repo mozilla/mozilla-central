@@ -53,9 +53,6 @@ var gStatusFeedback = {
 };
 
 var gFilterTreeView = {
-  mEnabledAtom: Components.classes['@mozilla.org/atom-service;1']
-                          .getService(Components.interfaces.nsIAtomService)
-                          .getAtom('Enabled-true'),
   mTree: null,
   get tree() {
     return this.mTree;
@@ -82,15 +79,13 @@ var gFilterTreeView = {
     return this.mFilterList.filterCount;
   },
   selection: null,
-  getRowProperties: function getRowProperties(index, properties) {
-    if (this.mFilterList.getFilterAt(index).enabled)
-      properties.AppendElement(this.mEnabledAtom);
+  getRowProperties: function getRowProperties(row) {
+    return this.mFilterList.getFilterAt(row).enabled ? "Enabled-true" : "";
   },
-  getCellProperties: function getCellProperties(row, col, properties) {
-    if (this.mFilterList.getFilterAt(row).enabled)
-      properties.AppendElement(this.mEnabledAtom);
+  getCellProperties: function getCellProperties(row, col) {
+    return this.mFilterList.getFilterAt(row).enabled ? "Enabled-true" : "";
   },
-  getColumnProperties: function getColumnProperties(col, properties) {},
+  getColumnProperties: function getColumnProperties(col) { return ""; },
   isContainer: function isContainer(index) { return false; },
   isContainerOpen: function isContainerOpen(index) { return false; },
   isContainerEmpty: function isContainerEmpty(index) { return false; },

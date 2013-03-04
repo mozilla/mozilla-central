@@ -224,9 +224,9 @@ var gBaseTreeView = {
   isSorted: function() { return false; },
   isContainer: function(aIndex) { return false; },
   cycleHeader: function(aCol) {},
-  getRowProperties: function(aRow, aProp) {},
-  getColumnProperties: function(aColumn, aProp) {},
-  getCellProperties: function(aRow, aColumn, aProp) {}
+  getRowProperties: function(aRow) { return ""; },
+  getColumnProperties: function(aColumn) { return ""; },
+  getCellProperties: function(aRow, aColumn) { return ""; }
 };
 
 // :::::::::::::::::::: domain list ::::::::::::::::::::

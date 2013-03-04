@@ -123,9 +123,9 @@ var cookiesTreeView = {
   isSorted: function() { return false; },
   isContainer : function(index) {return false;},
   cycleHeader : function(aCol) {},
-  getRowProperties : function(row,prop) {},
-  getColumnProperties : function(column,prop) {},
-  getCellProperties : function(row,column,prop) {}
+  getRowProperties : function(row) { return ""; },
+  getColumnProperties : function(column) { return ""; },
+  getCellProperties : function(row, column) { return ""; }
  };
 var cookiesTree;
 
@@ -360,9 +360,9 @@ var permissionsTreeView = {
   isSorted: function() { return false; },
   isContainer : function(index) {return false;},
   cycleHeader : function(aCol) {},
-  getRowProperties : function(row,prop) {},
-  getColumnProperties : function(column,prop) {},
-  getCellProperties : function(row,column,prop) {}
+  getRowProperties : function(row) { return ""; },
+  getColumnProperties : function(column) { return ""; },
+  getCellProperties : function(row, column) { return ""; }
  };
 var permissionsTree;
 

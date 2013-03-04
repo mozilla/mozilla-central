@@ -30,9 +30,9 @@ var permissionsTreeView = {
     isSorted: function() { return false; },
     isContainer: function(index) { return false; },
     cycleHeader: function(column) {},
-    getRowProperties: function(row, column, prop) {},
-    getColumnProperties: function(column, prop) {},
-    getCellProperties: function(row, column, prop) {}
+    getRowProperties: function(row, column) { return ""; },
+    getColumnProperties: function(column) { return ""; },
+    getCellProperties: function(row, column) { return ""; }
   };
 
 var permissionsTree;

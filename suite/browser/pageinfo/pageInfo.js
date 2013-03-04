@@ -120,9 +120,9 @@ pageInfoTreeView.prototype = {
     this.tree.ensureRowIsVisible(0);
   },
 
-  getRowProperties: function(row, prop) { },
-  getCellProperties: function(row, column, prop) { },
-  getColumnProperties: function(column, prop) { },
+  getRowProperties: function(row) { return ""; },
+  getCellProperties: function(row, column) { return ""; },
+  getColumnProperties: function(column) { return ""; },
   isContainer: function(index) { return false; },
   isContainerOpen: function(index) { return false; },
   isSeparator: function(index) { return false; },
@@ -175,28 +175,22 @@ var gFieldView = new pageInfoTreeView(COPYCOL_FIELD_VALUE);
 var gLinkView = new pageInfoTreeView(COPYCOL_LINK_ADDRESS);
 var gImageView = new pageInfoTreeView(COPYCOL_IMAGE);
 
-var gAtomSvc = Components.classes["@mozilla.org/atom-service;1"]
-                         .getService(Components.interfaces.nsIAtomService);
-var gBrokenAtom = gAtomSvc.getAtom("broken");
-var gLtrAtom = gAtomSvc.getAtom("ltr");
+gImageView.getCellProperties = function(row, col) {
+  var properties = col.id == "image-address" ? "ltr" : "";
 
-gImageView.getCellProperties = function(row, col, props) {
   if (gImageView.data[row][COL_IMAGE_SIZE] == gStrings.unknown &&
       !/^https:/.test(gImageView.data[row][COL_IMAGE_ADDRESS]))
-    props.AppendElement(gBrokenAtom);
+    properties += " broken";
 
-  if (col.id == "image-address")
-    props.AppendElement(gLtrAtom);
+  return properties;
 };
 
-gFormView.getCellProperties = function(row, col, props) {
-  if (col.id == "form-action")
-    props.AppendElement(gLtrAtom);
+gFormView.getCellProperties = function(row, col) {
+  return col.id == "form-action" ? "ltr" : "";
 };
 
-gLinkView.getCellProperties = function(row, col, props) {
-  if (col.id == "link-address")
-    props.AppendElement(gLtrAtom);
+gLinkView.getCellProperties = function(row, col) {
+  return col.id == "link-address" ? "ltr" : "";
 };
 
 gImageView.cycleHeader = function(col)

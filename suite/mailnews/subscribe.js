@@ -22,10 +22,6 @@ var gSearchTreeBoxObject = null;
 var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService(Components.interfaces.nsIRDFService);
 var subscribeDS = RDF.GetDataSource("rdf:subscribe");
 
-// get the "subscribed" atom
-var atomService = Components.classes["@mozilla.org/atom-service;1"].getService().QueryInterface(Components.interfaces.nsIAtomService);
-var gSubscribedAtom = atomService.getAtom("subscribed").QueryInterface(Components.interfaces.nsISupports);
-
 var gSubscribeBundle;
 
 function goDoCommand()
@@ -346,11 +342,9 @@ function ReverseStateFromRow(row)
     // and look for the "subscribed" property
     // if the "subscribed" atom is in the list of properties
     // we are subscribed
-    var properties = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
     var col = gSearchTree.columns["subscribedColumn2"];
-    gSearchView.getCellProperties(row, col, properties);
-
-    var isSubscribed = (properties.GetIndexOf(gSubscribedAtom) != -1);
+    var properties = gSearchView.getCellProperties(row, col);
+    var isSubscribed = /\bsubscribed\b/.test(properties);
     SetStateFromRow(row, !isSubscribed);
 }
 
