@@ -36,20 +36,21 @@ const mozISpellCheckingEngine = Components.interfaces.mozISpellCheckingEngine;
 
 var sDictCount = 0;
 
-/* Create message window object. This is use by mail-offline.js and therefore should not be renamed. We need to avoid doing
-   this kind of cross file global stuff in the future and instead pass this object as parameter when needed by function
-   in the other js file.
-*/
-var msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
-                          .createInstance(Components.interfaces.nsIMsgWindow);
+/**
+ * Global message window object. This is used by mail-offline.js and therefore
+ * should not be renamed. We need to avoid doing this kind of cross file global
+ * stuff in the future and instead pass this object as parameter when needed by
+ * functions in the other js file.
+ */
+var msgWindow;
 
-var gMessenger = Components.classes["@mozilla.org/messenger;1"]
-                           .createInstance(Components.interfaces.nsIMessenger)
+var gMessenger;
 
 var gSpellChecker = new InlineSpellChecker();
 
 /**
- * Global variables, need to be re-initialized every time mostly because we need to release them when the window close
+ * Global variables, need to be re-initialized every time mostly because
+ * we need to release them when the window closes.
  */
 var gHideMenus;
 var gMsgCompose;
@@ -99,7 +100,6 @@ var gReceiptOptionChanged;
 var gDSNOptionChanged;
 var gAttachVCardOptionChanged;
 
-var gMailSession;
 var gAutoSaveInterval;
 var gAutoSaveTimeout;
 var gAutoSaveKickedIn;
@@ -111,6 +111,8 @@ const kComposeAttachDirPrefName = "mail.compose.attach.dir";
 
 function InitializeGlobalVariables()
 {
+  gMessenger = Components.classes["@mozilla.org/messenger;1"]
+                         .createInstance(Components.interfaces.nsIMessenger);
   gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
 
   gMsgCompose = null;
@@ -130,7 +132,6 @@ function InitializeGlobalVariables()
   gSendDefaultCharset = null;
   gCharsetTitle = null;
   gCharsetConvertManager = Components.classes['@mozilla.org/charset-converter-manager;1'].getService(Components.interfaces.nsICharsetConverterManager);
-  gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
   gHideMenus = false;
   gRemindLater = false;
 
@@ -140,6 +141,9 @@ function InitializeGlobalVariables()
   gAttachVCardOptionChanged = false;
   gAttachmentsSize = 0;
   gNumUploadingAttachments = 0;
+  msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                        .createInstance(Components.interfaces.nsIMsgWindow);
+  MailServices.mailSession.AddMsgWindow(msgWindow);
 }
 InitializeGlobalVariables();
 
@@ -154,7 +158,10 @@ function ReleaseGlobalVariables()
   }
   gCharsetConvertManager = null;
   gMsgCompose = null;
-  gMailSession = null;
+  gMessenger = null;
+  _gComposeBundle = null;
+  MailServices.mailSession.RemoveMsgWindow(msgWindow);
+  msgWindow = null;
 }
 
 /**
@@ -238,7 +245,6 @@ var gComposeRecyclingListener = {
     //Release the nsIMsgComposeParams object
     if (window.arguments && window.arguments[0])
       window.arguments[0] = null;
-
     var event = document.createEvent('Events');
     event.initEvent('compose-window-close', false, true);
     document.getElementById("msgcomposeWindow").dispatchEvent(event);
@@ -2405,10 +2411,6 @@ function ComposeStartup(recycled, aParams)
     gAutoSaveTimeout = setTimeout(AutoSave, gAutoSaveInterval);
 
   gAutoSaveKickedIn = false;
-
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .AddMsgWindow(msgWindow);
 }
 
 // The new, nice, simple way of getting notified when a new editor has been created
@@ -2543,6 +2545,10 @@ function ComposeUnload()
     gMsgCompose.UnregisterStateListener(stateListener);
   if (gAutoSaveTimeout)
     clearTimeout(gAutoSaveTimeout);
+  if (msgWindow)
+    msgWindow.closeWindow();
+
+  ReleaseGlobalVariables();
 }
 
 function SetDocumentCharacterSet(aCharset)
@@ -3504,9 +3510,6 @@ function ReleaseAutoCompleteState()
 
 function MsgComposeCloseWindow(recycleIt)
 {
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .RemoveMsgWindow(msgWindow);
   if (gMsgCompose)
     gMsgCompose.CloseWindow(recycleIt);
   else
