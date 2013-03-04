@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// This test is intended as a simple demonstration of the imap pump test method
+/**
+ * Simple demonstration of the imap pump test method.
+ */
 
 // async support 
 load("../../../resources/logHelper.js");

@@ -2944,10 +2944,6 @@ NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aSe
                                                       const nsACString &folderPath)
 {
   nsresult rv;
-
-#ifdef DEBUG_sspitzer
-  printf("GetListOfFoldersWithPath(%s)\n",folderPath);
-#endif
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(aServer);
   if (!server) 
     return NS_ERROR_FAILURE;

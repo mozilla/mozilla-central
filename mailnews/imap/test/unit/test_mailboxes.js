@@ -1,4 +1,6 @@
-// This file tests the mailbox handling of IMAP.
+/**
+ * Tests basic mailbox handling of IMAP, like discovery, rename and empty folder.
+ */
 
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");

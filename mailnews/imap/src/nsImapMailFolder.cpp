@@ -348,11 +348,9 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath
                                              nsIMsgFolder **child, bool brandNew)
 {
   NS_ENSURE_ARG_POINTER(child);
-
   nsresult rv;
   nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  int32_t flags = 0;
 
   nsAutoCString uri(mURI);
   uri.Append('/');
@@ -382,12 +380,14 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath
   nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  folder->GetFlags((uint32_t *)&flags);
+  uint32_t flags = 0;
+  folder->GetFlags(&flags);
+
   folder->SetParent(this);
   flags |= nsMsgFolderFlags::Mail;
 
-  int32_t pFlags;
-  GetFlags ((uint32_t *) &pFlags);
+  uint32_t pFlags;
+  GetFlags(&pFlags);
   bool isParentInbox = pFlags & nsMsgFolderFlags::Inbox;
 
   nsCOMPtr<nsIImapIncomingServer> imapServer;
@@ -410,9 +410,9 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath
     }
   }
 
-  //special case:
-  // Make the folder offline if it is newly created and offline_download pref is true.
-  if (brandNew)
+  // Make the folder offline if it is newly created and the offline_download
+  // pref is true, unless it's the Trash or Junk folder.
+  if (brandNew && !(flags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk)))
   {
     bool setNewFoldersForOffline = false;
     rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
@@ -421,13 +421,11 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsIFile *dbPath
   }
 
   folder->SetFlags(flags);
-  //at this point we must be ok and we don't want to return failure in case GetIsServer failed.
-  rv = NS_OK;
 
   if (folder)
     mSubFolders.AppendObject(folder);
   folder.swap(*child);
-  return rv;
+  return NS_OK;
 }
 
 nsresult nsImapMailFolder::CreateSubFolders(nsIFile *path)
@@ -963,7 +961,34 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
       imapFolder->SetBoxFlags(flags);
 
-      child->SetFlag(nsMsgFolderFlags::Elided);
+      // Now that the child is created and the boxflags are set we can be sure
+      // all special folder flags are known. The child may get its flags already
+      // in AddSubfolderWithPath if they were in FolderCache, but that's
+      // not always the case.
+      uint32_t flags = 0;
+      child->GetFlags(&flags);
+
+      // Set the offline use flag for the newly created folder if the
+      // offline_download preference is true, unless it's the Trash or Junk
+      // folder.
+      if (!(flags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk)))
+      {
+        nsCOMPtr<nsIImapIncomingServer> imapServer;
+        rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+        NS_ENSURE_SUCCESS(rv, rv);
+        bool setNewFoldersForOffline = false;
+        rv = imapServer->GetOfflineDownload(&setNewFoldersForOffline);
+        if (NS_SUCCEEDED(rv) && setNewFoldersForOffline)
+          flags |= nsMsgFolderFlags::Offline;
+      }
+      else
+      {
+        flags &= ~nsMsgFolderFlags::Offline; // clear offline flag if set
+      }
+
+      flags |= nsMsgFolderFlags::Elided;
+      child->SetFlags(flags);
+
       nsString unicodeName;
       rv = CopyMUTF7toUTF16(nsCString(folderName), unicodeName);
       if (NS_SUCCEEDED(rv))
