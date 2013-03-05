@@ -23,9 +23,7 @@ fi
 
 # Disable WebRTC as we don't use it currently and to work around bug 837618
 # for Mac
-if test "$OS_ARCH" == "Darwin"; then
 MOZ_WEBRTC=
-fi
 
 MOZ_SAFE_BROWSING=1
 MOZ_MORK=1
