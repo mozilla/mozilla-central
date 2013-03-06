@@ -2341,7 +2341,7 @@ function WindowIsClosing()
   var numtabs = cn.length;
   var reallyClose = true;
 
-  if (!/Mac/.test(navigator.platform) && isClosingLastBrowser()) {
+  if (!gPrivate && !/Mac/.test(navigator.platform) && isClosingLastBrowser()) {
     let closingCanceled = Components.classes["@mozilla.org/supports-PRBool;1"]
                                     .createInstance(Components.interfaces.nsISupportsPRBool);
     Services.obs.notifyObservers(closingCanceled, "browser-lastwindow-close-requested", null);
@@ -2353,7 +2353,7 @@ function WindowIsClosing()
     return true;
   }
 
-  if (numtabs > 1) {
+  if (!gPrivate && numtabs > 1) {
     var shouldPrompt = Services.prefs.getBoolPref("browser.tabs.warnOnClose");
     if (shouldPrompt) {
       //default to true: if it were false, we wouldn't get this far
