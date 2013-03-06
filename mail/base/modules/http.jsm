@@ -59,8 +59,12 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
     });
   }
 
-  let POSTData = "";
-  if (Array.isArray(aPOSTData)) {
+  // aPOSTData can be:
+  //  - a string: send it as is
+  //  - an array of parameters: encode as form values
+  //  - null/undefined: no POST data.
+  let POSTData = aPOSTData || "";
+  if (Array.isArray(POSTData)) {
     xhr.setRequestHeader("Content-Type",
                          "application/x-www-form-urlencoded; charset=utf-8");
     POSTData = aPOSTData.map(function(p) p[0] + "=" + encodeURIComponent(p[1]))
