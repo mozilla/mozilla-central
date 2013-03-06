@@ -22,12 +22,13 @@ class calICSService : public calIICSService,
 protected:
     class ParserWorker : public nsRunnable {
     public:
-      ParserWorker(nsIThread *callingThread,
+      ParserWorker(nsIThread *mainThread,
+                   nsIThread *workerThread,
                    const nsACString &icsString,
                    calITimezoneProvider *tzProvider,
                    calIIcsComponentParsingListener *listener) :
-        mString(icsString), mProvider(tzProvider),
-         mListener(listener), mThread(callingThread)
+        mString(icsString), mProvider(tzProvider), mListener(listener),
+        mMainThread(mainThread), mWorkerThread(workerThread)
       {
       }
 
@@ -37,19 +38,23 @@ protected:
       nsCString mString;
       nsCOMPtr<calITimezoneProvider> mProvider;
       nsCOMPtr<calIIcsComponentParsingListener> mListener;
-      nsCOMPtr<nsIThread> mThread;
+      nsCOMPtr<nsIThread> mMainThread;
+      nsCOMPtr<nsIThread> mWorkerThread;
 
       class ParserWorkerCompleter : public nsRunnable {
       public:
-        ParserWorkerCompleter(nsresult status,
+        ParserWorkerCompleter(nsIThread *workerThread,
+                              nsresult status,
                               calIIcalComponent *component,
                               calIIcsComponentParsingListener *listener) :
-          mListener(listener), mComp(component), mStatus(status)
+          mListener(listener), mComp(component),
+          mStatus(status), mWorkerThread(workerThread)
         {
         }
 
         NS_DECL_NSIRUNNABLE
       protected:
+        nsCOMPtr<nsIThread> mWorkerThread;
         nsCOMPtr<calIIcsComponentParsingListener> mListener;
         nsCOMPtr<calIIcalComponent> mComp;
         nsresult mStatus;

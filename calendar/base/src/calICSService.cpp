@@ -1247,9 +1247,12 @@ calICSService::ParserWorker::Run()
         status = static_cast<nsresult>(calIErrors::ICS_ERROR_BASE + icalerrno);
     }
 
-    nsCOMPtr<nsIRunnable> completer = new ParserWorkerCompleter(status, comp, mListener);
-    mThread->Dispatch(completer, NS_DISPATCH_NORMAL);
+    nsCOMPtr<nsIRunnable> completer = new ParserWorkerCompleter(mWorkerThread, status,
+                                                                comp, mListener);
+    mMainThread->Dispatch(completer, NS_DISPATCH_NORMAL);
 
+    mWorkerThread = nullptr;
+    mMainThread = nullptr;
     return NS_OK;
 }
 
@@ -1257,6 +1260,11 @@ NS_IMETHODIMP
 calICSService::ParserWorker::ParserWorkerCompleter::Run()
 {
     mListener->OnParsingComplete(mStatus, mComp);
+
+    nsresult rv = mWorkerThread->Shutdown();
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    mWorkerThread = nullptr;
     return NS_OK;
 }
 
@@ -1272,11 +1280,16 @@ calICSService::ParseICSAsync(const nsACString& serialized,
     nsCOMPtr<nsIThread> currentThread;
     rv = NS_GetCurrentThread(getter_AddRefs(currentThread));
     NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIRunnable> worker = new ParserWorker(currentThread, serialized, tzProvider, listener);
-    NS_ENSURE_TRUE(worker, NS_ERROR_OUT_OF_MEMORY);
-    rv = NS_NewThread(getter_AddRefs(workerThread), worker);
+    rv = NS_NewThread(getter_AddRefs(workerThread));
     NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIRunnable> worker = new ParserWorker(currentThread, workerThread,
+                                                    serialized, tzProvider, listener);
+    NS_ENSURE_TRUE(worker, NS_ERROR_OUT_OF_MEMORY);
+
+    rv = workerThread->Dispatch(worker, NS_DISPATCH_NORMAL);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     return NS_OK;
 }
 
