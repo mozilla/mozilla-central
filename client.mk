@@ -69,7 +69,6 @@ ifeq (,$(strip $(AUTOCONF)))
 AUTOCONF=$(error Couldn't find autoconf 2.13)
 endif
 
-MKDIR := mkdir
 SH := /bin/sh
 ifndef MAKE
 MAKE := gmake
@@ -148,6 +147,10 @@ CONFIGURES += $(TOPSRCDIR)/mozilla/js/src/configure
 
 # The default rule is build
 build::
+
+# Define mkdir
+include $(TOPSRCDIR)/config/makefiles/makeutils.mk
+include $(TOPSRCDIR)/config/makefiles/autotargets.mk
 
 # These targets are candidates for auto-running client.py
 
@@ -290,11 +293,13 @@ endif
 
 configure-files: $(CONFIGURES)
 
-configure:: configure-files
-ifdef MOZ_BUILD_PROJECTS
-	@if test ! -d $(MOZ_OBJDIR); then $(MKDIR) $(MOZ_OBJDIR); else true; fi
-endif
-	@if test ! -d $(OBJDIR); then $(MKDIR) $(OBJDIR); else true; fi
+configure-preqs = \
+  configure-files \
+  $(call mkdir_deps,$(OBJDIR)) \
+  $(if $(MOZ_BUILD_PROJECTS),$(call mkdir_deps,$(MOZ_OBJDIR))) \
+  $(NULL)
+
+configure:: $(configure-preqs)
 	@echo cd $(OBJDIR);
 	@echo $(CONFIGURE) $(CONFIGURE_ARGS)
 	@cd $(OBJDIR) && $(BUILD_PROJECT_ARG) $(CONFIGURE_ENV_ARGS) $(CONFIGURE) $(CONFIGURE_ARGS) \

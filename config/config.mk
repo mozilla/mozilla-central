@@ -63,6 +63,7 @@ check-variable = $(if $(filter-out 0 1,$(words $($(x))z)),$(error Spaces are not
 $(foreach x,$(CHECK_VARS),$(check-variable))
 
 core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(CURDIR)/$(1)))
+core_realpath = $(if $(realpath $(1)),$(realpath $(1)),$(call core_abspath,$(1)))
 
 RM = rm -f
 
@@ -316,16 +317,6 @@ endif
 ifeq ($(OS_ARCH),OS2)
 TAR_CREATE_FLAGS = -cvf
 endif
-
-ifdef LOCALE_MERGEDIR
-MERGE_FILE = $(firstword \
-  $(wildcard $(LOCALE_MERGEDIR)/$(subst /locales,,$(relativesrcdir))/$(1)) \
-  $(wildcard $(LOCALE_SRCDIR)/$(1)) \
-  $(srcdir)/en-US/$(1) )
-else
-MERGE_FILE = $(LOCALE_SRCDIR)/$(1)
-endif
-MERGE_FILES = $(foreach f,$(1),$(call MERGE_FILE,$(f)))
 
 #
 # Personal makefile customizations go in these optional make include files.
@@ -652,8 +643,8 @@ else
   IS_LANGUAGE_REPACK = 1
 endif
 
-EXPAND_LOCALE_SRCDIR = $(if $(filter en-US,$(AB_CD)),$(topsrcdir)/$(1)/en-US,$(L10NBASEDIR)/$(AB_CD)/$(subst /locales,,$(1)))
-EXPAND_MOZLOCALE_SRCDIR = $(if $(filter en-US,$(AB_CD)),$(MOZILLA_SRCDIR)/$(1)/en-US,$(L10NBASEDIR)/$(AB_CD)/$(subst /locales,,$(1)))
+EXPAND_LOCALE_SRCDIR = $(if $(filter en-US,$(AB_CD)),$(topsrcdir)/$(1)/en-US,$(call core_realpath,$(L10NBASEDIR)/$(AB_CD)/$(subst /locales,,$(1))))
+EXPAND_MOZLOCALE_SRCDIR = $(if $(filter en-US,$(AB_CD)),$(MOZILLA_SRCDIR)/$(1)/en-US,$(call core_realpath,$(L10NBASEDIR)/$(AB_CD)/$(subst /locales,,$(1))))
 
 ifdef relativesrcdir
 LOCALE_SRCDIR = $(call EXPAND_LOCALE_SRCDIR,$(relativesrcdir))
@@ -674,6 +665,16 @@ endif # en-US
 else
 MAKE_JARS_FLAGS += -c $(LOCALE_SRCDIR)
 endif # ! relativesrcdir
+
+ifdef LOCALE_MERGEDIR
+MERGE_FILE = $(firstword \
+  $(wildcard $(LOCALE_MERGEDIR)/$(subst /locales,,$(relativesrcdir))/$(1)) \
+  $(wildcard $(LOCALE_SRCDIR)/$(1)) \
+  $(srcdir)/en-US/$(1) )
+else
+MERGE_FILE = $(LOCALE_SRCDIR)/$(1)
+endif
+MERGE_FILES = $(foreach f,$(1),$(call MERGE_FILE,$(f)))
 
 ifeq (OS2,$(OS_ARCH))
 RUN_TEST_PROGRAM = $(MOZILLA_SRCDIR)/build/os2/test_os2.cmd "$(DIST)"
