@@ -344,23 +344,31 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
       }
       else
       {
-          mozilla::net::NetAddr iaddr; // IP address for this connection
+          nsCOMPtr<nsINetAddr> iaddr; // IP address for this connection
           // our transport is always a nsISocketTransport
           nsCOMPtr<nsISocketTransport> socketTransport = do_QueryInterface(m_transport);
           // should return the interface ip of the SMTP connection
           // minimum case - see bug 68877 and RFC 2821, chapter 4.1.1.1
-          rv = socketTransport->GetSelfAddr(&iaddr);
+          rv = socketTransport->GetScriptableSelfAddr(getter_AddRefs(iaddr));
 
           if (NS_SUCCEEDED(rv))
           {
               // turn it into a string
-              char ipAddressString[64];
-              if (NetAddrToString(&iaddr, ipAddressString, sizeof(ipAddressString)))
+              nsCString ipAddressString;
+              rv = iaddr->GetAddress(ipAddressString);
+              if (NS_SUCCEEDED(rv))
               {
-                  NS_ASSERTION(!IsIPAddrV4Mapped(&iaddr),
+#ifdef DEBUG
+                  bool v4mapped = false;
+                  iaddr->GetIsV4Mapped(&v4mapped);
+                  NS_ASSERTION(!v4mapped,
                                "unexpected IPv4-mapped IPv6 address");
+#endif
 
-                  if (iaddr.raw.family == PR_AF_INET6)   // IPv6 style address?
+                  uint16_t family = nsINetAddr::FAMILY_INET;
+                  iaddr->GetFamily(&family);
+
+                  if (family == nsINetAddr::FAMILY_INET6) // IPv6 style address?
                       aResult.AppendLiteral("[IPv6:");
                   else
                       aResult.AppendLiteral("[");

@@ -14,6 +14,7 @@
 #include "nsThreadUtils.h"
 #include "nsIConsoleService.h"
 #include "nsIDNSService.h"
+#include "nsINetAddr.h"
 #include "nsIRequestObserver.h"
 #include "nsError.h"
 #include "nsLDAPOperation.h"
@@ -492,16 +493,17 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
         mResolvedIP.Truncate();
 
         int32_t index = 0;
-        char addrbuf[64];
-        mozilla::net::NetAddr addr;
+        nsCString addrbuf;
+        nsCOMPtr<nsINetAddr> addr;
 
-        while (NS_SUCCEEDED(aRecord->GetNextAddr(0, &addr))) {
+        while (NS_SUCCEEDED(aRecord->GetScriptableNextAddr(0, getter_AddRefs(addr)))) {
             // We can only use v4 addresses
             //
+            uint16_t family = 0;
             bool v4mapped = false;
-            if (addr.raw.family == PR_AF_INET6)
-                v4mapped = IsIPAddrV4Mapped(&addr);
-            if (addr.raw.family == PR_AF_INET || v4mapped) {
+            addr->GetFamily(&family);
+            addr->GetIsV4Mapped(&v4mapped);
+            if (family == nsINetAddr::FAMILY_INET || v4mapped) {
                 // If there are more IPs in the list, we separate them with
                 // a space, as supported/used by the LDAP C-SDK.
                 //
@@ -512,9 +514,9 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
                 // list of IPs.  Strip leading '::FFFF:' (the IPv4-mapped-IPv6
                 // indicator) if present.
                 //
-                NetAddrToString(&addr, addrbuf, sizeof(addrbuf));
-                if ((addrbuf[0] == ':') && (strlen(addrbuf) > 7))
-                    mResolvedIP.Append(addrbuf+7);
+                addr->GetAddress(addrbuf);
+                if (addrbuf[0] == ':' && addrbuf.Length() > 7)
+                    mResolvedIP.Append(Substring(addrbuf, 7));
                 else
                     mResolvedIP.Append(addrbuf);
             }
