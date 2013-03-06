@@ -1766,21 +1766,75 @@ function calIterateEmailIdentities(func) {
 /**
  * Compare two items by *content*, leaving out any revision information such as
  * X-MOZ-GENERATION, SEQUENCE, DTSTAMP, LAST-MODIFIED.
+
+ * The format for the parameters to ignore object is:
+ * { "PROPERTY-NAME": ["PARAM-NAME", ...] }
+ *
+ * If aIgnoreProps is not passed, these properties are ignored:
+ *  X-MOZ-GENERATION, SEQUENCE, DTSTAMP, LAST-MODIFIED, X-MOZ-SEND-INVITATIONS
+ *
+ * If aIgnoreParams is not passed, these parameters are ignored:
+ *  ATTENDEE: CN
+ *  ORGANIZER: CN
+ *
+ * @param aFirstItem        The item to compare.
+ * @param aSecondItem       The item to compare to.
+ * @param aIgnoreProps      (optional) An array of parameters to ignore.
+ * @param aIgnoreParams     (optional) An object describing which parameters to
+ *                                     ignore.
+ * @return                  True, if items match.
  */
-function compareItemContent(aFirstItem, aSecondItem) {
-    function hashItem(aItem) {
-        let icalString = aItem.icalString;
-        icalString = icalString.replace(/\r\nX-MOZ-GENERATION:.+/, "");
-        icalString = icalString.replace(/\r\nSEQUENCE:.+/, "");
-        icalString = icalString.replace(/\r\nLAST-MODIFIED:.+/, "");
-        icalString = icalString.replace(/\r\nDTSTAMP:.+/, "");
-        let propStrings = icalString.split("\n");
-        propStrings.sort();
-        return propStrings.join("\n");
+function compareItemContent(aFirstItem, aSecondItem, aIgnoreProps, aIgnoreParams) {
+    let ignoreProps = arr2hash(aIgnoreProps ||
+        [ "X-MOZ-GENERATION", "SEQUENCE", "DTSTAMP",
+          "LAST-MODIFIED", "X-MOZ-SEND-INVITATIONS" ]);
+
+    let ignoreParams = aIgnoreParams ||
+        { "ATTENDEE": ["CN"], "ORGANIZER": ["CN"] };
+    for (let x in ignoreParams) {
+        ignoreParams[x] = arr2hash(ignoreParams[x]);
     }
-    let firstIcalString = hashItem(aFirstItem);
-    let secondIcalString = hashItem(aSecondItem);
-    return (firstIcalString == secondIcalString);
+
+    function arr2hash(arr) {
+        let hash = {};
+        for each (let x in arr) {
+            hash[x] = true;
+        }
+        return hash;
+    }
+
+    // This doesn't have to be super correct rfc5545, it just needs to be
+    // in the same order
+    function normalizeComponent(comp) {
+        let props = [
+            normalizeProperty(prop)
+            for (prop in cal.ical.propertyIterator(comp))
+            if (!(prop.propertyName in ignoreProps))
+        ].sort();
+
+        let comps = [
+            normalizeComponent(subcomp)
+            for (subcomp in cal.ical.subcomponentIterator(comp))
+        ].sort();
+
+        return comp.componentType + props.join("\r\n") + comps.join("\r\n");
+    }
+
+    function normalizeProperty(prop) {
+        let params = [
+            k + "=" + v
+            for each ([k,v] in cal.ical.paramIterator(prop))
+            if (!(prop.propertyName in ignoreParams) ||
+            !(k in ignoreParams[prop.propertyName]))
+        ].sort();
+
+        return prop.propertyName + ";" +
+               params.join(";") + ":" +
+               prop.valueAsIcalString;
+    }
+
+    return normalizeComponent(aFirstItem.icalComponent) ==
+           normalizeComponent(aSecondItem.icalComponent);
 }
 
 /**
