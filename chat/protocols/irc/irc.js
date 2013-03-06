@@ -1502,6 +1502,7 @@ ircProtocol.prototype = {
   __proto__: GenericProtocolPrototype,
   get name() "IRC",
   get iconBaseURI() "chrome://prpl-irc/skin/",
+  get usernameEmptyText() _("irc.usernameHint"),
   get baseId() "prpl-irc",
 
   usernameSplits: [
