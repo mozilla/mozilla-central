@@ -249,8 +249,7 @@ cal.itip = {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
             data.label = _gs("imipBarAlreadyProcessedText");
-            // TODO this needs its own string, but we are in string freeze. (Details...)
-            data.button1.label = cal.calGetString("calendar", "Open");
+            data.button1.label = _gs("imipDetails.label");
             data.button1.actionMethod = "X-SHOWDETAILS"; // not a real method, but helps us decide
         } else if (Components.isSuccessCode(rc)) {
 
@@ -267,9 +266,14 @@ cal.itip = {
                     data.button1.label = _gs("imipAddToCalendar.label");
                     break;
                 case "REQUEST:UPDATE":
-                    data.label = _gs("imipBarUpdateText");
-                    // fall-thru intended
+                case "REQUEST:NEEDS-ACTION":
                 case "REQUEST": {
+                    if (actionFunc.method == "REQUEST:UPDATE") {
+                        data.label = _gs("imipBarUpdateText");
+                    } else if (actionFunc.method == "REQUEST:NEEDS-ACTION") {
+                        data.label = _gs("imipBarProcessedNeedsAction");
+                    }
+
                     data.button1.label = _gs("imipAcceptInvitation.label");
                     data.button1.actionMethod = "ACCEPTED";
                     data.button2.label = _gs("imipDeclineInvitation.label");
@@ -1182,9 +1186,7 @@ ItipItemFinder.prototype = {
                                         operations.push(action);
                                     }
                                     break;
-                                case "REQUEST":
-                                    if (item.calendar.getProperty("itip.disableRevisionChecks") ||
-                                        cal.itip.compare(itipItemItem, item) > 0) {
+                                case "REQUEST": {
                                         let newItem = updateItem(item, itipItemItem);
                                         let att = cal.getInvitedAttendee(newItem);
                                         if (!att) { // fall back to using configured organizer
@@ -1194,24 +1196,45 @@ ItipItemFinder.prototype = {
                                             }
                                         }
                                         if (att) {
-                                            addScheduleAgentClient(newItem, item.calendar);
-                                            newItem.removeAttendee(att);
-                                            att = att.clone();
-                                            let action = function(opListener, partStat) {
-                                                if (!partStat) { // keep PARTSTAT
-                                                    let att_ = cal.getInvitedAttendee(item);
-                                                    partStat = (att_ ? att_.participationStatus : "NEEDS-ACTION");
-                                                }
-                                                att.participationStatus = partStat;
-                                                newItem.addAttendee(att);
-                                                return newItem.calendar.modifyItem(
-                                                    newItem, item, new ItipOpListener(opListener, item));
-                                            };
-                                            let isMinorUpdate = (cal.itip.getSequence(newItem) ==
-                                                                 cal.itip.getSequence(item));
-                                            actionMethod = (isMinorUpdate ? method + ":UPDATE-MINOR"
-                                                                          : method + ":UPDATE");
-                                            operations.push(action);
+                                            let firstFoundItem = this.mFoundItems.length && this.mFoundItems[0];
+                                            let foundAttendee = firstFoundItem.getAttendeeById(att.id);
+
+                                            if (foundAttendee.participationStatus == "NEEDS-ACTION") {
+                                                actionMethod = "REQUEST:NEEDS-ACTION";
+                                                operations.push(function(opListener, partStat) {
+                                                    let changedItem = firstFoundItem.clone();
+                                                    changedItem.removeAttendee(foundAttendee);
+                                                    foundAttendee = foundAttendee.clone();
+                                                    if (partStat) {
+                                                        foundAttendee.participationStatus = partStat;
+                                                    }
+                                                    changedItem.addAttendee(foundAttendee);
+
+                                                    return changedItem.calendar.modifyItem(
+                                                        changedItem, firstFoundItem, new ItipOpListener(opListener, firstFoundItem));
+                                                });
+                                            } else if (item.calendar.getProperty("itip.disableRevisionChecks") ||
+                                                       cal.itip.compare(itipItemItem, item) > 0) {
+
+                                                addScheduleAgentClient(newItem, item.calendar);
+
+                                                let isMinorUpdate = (cal.itip.getSequence(newItem) ==
+                                                                     cal.itip.getSequence(item));
+                                                actionMethod = (isMinorUpdate ? method + ":UPDATE-MINOR"
+                                                                              : method + ":UPDATE");
+                                                operations.push(function(opListener, partStat) {
+                                                    if (!partStat) { // keep PARTSTAT
+                                                        let att_ = cal.getInvitedAttendee(item);
+                                                        partStat = (att_ ? att_.participationStatus : "NEEDS-ACTION");
+                                                    }
+                                                    newItem.removeAttendee(att);
+                                                    att = att.clone();
+                                                    att.participationStatus = partStat;
+                                                    newItem.addAttendee(att);
+                                                    return newItem.calendar.modifyItem(
+                                                        newItem, item, new ItipOpListener(opListener, item));
+                                                });
+                                            }
                                         }
                                     }
                                     break;
