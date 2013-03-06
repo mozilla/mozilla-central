@@ -6,14 +6,12 @@ const EXPORTED_SYMBOLS = ["doXHRequest"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
-Cu.import("resource:///modules/imXPCOMUtils.jsm");
-
 function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
-                     aLogger) {
+                     aMethod, aLogger) {
   let xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
               .createInstance(Ci.nsIXMLHttpRequest);
   xhr.mozBackgroundRequest = true; // no error dialogs
-  xhr.open(aPOSTData ? "POST" : "GET", aUrl);
+  xhr.open(aMethod || (aPOSTData ? "POST" : "GET"), aUrl);
   xhr.channel.loadFlags = Ci.nsIChannel.LOAD_ANONYMOUS | // don't send cookies
                           Ci.nsIChannel.LOAD_BYPASS_CACHE |
                           Ci.nsIChannel.INHIBIT_CACHING;
@@ -40,7 +38,7 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
       let target = aRequest.target;
       if (aLogger)
         aLogger.DEBUG("Received response: " + target.responseText);
-      if (target.status != 200) {
+      if (target.status < 200 || target.status >= 300) {
         let errorText = target.responseText;
         if (!errorText || /<(ht|\?x)ml\b/i.test(errorText))
           errorText = target.statusText;
@@ -62,7 +60,7 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
   }
 
   let POSTData = "";
-  if (aPOSTData) {
+  if (Array.isArray(aPOSTData)) {
     xhr.setRequestHeader("Content-Type",
                          "application/x-www-form-urlencoded; charset=utf-8");
     POSTData = aPOSTData.map(function(p) p[0] + "=" + encodeURIComponent(p[1]))

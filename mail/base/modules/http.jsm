@@ -1,12 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["doXHRequest"];
+const EXPORTED_SYMBOLS = ["doXHRequest"];
 
 const {classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
-function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis, aMethod) {
+function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis,
+                     aMethod, aLogger) {
   var xhr = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"]
               .createInstance(Ci.nsIXMLHttpRequest);
   xhr.mozBackgroundRequest = true; // no error dialogs
@@ -35,6 +36,8 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis, aMetho
   xhr.onload = function (aRequest) {
     try {
       let target = aRequest.target;
+      if (aLogger)
+        aLogger.DEBUG("Received response: " + target.responseText);
       if (target.status < 200 || target.status >= 300) {
         let errorText = target.responseText;
         if (!errorText || /<(ht|\?x)ml\b/i.test(errorText))
@@ -56,14 +59,16 @@ function doXHRequest(aUrl, aHeaders, aPOSTData, aOnLoad, aOnError, aThis, aMetho
     });
   }
 
-  let POSTData = aPOSTData || "";
-  if (Array.isArray(POSTData)) {
+  let POSTData = "";
+  if (Array.isArray(aPOSTData)) {
     xhr.setRequestHeader("Content-Type",
                          "application/x-www-form-urlencoded; charset=utf-8");
     POSTData = aPOSTData.map(function(p) p[0] + "=" + encodeURIComponent(p[1]))
                         .join("&");
   }
 
+  if (aLogger)
+    aLogger.LOG("sending request to " + aUrl + " (POSTData = " + POSTData + ")");
   xhr.send(POSTData);
   return xhr;
 }
