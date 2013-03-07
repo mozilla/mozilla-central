@@ -5,6 +5,13 @@
 function run_test() {
   const headers = [
     { encoded:
+      "Subject: AAA =?UTF-8?Q?bbb?= CCC =?UTF-8?Q?ddd?= EEE =?UTF-8?Q?fff?= GGG"
+    , defaultCharset: "UTF-8"
+    , overrideCharset: false
+    , eatContinuation: false
+    , decoded: "Subject: AAA bbb CCC ddd EEE fff GGG"
+    }, // Bug 833028
+    { encoded:
       "Subject: =?UTF-8?B?4oiAICDiiIEgIOKIgiAg4oiDICDiiIQgIOKIhSAg4oiGICDiiIcgIOKIiCAg?=\n"
     + " =?UTF-8?B?4oiJICDiiIogIOKIiyAg4oiMICDiiI0gIOKIjiAg4oiP?="
     , defaultCharset: "UTF-8"
