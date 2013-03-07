@@ -86,7 +86,7 @@
     -moz-image-region: rect(0 13px 13px 0);
 }
 
-.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, mediumpriority),
+.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, normalpriority),
 .todo-due-image-class {
     list-style-image: url(chrome://calendar/skin/task-images.png);
     -moz-image-region: rect(0 13px 13px 0);

@@ -103,7 +103,7 @@ function getPreviewForTask( toDoItem )
       if (priorityInteger >= 1 && priorityInteger <= 4) {
            priorityString = calGetString('calendar', 'highPriority'); // high priority
       } else if (priorityInteger == 5) {
-          priorityString = calGetString('calendar', 'mediumPriority'); // medium priority
+          priorityString = calGetString('calendar', 'normalPriority'); // normal priority
       } else {
           priorityString = calGetString('calendar', 'lowPriority'); // low priority
       }

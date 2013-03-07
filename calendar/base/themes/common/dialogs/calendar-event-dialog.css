@@ -81,26 +81,26 @@ label.label {
 }
 
 /*--------------------------------------------------------------------
- *   importance "low" image
+ *   priority "low" image
  *-------------------------------------------------------------------*/
 
-#button-importance-low {
+#image-priority-low {
     -moz-image-region: rect(0px 100px 16px 84px);
 }
 
 /*--------------------------------------------------------------------
- *   importance "medium" image
+ *   priority "normal" image
  *-------------------------------------------------------------------*/
 
-#button-importance-medium {
+#image-priority-normal {
     -moz-image-region: rect(0px 116px 16px 100px);
 }
 
 /*--------------------------------------------------------------------
- *   importance "high" image
+ *   priority "high" image
  *-------------------------------------------------------------------*/
 
-#button-importance-high {
+#image-priority-high {
     -moz-image-region: rect(0px 132px 16px 116px);
 }
 
