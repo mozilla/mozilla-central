@@ -43,8 +43,10 @@
 #ifdef XP_WIN32
 @BINPATH@/uninstall/helper.exe
 #endif
+#ifdef MOZ_UPDATER
 @BINPATH@/update.locale
 @BINPATH@/updater.ini
+#endif
 
 [xpcom]
 @BINPATH@/dependentlibs.list
@@ -117,7 +119,9 @@
 @BINPATH@/@MOZ_APP_NAME@
 #endif
 @BINPATH@/application.ini
+#ifdef MOZ_UPDATER
 @BINPATH@/update-settings.ini
+#endif
 @BINPATH@/blocklist.xml
 @BINPATH@/platform.ini
 #ifdef XP_OS2
@@ -127,7 +131,9 @@
 #endif
 #ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/run-mozilla.sh
+#ifdef MOZ_UPDATER
 @BINPATH@/icons/*.png
+#endif
 #endif
 
 ; [OS/2]
@@ -725,10 +731,12 @@
 @BINPATH@/components/dom_svg.xpt
 
 ; [Updater]
+#ifdef MOZ_UPDATER
 #ifdef XP_MACOSX
 @BINPATH@/updater.app/
 #else
 @BINPATH@/updater@BIN_SUFFIX@
+#endif
 #endif
 
 ; [MaintenanceService]
