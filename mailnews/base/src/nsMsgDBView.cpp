@@ -3062,45 +3062,65 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
   NS_ENSURE_SUCCESS(rv, rv);
   uint32_t numMsgs;
   messageArray->GetLength(&numMsgs);
+
+  int32_t warnType = 0;
+  const char *warnCollapsedPref = "mail.warn_on_collapsed_thread_operation";
+  const char *warnShiftDelPref = "mail.warn_on_shift_delete";
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (uint32_t(numIndices) != numMsgs)
   {
-    const char *warnPref = "mail.warn_on_collapsed_thread_operation";
-    bool shouldWarn = false;
-    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+    bool pref = false;
+    prefBranch->GetBoolPref(warnCollapsedPref, &pref);
+    if (pref)
+      warnType = 1;
+  }
+
+  if (warnType == 0 && deleteStorage)
+  {
+    bool pref = false;
+    prefBranch->GetBoolPref(warnShiftDelPref, &pref);
+    if (pref)
+      warnType = 2;
+  }
+
+  if (warnType)
+  {
+    nsCOMPtr<nsIPrompt> dialog;
+
+    nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    prefBranch->GetBoolPref(warnPref, &shouldWarn);
-    if (shouldWarn)
-    {
-      nsCOMPtr<nsIPrompt> dialog;
+    rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
+    NS_ENSURE_SUCCESS(rv, rv);
+    bool dontAsk = false; // "Don't ask..." - unchecked by default.
+    PRInt32 buttonPressed = 0;
 
-      nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
-      rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
-      NS_ENSURE_SUCCESS(rv, rv);
-      bool alwaysAsk = true; // "Always ask..." - checked by default.
-      int32_t buttonPressed = 0;
+    nsString dialogTitle;
+    nsString confirmString;
+    nsString checkboxText;
+    nsString buttonApplyNowText;
+    dialogTitle.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.title").get()));
+    if (warnType == 1)
+      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.collapsed.desc").get()));
+    else
+      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.shiftDel.desc").get()));
+    checkboxText.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.dontAsk.label").get()));
+    buttonApplyNowText.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.delete.label").get()));
 
-      nsString dialogTitle;
-      nsString confirmString;
-      nsString checkboxText;
-      nsString buttonApplyNowText;
-      dialogTitle.Adopt(GetString(NS_LITERAL_STRING("applyToCollapsedMsgsTitle").get()));
-      confirmString.Adopt(GetString(NS_LITERAL_STRING("applyToCollapsedMsgs").get()));
-      checkboxText.Adopt(GetString(NS_LITERAL_STRING("applyToCollapsedAlwaysAskCheckbox").get()));
-      buttonApplyNowText.Adopt(GetString(NS_LITERAL_STRING("applyNowButton").get()));
-      const uint32_t buttonFlags =
-        (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
-        (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
-      rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,
-                             buttonApplyNowText.get(), nullptr, nullptr,
-                             checkboxText.get(), &alwaysAsk, &buttonPressed);
-      NS_ENSURE_SUCCESS(rv, rv);
-      if (buttonPressed)
-        return NS_ERROR_FAILURE;
-       if (!alwaysAsk)
-         prefBranch->SetBoolPref(warnPref, false);
-    }
+    const PRUint32 buttonFlags =
+      (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
+      (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
+    rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,
+                           buttonApplyNowText.get(), nullptr, nullptr,
+                           checkboxText.get(), &dontAsk, &buttonPressed);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (buttonPressed)
+      return NS_ERROR_FAILURE;
+    if (dontAsk)
+      prefBranch->SetBoolPref(warnType == 1 ? warnCollapsedPref :
+                              warnShiftDelPref, false);
   }
 
   if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)

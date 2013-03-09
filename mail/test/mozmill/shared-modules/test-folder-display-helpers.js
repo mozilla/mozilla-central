@@ -1391,8 +1391,9 @@ function close_popup(aController, eid) {
  *
  * @param aController The controller in whose context to do this, defaults to
  *     |mc| if omitted.
+ * @param aModifiers (optional) Modifiers to pass to the keypress method.
  */
-function press_delete(aController) {
+function press_delete(aController, aModifiers) {
   if (aController == null)
     aController = mc;
   // if something is loading, make sure it finishes loading...
@@ -1404,7 +1405,7 @@ function press_delete(aController) {
                aController.folderDisplay.selectedMessages].concat(
                  aController.describeFocus()));
   aController.keypress(aController == mc ? mc.eThreadTree : null,
-                       "VK_DELETE", {});
+                       "VK_DELETE", aModifiers || {});
   wait_for_folder_events();
 }
 

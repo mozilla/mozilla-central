@@ -276,6 +276,7 @@ pref("mailnews.reply_header_type", 2);
 
 pref("mail.operate_on_msgs_in_collapsed_threads", true);
 pref("mail.warn_on_collapsed_thread_operation", true);
+pref("mail.warn_on_shift_delete", true);
 
 // only affects cookies from RSS articles
 // 0-Accept, 1-dontAcceptForeign, 2-dontUse
