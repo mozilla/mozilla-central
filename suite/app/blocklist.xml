@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1362088263000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1362608091000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -111,10 +111,6 @@
                   </emItem>
       <emItem  blockID="i98" id="youtubeeing@youtuberie.com">
                         <versionRange  minVersion="0" maxVersion="*">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i310" id="{5ebdca98-43b3-45bb-87e0-716029fb42ab}">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i168" id="flashX@adobe.com">
@@ -317,6 +313,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i312" id="extension21804@extension21804.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i108" id="{28bfb930-7620-11e1-b0c4-0800200c9a66}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -399,6 +399,10 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i314" id="crossriderapp8812@crossrider.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i21" id="support@update-firefox.com">
                         </emItem>
     </emItems>
@@ -462,6 +466,13 @@
       <pluginItem  blockID="p158">
                   <match name="filename" exp="nppdf32\.dll" />                      <versionRange  minVersion="10.0" maxVersion="10.1.3" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
+      <pluginItem  blockID="p176">
+                  <match name="filename" exp="(NPSWF32\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="10.3" maxVersion="10.3.183.18.999" severity="0" vulnerabilitystatus="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="2.16a1" maxVersion="*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p180">
                   <match name="filename" exp="JavaAppletPlugin\.plugin" />                                    <versionRange  minVersion="Java 7 Update 0" maxVersion="Java 7 Update 11" severity="0" vulnerabilitystatus="2">
                                 <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
@@ -524,9 +535,9 @@
                   </versionRange>
                   </pluginItem>
       <pluginItem  blockID="p290">
-                  <match name="filename" exp="(NPSWF32\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="10.3.183.19" maxVersion="10.3.183.42" severity="0" vulnerabilitystatus="1">
+                  <match name="filename" exp="(NPSWF32\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="10.3.183.19" maxVersion="10.3.183.66" severity="0" vulnerabilitystatus="1">
                                 <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-                              <versionRange  minVersion="2.17a1" maxVersion="*" />
+                              <versionRange  minVersion="2.16a1" maxVersion="*" />
                           </targetApplication>
                   </versionRange>
                   </pluginItem>
