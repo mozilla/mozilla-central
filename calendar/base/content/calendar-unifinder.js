@@ -675,38 +675,40 @@ var unifinderTreeView = {
     // an itemTreeView that these tree views can inherit, that contains this
     // code, and possibly other code related to sorting and storing items. See
     // bug 432582 for more details.
-    getCellProperties: function uTV_getCellProperties(aRow, aCol, aProps) {
-        this.getRowProperties(aRow, aProps);
-        this.getColumnProperties(aCol, aProps);
+    getCellProperties: function uTV_getCellProperties(aRow, aCol) {
+        let rowProps = this.getRowProperties(aRow);
+        let colProps = this.getColumnProperties(aCol);
+        return rowProps + (rowProps && colProps ? " " : "") + colProps;
     },
-    getRowProperties: function uTV_getRowProperties(aRow, aProps) {
+    getRowProperties: function uTV_getRowProperties(aRow) {
+        let properties = [];
         let item = this.eventArray[aRow];
         if (item.priority > 0 && item.priority < 5) {
-            aProps.AppendElement(getAtomFromService("highpriority"));
+            properties.push("highpriority");
         } else if (item.priority > 5 && item.priority < 10) {
-            aProps.AppendElement(getAtomFromService("lowpriority"));
+            properties.push("lowpriority");
         }
 
         // Add calendar name atom
-        let calendarAtom = "calendar-" + formatStringForCSSRule(item.calendar.name);
-        aProps.AppendElement(getAtomFromService(calendarAtom));
+        properties.push("calendar-" + formatStringForCSSRule(item.calendar.name));
 
         // Add item status atom
         if (item.status) {
-            aProps.AppendElement(getAtomFromService("status-" + item.status.toLowerCase()));
+            properties.push("status-" + item.status.toLowerCase());
         }
 
         // Alarm status atom
         if (item.getAlarms({}).length) {
-            aProps.AppendElement(getAtomFromService("alarm"));
+            properties.push("alarm");
         }
 
         // Task categories
-        item.getCategories({}).map(formatStringForCSSRule)
-                              .map(getAtomFromService)
-                              .forEach(aProps.AppendElement, aProps);
+        properties = properties.concat(item.getCategories({})
+                                           .map(formatStringForCSSRule));
+
+        return properties.join(" ");
     },
-    getColumnProperties: function uTV_getColumnProperties(aCol, aProps) {},
+    getColumnProperties: function uTV_getColumnProperties(aCol) "",
 
     isContainer: function uTV_isContainer() {
         return false;

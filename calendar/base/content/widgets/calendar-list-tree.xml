@@ -621,11 +621,11 @@
       <method name="getCellProperties">
         <parameter name="aRow"/>
         <parameter name="aCol"/>
-        <parameter name="aProps"/>
         <body><![CDATA[
           try {
-              this.getRowProperties(aRow, aProps);
-              this.getColumnProperties(aCol, aProps);
+              let rowProps = this.getRowProperties(aRow);
+              let colProps = this.getColumnProperties(aCol);
+              return rowProps + (rowProps && colProps ? " " : "") + colProps;
           } catch (e) {
               // It seems errors in these functions are not shown, do this
               // explicitly.
@@ -636,58 +636,49 @@
 
       <method name="getRowProperties">
         <parameter name="aRow"/>
-        <parameter name="aProps"/>
         <body><![CDATA[
+          let properties = [];
           let calendar = this.getCalendar(aRow);
           let composite = this.compositeCalendar;
 
           // Set up the composite calendar status
-          if (composite.getCalendarById(calendar.id)) {
-              aProps.AppendElement(cal.getAtomFromService("checked"));
-          } else {
-              aProps.AppendElement(cal.getAtomFromService("unchecked"));
-          }
+          properties.push(composite.getCalendarById(calendar.id) ? "checked" : "unchecked");
 
           // Set up the calendar id
-          aProps.AppendElement(cal.getAtomFromService("id-" + calendar.id));
+          properties.push("id-" + calendar.id);
 
           // Get the calendar color
           let color = (calendar.getProperty("color") || "").substr(1);
 
           // Set up the calendar color (background)
-          let bgColorProp = "color-" + (color || "default");
-          aProps.AppendElement(cal.getAtomFromService(bgColorProp));
+          properties.push("color-" + (color || "default"));
 
           // Set a property to get the contrasting text color (foreground)
-          let fgColorProp = cal.getContrastingTextColor(color || "a8c2e1");
-          aProps.AppendElement(cal.getAtomFromService(fgColorProp));
+          properties.push(cal.getContrastingTextColor(color || "a8c2e1"));
 
           let currentStatus = calendar.getProperty("currentStatus");
           if (!Components.isSuccessCode(currentStatus)) {
               // 'readfailed' is supposed to "win" over 'readonly', meaning that
               // if reading from a calendar fails there is no further need to also display
               // information about 'readonly' status
-              aProps.AppendElement(cal.getAtomFromService("readfailed"));
+              properties.push("readfailed");
           } else if (calendar.readOnly) {
-              aProps.AppendElement(cal.getAtomFromService("readonly"));
+              properties.push("readonly");
           }
 
           // Set up the disabled state
-          if (!this.ignoreDisabledState && calendar.getProperty("disabled")) {
-              aProps.AppendElement(cal.getAtomFromService("disabled"));
-          } else {
-              aProps.AppendElement(cal.getAtomFromService("enabled"));
-          }
+          properties.push(!this.ignoreDisabledState && calendar.getProperty("disabled") ?
+                          "disabled" : "enabled");
+
+          return properties.join(" ");
         ]]></body>
       </method>
 
       <method name="getColumnProperties">
         <parameter name="aCol"/>
-        <parameter name="aProps"/>
         <body><![CDATA[
           // Workaround for anonymous treecols
-          let colAtom = cal.getAtomFromService(aCol.element.getAttribute("anonid"));
-          aProps.AppendElement(colAtom);
+          return aCol.element.getAttribute("anonid");
         ]]></body>
       </method>
 
