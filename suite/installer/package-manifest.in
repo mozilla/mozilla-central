@@ -371,8 +371,6 @@
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
-@BINPATH@/components/nsBadCertHandler.js
-@BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/nsBlocklistService.js
 @BINPATH@/components/nsBrowserContentHandler.js
 @BINPATH@/components/nsComposerCmdLineHandler.js
