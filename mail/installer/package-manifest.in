@@ -685,8 +685,6 @@
 @BINPATH@/components/shistory.xpt
 @BINPATH@/components/telemetry.xpt
 @BINPATH@/components/zipwriter.xpt
-@BINPATH@/components/nsBadCertHandler.js
-@BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/cookie.xpt
 @BINPATH@/components/places.xpt
 @BINPATH@/components/plugin.xpt
