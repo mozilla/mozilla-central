@@ -19,6 +19,10 @@ treechildren::-moz-tree-image(folderNameCol) {
   -moz-margin-end: 2px;
 }
 
+/* ..... Shared folders .....
+treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
+} */
+
 treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
   list-style-image: url("moz-icon://stock/gtk-directory?size=menu");
 }

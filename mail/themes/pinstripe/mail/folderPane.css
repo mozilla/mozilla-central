@@ -14,6 +14,12 @@ treechildren::-moz-tree-image(folderNameCol) {
   -moz-image-region: rect(0 16px 16px 0);
 }
 
+/* Disable Shared Folder Rule for now
+treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-share.png");
+}
+*/
+
 treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
   list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 16px 16px 0);
@@ -189,12 +195,6 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Archive) {
     -moz-image-region: rect(0 416px 32px 384px) !important;
   }
 }
-
-/* Disable Shared Folder Rule for now
-treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-share.png");
-}
-*/
 
 /* ..... Server Folders ..... */
 
