@@ -71,10 +71,10 @@ function Startup()
   }
   gDialog.PageModDate.value = lastmodString;
 
-  gAuthorElement = GetMetaElement("author");
+  gAuthorElement = GetMetaElementByAttribute("name", "author");
   if (!gAuthorElement)
   {
-    gAuthorElement = CreateMetaElement("author");
+    gAuthorElement = CreateMetaElementWithAttribute("name", "author");
     if (!gAuthorElement)
     {
       window.close();
@@ -83,10 +83,10 @@ function Startup()
     gInsertNewAuthor = true;
   }
 
-  gDescriptionElement = GetMetaElement("description");
+  gDescriptionElement = GetMetaElementByAttribute("name", "description");
   if (!gDescriptionElement)
   {
-    gDescriptionElement = CreateMetaElement("description");
+    gDescriptionElement = CreateMetaElementWithAttribute("name", "description");
     if (!gDescriptionElement)
       window.close();
 

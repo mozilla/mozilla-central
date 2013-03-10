@@ -36,12 +36,6 @@ const kMailComposerWindowID = "msgcomposeWindow";
 var gIsHTMLEditor;
 /************* Message dialogs ***************/
 
-function AlertWithTitle(title, message, parentWindow)
-{
-  // "window" is the calling dialog window
-  Services.prompt.alert(parentWindow || window, title || GetString("Alert"), message);
-}
-
 // Optional: Caller may supply text to substitue for "Ok" and/or "Cancel"
 function ConfirmWithTitle(title, message, okButtonText, cancelButtonText)
 {
@@ -110,11 +104,6 @@ function TrimString(string)
   if (!string)
     return "";
   return string.trim();
-}
-
-function IsWhitespace(string)
-{
-  return /^\s/.test(string);
 }
 
 function TruncateStringAtWordEnd(string, maxLength, addEllipses)
@@ -207,11 +196,11 @@ function GetCurrentEditorElement()
 
   do {
     // Get the <editor> element(s)
-    var editorList = tmpWindow.document.getElementsByTagName("editor");
+    let editorItem = tmpWindow.document.querySelector("editor");
 
     // This will change if we support > 1 editor element
-    if (editorList.item(0))
-      return editorList.item(0);
+    if (editorItem)
+      return editorItem;
 
     tmpWindow = tmpWindow.opener;
   }
@@ -529,7 +518,7 @@ function IsUrlAboutBlank(urlString)
 
 function MakeRelativeUrl(url)
 {
-  var inputUrl = TrimString(url);
+  let inputUrl = url.trim();
   if (!inputUrl)
     return inputUrl;
 
@@ -598,7 +587,7 @@ function MakeRelativeUrl(url)
         {
           var urlFilename = doCaseInsensitive ? urlPath.toLowerCase() : urlPath;
 
-          if (urlFilename.indexOf(docFilename) == 0)
+          if (urlFilename.startsWith(docFilename))
             urlPath = urlPath.slice(anchorIndex);
         }
       }
@@ -690,13 +679,9 @@ function GetDocumentBaseUrl()
     var docUrl;
 
     // if document supplies a <base> tag, use that URL instead
-    var baseList = GetCurrentEditor().document.getElementsByTagName("base");
-    if (baseList)
-    {
-      var base = baseList.item(0);
-      if (base)
-        docUrl = base.getAttribute("href");
-    }
+    let base = GetCurrentEditor().document.querySelector("base");
+    if (base)
+      docUrl = base.getAttribute("href");
     if (!docUrl)
       docUrl = GetDocumentUrl();
 
@@ -890,11 +875,11 @@ function GetOS()
 
   var platform = navigator.platform.toLowerCase();
 
-  if (platform.indexOf("win") != -1)
+  if (platform.contains("win"))
     gOS = gWin;
-  else if (platform.indexOf("mac") != -1)
+  else if (platform.contains("mac"))
     gOS = gMac;
-  else if (platform.indexOf("unix") != -1 || platform.indexOf("linux") != -1 || platform.indexOf("sun") != -1)
+  else if (platform.contains("unix") || platform.contains("linux") || platform.contains("sun"))
     gOS = gUNIX;
   else
     gOS = "";

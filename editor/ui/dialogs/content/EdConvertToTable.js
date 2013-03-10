@@ -138,7 +138,7 @@ function onAccept()
       end = str.indexOf(">", start+1);
       if (end > start)
       {
-        var tagContent = TrimString(str.slice(start+1, end));
+        let tagContent = str.slice(start + 1, end).trim();
 
         if (/^ol|^ul|^dl/.test(tagContent))
         {
@@ -208,7 +208,7 @@ function onAccept()
   {
     var tempStr = sepCharacter;
     var regExpChars = ".!@#$%^&*-+[]{}()\|\\\/";
-    if (regExpChars.indexOf(sepCharacter) >= 0)
+    if (regExpChars.contains(sepCharacter))
       tempStr = "\\" + sepCharacter;
 
     if (gIndex == gSpaceIndex)

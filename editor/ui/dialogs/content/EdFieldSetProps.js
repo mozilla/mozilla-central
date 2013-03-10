@@ -65,7 +65,7 @@ function Startup()
     var range = editor.document.createRange();
     range.selectNode(legendElement);
     gDialog.legendText.value = range.toString();
-    if (/</.test(legendElement.innerHTML))
+    if (legendElement.innerHTML.contains("<"))
     {
       gDialog.editText.checked = false;
       gDialog.editText.disabled = false;
@@ -109,7 +109,7 @@ function InitDialog()
 function onEditText()
 {
   gDialog.editText.removeEventListener("command", onEditText, false);
-  AlertWithTitle(GetString("Alert"), GetString("EditTextWarning"));
+  Services.prompt.alert(window, GetString("Alert"), GetString("EditTextWarning"));
 }
 
 function RemoveFieldSet()

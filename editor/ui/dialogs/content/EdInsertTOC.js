@@ -76,7 +76,7 @@ function Startup()
     // with "mozToc", it contains the TOC definition
     for (i = 0; i< nodeList.length; ++i) {
       if (nodeList.item(i).nodeType == Node.COMMENT_NODE &&
-          nodeList.item(i).data.substr(0, kMozTocLength) == kMozToc) {
+          nodeList.item(i).data.startsWith(kMozToc)) {
         // yep, there is already a definition here; parse it !
         headers = nodeList.item(i).data.substr(kMozTocLength + 1,
                                     nodeList.item(i).length - kMozTocLength - 1);
@@ -206,7 +206,7 @@ function BuildTOC(update)
       // do we have a named anchor as 1st child of our node ?
       if (anchor.nodeName.toLowerCase() == "a" &&
           anchor.hasAttribute("name") &&
-          anchor.getAttribute("name").substr(0, kMozTocIdPrefixLength) == kMozTocIdPrefix) {
+          anchor.getAttribute("name").startsWith(kMozTocIdPrefix)) {
         // yep, get its name
         id = anchor.getAttribute("name");
       }

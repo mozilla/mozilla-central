@@ -117,10 +117,10 @@ function InitImage()
 
   // dialog.border.value       = globalElement.getAttribute("border");
   var bv = GetHTMLOrCSSStyleValue(globalElement, "border", "border-top-width");
-  if (/px/.test(bv))
+  if (bv.contains("px"))
   {
     // Strip out the px
-    bv = RegExp.leftContext;
+    bv = bv.substr(0, bv.indexOf("px"));
   }
   else if (bv == "thin")
   {
@@ -193,15 +193,10 @@ function GetImageMap()
   if (usemap)
   {
     gCanRemoveImageMap = true;
-    var mapname = usemap.substring(1, usemap.length);
-    var mapCollection;
+    let mapname = usemap.substr(1);
     try {
-      mapCollection = GetCurrentEditor().document.getElementsByName(mapname);
+      return GetCurrentEditor().document.querySelector('[name="' + mapname + '"]');
     } catch (e) {}
-    if (mapCollection && mapCollection[0] != null)
-    {
-      return mapCollection[0];
-    }
   }
   else
   {
@@ -455,28 +450,26 @@ function ValidateImage()
   gValidateTab = gDialog.tabLocation;
   if (!gDialog.srcInput.value)
   {
-    AlertWithTitle(null, GetString("MissingImageError"));
+    Services.prompt.alert(window, GetString("Alert"), GetString("MissingImageError"));
     SwitchToValidatePanel();
     gDialog.srcInput.focus();
     return false;
   }
 
   // We must convert to "file:///" or "http://" format else image doesn't load!
-  var src = TrimString(gDialog.srcInput.value);
+  let src = gDialog.srcInput.value.trim();
   var checkbox = document.getElementById("MakeRelativeCheckbox");
   try
   {
     if (checkbox && !checkbox.checked)
     {
-      var URIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                               .getService(Components.interfaces.nsIURIFixup);
-      src = URIFixup.createFixupURI(src, Components.interfaces.nsIURIFixup.FIXUP_FLAG_NONE).spec;
+      src = Services.uriFixup.createFixupURI(src, Components.interfaces.nsIURIFixup.FIXUP_FLAG_NONE).spec;
     }
   } catch (e) { }
 
   globalElement.setAttribute("src", src);
 
-  var title = TrimString(gDialog.titleInput.value);
+  let title = gDialog.titleInput.value.trim();
   if (title)
     globalElement.setAttribute("title", title);
   else
@@ -499,7 +492,7 @@ function ValidateImage()
   }
   else
   {
-    AlertWithTitle(null, GetString("NoAltText"));
+    Services.prompt.alert(window, GetString("Alert"), GetString("NoAltText"));
     SwitchToValidatePanel();
     gDialog.altTextInput.focus();
     return false;

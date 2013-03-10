@@ -182,7 +182,7 @@ function SetTextboxFocus(textbox)
 
 function ShowInputErrorMessage(message)
 {
-  AlertWithTitle(GetString("InputError"), message);
+  Services.prompt.alert(window, GetString("InputError"), message);
   window.focus();
 }
 
@@ -261,18 +261,18 @@ function InitPixelOrPercentMenulist(elementForAtt, elementInDoc, attribute, menu
   if (size && size.length > 0)
   {
     // Search for a "%" or "px"
-    if (/%/.test(size))
+    if (size.contains("%"))
     {
       // Strip out the %
-      size = RegExp.leftContext;
+      size = size.substr(0, size.indexOf("%"));
       if (percentItem)
         menulist.selectedItem = percentItem;
     }
     else
     {
-      if (/px/.test(size))
+      if (size.contains("px"))
         // Strip out the px
-        size = RegExp.leftContext;
+        size = size.substr(0, size.indexOf("px"));
       menulist.selectedItem = pixelItem;
     }
   }
@@ -400,7 +400,7 @@ function GetLocalFileURL(filterType)
   }
   // Current usage of this is in Link dialog,
   //  where we always want HTML first
-  else if (filterType.indexOf("html") == 0)
+  else if (filterType.startsWith("html"))
   {
     fp.init(window, GetString("OpenHTMLFile"), nsIFilePicker.modeOpen);
 
@@ -410,7 +410,7 @@ function GetLocalFileURL(filterType)
     fp.appendFilters(nsIFilePicker.filterText);
 
     // Link dialog also allows linking to images
-    if (filterType.indexOf("img") > 0)
+    if (filterType.contains("img", 1))
       fp.appendFilters(nsIFilePicker.filterImages);
 
   }
@@ -437,87 +437,29 @@ function GetLocalFileURL(filterType)
   return fp.file ? fileHandler.getURLSpecFromFile(fp.file) : null;
 }
 
-function GetMetaElement(name)
+function GetMetaElementByAttribute(name, value)
 {
   if (name)
   {
     name = name.toLowerCase();
-    if (name != "")
-    {
-      var editor = GetCurrentEditor();
-      try {
-        var metaNodes = editor.document.getElementsByTagName("meta");
-        for (var i = 0; i < metaNodes.length; i++)
-        {
-          var metaNode = metaNodes.item(i);
-          if (metaNode && metaNode.getAttribute("name") == name)
-            return metaNode;
-        }
-      } catch (e) {}
-    }
+    let editor = GetCurrentEditor();
+    try {
+      return editor.document.querySelector('meta[' + name + '="' + value + '"]');
+    } catch (e) {}
   }
   return null;
 }
 
-function CreateMetaElement(name)
+function CreateMetaElementWithAttribute(name, value)
 {
-  var editor = GetCurrentEditor();
+  let editor = GetCurrentEditor();
   try {
-    var metaElement = editor.createElementWithDefaults("meta");
-    metaElement.setAttribute("name", name);
-    return metaElement;
-  } catch (e) {}
-
-  return null;
-}
-
-function GetHTTPEquivMetaElement(name)
-{
-  if (name)
-  {
-    name = name.toLowerCase();
-    if (name != "")
-    {
-      var editor = GetCurrentEditor();
-      try {
-        var metaNodes = editor.document.getElementsByTagName("meta");
-        for (var i = 0; i < metaNodes.length; i++)
-        {
-          var metaNode = metaNodes.item(i);
-          if (metaNode)
-          {
-            var httpEquiv = metaNode.getAttribute("http-equiv");
-            if (httpEquiv && httpEquiv.toLowerCase() == name)
-              return metaNode;
-          }
-        }
-      } catch (e) {}
+    let metaElement = editor.createElementWithDefaults("meta");
+    if (name) {
+      metaElement.setAttribute(name, value);
     }
-  }
-  return null;
-}
-
-function CreateHTTPEquivMetaElement(name)
-{
-  var editor = GetCurrentEditor();
-  try {
-    var metaElement = editor.createElementWithDefaults("meta");
-    metaElement.setAttribute("http-equiv", name);
     return metaElement;
   } catch (e) {}
-
-  return null;
-}
-
-function CreateHTTPEquivElement(name)
-{
-  var editor = GetCurrentEditor();
-  try {
-    var metaElement = editor.createElementWithDefaults("meta");
-    metaElement.setAttribute("http-equiv", name);
-    return metaElement;
-  } catch (e) {}
-
   return null;
 }
 
@@ -556,8 +498,7 @@ function GetHeadElement()
 {
   var editor = GetCurrentEditor();
   try {
-    var headList = editor.document.getElementsByTagName("head");
-    return headList.item(0);
+    return editor.document.querySelector("head");
   } catch (e) {}
 
   return null;
@@ -702,7 +643,7 @@ function MakeInputValueRelativeOrAbsolute(checkbox)
   {
     // Checkbox should be disabled if not saved,
     //  but keep this error message in case we change that
-    AlertWithTitle("", GetString("SaveToUseRelativeUrl"));
+    Services.prompt.alert(window, "", GetString("SaveToUseRelativeUrl"));
     window.focus();
   }
   else 

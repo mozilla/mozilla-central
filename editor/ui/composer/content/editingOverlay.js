@@ -34,7 +34,7 @@ function EditorOnLoad()
     // get default character set if provided
     if (window.arguments.length > 1 && window.arguments[1])
     {
-      if (window.arguments[1].indexOf("charset=") != -1)
+      if (window.arguments[1].contains("charset="))
       {
         var arrayArgComponents = window.arguments[1].split("=");
         if (arrayArgComponents)

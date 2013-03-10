@@ -32,7 +32,7 @@ function Startup()
   range.selectNode(labelElement);
   gDialog.labelText.value = range.toString();
 
-  if (/</.test(labelElement.innerHTML))
+  if (labelElement.innerHTML.contains("<"))
   {
     gDialog.editText.checked = false;
     gDialog.editText.disabled = false;
@@ -55,7 +55,7 @@ function InitDialog()
 function onEditText()
 {
   gDialog.editText.removeEventListener("command", onEditText, false);
-  AlertWithTitle(GetString("Alert"), GetString("EditTextWarning"));
+  Services.prompt.alert(window, GetString("Alert"), GetString("EditTextWarning"));
 }
 
 function RemoveLabel()

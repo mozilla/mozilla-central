@@ -106,7 +106,7 @@ function onAccept()
 {
   if (formActionWarning && !gForm.Action.value)
   {
-    AlertWithTitle(GetString("Alert"), GetString("NoFormAction"));
+    Services.prompt.alert(window, GetString("Alert"), GetString("NoFormAction"));
     gForm.Action.focus();
     formActionWarning = false;
     return false;

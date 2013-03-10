@@ -26,10 +26,10 @@ function Startup()
   gDialog.charsetTree   = document.getElementById('CharsetTree'); 
   gDialog.exportToText  = document.getElementById('ExportToText');
 
-  gContenttypeElement = GetHTTPEquivMetaElement("content-type");
+  gContenttypeElement = GetMetaElementByAttribute("http-equiv", "content-type");
   if (!gContenttypeElement && (editor.contentsMIMEType != 'text/plain')) 
   {
-    gContenttypeElement = CreateHTTPEquivMetaElement("content-type");
+    gContenttypeElement = CreateMetaElementWithAttribute("http-equiv", "content-type");
     if (!gContenttypeElement ) 
 	{
       window.close();

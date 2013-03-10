@@ -327,12 +327,7 @@ function pokeStyleUI(uiID, aDesiredState)
   var uiState = ("true" == commandNode.getAttribute("state"));
   if (aDesiredState != uiState)
   {
-    var newState;
-    if (aDesiredState)
-      newState = "true";
-    else
-      newState = "false";
-    commandNode.setAttribute("state", newState);
+    commandNode.setAttribute("state", aDesiredState ? "true" : "false");
   }
  } catch(e) { dump("poking UI for "+uiID+" failed: "+e+"\n"); }
 }
@@ -1086,7 +1081,7 @@ var gEditorOutputProgressListener =
       //  or a successful finish
       //  (Check requestSpec to be sure message is for destination url)
       if (aStatus != 0
-           || (requestSpec && requestSpec.indexOf(GetScheme(gPublishData.publishUrl)) == 0))
+           || (requestSpec && requestSpec.startsWith(GetScheme(gPublishData.publishUrl))))
       {
         try {
           gProgressDialog.SetProgressFinished(GetFilename(requestSpec), aStatus);
@@ -1299,11 +1294,11 @@ var gEditorOutputProgressListener =
 // nsIPrompt
   alert : function(dlgTitle, text)
   {
-    AlertWithTitle(dlgTitle, text, gProgressDialog ? gProgressDialog : window);
+    Services.prompt.alert(gProgressDialog ? gProgressDialog : window, dlgTitle, text);
   },
   alertCheck : function(dialogTitle, text, checkBoxLabel, checkObj)
   {
-    AlertWithTitle(dialogTitle, text);
+    Services.prompt.alert(window, dialogTitle, text);
   },
   confirm : function(dlgTitle, text)
   {
@@ -1583,8 +1578,7 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
 
   // if we don't have the right editor type bail (we handle text and html)
   var editorType = GetCurrentEditorType();
-  if (editorType != "text" && editorType != "html"
-      && editorType != "htmlmail" && editorType != "textmail")
+  if (["text", "html", "htmlmail", "textmail"].indexOf(editorType) == -1)
     throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 
   var saveAsTextFile = IsSupportedTextMimeType(aMimeType);
@@ -1691,11 +1685,7 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
       } catch(e) { relatedFilesDir = null; }
     }
 
-    var destinationLocation;
-    if (tempLocalFile)
-      destinationLocation = tempLocalFile;
-    else
-      destinationLocation = docURI;
+    let destinationLocation = tempLocalFile ? tempLocalFile : docURI;
 
     success = OutputFileWithPersistAPI(editorDoc, destinationLocation, relatedFilesDir, aMimeType);
   }
@@ -1732,9 +1722,7 @@ function SaveDocument(aSaveAs, aSaveCopy, aMimeType)
   }
   else
   {
-    var saveDocStr = GetString("SaveDocument");
-    var failedStr = GetString("SaveFileFailed");
-    AlertWithTitle(saveDocStr, failedStr);
+    Services.prompt.alert(window, GetString("SaveDocument"), GetString("SaveFileFailed"));
   }
   return success;
 }
@@ -1767,7 +1755,7 @@ function Publish(publishData)
   gPublishData.docURI = CreateURIFromPublishData(publishData, true);
   if (!gPublishData.docURI)
   {
-    AlertWithTitle(GetString("Publish"), GetString("PublishFailed"));
+    Services.prompt.alert(window, GetString("Publish"), GetString("PublishFailed"));
     return false;
   }
 

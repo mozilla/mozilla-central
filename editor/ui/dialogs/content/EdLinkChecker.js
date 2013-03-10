@@ -56,7 +56,7 @@ function Startup()
 
   if (!objects || objects.Count() == 0)
   {
-    AlertWithTitle(GetString("Alert"), GetString("NoLinksToCheck"));
+    Services.prompt.alert(window, GetString("Alert"), GetString("NoLinksToCheck"));
     window.close();
     return;
   }
@@ -155,21 +155,15 @@ function SetItemStatus(url, status)
 
   // Just set attribute for status icon 
   // if we already have this url 
-  var listitems = document.getElementsByTagName("listitem");
-  if (listitems)
+  let listitem = document.querySelector('listitem[label="' + url + '"]');
+  if (listitem)
   {
-    for (var i=0; i < listitems.length; i++)
-    {
-      if (listitems[i].getAttribute("label") == url)
-      {
-        listitems[i].setAttribute("progress", status);
-        return true;
-      }
-    }
+    listitem.setAttribute("progress", status);
+    return true;
   }
 
   // We're adding a new item to list
-  var listitem = document.createElementNS(XUL_NS, "listitem");
+  listitem = document.createElementNS(XUL_NS, "listitem");
   if (listitem)
   {
     listitem.setAttribute("class", "listitem-iconic progressitem");

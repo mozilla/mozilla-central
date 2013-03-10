@@ -153,7 +153,7 @@ nsPrefListener.prototype =
           editor.isCSSEnabled = useCSS;
       }
     }
-    else if (prefName.substr(0, kEditorToolbarPrefs.length) == kEditorToolbarPrefs)
+    else if (prefName.startsWith(kEditorToolbarPrefs))
     {
       let id = prefName.substr(kEditorToolbarPrefs.length) + "Button";
       let button = document.getElementById(id);
@@ -261,7 +261,7 @@ var gEditorDocumentObserver =
             // network code popped up an alert dialog, so we don't need to
           }
           if (errorStringId)
-            AlertWithTitle("", GetString(errorStringId));
+            Services.prompt.alert(window, "", GetString(errorStringId));
         } catch(e) { dump("EXCEPTION GETTING obs_documentCreated state "+e+"\n"); }
 
         // We have a bad editor -- nsIEditingSession will rebuild an editor
@@ -345,17 +345,9 @@ var gEditorDocumentObserver =
             HideItem("structSpacer");
 
             // Hide everything in "Insert" except for "Symbols"
-            var menuPopup = document.getElementById("insertMenuPopup");
-            if (menuPopup)
-            {
-              var children = menuPopup.childNodes;
-              for (var i=0; i < children.length; i++) 
-              {
-                var item = children.item(i);
-                if (item.id != "insertChars")
-                  item.hidden = true;
-              }
-            }
+            let menuPopupChildren = document.querySelectorAll('[id="insertMenuPopup"] > :not(#insertChars)');
+            for (let i = 0; i < menuPopupChildren.length; i++)
+              menuPopupChildren.item(i).hidden = true;
           }
     
           // Set window title
@@ -1556,7 +1548,7 @@ function SetEditMode(mode)
           if (dt.publicId)
             doctypeText += " PUBLIC \"" + domdoc.doctype.publicId;
           if (dt.systemId)
-            doctypeText += " "+"\"" + dt.systemId;
+            doctypeText += " \"" + dt.systemId;
           doctypeText += "\">"
           doctypeNode.setAttribute("value", doctypeText);
         }
@@ -1627,15 +1619,8 @@ function SetEditMode(mode)
 
         // Get the text for the <title> from the newly-parsed document
         // (must do this for proper conversion of "escaped" characters)
-        var title = "";
-        var titlenodelist = editor.document.getElementsByTagName("title");
-        if (titlenodelist)
-        {
-          var titleNode = titlenodelist.item(0);
-          if (titleNode && titleNode.firstChild && titleNode.firstChild.data)
-            title = titleNode.firstChild.data;
-        }
-        SetDocumentTitle(title);
+        let titleNode = editor.document.querySelector("title");
+        SetDocumentTitle(titleNode ? titleNode.textContent : "");
 
       } catch (ex) {
         dump(ex);
@@ -2110,15 +2095,8 @@ function EditorSetDefaultPrefsAndDoctype()
   }
   
   // search for head; we'll need this for meta tag additions
-  var headelement = 0;
-  var headnodelist = domdoc.getElementsByTagName("head");
-  if (headnodelist)
-  {
-    var sz = headnodelist.length;
-    if ( sz >= 1 )
-      headelement = headnodelist.item(0);
-  }
-  else
+  let headelement = domdoc.querySelector("head");
+  if (!headelement)
   {
     headelement = domdoc.createElement("head");
     if (headelement)
@@ -2134,8 +2112,7 @@ function EditorSetDefaultPrefsAndDoctype()
   // if not, create one and make it a child of the head tag
   //   and set its content attribute to the value of the editor.author preference.
 
-  var nodelist = domdoc.getElementsByTagName("meta");
-  if ( nodelist )
+  if (domdoc.querySelector("meta"))
   {
     // we should do charset first since we need to have charset before
     // hitting other 8-bit char in other meta tags
@@ -2151,50 +2128,31 @@ function EditorSetDefaultPrefsAndDoctype()
     if ( prefCharsetString && prefCharsetString != 0)
       editor.documentCharacterSet = prefCharsetString;
 
-    var node = 0;
-    var listlength = nodelist.length;
-
     // let's start by assuming we have an author in case we don't have the pref
-    var authorFound = false;
-    for (var i = 0; i < listlength && !authorFound; i++)
-    {
-      node = nodelist.item(i);
-      if ( node )
-      {
-        var value = node.getAttribute("name");
-        if (value && value.toLowerCase() == "author")
-        {
-          authorFound = true;
-        }
-      }
-    }
 
-    var prefAuthorString = 0;
+    var prefAuthorString = null;
+    let authorFound = domdoc.querySelector('meta[name="author"]');
     try
     {
       prefAuthorString = Services.prefs.getComplexValue("editor.author",
                                                         Components.interfaces.nsISupportsString).data;
     }
     catch (ex) {}
-    if ( prefAuthorString && prefAuthorString != 0)
+    if (prefAuthorString && prefAuthorString != 0 && !authorFound && headelement)
     {
-      if ( !authorFound && headelement)
+      // create meta tag with 2 attributes
+      element = domdoc.createElement("meta");
+      if (element)
       {
-        /* create meta tag with 2 attributes */
-        element = domdoc.createElement("meta");
-        if ( element )
-        {
-          element.setAttribute("name", "author");
-          element.setAttribute("content", prefAuthorString);
-          headelement.appendChild( element );
-        }
+        element.setAttribute("name", "author");
+        element.setAttribute("content", prefAuthorString);
+        headelement.appendChild(element);
       }
     }
   }
 
   // add title tag if not present
-  var titlenodelist = editor.document.getElementsByTagName("title");
-  if (headelement && titlenodelist && titlenodelist.length == 0)
+  if (headelement && !editor.document.querySelector("title"))
   {
      var titleElement = domdoc.createElement("title");
      if (titleElement)
@@ -3073,26 +3031,10 @@ function RemoveTOC()
     elt.parentNode.removeChild(elt);
   }
 
-  function acceptNode(node)
-  {
-    if (node.nodeName.toLowerCase() == "a" &&
-        node.hasAttribute("name") &&
-        node.getAttribute("name").substr(0, 8) == "mozTocId") {
-      return NodeFilter.FILTER_ACCEPT;
-    }
-    return NodeFilter.FILTER_SKIP;
-  }
-
-  var treeWalker = theDocument.createTreeWalker(theDocument.documentElement,
-                                                NodeFilter.SHOW_ELEMENT,
-                                                acceptNode,
-                                                true);
-  if (treeWalker) {
-    var anchorNode = treeWalker.nextNode();
-    while (anchorNode) {
-      var tmp = treeWalker.nextNode();
-      anchorNode.parentNode.removeChild(anchorNode);
-      anchorNode = tmp;
+  let anchorNodes = theDocument.querySelectorAll('a[name^="mozTocId"]');
+  for (let node of anchorNodes) {
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
     }
   }
 }

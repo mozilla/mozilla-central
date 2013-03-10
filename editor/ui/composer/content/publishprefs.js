@@ -695,10 +695,8 @@ function FillInMatchingPublishData(publishData, docUrl)
   username = username.value;
 
   var matchedLength = 0;
-  var pubUrlFound = publishData.publishUrl ?
-                      baseUrl.indexOf(publishData.publishUrl) == 0 : false;
-  var browseUrlFound = publishData.browseUrl ?
-                          baseUrl.indexOf(publishData.browseUrl) == 0 : false;
+  let pubUrlFound = publishData.publishUrl && baseUrl.startsWith(publishData.publishUrl);
+  let browseUrlFound = publishData.browseUrl && baseUrl.startsWith(publishData.browseUrl);
 
   if ((pubUrlFound || browseUrlFound) 
       && (!username || !publishData.username || username == publishData.username))
@@ -799,14 +797,14 @@ function FormatDirForPublishing(dir)
     return "";
 
   // Remove leading "/"
-  if (dir.charAt(0) == "/")
+  if (dir.startsWith("/"))
     dir = dir.slice(1);
 
   // Append "/" at the end if necessary
   var dirLen = dir.length;
   var lastChar = dir.charAt(dirLen-1);
-  if (dirLen > 1 && lastChar != "/" && lastChar != "=" && lastChar != "&" && lastChar  != "?")
-    return (dir + "/");
+  if (dirLen > 1 && ["/", "=", "&", "?"].indexOf(lastChar) == -1)
+    dir += "/";
 
   return dir;
 }

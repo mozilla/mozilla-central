@@ -101,10 +101,10 @@ function UpdateCSSAttributes()
     // this code allows users to be sloppy in typing in values, and enter
     // things like "foo: " and "bar;". This will trim off everything after the
     // respective character.
-    if (name.indexOf(":") != -1)
-      name = name.substring(0,name.lastIndexOf(":"));
-    if (value.indexOf(";") != -1)
-      value = value.substring(0,value.lastIndexOf(";"));
+    if (name.contains(":"))
+      name = name.substring(0, name.lastIndexOf(":"));
+    if (value.contains(";"))
+      value = value.substring(0, value.lastIndexOf(";"));
     if (i == (CSSAList.childNodes.length - 1))
       styleString += name + ": " + value + ";";   // last property
     else

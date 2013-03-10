@@ -120,15 +120,13 @@ function Startup()
 // this function changes status for all non-done/non-failure to failure
 function SetProgressStatusCancel()
 {
-  var listitems = document.getElementsByTagName("listitem");
+  let listitems = document.querySelectorAll('listitem:not([progress="done"]):not([progress="failed"])');
   if (!listitems)
     return;
 
   for (var i=0; i < listitems.length; i++)
   {
-    var attr = listitems[i].getAttribute("progress");
-    if (attr != "done" && attr != "failed")
-      listitems[i].setAttribute("progress", "failed");
+    listitems[i].setAttribute("progress", "failed");
   }
 }
 
@@ -143,24 +141,17 @@ function SetProgressStatus(filename, status)
   if (!status)
     status = "busy";
 
-  // Just set attribute for status icon 
-  // if we already have this filename 
-  var listitems = document.getElementsByTagName("listitem");
-  if (listitems)
+  // Just set attribute for status icon if we already have this filename.
+  let listitem = document.querySelector('listitem[label="' + filename + '"]');
+  if (listitem)
   {
-    for (var i=0; i < listitems.length; i++)
-    {
-      if (listitems[i].getAttribute("label") == filename)
-      {
-        listitems[i].setAttribute("progress", status);
-        return true;
-      }
-    }
+    listitem.setAttribute("progress", status);
+    return true;
   }
   // We're adding a new file item to list
   gTotalFileCount++;
 
-  var listitem = document.createElementNS(XUL_NS, "listitem");
+  listitem = document.createElementNS(XUL_NS, "listitem");
   if (listitem)
   {
     listitem.setAttribute("class", "listitem-iconic progressitem");

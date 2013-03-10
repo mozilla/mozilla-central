@@ -73,11 +73,11 @@ function BuildJSEAttributeTable()
     var added = false;
     for (var i = 0; i < nodeMap.length; i++)
     {
+      let name = nodeMap[i].nodeName.toLowerCase();
       if( CheckAttributeNameSimilarity( nodeMap[i].nodeName, JSEAttrs ) )
         continue;   // repeated or non-JS handler, ignore this one and go to next
-      if( !IsEventHandler( nodeMap[i].nodeName ) )
+      if (!name.startsWith("on"))
         continue; // attribute isn't an event handler.
-      var name  = nodeMap[i].nodeName.toLowerCase();
       var value = gElement.getAttribute(nodeMap[i].nodeName);
       if (AddTreeItem( name, value, "JSEAList", JSEAttrs )) // add item to tree
         added = true;
@@ -87,17 +87,6 @@ function BuildJSEAttributeTable()
     if (added)
       gDialog.AddJSEAttributeTree.selectedIndex = 0;
   }
-}
-
-// check to see if given string is an event handler.
-function IsEventHandler( which )
-{
-  var handlerName = which.toLowerCase();
-  var firstTwo = handlerName.substring(0,2);
-  if (firstTwo == "on")
-    return true;
-  else
-    return false;
 }
 
 function onSelectJSEAttribute()

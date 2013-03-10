@@ -16,7 +16,6 @@ function BuildHTMLAttributeNameList()
     for (var i = 0; i < attNames.length; i++)
     {
       var name = attNames[i];
-      var limitFirstChar;
 
       if (name == "_core")
       {
@@ -25,10 +24,9 @@ function BuildHTMLAttributeNameList()
         {
           name = gCoreHTMLAttr[j];
 
-          // "limitFirstChar" is the only filtering rule used for core attributes as of 8-20-01
-          // Add more rules if necessary          
-          limitFirstChar = name.indexOf("^") >= 0;
-          if (limitFirstChar)
+          // only filtering rule used for core attributes as of 8-20-01
+          // Add more rules if necessary.
+          if (name.contains("^"))
           {
             menuitem = gDialog.AddHTMLAttributeNameInput.appendItem(name.replace(/\^/g, ""));
             menuitem.setAttribute("limitFirstChar", "true");
@@ -51,12 +49,12 @@ function BuildHTMLAttributeNameList()
       else
       {
         // Get information about value filtering
-        var forceOneChar = name.indexOf("!") >= 0;
-        var forceInteger = name.indexOf("#") >= 0;
-        var forceSignedInteger = name.indexOf("+") >= 0;
-        var forceIntOrPercent = name.indexOf("%") >= 0;
-        limitFirstChar = name.indexOf("\^") >= 0;
-        //var required = name.indexOf("$") >= 0;
+        let forceOneChar = name.contains("!");
+        let forceInteger = name.contains("#");
+        let forceSignedInteger = name.contains("+");
+        let forceIntOrPercent = name.contains("%");
+        let limitFirstChar = name.contains("\^");
+        //let required = name.contains("$");
 
         // Strip flag characters
         name = name.replace(/[!^#%$+]/g, "");
@@ -97,14 +95,13 @@ function BuildHTMLAttributeTable()
     var added = false;
     for(i = 0; i < nodeMap.length; i++)
     {
+      let name = nodeMap[i].name.toLowerCase();
       if ( CheckAttributeNameSimilarity( nodeMap[i].nodeName, HTMLAttrs ) ||
-          IsEventHandler( nodeMap[i].nodeName ) ||
-          TrimString( nodeMap[i].nodeName.toLowerCase() ) == "style" ) {
+           name.startsWith("on") || name == "style" ) {
         continue;   // repeated or non-HTML attribute, ignore this one and go to next
       }
-      var name  = nodeMap[i].name.toLowerCase();
-      if ( name.indexOf("_moz") != 0 &&
-           AddTreeItem(name, nodeMap[i].value, "HTMLAList", HTMLAttrs) )
+      if (!name.startsWith("_moz") &&
+          AddTreeItem(name, nodeMap[i].value, "HTMLAList", HTMLAttrs))
       {
         added = true;
       }
@@ -152,7 +149,7 @@ function onSelectHTMLTreeItem()
 
 function onInputHTMLAttributeName()
 {
-  var attName = TrimString(gDialog.AddHTMLAttributeNameInput.value).toLowerCase();
+  let attName = gDialog.AddHTMLAttributeNameInput.value.toLowerCase().trim();
 
   // Clear value widget, but prevent triggering update in tree
   gUpdateTreeValue = false;
@@ -173,7 +170,7 @@ function onInputHTMLAttributeName()
       valueListName = gElement.localName.toLowerCase() + "_" + attName;
 
     // Strip off leading "_" we sometimes use (when element name is reserved word)
-    if (valueListName[0] == "_")
+    if (valueListName.startsWith("_"))
       valueListName = valueListName.slice(1);
 
     var newValue = "";
@@ -304,7 +301,7 @@ function onInputHTMLAttributeValue()
 
   // Update value in the tree list
   // If not found, add new attribute
-  if ( !UpdateExistingAttribute(name, value, "HTMLAList" ) && value)
+  if (!UpdateExistingAttribute(name, value, "HTMLAList") && value)
     AddTreeItem(name, value, "HTMLAList", HTMLAttrs);
 }
 
