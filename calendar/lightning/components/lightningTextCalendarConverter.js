@@ -134,6 +134,8 @@ ltnMimeConverter.prototype = {
     createHtml: function createHtml(event, aNewItipItem) {
         // Creates HTML using the Node strings in the properties file
         let doc = cal.xml.parseFile("chrome://lightning/content/lightning-invitation.xhtml");
+        let formatter = cal.getDateFormatter();
+
         let self = this;
         function field(field, contentText, linkify) {
             let descr = doc.getElementById("imipHtml-" + field + "-descr");
@@ -162,7 +164,7 @@ ltnMimeConverter.prototype = {
         field("summary", event.title);
         field("location", event.getProperty("LOCATION"));
 
-        let dateString = cal.getDateFormatter().formatItemInterval(event);
+        let dateString = formatter.formatItemInterval(event);
 
         if (event.recurrenceInfo) {
             let kDefaultTimezone = cal.calendarDefaultTimezone();
@@ -174,6 +176,55 @@ ltnMimeConverter.prototype = {
                                                      endDate, startDate.isDate);
             if (repeatString) {
                 dateString = repeatString;
+            }
+
+            let formattedExDates = [];
+            let modifiedOccurrences = [];
+            function dateComptor(a,b) a.startDate.compare(b.startDate);
+
+            // Show removed instances
+            for each (let exc in event.recurrenceInfo.getRecurrenceItems({})) {
+                if (exc instanceof Components.interfaces.calIRecurrenceDate) {
+                    if (exc.isNegative) {
+                        // This is an EXDATE
+                        formattedExDates.push(formatter.formatDateTime(exc.date));
+                    } else {
+                        // This is an RDATE, close enough to a modified occurrence
+                        let excItem = event.recurrenceInfo.getOccurrenceFor(exc.date);
+                        cal.binaryInsert(modifiedOccurrences, excItem, dateComptor, true)
+                    }
+                }
+            }
+            if (formattedExDates.length > 0) {
+                field("canceledOccurrences", formattedExDates.join("\n"));
+            }
+
+            // Show modified occurrences
+            for each (let recurrenceId in event.recurrenceInfo.getExceptionIds({})) {
+                let exc = event.recurrenceInfo.getExceptionFor(recurrenceId);
+                let excLocation = exc.getProperty("LOCATION");
+
+                // Only show modified occurrence if start, duration or location
+                // has changed.
+                if (exc.startDate.compare(exc.recurrenceId) != 0 ||
+                    exc.duration.compare(event.duration) != 0 ||
+                    excLocation != event.getProperty("LOCATION")) {
+                    cal.binaryInsert(modifiedOccurrences, exc, dateComptor, true)
+                }
+            }
+
+            function stringifyOcc(occ) {
+                let formattedExc = formatter.formatItemInterval(occ);
+                let occLocation = occ.getProperty("LOCATION");
+                if (occLocation != event.getProperty("LOCATION")) {
+                    let location = cal.calGetString("lightning", "imipHtml.newLocation", [occLocation], "lightning");
+                    formattedExc += " (" + location + ")";
+                }
+                return formattedExc;
+            }
+
+            if (modifiedOccurrences.length > 0) {
+                field("modifiedOccurrences", modifiedOccurrences.map(stringifyOcc).join("\n"));
             }
         }
 
