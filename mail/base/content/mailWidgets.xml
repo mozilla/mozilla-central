@@ -1532,20 +1532,6 @@
           <![CDATA[
             var menulist = document.getAnonymousNodes(this)[0];
             this.value = menulist.value;
-            // notify targets
-            var targets = this.targets;
-            if (targets) {
-              for (var i=0; i < targets.length; i++) {
-                targets[i].parentValue = menulist.value;
-              }
-            }
-
-            var optargets = this.optargets;
-            if (optargets) {
-              for (i = 0; i < optargets.length; ++i) {
-                optargets[i].opParentValue = menulist.value;
-              }
-            }
           ]]>
         </body>
       </method>
