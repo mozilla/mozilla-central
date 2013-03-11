@@ -845,6 +845,7 @@
       <rdf:Seq>
         <rdf:li><rdf:Description ID="privacy-doc-visit" nc:name="What Information Does My Browser Give to a Website?"  		nc:link="privacy_help.xhtml#what_information_does_my_browser_give_to_a_website"/> </rdf:li>
         <rdf:li><rdf:Description ID="privacy-doc-cookies" nc:name="What Are Cookies, and How Do They Work?"  		nc:link="privacy_help.xhtml#what_are_cookies_and_how_do_they_work"/> </rdf:li>
+        <rdf:li><rdf:Description ID="privacy-doc-tracking" nc:name="Why and How Are Websites Tracking Me?"  		nc:link="privacy_help.xhtml#why_and_how_are_websites_tracking_me"/> </rdf:li>
         <rdf:li><rdf:Description ID="privacy-doc-email" nc:name="How Can I Control Web Pages in Email Messages?"  		nc:link="privacy_help.xhtml#how_can_i_control_web_pages_in_email_messages"/> </rdf:li>
         <rdf:li><rdf:Description ID="privacy-doc-unauth" nc:name="How Can I Make Sure Unauthorized People Don't Use Information About Me?"  		nc:link="privacy_help.xhtml#how_can_i_make_sure_unauthorized_people_dont_use_information_about_me"/> </rdf:li>
       </rdf:Seq>
