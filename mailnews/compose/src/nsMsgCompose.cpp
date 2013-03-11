@@ -14,7 +14,6 @@
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsPIDOMWindow.h"
 #include "nsISelectionController.h"
-#include "nsIDOMNamedNodeMap.h"
 #include "nsMsgI18N.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgQuote.h"
@@ -5142,23 +5141,13 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  int32_t *_retval)
       // Skip <blockquote type="cite">
       *_retval = nsIMsgCompConvertible::Yes;
 
-      nsCOMPtr<nsIDOMNamedNodeMap> pAttributes;
-      if (NS_SUCCEEDED(node->GetAttributes(getter_AddRefs(pAttributes)))
-          && pAttributes)
+      nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
+      if (domElement)
       {
-        nsAutoString typeName; typeName.AssignLiteral("type");
-        if (NS_SUCCEEDED(pAttributes->GetNamedItem(typeName,
-                                                   getter_AddRefs(pItem)))
-            && pItem)
-        {
-          nsAutoString typeValue;
-          if (NS_SUCCEEDED(pItem->GetNodeValue(typeValue)))
-          {
-            typeValue.StripChars("\"");
-            if (typeValue.LowerCaseEqualsLiteral("cite"))
-              *_retval = nsIMsgCompConvertible::Plain;
-          }
-        }
+        nsString typeValue;
+        if (NS_SUCCEEDED(domElement->GetAttribute(NS_LITERAL_STRING("type"), typeValue)) &&
+            typeValue.LowerCaseEqualsLiteral("cite"))
+          *_retval = nsIMsgCompConvertible::Plain;
       }
     }
     else if (
@@ -5169,31 +5158,15 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  int32_t *_retval)
     {
       /* Do some special checks for these tags. They are inside this |else if|
          for performance reasons */
-      nsCOMPtr<nsIDOMNamedNodeMap> pAttributes;
-
-      /* First, test, if the <a>, <div> or <span> is inserted by our
-         [TXT|HTML]->HTML converter */
-      /* This is for an edge case: A Mozilla user replies to plaintext per HTML
-         and the recipient of that HTML msg, also a Mozilla user, replies to
-         that again. Then we'll have to recognize the stuff inserted by our
-         TXT->HTML converter. */
-      if (NS_SUCCEEDED(node->GetAttributes(getter_AddRefs(pAttributes)))
-          && pAttributes)
+      nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
+      if (domElement)
       {
-        nsAutoString className;
-        className.AssignLiteral("class");
-        if (NS_SUCCEEDED(pAttributes->GetNamedItem(className,
-                                                   getter_AddRefs(pItem)))
-            && pItem)
+        nsString classValue;
+        if (NS_SUCCEEDED(domElement->GetAttribute(NS_LITERAL_STRING("class"), classValue)) &&
+            StringBeginsWith(classValue, NS_LITERAL_STRING("moz-txt"), nsCaseInsensitiveStringComparator()))
         {
-          nsAutoString classValue;
-          if (NS_SUCCEEDED(pItem->GetNodeValue(classValue))
-              && (StringBeginsWith(classValue, NS_LITERAL_STRING("moz-txt"), nsCaseInsensitiveStringComparator()) ||
-                  StringBeginsWith(classValue, NS_LITERAL_STRING("\"moz-txt"), nsCaseInsensitiveStringComparator())))
-          {
-            *_retval = nsIMsgCompConvertible::Plain;
-            return rv;  // Inconsistent :-(
-          }
+          *_retval = nsIMsgCompConvertible::Plain;
+          return rv;  // Inconsistent :-(
         }
       }
 
@@ -5204,30 +5177,24 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  int32_t *_retval)
            (as inserted by recognizers) */
         *_retval = nsIMsgCompConvertible::Altering;
 
-        if (NS_SUCCEEDED(node->GetAttributes(getter_AddRefs(pAttributes)))
-            && pAttributes)
+        nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
+        if (domElement)
         {
-          nsAutoString hrefName; hrefName.AssignLiteral("href");
-          if (NS_SUCCEEDED(pAttributes->GetNamedItem(hrefName,
-                                                     getter_AddRefs(pItem)))
-              && pItem)
+          nsString hrefValue;
+          bool hasChild;
+          if (NS_SUCCEEDED(domElement->GetAttribute(NS_LITERAL_STRING("href"), hrefValue)) &&
+              NS_SUCCEEDED(node->HasChildNodes(&hasChild)) && hasChild)
           {
-            nsAutoString hrefValue;
-            bool hasChild;
-            if (NS_SUCCEEDED(pItem->GetNodeValue(hrefValue))
-                && NS_SUCCEEDED(node->HasChildNodes(&hasChild)) && hasChild)
+            nsCOMPtr<nsIDOMNodeList> children;
+            if (NS_SUCCEEDED(node->GetChildNodes(getter_AddRefs(children))) &&
+                children &&
+                NS_SUCCEEDED(children->Item(0, getter_AddRefs(pItem))) &&
+                pItem)
             {
-              nsCOMPtr<nsIDOMNodeList> children;
-              if (NS_SUCCEEDED(node->GetChildNodes(getter_AddRefs(children)))
-                  && children
-                  && NS_SUCCEEDED(children->Item(0, getter_AddRefs(pItem)))
-                  && pItem)
-              {
-                nsAutoString textValue;
-                if (NS_SUCCEEDED(pItem->GetNodeValue(textValue))
-                    && textValue == hrefValue)
-                  *_retval = nsIMsgCompConvertible::Plain;
-              }
+              nsAutoString textValue;
+              if (NS_SUCCEEDED(pItem->GetNodeValue(textValue)) &&
+                  textValue == hrefValue)
+                *_retval = nsIMsgCompConvertible::Plain;
             }
           }
         }
@@ -5242,20 +5209,13 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  int32_t *_retval)
         /* skip only if no style attribute */
         *_retval = nsIMsgCompConvertible::Plain;
 
-        if (NS_SUCCEEDED(node->GetAttributes(getter_AddRefs(pAttributes)))
-            && pAttributes)
+        nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
+        if (domElement)
         {
-          nsAutoString styleName;
-          styleName.AssignLiteral("style");
-          if (NS_SUCCEEDED(pAttributes->GetNamedItem(styleName,
-                                                     getter_AddRefs(pItem)))
-              && pItem)
-          {
-            nsAutoString styleValue;
-            if (NS_SUCCEEDED(pItem->GetNodeValue(styleValue))
-                && !styleValue.IsEmpty())
-              *_retval = nsIMsgCompConvertible::No;
-          }
+          nsAutoString styleValue;
+          if (NS_SUCCEEDED(domElement->GetAttribute(NS_LITERAL_STRING("style"), styleValue)) &&
+              !styleValue.IsEmpty())
+            *_retval = nsIMsgCompConvertible::No;
         }
       }
     }
