@@ -47,6 +47,7 @@
   border-right: 1px solid #8B8B8B;
   -moz-margin-end: -3px !important;
   background-color: #DEE4EA !important;
+  background-image: url("chrome://messenger/skin/grain.png");
 }
 #listPaneBox:-moz-window-inactive {
   background-color: #E8E8E8 !important;
