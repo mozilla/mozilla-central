@@ -9416,7 +9416,10 @@ NS_IMETHODIMP nsImapMockChannel::GetContentType(nsACString &aContentType)
 NS_IMETHODIMP nsImapMockChannel::SetContentType(const nsACString &aContentType)
 {
   nsAutoCString charset;
-  return NS_ParseContentType(aContentType, m_ContentType, charset);
+  nsresult rv = NS_ParseContentType(aContentType, m_ContentType, charset);
+  if (NS_FAILED(rv) || m_ContentType.IsEmpty())
+    m_ContentType.AssignLiteral(UNKNOWN_CONTENT_TYPE);
+  return rv;
 }
 
 NS_IMETHODIMP nsImapMockChannel::GetContentCharset(nsACString &aContentCharset)

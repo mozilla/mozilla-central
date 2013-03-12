@@ -33,6 +33,7 @@
 #include "nsMsgUtils.h"
 #include "nsILineInputStream.h"
 #include "nsIMsgIncomingServer.h"
+#include "nsMimeTypes.h"
 #include "nsAlgorithm.h"
 #include "mozilla/Services.h"
 #include <algorithm>
@@ -635,8 +636,11 @@ NS_IMETHODIMP nsMsgProtocol::GetContentType(nsACString &aContentType)
 
 NS_IMETHODIMP nsMsgProtocol::SetContentType(const nsACString &aContentType)
 {
-    nsAutoCString charset;
-    return NS_ParseContentType(aContentType, m_ContentType, charset);
+  nsAutoCString charset;
+  nsresult rv = NS_ParseContentType(aContentType, m_ContentType, charset);
+  if (NS_FAILED(rv) || m_ContentType.IsEmpty())
+    m_ContentType.AssignLiteral(UNKNOWN_CONTENT_TYPE);
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgProtocol::GetContentCharset(nsACString &aContentCharset)
