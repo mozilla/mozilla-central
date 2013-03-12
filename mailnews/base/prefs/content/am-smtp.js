@@ -52,7 +52,7 @@ var gSmtpServerListWindow =
 
       if (!cancel)
       {
-        MailServices.smtp.deleteSmtpServer(server);
+        MailServices.smtp.deleteServer(server);
         parent.replaceWithDefaultSmtpServer(server.key);
         this.refreshServerList("", true);
       }
@@ -150,7 +150,7 @@ var gSmtpServerListWindow =
       this.mServerList.removeChild(this.mServerList.lastChild);
 
     this.fillSmtpServers(this.mServerList,
-                         MailServices.smtp.smtpServers,
+                         MailServices.smtp.servers,
                          MailServices.smtp.defaultServer);
 
     if (aServerKeyToSelect)

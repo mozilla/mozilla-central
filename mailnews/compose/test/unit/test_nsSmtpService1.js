@@ -12,14 +12,14 @@ function run_test() {
 
   // Test - no servers
 
-  var smtpServers = smtpService.smtpServers;
+  var smtpServers = smtpService.servers;
   do_check_false(smtpServers.hasMoreElements());
 
   do_check_eq(smtpService.defaultServer, null);
 
   // Test - add single server, and check
 
-  var smtpServer = smtpService.createSmtpServer();
+  var smtpServer = smtpService.createServer();
 
   smtpServer.hostname = "localhost";
   smtpServer.description = "test";
@@ -27,7 +27,7 @@ function run_test() {
   smtpService.defaultServer = smtpServer;
 
   // Test - Check to see there is only one element in the server list
-  smtpServers = smtpService.smtpServers;
+  smtpServers = smtpService.servers;
   do_check_true(smtpServers.hasMoreElements());
   do_check_eq(smtpServer, smtpServers.getNext());
   do_check_false(smtpServers.hasMoreElements());
@@ -43,9 +43,9 @@ function run_test() {
   do_check_eq(smtpServer, smtpService.defaultServer);
 
   // Test - Delete the only server
-  smtpService.deleteSmtpServer(smtpServer);
+  smtpService.deleteServer(smtpServer);
 
-  smtpServers = smtpService.smtpServers;
+  smtpServers = smtpService.servers;
   do_check_false(smtpServers.hasMoreElements());
  
   //    do_check_eq(null, smtpService.defaultServer);
@@ -56,7 +56,7 @@ function run_test() {
   var i;
 
   for (i = 0; i < 3; ++i)
-    smtpServerArray[i] = smtpService.createSmtpServer();
+    smtpServerArray[i] = smtpService.createServer();
 
   smtpServerArray[0].hostname = "localhost";
   smtpServerArray[0].description = "test";
@@ -71,7 +71,7 @@ function run_test() {
   smtpServerArray[2].username = "";
 
   // Now check them
-  smtpServers = smtpService.smtpServers;
+  smtpServers = smtpService.servers;
 
   var found = [false, false, false];
 
@@ -103,8 +103,8 @@ function run_test() {
   // Test - Delete the servers
 
   for (i = 0; i < 3; ++i)
-    smtpService.deleteSmtpServer(smtpServerArray[i]);
+    smtpService.deleteServer(smtpServerArray[i]);
 
-  smtpServers = smtpService.smtpServers;
+  smtpServers = smtpService.servers;
   do_check_false(smtpServers.hasMoreElements());
 };

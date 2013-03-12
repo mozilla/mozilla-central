@@ -98,11 +98,11 @@ let expectedImapAccount = {
 };
 
 function teardown() {
-  let smtpServers = MailServices.smtp.smtpServers;
+  let smtpServers = MailServices.smtp.servers;
 
   while (smtpServers.hasMoreElements()) {
     let server = smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
-    MailServices.smtp.deleteSmtpServer(server);
+    MailServices.smtp.deleteServer(server);
   }
 
   teardown_mock_registry();

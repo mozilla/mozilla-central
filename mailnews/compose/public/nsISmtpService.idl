@@ -16,7 +16,7 @@ interface nsIRequest;
 interface nsISimpleEnumerator;
 interface nsIMsgWindow;
 
-[scriptable, uuid(8c5c5d5b-3b69-4a80-bf4b-d6c22865a3c3)]
+[scriptable, uuid(1b11b532-1527-4fc0-a00f-4ce7e6886419)]
 interface nsISmtpService : nsISupports {
   /**
    * Sends a mail message via the given parameters. This function builds an
@@ -76,14 +76,16 @@ interface nsISmtpService : nsISupports {
 
   /**
    * Return the SMTP server that is associated with an identity.
+   * @param  aSenderIdentity   the identity
+   * @param  aServer           the SMTP server
    */
-  void GetSmtpServerByIdentity(in nsIMsgIdentity aSenderIdentity,
-                               out nsISmtpServer aServer);
+  void getServerByIdentity(in nsIMsgIdentity aSenderIdentity,
+                           out nsISmtpServer aServer);
 
   /**
    * A copy of the array of SMTP servers, as stored in the preferences
    */
-  readonly attribute nsISimpleEnumerator smtpServers;
+  readonly attribute nsISimpleEnumerator servers;
 
   /**
    * The default server, across sessions of the app
@@ -104,7 +106,7 @@ interface nsISmtpService : nsISupports {
    * Use this instead of createInstance(), so that the SMTP Service can
    * be aware of this server
    */
-  nsISmtpServer createSmtpServer();
+  nsISmtpServer createServer();
 
   /**
    * Find the first server with the given hostname and/or username.
@@ -128,5 +130,5 @@ interface nsISmtpService : nsISupports {
    * @param server   the server to delete. Use findServer() if you only know
    *                 the hostname
    */
-  void deleteSmtpServer(in nsISmtpServer server);
+  void deleteServer(in nsISmtpServer server);
 };

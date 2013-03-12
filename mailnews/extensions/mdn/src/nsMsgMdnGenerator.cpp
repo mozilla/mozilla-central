@@ -1112,7 +1112,7 @@ NS_IMETHODIMP nsMsgMdnGenerator::OnStopRunningUrl(nsIURI *url,
     // Get the smtp hostname and format the string.
     nsCString smtpHostName;
     nsCOMPtr<nsISmtpServer> smtpServer;
-    rv = smtpService->GetSmtpServerByIdentity(m_identity, getter_AddRefs(smtpServer));
+    rv = smtpService->GetServerByIdentity(m_identity, getter_AddRefs(smtpServer));
     if (NS_SUCCEEDED(rv)) 
       smtpServer->GetHostname(smtpHostName);
      

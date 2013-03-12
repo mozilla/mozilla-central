@@ -3741,7 +3741,7 @@ nsMsgComposeAndSend::FormatStringWithSMTPHostNameByID(nsresult aMsgId, PRUnichar
   // Get the smtp hostname and format the string.
   nsCString smtpHostName;
   nsCOMPtr<nsISmtpServer> smtpServer;
-  rv = smtpService->GetSmtpServerByIdentity(mUserIdentity, getter_AddRefs(smtpServer));
+  rv = smtpService->GetServerByIdentity(mUserIdentity, getter_AddRefs(smtpServer));
   if (NS_SUCCEEDED(rv))
     smtpServer->GetHostname(smtpHostName);
 

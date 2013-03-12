@@ -716,7 +716,7 @@ void WMSettings::SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
     }
     else {
       nsCOMPtr<nsISmtpServer> smtpServer;
-      rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+      rv = smtpService->CreateServer(getter_AddRefs(smtpServer));
       if (NS_SUCCEEDED(rv) && smtpServer) {
         if (NS_SUCCEEDED(nsWMUtils::GetValueForTag(xmlDoc,
                                                    "SMTP_Port",

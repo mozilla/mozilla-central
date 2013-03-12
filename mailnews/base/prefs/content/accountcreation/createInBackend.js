@@ -94,7 +94,7 @@ function createAccountInBackend(config)
 
   if (config.outgoing.addThisServer && !outServer)
   {
-    outServer = smtpManager.createSmtpServer();
+    outServer = smtpManager.createServer();
     outServer.hostname = config.outgoing.hostname;
     outServer.port = config.outgoing.port;
     outServer.authMethod = config.outgoing.auth;
@@ -253,7 +253,7 @@ function checkOutgoingServerAlreadyExists(config)
   assert(config instanceof AccountConfig);
   var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
                     .getService(Ci.nsISmtpService);
-  var smtpServers = smtpManager.smtpServers;
+  var smtpServers = smtpManager.servers;
   while (smtpServers.hasMoreElements())
   {
     let existingServer = smtpServers.getNext()

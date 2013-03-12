@@ -90,7 +90,7 @@ NS_IMETHODIMP nsSmtpService::SendMailMessage(nsIFile * aFilePath,
   nsresult rv = NS_OK;
 
   nsCOMPtr<nsISmtpServer> smtpServer;
-  rv = GetSmtpServerByIdentity(aSenderIdentity, getter_AddRefs(smtpServer));
+  rv = GetServerByIdentity(aSenderIdentity, getter_AddRefs(smtpServer));
 
   if (NS_SUCCEEDED(rv) && smtpServer)
   {
@@ -339,7 +339,7 @@ NS_IMETHODIMP nsSmtpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 
 
 NS_IMETHODIMP
-nsSmtpService::GetSmtpServers(nsISimpleEnumerator **aResult)
+nsSmtpService::GetServers(nsISimpleEnumerator **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -578,7 +578,7 @@ nsSmtpService::findServerByKey(nsISmtpServer *aServer, void *aData)
 }
 
 NS_IMETHODIMP
-nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
+nsSmtpService::CreateServer(nsISmtpServer **aResult)
 {
     if (!aResult) return NS_ERROR_NULL_POINTER;
 
@@ -632,7 +632,7 @@ nsSmtpService::GetServerByKey(const char* aKey, nsISmtpServer **aResult)
 }
 
 NS_IMETHODIMP
-nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
+nsSmtpService::DeleteServer(nsISmtpServer *aServer)
 {
     if (!aServer) return NS_OK;
 
@@ -725,7 +725,8 @@ nsSmtpService::FindServer(const char *aUsername,
 }
 
 NS_IMETHODIMP
-nsSmtpService::GetSmtpServerByIdentity(nsIMsgIdentity *aSenderIdentity, nsISmtpServer **aSmtpServer)
+nsSmtpService::GetServerByIdentity(nsIMsgIdentity *aSenderIdentity,
+                                   nsISmtpServer **aSmtpServer)
 {
   NS_ENSURE_ARG_POINTER(aSmtpServer);
   nsresult rv = NS_ERROR_FAILURE;

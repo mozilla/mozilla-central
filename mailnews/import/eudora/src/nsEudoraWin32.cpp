@@ -969,7 +969,7 @@ void nsEudoraWin32::SetSmtpServer(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAc
     }
     nsCOMPtr<nsISmtpServer>    smtpServer;
 
-    rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+    rv = smtpService->CreateServer(getter_AddRefs(smtpServer));
     if (NS_SUCCEEDED(rv) && smtpServer)
     {
       smtpServer->SetHostname(nsDependentCString(pServer));

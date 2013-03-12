@@ -849,7 +849,7 @@ void OESettings::SetSmtpServer(const nsString &aSmtpServer,
     }
     else {
       nsCOMPtr<nsISmtpServer> smtpServer;
-      rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+      rv = smtpService->CreateServer(getter_AddRefs(smtpServer));
       if (NS_SUCCEEDED(rv) && smtpServer) {
         uint32_t port = 0;
         rv = aKey->ReadIntValue(NS_LITERAL_STRING("SMTP Port"),

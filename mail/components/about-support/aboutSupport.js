@@ -58,7 +58,7 @@ var AboutSupport = {
     for each (let identity in fixIterator(identities, Ci.nsIMsgIdentity)) {
       let isDefault = identity == defaultIdentity;
       let smtpServer = {};
-      MailServices.smtp.GetSmtpServerByIdentity(identity, smtpServer);
+      MailServices.smtp.getServerByIdentity(identity, smtpServer);
       smtpDetails.push({name: smtpServer.value.displayname,
                         authMethod: smtpServer.value.authMethod,
                         socketType: smtpServer.value.socketType,

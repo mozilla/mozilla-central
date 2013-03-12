@@ -550,7 +550,7 @@ nsresult OutlookSettings::SetSmtpServer(nsIMsgAccountManager *aMgr,
   }
 
   nsCOMPtr<nsISmtpServer> smtpServer;
-  rv = smtpService->CreateSmtpServer(getter_AddRefs(smtpServer));
+  rv = smtpService->CreateServer(getter_AddRefs(smtpServer));
   NS_ENSURE_SUCCESS(rv, rv);
 
   smtpServer->SetHostname(nativeServerName);

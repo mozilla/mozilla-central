@@ -503,7 +503,7 @@ function finishAccount(account, accountData)
       {
           // hostname + no key => create a new SMTP server.
 
-          var smtpServer = smtpService.createSmtpServer();
+          var smtpServer = smtpService.createServer();
           var isDefaultSmtpServer;
           if (!smtpService.defaultServer.hostname) {
             smtpService.defaultServer = smtpServer;

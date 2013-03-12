@@ -63,7 +63,7 @@ function remove_account(amc) {
     win.selectServer(null, null);
 
     // Remove the outgoing server
-    MailServices.smtp.deleteSmtpServer(outgoing);
+    MailServices.smtp.deleteServer(outgoing);
     win.replaceWithDefaultSmtpServer(outgoing.key);
   } catch (ex) {
     throw new Error("failure to remove account: " + ex + "\n");

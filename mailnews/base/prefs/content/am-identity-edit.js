@@ -340,7 +340,7 @@ function getAccountForFolderPickerState()
 function loadSMTPServerList()
 {
   var smtpServerList = document.getElementById("identity.smtpServerKey");
-  let servers = MailServices.smtp.smtpServers;
+  let servers = MailServices.smtp.servers;
   let defaultServer = MailServices.smtp.defaultServer;
 
   var smtpPopup = document.getElementById("smtpPopup");

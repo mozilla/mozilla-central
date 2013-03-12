@@ -32,7 +32,7 @@ function onAccept()
   // we must be creating one.
   try {
     if (!gSmtpServer) {
-      gSmtpServer = MailServices.smtp.createSmtpServer();
+      gSmtpServer = MailServices.smtp.createServer();
       window.arguments[0].addSmtpServer = gSmtpServer.key;
     }
 

@@ -99,7 +99,7 @@ function remove_account() {
   let identity = account.defaultIdentity;
   am.removeIncomingServer(incomingServer, true);
   outgoing = smtpService.getServerByKey(identity.smtpServerKey);
-  smtpService.deleteSmtpServer(outgoing);
+  smtpService.deleteServer(outgoing);
   am.removeAccount(account);
 }
 

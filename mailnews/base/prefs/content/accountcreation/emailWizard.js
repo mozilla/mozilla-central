@@ -201,7 +201,7 @@ EmailConfigWizard.prototype =
     var menulist = e("outgoing_hostname");
     var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
         .getService(Ci.nsISmtpService);
-    var smtpServers = smtpManager.smtpServers;
+    var smtpServers = smtpManager.servers;
     while (smtpServers.hasMoreElements()) {
       let server = smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
       let label = server.displayname;

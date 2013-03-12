@@ -97,7 +97,7 @@ function create_incoming_server(aType, aPort, aUsername, aPassword) {
  * @return The newly-created nsISmtpServer.
  */
 function create_outgoing_server(aPort, aUsername, aPassword) {
-  let server = MailServices.smtp.createSmtpServer();
+  let server = MailServices.smtp.createServer();
   server.hostname = "localhost";
   server.port = aPort;
   server.authMethod = Ci.nsMsgAuthMethod.none;
