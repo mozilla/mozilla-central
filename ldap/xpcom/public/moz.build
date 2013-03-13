@@ -18,5 +18,8 @@ XPIDL_SOURCES += [
     'nsILDAPURL.idl',
 ]
 
-XPIDL_MODULE = 'mozldap'
+if CONFIG['MOZ_PREF_EXTENSIONS']:
+    XPIDL_SOURCES += [
+        'nsILDAPSyncQuery.idl',
+    ]
 

@@ -10,8 +10,5 @@ VPATH   = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE = shellservice
-ifneq (,$(filter WINNT,$(OS_ARCH)))
-XPIDLSRCS += nsIWindowsShellService.idl
-endif
 
 include $(topsrcdir)/config/rules.mk

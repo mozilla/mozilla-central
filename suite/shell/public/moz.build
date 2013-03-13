@@ -7,5 +7,8 @@ XPIDL_SOURCES += [
     'nsIShellService.idl',
 ]
 
-XPIDL_MODULE = 'shellservice'
+if CONFIG['OS_ARCH'] == 'WINNT':
+    XPIDL_SOURCES += [
+        'nsIWindowsShellService.idl',
+    ]
 
