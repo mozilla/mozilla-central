@@ -11,12 +11,4 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= suitefeeds
-XPIDL_MODULE	= suitefeeds
-
-XPIDLSRCS = \
-	nsIFeedResultService.idl \
-	nsIFeedWriter.idl \
-	nsIWebContentConverterRegistrar.idl \
-	$(NULL)
-
 include $(topsrcdir)/config/rules.mk

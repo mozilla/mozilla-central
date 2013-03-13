@@ -11,23 +11,4 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= chat
 
-XPIDLSRCS	= \
-		imIAccount.idl \
-		imIAccountsService.idl \
-		imICommandsService.idl \
-		imIContactsService.idl \
-		imIConversationsService.idl \
-		imICoreService.idl \
-		imILogger.idl \
-		imIStatusInfo.idl \
-		imITagsService.idl \
-		imIUserStatusInfo.idl \
-		prplIConversation.idl \
-		prplIMessage.idl \
-		prplIPref.idl \
-		prplIProtocol.idl \
-		prplIRequest.idl \
-		prplITooltipInfo.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk

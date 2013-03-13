@@ -16,21 +16,5 @@ EXPORTS		= \
 		nsMsgNewsCID.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIMsgOfflineNewsState.idl \
-		nsINNTPArticleList.idl \
-		nsINNTPNewsgroupList.idl \
-		nsINNTPProtocol.idl \
-		nsINntpIncomingServer.idl \
-		nsINntpService.idl \
-		nsINNTPNewsgroupPost.idl \
-		nsINntpUrl.idl \
-		nsIMsgNewsFolder.idl \
-		nsINewsDownloadDialogArgs.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)

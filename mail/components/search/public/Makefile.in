@@ -10,8 +10,4 @@ VPATH     = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE = mailwinsearch
-XPIDL_MODULE = mailwinsearch
-
-XPIDLSRCS = nsIMailWinSearchHelper.idl
-
 include $(topsrcdir)/config/rules.mk

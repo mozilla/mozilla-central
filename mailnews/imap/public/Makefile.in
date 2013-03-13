@@ -17,28 +17,5 @@ EXPORTS		= \
 		nsIIMAPHostSessionList.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIImapUrl.idl	      \
-		nsIImapService.idl    \
-		nsIImapServerSink.idl \
-		nsIImapMessageSink.idl \
-		nsIImapProtocolSink.idl \
-		nsIImapIncomingServer.idl \
-		nsIImapFlagAndUidState.idl \
-		nsIImapMockChannel.idl \
-		nsIImapProtocol.idl \
-		nsIMailboxSpec.idl \
-		nsIImapMailFolderSink.idl \
-		nsIMsgImapMailFolder.idl \
-		nsIImapHeaderXferInfo.idl \
-		nsIAutoSyncState.idl \
-		nsIAutoSyncManager.idl \
-		nsIAutoSyncFolderStrategy.idl \
-		nsIAutoSyncMsgStrategy.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)

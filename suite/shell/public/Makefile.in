@@ -10,10 +10,6 @@ VPATH   = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE = shellservice
-XPIDL_MODULE  = shellservice
-
-XPIDLSRCS = nsIShellService.idl
-
 ifneq (,$(filter WINNT,$(OS_ARCH)))
 XPIDLSRCS += nsIWindowsShellService.idl
 endif

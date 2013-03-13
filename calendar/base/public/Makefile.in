@@ -10,53 +10,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= calbase
-XPIDL_MODULE	= calbase
-
-
-XPIDLSRCS = calICalendarACLManager.idl \
-            calIAlarm.idl \
-            calIAlarmService.idl \
-            calIAttachment.idl \
-            calIAttendee.idl \
-            calICalendar.idl \
-            calICalendarManager.idl \
-            calICalendarProvider.idl \
-            calICalendarSearchProvider.idl \
-            calICalendarView.idl \
-            calICalendarViewController.idl \
-            calIChangeLog.idl \
-            calIDateTime.idl \
-            calIDateTimeFormatter.idl \
-            calIDuration.idl \
-            calIDeletedItems.idl \
-            calIErrors.idl \
-            calIEvent.idl \
-            calIFreeBusyProvider.idl \
-            calIIcsParser.idl \
-            calIIcsSerializer.idl \
-            calIICSService.idl \
-            calIImportExport.idl \
-            calIItemBase.idl \
-            calIItipItem.idl \
-            calIItipTransport.idl \
-            calIOperation.idl \
-            calIPeriod.idl \
-            calIPrintFormatter.idl \
-            calIRecurrenceInfo.idl \
-            calIRecurrenceDate.idl \
-            calIRecurrenceItem.idl \
-            calIRecurrenceRule.idl \
-            calIRelation.idl \
-            calIStartupService.idl \
-            calIStatusObserver.idl \
-            calITimezone.idl \
-            calITimezoneProvider.idl \
-            calITodo.idl \
-            calITransactionManager.idl \
-            calIWeekInfoService.idl \
-            calISchedulingSupport.idl \
-            $(NULL)
-
 EXPORTS		= calBaseCID.h
 
 include $(topsrcdir)/config/rules.mk

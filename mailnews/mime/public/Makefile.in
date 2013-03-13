@@ -19,19 +19,5 @@ EXPORTS		= \
 		nsIMimeContentTypeHandler.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIMimeStreamConverter.idl \
-		nsIMimeEmitter.idl \
-		nsIMsgHeaderParser.idl \
-		nsIMimeMiscStatus.idl \
-		nsIMimeHeaders.idl \
-		nsIMimeConverter.idl \
-		nsISimpleMimeConverter.idl \
-		nsIPgpMimeProxy.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)

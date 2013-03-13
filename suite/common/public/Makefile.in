@@ -11,15 +11,5 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= suitecommon
-XPIDL_MODULE	= suitecommon
-
-XPIDLSRCS = \
-	nsISessionStartup.idl \
-	nsISessionStore.idl \
-	nsISidebarPanel.idl \
-	nsISuiteGlue.idl \
-	nsISuiteDownloadManagerUI.idl \
-	$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 

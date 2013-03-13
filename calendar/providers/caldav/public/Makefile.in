@@ -10,9 +10,4 @@ VPATH           = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE          = caldav
-XPIDL_MODULE    = caldav
-
-XPIDLSRCS       = calICalDavCalendar.idl \
-                  $(NULL)
-
 include $(topsrcdir)/config/rules.mk

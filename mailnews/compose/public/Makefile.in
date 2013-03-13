@@ -17,31 +17,5 @@ EXPORTS		= \
 		nsMsgAttachmentData.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIMsgAttachment.idl \
-		nsIMsgComposeProgressParams.idl \
-		nsIMsgComposeParams.idl \
-		nsIMsgComposeService.idl \
-		nsIMsgCompose.idl \
-		nsIMsgCompFields.idl \
-		nsIMsgQuote.idl \
-		nsIMsgQuotingOutputStreamListener.idl \
-		nsIMsgSendListener.idl \
-		nsIMsgSendLaterListener.idl \
-		nsIMsgSend.idl \
-		nsIMsgSendLater.idl \
-		nsIMsgSendReport.idl \
-		nsISmtpServer.idl \
-		nsISmtpUrl.idl \
-		nsISmtpService.idl \
-		nsIURLFetcher.idl \
-		nsIMsgComposeSecure.idl \
-		nsIMsgCompUtils.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  -I$(topsrcdir)/mailnews/mime/public \
-  $(NULL)

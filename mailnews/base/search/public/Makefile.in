@@ -11,8 +11,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgbase
-XPIDL_MODULE	= msgsearch
-
 EXPORTS		= \
 		nsMsgBodyHandler.h \
 		nsMsgResultElement.h \
@@ -22,29 +20,5 @@ EXPORTS		= \
 		nsMsgSearchAdapter.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIMsgFilter.idl \
-		nsIMsgFilterHitNotify.idl \
-		nsIMsgFilterList.idl \
-                nsIMsgFilterPlugin.idl \
-		nsIMsgFilterService.idl \
-		nsIMsgSearchTerm.idl \
-		nsIMsgSearchValue.idl	\
-		nsIMsgSearchAdapter.idl \
-		nsIMsgSearchSession.idl \
-		nsIMsgSearchScopeTerm.idl \
-		nsIMsgSearchNotify.idl \
-		nsIMsgSearchValidityTable.idl \
-		nsIMsgSearchValidityManager.idl \
-		nsMsgFilterCore.idl \
-		nsMsgSearchCore.idl \
-		nsIMsgFilterCustomAction.idl \
-		nsIMsgTraitService.idl \
-		nsIMsgSearchCustomTerm.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)

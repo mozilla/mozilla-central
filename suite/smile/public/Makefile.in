@@ -10,8 +10,4 @@ VPATH     = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE        = smile
-XPIDL_MODULE  = smile
-
-XPIDLSRCS = smileIApplication.idl
-
 include $(topsrcdir)/config/rules.mk

@@ -10,9 +10,5 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= suitemigration
-XPIDL_MODULE	= suitemigration
-
-XPIDLSRCS	= nsISuiteProfileMigrator.idl
-
 include $(topsrcdir)/config/rules.mk
 

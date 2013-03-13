@@ -11,10 +11,4 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE		= msgMapi
-XPIDL_MODULE	= mapihook
-
-XPIDLSRCS	= \
-		nsIMapiSupport.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk

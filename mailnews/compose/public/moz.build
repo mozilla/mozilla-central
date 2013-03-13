@@ -2,3 +2,31 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+XPIDL_SOURCES += [
+    'nsIMsgAttachment.idl',
+    'nsIMsgCompFields.idl',
+    'nsIMsgCompUtils.idl',
+    'nsIMsgCompose.idl',
+    'nsIMsgComposeParams.idl',
+    'nsIMsgComposeProgressParams.idl',
+    'nsIMsgComposeSecure.idl',
+    'nsIMsgComposeService.idl',
+    'nsIMsgQuote.idl',
+    'nsIMsgQuotingOutputStreamListener.idl',
+    'nsIMsgSend.idl',
+    'nsIMsgSendLater.idl',
+    'nsIMsgSendLaterListener.idl',
+    'nsIMsgSendListener.idl',
+    'nsIMsgSendReport.idl',
+    'nsISmtpServer.idl',
+    'nsISmtpService.idl',
+    'nsISmtpUrl.idl',
+    'nsIURLFetcher.idl',
+]
+
+XPIDL_FLAGS += [
+    '-I$(topsrcdir)/mailnews/base/public',
+    '-I$(topsrcdir)/mailnews/mime/public',
+]
+

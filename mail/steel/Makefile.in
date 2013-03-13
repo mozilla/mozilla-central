@@ -10,10 +10,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-XPIDL_MODULE  = steel
-
-XPIDLSRCS = steelIApplication.idl
-
 EXTRA_PP_COMPONENTS = steelApplication.js \
                       steelApplication.manifest
 

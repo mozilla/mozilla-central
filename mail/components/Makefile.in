@@ -11,12 +11,6 @@ VPATH   = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE = mailcomps
-XPIDL_MODULE = mailcompsbase
-
-XPIDLSRCS = \
-      nsIMailGlue.idl \
-      $(NULL)
-
 EXTRA_COMPONENTS = \
 	nsMailDefaultHandler.js \
 	mailContentHandler.js \

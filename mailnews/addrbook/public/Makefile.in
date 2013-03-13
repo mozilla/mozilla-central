@@ -12,33 +12,6 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE		= addrbook
 
-XPIDLSRCS	= \
-		nsIAbListener.idl \
-		nsIAbItem.idl \
-		nsIAbCollection.idl \
-		nsIAbCard.idl \
-		nsIAbDirectory.idl \
-		nsIAbMDBDirectory.idl \
-		nsIAddrDBAnnouncer.idl \
-		nsIAddrDBListener.idl \
-		nsIAddrDatabase.idl \
-		nsIAbManager.idl \
-		nsIAbAddressCollector.idl \
-		nsIAddbookUrl.idl \
-		nsIAbDirFactory.idl	\
-		nsIAbDirFactoryService.idl	\
-                nsIAbDirectoryQueryProxy.idl \
-		nsIAbDirectoryQuery.idl	\
-		nsIAbBooleanExpression.idl \
-		nsIAbDirectorySearch.idl \
-		nsIAbView.idl \
-		nsIMsgVCardService.idl \
-		nsIAbLDIFService.idl \
-		nsIAbLDAPAttributeMap.idl \
-		nsIAbDirSearchListener.idl \
-		nsIAbAutoCompleteResult.idl \
-		$(NULL)
-
 ifdef MOZ_LDAP_XPCOM
 ifndef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
 XPIDLSRCS       += \

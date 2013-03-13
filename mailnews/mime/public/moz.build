@@ -2,3 +2,19 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+XPIDL_SOURCES += [
+    'nsIMimeConverter.idl',
+    'nsIMimeEmitter.idl',
+    'nsIMimeHeaders.idl',
+    'nsIMimeMiscStatus.idl',
+    'nsIMimeStreamConverter.idl',
+    'nsIMsgHeaderParser.idl',
+    'nsIPgpMimeProxy.idl',
+    'nsISimpleMimeConverter.idl',
+]
+
+XPIDL_FLAGS += [
+    '-I$(topsrcdir)/mailnews/base/public',
+]
+

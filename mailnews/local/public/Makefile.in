@@ -16,35 +16,7 @@ EXPORTS		= \
 		nsMsgLocalCID.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIPop3IncomingServer.idl \
-		nsIPop3Service.idl \
-		nsIMailboxService.idl \
-		nsIPop3Sink.idl \
-		nsIPop3URL.idl \
-		nsIMailboxUrl.idl \
-		nsIMsgParseMailMsgState.idl \
-		nsINoIncomingServer.idl \
-		nsINoneService.idl	\
-		nsIMsgLocalMailFolder.idl \
-		nsILocalMailIncomingServer.idl \
-		nsIPop3Protocol.idl \
-		nsIRssIncomingServer.idl \
-		nsIRssService.idl \
-		nsINewsBlogFeedDownloader.idl \
-		$(NULL)
-
-#ifdef MOZ_MOVEMAIL
-XPIDLSRCS	+= \
-		nsIMovemailService.idl \
-		nsIMovemailIncomingServer.idl
-#endif
-
 include $(topsrcdir)/config/rules.mk
-
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)
 
 ifdef MOZ_MOVEMAIL
 DEFINES	+= -DHAVE_MOVEMAIL

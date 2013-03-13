@@ -23,17 +23,5 @@ EXPORTS		= \
 		nsMsgThread.h \
 		$(NULL)
 
-XPIDLSRCS	= \
-		nsIDBFolderInfo.idl \
-		nsIDBChangeListener.idl \
-		nsIDBChangeAnnouncer.idl \
-		nsIMsgDatabase.idl \
-		nsINewsDatabase.idl \
-		nsIMsgOfflineImapOperation.idl \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
-XPIDL_FLAGS += \
-  -I$(topsrcdir)/mailnews/base/public \
-  $(NULL)

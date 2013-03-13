@@ -10,11 +10,4 @@ VPATH           = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE          = wcap
-XPIDL_MODULE    = wcap
-
-XPIDLSRCS       = calIWcapCalendar.idl \
-                  calIWcapSession.idl \
-                  calIWcapErrors.idl \
-                  $(NULL)
-
 include $(topsrcdir)/config/rules.mk

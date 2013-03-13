@@ -2,3 +2,21 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+XPIDL_SOURCES += [
+    'nsILDAPBERElement.idl',
+    'nsILDAPBERValue.idl',
+    'nsILDAPConnection.idl',
+    'nsILDAPControl.idl',
+    'nsILDAPErrors.idl',
+    'nsILDAPMessage.idl',
+    'nsILDAPMessageListener.idl',
+    'nsILDAPModification.idl',
+    'nsILDAPOperation.idl',
+    'nsILDAPServer.idl',
+    'nsILDAPService.idl',
+    'nsILDAPURL.idl',
+]
+
+XPIDL_MODULE = 'mozldap'
+

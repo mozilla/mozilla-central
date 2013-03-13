@@ -2,3 +2,31 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+XPIDL_SOURCES += [
+    'nsIMsgFilter.idl',
+    'nsIMsgFilterCustomAction.idl',
+    'nsIMsgFilterHitNotify.idl',
+    'nsIMsgFilterList.idl',
+    'nsIMsgFilterPlugin.idl',
+    'nsIMsgFilterService.idl',
+    'nsIMsgSearchAdapter.idl',
+    'nsIMsgSearchCustomTerm.idl',
+    'nsIMsgSearchNotify.idl',
+    'nsIMsgSearchScopeTerm.idl',
+    'nsIMsgSearchSession.idl',
+    'nsIMsgSearchTerm.idl',
+    'nsIMsgSearchValidityManager.idl',
+    'nsIMsgSearchValidityTable.idl',
+    'nsIMsgSearchValue.idl',
+    'nsIMsgTraitService.idl',
+    'nsMsgFilterCore.idl',
+    'nsMsgSearchCore.idl',
+]
+
+XPIDL_MODULE = 'msgsearch'
+
+XPIDL_FLAGS += [
+    '-I$(topsrcdir)/mailnews/base/public',
+]
+

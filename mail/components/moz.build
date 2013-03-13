@@ -29,3 +29,9 @@ TEST_DIRS += ['test']
 
 DIRS += ['build']
 
+XPIDL_SOURCES += [
+    'nsIMailGlue.idl',
+]
+
+XPIDL_MODULE = 'mailcompsbase'
+
