@@ -862,14 +862,12 @@ function SelectedMessagesAreJunk()
 
 function SelectedMessagesAreRead()
 {
-    var isRead;
-    try {
-        isRead = gDBView.hdrForFirstSelectedMessage.isRead;
-    }
-    catch (ex) {
-        isRead = false;
-    }
-    return isRead;
+  for (let i = 0; i < gFolderDisplay.selectedMessages.length; ++i)
+  {
+    if (!gFolderDisplay.selectedMessages[i].isRead)
+      return false;
+  }
+  return true;
 }
 
 function SelectedMessagesAreFlagged()
