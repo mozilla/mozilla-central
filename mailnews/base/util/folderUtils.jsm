@@ -13,29 +13,30 @@ Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
 /**
- * Returns a string representation of a folder's "special" type
+ * Returns a string representation of a folder's "special" type.
  *
  * @param aFolder  the nsIMsgFolder whose special type should be returned
  */
 function getSpecialFolderString(aFolder) {
-  const Ci = Components.interfaces;
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Inbox)
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+  let flags = aFolder.flags;
+  if (flags & nsMsgFolderFlags.Inbox)
     return "Inbox";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Trash)
+  if (flags & nsMsgFolderFlags.Trash)
     return "Trash";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Queue)
+  if (flags & nsMsgFolderFlags.Queue)
     return "Outbox";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.SentMail)
+  if (flags & nsMsgFolderFlags.SentMail)
     return "Sent";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Drafts)
+  if (flags & nsMsgFolderFlags.Drafts)
     return "Drafts";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Templates)
+  if (flags & nsMsgFolderFlags.Templates)
     return "Templates";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Junk)
+  if (flags & nsMsgFolderFlags.Junk)
     return "Junk";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Archive)
+  if (flags & nsMsgFolderFlags.Archive)
     return "Archive";
-  if (aFolder.flags & Ci.nsMsgFolderFlags.Virtual)
+  if (flags & nsMsgFolderFlags.Virtual)
     return "Virtual";
   return "none";
 }
@@ -49,16 +50,10 @@ function getSpecialFolderString(aFolder) {
  * @return         A string of the property names, delimited by space.
  */
 function getFolderProperties(aFolder) {
-  const Cc = Components.classes;
-  const Ci = Components.interfaces;
+  const nsIMsgFolder = Components.interfaces.nsIMsgFolder;
   let properties = [];
 
   properties.push("folderNameCol");
-  if (aFolder.getNumUnread(false) > 0)
-    properties.push("hasUnreadMessages-true");
-
-  if (aFolder.isServer)
-    properties.push("isServer-true");
 
   properties.push("serverType-" + aFolder.server.type);
 
@@ -67,10 +62,10 @@ function getFolderProperties(aFolder) {
 
   // Now set the biffState
   switch (aFolder.biffState) {
-    case Ci.nsIMsgFolder.nsMsgBiffState_NewMail:
+    case nsIMsgFolder.nsMsgBiffState_NewMail:
       properties.push("biffState-NewMail");
       break;
-    case Ci.nsIMsgFolder.nsMsgBiffState_NoMail:
+    case nsIMsgFolder.nsMsgBiffState_NoMail:
       properties.push("biffState-NoMail");
       break;
     default:
@@ -82,12 +77,21 @@ function getFolderProperties(aFolder) {
   if (aFolder.hasNewMessages)
     properties.push("newMessages-true");
 
-  // We only set this if we're not a server
-  if (!aFolder.isServer) {
+  if (aFolder.isServer) {
+    properties.push("isServer-true");
+  }
+  else
+  {
+    // We only set this if we're not a server
     let shallowUnread = aFolder.getNumUnread(false);
-    // Make sure that shallowUnread isn't negative
-    if (shallowUnread < 0)
+    if (shallowUnread > 0) {
+      properties.push("hasUnreadMessages-true");
+    }
+    else
+    {
+      // Make sure that shallowUnread isn't negative
       shallowUnread = 0;
+    }
     let deepUnread = aFolder.getNumUnread(true);
     if (deepUnread - shallowUnread > 0)
       properties.push("subfoldersHaveUnreadMessages-true");
