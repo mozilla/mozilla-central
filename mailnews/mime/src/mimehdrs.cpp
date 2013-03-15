@@ -33,8 +33,6 @@ void
 MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
                                  bool convert_charset_only)
 {
-  char        *converted;
-
   if (value.IsEmpty())
     return;
 
@@ -48,12 +46,13 @@ MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
 
   if (opt && opt->rfc1522_conversion_p)
   {
-    converted = MIME_DecodeMimeHeader(value.get(), opt->default_charset,
-                                      opt->override_charset, true);
+    nsAutoCString temporary;
+    MIME_DecodeMimeHeader(value.get(), opt->default_charset,
+                          opt->override_charset, true, temporary);
 
-    if (converted)
+    if (!temporary.IsEmpty())
     {
-      value.Adopt(converted);
+      value = temporary;
     }
   }
   else

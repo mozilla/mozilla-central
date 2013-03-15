@@ -33,6 +33,22 @@ nsMailtoUrl::~nsMailtoUrl()
 
 NS_IMPL_ISUPPORTS2(nsMailtoUrl, nsIMailtoUrl, nsIURI)
 
+static void UnescapeAndConvert(nsIMimeConverter *mimeConverter,
+                               const nsACString &escaped, nsACString &out)
+{
+  NS_ASSERTION(mimeConverter, "Set mimeConverter before calling!");
+  // If the string is empty, do absolutely nothing.
+  if (escaped.IsEmpty())
+    return;
+
+  MsgUnescapeString(escaped, 0, out);
+  nsAutoCString decodedString;
+  nsresult rv = mimeConverter->DecodeMimeHeaderToUTF8(out, "UTF_8", false,
+    true, decodedString);
+  if (NS_SUCCEEDED(rv) && !decodedString.IsEmpty())
+    out = decodedString;
+}
+
 nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 {
   char *rest = searchPart;
@@ -188,161 +204,30 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     } // while we still have part of the url to parse...
   } // if rest && *rest
 
-  nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  char *decodedString;
+  // Get a global converter
+  nsCOMPtr<nsIMimeConverter> mimeConverter =
+    do_GetService(NS_MIME_CONVERTER_CONTRACTID);
 
   // Now unescape everything, and mime-decode the things that can be encoded.
-  if (!escapedToPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedToPart, 0, m_toPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_toPart.get(), "UTF-8", false, true,
-                           &decodedString)) && decodedString)
-        m_toPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedCcPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedCcPart, 0, m_ccPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_ccPart.get(), "UTF-8", false, true,
-                           &decodedString)) && decodedString)
-        m_ccPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedBccPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedBccPart, 0, m_bccPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_bccPart.get(),"UTF-8", false, true,
-                           &decodedString)) && decodedString)
-        m_bccPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedSubjectPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedSubjectPart, 0, m_subjectPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_subjectPart.get(),"UTF-8", false, true,
-                           &decodedString)) && decodedString)
-        m_subjectPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedNewsgroupPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedNewsgroupPart, 0, m_newsgroupPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_newsgroupPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_newsgroupPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedReferencePart.IsEmpty())
-  {
-    MsgUnescapeString(escapedReferencePart, 0, m_referencePart);
-    // Mime encoding allowed, but only useless such (only ascii allowed).
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_referencePart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_referencePart.Adopt(decodedString);
-    }
-  }
+  UnescapeAndConvert(mimeConverter, escapedToPart, m_toPart);
+  UnescapeAndConvert(mimeConverter, escapedCcPart, m_ccPart);
+  UnescapeAndConvert(mimeConverter, escapedBccPart, m_bccPart);
+  UnescapeAndConvert(mimeConverter, escapedSubjectPart, m_subjectPart);
+  UnescapeAndConvert(mimeConverter, escapedNewsgroupPart, m_newsgroupPart);
+  UnescapeAndConvert(mimeConverter, escapedReferencePart, m_referencePart);
   if (!escapedBodyPart.IsEmpty())
     MsgUnescapeString(escapedBodyPart, 0, m_bodyPart);
   if (!escapedHtmlPart.IsEmpty())
     MsgUnescapeString(escapedHtmlPart, 0, m_htmlPart);
-  if (!escapedNewsHostPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedNewsHostPart, 0, m_newsHostPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_newsHostPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_newsHostPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedFollowUpToPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedFollowUpToPart, 0, m_followUpToPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_followUpToPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_followUpToPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedFromPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedFromPart, 0, m_fromPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_fromPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_fromPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedOrganizationPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedOrganizationPart, 0, m_organizationPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_organizationPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_organizationPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedReplyToPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedReplyToPart, 0, m_replyToPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_replyToPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_replyToPart.Adopt(decodedString);
-    }
-  }
-  if (!escapedPriorityPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedPriorityPart, 0, m_priorityPart);
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_priorityPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        m_priorityPart.Adopt(decodedString);
-    }
-  }
+  UnescapeAndConvert(mimeConverter, escapedNewsHostPart, m_newsHostPart);
+  UnescapeAndConvert(mimeConverter, escapedFollowUpToPart, m_followUpToPart);
+  UnescapeAndConvert(mimeConverter, escapedFromPart, m_fromPart);
+  UnescapeAndConvert(mimeConverter, escapedOrganizationPart, m_organizationPart);
+  UnescapeAndConvert(mimeConverter, escapedReplyToPart, m_replyToPart);
+  UnescapeAndConvert(mimeConverter, escapedPriorityPart, m_priorityPart);
 
   nsCString inReplyToPart; // Not a member like the others...
-  if (!escapedInReplyToPart.IsEmpty())
-  {
-    MsgUnescapeString(escapedInReplyToPart, 0, inReplyToPart);
-    // Mime encoding allowed, but only useless such (non ascii not allowed).
-    if (mimeConverter)
-    {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         inReplyToPart.get(), "UTF-8", false, true,
-                         &decodedString)) && decodedString)
-        inReplyToPart.Adopt(decodedString);
-    }
-  }
+  UnescapeAndConvert(mimeConverter, escapedInReplyToPart, inReplyToPart);
 
   if (!inReplyToPart.IsEmpty())
   {
@@ -371,6 +256,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
       }
     }
   }
+
   return NS_OK;
 }
 

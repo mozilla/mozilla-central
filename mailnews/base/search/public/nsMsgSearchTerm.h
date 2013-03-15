@@ -61,8 +61,8 @@ public:
   nsCString m_customId; // id of custom search term
 
 protected:
-  nsresult MatchString (const char *stringToMatch, const char *charset,
-                          bool *pResult);
+  nsresult MatchString(const nsACString &stringToMatch, const char *charset,
+                       bool *pResult);
   nsresult OutputValue(nsCString &outputStr);
   nsresult ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib);
   nsresult ParseOperator(char *inStream, nsMsgSearchOpValue *value);
@@ -76,7 +76,7 @@ protected:
    */
   void ToLowerCaseExceptSpecials(nsACString &aValue);
     nsresult InitializeAddressBook();
-    nsresult MatchInAddressBook(const char * aAddress, bool *pResult);
+  nsresult MatchInAddressBook(const nsACString &aAddress, bool *pResult);
     // fields used by search in address book
     nsCOMPtr <nsIAbDirectory> mDirectory;
 

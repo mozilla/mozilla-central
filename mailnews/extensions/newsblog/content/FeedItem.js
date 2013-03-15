@@ -280,8 +280,7 @@ FeedItem.prototype =
     let newSubject;
     try
     {
-      newSubject = mailServices.mimeConverter.encodeMimePartIIStr(
-                     this.mUnicodeConverter.ConvertFromUnicode(aSubject),
+      newSubject = mailServices.mimeConverter.encodeMimePartIIStr_UTF8(aSubject,
                      false,
                      aCharset, 9, 72);
     }

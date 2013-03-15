@@ -8,7 +8,7 @@
 /**
  * Encode/decode mail headers (via libmime).
  */
-[scriptable, uuid(a2f56836-0de6-41b9-8902-ac33e4993e6b)]
+[scriptable, uuid(1f685c2d-5ac6-40a9-8415-655b408a7d42)]
 interface nsIMimeConverter : nsISupports {
   /**
    * Suggested byte length limit for use when calling
@@ -16,20 +16,6 @@ interface nsIMimeConverter : nsISupports {
    */
   const long MIME_ENCODED_WORD_SIZE = 72;
   const long MAX_CHARSET_NAME_LENGTH = 64;
-
-  /**
-   * Encode an ASCII string into RFC2047 form, but don't use this...
-   * use encodeMimePartIIStr_UTF8 for scripting purposes.
-   * (The header argument could easily contain non-ASCII characters.)
-   *
-   * All this routine does is convert header to unicode, then call the
-   * UTF8 version anyways.
-   */
-  string encodeMimePartIIStr(in string  header, 
-                             in boolean structured, 
-                             in string  mailCharset, 
-                             in long    fieldnamelen,
-                             in long    encodedWordSize);
 
   /**
    * Encode a UTF-8 CString into RFC 2047 form ("=?" charset "?" encoding "?"
@@ -66,11 +52,10 @@ interface nsIMimeConverter : nsISupports {
    * @return UTF-8 encoded value if conversion was required, nullptr if no
    *     conversion was required.
    */
-  [noscript]
-  string decodeMimeHeaderToCharPtr(in string header,
-                                   in string default_charset,
-                                   in boolean override_charset,
-                                   in boolean eatContinuations);
+  AUTF8String decodeMimeHeaderToUTF8(in ACString header,
+                                     in string default_charset,
+                                     in boolean override_charset,
+                                     in boolean eatContinuations);
 
   /**
    * Decode a MIME header to UTF-16.

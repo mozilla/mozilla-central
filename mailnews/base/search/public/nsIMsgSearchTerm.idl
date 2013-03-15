@@ -11,7 +11,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(dfd25cbe-2e86-4ff0-b78e-494bc65d344e)]
+[scriptable, uuid(87bb55b0-fbd5-4f02-a0df-bd6f5519eba0)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -34,7 +34,14 @@ interface nsIMsgSearchTerm : nsISupports {
     attribute boolean endsGrouping;
 
     boolean matchRfc822String(in string aString, in string charset, in boolean charsetOverride);
-    boolean matchRfc2047String(in string aString, in string charset, in boolean charsetOverride);
+    /**
+     * Match the current header value against the incoming 2047-encoded string.
+     *
+     * This method will first apply the nsIMimeConverter decoding to the string
+     * (using the supplied parameters) and will then match the value against the
+     * decoded result.
+     */
+    boolean matchRfc2047String(in ACString aString, in string charset, in boolean charsetOverride);
     boolean matchDate(in PRTime aTime);
     boolean matchStatus(in unsigned long aStatus);
     boolean matchPriority(in nsMsgPriorityValue priority);

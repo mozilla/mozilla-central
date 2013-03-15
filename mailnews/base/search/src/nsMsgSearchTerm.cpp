@@ -754,7 +754,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   msg->GetStringProperty(m_arbitraryHeader.get(), getter_Copies(dbHdrValue));
   if (!dbHdrValue.IsEmpty())
     // match value with the other info.
-    return MatchRfc2047String(dbHdrValue.get(), charset, charsetOverride, pResult);
+    return MatchRfc2047String(dbHdrValue, charset, charsetOverride, pResult);
 
   nsMsgBodyHandler * bodyHandler =
     new nsMsgBodyHandler (scope, length, msg, db, headers, headersSize,
@@ -791,7 +791,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
       {
         bool stringMatches;
         // match value with the other info.
-        err = MatchRfc2047String(headerFullValue.get(), charset, charsetOverride, &stringMatches);
+        err = MatchRfc2047String(headerFullValue, charset, charsetOverride, &stringMatches);
         if (matchExpected == stringMatches) // if we found a match
         {
           searchingHeaders = false;   // then stop examining the headers
@@ -851,7 +851,7 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchHdrProperty(nsIMsgDBHdr *aHdr, bool *aResult
 
   nsCString dbHdrValue;
   aHdr->GetStringProperty(m_hdrProperty.get(), getter_Copies(dbHdrValue));
-  nsresult rv = MatchString(dbHdrValue.get(), nullptr, aResult);
+  nsresult rv = MatchString(dbHdrValue, nullptr, aResult);
   return rv;
 }
 
@@ -970,7 +970,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
         char startChar = (char) compare.CharAt(0);
         if (startChar != '\r' && startChar != '\n')
         {
-          err = MatchString (compare.get(), folderCharset, &result);
+          err = MatchString(compare, folderCharset, &result);
           lines++;
         }
         compare.Truncate();
@@ -1016,20 +1016,20 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
   return NS_OK;
 }
 
-nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, bool *pResult)
+nsresult nsMsgSearchTerm::MatchInAddressBook(const nsACString &aAddress,
+                                             bool *pResult)
 {
   nsresult rv = InitializeAddressBook();
   *pResult = false;
 
   // Some junkmails have empty From: fields.
-  if (aAddress == NULL || strlen(aAddress) == 0)
+  if (aAddress.IsEmpty())
     return rv;
 
   if (mDirectory)
   {
     nsIAbCard* cardForAddress = nullptr;
-    rv = mDirectory->CardForEmailAddress(nsDependentCString(aAddress),
-                                         &cardForAddress);
+    rv = mDirectory->CardForEmailAddress(aAddress, &cardForAddress);
     if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
       return rv;
     if ((m_operator == nsMsgSearchOp::IsInAB && cardForAddress) || (m_operator == nsMsgSearchOp::IsntInAB && !cardForAddress))
@@ -1041,37 +1041,33 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const char * aAddress, bool *pResul
 }
 
 // *pResult is false when strings don't match, true if they do.
-nsresult nsMsgSearchTerm::MatchRfc2047String (const char * rfc2047string,
-                                       const char *charset,
-                                       bool charsetOverride,
-                                       bool *pResult)
+nsresult nsMsgSearchTerm::MatchRfc2047String(const nsACString &rfc2047string,
+                                             const char *charset,
+                                             bool charsetOverride,
+                                             bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
-  NS_ENSURE_ARG_POINTER(rfc2047string);
 
-    nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-  char *stringToMatch = 0;
-    nsresult res = mimeConverter->DecodeMimeHeaderToCharPtr(
-        rfc2047string, charset, charsetOverride, false, &stringToMatch);
+  nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
+  nsAutoCString stringToMatch;
+  nsresult rv = mimeConverter->DecodeMimeHeaderToUTF8(
+    rfc2047string, charset, charsetOverride, false, stringToMatch);
 
-    if ( m_operator == nsMsgSearchOp::IsInAB ||
-         m_operator == nsMsgSearchOp::IsntInAB)
-    {
-      res = MatchInAddressBook(stringToMatch ? stringToMatch : rfc2047string, pResult);
-    }
-    else
-    res = MatchString(stringToMatch ? stringToMatch : rfc2047string,
-                      nullptr, pResult);
+  if (m_operator == nsMsgSearchOp::IsInAB ||
+      m_operator == nsMsgSearchOp::IsntInAB)
+    rv = MatchInAddressBook(
+      stringToMatch.IsEmpty() ? rfc2047string : stringToMatch, pResult);
+  else
+    rv = MatchString(stringToMatch.IsEmpty() ? rfc2047string : stringToMatch,
+      nullptr, pResult);
 
-    PR_Free(stringToMatch);
-
-  return res;
+  return rv;
 }
 
 // *pResult is false when strings don't match, true if they do.
-nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
-                                       const char *charset,
-                                       bool *pResult)
+nsresult nsMsgSearchTerm::MatchString(const nsACString &stringToMatch,
+                                      const char *charset,
+                                      bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
   bool result = false;
@@ -1089,13 +1085,11 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
 
     if (charset != nullptr)
     {
-      ConvertToUnicode(charset, stringToMatch ? stringToMatch : "",
-                       utf16StrToMatch);
+      ConvertToUnicode(charset, nsCString(stringToMatch), utf16StrToMatch);
     }
     else {
-      NS_ASSERTION(MsgIsUTF8(nsDependentCString(stringToMatch)),
-                   "stringToMatch is not UTF-8");
-      CopyUTF8toUTF16(nsDependentCString(stringToMatch), utf16StrToMatch);
+      NS_ASSERTION(MsgIsUTF8(stringToMatch), "stringToMatch is not UTF-8");
+      CopyUTF8toUTF16(stringToMatch, utf16StrToMatch);
     }
   }
 
@@ -1119,12 +1113,12 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
     break;
   case nsMsgSearchOp::IsEmpty:
     // For IsEmpty, we didn't copy stringToMatch to utf16StrToMatch.
-    if (!PL_strlen(stringToMatch))
+    if (stringToMatch.IsEmpty())
       result = true;
     break;
   case nsMsgSearchOp::IsntEmpty:
     // For IsntEmpty, we didn't copy stringToMatch to utf16StrToMatch.
-    if (PL_strlen(stringToMatch))
+    if (!stringToMatch.IsEmpty())
       result = true;
     break;
   case nsMsgSearchOp::BeginsWith:
@@ -1195,13 +1189,13 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (bool *aResult)
        if ( m_operator == nsMsgSearchOp::IsInAB ||
             m_operator == nsMsgSearchOp::IsntInAB)
        {
-         err = MatchRfc2047String (walkAddresses.get(), charset, charsetOverride, &result);
+         err = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
        }
        else
        {
-         err = MatchRfc2047String (walkNames.get(), charset, charsetOverride, &result);
+         err = MatchRfc2047String(walkNames, charset, charsetOverride, &result);
          if (boolContinueLoop == result)
-           err = MatchRfc2047String (walkAddresses.get(), charset, charsetOverride, &result);
+           err = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
        }
 
        namePos += walkNames.Length() + 1;

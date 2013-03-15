@@ -342,7 +342,7 @@ CreateCompositionFields(const char        *from,
   // Now set all of the passed in stuff...
   cFields->SetCharacterSet(!PL_strcasecmp("us-ascii", charset) ? "ISO-8859-1" : charset);
 
-  char *val;
+  nsAutoCString val;
   nsAutoString outString;
 
   if (from) {
@@ -351,9 +351,8 @@ CreateCompositionFields(const char        *from,
   }
 
   if (subject) {
-    val = MIME_DecodeMimeHeader(subject, charset, false, true);
-    cFields->SetSubject(NS_ConvertUTF8toUTF16(val ? val : subject));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(subject, charset, false, true, val);
+    cFields->SetSubject(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : subject));
   }
 
   if (reply_to) {
@@ -377,57 +376,49 @@ CreateCompositionFields(const char        *from,
   }
 
   if (fcc) {
-    val = MIME_DecodeMimeHeader(fcc, charset, false, true);
-    cFields->SetFcc(NS_ConvertUTF8toUTF16(val ? val : fcc));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(fcc, charset, false, true, val);
+    cFields->SetFcc(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : fcc));
   }
 
   if (newsgroups) {
     // fixme: the newsgroups header had better be decoded using the server-side
     // character encoding,but this |charset| might be different from it.
-    val = MIME_DecodeMimeHeader(newsgroups, charset, false, true);
-    cFields->SetNewsgroups(NS_ConvertUTF8toUTF16(val ? val : newsgroups));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(newsgroups, charset, false, true, val);
+    cFields->SetNewsgroups(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : newsgroups));
   }
 
   if (followup_to) {
-    val = MIME_DecodeMimeHeader(followup_to, charset, false, true);
-    cFields->SetFollowupTo(NS_ConvertUTF8toUTF16(val ? val : followup_to));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(followup_to, charset, false, true, val);
+    cFields->SetFollowupTo(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : followup_to));
   }
 
   if (organization) {
-    val = MIME_DecodeMimeHeader(organization, charset, false, true);
-    cFields->SetOrganization(NS_ConvertUTF8toUTF16(val ? val : organization));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(organization, charset, false, true, val);
+    cFields->SetOrganization(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : organization));
   }
 
   if (references) {
-    val = MIME_DecodeMimeHeader(references, charset, false, true);
-    cFields->SetReferences(val ? val : references);
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(references, charset, false, true, val);
+    cFields->SetReferences(!val.IsEmpty() ? val.get() : references);
   }
 
   if (other_random_headers) {
-    val = MIME_DecodeMimeHeader(other_random_headers, charset, false, true);
-    cFields->SetOtherRandomHeaders(NS_ConvertUTF8toUTF16(val ? val : other_random_headers));
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(other_random_headers, charset, false, true, val);
+    cFields->SetOtherRandomHeaders(NS_ConvertUTF8toUTF16(!val.IsEmpty() ? val.get() : other_random_headers));
   }
 
   if (priority) {
-    val = MIME_DecodeMimeHeader(priority, charset, false, true);
+    MIME_DecodeMimeHeader(priority, charset, false, true, val);
     nsMsgPriorityValue priorityValue;
-    NS_MsgGetPriorityFromString(val ? val : priority, priorityValue);
-    PR_FREEIF(val);
+    NS_MsgGetPriorityFromString(!val.IsEmpty() ? val.get() : priority, priorityValue);
     nsAutoCString priorityName;
     NS_MsgGetUntranslatedPriorityName(priorityValue, priorityName);
     cFields->SetPriority(priorityName.get());
   }
 
   if (newspost_url) {
-    val = MIME_DecodeMimeHeader(newspost_url, charset, false, true);
-    cFields->SetNewspostUrl(val ? val : newspost_url);
-    PR_FREEIF(val);
+    MIME_DecodeMimeHeader(newspost_url, charset, false, true, val);
+    cFields->SetNewspostUrl(!val.IsEmpty() ? val.get() : newspost_url);
   }
 
   *_retval = cFields;
@@ -587,15 +578,14 @@ mime_intl_insert_message_header_1(char        **body,
     NS_MsgSACat(body, ": ");
 
     // MIME decode header
-    char* utf8 = MIME_DecodeMimeHeader(*hdr_value, mailcharset, false,
-                                       true);
-    if (NULL != utf8) {
+    nsAutoCString utf8Value;
+    MIME_DecodeMimeHeader(*hdr_value, mailcharset, false, true, utf8Value);
+    if (!utf8Value.IsEmpty()) {
       char *escaped = nullptr;
       if (htmlEdit)
-        escaped = MsgEscapeHTML(utf8);
-      NS_MsgSACat(body, escaped ? escaped : utf8);
+        escaped = MsgEscapeHTML(utf8Value.get());
+      NS_MsgSACat(body, escaped ? escaped : utf8Value.get());
       NS_Free(escaped);
-      PR_Free(utf8);
     } else {
         NS_MsgSACat(body, *hdr_value); // raw MIME encoded string
     }

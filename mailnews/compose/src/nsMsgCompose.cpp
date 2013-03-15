@@ -2195,7 +2195,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
                                                          bool headersOnly,
                                                          nsIMsgIdentity *identity,
                                                          const char *charset,
-                                                         bool charetOverride,
+                                                         bool charsetOverride,
                                                          bool quoteOriginal,
                                                          const nsACString& htmlToQuote)
 {
@@ -2338,11 +2338,9 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
             // Decode header, the result string is null
             // if the input is not MIME encoded ASCII.
             if (mMimeConverter)
-              mMimeConverter->DecodeMimeHeaderToCharPtr(authorName.get(),
-                                                        charset,
-                                                        charetOverride,
-                                                        true,
-                                                        getter_Copies(decodedAuthor));
+              mMimeConverter->DecodeMimeHeaderToUTF8(authorName, charset,
+                                                     charsetOverride, true,
+                                                     decodedAuthor);
             formattedString = nsTextFormatter::smprintf(replyHeaderAuthorwrote.get(),
                                                         (!decodedAuthor.IsEmpty() ?
                                                          decodedAuthor.get() : authorName.get()));

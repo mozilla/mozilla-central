@@ -649,8 +649,8 @@ bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubje
   {
     mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
-      rv = mimeConverter->DecodeMimeHeaderToCharPtr(
-        *stringP, nullptr, false, true, getter_Copies(decodedString));
+      rv = mimeConverter->DecodeMimeHeaderToUTF8(nsDependentCString(*stringP),
+        nullptr, false, true, decodedString);
   }
 
   s = !decodedString.IsEmpty() ? decodedString.get() : *stringP;

@@ -75,19 +75,17 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
   *aOutgoingEmailAddress = nullptr;
   *aOutgoingName = nullptr;
 
-  char * result = nullptr;
+  nsAutoCString result;
   if (aAddress && aAddress[0])
   {
-    result = MIME_DecodeMimeHeader(aAddress, NULL, false, true);
-    *aOutgoingEmailAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aAddress));
-    PR_FREEIF(result);
+    MIME_DecodeMimeHeader(aAddress, NULL, false, true, result);
+    *aOutgoingEmailAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(!result.IsEmpty() ? result.get() : aAddress));
   }
 
   if (aName && aName[0])
   {
-    result = MIME_DecodeMimeHeader(aName, NULL, false, true);
-    *aOutgoingName = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aName));
-    PR_FREEIF(result);
+    MIME_DecodeMimeHeader(aName, NULL, false, true, result);
+    *aOutgoingName = ToNewUnicode(NS_ConvertUTF8toUTF16(!result.IsEmpty() ? result.get() : aName));
   }
 
   nsCString fullAddress;
@@ -96,9 +94,9 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
                                       getter_Copies(fullAddress));
   if (NS_SUCCEEDED(rv) && !fullAddress.IsEmpty())
   {
-    result = MIME_DecodeMimeHeader(fullAddress.get(), nullptr, false, true);
-    if (result)
-      fullAddress.Adopt(result);
+    MIME_DecodeMimeHeader(fullAddress.get(), nullptr, false, true, result);
+    if (!result.IsEmpty())
+      fullAddress = result;
     aParser->UnquotePhraseOrAddr(fullAddress.get(), true, getter_Copies(unquotedAddress));
     if (!unquotedAddress.IsEmpty())
       fullAddress = unquotedAddress;

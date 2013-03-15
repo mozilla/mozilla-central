@@ -445,10 +445,10 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
           nsCString reString;
           reString.Assign("Re: ");
           reString.Append(matchString);
-          err = aTerm->MatchRfc2047String(reString.get(), charset, charsetOverride, &result);
+          err = aTerm->MatchRfc2047String(reString, charset, charsetOverride, &result);
         }
         else
-          err = aTerm->MatchRfc2047String (matchString.get(), charset, charsetOverride, &result);
+          err = aTerm->MatchRfc2047String(matchString, charset, charsetOverride, &result);
         break;
       }
       case nsMsgSearchAttrib::ToOrCC:

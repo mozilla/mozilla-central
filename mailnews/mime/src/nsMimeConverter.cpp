@@ -36,17 +36,14 @@ nsMimeConverter::~nsMimeConverter()
 }
 
 nsresult
-nsMimeConverter::DecodeMimeHeaderToCharPtr(const char *header,
-                                           const char *default_charset,
-                                           bool override_charset,
-                                           bool eatContinuations,
-                                           char **decodedString)
+nsMimeConverter::DecodeMimeHeaderToUTF8(const nsACString &header,
+                                        const char *default_charset,
+                                        bool override_charset,
+                                        bool eatContinuations,
+                                        nsACString &result)
 {
-  NS_ENSURE_ARG_POINTER(decodedString);
-
-  *decodedString = MIME_DecodeMimeHeader(header, default_charset,
-                                         override_charset,
-                                         eatContinuations);
+  MIME_DecodeMimeHeader(PromiseFlatCString(header).get(), default_charset,
+                        override_charset, eatContinuations, result);
   return NS_OK;
 }
 
@@ -61,35 +58,13 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
   NS_ENSURE_ARG_POINTER(header);
 
   // apply MIME decode.
-  char *decodedCstr = MIME_DecodeMimeHeader(header, default_charset,
-                                            override_charset, eatContinuations);
-  if (!decodedCstr) {
-    CopyUTF8toUTF16(nsDependentCString(header), decodedString);
-  } else {
-    CopyUTF8toUTF16(nsDependentCString(decodedCstr), decodedString);
-    PR_FREEIF(decodedCstr);
-  }
-
+  nsCString decodedCString;
+  MIME_DecodeMimeHeader(header, default_charset, override_charset,
+                        eatContinuations, decodedCString);
+  CopyUTF8toUTF16(decodedCString.IsEmpty() ? nsDependentCString(header)
+                                           : decodedCString,
+                  decodedString);
   return NS_OK;
-}
-
-nsresult
-nsMimeConverter::EncodeMimePartIIStr(const char       *header,
-                                           bool       structured,
-                                           const char *mailCharset,
-                                           int32_t    fieldnamelen,
-                                           int32_t    encodedWordSize,
-                                           char       **encodedString)
-{
-  NS_ENSURE_ARG_POINTER(encodedString);
-
-  // Encoder needs utf-8 string.
-  nsAutoString tempUnicodeString;
-  nsresult rv = ConvertToUnicode(mailCharset, header, tempUnicodeString);
-  NS_ENSURE_SUCCESS(rv, rv);
-  return EncodeMimePartIIStr_UTF8(NS_ConvertUTF16toUTF8(tempUnicodeString),
-                                  structured, mailCharset, fieldnamelen,
-                                  encodedWordSize, encodedString);
 }
 
 nsresult

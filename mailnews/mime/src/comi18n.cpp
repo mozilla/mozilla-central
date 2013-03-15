@@ -679,24 +679,21 @@ char * apply_rfc2047_encoding(const char *_src, bool structured, const char *cha
 ////////////////////////////////////////////////////////////////////////////////
 // BEGIN PUBLIC INTERFACE
 extern "C" {
-#define PUBLIC
 
 
-extern "C" char *MIME_DecodeMimeHeader(const char *header,
-                                       const char *default_charset,
-                                       bool override_charset,
-                                       bool eatContinuations)
+void MIME_DecodeMimeHeader(const char *header, const char *default_charset,
+                           bool override_charset, bool eatContinuations,
+                           nsACString &result)
 {
   nsresult rv;
   nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
   if (NS_FAILED(rv))
-    return nullptr;
-  nsAutoCString result;
-  rv = mimehdrpar->DecodeRFC2047Header(header, default_charset, override_charset,
-                                       eatContinuations, result);
-  if (NS_SUCCEEDED(rv))
-    return ToNewCString(result);
-  return nullptr;
+  {
+    result.Truncate();
+    return;
+  }
+  mimehdrpar->DecodeRFC2047Header(header, default_charset, override_charset,
+                                  eatContinuations, result);
 }
 
 char *MIME_EncodeMimePartIIStr(const char* header, bool structured, const char* mailCharset, const int32_t fieldNameLen, const int32_t encodedWordSize)

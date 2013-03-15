@@ -3571,9 +3571,9 @@ nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_t
     m_dbFolderInfo->GetEffectiveCharacterSet(charset);
   }
 
-  rv = converter->DecodeMimeHeaderToCharPtr(cSender, charset.get(),
-                                            characterSetOverride, true,
-                                            getter_Copies(resultStr));
+  rv = converter->DecodeMimeHeaderToUTF8(nsDependentCString(cSender),
+                                         charset.get(), characterSetOverride,
+                                         true, resultStr);
   if (NS_SUCCEEDED(rv) && !resultStr.IsEmpty())
     rv = headerParser->ExtractHeaderAddressName(resultStr, name);
   else
@@ -3640,9 +3640,9 @@ nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token co
         m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       }
 
-      err = m_mimeConverter->DecodeMimeHeaderToCharPtr(nakedString,
-        charSet.get(), characterSetOverride, true,
-        getter_Copies(decodedStr));
+      err = m_mimeConverter->DecodeMimeHeaderToUTF8(
+        nsDependentCString(nakedString), charSet.get(), characterSetOverride,
+        true, decodedStr);
       if (NS_SUCCEEDED(err))
         err = CreateCollationKey(NS_ConvertUTF8toUTF16(decodedStr), len, result);
     }

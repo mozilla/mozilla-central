@@ -534,9 +534,9 @@ nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
       if (!aEmailAddressOnly)
       {
         nsCString decodedName;
-        converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(),
-                                             false, true,
-                                             getter_Copies(decodedName));
+        converter->DecodeMimeHeaderToUTF8(nsDependentCString(pNames),
+                                          GetCharacterSet(), false, true,
+                                          decodedName);
         rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ?
                                             decodedName.get() : pNames),
                                            pAddresses,
@@ -607,8 +607,9 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     {
       nsCString fullAddress;
       nsCString decodedName;
-      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), false, true,
-                                           getter_Copies(decodedName));
+      converter->DecodeMimeHeaderToUTF8(nsDependentCString(pNames),
+                                        GetCharacterSet(), false, true,
+                                        decodedName);
       rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ?
                                           decodedName.get() : pNames),
                                          pAddresses,

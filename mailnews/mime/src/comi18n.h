@@ -25,12 +25,11 @@ extern "C" {
  * @param default_charset     [IN] Default charset to apply to ulabeled non-UTF-8 8bit data
  * @param override_charset    [IN] If true, default_charset used instead of any charset labeling other than UTF-8
  * @param eatContinuations    [IN] If true, unfold headers
- * @return            Decoded buffer (in C string) or return NULL if the header needs no conversion
+ * @param result      [OUT] Decoded buffer
  */
-extern "C" char *MIME_DecodeMimeHeader(const char *header, 
-                                       const char *default_charset,
-                                       bool override_charset,
-                                       bool eatContinuations);
+void MIME_DecodeMimeHeader(const char *header, const char *default_charset,
+                           bool override_charset, bool eatContinuations,
+                           nsACString &result);
 
 /**
  * Encode an input string into RFC 2047 form.
