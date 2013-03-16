@@ -19,6 +19,15 @@ treechildren::-moz-tree-image(folderNameCol) {
   list-style-image: url("chrome://messenger/skin/icons/folder-closed.gif");
 }
 
+/* ..... Shared ..... */
+
+.icon-holder[type="folder"][ImapShared="true"],
+treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-share.gif");
+}
+
+/* ..... mail folder with new messages ..... */
+
 treechildren::-moz-tree-image(folderNameCol, newMessages-true) {
   list-style-image: url("chrome://messenger/skin/icons/folder-new.gif");
 }
@@ -98,13 +107,6 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Trash) {
 .icon-holder[type="folder"][SpecialFolder="Virtual"],
 treechildren::-moz-tree-image(folderNameCol, specialFolder-Virtual) {
   list-style-image: url("chrome://messenger/skin/icons/folder-search.gif");
-}
-
-/* ...... Shared ..... */
-
-.icon-holder[type="folder"][ImapShared="true"],
-treechildren::-moz-tree-image(folderNameCol, imapShared-true) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-share.gif");
 }
 
 /* ..... Server Folders ..... */
