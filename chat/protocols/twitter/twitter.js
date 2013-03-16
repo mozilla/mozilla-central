@@ -190,7 +190,7 @@ Conversation.prototype = {
       if ("error" in data)
         error = data.error;
       else if ("errors" in data)
-        error = data.errors.split("\n")[0];
+        error = data.errors[0].message;
       if (error)
         error = "(" + error + ")";
     } catch(e) {}
@@ -419,10 +419,6 @@ Account.prototype = {
       ["oauth_version", "1.0"]
     ]);
 
-    function percentEncode(aString)
-      encodeURIComponent(aString).replace(/\!|\*|\'|\(|\)/g, function(m)
-        ({"!": "%21", "*": "%2A", "'": "%27", "(": "%28", ")": "%29"}[m]))
-
     let dataParams = [];
     let url = /^https?:/.test(aUrl) ? aUrl : this.baseURI + aUrl;
     let urlSpec = url;
@@ -481,42 +477,41 @@ Account.prototype = {
     let POSTData = [["status", aMsg]];
     if (aInReplyToId)
       POSTData.push(["in_reply_to_status_id", aInReplyToId]);
-    this.signAndSend("1/statuses/update.json?include_entities=1", null,
-                     POSTData, aOnSent, aOnError, aThis);
+    this.signAndSend("1.1/statuses/update.json", null, POSTData, aOnSent,
+                     aOnError, aThis);
   },
   reTweet: function(aTweet, aOnSent, aOnError, aThis) {
-    let url =
-      "1/statuses/retweet/" + aTweet.id_str + ".json?include_entities=1";
+    let url = "1.1/statuses/retweet/" + aTweet.id_str + ".json";
     this.signAndSend(url, null, [], aOnSent, aOnError, aThis);
   },
   destroy: function(aTweet, aOnSent, aOnError, aThis) {
-    let url =
-      "1/statuses/destroy/" + aTweet.id_str + ".json?include_entities=1";
+    let url = "1.1/statuses/destroy/" + aTweet.id_str + ".json";
     this.signAndSend(url, null, [], aOnSent, aOnError, aThis);
   },
 
   _friends: null,
   isFriend: function(aUser) {
-    if (!("id" in aUser) || // users from search API tweets don't have an id.
+    if (!("id_str" in aUser) ||
         !this._friends) // null until data is received from the user stream.
       return null;
     //XXX Good enough for now, but if we ever call this from a loop,
     // we should keep this._friends sorted and do a binary search.
-    return this._friends.indexOf(aUser.id) != -1;
+    return this._friends.indexOf(aUser.id_str) != -1;
   },
   follow: function(aUserName) {
-    this.signAndSend("1/friendships/create.json", null,
+    this.signAndSend("1.1/friendships/create.json", null,
                      [["screen_name", aUserName]]);
   },
   stopFollowing: function(aUserName) {
     // friendships/destroy will return the user in case of success.
     // Error cases would return a non 200 HTTP code and not call our callback.
-    this.signAndSend("1/friendships/destroy.json", null,
+    this.signAndSend("1.1/friendships/destroy.json", null,
                      [["screen_name", aUserName]], function(aData, aXHR) {
       let user = JSON.parse(aData);
-      if (!("id" in user))
+      if (!("id_str" in user))
         return; // Unexpected response...
-      this._friends = this._friends.filter(function(id) id != user.id);
+      this._friends =
+        this._friends.filter(function(id_str) id_str != user.id_str);
       let date = aXHR.getResponseHeader("Date");
       this.timeline.systemMessage(_("event.unfollow", user.screen_name), false,
                                   new Date(date) / 1000);
@@ -542,23 +537,24 @@ Account.prototype = {
       else
         this.WARN("invalid value for the lastMessageId preference: " + lastMsgId);
     }
-    let getParams = "?include_entities=1&count=200" + lastMsgParam;
+    let getParams = "?count=200" + lastMsgParam;
     this._pendingRequests = [
-      this.signAndSend("1/statuses/home_timeline.json" + getParams, null, null,
-                       this.onTimelineReceived, this.onTimelineError, this),
-      this.signAndSend("1/statuses/mentions.json" + getParams, null, null,
-                       this.onTimelineReceived, this.onTimelineError, this)
+      this.signAndSend("1.1/statuses/home_timeline.json" + getParams, null,
+                       null, this.onTimelineReceived, this.onTimelineError,
+                       this),
+      this.signAndSend("1.1/statuses/mentions_timeline.json" + getParams, null,
+                       null, this.onTimelineReceived, this.onTimelineError,
+                       this)
     ];
 
     let track = this.getString("track");
     if (track) {
       let trackQuery = track.split(",").map(encodeURIComponent).join(" OR ");
-      getParams = "?q=" + trackQuery + lastMsgParam;
-      let url = "http://search.twitter.com/search.json" + getParams;
-      this._pendingRequests.push(doXHRequest(url, null, null,
-                                             this.onSearchResultsReceived,
-                                             this.onTimelineError, this, null,
-                                             this));
+      getParams = "?q=" + trackQuery + lastMsgParam + "&count=100";
+      let url = "1.1/search/tweets.json" + getParams;
+      this._pendingRequests.push(
+        this.signAndSend(url, null, null, this.onTimelineReceived,
+                         this.onTimelineError, this, null));
     }
   },
 
@@ -591,59 +587,6 @@ Account.prototype = {
     this.ERROR(aError);
     if (aRequest.status == 401)
       ++this._timelineAuthError;
-    this._doneWithTimelineRequest(aRequest);
-  },
-
-  onSearchResultsReceived: function(aData, aRequest) {
-    // Parse the returned data
-    let data = JSON.parse(aData);
-    // Fix the results from the search API to match those of the REST API.
-    // See bug 1053.
-    if ("results" in data) {
-      data = data.results;
-      for each (let tweet in data) {
-        if (!("user" in tweet) && "from_user" in tweet) {
-          tweet.user = {screen_name: tweet.from_user,
-                        profile_image_url: tweet.profile_image_url};
-        }
-        if (!("entities" in tweet)) {
-          tweet.entities = {};
-          let text = tweet.text;
-          let match;
-          let hashTags = [];
-          // The \B (non-word boundary) ensures that the character
-          // right before the # is not a character commonly found in
-          // words. This should prevent us from matching part of URLs.
-          // For the text of the hashtag, the official ruby(!) implementation
-          // matches an arbitrary number of alphanumeric (or underscore)
-          // characters, but with at least one non-digit character
-          // (not necessarily at the beginning of the tag).
-          let re = /\B[#＃](\w*[A-Za-z_]\w*)/g;
-          while ((match = re.exec(text))) {
-            hashTags.push({text: match[1],
-                           indices: [re.lastIndex - match[0].length,
-                                     re.lastIndex]});
-          }
-          if (hashTags.length)
-            tweet.entities.hashtags = hashTags;
-
-          let mentions = [];
-          // The \B is here to avoid matching parts of email addresses.
-          // For the text of the username, the official ruby implementation
-          // matches 1 to 20 alphanumeric (or underscore) characters.
-          re = /\B[@＠](\w{1,20})/g;
-          while ((match = re.exec(text))) {
-            mentions.push({name: "", screen_name: match[1],
-                           indices: [re.lastIndex - match[0].length,
-                                     re.lastIndex]});
-          }
-          if (mentions.length)
-            tweet.entities.user_mentions = mentions;
-        }
-      }
-    }
-    this._timelineBuffer = this._timelineBuffer.concat(data);
-
     this._doneWithTimelineRequest(aRequest);
   },
 
@@ -706,9 +649,9 @@ Account.prototype = {
   openStream: function() {
     let track = this.getString("track");
     this._streamingRequest =
-      this.signAndSend("https://userstream.twitter.com/2/user.json",
-                       null, track ? [["track", track]] : [],
-                       this.openStream, this.onStreamError, this);
+      this.signAndSend("https://userstream.twitter.com/1.1/user.json", null,
+                       track ? [["track", track]] : [], this.openStream,
+                       this.onStreamError, this);
     this._streamingRequest.responseType = "moz-chunked-text";
     this._streamingRequest.onprogress = this.onDataAvailable.bind(this);
     this.resetStreamTimeout();
@@ -749,13 +692,13 @@ Account.prototype = {
       if ("text" in msg)
         this.displayMessages([msg]);
       else if ("friends" in msg)
-        this._friends = msg.friends;
+        this._friends = msg.friends.map(function(aId) aId.toString());
       else if ("event" in msg) {
         let user, event;
         switch(msg.event) {
           case "follow":
             if (msg.source.screen_name == this.name) {
-              this._friends.push(msg.target.id);
+              this._friends.push(msg.target.id_str);
               user = msg.target;
               event = "follow";
             }
@@ -980,7 +923,7 @@ Account.prototype = {
       this.timeline.systemMessage(_("error.descriptionTooLong", aDescription));
     }
     // Don't need to catch the reply since the stream receives user_update.
-    this.signAndSend("1/account/update_profile.json", null,
+    this.signAndSend("1.1/account/update_profile.json", null,
                      [["description", aDescription]]);
   },
 
@@ -999,7 +942,7 @@ Account.prototype = {
   },
   requestBuddyInfo: function(aBuddyName) {
     if (!hasOwnProperty(this._userInfo, aBuddyName)) {
-      this.signAndSend("1/users/show.json?screen_name=" + aBuddyName, null,
+      this.signAndSend("1.1/users/show.json?screen_name=" + aBuddyName, null,
                        null, this.onRequestedInfoReceived, null, this);
       return;
     }
