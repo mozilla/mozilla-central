@@ -1655,10 +1655,10 @@
             <menu id="appmenu_charsetMenu"
                   label="&charsetMenu.label;"
                   datasources="rdf:charset-menu"
-                  ref="NC:BrowserCharsetMenuRoot"
-                  oncommand="MultiplexHandler(event)"
-                  onpopupshowing="CreateMenu('browser'); CreateMenu('more-menu');"
-                  onpopupshown="UpdateMenus(event);"
+                  ref="NC:MailviewCharsetMenuRoot"
+                  oncommand="MailMultiplexHandler(event)"
+                  onpopupshowing="CreateMenu('mailview');UpdateMailMenus()"
+                  onpopupshown="CreateMenu('more-menu');"
                   observes="isImage">
                 <template>
                   <rule rdf:type="http://home.netscape.com/NC-rdf#BookmarkSeparator">
