@@ -578,11 +578,6 @@
          nc:link="privacy_help.xhtml#how_can_i_control_web_pages_in_email_messages"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="cookies:foreign"
-         nc:name="foreign cookies"
-         nc:link="privacy_help.xhtml#what_are_third-party_cookies"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="cookies:managing_per_site"
          nc:name="managing cookies per website"
          nc:link="using_priv_help.xhtml#managing_cookies_site-by-site"/>
@@ -596,6 +591,11 @@
        <rdf:Description ID="cookies:removing"
          nc:name="removing cookies"
          nc:link="using_priv_help.xhtml#removing_cookies"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="cookies:third-party"
+         nc:name="third-party cookies"
+         nc:link="privacy_help.xhtml#what_are_third-party_cookies"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="cookies:viewing"
@@ -1842,7 +1842,7 @@
    <nc:subheadings>
      <rdf:Seq><rdf:li>
        <rdf:Description ID="safe_browsing"
-         nc:name="safe browsing"
+         nc:name="safe browsing preferences"
          nc:link="privsec_help.xhtml#safe_browsing"/>
      </rdf:li>
      <rdf:li>
@@ -2208,7 +2208,7 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="user_tracking"
-         nc:name="user tracking"
+         nc:name="user tracking preferences"
          nc:link="privsec_help.xhtml#privacy_and_security"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
