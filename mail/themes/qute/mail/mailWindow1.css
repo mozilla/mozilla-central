@@ -50,7 +50,7 @@ toolbar:only-of-type {
   }
 }
 
-#messengerBox {
+#mailContent {
   -moz-appearance: toolbox;
   background-color: -moz-Dialog;
 }
