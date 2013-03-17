@@ -1046,7 +1046,8 @@ function makePreview(row)
       var imageRequest = item.getRequest(nsIImageLoadingContent.CURRENT_REQUEST);
       if (imageRequest) {
         mimeType = imageRequest.mimeType;
-        if (imageRequest != imageRequest.getStaticRequest())
+        if (imageRequest.imageStatus & imageRequest.STATUS_DECODE_COMPLETE &&
+            imageRequest.image.animated)
           typeString = "mediaAnimatedType";
       }
     }
