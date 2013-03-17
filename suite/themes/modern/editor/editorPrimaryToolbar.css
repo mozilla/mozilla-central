@@ -105,6 +105,23 @@
   -moz-image-region: rect(204px 199px 237px 150px) !important;
 }
 
+/* To workaround that the composer icons are all 33px tall */
+#print-button {
+  -moz-image-region: rect(5px 42px 38px 0);
+}
+
+#print-button:hover {
+  -moz-image-region: rect(5px 84px 38px 42px);
+}
+
+#print-button:hover:active {
+  -moz-image-region: rect(5px 126px 38px 84px);
+}
+
+#print-button[disabled="true"] {
+  -moz-image-region: rect(5px 168px 38px 126px) !important;
+}
+
 #linkButton {
   -moz-image-region: rect(102px 49px 135px 0);
 }

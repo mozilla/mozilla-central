@@ -103,6 +103,29 @@
   -moz-image-region: rect(238px 199px 271px 150px) !important;
 } 
 
+/* To workaround that the mailnews icons are all 33px tall and do not have small versions */
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
+toolbar[iconsize="small"] > #print-button,
+#print-button {
+  list-style-image: url("chrome://communicator/skin/icons/common.png");
+  -moz-image-region: rect(5px 42px 38px 0);
+}
+
+toolbar[iconsize="small"] > #print-button:hover,
+#print-button:hover {
+  -moz-image-region: rect(5px 84px 38px 42px);
+}
+
+toolbar[iconsize="small"] > #print-button:hover:active,
+#print-button:hover:active {
+  -moz-image-region: rect(5px 126px 38px 84px);
+}
+
+toolbar[iconsize="small"] > #print-button[disabled="true"],
+#print-button[disabled="true"] {
+  -moz-image-region: rect(5px 168px 38px 126px) !important;
+}
+
 /* ::::: special toolbar colors ::::: */
 
 #MsgHeadersToolbar {
