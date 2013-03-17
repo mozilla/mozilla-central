@@ -788,17 +788,22 @@ FeedWriter.prototype = {
     }
   },
 
-  // nsIDomEventListener
+  // nsIDOMEventListener
   handleEvent: function(event) {
-    if (event.target.ownerDocument != this._document) {
+    if (event.target != this._document &&
+        event.target.ownerDocument != this._document) {
       LOG("FeedWriter.handleEvent: Someone passed the feed writer as a listener to the events of another document!");
       return;
     }
 
-    if (event.type == "command") {
+    if (event.type == "load")
+      this._writeContent();
+    else if (event.type == "unload")
+      this._close();
+    else if (event.type == "command") {
       switch (event.target.getAttribute("anonid")) {
         case "subscribeButton":
-          this.subscribe();
+          this._subscribe();
           break;
         case "chooseApplicationMenuItem":
           /* Bug 351263: Make sure to not steal focus if the "Choose
@@ -1085,8 +1090,8 @@ FeedWriter.prototype = {
   _feedPrincipal: null,
   _handlersMenuList: null,
 
-  // nsIFeedWriter
-  init: function init(aWindow) {
+  // nsIDOMGlobalObjectConstructor
+  constructor: function constructor(aWindow) {
     this._feedURI = this._getOriginalURI(aWindow);
     if (!this._feedURI)
       return;
@@ -1118,9 +1123,12 @@ FeedWriter.prototype = {
     prefs.addObserver(PREF_AUDIO_SELECTED_READER, this, false);
     prefs.addObserver(PREF_AUDIO_SELECTED_WEB, this, false);
     prefs.addObserver(PREF_AUDIO_SELECTED_APP, this, false);
+
+    this._window.addEventListener("load", this, false);
+    this._window.addEventListener("unload", this, false);
   },
 
-  writeContent: function writeContent() {
+  _writeContent: function writeContent() {
     if (!this._window)
       return;
 
@@ -1139,7 +1147,9 @@ FeedWriter.prototype = {
     }
   },
 
-  close: function close() {
+  _close: function close() {
+    this._window.removeEventListener("load", this, false);
+    this._window.removeEventListener("unload", this, false);
     this._getUIElement("handlersMenuPopup")
         .removeEventListener("command", this, false);
     this._getUIElement("subscribeButton")
@@ -1178,7 +1188,7 @@ FeedWriter.prototype = {
     }
   },
 
-  subscribe: function subscribe() {
+  _subscribe: function subscribe() {
     var feedType = this._getFeedType();
 
     // Subscribe to the feed using the selected handler and save prefs
@@ -1328,9 +1338,9 @@ FeedWriter.prototype = {
   classID: FEEDWRITER_CID,
   classInfo: XPCOMUtils.generateCI({classID: FEEDWRITER_CID,
                                     contractID: FEEDWRITER_CONTRACTID,
-                                    interfaces: [Components.interfaces.nsIFeedWriter],
+                                    interfaces: [],
                                     flags: Components.interfaces.nsIClassInfo.DOM_OBJECT}),
-  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFeedWriter,
+  QueryInterface: XPCOMUtils.generateQI([ Components.interfaces.nsIDOMGlobalObjectConstructor,
                                           Components.interfaces.nsIDOMEventListener,
                                           Components.interfaces.nsINavHistoryObserver,
                                           Components.interfaces.nsIObserver])

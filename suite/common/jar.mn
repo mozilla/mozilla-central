@@ -139,7 +139,6 @@ comm.jar:
    content/communicator/downloads/uploadProgress.js                 (downloads/uploadProgress.js)
    content/communicator/downloads/treeView.js                       (downloads/treeView.js)
    content/communicator/feeds/subscribe.css                         (feeds/subscribe.css)
-   content/communicator/feeds/subscribe.js                          (feeds/subscribe.js)
    content/communicator/feeds/subscribe.xhtml                       (feeds/subscribe.xhtml)
    content/communicator/feeds/subscribe.xml                         (feeds/subscribe.xml)
    content/communicator/history/controller.js                       (history/controller.js)

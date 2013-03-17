@@ -5,7 +5,6 @@
 
 XPIDL_SOURCES += [
     'nsIFeedResultService.idl',
-    'nsIFeedWriter.idl',
     'nsIWebContentConverterRegistrar.idl',
 ]
 

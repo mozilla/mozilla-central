@@ -32,7 +32,7 @@
     </content>
     <implementation>
       <constructor>
-        SubscribeHandler.init();
+        new BrowserFeedWriter();
       </constructor>
     </implementation>
     <resources>
