@@ -13,6 +13,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
 #include "nsIMutableArray.h"
+#include "nsTArray.h"
 
 typedef enum _nsCopyRequestType
 {

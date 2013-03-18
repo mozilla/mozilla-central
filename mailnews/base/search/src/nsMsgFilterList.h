@@ -10,7 +10,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgFilterList.h"
 #include "nsCOMPtr.h"
-#include "nsIArray.h"
+#include "nsTArray.h"
 #include "nsIFile.h"
 #include "nsIOutputStream.h"
 

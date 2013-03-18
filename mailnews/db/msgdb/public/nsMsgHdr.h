@@ -10,6 +10,7 @@
 #include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "mdb.h"
+#include "nsTArray.h"
 
 class nsMsgDatabase;
 class nsCString;

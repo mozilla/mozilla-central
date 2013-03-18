@@ -10,6 +10,7 @@
 #include "nsIPrefBranch.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
+#include "nsTArray.h"
 
 class nsMsgTag : public nsIMsgTag
 {

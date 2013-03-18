@@ -8,6 +8,7 @@
 
 #include "nsAbCardProperty.h"
 #include "nsIAbLDAPCard.h"
+#include "nsTArray.h"
 
 class nsIMutableArray;
 
