@@ -14,6 +14,7 @@
 #include "nsIObserver.h"
 #include "nsIAtom.h"
 #include "nsDataHashtable.h"
+#include "nsTArray.h"
 
 #define NS_MESSENGERUNIXINTEGRATION_CID \
   {0xf62f3d3a, 0x1dd1, 0x11b2, \
