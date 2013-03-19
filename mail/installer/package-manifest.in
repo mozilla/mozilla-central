@@ -153,7 +153,7 @@
 
 @BINPATH@/isp/*
 
-#ifndef XP_WIN
+#if defined(MOZ_ENABLE_DBUS) || defined(MOZ_ENABLE_GNOME_COMPONENT) || defined(MOZ_ENABLE_GNOMEVFS)
 @BINPATH@/components/components.manifest
 #endif
 @BINPATH@/components/aboutRedirector.js
@@ -499,9 +499,7 @@
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitsearch.manifest
-#ifdef XP_MACOSX
-@BINPATH@/components/libalerts.dylib
-#elifdef XP_UNIX
+ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/toolkitremote.xpt
 @BINPATH@/mozilla-xremote-client
 #endif

@@ -41,6 +41,7 @@ chrome/US.jar
 components/accessibility-atk.xpt
 components/airbag.xpt
 #ifdef XP_MACOSX
+  components/libalerts.dylib
   components/libalerts_s.dylib
 #endif
 components/bookmarks.xpt
