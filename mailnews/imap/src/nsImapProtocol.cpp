@@ -2344,7 +2344,7 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
 // Command tag handling stuff
 void nsImapProtocol::IncrementCommandTagNumber()
 {
-    sprintf(m_currentServerCommandTag,"%ld", (long) ++m_currentServerCommandTagNumber);
+  sprintf(m_currentServerCommandTag, "%u", ++m_currentServerCommandTagNumber);
 }
 
 const char *nsImapProtocol::GetServerCommandTag()
