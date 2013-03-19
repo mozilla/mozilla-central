@@ -93,6 +93,8 @@ nsNntpIncomingServer::nsNntpIncomingServer()
 {
   mNewsrcHasChanged = false;
 
+  mGetOnlyNew = true;
+
   mHostInfoLoaded = false;
   mHostInfoHasChanged = false;
   mVersion = INVALID_VERSION;
