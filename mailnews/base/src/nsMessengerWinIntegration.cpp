@@ -446,6 +446,8 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
                                                 aAlertText, true,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this,
+                                                EmptyString(),
+                                                NS_LITERAL_STRING("auto"),
                                                 EmptyString());
       mAlertInProgress = true;
     }

@@ -390,7 +390,9 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
       alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
                                            aAlertTitle, aAlertText, true,
                                            NS_ConvertASCIItoUTF16(aFolderURI),
-                                           this, EmptyString());
+                                           this, EmptyString(),
+                                           NS_LITERAL_STRING("auto"),
+                                           EmptyString());
     }
 
     BounceDockIcon();

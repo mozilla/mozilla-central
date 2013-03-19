@@ -358,6 +358,8 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
                                                 false,
                                                 NS_ConvertASCIItoUTF16(aFolderURI),
                                                 this,
+                                                EmptyString(),
+                                                NS_LITERAL_STRING("auto"),
                                                 EmptyString());
       if (NS_SUCCEEDED(rv))
         return rv;
