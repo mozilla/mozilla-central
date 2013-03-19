@@ -205,9 +205,13 @@
   margin-top: -3px;
 }
 
-#calendar-nav-control,
+#calendar-nav-control {
+  border-top-width: 0 !important;
+}
+
 #calendar-task-details-container {
   border-top-width: 0 !important;
+  padding-top: 0px;
 }
 
 #today-pane-panel {

@@ -16,6 +16,10 @@
     z-index: 10;
 }
 
+#calendar-task-details-container {
+    padding-top: 1px;
+}
+
 #other-actions-box {
     -moz-margin-end: -1px;
 }

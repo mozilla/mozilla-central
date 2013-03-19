@@ -5,6 +5,7 @@
 @import url(chrome://calendar/skin/common/calendar-task-view.css);
 
 #calendar-task-details-container {
+    padding-top: 2px;
     overflow: hidden;
 }
 

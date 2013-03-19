@@ -58,7 +58,8 @@
               class="main-header-area"
               flex="1"
               persist="height"
-              context="task-actions-toolbar-context-menu">
+              context="task-actions-toolbar-context-menu"
+              hidden="true">
           <hbox id="calendar-task-details">
             <grid id="calendar-task-details-grid" flex="1">
               <columns id="calendar-task-details-columns">
@@ -80,17 +81,20 @@
                            value="&calendar.task-details.priority.low.label;"
                            class="task-details-value"
                            crop="end"
-                           flex="1"/>
+                           flex="1"
+                           hidden="true"/>
                     <label id="calendar-task-details-priority-normal"
                            value="&calendar.task-details.priority.normal.label;"
                            class="task-details-value"
                            crop="end"
-                           flex="1"/>
+                           flex="1"
+                           hidden="true"/>
                     <label id="calendar-task-details-priority-high"
                            value="&calendar.task-details.priority.high.label;"
                            class="task-details-value"
                            crop="end"
-                           flex="1"/>
+                           flex="1"
+                           hidden="true"/>
                     <hbox id="other-actions-box" align="end" flex="1" pack="end">
                       <menupopup id="task-actions-toolbar-context-menu">
                         <menuitem id="CustomizeTaskActionsToolbar"
