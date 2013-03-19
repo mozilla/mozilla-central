@@ -111,6 +111,7 @@
       </method>
 
       <field name="lastMessage">"EnterInsecureMessage"</field>
+      <field name="lastState">0</field>
 
       <method name="onSecurityChange">
         <parameter name="aWebProgress"/>
@@ -118,10 +119,13 @@
         <parameter name="aState"/>
         <body>
           <![CDATA[
+            if (aState < 0)
+              aState = lastState;
             const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
             var pref = "security.warn_leaving_secure";
             var message = "EnterInsecureMessage";
             var priority = this.PRIORITY_WARNING_LOW;
+            var buttons = [];
             if (aState & nsIWebProgressListener.STATE_IS_SECURE) {
               pref = "security.warn_entering_secure";
               message = "EnterSecureMessage";
@@ -132,8 +136,43 @@
               priority = this.PRIORITY_CRITICAL_LOW;
             }
 
+            if (aState & nsIWebProgressListener.STATE_LOADED_MIXED_ACTIVE_CONTENT &&
+                this._prefs.getBoolPref("security.warn_mixed_active_content")) {
+              pref = "security.warn_mixed_active_content";
+              message = "MixedActiveContentMessage";
+              priority = this.PRIORITY_CRITICAL_LOW;
+            } else if (aState & nsIWebProgressListener.STATE_BLOCKED_MIXED_ACTIVE_CONTENT &&
+                this._prefs.getBoolPref("security.warn_mixed_active_content")) {
+              pref = "security.warn_mixed_active_content";
+              message = "BlockedActiveContentMessage";
+              priority = this.PRIORITY_INFO_LOW;
+              lastState = aState & ~nsIWebProgressListener.STATE_BLOCKED_MIXED_ACTIVE_CONTENT;
+              const nsIWebNavigation = Components.interfaces.nsIWebNavigation;
+              buttons = [{
+                label: this._stringBundle.GetStringFromName("SecurityKeepBlocking.label"),
+                accessKey: this._stringBundle.GetStringFromName("SecurityKeepBlocking.accesskey"),
+                callback: this.onSecurityChange.bind(this, null, null, -1)
+              }, {
+                label: this._stringBundle.GetStringFromName("SecurityUnblock.label"),
+                accessKey: this._stringBundle.GetStringFromName("SecurityUnblock.accesskey"),
+                callback: this.reloadPage.bind(this,
+                              nsIWebNavigation.LOAD_FLAGS_ALLOW_MIXED_CONTENT |
+                              nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE)
+              }];
+            } else if (aState & nsIWebProgressListener.STATE_LOADED_MIXED_DISPLAY_CONTENT &&
+                this._prefs.getBoolPref("security.warn_mixed_display_content")) {
+              pref = "security.warn_mixed_display_content";
+              message = "MixedDisplayContentMessage";
+              priority = this.PRIORITY_WARNING_LOW;
+            } else if (aState & nsIWebProgressListener.STATE_BLOCKED_MIXED_DISPLAY_CONTENT &&
+                this._prefs.getBoolPref("security.warn_mixed_display_content")) {
+              pref = "security.warn_mixed_display_content";
+              message = "BlockedDisplayContentMessage";
+              priority = this.PRIORITY_INFO_LOW;
+            }
+
             if (this.lastMessage == message)
-              return;
+              return false;
 
             var box = this.getNotificationWithValue(this.lastMessage);
             if (box)
@@ -142,20 +181,23 @@
             this.lastMessage = message;
 
             if (!this._prefs.getBoolPref(pref))
-              return;
+              return true;
 
-            var buttons = "goPreferences" in window ? [{
-              label: this._stringBundle.GetStringFromName("SecurityPreferences.label"),
-              accessKey: this._stringBundle.GetStringFromName("SecurityPreferences.accesskey"),
-              callback: function() {
-                goPreferences("ssl_pane");
-                return true;
-              }
-            }] : null;
+            if ("goPreferences" in window) {
+              buttons.push({
+                label: this._stringBundle.GetStringFromName("SecurityPreferences.label"),
+                accessKey: this._stringBundle.GetStringFromName("SecurityPreferences.accesskey"),
+                callback: function() {
+                  goPreferences("ssl_pane");
+                  return true;
+                }
+              });
+            }
             var text = this._stringBundle.GetStringFromName(message);
             box = this.appendNotification(text, message, null, priority, buttons);
             box.persistence = 1;
             box.timeout = Date.now() + 20000; // 20 seconds
+            return true;
           ]]>
         </body>
       </method>
@@ -745,9 +787,10 @@
 
       <!-- Callback for user clicking a "reload page" link -->
       <method name="reloadPage">
+        <parameter name="flags"/>
         <body>
           <![CDATA[
-            this.activeBrowser.reload();
+            this.activeBrowser.reloadWithFlags(flags);
           ]]>
         </body>
       </method>

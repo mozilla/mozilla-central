@@ -35,6 +35,18 @@
       <preference id="security.warn_viewing_mixed"
                   name="security.warn_viewing_mixed"
                   type="bool"/>
+      <preference id="security.warn_mixed_active_content"
+                  name="security.warn_mixed_active_content"
+                  type="bool"/>
+      <preference id="security.mixed_content.block_active_content"
+                  name="security.mixed_content.block_active_content"
+                  type="bool"/>
+      <preference id="security.warn_mixed_display_content"
+                  name="security.warn_mixed_display_content"
+                  type="bool"/>
+      <preference id="security.mixed_content.block_display_content"
+                  name="security.mixed_content.block_display_content"
+                  type="bool"/>
     </preferences>
 
     <groupbox orient="horizontal">
@@ -73,6 +85,27 @@
                 accesskey="&warn.viewmixed.accesskey;"
                 preference="security.warn_viewing_mixed"
                 checked="true"/>
+    </groupbox>
+
+    <groupbox align="start">
+      <caption label="&SSLMixedContent.caption;"/>
+
+      <checkbox id="warnMixedActiveContent"
+                label="&warn.mixedactivecontent;"
+                accesskey="&warn.mixedactivecontent.accesskey;"
+                preference="security.warn_mixed_active_content"/>
+      <checkbox id="blockActiveContent"
+                label="&block.activecontent;"
+                accesskey="&block.activecontent.accesskey;"
+                preference="security.mixed_content.block_active_content"/>
+      <checkbox id="warnMixedDisplayContent"
+                label="&warn.mixeddisplaycontent;"
+                accesskey="&warn.mixeddisplaycontent.accesskey;"
+                preference="security.warn_mixed_display_content"/>
+      <checkbox id="blockDisplayContent"
+                label="&block.displaycontent;"
+                accesskey="&block.displaycontent.accesskey;"
+                preference="security.mixed_content.block_display_content"/>
     </groupbox>
 
   </prefpane>

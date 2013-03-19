@@ -4,6 +4,7 @@
 
 <!ENTITY  SSLProtocolVersions.caption       "SSL Protocol Versions">
 <!ENTITY  SSLWarnings.caption               "SSL Warnings">
+<!ENTITY  SSLMixedContent.caption           "Mixed Content">
 <!ENTITY  SSLClientAuthMethod.caption       "Client Certificate Selection">
 
 <!ENTITY pref.ssl.title                     "Secure Sockets Layer (SSL)">
@@ -21,6 +22,15 @@
 <!ENTITY warn.leavingsecure.accesskey       "a">
 <!ENTITY warn.viewmixed                     "Viewing a page with an encrypted/unencrypted mix">
 <!ENTITY warn.viewmixed.accesskey           "V">
+
+<!ENTITY warn.mixedactivecontent            "Warn me when encrypted pages contain insecure content">
+<!ENTITY warn.mixedactivecontent.accesskey  "W">
+<!ENTITY block.activecontent                "Don't load insecure content on encrypted pages">
+<!ENTITY block.activecontent.accesskey      "D">
+<!ENTITY warn.mixeddisplaycontent           "Warn me when encrypted pages contain other types of mixed content">
+<!ENTITY warn.mixeddisplaycontent.accesskey "c">
+<!ENTITY block.displaycontent               "Don't load other types of mixed content on encrypted pages">
+<!ENTITY block.displaycontent.accesskey     "m">
 
 <!ENTITY certselect.description             "Decide how &brandShortName; selects a security certificate to present to websites that require one:">
 <!ENTITY certselect.auto                    "Select Automatically">
