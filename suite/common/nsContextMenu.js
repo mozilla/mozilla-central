@@ -1009,6 +1009,9 @@ nsContextMenu.prototype = {
 
     channel.loadFlags |= flags;
 
+    if (channel instanceof Components.interfaces.nsIPrivateBrowsingChannel)
+      channel.setPrivate(gPrivate);
+
     if (channel instanceof Components.interfaces.nsIHttpChannel) {
       channel.referrer = doc.documentURIObject;
       if (channel instanceof Components.interfaces.nsIHttpChannelInternal)
