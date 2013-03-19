@@ -269,7 +269,8 @@ function buildServerFilterMenuList()
  */
 function buildServerFilterListFromDir(aDir, aISPHeaderList)
 {
-  // now iterate over each file in the directory looking for .sfd files
+  // Now iterate over each file in the directory looking for .sfd files.
+  const kSuffix = ".sfd";
   let entries = aDir.directoryEntries
                     .QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
 
@@ -277,9 +278,9 @@ function buildServerFilterListFromDir(aDir, aISPHeaderList)
   {
     let entry = entries.nextFile;
     // we only care about files that end in .sfd
-    if (entry.isFile() && entry.leafName.endsWith(".sfd"))
+    if (entry.isFile() && entry.leafName.endsWith(kSuffix))
     {
-      let fileName = RegExp.leftContext;
+      let fileName = entry.leafName.slice(0, -kSuffix.length);
       // if we've already added an item with this name, then don't add it again.
       if (!aISPHeaderList.querySelector('[value="'+ fileName + '"]'))
         aISPHeaderList.appendItem(fileName, fileName);
