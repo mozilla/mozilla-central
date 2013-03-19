@@ -49,7 +49,10 @@ function progressStartup() {
   // Insert as first controller on the whole window
   window.controllers.insertControllerAt(0, ProgressDlgController);
 
-  gCloseWhenDone.checked = gPrefService.getBoolPref("browser.download.progress.closeWhenDone");
+  if (gDownload.isPrivate)
+    gCloseWhenDone.hidden = true;
+  else
+    gCloseWhenDone.checked = gPrefService.getBoolPref("browser.download.progress.closeWhenDone");
 
   switch (gDownload.state) {
     case nsIDownloadManager.DOWNLOAD_NOTSTARTED:
@@ -60,7 +63,7 @@ function progressStartup() {
       gDlActive = true;
       break;
     case nsIDownloadManager.DOWNLOAD_FINISHED:
-      if (gCloseWhenDone.checked)
+      if (gCloseWhenDone.checked && window.arguments[1])
         window.close();
     default:
       gDlActive = false;
@@ -83,7 +86,7 @@ function progressStartup() {
 
   // The DlProgressListener handles progress notifications.
   gDownloadListener = new DlProgressListener();
-  gDownloadManager.addListener(gDownloadListener);
+  gDownloadManager.addPrivacyAwareListener(gDownloadListener);
 
   updateDownload();
   updateButtons();
@@ -97,8 +100,9 @@ function progressStartup() {
 function progressShutdown() {
   gDownloadManager.removeListener(gDownloadListener);
   window.controllers.removeController(ProgressDlgController);
-  gPrefService.setBoolPref("browser.download.progress.closeWhenDone",
-                           gCloseWhenDone.checked);
+  if (!gCloseWhenDone.hidden)
+    gPrefService.setBoolPref("browser.download.progress.closeWhenDone",
+                             gCloseWhenDone.checked);
 }
 
 function updateDownload() {
