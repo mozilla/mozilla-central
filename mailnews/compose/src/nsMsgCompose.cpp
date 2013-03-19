@@ -1499,7 +1499,7 @@ NS_IMETHODIMP nsMsgCompose::CloseWindow(bool recycleIt)
         {
           nsIScriptContext *scriptContext = sgo->GetContext();
           if (scriptContext)
-            scriptContext->GC(js::gcreason::NSJSCONTEXT_DESTROY);
+            scriptContext->GC(JS::gcreason::NSJSCONTEXT_DESTROY);
         }
       }
       return NS_OK;
