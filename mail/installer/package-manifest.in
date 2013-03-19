@@ -499,7 +499,7 @@
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitsearch.manifest
-ifdef UNIX_BUT_NOT_MAC
+#ifdef UNIX_BUT_NOT_MAC
 @BINPATH@/components/toolkitremote.xpt
 @BINPATH@/mozilla-xremote-client
 #endif
