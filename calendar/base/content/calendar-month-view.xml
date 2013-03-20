@@ -31,7 +31,7 @@
                   <xul:vbox pack="center">
                     <xul:image anonid="item-icon"
                                class="calendar-item-image"
-                               xbl:inherits="progress,allday,itemType"/>
+                               xbl:inherits="progress,allday,itemType,todoType"/>
                   </xul:vbox>
                   <xul:label anonid="item-label"
                              class="calendar-month-day-box-item-label"
@@ -849,16 +849,15 @@
           var boxes = new Array();
 
           // All our boxes are in default tz, so we need these times in them too.
-          if (isEvent(aItem)) {
-            targetDate = aItem.startDate.getInTimezone(this.mTimezone);
-            finishDate = aItem.endDate.getInTimezone(this.mTimezone);
-          } else if (isToDo(aItem)) {
-            if (aItem.entryDate) {
-              targetDate = aItem.entryDate.getInTimezone(this.mTimezone);
-              if (aItem.dueDate) {
-                finishDate = aItem.dueDate.getInTimezone(this.mTimezone);
+          if (cal.isEvent(aItem)) {
+              targetDate = aItem.startDate.getInTimezone(this.mTimezone);
+              finishDate = aItem.endDate.getInTimezone(this.mTimezone);
+          } else if (cal.isToDo(aItem)) {
+              // Consider tasks without entry OR due date.
+              if (aItem.entryDate || aItem.dueDate) {
+                  targetDate = (aItem.entryDate || aItem.dueDate).getInTimezone(this.mTimezone);
+                  finishDate = (aItem.dueDate || aItem.entryDate).getInTimezone(this.mTimezone);
               }
-            }
           }
 
           if (!targetDate)
@@ -880,7 +879,8 @@
           }
 
           if (targetDate.compare(finishDate) == 0) {
-              // Zero length events are silly, but we have to handle them
+              // We have also to handle zero length events in particular for
+              // tasks without entry or due date.
               let box = this.findDayBoxForDate(targetDate);
               if (box) {
                   boxes.push(box);

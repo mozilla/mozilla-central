@@ -419,8 +419,8 @@
          }
          let item = draggedDOMNode.occurrence.clone();
          let beginMoveDate = draggedDOMNode.mParentBox.date;
-         let itemStartDate = (item.entryDate || item.startDate).getInTimezone(calendarView.mTimezone);
-         let itemEndDate = (item.dueDate || item.endDate).getInTimezone(calendarView.mTimezone);
+         let itemStartDate = (item.startDate || item.entryDate || item.dueDate).getInTimezone(calendarView.mTimezone);
+         let itemEndDate = (item.endDate || item.dueDate || item.entryDate).getInTimezone(calendarView.mTimezone);
          let oneMoreDay = (itemEndDate.hour > 0 || itemEndDate.minute > 0);
          itemStartDate.isDate = true;
          itemEndDate.isDate = true;
@@ -498,8 +498,8 @@
 
          item = session.sourceNode.sourceObject;
          let newItem = this.onDropItem(item).clone();
-         let newStart = newItem.startDate || newItem.entryDate;
-         let newEnd = newItem.endDate || newItem.dueDate;
+         let newStart = newItem.startDate || newItem.entryDate || newItem.dueDate;
+         let newEnd = newItem.endDate || newItem.dueDate || newItem.entryDate;
          let offset = this.calendarView.mShadowOffset;
          newStart.addDuration(offset);
          newEnd.addDuration(offset);

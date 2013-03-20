@@ -192,7 +192,13 @@
           } else if (cal.isToDo(item)) {
               // progress attribute
               this.setAttribute("progress", getProgressAtom(item));
+              // Attribute for tasks and tasks image.
               this.setAttribute("itemType", "todo");
+              if (item.entryDate && !item.dueDate) {
+                  this.setAttribute("todoType", "start");
+              } else if (!item.entryDate && item.dueDate) {
+                  this.setAttribute("todoType", "end");
+              }
           }
 
           if (this.calendarView &&

@@ -1104,6 +1104,7 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
 {
     let startDate;
     let endDate;
+    let queryStart = ensureDateTime(rangeStart);
     if (isEvent(item)) {
         startDate = item.startDate;
         if (!startDate) { // DTSTART mandatory
@@ -1122,21 +1123,17 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
             // A "VTODO" calendar component without the "DTSTART" and "DUE" (or
             // "DURATION") properties specifies a to-do that will be associated
             // with each successive calendar date, until it is completed.
-            let completedDate = item.completedDate;
-            if (completedDate) {
-                let queryStart = ensureDateTime(rangeStart);
-                completedDate = ensureDateTime(completedDate);
-                return (!queryStart || completedDate.compare(queryStart) > 0);
-            }
-            return true;
+            let completedDate = ensureDateTime(item.completedDate);
+            dueDate = ensureDateTime(dueDate);
+            return !completedDate || !queryStart ||
+                   completedDate.compare(queryStart) > 0 ||
+                   (dueDate && dueDate.compare(queryStart) >= 0);
         }
         endDate = (dueDate || startDate);
     }
 
     let start = ensureDateTime(startDate);
     let end = ensureDateTime(endDate);
-
-    let queryStart = ensureDateTime(rangeStart);
     let queryEnd = ensureDateTime(rangeEnd);
 
     if (start.compare(end) == 0) {

@@ -529,8 +529,8 @@
       <method name="getStartEndMinutesForOccurrence">
         <parameter name="aOccurrence"/>
         <body><![CDATA[
-           var stdate = aOccurrence.startDate || aOccurrence.entryDate;
-           var enddate = aOccurrence.endDate || aOccurrence.dueDate;
+           let stdate = aOccurrence.startDate || aOccurrence.entryDate || aOccurrence.dueDate;
+           let enddate = aOccurrence.endDate || aOccurrence.dueDate || aOccurrence.entryDate;
 
            if (!compareObjects(stdate.timezone, this.mTimezone)) {
                stdate = stdate.getInTimezone (this.mTimezone);
@@ -775,17 +775,22 @@
                                                   this.getAttribute("context"));
                           chunkBox.setAttribute("orient", orient);
 
-                          // Set the gripBars visibility in the chunk
-                          let startGripVisible = (chunk.event.startDate || chunk.event.entryDate)
-                                                     .compare(chunk.startDate) == 0;
-                          let endGripVisible = (chunk.event.endDate || chunk.event.dueDate)
-                                                   .compare(chunk.endDate) <= 0;
-                          if (startGripVisible && endGripVisible) {
-                              chunkBox.setAttribute("gripBars", "both");
-                          } else if (endGripVisible) {
-                              chunkBox.setAttribute("gripBars", "end");
-                          } else if (startGripVisible) {
-                              chunkBox.setAttribute("gripBars", "start");
+                          // Set the gripBars visibility in the chunk. Keep it
+                          // hidden for tasks with only entry date OR due date.
+                          if ((chunk.event.entryDate || !chunk.event.dueDate) &&
+                              (!chunk.event.entryDate || chunk.event.dueDate)) {
+
+                              let startGripVisible = (chunk.event.startDate || chunk.event.entryDate)
+                                                         .compare(chunk.startDate) == 0;
+                              let endGripVisible = (chunk.event.endDate || chunk.event.dueDate)
+                                                       .compare(chunk.endDate) <= 0;
+                              if (startGripVisible && endGripVisible) {
+                                  chunkBox.setAttribute("gripBars", "both");
+                              } else if (endGripVisible) {
+                                  chunkBox.setAttribute("gripBars", "end");
+                              } else if (startGripVisible) {
+                                  chunkBox.setAttribute("gripBars", "start");
+                              }
                           }
 
                           innerColumn.appendChild(chunkBox);
@@ -883,10 +888,10 @@
           var self = this;
           this.mEventInfos.forEach(function(aEventInfo) {
               let item = aEventInfo.event.clone();
-              let start = item.startDate || item.entryDate;
+              let start = item.startDate || item.entryDate || item.dueDate;
               start = start.getInTimezone(self.mTimezone);
               aEventInfo.layoutStart = start;
-              let end = item.endDate || item.dueDate
+              let end = item.endDate || item.dueDate || item.entryDate;
               end = end.getInTimezone(self.mTimezone);
               let secEnd = start.clone();
               secEnd.addDuration(self.mMinDuration);
@@ -1593,8 +1598,12 @@
           var endTZ;
           let dragDay = col.mDate;
           if (dragState.dragType != "new") {
-              var oldStart = dragState.dragOccurrence.startDate || dragState.dragOccurrence.entryDate;
-              var oldEnd = dragState.dragOccurrence.endDate || dragState.dragOccurrence.dueDate;
+              var oldStart = dragState.dragOccurrence.startDate ||
+                             dragState.dragOccurrence.entryDate ||
+                             dragState.dragOccurrence.dueDate;
+              var oldEnd = dragState.dragOccurrence.endDate ||
+                           dragState.dragOccurrence.dueDate ||
+                           dragState.dragOccurrence.entryDate;
               newStart = oldStart.clone();
               newEnd = oldEnd.clone();
 
@@ -1885,6 +1894,16 @@
           var endstr = formatter.FormatTime("",
                                             Components.interfaces.nsIScriptableDateFormat.timeFormatNoSeconds,
                                             endhr, endmin, 0);
+
+          // Tasks without Entry or Due date have a string as first label
+          // instead of the time.
+          if (cal.isToDo(this.mDragState.dragOccurrence)) {
+              if (!this.mDragState.dragOccurrence.dueDate) {
+                  startstr = calGetString("calendar", "dragLabelTasksWithOnlyEntryDate");
+              } else if(!this.mDragState.dragOccurrence.entryDate) {
+                  startstr = calGetString("calendar", "dragLabelTasksWithOnlyDueDate");
+              }
+          }
           firstColumn.fgboxes.startlabel.setAttribute("value", startstr);
           lastColumn.fgboxes.endlabel.setAttribute("value", endstr);
 
@@ -2160,7 +2179,8 @@
         <xul:box xbl:inherits="orient,width,height" flex="1">
           <xul:box anonid="event-container"
                    class="calendar-color-box"
-                   xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories,calendar-uri,calendar-id"
+                   xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,
+                                 status,calendar,categories,calendar-uri,calendar-id,todoType"
                    flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
@@ -2173,7 +2193,7 @@
                           align="start">
                   <xul:image anonid="item-icon"
                              class="calendar-item-image"
-                             xbl:inherits="progress,allday,itemType"/>
+                             xbl:inherits="progress,allday,itemType,todoType"/>
                   <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
                                class="plain calendar-event-details-core calendar-event-name-textbox"
@@ -2943,9 +2963,9 @@
 
           for each (var item in this.mSelectedItems) {
               for each (var occ in this.getItemOccurrencesInView(item)) {
-                  var cols = this.findColumnsForItem(occ);
+                  let cols = this.findColumnsForItem(occ);
                   if (cols.length > 0) {
-                      var start = item.startDate || item.entryDate;
+                      let start = item.startDate || item.entryDate || item.dueDate;
                       for each (let col in cols) {
                           if (start.isDate) {
                               col.header.selectOccurrence(occ);
@@ -3433,25 +3453,25 @@
           });
         ]]></body>
       </method>
+
       <method name="findColumnsForItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          var columns = new Array();
+          let columns = new Array();
 
           if (!this.mDateColumns) {
             return columns;
           }
 
-          var tz = this.mDateColumns[0].date.timezone;
-
           // Note that these may be dates or datetimes
-          var startDate = aItem.startDate || aItem.entryDate;
+          let startDate = aItem.startDate || aItem.entryDate || aItem.dueDate;
           if (!startDate) {
               return columns;
           }
-          var targetDate = startDate.getInTimezone(tz);
-          var endDate = aItem.endDate || aItem.dueDate || startDate;
-          var finishDate = endDate.getInTimezone(tz);
+          let tz = this.mDateColumns[0].date.timezone;
+          let targetDate = startDate.getInTimezone(tz);
+          let finishDate = (aItem.endDate || aItem.dueDate || aItem.entryDate || startDate)
+                               .getInTimezone(tz);
 
           if (!targetDate.isDate) {
             // Set the time to 00:00 so that we get all the boxes
@@ -3461,15 +3481,16 @@
           }
 
           if (targetDate.compare(finishDate) == 0) {
-              // Zero length events are silly, but we have to handle them
-              var col = this.findColumnForDate(targetDate);
+              // We have also to handle zero length events in particular for
+              // tasks without entry or due date.
+              let col = this.findColumnForDate(targetDate);
               if (col) {
                   columns.push(col);
               }
           }
 
           while (targetDate.compare(finishDate) == -1) {
-            var col = this.findColumnForDate(targetDate);
+            let col = this.findColumnForDate(targetDate);
 
             // This might not exist if the event spans the view start or end
             if (col) {
@@ -3519,16 +3540,15 @@
       <method name="doAddItem">
         <parameter name="aEvent"/>
         <body><![CDATA[
-          //dump ("++ doAddItem\n");
           var cols = this.findColumnsForItem(aEvent);
           if (!cols.length)
               return;
 
           for each (let col in cols) {
-              var column = col.column;
-              var header = col.header;
+              let column = col.column;
+              let header = col.header;
 
-              var estart = aEvent.startDate || aEvent.entryDate;
+              let estart = aEvent.startDate || aEvent.entryDate || aEvent.dueDate;
               if (estart.isDate) {
                   header.addEvent(aEvent);
               } else {
@@ -3554,10 +3574,10 @@
           this.mSelectedItems = this.mSelectedItems.filter(isNotItem);
 
           for each (let col in cols) {
-              var column = col.column;
-              var header = col.header;
+              let column = col.column;
+              let header = col.header;
 
-              var estart = aEvent.startDate || aEvent.entryDate;
+              let estart = aEvent.startDate || aEvent.entryDate || aEvent.dueDate;
               if (estart.isDate) {
                   header.deleteEvent(aEvent);
               } else {

@@ -26,8 +26,24 @@ calendar-category-box:not([categories]) {
     display: -moz-box;
 }
 
+.calendar-item-image[itemType="todo"][todoType="start"] {
+    -moz-image-region: rect(0px 18px 11px 0px);
+}
+
+.calendar-item-image[itemType="todo"][todoType="end"] {
+    -moz-image-region: rect(0px 36px 11px 18px);
+}
+
 .calendar-item-image[itemType="todo"][progress="completed"] {
-    -moz-image-region: rect(0px 22px 11px 11px);
+    -moz-image-region: rect(0px 47px 11px 36px);
+}
+
+.calendar-item-image[itemType="todo"][progress="completed"][todoType="start"] {
+    -moz-image-region: rect(0px 54px 11px 36px);
+}
+
+.calendar-item-image[itemType="todo"][progress="completed"][todoType="end"] {
+    -moz-image-region: rect(0px 72px 11px 54px);
 }
 
 /* Multiday view */
@@ -352,6 +368,8 @@ window[systemcolors] .multiday-view-day-box {
     background-image: linear-gradient(#fe4b22, #feb822);
     border: 5px #ffffff;
     opacity: 0.5;
+    min-height: 2px;
+    min-width: 2px;
 }
 
 window[systemcolors] .fgdragbox[dragging="true"] {

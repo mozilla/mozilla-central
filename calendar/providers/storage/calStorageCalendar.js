@@ -1143,15 +1143,13 @@ calStorageCalendar.prototype = {
                 "  OR   offline_journal != " + cICL.OFFLINE_FLAG_DELETED_RECORD + ")) " +
                 "  OR (offline_journal == :offline_journal))"
                 );
-           /**
-            * WHERE (due > rangeStart AND start < rangeEnd) OR
-            *       (due = rangeStart AND start = rangeStart) OR
-            *       (due IS NULL AND ((start >= rangeStart AND start < rangeEnd) OR
-            *                         (start IS NULL AND
-            *                          (completed > rangeStart OR completed IS NULL))) OR
-            *       (start IS NULL AND due >= rangeStart AND due < rangeEnd)
-            */
 
+            //
+            // WHERE (due > rangeStart  AND  (entry IS NULL  OR  entry < rangeEnd)) OR
+            //       (due = rangeStart  AND  (entry IS NULL  OR  entry = rangeStart)) OR
+            //       (due IS NULL  AND  (entry >= rangeStart  AND  entry < rangeEnd)) OR
+            //       (entry IS NULL  AND  (completed > rangeStart  OR  completed IS NULL))
+            //
             var floatingTodoEntry = "todo_entry_tz = 'floating' AND todo_entry";
             var nonFloatingTodoEntry = "todo_entry_tz != 'floating' AND todo_entry";
             var floatingTodoDue = "todo_due_tz = 'floating' AND todo_due";
@@ -1164,17 +1162,19 @@ calStorageCalendar.prototype = {
                 "WHERE " +
                 "(((("+floatingTodoDue+" > :range_start + :start_offset) OR " +
                 "   ("+nonFloatingTodoDue+" > :range_start)) AND " +
-                "  (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
-                "   ("+nonFloatingTodoEntry+" < :range_end))) OR " +
+                "  ((todo_entry IS NULL) OR " +
+                "   (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
+                "    ("+nonFloatingTodoEntry+" < :range_end)))) OR " +
                 " ((("+floatingTodoDue+" = :range_start + :start_offset) OR " +
                 "   ("+nonFloatingTodoDue+" = :range_start)) AND " +
-                "  (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
-                "   ("+nonFloatingTodoEntry+" = :range_start))) OR " +
+                "  ((todo_entry IS NULL) OR " +
+                "   (("+floatingTodoEntry+" = :range_start + :start_offset) OR " +
+                "    ("+nonFloatingTodoEntry+" = :range_start)))) OR " +
                 " ((todo_due IS NULL) AND " +
                 "  ((("+floatingTodoEntry+" >= :range_start + :start_offset) OR " +
                 "    ("+nonFloatingTodoEntry+" >= :range_start)) AND " +
-                "    (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
-                "     ("+nonFloatingTodoEntry+" < :range_end)))) OR " +
+                "   (("+floatingTodoEntry+" < :range_end + :end_offset) OR " +
+                "    ("+nonFloatingTodoEntry+" < :range_end)))) OR " +
                 " ((todo_entry IS NULL) AND " +
                 "  ((("+floatingCompleted+" > :range_start + :start_offset) OR " +
                 "    ("+nonFloatingCompleted+" > :range_start)) OR " +

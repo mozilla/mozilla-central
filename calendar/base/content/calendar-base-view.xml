@@ -71,8 +71,8 @@
               if (!Components.isSuccessCode(aStatus)) {
                   return;
               }
-              let items = aItems.filter(function(x) !isToDo(x) ||
-                                (x.entryDate && x.dueDate));
+              let items = aItems.filter(function(x) !cal.isToDo(x) ||
+                                        (x.entryDate || x.dueDate));
 
               for each (let item in items) {
                   this.calView.doAddItem(item);
@@ -105,8 +105,8 @@
 
             onAddItem: function onAddItem(aItem) {
 
-                if (isToDo(aItem)) {
-                    if (!aItem.entryDate || !aItem.dueDate) {
+                if (cal.isToDo(aItem)) {
+                    if (!aItem.entryDate && !aItem.dueDate) {
                         return;
                     }
                     if(!this.calView.mTasksInView){
@@ -128,14 +128,13 @@
 
             onModifyItem: function onModifyItem(aNewItem, aOldItem) {
 
-                if (isToDo(aNewItem) && isToDo(aOldItem) &&
+                if (cal.isToDo(aNewItem) && cal.isToDo(aOldItem) &&
                     !this.calView.mTasksInView) {
                     return;
                 }
                 let occs;
 
-                if (!isToDo(aOldItem) ||
-                    (aOldItem.entryDate && aOldItem.dueDate)) {
+                if (!cal.isToDo(aOldItem) || aOldItem.entryDate || aOldItem.dueDate) {
                     occs = aOldItem.getOccurrencesBetween(this.calView.startDate,
                                                           this.calView.queryEndDate,
                                                           {});
@@ -143,8 +142,8 @@
                         this.calView.doDeleteItem(occ);
                     }
                 }
-                if (isToDo(aNewItem)) {
-                    if (!aNewItem.entryDate || !aNewItem.dueDate || !this.calView.mTasksInView) {
+                if (cal.isToDo(aNewItem)) {
+                    if (!aNewItem.entryDate && !aNewItem.dueDate || !this.calView.mTasksInView) {
                         return;
                     }
                     if (aNewItem.isCompleted && !this.calView.mShowCompleted) {
@@ -162,11 +161,11 @@
 
             onDeleteItem: function onDeleteItem(aItem) {
 
-                if (isToDo(aItem)) {
+                if (cal.isToDo(aItem)) {
                     if (!this.calView.mTasksInView) {
                         return;
                     }
-                    if (!aItem.entryDate || !aItem.dueDate) {
+                    if (!aItem.entryDate && !aItem.dueDate) {
                         return;
                     }
                     if (aItem.isCompleted && !this.calView.mShowCompleted) {
