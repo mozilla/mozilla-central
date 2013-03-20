@@ -500,7 +500,7 @@ nsMsgMailboxParser::ReleaseFolderLock()
   bool haveSemaphore;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
   result = folder->TestSemaphore(supports, &haveSemaphore);
-  if (NS_SUCCEEDED(result) && haveSemaphore)
+  if(NS_SUCCEEDED(result) && haveSemaphore)
     (void) folder->ReleaseSemaphore(supports);
 }
 
@@ -1052,8 +1052,8 @@ nsresult nsParseMailMessageState::ParseHeaders ()
 #endif
 
       ToLowerCase(headerStr);
-      uint32_t customHeaderIndex = m_customDBHeaders.IndexOf(headerStr);
-      if (customHeaderIndex != nsTArray<nsCString>::NoIndex)
+      int32_t customHeaderIndex = m_customDBHeaders.IndexOf(headerStr);
+      if (customHeaderIndex != -1)
         header = & m_customDBHeaderValues[customHeaderIndex];
     }
 
@@ -1145,15 +1145,13 @@ SEARCH_NEWLINE:
             PRTime resultTime;
             if (PR_ParseTimeString (receivedDate.get(), false, &resultTime) == PR_SUCCESS)
               m_receivedTime = resultTime;
-            else
-              NS_WARNING("PR_ParseTimeString failed in ParseHeaders().");
           }
         }
         // Someone might want the received header saved.
         if (m_customDBHeaders.Length())
         {
           uint32_t customHeaderIndex = m_customDBHeaders.IndexOf(NS_LITERAL_CSTRING("received"));
-          if (customHeaderIndex != nsTArray<nsCString>::NoIndex)
+          if (customHeaderIndex != -1)
           {
             if (!m_receivedValue.IsEmpty())
               m_receivedValue.Append(' ');
@@ -1186,9 +1184,7 @@ nsresult nsParseMailMessageState::ParseEnvelope (const char *line, uint32_t line
     s++;
   m_envelope_date.value = s;
   m_envelope_date.length = (uint16_t) (line_size - (s - m_envelope.GetBuffer()));
-
-  while (m_envelope_date.length > 0 &&
-         IS_SPACE (m_envelope_date.value [m_envelope_date.length - 1]))
+  while (IS_SPACE (m_envelope_date.value [m_envelope_date.length - 1]))
     m_envelope_date.length--;
 
   /* #### short-circuit const */
@@ -1367,12 +1363,9 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
     /* Take off <> around message ID. */
     if (id)
     {
-      if (id->length > 0 && id->value[0] == '<')
-        id->length--, id->value++;
-
-      NS_WARN_IF_FALSE(id->length > 0, "id->length failure in FinalizeHeaders().");
-
-      if (id->length > 0 && id->value[id->length - 1] == '>')
+      if (id->value[0] == '<')
+        id->value++, id->length--;
+      if (id->value[id->length - 1] == '>')
         /* generate a new null-terminated string without the final > */
         rawMsgId.Assign(id->value, id->length - 1);
       else
@@ -1566,9 +1559,6 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
             case 'U': case 'u':
               m_newMsgHdr->SetFlags(msgFlags & ~nsMsgMessageFlags::Read);
               break;
-            default:            // Should check for corrupt file.
-              NS_ERROR("Corrupt file. Should not happen.");
-              break;
             }
           }
         }
@@ -1602,8 +1592,6 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
             m_newMsgHdr->SetDate(resultTime);
             PRTime2Seconds(resultTime, &rcvTimeSecs);
           }
-          else
-            NS_WARNING("PR_ParseTimeString of date failed in FinalizeHeader().");
         }
         else
         {  // PR_Now()
@@ -1626,8 +1614,6 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
           PRStatus timeStatus = PR_ParseTimeString (deliveryDate->value, false, &resultTime);
           if (PR_SUCCESS == timeStatus)
             PRTime2Seconds(resultTime, &rcvTimeSecs);
-          else // TODO/FIXME: We need to figure out what to do in this case!
-            NS_WARNING("PR_ParseTimeString of delivery date failed in FinalizeHeader().");
         }
         m_newMsgHdr->SetUint32Property("dateReceived", rcvTimeSecs);
 
@@ -1946,7 +1932,7 @@ nsresult nsParseNewMailState::GetTrashFolder(nsIMsgFolder **pTrashFolder)
   if (!pTrashFolder)
     return NS_ERROR_NULL_POINTER;
 
-  if (m_downloadFolder)
+  if(m_downloadFolder)
   {
     nsCOMPtr <nsIMsgIncomingServer> incomingServer;
     m_downloadFolder->GetServer(getter_AddRefs(incomingServer));
@@ -2595,7 +2581,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 
   if (movedMsgIsNew)
     destIFolder->SetHasNewMessages(true);
-  if (m_filterTargetFolders.IndexOf(destIFolder) == -1) // IndexOf() type?
+  if (m_filterTargetFolders.IndexOf(destIFolder) == -1)
     m_filterTargetFolders.AppendObject(destIFolder);
 
   destIFolder->ReleaseSemaphore (myISupports);
