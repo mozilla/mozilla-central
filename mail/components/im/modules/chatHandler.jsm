@@ -6,6 +6,7 @@ const EXPORTED_SYMBOLS = ["allContacts", "onlineContacts", "ChatCore"];
 
 Components.utils.import("resource:///modules/imServices.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 let allContacts = {};
 let onlineContacts = {};
@@ -41,8 +42,7 @@ let ChatCore = {
         let accountsById = {};
         for each (let account in fixIterator(Services.accounts.getAccounts()))
           accountsById[account.numericId] = account;
-        let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                            .getService(Components.interfaces.nsIMsgAccountManager);
+        let mgr = MailServices.accounts;
         for each (let account in fixIterator(mgr.accounts, Components.interfaces.nsIMsgAccount)) {
           let incomingServer = account.incomingServer;
           if (!incomingServer || incomingServer.type != "im")

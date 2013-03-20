@@ -6,14 +6,15 @@ const EXPORTED_SYMBOLS = [];
 
 const {classes: Cc, interfaces: Ci, utils: Cu, Constructor: CC} = Components;
 
-Cu.import("resource:///modules/imXPCOMUtils.jsm");
-Cu.import("resource:///modules/iteratorUtils.jsm");
-Cu.import("resource://gre/modules/FileUtils.jsm");
-Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource:///modules/gloda/public.js");
 Cu.import("resource:///modules/gloda/datamodel.js");
 Cu.import("resource:///modules/gloda/indexer.js");
 Cu.import("resource:///modules/imServices.jsm");
+Cu.import("resource:///modules/imXPCOMUtils.jsm");
+Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import("resource://gre/modules/NetUtil.jsm");
 
 const kCacheFileName = "indexedFiles.json";
 
@@ -60,8 +61,7 @@ GlodaIMConversation.prototype = {
       return gIMAccounts[cacheName];
 
     // Find the nsIIncomingServer for the current imIAccount.
-    let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Ci.nsIMsgAccountManager);
+    let mgr = MailServices.accounts;
     for each (let account in fixIterator(mgr.accounts, Ci.nsIMsgAccount)) {
       let incomingServer = account.incomingServer;
       if (!incomingServer || incomingServer.type != "im")

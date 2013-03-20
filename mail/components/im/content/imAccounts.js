@@ -4,8 +4,9 @@
 
 const {interfaces: Ci, utils: Cu} = Components;
 Cu.import("resource:///modules/imServices.jsm");
-Cu.import("resource://gre/modules/DownloadUtils.jsm");
 Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/DownloadUtils.jsm");
 
 // This is the list of notifications that the account manager window observes
 const events = [
@@ -240,8 +241,7 @@ var gAccountManager = {
     // Find the nsIIncomingServer for the current imIAccount.
     let server = null;
     let imAccountId = this.accountList.selectedItem.account.numericId;
-    let mgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                        .getService(Ci.nsIMsgAccountManager);
+    let mgr = MailServices.accounts;
     for each (let account in fixIterator(mgr.accounts, Ci.nsIMsgAccount)) {
       let incomingServer = account.incomingServer;
       if (!incomingServer || incomingServer.type != "im")
