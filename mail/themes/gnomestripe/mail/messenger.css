@@ -53,8 +53,6 @@ menulist > menupopup > menu > .menu-iconic-left {
 .mail-toolbox,
 .contentTabToolbox {
   -moz-appearance: none;
-  margin-top: -1px;
-  padding-top: 1px;
   border-bottom: 1px solid threedshadow;
   background-image: linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 19px);
 }

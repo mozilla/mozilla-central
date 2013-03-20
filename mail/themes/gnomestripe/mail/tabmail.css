@@ -6,30 +6,20 @@
  * Tabmail Tabs
  */
 
-#navigation-toolbox:not(:-moz-lwtheme) {
-  -moz-appearance: menubar;
-}
-
 #tabs-toolbar {
-  -moz-appearance: none;
   padding: 0;
-  border-bottom: 1px solid rgba(10, 31, 51, .35);
-}
-
-#tabs-toolbar:-moz-lwtheme {
-  border-bottom: 1px solid transparent;
 }
 
 #tabpanelcontainer:-moz-lwtheme {
   color: inherit;
 }
 
-.tabmail-tabs[overflow="true"] {
-  -moz-padding-start: 0px;
+.tabmail-tabs:not(:-moz-lwtheme) {
+  -moz-appearance: menubar;
 }
 
-.tabmail-arrowscrollbox {
-  margin-bottom: -1px;
+.tabmail-tabs[overflow="true"] {
+  -moz-padding-start: 0px;
 }
 
 .tabmail-tabs > .tabmail-tab:first-child > .tab-stack > .tab-content >
