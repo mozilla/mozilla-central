@@ -799,7 +799,7 @@ msg_quote_phrase_or_addr(char *address, int32_t length, bool addr_p)
 {
   int quotable_count = 0, in_quote = 0;
   int unquotable_count = 0;
-  int32_t new_length, full_length = length;
+  int32_t new_length, full_length = length, temp_length;
   char *in, *out, *orig_out, *atsign = NULL, *orig_address = address;
   bool user_quote = false;
   bool quote_all = false;
@@ -807,6 +807,15 @@ msg_quote_phrase_or_addr(char *address, int32_t length, bool addr_p)
   /* If the entire address is quoted, fall out now. */
   if (address[0] == '\"' && address[length - 1] == '\"')
      return length;
+
+  temp_length = length - 1;
+
+  // Remove trailing spaces.
+  while (address[temp_length] == ' ')
+  {
+    address[temp_length--] = '\0';
+    full_length--;
+  }
 
   /* Check to see if there is a routing prefix.  If there is one, we can
    * skip quoting it because by definition it can't need to be quoted.

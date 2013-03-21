@@ -23,6 +23,10 @@ function run_test() {
      "\"Joe Q. Public\" <john.q.public@example.com>"],
     ["Giant; \"Big\" Box", "sysservices@example.net",
      "\"Giant; \\\"Big\\\" Box\" <sysservices@example.net>"],
+    // Tests with trailing spaces
+    ["Test 1", "test@invalid.com ", "Test 1 <test@invalid.com>"],
+    ["Test 2", "test@invalid.com  ", "Test 2 <test@invalid.com>"],
+    ["Test 3", "test@invalid.com         ", "Test 3 <test@invalid.com>"],
   ];
 
   // Test - empty strings
