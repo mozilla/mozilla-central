@@ -13,6 +13,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+.mail-toolbox {
+  margin-top: 0px;
+  padding-top: 0px;
+}
+
 #messagepanebox {
   text-shadow: none;
 }
