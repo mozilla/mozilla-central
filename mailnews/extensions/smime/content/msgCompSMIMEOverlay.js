@@ -17,6 +17,8 @@ var gEncryptedURIService =
 
 var gNextSecurityButtonCommand = "";
 var gSMFields = null;
+var gEncryptOptionChanged;
+var gSignOptionChanged;
 
 function onComposerClose()
 {
@@ -137,6 +139,8 @@ function toggleEncryptMessage()
   {
     setNoEncryptionUI();
   }
+
+  gEncryptOptionChanged = true;
 }
 
 function toggleSignMessage()
@@ -161,6 +165,8 @@ function toggleSignMessage()
   {
     setNoSignatureUI();
   }
+
+  gSignOptionChanged = true;
 }
 
 function setSecuritySettings(menu_id)
@@ -231,7 +237,7 @@ function showMessageComposeSecurityStatus()
   window.openDialog(
     "chrome://messenger-smime/content/msgCompSecurityInfo.xul",
     "",
-    "chrome,resizable=1,modal=1,dialog=1",
+    "chrome,modal,resizable,centerscreen",
     {
       compFields : gMsgCompose.compFields,
       subject : GetMsgSubjectElement().value,
@@ -316,7 +322,7 @@ function onComposerSendMessage()
     if (autocompleteDirectory)
       window.openDialog("chrome://messenger-smime/content/certFetchingStatus.xul",
                         "",
-                        "chrome,resizable=1,modal=1,dialog=1",
+                        "chrome,modal,resizable,centerscreen",
                         autocompleteDirectory,
                         emailAddresses.value);
   }
@@ -327,22 +333,46 @@ function onComposerFromChanged()
   if (!gSMFields)
     return;
 
-  // In order to provide maximum protection to the user:
+  var encryptionPolicy = gCurrentIdentity.getIntAttribute("encryptionpolicy");
+  var useEncryption = false;
 
-  // - If encryption is already enabled, we will not turn it off automatically.
-  // - If encryption is not enabled, but the new account defaults to encryption, we will turn it on.
-  if (!gSMFields.requireEncryptMessage &&
-      gCurrentIdentity.getIntAttribute("encryptionpolicy") == kEncryptionPolicy_Always)
+  if (!gEncryptOptionChanged)
   {
-    gSMFields.requireEncryptMessage = true;
-    setEncryptionUI();
+    // Encryption wasn't manually checked.
+    // Set up the encryption policy from the setting of the new identity.
+
+    // 0 == never, 1 == if possible (ns4), 2 == always encrypt.
+    useEncryption = (encryptionPolicy == kEncryptionPolicy_Always);
   }
+  else
+  {
+    useEncryption = !!gCurrentIdentity.getUnicharAttribute("encryption_cert_name");
+  }
+
+  gSMFields.requireEncryptMessage = useEncryption;
+  if (useEncryption)
+    setEncryptionUI();
+  else
+    setNoEncryptionUI();
 
   // - If signing is disabled, we will not turn it on automatically.
   // - If signing is enabled, but the new account defaults to not sign, we will turn signing off.
-  if (gSMFields.signMessage && !gCurrentIdentity.getBoolAttribute("sign_mail"))
+  var signMessage = gCurrentIdentity.getBoolAttribute("sign_mail");
+  var useSigning = false;
+
+  if (!gSignOptionChanged)
   {
-    gSMFields.signMessage = false;
-    setNoSignatureUI();
+    // Signing wasn't manually checked.
+    // Set up the signing policy from the setting of the new identity.
+    useSigning = signMessage;
   }
+  else
+  {
+    useSigning = !!gCurrentIdentity.getUnicharAttribute("signing_cert_name");
+  }
+  gSMFields.signMessage = useSigning;
+  if (useSigning)
+    setSignatureUI();
+  else
+    setNoSignatureUI();
 }
