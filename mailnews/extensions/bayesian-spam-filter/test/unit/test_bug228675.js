@@ -8,15 +8,15 @@
 
 load("resources/trainingfile.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 // before shrink, the trained messages have 76 tokens. Force shrink.
 Services.prefs.setIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", 75);
 
-const nsIJunkMailPlugin = Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                            .getService(Ci.nsIJunkMailPlugin);
 // local constants
-const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
-const kJunk = nsIJunkMailPlugin.JUNK;
-const kGood = nsIJunkMailPlugin.GOOD;
+const kUnclassified = MailServices.junk.UNCLASSIFIED;
+const kJunk = MailServices.junk.JUNK;
+const kGood = MailServices.junk.GOOD;
 
 var emails =          [ "ham1.eml",  "ham2.eml",  "spam1.eml",
                         "spam2.eml", "spam3.eml", "spam4.eml" ];
@@ -28,14 +28,14 @@ var trainingData;
 function run_test()
 {
   loadLocalMailAccount();
-  nsIJunkMailPlugin.resetTrainingData();
+  MailServices.junk.resetTrainingData();
 
   do_test_pending();
   
   var email = emails.shift();
   var classification = classifications.shift();
   // additional calls to setMessageClassifiaction are done in the callback
-  nsIJunkMailPlugin.setMessageClassification(getSpec(email),
+  MailServices.junk.setMessageClassification(getSpec(email),
     kUnclassified, classification, null, doTestingListener);
 }
 
@@ -48,13 +48,14 @@ var doTestingListener =
     var email = emails.shift();
     var classification = classifications.shift();
     if (email)
-    { nsIJunkMailPlugin.setMessageClassification(getSpec(email),
+    {
+      MailServices.junk.setMessageClassification(getSpec(email),
           kUnclassified, classification, null, doTestingListener);
       return;
     }
     
     // all done classifying, time to test
-    nsIJunkMailPlugin.shutdown(); // just flushes training.dat
+    MailServices.junk.shutdown(); // just flushes training.dat
     trainingData = new TrainingData();
     trainingData.read();
 

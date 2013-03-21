@@ -8,18 +8,16 @@
 // these tests is to demonstrate that both the old junk-oriented calls and the
 // new trait-oriented calls give the same results on junk processing.
 
-const nsIJunkMailPlugin =
-  Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-    .getService(Ci.nsIJunkMailPlugin);
+Components.utils.import("resource:///modules/mailServices.js");
 
 // local constants
-const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
-const kJunk = nsIJunkMailPlugin.JUNK;
-const kGood = nsIJunkMailPlugin.GOOD;
-const kJunkTrait = nsIJunkMailPlugin.JUNK_TRAIT;
-const kGoodTrait = nsIJunkMailPlugin.GOOD_TRAIT;
-const kIsHamScore = nsIJunkMailPlugin.IS_HAM_SCORE;
-const kIsSpamScore = nsIJunkMailPlugin.IS_SPAM_SCORE;
+const kUnclassified = MailServices.junk.UNCLASSIFIED;
+const kJunk = MailServices.junk.JUNK;
+const kGood = MailServices.junk.GOOD;
+const kJunkTrait = MailServices.junk.JUNK_TRAIT;
+const kGoodTrait = MailServices.junk.GOOD_TRAIT;
+const kIsHamScore = MailServices.junk.IS_HAM_SCORE;
+const kIsSpamScore = MailServices.junk.IS_SPAM_SCORE;
 
 // command functions for test data
 const kTrainJ = 0;  // train using junk method
@@ -411,7 +409,7 @@ function startCommand()
   {
     case kTrainJ:
       // train message using junk call
-      nsIJunkMailPlugin.setMessageClassification(
+      MailServices.junk.setMessageClassification(
         getSpec(fileName),   // in string aMsgURI
         null,                // in nsMsgJunkStatus aOldUserClassification
         junkPercent == kIsHamScore ?
@@ -422,7 +420,7 @@ function startCommand()
 
     case kTrainT:
       // train message using trait call
-      nsIJunkMailPlugin.setMsgTraitClassification(
+      MailServices.junk.setMsgTraitClassification(
         getSpec(fileName), // in string aMsgURI
         0,            // length of aOldTraits array
         null,         // in array aOldTraits
@@ -438,7 +436,7 @@ function startCommand()
 
     case kClassJ:
       // classify message using junk call
-      nsIJunkMailPlugin.classifyMessage(
+      MailServices.junk.classifyMessage(
         getSpec(fileName), // in string aMsgURI
         null,              // in nsIMsgWindow aMsgWindow
         junkListener);     // in nsIJunkMailClassificationListener aListener
@@ -446,7 +444,7 @@ function startCommand()
 
     case kClassT:
       // classify message using trait call
-      nsIJunkMailPlugin.classifyTraitsInMessage(
+      MailServices.junk.classifyTraitsInMessage(
         getSpec(fileName), //in string aMsgURI
         gProArray.length, // length of traits arrays
         gProArray,   // in array aProTraits,
@@ -460,7 +458,7 @@ function startCommand()
 
     case kForgetJ:
       // forget message using junk call
-      nsIJunkMailPlugin.setMessageClassification(
+      MailServices.junk.setMessageClassification(
         getSpec(fileName),  // in string aMsgURI
         junkPercent == kIsHamScore ?
           kGood : kJunk,    // in nsMsgJunkStatus aOldUserClassification
@@ -471,7 +469,7 @@ function startCommand()
 
     case kForgetT:
       // forget message using trait call
-      nsIJunkMailPlugin.setMsgTraitClassification(
+      MailServices.junk.setMsgTraitClassification(
         getSpec(fileName), //in string aMsgURI
         gProArray.length,  // length of aOldTraits array (1 in this test)
         junkPercent == kIsSpamScore ? gProArray :
@@ -488,7 +486,7 @@ function startCommand()
     case kCounts:
       // test counts
       let msgCount = {};
-      let nsIMsgCorpus = nsIJunkMailPlugin.QueryInterface(Ci.nsIMsgCorpus);
+      let nsIMsgCorpus = MailServices.junk.QueryInterface(Ci.nsIMsgCorpus);
       let tokenCount = nsIMsgCorpus.corpusCounts(null, {});
       nsIMsgCorpus.corpusCounts(kJunkTrait, msgCount);
       let junkCount = msgCount.value;

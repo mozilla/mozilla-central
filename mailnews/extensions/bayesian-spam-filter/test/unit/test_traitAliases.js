@@ -37,9 +37,8 @@
  * alias3.eml        50             53
  */
 
-const nsIJunkMailPlugin =
-    Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-      .getService(Ci.nsIJunkMailPlugin);
+Components.utils.import("resource:///modules/mailServices.js");
+
 const traitService = Cc["@mozilla.org/msg-trait-service;1"]
                        .getService(Ci.nsIMsgTraitService);
 const kProTrait = 1001;
@@ -97,7 +96,7 @@ function run_test()
   loadLocalMailAccount();
 
   // load in the aliases trait testing file
-  nsIJunkMailPlugin.QueryInterface(Ci.nsIMsgCorpus)
+  MailServices.junk.QueryInterface(Ci.nsIMsgCorpus)
                    .updateData(do_get_file("resources/aliases.dat"), true);
   do_test_pending();
 
@@ -151,7 +150,7 @@ function startCommand()
   while ((antiAlias = gTest.antiAliases.pop()))
     traitService.addAlias(kAntiTrait, antiAlias);
   
-  nsIJunkMailPlugin.classifyTraitsInMessage(
+  MailServices.junk.classifyTraitsInMessage(
     getSpec(gTest.fileName), // in string aMsgURI
     proArray.length, // length of traits arrays
     proArray,    // in array aProTraits,

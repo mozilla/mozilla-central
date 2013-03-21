@@ -9,13 +9,12 @@
 // only needed during debug
 //do_import_script("mailnews/extensions/bayesian-spam-filter/test/resources/trainingfile.js");
 
-const nsIJunkMailPlugin = Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                            .getService(Ci.nsIJunkMailPlugin);
+Components.utils.import("resource:///modules/mailServices.js");
 
 // local constants
-const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
-const kJunk = nsIJunkMailPlugin.JUNK;
-const kGood = nsIJunkMailPlugin.GOOD;
+const kUnclassified = MailServices.junk.UNCLASSIFIED;
+const kJunk = MailServices.junk.JUNK;
+const kGood = MailServices.junk.GOOD;
 
 /*
  * This test is not intended to check the spam calculations,
@@ -58,8 +57,9 @@ var doTestingListener =
     // Do we have more training emails? If so, train
     var email = emails.shift();
     if (email)
-    { nsIJunkMailPlugin.setMessageClassification(getSpec(email.fileName),
-          kUnclassified, email.classification, null, doTestingListener);
+    {
+      MailServices.junk.setMessageClassification(getSpec(email.fileName),
+        kUnclassified, email.classification, null, doTestingListener);
       return;
     }
 
@@ -78,7 +78,7 @@ var doTestingListener =
     if (tests.length)
     {
       haveClassification = true;
-      nsIJunkMailPlugin.classifyMessage(getSpec(tests[0].fileName),
+      MailServices.junk.classifyMessage(getSpec(tests[0].fileName),
         null, doTestingListener);
       return;
     }

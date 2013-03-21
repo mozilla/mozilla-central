@@ -12,6 +12,8 @@ load("../../../resources/abSetup.js");
 // add fake POP3 server driver
 load("../../../resources/POP3pump.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 /*
  * The address available in the test address book is "PrimaryEmail1@test.invalid"
  * Test emails may also include the address "invalid@example.com"
@@ -24,9 +26,9 @@ load("../../../resources/POP3pump.js");
  *
  */
  
- // indices into hdrs[] of email by domain
- const kDomainTest = 0;
- const kDomainExample = 1;
+// indices into hdrs[] of email by domain
+const kDomainTest = 0;
+const kDomainExample = 1;
 
 var Files = 
 [
@@ -137,18 +139,16 @@ function doChecks(server)
    */
 
   // setup
-  let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                         .getService(Ci.nsIMsgAccountManager);
-  let account = accountManager.FindAccountForServer(server);
-  let identity = accountManager.createIdentity();
+  let account = MailServices.accounts.FindAccountForServer(server);
+  let identity = MailServices.accounts.createIdentity();
   // start with an email that does not match
   identity.email = "iAmNotTheSender@test.invalid";
   account.addIdentity(identity);
 
   // setup account and identify for the deferred-from fake server
-  let fakeAccount = accountManager.createAccount();
+  let fakeAccount = MailServices.accounts.createAccount();
   fakeAccount.incomingServer = gPOP3Pump.fakeServer;
-  let fakeIdentity = accountManager.createIdentity();
+  let fakeIdentity = MailServices.accounts.createIdentity();
   // start with an email that does not match
   fakeIdentity.email = "iAmNotTheSender@wrong.invalid";
   fakeAccount.addIdentity(fakeIdentity);

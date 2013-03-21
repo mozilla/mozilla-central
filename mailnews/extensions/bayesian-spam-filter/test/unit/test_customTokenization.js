@@ -4,9 +4,7 @@
 
 // Tests use of custom tokenization, originally introduced in bug 476389
 
-const nsIJunkMailPlugin =
-  Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-    .getService(Ci.nsIJunkMailPlugin);
+Components.utils.import("resource:///modules/mailServices.js");
 
 // command functions for test data
 const kTrain = 0;  // train a file
@@ -140,7 +138,7 @@ function startCommand()
     case kTrain:
       // train message
 
-      nsIJunkMailPlugin.setMsgTraitClassification(
+      MailServices.junk.setMsgTraitClassification(
         getSpec(gTest.fileName), //in string aMsgURI
         0,
         null,         // in nsIArray aOldTraits
@@ -153,7 +151,7 @@ function startCommand()
 
     case kTest:
       // test headers from detail message
-      nsIJunkMailPlugin.detailMessage(
+      MailServices.junk.detailMessage(
         getSpec(gTest.fileName), // in string aMsgURI
         kProArray[0], // proTrait
         kAntiArray[0],   // antiTrait
