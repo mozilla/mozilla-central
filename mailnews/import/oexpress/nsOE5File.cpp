@@ -339,7 +339,7 @@ nsresult nsOE5File::ImportMailbox(uint32_t *pBytesDone, bool *pAbort,
         {
           // Get the "From " line so write it out.
           rv = outputStream->Write(pStart, pChar-pStart+2, &written);
-          if (rv)
+          if (NS_SUCCEEDED(rv))
             // Now buffer starts from the 2nd line.
             pStart = pChar + 2;
         }

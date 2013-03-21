@@ -836,7 +836,7 @@ bool nsEudoraWin32::BuildPOPAccount(nsIMsgAccountManager *accMgr, const char *pS
         IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
         nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
+        NS_ENSURE_SUCCESS(rv,false);
         UINT valInt = ::GetPrivateProfileInt(pSection, "LeaveMailOnServer", 0, pIni);
         pop3Server->SetLeaveMessagesOnServer(valInt ? true : false);
 
@@ -1080,7 +1080,7 @@ bool nsEudoraWin32::FindMimeIniFile(nsIFile *pFile)
   bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = pFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, false);
 
   directoryEnumerator->HasMoreElements(&hasMore);
   bool              isFile;
