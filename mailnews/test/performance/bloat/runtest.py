@@ -15,7 +15,23 @@ import shutil
 from automation import Automation
 automation = Automation()
 
-from automationutils import checkForCrashes
+# --------------------------------------------------------------
+# TODO: this is a hack for mozbase without virtualenv, remove with bug 849900
+#
+here = os.path.dirname(__file__)
+mozbase = os.path.realpath(os.path.join(os.path.dirname(here), 'mozbase'))
+
+try:
+    import mozcrash
+except:
+    deps = ['mozcrash',
+            'mozlog']
+    for dep in deps:
+        module = os.path.join(mozbase, dep)
+        if module not in sys.path:
+            sys.path.append(module)
+    import mozcrash
+# ---------------------------------------------------------------
 
 class BloatRunTestOptions(optparse.OptionParser):
     """Parses Bloat runtest.py commandline options."""
@@ -167,7 +183,7 @@ for cmd in COMMANDS:
   if status != 0:
     print >> sys.stderr, "TEST-UNEXPECTED-FAIL | runtest.py | Exited with code %d during test run"%(status)
 
-  if checkForCrashes(os.path.join(PROFILE, "minidumps"), options.symbols, cmd['name']):
+  if mozcrash.check_for_crashes(os.path.join(PROFILE, "minidumps"), options.symbols, cmd['name']):
     print >> sys.stderr, 'TinderboxPrint: ' + cmd['name'] + '<br/><em class="testfail">CRASH</em>'
     status = 1
 

@@ -28,7 +28,24 @@ sys.path.append(SCRIPT_DIRECTORY)
 from automation import Automation
 automation = Automation()
 
-from automationutils import checkForCrashes
+# --------------------------------------------------------------
+# TODO: this is a hack for mozbase without virtualenv, remove with bug 849900
+#
+here = os.path.dirname(__file__)
+mozbase = os.path.realpath(os.path.join(os.path.dirname(here), 'mozbase'))
+
+try:
+    import mozcrash
+except:
+    deps = ['mozcrash',
+            'mozlog']
+    for dep in deps:
+        module = os.path.join(mozbase, dep)
+        if module not in sys.path:
+            sys.path.append(module)
+    import mozcrash
+# ---------------------------------------------------------------
+
 from time import sleep
 import imp
 
@@ -475,8 +492,8 @@ def dumpRichResults():
         print '##### MOZMILL-RICH-FAILURES-END #####'
 
 def checkCrashesAtExit():
-    if checkForCrashes(os.path.join(PROFILE_DIR, 'minidumps'), SYMBOLS_PATH,
-                       TEST_NAME):
+    if mozcrash.check_for_crashes(os.path.join(PROFILE_DIR, 'minidumps'), SYMBOLS_PATH,
+                                  TEST_NAME):
         print >> sys.stderr, 'TinderboxPrint: ' + TEST_NAME + '<br/><em class="testfail">CRASH</em>'
         sys.exit(1)
 
