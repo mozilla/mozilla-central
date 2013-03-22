@@ -1,17 +1,17 @@
 An explanation of the Mozilla Source Code Directory Structure and links to
 project pages with documentation can be found at:
 
-    https://developer.mozilla.org/en/Mozilla_Source_Code_Directory_Structure
+    https://developer.mozilla.org/en-US/Mozilla_Source_Code_Directory_Structure
 
 For information on how to build Mozilla from the source code, see:
 
-    http://developer.mozilla.org/en/docs/Build_Documentation
+    http://developer.mozilla.org/en-US/docs/Build_Documentation
 
 To have your bug fix / feature added to Mozilla, you should create a patch and
 submit it to Bugzilla (https://bugzilla.mozilla.org). Instructions are at:
 
-    http://developer.mozilla.org/en/docs/Creating_a_patch
-    http://developer.mozilla.org/en/docs/Getting_your_patch_in_the_tree
+    http://developer.mozilla.org/en-US/docs/Creating_a_patch
+    http://developer.mozilla.org/en-US/docs/Getting_your_patch_in_the_tree
 
 If you have a question about developing Mozilla, and can't find the solution
 on http://developer.mozilla.org, you can try asking your question in a
