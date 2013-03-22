@@ -317,7 +317,7 @@ protected:
   uint32_t GetMaxSize() { return 20; }
   nsVoidArray *m_shellList; // For maintenance
   // For quick lookup based on UID
-  nsRefPtrHashtableMT <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;
+  nsRefPtrHashtable <nsCStringHashKey, nsIMAPBodyShell> m_shellHash;
 };
 
 // MessagePartID and MessagePartIDArray are used for pipelining prefetches.
