@@ -4,7 +4,7 @@
 
 @import url("chrome://messenger/content/multimessageview.css");
 
-/* pinstripe-specific overrides for multimessageview.css*/
+/* osx-specific overrides for multimessageview.css*/
 
 .multimessage {
   min-height: 15px;

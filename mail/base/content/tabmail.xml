@@ -2549,7 +2549,7 @@
        Therefore it should only be used as a child of the tab or the tabs
        element.  This binding is exposed as a pseudo-public-API so themes
        can customize the tabbar appearance without having to be scriptable
-       (see globalBindings.xml in Pinstripe for example).
+       (see globalBindings.xml in osx for example).
   -->
   <binding id="tabmail-close-tab-button"
            extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton-image">

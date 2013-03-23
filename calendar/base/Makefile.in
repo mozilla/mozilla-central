@@ -13,18 +13,13 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = calbase
 MODULE_NAME = calBaseModule
 
-# Select a theme from which to pull our skin goodness
-# Linux: gnomestripe
-# OS X: pinstripe
-# Windows: winstripe
-
 ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
-THEME = gnomestripe
+THEME = linux
 else
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-THEME = pinstripe
+THEME = osx
 else
-THEME = winstripe
+THEME = windows
 endif
 endif
 
@@ -52,7 +47,7 @@ ICON_SUFFIX = .png
 endif
 
 # Copy the window icons into the correct directory
-libs:: $(addprefix themes/winstripe/icons/, $(addsuffix $(ICON_SUFFIX), $(WINDOW_ICONS)))
+libs:: $(addprefix themes/windows/icons/, $(addsuffix $(ICON_SUFFIX), $(WINDOW_ICONS)))
 	$(INSTALL) $^ $(FINAL_TARGET)/chrome/icons/default
 
 endif

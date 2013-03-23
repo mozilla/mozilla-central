@@ -139,7 +139,7 @@ imcontact[aliasing] .contactDisplayName {
   border-style: none;
   -moz-appearance: none;
 %ifdef XP_MACOSX
-  /* Copy of .main-header-area from pinstripe/mail/messageHeader.css */
+  /* Copy of .main-header-area from osx/mail/messageHeader.css */
   color: #2E3436; /* Aluminium 6 */
   border-bottom:1px solid #BFBFBF !important;
   padding: 0.6ex;

@@ -95,18 +95,13 @@ INSTALL_EXTENSION_ID = $(XPI_EM_ID)
 endif
 endif
 
-# Select a theme from which to pull our skin goodness
-# Linux: gnomestripe
-# OS X: pinstripe
-# Windows: winstripe
-
 ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))
-THEME=gnomestripe
+THEME=linux
 else
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-THEME=pinstripe
+THEME=osx
 else
-THEME=winstripe
+THEME=windows
 endif
 endif
 

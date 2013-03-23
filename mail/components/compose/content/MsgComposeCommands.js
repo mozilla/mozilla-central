@@ -2434,7 +2434,7 @@ var gMsgEditorCreationObserver =
         } catch (e if ((e instanceof Components.interfaces.nsIException) &&
                   (e.result == Components.results.NS_ERROR_INVALID_POINTER))) {
           // See Bug 517919 for discussion of why this exception is thrown
-          // (at time of writing, on pinstripe, there is no messageQuotes.css)
+          // (at time of writing, on osx, there is no messageQuotes.css)
           dump("addOverrideStyleSheet in MsgComposeCommands.js threw an exception, hopefully due to a missing stylesheet\n");
         }
         InitEditor();

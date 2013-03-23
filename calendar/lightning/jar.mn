@@ -64,8 +64,8 @@ lightning.jar:
     skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
     skin/lightning/mode-switch-icons.png                   (themes/common/images/mode-switch-icons.png)
 #ifdef XP_WIN
-    skin/lightning/mode-switch-icons-aero.png              (themes/winstripe/images/mode-switch-icons-aero.png)
-    skin/lightning/mode-switch-icons-inverted.png          (themes/winstripe/images/mode-switch-icons-inverted.png)
+    skin/lightning/mode-switch-icons-aero.png              (themes/windows/images/mode-switch-icons-aero.png)
+    skin/lightning/mode-switch-icons-inverted.png          (themes/windows/images/mode-switch-icons-inverted.png)
 #endif
 
 

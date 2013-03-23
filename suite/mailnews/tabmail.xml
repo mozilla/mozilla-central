@@ -1302,7 +1302,7 @@
        Therefore it should only be used as a child of the tabs element.
        This binding is exposed as a pseudo-public-API so themes can customize
        the tabbar appearance without having to be scriptable
-       (see globalBindings.xml in Pinstripe for example).
+       (see globalBindings.xml in osx for example).
   -->
   <binding id="tabmail-alltabs-popup"
            extends="chrome://global/content/bindings/popup.xml#popup">
@@ -1465,7 +1465,7 @@
        element (in both cases, when they are anonymous nodes of <tabbrowser>).
        These bindings are exposed as pseudo-public-APIs, so themes can customize
        the tabbar appearance without having to be scriptable
-       (see globalBindings.xml in Pinstripe for example).
+       (see globalBindings.xml in osx for example).
   -->
   <binding id="tabmail-new-tab-button"
            extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton-image">

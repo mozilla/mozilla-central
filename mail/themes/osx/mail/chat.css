@@ -42,7 +42,7 @@
   z-index: 10;
 }
 
-/* Adaptation of #folderPaneBox/#folderPaneTree from pinstripe/mail/mailWindow1.css */
+/* Adaptation of #folderPaneBox/#folderPaneTree from osx/mail/mailWindow1.css */
 #listPaneBox {
   border-right: 1px solid #8B8B8B;
   -moz-margin-end: -3px !important;
@@ -64,7 +64,7 @@
   background-color: #FFFFFF;
 }
 
-/* Adaptation of #searchInput from pinstripe/mail/searchBox.css */
+/* Adaptation of #searchInput from osx/mail/searchBox.css */
 /* it looks like appearance: searchfield gets us our search icon... */
 #IMSearchInput {
   margin: 3px 4px 4px !important;

@@ -92,7 +92,7 @@ endif
 
 ifeq ($(OS_ARCH),WINNT)
 # Extract the icons we care about embedding into the EXE
-mailtoolbar = $(topsrcdir)/mail/themes/qute/mail/icons/mail-toolbar-aero.png
+mailtoolbar = $(topsrcdir)/mail/themes/windows/mail/icons/mail-toolbar-aero.png
 # Each icon is 18x18 in the toolbar, and we want a 16x16 icon here, so we cut
 # off a pixel at each end.
 embedded-icons::
