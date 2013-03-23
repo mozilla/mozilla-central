@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1363293518000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1363988948000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -293,6 +293,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i320" id="torntv@torntv.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i3" id="langpack-vi-VN@firefox.mozilla.org">
                         <versionRange  minVersion="2.0" maxVersion="2.0">
                     </versionRange>
@@ -313,7 +317,19 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i326" id="/^((support2_en@adobe14\.com)|(XN4Xgjw7n4@yUWgc\.com)|(C7yFVpIP@WeolS3acxgS\.com)|(Kbeu4h0z@yNb7QAz7jrYKiiTQ3\.com)|(aWQzX@a6z4gWdPu8FF\.com)|(CBSoqAJLYpCbjTP90@JoV0VMywCjsm75Y0toAd\.com))$/">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i312" id="extension21804@extension21804.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i324" id="/^((34qEOefiyYtRJT@IM5Munavn\.com)|(Mro5Fm1Qgrmq7B@ByrE69VQfZvZdeg\.com)|(KtoY3KGxrCe5ie@yITPUzbBtsHWeCdPmGe\.com)|(9NgIdLK5Dq4ZMwmRo6zk@FNt2GCCLGyUuOD\.com)|(NNux7bWWW@RBWyXdnl6VGls3WAwi\.com)|(E3wI2n@PEHTuuNVu\.com)|(2d3VuWrG6JHBXbQdbr@3BmSnQL\.com))$/">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i318" id="ffxtlbr@incredibar.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -387,6 +403,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i314" id="crossriderapp8812@crossrider.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i73" id="a1g0a9g219d@a1.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -399,8 +419,8 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i314" id="crossriderapp8812@crossrider.com">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+      <emItem  blockID="i322" id="jid0-Y6TVIzs0r7r4xkOogmJPNAGFGBw@jetpack">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i21" id="support@update-firefox.com">
@@ -468,6 +488,13 @@
                   </pluginItem>
       <pluginItem  blockID="p176">
                   <match name="filename" exp="(NPSWF32\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="10.3" maxVersion="10.3.183.18.999" severity="0" vulnerabilitystatus="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="2.16a1" maxVersion="*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p178">
+                  <match name="filename" exp="(NPSWF[0-9_]*\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="11.0" maxVersion="11.2.202.274.9999" severity="0" vulnerabilitystatus="1">
                                 <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
                               <versionRange  minVersion="2.16a1" maxVersion="*" />
                           </targetApplication>
@@ -580,6 +607,13 @@
       <match name="name" exp="Java\(TM\) Plug-in 1\.6\.0_(39|40|41)([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                                    <versionRange  severity="0" vulnerabilitystatus="2">
                                 <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
                               <versionRange  minVersion="2.14" maxVersion="*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p316">
+                  <match name="filename" exp="(NPSWF[0-9_]*\.dll)|(Flash\ Player\.plugin)" />                                    <versionRange  minVersion="11.2.202.275" maxVersion="11.4.402.286.9999" severity="0" vulnerabilitystatus="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="2.17a1" maxVersion="*" />
                           </targetApplication>
                   </versionRange>
                   </pluginItem>
