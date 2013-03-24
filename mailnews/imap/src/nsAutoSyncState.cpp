@@ -266,9 +266,9 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(uint32_t aSuggestedGroupSi
         // ensure that we don't have this message body offline already,
         // possible if the user explicitly selects this message prior
         // to auto-sync kicks in
-        uint32_t msgFlags = 0;
-        qhdr->GetFlags(&msgFlags);
-        if (msgFlags & nsMsgMessageFlags::Offline)
+        bool hasMessageOffline;
+        folder->HasMsgOffline(mDownloadQ[idx], &hasMessageOffline);
+        if (hasMessageOffline)
           continue;
 
         // this check point allows msg strategy function
@@ -350,16 +350,10 @@ NS_IMETHODIMP nsAutoSyncState::ProcessExistingHeaders(uint32_t aNumOfHdrsToProce
   uint32_t keyCount = mExistingHeadersQ.Length();
   for (; mProcessPointer < (lastIdx + aNumOfHdrsToProcess) && mProcessPointer < keyCount; mProcessPointer++)
   {
-    nsCOMPtr<nsIMsgDBHdr> hdr;
-    rv = database->GetMsgHdrForKey(mExistingHeadersQ[mProcessPointer], getter_AddRefs(hdr));
-    if (hdr)
-    {
-      uint32_t msgFlags = 0;
-      hdr->GetFlags(&msgFlags);
-
-      if (!(msgFlags & nsMsgMessageFlags::Offline))
-        msgKeys.AppendElement(mExistingHeadersQ[mProcessPointer]);
-    }
+    bool hasMessageOffline;
+    folder->HasMsgOffline(mExistingHeadersQ[mProcessPointer], &hasMessageOffline);
+    if (!hasMessageOffline)
+      msgKeys.AppendElement(mExistingHeadersQ[mProcessPointer]);
   }
   if (!msgKeys.IsEmpty())
   {
