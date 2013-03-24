@@ -151,6 +151,7 @@
   locale/@AB_CD@/messenger/preferences/preferences.dtd                  (%chrome/messenger/preferences/preferences.dtd)
   locale/@AB_CD@/messenger/preferences/general.dtd                      (%chrome/messenger/preferences/general.dtd)
   locale/@AB_CD@/messenger/preferences/display.dtd                      (%chrome/messenger/preferences/display.dtd)
+  locale/@AB_CD@/messenger/preferences/colors.dtd                       (%chrome/messenger/preferences/colors.dtd)
   locale/@AB_CD@/messenger/preferences/chat.dtd                         (%chrome/messenger/preferences/chat.dtd)
   locale/@AB_CD@/messenger/preferences/compose.dtd                      (%chrome/messenger/preferences/compose.dtd)
   locale/@AB_CD@/messenger/preferences/sendoptions.dtd                  (%chrome/messenger/preferences/sendoptions.dtd)

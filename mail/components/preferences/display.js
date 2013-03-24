@@ -172,6 +172,17 @@ var gDisplayPane = {
                                            "", null);
   },
 
+  /**
+   * Displays the colors dialog, where default web page/link/etc. colors can be
+   * configured.
+   */
+  configureColors: function ()
+  {
+    document.documentElement.openSubDialog("chrome://messenger/content/preferences/colors.xul",
+                                           "", null);
+  },
+
+
   // appends the tag to the tag list box
   appendTagItem: function(aTagName, aKey, aColor)
   {

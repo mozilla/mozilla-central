@@ -221,6 +221,9 @@ pref("mail.last_msg_movecopy_target_uri", "");
 // last move or copy operation was a move
 pref("mail.last_msg_movecopy_was_move", true);
 
+//Set the font color for links to something lighter
+pref("browser.anchor_color", "#0B6CDA");
+
 #ifdef XP_WIN
 pref("browser.preferences.instantApply", false);
 #else

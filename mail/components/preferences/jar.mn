@@ -11,6 +11,7 @@ messenger.jar:
     content/messenger/preferences/display.js
     content/messenger/preferences/chat.xul
     content/messenger/preferences/chat.js
+*   content/messenger/preferences/colors.xul
     content/messenger/preferences/compose.xul
     content/messenger/preferences/compose.js
 *   content/messenger/preferences/sendoptions.xul

@@ -27,8 +27,6 @@
       <preference id="mail.quoted_size" name="mail.quoted_size" type="int"/>
       <preference id="mail.citation_color" name="mail.citation_color" type="string"/>
       <preference id="mail.display_glyph" name="mail.display_glyph" type="bool"/>
-      <preference id="browser.display.foreground_color" name="browser.display.foreground_color" type="string"/>
-      <preference id="browser.display.background_color" name="browser.display.background_color" type="string"/>
       <preference id="mailnews.labels.description.1" name="mailnews.labels.description.1" type="wstring"/>
       <preference id="mailnews.labels.color.1" name="mailnews.labels.color.1" type="string"/>
       <preference id="mailnews.labels.description.2" name="mailnews.labels.description.2" type="wstring"/>
@@ -54,9 +52,9 @@
       <tabpanels flex="1">
 
         <tabpanel orient="vertical">
-          <!-- Fonts -->
+          <!-- Fonts and Colors -->
           <groupbox id="fontsGroup">
-            <caption label="&fontsAndColors.label;"/>
+            <caption label="&fontsAndColors1.label;"/>
 
             <grid id="fontsGrid">
               <columns>
@@ -107,21 +105,16 @@
                           icon="select-font" accesskey="&fontOptions.accesskey;"
                           oncommand="gDisplayPane.configureFonts();"/>
                 </row>
+                <row id="colorsRow">
+                  <hbox/>
+                  <spacer style="width: 15px"/>
+                  <button id="colors" icon="select-color"
+                          label="&colorButton.label;"
+                          accesskey="&colorButton.accesskey;"
+                          oncommand="gDisplayPane.configureColors();"/>
+                </row>
               </rows>
             </grid>
-          </groupbox>
-
-          <groupbox>
-            <caption label="&colors.label;"/>
-            <description>&overrideColors.label;</description>
-            <hbox align="center" class="indent">
-              <label value="&textColor.label;" accesskey="&textColor.accesskey;" control="foregroundtextmenu"/>
-
-              <colorpicker type="button" id="foregroundtextmenu" palettename="standard" preference="browser.display.foreground_color"/>
-              <spacer style="width: 25px"/>
-              <label value="&backgroundColor.label;" accesskey="&backgroundColor.accesskey;" control="backgroundmenu"/>
-              <colorpicker type="button" id="backgroundmenu" palettename="standard" preference="browser.display.background_color"/>
-            </hbox>
           </groupbox>
 
           <groupbox>
@@ -150,7 +143,7 @@
                   <menuitem value="2" label="&smaller.label;"/>
                 </menupopup>
               </menulist>
-              <label value="&color.label;" accesskey="&color.accesskey;" control="citationmenu"/>
+              <label value="&quotedTextColor.label;" accesskey="&quotedTextColor.accesskey;" control="citationmenu"/>
               <colorpicker type="button" id="citationmenu" palettename="standard" preference="mail.citation_color"/>
             </hbox>
           </groupbox>
