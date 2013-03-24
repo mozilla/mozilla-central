@@ -632,6 +632,8 @@
         <toolbar id="event-toolbar"
                  class="chromeclass-toolbar"
                  customizable="true"
+                 labelalign="end"
+                 defaultlabelalign="end"
                  context="event-dialog-toolbar-context-menu"
                  defaultset="button-save,button-attendees,button-privacy,button-url,button-delete"/>
         <toolbarset id="custom-toolbars"/>

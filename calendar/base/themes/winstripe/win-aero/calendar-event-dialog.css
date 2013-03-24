@@ -55,6 +55,12 @@
   -moz-image-region: rect(1px 71px 17px 55px);
 }
 
-#button-delete {
+#button-delete.cal-event-toolbarbutton,
+#button-delete.cal-event-toolbarbutton:hover,
+#button-delete.cal-event-toolbarbutton:hover:active,
+toolbar[iconsize="small"] #button-delete.cal-event-toolbarbutton,
+toolbar[iconsize="small"] #button-delete.cal-event-toolbarbutton:hover,
+toolbar[iconsize="small"] #button-delete.cal-event-toolbarbutton:hover:active {
+  list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png);
   -moz-image-region: rect(1px 305px 17px 289px);
 }

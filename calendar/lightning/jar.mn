@@ -54,6 +54,7 @@ lightning.jar:
     content/lightning/suite-overlay-sidebar.xul            (content/suite-overlay-sidebar.xul)
 % skin lightning classic/1.0 %skin/lightning/
 % style chrome://global/content/customizeToolbar.xul chrome://lightning/skin/lightning-toolbar.css
+% style chrome://calendar/content/calendar-event-dialog.xul chrome://communicator/skin/communicator.css application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
     skin/lightning/accountCentral.css                      (themes/@THEME@/accountCentral.css)
     skin/lightning/imip.css                                (themes/@THEME@/imip.css)
     skin/lightning/lightning.css                           (themes/@THEME@/lightning.css)
