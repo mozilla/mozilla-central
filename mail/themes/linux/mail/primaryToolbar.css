@@ -247,16 +247,12 @@ toolbox[labelalign="end"] .toolbarbutton-1[type="menu"] {
   font-weight: bold;
 }
 
-.badgeButton-badge {
-  padding: 0;
-}
-
 toolbar[iconsize="small"]:not([mode="text"]) .badgeButton-badge {
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 #button-nextMsg {

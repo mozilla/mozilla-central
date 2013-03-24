@@ -438,6 +438,15 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
+#button-chat > stack > .badgeButton-badge {
+  -moz-padding-end: 1px;
+}
+
+toolbar:not([mode="text"]) .badgeButton-badge {
+  -moz-margin-start: 11px;
+  margin-bottom: 12px;
+}
+
 #button-nextMsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 414px, 18px, 396px);

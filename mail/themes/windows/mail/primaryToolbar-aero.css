@@ -531,8 +531,8 @@ toolbar:not([mode="text"]) > toolbarpaletteitem > #button-chat > stack {
 }
 
 toolbar[iconsize="large"]:not([mode="text"]) .badgeButton-badge {
-  -moz-margin-start: 6px;
-  margin-bottom: 6px;
+  -moz-margin-start: 5px;
+  margin-bottom: 5px;
 }
 
 #button-nextMsg {
