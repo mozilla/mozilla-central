@@ -4,6 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var importType = null;
@@ -102,15 +103,12 @@ function SetDivText(id, text)
 
 function CheckIfLocalFolderExists()
 {
-  var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-  if (acctMgr) {
-    try {
-      if (acctMgr.localFoldersServer)
-        progressInfo.localFolderExists = true; 
-    }
-    catch (ex) {
-      progressInfo.localFolderExists = false;
-    }
+  try {
+    if (MailServices.accounts.localFoldersServer)
+      progressInfo.localFolderExists = true;
+  }
+  catch (ex) {
+    progressInfo.localFolderExists = false;
   }
 }
 
@@ -550,13 +548,11 @@ function ShowImportResultsRaw(title, results, good)
   var backButton = document.getElementById("back");
   backButton.setAttribute("disabled", "true");
 
-  // If the Local Folder is not existed, create it after successfully 
-  // import "mail" and "settings"
+  // If the Local Folder doesn't exist, create it after successfully 
+  // importing "mail" and "settings"
   var checkLocalFolder = (top.progressInfo.importType == 'mail' || top.progressInfo.importType == 'settings');
   if (good && checkLocalFolder && !top.progressInfo.localFolderExists) {
-    var am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-    if (am)
-      am.createLocalMailAccount();
+    MailServices.accounts.createLocalMailAccount();
   }
 }
 

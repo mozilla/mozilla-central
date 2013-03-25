@@ -6,11 +6,13 @@
  *   - Bug 264405: The Address Book doesn't show the LDAP-field "labeledURI"
  *                 as Website
  */
+Components.utils.import("resource:///modules/mailServices.js");
+
 function run_test()
 {
   // Due to the import code using nsIAbManager off the main thread, we need
   // to ensure that it is initialized before we start the main test.
-  var abMgr = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
+  var abMgr = MailServices.ab;
 
   var file = do_get_file("resources/bug_263304.ldif");
   new AbImportHelper(file, "Text file", "bug_263304", "bug_263304").beginImport();

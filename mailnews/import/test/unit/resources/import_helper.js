@@ -259,8 +259,7 @@ AbImportHelper.prototype =
   getAbByName: function(aName) {
     do_check_true(aName && aName.length > 0);
 
-    var iter = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager)
-                                             .directories;
+    var iter = MailServices.ab.directories;
     var data = null;
     while (iter.hasMoreElements()) {
       data = iter.getNext();
