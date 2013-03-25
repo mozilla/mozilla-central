@@ -14,6 +14,9 @@
  * Original Author: Kent James <kent@caspia.com>
  *
  */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 // We can be executed from multiple depths
 // Provide understandable error message
 if (typeof gDEPTH == "undefined")
@@ -208,8 +211,7 @@ POP3Pump.prototype.run = function run()
 
   this._tests[0] = this.files;
 
-  this._pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                        .getService(Ci.nsIPop3Service);
+  this._pop3Service = MailServices.pop3;
   this._testNext();
 };
 

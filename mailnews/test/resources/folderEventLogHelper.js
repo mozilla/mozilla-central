@@ -8,6 +8,8 @@
  *  for now.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function registerFolderEventLogHelper() {
   // Bail if there's no one on the other end who cares about our very
   //  expensive log additions.
@@ -16,15 +18,10 @@ function registerFolderEventLogHelper() {
   if (!logHelperHasInterestedListeners())
     return;
 
-  let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-    getService(Ci.nsIMsgMailSession);
-  mailSession.AddFolderListener(_folderEventLogHelper_folderListener,
-                                Ci.nsIFolderListener.propertyFlagChanged |
-                                Ci.nsIFolderListener.event);
-  let notificationService =
-    Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-      .getService(Ci.nsIMsgFolderNotificationService);
-  notificationService.addListener(_folderEventLogHelper_msgFolderListener,
+  MailServices.mailSession.AddFolderListener(_folderEventLogHelper_folderListener,
+                                             Ci.nsIFolderListener.propertyFlagChanged |
+                                             Ci.nsIFolderListener.event);
+  MailServices.mfn.addListener(_folderEventLogHelper_msgFolderListener,
         Ci.nsIMsgFolderNotificationService.msgAdded |
         Ci.nsIMsgFolderNotificationService.msgsClassified |
         Ci.nsIMsgFolderNotificationService.msgsDeleted |

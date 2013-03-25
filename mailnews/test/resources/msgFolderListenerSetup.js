@@ -1,3 +1,5 @@
+Components.utils.import("resource:///modules/mailServices.js");
+
 const nsIMsgDBHdr = Ci.nsIMsgDBHdr;
 const nsIArray = Ci.nsIArray;
 const nsIMsgFolder = Ci.nsIMsgFolder;
@@ -17,8 +19,7 @@ const allTestedEvents =
   gMFNService.folderRenamed |
   gMFNService.itemEvent;
 
-const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+const gCopyService = MailServices.copy;
 
 // Current test being executed
 var gTest = 1;

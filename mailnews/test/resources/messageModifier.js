@@ -8,6 +8,7 @@
  */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 /**
  * Represents a set of synthetic messages, also supporting insertion into and
@@ -210,15 +211,12 @@ SyntheticMessageSet.prototype = {
       msgHdr.setStringProperty("junkscore", junkscore);
     };
 
-    let notificationService =
-      Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-        .getService(Ci.nsIMsgFolderNotificationService);
     let atomService = Cc["@mozilla.org/atom-service;1"].
                         getService(Ci.nsIAtomService);
     let atom = atomService.getAtom(aIsJunk ? "junk" : "notjunk");
-    notificationService.notifyItemEvent(this.xpcomHdrArray,
-                                        "JunkStatusChanged",
-                                        atom);
+    MailServices.mfn.notifyItemEvent(this.xpcomHdrArray,
+                                     "JunkStatusChanged",
+                                     atom);
   },
 
   /**
