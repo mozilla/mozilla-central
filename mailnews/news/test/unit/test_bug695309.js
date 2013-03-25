@@ -19,6 +19,7 @@ load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var daemon, localserver, server;
@@ -76,9 +77,7 @@ function trigger_bug() {
     },
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIFolderListener])
   };
-  let mailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                      .getService(Ci.nsIMsgMailSession);
-  mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
+  MailServices.mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
   // Again, two things will need to be listened for
   yield false;
   yield false;

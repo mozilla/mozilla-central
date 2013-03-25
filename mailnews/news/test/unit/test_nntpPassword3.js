@@ -5,6 +5,7 @@
 
 load("../../../resources/mailTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 const kUsername = "testnews";
@@ -24,11 +25,8 @@ function run_test()
   // Set up the basic accounts and folders.
   loadLocalMailAccount();
 
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
-  var incomingServer = acctMgr.createIncomingServer(null, kHostname,
-                                                    kProtocol);
+  var incomingServer = MailServices.accounts.createIncomingServer(null, kHostname,
+                                                                  kProtocol);
 
   // Force move to new credentials
   incomingServer.rootFolder.QueryInterface(Ci.nsIMsgNewsFolder)

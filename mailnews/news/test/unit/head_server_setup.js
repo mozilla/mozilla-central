@@ -6,6 +6,8 @@ load("../../../fakeserver/nntpd.js");
 load("../../../resources/mailDirService.js");
 load("../../../resources/mailTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const kSimpleNewsArticle =
   "From: John Doe <john.doe@example.com>\n"+
   "Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
@@ -108,9 +110,7 @@ function setupLocalServer(port) {
   return server;
 }
 
-const URLCreator = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
-                     .getService(Ci.nsINntpService)
-                     .QueryInterface(Ci.nsIProtocolHandler);
+const URLCreator = MailServices.nntp.QueryInterface(Ci.nsIProtocolHandler);
 
 // Sets up a protocol object and prepares to run the test for the news url
 function setupProtocolTest(port, newsUrl, incomingServer) {

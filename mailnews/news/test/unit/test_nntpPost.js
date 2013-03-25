@@ -1,6 +1,8 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 // Tests that the news can correctly post messages
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function run_test() {
   var daemon = setupNNTPDaemon();
   var localserver = setupLocalServer(NNTP_PORT);
@@ -16,9 +18,7 @@ function run_test() {
   server.start(NNTP_PORT);
 
   try {
-    var nntpService = Cc["@mozilla.org/messenger/nntpservice;1"]
-                        .getService(Ci.nsINntpService);
-    nntpService.postMessage(do_get_file("postings/post1.eml"), "test.empty",
+    MailServices.nntp.postMessage(do_get_file("postings/post1.eml"), "test.empty",
       localserver.key, listener, null);
     server.performTest();
     server.stop();

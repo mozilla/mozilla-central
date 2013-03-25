@@ -6,9 +6,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function getMessageHeaderFromUrl(aUrl) {
-  let msgUrl = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
-                .getService(Ci.nsINntpService)
+  let msgUrl = MailServices.nntp
                 .QueryInterface(Ci.nsIProtocolHandler)
                 .newURI(aUrl, null, null)
                 .QueryInterface(Ci.nsIMsgMessageUrl);

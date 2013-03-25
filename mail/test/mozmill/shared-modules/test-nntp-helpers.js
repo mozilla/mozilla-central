@@ -110,14 +110,12 @@ function subscribeServer(incomingServer) {
 function setupLocalServer(port) {
   if (_server != null)
     return _server;
-  var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
 
-  var server = acctmgr.createIncomingServer(null, "localhost", "nntp");
+  var server = MailServices.accounts.createIncomingServer(null, "localhost", "nntp");
   server.port = port;
   server.valid = false;
 
-  var account = acctmgr.createAccount();
+  var account = MailServices.accounts.createAccount();
   account.incomingServer = server;
   server.valid = true;
 
@@ -128,9 +126,7 @@ function setupLocalServer(port) {
   return server;
 }
 
-const URLCreator = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
-                     .getService(Ci.nsINntpService)
-                     .QueryInterface(Ci.nsIProtocolHandler);
+const URLCreator = MailServices.nntp.QueryInterface(Ci.nsIProtocolHandler);
 
 function create_post(baseURL, file) {
   var url = URLCreator.newURI(baseURL, null, null);

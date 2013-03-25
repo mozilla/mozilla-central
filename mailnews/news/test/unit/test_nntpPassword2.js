@@ -7,6 +7,8 @@
  * default port or the SSL default port. Nothing else!
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 // The basic daemon to use for testing nntpd.js implementations
 var daemon = setupNNTPDaemon();
 
@@ -69,13 +71,10 @@ function run_test() {
     test = "news:*";
 
     // Get the existing incoming server
-    var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-      .getService(Ci.nsIMsgAccountManager);
-
-    acctMgr.LoadAccounts();
+    MailServices.accounts.LoadAccounts();
 
     // Create the incoming server with "original" details.
-    var incomingServer = acctMgr.getIncomingServer("server2");
+    var incomingServer = MailServices.accounts.getIncomingServer("server2");
 
     subscribeServer(incomingServer);
 

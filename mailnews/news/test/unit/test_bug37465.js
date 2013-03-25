@@ -1,5 +1,6 @@
 // Bug 37465 -- assertions with no accounts
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function run_test() {
@@ -30,8 +31,6 @@ function run_test() {
     daemon.getArticle("<1@regular.invalid>").fullText);
 
   // Shut down connections
-  var acctMgr = Cc['@mozilla.org/messenger/account-manager;1']
-                  .getService(Ci.nsIMsgAccountManager);
-  acctMgr.closeCachedConnections();
+  MailServices.accounts.closeCachedConnections();
   server.stop();
 }

@@ -6,6 +6,7 @@ load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 let dummyMsgWindow = {
@@ -25,9 +26,6 @@ let dummyMsgWindow = {
                                          Ci.nsISupportsWeakReference])
 };
 var daemon, localserver, server;
-
-var nntpService = Cc["@mozilla.org/messenger/nntpservice;1"]
-                    .getService(Components.interfaces.nsINntpService);
 
 let tests = [
   test_newMsgs,
@@ -60,19 +58,17 @@ function test_cancel() {
   let db = folder.msgDatabase;
   let hdr = db.GetMsgHdrForKey(4);
 
-  let mailSession = Cc['@mozilla.org/messenger/services/session;1']
-                      .getService(Ci.nsIMsgMailSession);
   let atomService = Cc['@mozilla.org/atom-service;1']
                       .getService(Ci.nsIAtomService);
   let kDeleteAtom = atomService.getAtom("DeleteOrMoveMsgCompleted");
   let folderListener = {
     OnItemEvent: function(aEventFolder, aEvent) {
       if (aEvent == kDeleteAtom) {
-        mailSession.RemoveFolderListener(this);
+        MailServices.mailSession.RemoveFolderListener(this);
       }
     }
   };
-  mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
+  MailServices.mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
   folder.QueryInterface(Ci.nsIMsgNewsFolder)
         .cancelMessage(hdr, dummyMsgWindow);
   yield false;
@@ -95,7 +91,7 @@ function test_fetchMessage() {
                                            Ci.nsIRequestObserver])
   };
   let folder = localserver.rootFolder.getChildNamed("test.filter");
-  nntpService.fetchMessage(folder, 2, null, streamlistener, asyncUrlListener);
+  MailServices.nntp.fetchMessage(folder, 2, null, streamlistener, asyncUrlListener);
   yield false;
   do_check_eq(statuscode, Components.results.NS_OK);
   yield true;
@@ -158,7 +154,7 @@ function test_grouplist() {
     return groups;
   }
 
-  nntpService.getListOfGroupsOnServer(localserver, null, false);
+  MailServices.nntp.getListOfGroupsOnServer(localserver, null, false);
   yield false;
 
   let groups = enumGroups("");
@@ -169,7 +165,7 @@ function test_grouplist() {
 
 function test_postMessage() {
   // This tests nsNntpService::SetUpNntpUrlForPosting via PostMessage
-  nntpService.postMessage(do_get_file("postings/post2.eml"), "misc.test",
+  MailServices.nntp.postMessage(do_get_file("postings/post2.eml"), "misc.test",
     localserver.key, asyncUrlListener, null);
   yield false;
   do_check_eq(daemon.getGroup("misc.test").keys.length, 1);
@@ -179,11 +175,9 @@ function test_postMessage() {
 // Not tested because it requires UI, and this is insufficient, I think.
 function test_forwardInline() {
   // This tests mime_parse_stream_complete via forwarding inline
-  let composeSvc = Cc['@mozilla.org/messengercompose;1']
-                     .getService(Ci.nsIMsgComposeService);
   let folder = localserver.rootFolder.getChildNamed("test.filter");
   let hdr = folder.msgDatabase.GetMsgHdrForKey(1);
-  composeSvc.forwardMessage("a@b.invalid", hdr, null,
+  MailServices.compose.forwardMessage("a@b.invalid", hdr, null,
     localserver, Ci.nsIMsgComposeService.kForwardInline);
 }
 
@@ -213,7 +207,7 @@ function test_escapedName() {
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIStreamListener,
                                            Ci.nsIRequestObserver])
   };
-  nntpService.fetchMessage(folder, 1, null, streamlistener, asyncUrlListener);
+  MailServices.nntp.fetchMessage(folder, 1, null, streamlistener, asyncUrlListener);
   yield false;
   do_check_eq(statuscode, Components.results.NS_OK);
   yield true;
@@ -227,12 +221,10 @@ function run_test() {
   server.setDebugLevel(fsDebugAll);
 
   // Set up an identity for posting
-  var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let identity = acctmgr.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
   identity.fullName = "Normal Person";
   identity.email = "fake@acme.invalid";
-  acctmgr.FindAccountForServer(localserver).addIdentity(identity);
+  MailServices.accounts.FindAccountForServer(localserver).addIdentity(identity);
 
   async_run_tests(tests);
 }

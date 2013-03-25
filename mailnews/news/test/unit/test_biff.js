@@ -3,6 +3,8 @@
 
 load("../../../resources/filterTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function run_test() {
   // Set up the server and add in filters
   let daemon = setupNNTPDaemon();
@@ -29,16 +31,14 @@ function run_test() {
   // for biff. Instead, we use the notifier to look for all 7 messages to be
   // added and take that as our sign that the download is finished.
   let expectCount = 7, seen = 0;
-  let notifier = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                   .getService(Ci.nsIMsgFolderNotificationService);
   let listener = { msgAdded: function() {
     if (++seen == expectCount)
       localserver.closeCachedConnections();
     }};
-  notifier.addListener(listener, Ci.nsIMsgFolderNotificationService.msgAdded);
+  MailServices.mfn.addListener(listener, Ci.nsIMsgFolderNotificationService.msgAdded);
   localserver.performBiff(null);
   server.performTest();
-  notifier.removeListener(listener);
+  MailServices.mfn.removeListener(listener);
 
   // We marked, via our filters, one of the messages read. So if we do not
   // have 1 read message, either we're not running the filters on biff, or the
