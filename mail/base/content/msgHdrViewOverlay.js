@@ -1722,24 +1722,27 @@ function CopyNewsgroupURL(newsgroupNode)
 
   let ng = newsgroupNode.getAttribute("newsgroup");
 
-  // TODO let backend construct URL and return as attribute
   let url;
   if (server.socketType != Components.interfaces.nsMsgSocketType.SSL) {
     url = "news://" + server.hostName;
     if (server.port != Components.interfaces.nsINntpUrl.DEFAULT_NNTP_PORT)
       url += ":" + server.port;
-
     url += "/" + ng;
   } else {
     url = "snews://" + server.hostName;
     if (server.port != Components.interfaces.nsINntpUrl.DEFAULT_NNTPS_PORT)
       url += ":" + server.port;
-
     url += "/" + ng;
   }
-  let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
-                            .getService(Components.interfaces.nsIClipboardHelper);
-  clipboard.copyString(decodeURI(url));
+
+  try {
+    let uri = Services.io.newURI(url, null, null);
+    let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                              .getService(Components.interfaces.nsIClipboardHelper);
+    clipboard.copyString(decodeURI(uri.spec));
+  } catch(e) {
+     Components.utils.reportError("Invalid URL: "+ url);
+  }
 }
 
 /**
