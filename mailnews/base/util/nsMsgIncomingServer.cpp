@@ -2122,14 +2122,11 @@ nsMsgIncomingServer::GetSpamFilterPlugin(nsIMsgFilterPlugin **aFilterPlugin)
 
 // get all the servers that defer to the account for the passed in server. Note that
 // destServer may not be "this"
-nsresult nsMsgIncomingServer::GetDeferredServers(nsIMsgIncomingServer *destServer, nsISupportsArray **_retval)
+nsresult nsMsgIncomingServer::GetDeferredServers(nsIMsgIncomingServer *destServer, nsCOMArray<nsIPop3IncomingServer>& aServers)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgAccountManager> accountManager
     = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsISupportsArray> servers;
-  rv = NS_NewISupportsArray(getter_AddRefs(servers));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr <nsIMsgAccount> thisAccount;
@@ -2146,18 +2143,17 @@ nsresult nsMsgIncomingServer::GetDeferredServers(nsIMsgIncomingServer *destServe
       allServers->GetLength(&serverCount);
       for (uint32_t i = 0; i < serverCount; i++)
       {
-        nsCOMPtr <nsIMsgIncomingServer> server (do_QueryElementAt(allServers, i));
+        nsCOMPtr<nsIPop3IncomingServer> server(do_QueryElementAt(allServers, i));
         if (server)
         {
           nsCString deferredToAccount;
-          server->GetCharValue("deferred_to_account", deferredToAccount);
+          server->GetDeferredToAccount(deferredToAccount);
           if (deferredToAccount.Equals(accountKey))
-            servers->AppendElement(server);
+            aServers.AppendElement(server);
         }
       }
     }
   }
-  servers.swap(*_retval);
   return rv;
 }
 

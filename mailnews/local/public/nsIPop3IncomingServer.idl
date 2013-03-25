@@ -11,7 +11,7 @@ interface nsIMsgFolder;
 interface nsIUrlListener;
 interface nsIMsgWindow;
 
-[scriptable, uuid(98d50234-6c8a-4875-815b-40e0178a13bd)]
+[scriptable, uuid(8494584a-49b7-49df-9001-80ccdd0b50aa)]
 interface nsIPop3IncomingServer : nsISupports {
   attribute boolean leaveMessagesOnServer;
   attribute boolean headersOnly;
@@ -30,10 +30,10 @@ interface nsIPop3IncomingServer : nsISupports {
   // whether get new mail in deferredToAccount gets
   // new mail with this server.
   attribute boolean deferGetNewMail;
-  void downloadMailFromServers(in nsISupportsArray aServers, 
-                              in nsIMsgWindow aMsgWindow,
-                              in nsIMsgFolder aFolder, 
-                              in nsIUrlListener aListener);
+  void downloadMailFromServers(
+    [array, size_is(count)]in nsIPop3IncomingServer aServers,
+    in unsigned long count, in nsIMsgWindow aMsgWindow,
+    in nsIMsgFolder aFolder, in nsIUrlListener aListener);
 };
 
 

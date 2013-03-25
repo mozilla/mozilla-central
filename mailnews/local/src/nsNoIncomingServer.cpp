@@ -157,20 +157,13 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 NS_IMETHODIMP
 nsNoIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener, nsIMsgFolder *aInbox, nsIURI **aResult)
 {
-  nsCOMPtr <nsISupportsArray> deferredServers;
-  nsresult rv = GetDeferredServers(this, getter_AddRefs(deferredServers));
+  nsCOMArray<nsIPop3IncomingServer> deferredServers;
+  nsresult rv = GetDeferredServers(this, deferredServers);
   NS_ENSURE_SUCCESS(rv, rv);
-  uint32_t count;
-  deferredServers->Count(&count);
-  if (count > 0)
+  if (!deferredServers.IsEmpty())
   {
-    nsCOMPtr <nsIPop3IncomingServer> firstServer(do_QueryElementAt(deferredServers, 0));
-    if (firstServer)
-    {
-      rv = firstServer->DownloadMailFromServers(deferredServers, aMsgWindow,
-                              aInbox,
-                              aUrlListener);
-    }
+    rv = deferredServers[0]->DownloadMailFromServers(deferredServers.Elements(),
+       deferredServers.Length(), aMsgWindow, aInbox, aUrlListener);
   }
   // listener might be counting on us to send a notification.
   else if (aUrlListener)
