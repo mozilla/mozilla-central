@@ -3,12 +3,9 @@
  * Test suite for nsIMsgHeaderParser functions.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function run_test() {
-  var i;
-
-  var parser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                         .getService(Components.interfaces.nsIMsgHeaderParser);
-
   var checks =
   [
     ["", "test@foo.invalid", "test@foo.invalid"],
@@ -27,11 +24,11 @@ function run_test() {
 
   // Test - empty strings
 
-  do_check_eq(parser.makeFullAddress("", ""), "");
+  do_check_eq(MailServices.headerParser.makeFullAddress("", ""), "");
 
   // Test - makeFullAddressWString
 
-  for (i = 0; i < checks.length; ++i)
-    do_check_eq(parser.makeFullAddress(checks[i][0], checks[i][1]),
+  for (let i = 0; i < checks.length; ++i)
+    do_check_eq(MailServices.headerParser.makeFullAddress(checks[i][0], checks[i][1]),
                 checks[i][2]);
 }

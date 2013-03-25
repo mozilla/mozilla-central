@@ -2,6 +2,8 @@
 // Tests if a multi-line MIME header is parsed even if it violates RFC 2047
 //
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 function run_test() {
   const headers = [
     { encoded:
@@ -74,13 +76,11 @@ function run_test() {
     }, // Regression test for bug 227290
   ];
 
-  var converter = Cc["@mozilla.org/messenger/mimeconverter;1"]
-                      .getService(Ci.nsIMimeConverter);
-  for (var i = 0; i < headers.length; ++i) {
-    var decoded = converter.decodeMimeHeader(headers[i].encoded,
-                                             headers[i].defaultCharset,
-                                             headers[i].overrideCharset,
-                                             headers[i].eatContinuation);
+  for (let i = 0; i < headers.length; ++i) {
+    let decoded = MailServices.mimeConverter.decodeMimeHeader(headers[i].encoded,
+                                                              headers[i].defaultCharset,
+                                                              headers[i].overrideCharset,
+                                                              headers[i].eatContinuation);
     do_check_eq(decoded, headers[i].decoded);
   }
 }
