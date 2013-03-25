@@ -8,8 +8,7 @@
  * mail.accountmanager.accounts list, and removing duplicate accounts with
  * the same server.
  */
-const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Components.interfaces.nsIMsgAccountManager);
+Components.utils.import("resource:///modules/mailServices.js");
 
 function run_test()
 {
@@ -54,29 +53,29 @@ function run_test()
                              "account6");
 
   // This will force the load of the accounts setup above.
-  do_check_eq(am.accounts.length, 3);
+  do_check_eq(MailServices.accounts.accounts.length, 3);
   do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account4,account5");
-  let server5 = am.getIncomingServer("server5")
+  let server5 = MailServices.accounts.getIncomingServer("server5")
                   .QueryInterface(Ci.nsIPop3IncomingServer);
   do_check_eq(server5.deferredToAccount, "account1");
 
   // Just make sure this doesn't throw an exception, because we did remove the
   // default account.
-  let defaultAccount = am.defaultAccount;
+  let defaultAccount = MailServices.accounts.defaultAccount;
   // GetDefaultAccount should have thrown an exception for null account.
   do_check_neq(defaultAccount, null);
 
   // Remove an account, and verify that the account list pref looks OK:
-  let server = am.getIncomingServer("server4");
+  let server = MailServices.accounts.getIncomingServer("server4");
 
   // We need to get the root folder to read from the folder cache
   // before it gets removed or else we'll assert, because we're
   // not completely initialized...
   let flags = server.rootFolder.flags;
 
-  am.removeAccount(am.FindAccountForServer(server));
-  do_check_eq(am.accounts.length, 2);
+  MailServices.accounts.removeAccount(MailServices.accounts.FindAccountForServer(server));
+  do_check_eq(MailServices.accounts.accounts.length, 2);
   do_check_eq(Services.prefs.getCharPref("mail.accountmanager.accounts"),
               "account1,account5");
   // make sure cleaning up duplicate accounts didn't hork accounts

@@ -9,6 +9,7 @@
  * Params @see fetchConfigFromISP()
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/JXON.js");
 
@@ -118,9 +119,7 @@ function fetchConfigFromDB(domain, successCallback, errorCallback)
     url = url + domain;
   else
     url = url.replace("{{domain}}", domain);
-  var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Ci.nsIMsgAccountManager);
-  url = url.replace("{{accounts}}", accountManager.accounts.length);
+  url = url.replace("{{accounts}}", MailServices.accounts.accounts.length);
 
   if (!url.length)
     return errorCallback("no fetch url set");

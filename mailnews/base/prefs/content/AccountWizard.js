@@ -40,16 +40,11 @@ var okCallback = null;
    (server vs. newsserver)
 */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var contentWindow;
 
 var gPageData;
-var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-var am = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-var gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
-var accounts = am.accounts;
-
-//accountCount indicates presence or absense of accounts
-var accountCount = accounts.length;
 
 var nsIMsgIdentity = Components.interfaces.nsIMsgIdentity;
 var nsIMsgIncomingServer = Components.interfaces.nsIMsgIncomingServer;
@@ -91,7 +86,7 @@ function onAccountWizardLoad() {
   checkForInvalidAccounts();
 
   try {
-    gDefaultAccount = am.defaultAccount;
+    gDefaultAccount = MailServices.accounts.defaultAccount;
   }
   catch (ex) {
     // no default account, this is expected the first time you launch mail
@@ -136,7 +131,8 @@ function onCancel()
   else {
     // since this is not an invalid account
     // really cancel if the user hits the "cancel" button
-    if (accountCount < 1) {
+    // if the length of the account list is less than 1, there are no accounts
+    if (MailServices.accounts.accounts.length < 1) {
       let confirmMsg = gPrefsBundle.getString("cancelWizard");
       let confirmTitle = gPrefsBundle.getString("accountWizard");
       let result = Services.prompt.confirmEx(window, confirmTitle, confirmMsg,
@@ -203,7 +199,7 @@ function FinishAccount()
 
     // in case we crash, force us a save of the prefs file NOW
     try {
-      am.saveAccountInfo();
+      MailServices.accounts.saveAccountInfo();
     } 
     catch (ex) {
       dump("Error saving account info: " + ex + "\n");
@@ -327,9 +323,8 @@ function PageDataToAccountData(pageData, accountData)
   {
     try
     {
-      var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-      var localFoldersServer = accountManager.localFoldersServer;
-      var localFoldersAccount = accountManager.FindAccountForServer(localFoldersServer);
+      let localFoldersServer = MailServices.accounts.localFoldersServer;
+      let localFoldersAccount = MailServices.accounts.FindAccountForServer(localFoldersServer);
       pop3.deferredToAccount = localFoldersAccount.key;
       pop3.deferGetNewMail = true;
       server["ServerType-pop3"] = pop3;
@@ -399,22 +394,22 @@ function createAccount(accountData)
   
   // for news, username is always null
   var username = (server.type == "nntp") ? null : server.username;
-  dump("am.createIncomingServer(" +
+  dump("MailServices.accounts.createIncomingServer(" +
        username + ", " + server.hostName + ", " + server.type + ")\n");
   // Create a (actual) server.
-  server = am.createIncomingServer(username, server.hostName, server.type);
+  server = MailServices.accounts.createIncomingServer(username, server.hostName, server.type);
 
-  dump("am.createAccount()\n");
+  dump("MailServices.accounts.createAccount()\n");
   // Create an account.
-  var account = am.createAccount();
+  let account = MailServices.accounts.createAccount();
   
   // only create an identity for this account if we really have one
   // (use the email address as a check)
   if (accountData.identity && accountData.identity.email)
   {
-    dump("am.createIdentity()\n");
+    dump("MailServices.accounts.createIdentity()\n");
     // Create an identity.
-    var identity = am.createIdentity();
+    let identity = MailServices.accounts.createIdentity();
 
     // New nntp identities should use plain text by default;
     // we want that GNKSA (The Good Net-Keeping Seal of Approval).
@@ -494,7 +489,7 @@ function finishAccount(account, accountData)
       if (destIdentity.attachSignature)
       {
           var sigFileName = accountData.signatureFileName;
-          var sigFile = gMailSession.getDataFilesDir("messenger");
+          let sigFile = MailServices.mailSession.getDataFilesDir("messenger");
           sigFile.append(sigFileName);
           destIdentity.signature = sigFile;
       }
@@ -503,10 +498,10 @@ function finishAccount(account, accountData)
       {
           // hostname + no key => create a new SMTP server.
 
-          var smtpServer = smtpService.createServer();
+          let smtpServer = MailServices.smtp.createServer();
           var isDefaultSmtpServer;
-          if (!smtpService.defaultServer.hostname) {
-            smtpService.defaultServer = smtpServer;
+          if (!MailServices.smtp.defaultServer.hostname) {
+            MailServices.smtp.defaultServer = smtpServer;
             isDefaultSmtpServer = true;
           }
 
@@ -578,7 +573,7 @@ function verifyLocalFoldersAccount()
 {
   var localMailServer = null;
   try {
-    localMailServer = am.localFoldersServer;
+    localMailServer = MailServices.accounts.localFoldersServer;
   }
   catch (ex) {
          // dump("exception in findserver: " + ex + "\n");
@@ -590,9 +585,9 @@ function verifyLocalFoldersAccount()
     {
       // dump("Creating local mail account\n");
       // creates a copy of the identity you pass in
-      am.createLocalMailAccount();
+      MailServices.accounts.createLocalMailAccount();
       try {
-        localMailServer = am.localFoldersServer;
+        localMailServer = MailServices.accounts.localFoldersServer;
       }
       catch (ex) {
         dump("error!  we should have found the local mail server after we created it.\n");
@@ -625,12 +620,12 @@ function setupCopiesAndFoldersServer(account, accountIsDeferred, accountData)
     }
     else 
     {
-      if (!am.localFoldersServer) 
+      if (!MailServices.accounts.localFoldersServer)
       {
         dump("error!  we should have a local mail server at this point\n");
         return false;
       }
-      copiesAndFoldersServer = am.localFoldersServer;
+      copiesAndFoldersServer = MailServices.accounts.localFoldersServer;
     }
 
     setDefaultCopiesAndFoldersPrefs(identity, copiesAndFoldersServer, accountData);
@@ -702,21 +697,14 @@ function setDefaultCopiesAndFoldersPrefs(identity, server, accountData)
     accountData.identity.StationeryFolder ? 1 : gDefaultSpecialFolderPickerMode);
 }
 
-function AccountExists(userName,hostName,serverType)
+function AccountExists(userName, hostName, serverType)
 {
-  var accountExists = false;
-  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                 .getService(Components.interfaces.nsIMsgAccountManager);
-
-  return accountManager.findRealServer(userName, hostName, serverType, 0);
+  return MailServices.accounts.findRealServer(userName, hostName, serverType, 0);
 }
 
 function getFirstInvalidAccount()
 {
-  var am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Components.interfaces.nsIMsgAccountManager);
-
-  var invalidAccounts = getInvalidAccounts(am.accounts);
+  let invalidAccounts = getInvalidAccounts(MailServices.accounts.accounts);
 
   if (invalidAccounts.length > 0)
     return invalidAccounts[0];
@@ -788,7 +776,7 @@ function getPreConfigDataForAccount(account)
     accountData.wizardSkipPanels = Services.prefs.getCharPref(skipPanelsPrefStr);
 
     if (identity.smtpServerKey) {
-      var smtpServer = smtpService.getServerByKey(identity.smtpServerKey);
+      let smtpServer = MailServices.smtp.getServerByKey(identity.smtpServerKey);
       accountData.smtp = smtpServer;
 
       var smtpRequiresUsername = false;
@@ -815,7 +803,7 @@ function AccountToAccountData(account, defaultAccountData)
 
   accountData.incomingServer = account.incomingServer;
   accountData.identity = account.identities.queryElementAt(0, nsIMsgIdentity);
-  accountData.smtp = smtpService.defaultServer;
+  accountData.smtp = MailServices.smtp.defaultServer;
 
   return accountData;
 }
@@ -991,7 +979,7 @@ function EnableCheckMailAtStartUpIfNeeded(newAccount)
   // a default account. If no such account, make this one as the default account 
   // and turn on the new mail check at startup for the current account   
   if (!(gDefaultAccount && gDefaultAccount.incomingServer.canBeDefaultServer)) { 
-    am.defaultAccount = newAccount;
+    MailServices.accounts.defaultAccount = newAccount;
     newAccount.incomingServer.loginAtStartUp = true;
     newAccount.incomingServer.downloadOnBiff = true;
   }

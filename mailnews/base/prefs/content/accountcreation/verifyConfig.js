@@ -28,6 +28,9 @@
  *   because there was an error (e.g. no network connection).
  *   The ex.message will contain a user-presentable message.
  */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
 {
   ddump(debugObject(config, "config", 3));
@@ -37,24 +40,21 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
   assert(typeof(successCallback) == "function");
   assert(typeof(errorCallback) == "function");
 
-  var accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                       .getService(Ci.nsIMsgAccountManager);
-
-  if (accountManager.findRealServer(config.incoming.username,
-                                    config.incoming.hostname,
-                                    sanitize.enum(config.incoming.type,
-                                                  ["pop3", "imap", "nntp"]),
-                                    config.incoming.port)) {
+  if (MailServices.accounts.findRealServer(config.incoming.username,
+                                           config.incoming.hostname,
+                                           sanitize.enum(config.incoming.type,
+                                                         ["pop3", "imap", "nntp"]),
+                                           config.incoming.port)) {
     errorCallback("Incoming server exists");
     return;
   }
 
   // incoming server
-  var inServer =
-    accountManager.createIncomingServer(config.incoming.username,
-                                        config.incoming.hostname,
-                                        sanitize.enum(config.incoming.type,
-                                                    ["pop3", "imap", "nntp"]));
+  let inServer =
+    MailServices.accounts.createIncomingServer(config.incoming.username,
+                                               config.incoming.hostname,
+                                               sanitize.enum(config.incoming.type,
+                                                             ["pop3", "imap", "nntp"]));
   inServer.port = config.incoming.port;
   inServer.password = config.incoming.password;
   if (config.incoming.socketType == 1) // plain
@@ -71,7 +71,7 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
                   successCallback, errorCallback);
     else {
       // Avoid pref pollution, clear out server prefs.
-      accountManager.removeIncomingServer(inServer, true);
+      MailServices.accounts.removeIncomingServer(inServer, true);
       successCallback(config);
     }
   } catch (e) {
@@ -247,9 +247,7 @@ urlListener.prototype =
     try {
       // Avoid pref pollution, clear out server prefs.
       if (this.mServer) {
-        Cc["@mozilla.org/messenger/account-manager;1"]
-          .getService(Ci.nsIMsgAccountManager)
-          .removeIncomingServer(this.mServer, true);
+        MailServices.accounts.removeIncomingServer(this.mServer, true);
         this.mServer = null;
       }
     } catch (e) { this._log.error(e); }

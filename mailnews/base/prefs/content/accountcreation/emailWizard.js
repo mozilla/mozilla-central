@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
@@ -199,15 +200,13 @@ EmailConfigWizard.prototype =
     // Populate SMTP server dropdown with already configured SMTP servers from
     // other accounts.
     var menulist = e("outgoing_hostname");
-    var smtpManager = Cc["@mozilla.org/messengercompose/smtp;1"]
-        .getService(Ci.nsISmtpService);
-    var smtpServers = smtpManager.servers;
+    let smtpServers = MailServices.smtp.servers;
     while (smtpServers.hasMoreElements()) {
       let server = smtpServers.getNext().QueryInterface(Ci.nsISmtpServer);
       let label = server.displayname;
       let key = server.key;
-      if (smtpManager.defaultServer &&
-          smtpManager.defaultServer.key == key) {
+      if (MailServices.smtp.defaultServer &&
+          MailServices.smtp.defaultServer.key == key) {
         label += " " + gStringsBundle.getString("default_server_tag");
       }
       let menuitem = menulist.appendItem(label, key, ""); // label,value,descr
