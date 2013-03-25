@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 var FeedSubscriptions = {
@@ -34,9 +35,7 @@ var FeedSubscriptions = {
     let win = Services.wm.getMostRecentWindow("mail:3pane");
     if (win)
     {
-      win.FeedFolderNotificationService =
-        Cc["@mozilla.org/messenger/msgnotificationservice;1"].
-        getService(Ci.nsIMsgFolderNotificationService);
+      win.FeedFolderNotificationService = MailServices.mfn;
       win.FeedFolderNotificationService.addListener(this.FolderListener,
         Ci.nsIMsgFolderNotificationService.folderAdded |
         Ci.nsIMsgFolderNotificationService.folderDeleted |
