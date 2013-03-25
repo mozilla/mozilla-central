@@ -10,6 +10,9 @@
  * Originally written to test bug 429891 where saving to the sent folder was
  * mangling the message.
  */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 var type = null;
 var test = null;
 var server;
@@ -110,9 +113,7 @@ function run_test() {
   // Ensure we have at least one mail account
   loadLocalMailAccount();
 
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  acctMgr.setSpecialFolders();
+  MailServices.accounts.setSpecialFolders();
 
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);

@@ -8,6 +8,7 @@
  *
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -105,9 +106,9 @@ function run_test() {
 
   do_test_pending();
 
-  smtpService.sendMailMessage(testFile, kTo, identity,
-                              null, URLListener, null, null,
-                              false, {}, {});
+  MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                    null, URLListener, null, null,
+                                    false, {}, {});
 
   server.performTest();
 }

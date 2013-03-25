@@ -6,6 +6,8 @@
  * between mailnews and SMTP server. It does not check the data of the message
  * either side of the link, it will be extended later to do that.
  */
+Components.utils.import("resource:///modules/mailServices.js");
+
 var test = null;
 var server;
 
@@ -25,9 +27,6 @@ function test_RFC2821() {
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);
 
-  var smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                      .getService(Ci.nsISmtpService);
-
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
@@ -37,9 +36,9 @@ function test_RFC2821() {
     // Just a basic test to check we're sending mail correctly.
     test = "Basic sendMailMessage";
 
-    smtpService.sendMailMessage(testFile, kTo, identity,
-                                null, null, null, null,
-                                false, {}, {});
+    MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                      null, null, null, null,
+                                      false, {}, {});
 
     server.performTest();
 
@@ -59,9 +58,9 @@ function test_RFC2821() {
     smtpServer.username = kUsername;
     smtpServer.password = kPassword;
 
-    smtpService.sendMailMessage(testFile, kTo, identity,
-                                null, null, null, null,
-                                false, {}, {});
+    MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                      null, null, null, null,
+                                      false, {}, {});
 
     server.performTest();
 

@@ -5,10 +5,11 @@
  * Test code <copied from="test_pop3AuthMethods.js">
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var server;
 var kAuthSchemes;
 var smtpServer;
-var smtpService;
 var testFile;
 var identity;
 
@@ -73,9 +74,9 @@ function nextTest() {
   smtpServer.authMethod = curTest.clientAuthMethod;
 
   // Run test
-  smtpService.sendMailMessage(testFile, kTo, identity,
-                              null, null, null, null,
-                              false, {}, {});
+  MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                    null, null, null, null,
+                                    false, {}, {});
   server.performTest();
 
   do_check_transaction(server.playTransaction(), curTest.transaction);
@@ -105,8 +106,6 @@ function run_test() {
     smtpServer.username = kUsername;
     smtpServer.password = kPassword;
     identity = getSmtpIdentity(kSender, smtpServer);
-    smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                        .getService(Ci.nsISmtpService);
 
     testFile = do_get_file("data/message1.eml");
 

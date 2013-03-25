@@ -5,6 +5,8 @@
 
 load("../../../resources/alertTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gNewPassword = null;
 
 function confirmEx(aDialogTitle, aText, aButtonFlags, aButton0Title,
@@ -60,9 +62,6 @@ function run_test() {
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);
 
-  var smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                      .getService(Ci.nsISmtpService);
-
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
@@ -76,9 +75,9 @@ function run_test() {
     smtpServer.socketType = Ci.nsMsgSocketType.plain;
     smtpServer.username = kUsername;
 
-    smtpService.sendMailMessage(testFile, kTo, identity,
-                                null, null, null, null,
-                                false, {}, {});
+    MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                      null, null, null, null,
+                                      false, {}, {});
 
     // Set the new password for when we get a prompt
     gNewPassword = kPassword1;

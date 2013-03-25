@@ -10,6 +10,7 @@
  * multiple sends, the rest of this test is in test_smtpPasswordFailure2.js.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -80,9 +81,6 @@ function run_test() {
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);
 
-  var smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                      .getService(Ci.nsISmtpService);
-
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.
   try {
@@ -98,9 +96,9 @@ function run_test() {
 
     dump("Send\n");
 
-    smtpService.sendMailMessage(testFile, kTo, identity,
-                                null, null, null, null,
-                                false, {}, {});
+    MailServices.smtp.sendMailMessage(testFile, kTo, identity,
+                                      null, null, null, null,
+                                      false, {}, {});
 
     server.performTest();
 

@@ -8,18 +8,17 @@
 
 // Ensure the activity modules are loaded for this window.
 Components.utils.import("resource:///modules/activity/activityModules.js");
-Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/attachmentChecker.js");
-
-Components.utils.import("resource:///modules/MailUtils.js");
-Components.utils.import("resource:///modules/folderUtils.jsm");
-Components.utils.import("resource:///modules/errUtils.js");
-Components.utils.import("resource:///modules/iteratorUtils.jsm");
-Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
-Components.utils.import("resource://gre/modules/Services.jsm")
-Components.utils.import("resource:///modules/mailServices.js");
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/cloudFileAccounts.js");
+Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm")
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * interfaces
@@ -54,7 +53,6 @@ var gSpellChecker = new InlineSpellChecker();
  */
 var gHideMenus;
 var gMsgCompose;
-var gAccountManager;
 var gWindowLocked;
 var gContentChanged;
 var gAutoSaving;
@@ -113,7 +111,6 @@ function InitializeGlobalVariables()
 {
   gMessenger = Components.classes["@mozilla.org/messenger;1"]
                          .createInstance(Components.interfaces.nsIMessenger);
-  gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
 
   gMsgCompose = null;
   gWindowLocked = false;
@@ -149,7 +146,6 @@ InitializeGlobalVariables();
 
 function ReleaseGlobalVariables()
 {
-  gAccountManager = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
   if (gLDAPSession) {
@@ -1957,9 +1953,7 @@ function handleMailtoArgs(mailtoUrl)
     let uri = Services.io.newURI(mailtoUrl, null, null);
 
     if (uri) {
-      let composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
-                                 .getService(Components.interfaces.nsIMsgComposeService);
-      return composeSvc.getParamsForMailto(uri);
+      return MailServices.compose.getParamsForMailto(uri);
     }
   }
 
@@ -2280,20 +2274,18 @@ function ComposeStartup(recycled, aParams)
   // " <>" is an empty identity, and most likely not valid
   if (!params.identity || params.identity.identityName == " <>") {
     // no pre selected identity, so use the default account
-    var identities = gAccountManager.defaultAccount.identities;
+    let identities = MailServices.accounts.defaultAccount.identities;
     if (identities.length == 0)
-      identities = gAccountManager.allIdentities;
+      identities = MailServices.accounts.allIdentities;
     params.identity = identities.queryElementAt(0, Components.interfaces.nsIMsgIdentity);
   }
 
   identityList.value = params.identity.key;
   LoadIdentity(true);
-  var composeSvc = Components.classes["@mozilla.org/messengercompose;1"]
-                             .getService(Components.interfaces.nsIMsgComposeService);
 
   // Get the <editor> element to startup an editor
   var editorElement = GetCurrentEditorElement();
-  gMsgCompose = composeSvc.initCompose(params, window, editorElement.docShell);
+  gMsgCompose = MailServices.compose.initCompose(params, window, editorElement.docShell);
 
   // Set the close listener.
   gMsgCompose.recyclingListener = gComposeRecyclingListener;
@@ -2738,7 +2730,7 @@ function GenericSendMessage(msgType)
     // Check if the user tries to send a message to a newsgroup through a mail
     // account.
     var currentAccountKey = getCurrentAccountKey();
-    var account = gAccountManager.getAccount(currentAccountKey);
+    let account = MailServices.accounts.getAccount(currentAccountKey);
     if (!account)
     {
       throw new Error("currentAccountKey '" + currentAccountKey +
@@ -3098,26 +3090,25 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
   if (gSpellChecker.enabled)
   {
     // break the list of potentially many recipients back into individual names
-    var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
     var emailAddresses = {};
     var names = {};
     var fullNames = {};
-    var numAddresses = hdrParser.parseHeadersWithArray(aAddressesToAdd, emailAddresses, names, fullNames);
+    let numAddresses = MailServices.headerParser.parseHeadersWithArray(aAddressesToAdd, emailAddresses, names, fullNames);
     if (!names)
       return;
     var tokenizedNames = new Array();
 
     // each name could consist of multiple word delimited by either commas or spaces. i.e. Green Lantern
     // or Lantern,Green. Tokenize on comma first, then tokenize again on spaces.
-    for (name in names.value)
+    for (let name in names.value)
     {
       if (!names.value[name])
         continue;
-      var splitNames = names.value[name].split(',');
+      let splitNames = names.value[name].split(',');
       for (let i = 0; i < splitNames.length; i++)
       {
         // now tokenize off of white space
-        var splitNamesFromWhiteSpaceArray = splitNames[i].split(' ');
+        let splitNamesFromWhiteSpaceArray = splitNames[i].split(' ');
         for (let whiteSpaceIndex = 0; whiteSpaceIndex < splitNamesFromWhiteSpaceArray.length; whiteSpaceIndex++)
           if (splitNamesFromWhiteSpaceArray[whiteSpaceIndex])
             tokenizedNames.push(splitNamesFromWhiteSpaceArray[whiteSpaceIndex]);
@@ -3327,7 +3318,7 @@ function FillIdentityList(menulist)
 function getCurrentIdentity()
 {
   var identityKey = document.getElementById("msgIdentity").value;
-  return gAccountManager.getIdentity(identityKey);
+  return MailServices.accounts.getIdentity(identityKey);
 }
 
 function getCurrentAccountKey()
@@ -3339,7 +3330,7 @@ function getCurrentAccountKey()
 
 function getIdentityForKey(key)
 {
-    return gAccountManager.getIdentity(key);
+    return MailServices.accounts.getIdentity(key);
 }
 
 function AdjustFocus()
@@ -4064,7 +4055,7 @@ function LoadIdentity(startup)
 
     if (identityElement) {
         var idKey = identityElement.value;
-        gCurrentIdentity = gAccountManager.getIdentity(idKey);
+        gCurrentIdentity = MailServices.accounts.getIdentity(idKey);
 
         // set the  account name on the menu list value.
         if (identityElement.selectedItem)

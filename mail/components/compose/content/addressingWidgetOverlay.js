@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 top.MAX_RECIPIENTS = 1; /* for the initial listitem created in the XUL */
 
 var inputElementType = "";
@@ -13,7 +15,6 @@ var gNumberOfCols = 0;
 
 var gDragService = Components.classes["@mozilla.org/widget/dragservice;1"].getService();
 gDragService = gDragService.QueryInterface(Components.interfaces.nsIDragService);
-var gMimeHeaderParser = null;
 
 var test_addresses_sequence = false;
 
@@ -93,8 +94,6 @@ function Recipients2CompFields(msgCompFields)
     var ng_Sep = "";
     var follow_Sep = "";
 
-    gMimeHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
-
     var recipientType;
     var inputField;
     var fieldValue;
@@ -118,7 +117,7 @@ function Recipients2CompFields(msgCompFields)
           case "addr_bcc"   :
           case "addr_reply" :
             try {
-              recipient = gMimeHeaderParser.reformatUnquotedAddresses(fieldValue);
+              recipient = MailServices.headerParser.reformatUnquotedAddresses(fieldValue);
             } catch (ex) {recipient = fieldValue;}
             break;
         }
@@ -146,8 +145,6 @@ function Recipients2CompFields(msgCompFields)
     msgCompFields.newsgroups = addrNg;
     msgCompFields.followupTo = addrFollow;
     msgCompFields.otherRandomHeaders = addrOther;
-
-    gMimeHeaderParser = null;
   }
   else
     dump("Message Compose Error: msgCompFields is null (ExtractRecipients)");
@@ -156,8 +153,6 @@ function Recipients2CompFields(msgCompFields)
 function CompFields2Recipients(msgCompFields)
 {
   if (msgCompFields) {
-    gMimeHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
-
     let listbox = document.getElementById('addressingWidget');
     let newListBoxNode = listbox.cloneNode(false);
     let listBoxColsClone = listbox.firstChild.cloneNode(true);
@@ -211,8 +206,6 @@ function CompFields2Recipients(msgCompFields)
     // CompFields2Recipients is called whenever a user replies or edits an existing message. We want to
     // add all of the recipients for this message to the ignore list for spell check
     addRecipientsToIgnoreList((gCurrentIdentity ? gCurrentIdentity.identityName + ', ' : '') + msgTo + ', ' + msgCC + ', ' + msgBCC);
-
-    gMimeHeaderParser = null; //Release the mime parser
   }
 }
 
@@ -271,11 +264,10 @@ function awSetInputAndPopupFromArray(inputArray, popupValue, parentNode, templat
     for (var index = 0; index < inputArray.length; index++)
     {
       recipient = null;
-      if (gMimeHeaderParser)
-        try {
-          recipient =
-            gMimeHeaderParser.unquotePhraseOrAddrWString(inputArray[index], true);
-        } catch (ex) {};
+      try {
+        recipient =
+          MailServices.headerParser.unquotePhraseOrAddrWString(inputArray[index], true);
+      } catch (ex) {};
       if (!recipient)
         recipient = inputArray[index];
       _awSetInputAndPopup(recipient, popupValue, parentNode, templateNode);
@@ -1030,11 +1022,10 @@ function parseAndAddAddresses(addressText, recipientType)
   // strip any leading >> characters inserted by the autocomplete widget
   var strippedAddresses = addressText.replace(/.* >> /, "");
 
-  var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
   var addresses = {};
   var names = {};
   var fullNames = {};
-  var numAddresses = hdrParser.parseHeadersWithArray(strippedAddresses, addresses, names, fullNames);
+  let numAddresses = MailServices.headerParser.parseHeadersWithArray(strippedAddresses, addresses, names, fullNames);
 
   if (numAddresses > 0)
   {

@@ -10,6 +10,8 @@ load("../../../fakeserver/maild.js")
 load("../../../fakeserver/auth.js")
 load("../../../fakeserver/smtpd.js")
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const SMTP_PORT = 1024+120;
 var gDraftFolder;
 
@@ -32,12 +34,8 @@ function getBasicSmtpServer() {
 }
 
 function getSmtpIdentity(senderName, smtpServer) {
-  // Get the servers
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
   // Set up the identity
-  var identity = acctMgr.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
   identity.email = senderName;
   identity.smtpServerKey = smtpServer.key;
 

@@ -69,23 +69,20 @@ var addMessageToFolder = function (aFolder) {
 }
 
 var addIdentitiesAndFolder = function() {
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                .getService(Ci.nsIMsgAccountManager);
-
-  var identity2 = acctMgr.createIdentity();
+  let identity2 = MailServices.accounts.createIdentity();
   //identity.fullName = "Tinderbox_Identity1";
   identity2.email="tinderbox_identity1@foo.invalid";
 
-  var identity = acctMgr.createIdentity();
+  let identity = MailServices.accounts.createIdentity();
   //identity.fullName = "Tinderbox_Identity1";
   identity.email = identityString1;
 
-  var server = acctMgr.createIncomingServer("nobody",
-                                            "Test Local Folders", "pop3");
+  let server = MailServices.accounts.createIncomingServer("nobody",
+                                                          "Test Local Folders", "pop3");
   let localRoot = server.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
   testFolder = localRoot.createLocalSubfolder("Test Folder");
 
-  var account = acctMgr.createAccount();
+  let account = MailServices.accounts.createAccount();
   account.incomingServer = server;
   account.addIdentity(identity);
   account.addIdentity(identity2);
