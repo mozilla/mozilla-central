@@ -2284,11 +2284,9 @@ let gFolderTreeController = {
    * @param aCommand - the command to prompt for
    */
   _checkConfirmationPrompt: function ftc_confirm(aCommand) {
-    const Cc = Components.classes;
-    const Ci = Components.interfaces;
     let showPrompt = true;
     try {
-      showPrompt = !Services.prefs.getBoolPref("mail." + aCommand + ".dontAskAgain");
+      showPrompt = !Services.prefs.getBoolPref("mailnews." + aCommand + ".dontAskAgain");
     } catch (ex) {}
 
     if (showPrompt) {
@@ -2302,7 +2300,7 @@ let gFolderTreeController = {
                                          bundle.getString(aCommand + "DontAsk"),
                                          checkbox) == 0;
       if (checkbox.value)
-        Services.prefs.setBoolPref("mail." + aCommand + ".dontAskAgain", true);
+        Services.prefs.setBoolPref("mailnews." + aCommand + ".dontAskAgain", true);
       if (!ok)
         return false;
     }

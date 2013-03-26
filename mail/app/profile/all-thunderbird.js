@@ -428,10 +428,6 @@ pref("browser.safebrowsing.warning.infoURL", "https://www.mozilla.org/%LOCALE%/f
 // prevent status-bar spoofing even if people are foolish enough to turn on JS
 pref("dom.disable_window_status_change",          true);
 
-// For the Empty Junk/Trash confirmation dialogs.
-pref("mail.emptyJunk.dontAskAgain", false);
-pref("mail.emptyTrash.dontAskAgain", false);
-
 // If a message is opened using Enter or a double click, what should we do?
 // 0 - open it in a new window
 // 1 - open it in an existing window

@@ -1488,70 +1488,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
     trashFolder->SetSizeOnDisk(0);
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    bool hasSubfolders = false;
-    rv = trashFolder->GetHasSubFolders(&hasSubfolders);
-    if (hasSubfolders)
-    {
-      bool confirmDeletion;
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
 
-      prefBranch->GetBoolPref("mail.imap.confirm_emptyTrashFolderDeletion", &confirmDeletion);
-
-      if (confirmDeletion)
-      {
-        nsCOMPtr<nsISimpleEnumerator> enumerator;
-        rv = trashFolder->GetSubFolders(getter_AddRefs(enumerator));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        nsCOMPtr<nsIPromptService> promptService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        nsCOMPtr<nsIDOMWindow> parentWindow;
-        if (aMsgWindow)
-        {
-          nsCOMPtr<nsIDocShell> docShell;
-          (void) aMsgWindow->GetRootDocShell(getter_AddRefs(docShell));
-          parentWindow = do_GetInterface(docShell);
-        }
-
-        nsCOMPtr<nsIStringBundle> bundle;
-        rv = IMAPGetStringBundle(getter_AddRefs(bundle));
-        NS_ENSURE_SUCCESS(rv, rv);
-
-        bool hasMore;
-        while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
-        {
-          int32_t dlgResult = -1;
-          nsCOMPtr<nsISupports> item;
-          rv = enumerator->GetNext(getter_AddRefs(item));
-          if (NS_FAILED(rv))
-            continue;
-
-          if (confirmDeletion)
-          {
-            nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item, &rv));
-            if (NS_FAILED(rv))
-              continue;
-            nsString confirmText;
-            nsString folderName;
-            folder->GetName(folderName);
-            const PRUnichar *formatStrings[1] = { folderName.get() };
-            rv = bundle->FormatStringFromID(IMAP_EMPTY_TRASH_CONFIRM,
-                                              formatStrings, 1,
-                                              getter_Copies(confirmText));
-            // Got the text, now show dialog.
-            bool dummyValue = false;
-            rv = promptService->ConfirmEx(parentWindow, nullptr, confirmText.get(),
-                                        (nsIPromptService::BUTTON_TITLE_OK * nsIPromptService::BUTTON_POS_0) +
-                                        (nsIPromptService::BUTTON_TITLE_CANCEL * nsIPromptService::BUTTON_POS_1),
-                                          nullptr, nullptr, nullptr, nullptr, &dummyValue, &dlgResult);
-          }
-          if (NS_SUCCEEDED(rv) && dlgResult == 1)
-            return NS_BINDING_ABORTED;
-        }
-      }
-    }
     if (aListener)
       rv = imapService->DeleteAllMessages(trashFolder, aListener, nullptr);
     else
@@ -1559,11 +1496,13 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
       nsCOMPtr<nsIUrlListener> urlListener = do_QueryInterface(trashFolder);
       rv = imapService->DeleteAllMessages(trashFolder, urlListener, nullptr);
     }
-    // return an error if this failed. We want the empty trash on exit code
+    // Return an error if this failed. We want the empty trash on exit code
     // to know if this fails so that it doesn't block waiting for empty trash to finish.
-    if (NS_FAILED(rv))
-      return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
+    bool hasSubfolders = false;
+    rv = trashFolder->GetHasSubFolders(&hasSubfolders);
+    NS_ENSURE_SUCCESS(rv, rv);
     if (hasSubfolders)
     {
       nsCOMPtr<nsISimpleEnumerator> enumerator;
