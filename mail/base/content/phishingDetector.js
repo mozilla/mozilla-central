@@ -95,11 +95,10 @@ var gPhishingDetector = {
       this.analyzeUrl(linkNodes[index].href, gatherTextUnder(linkNodes[index]));
 
     // extract the action urls associated with any form elements in the message and analyze them.
-    var formNodes = document.getElementById('messagepane').contentDocument.getElementsByTagName("form");
+    let formNodes = document.getElementById('messagepane').contentDocument.querySelectorAll("form[action]");
     for (index = 0; index < formNodes.length; index++)
     {
-      if (formNodes[index].action)
-        this.analyzeUrl(formNodes[index].action);
+      this.analyzeUrl(formNodes[index].action);
     }
   },
 

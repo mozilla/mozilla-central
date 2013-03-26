@@ -668,7 +668,7 @@ let gFolderTreeView = {
                         .QueryInterface(Ci.nsILocalFile);
         if (extFile.isFile()) {
           let len = extFile.leafName.length;
-          if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+          if (len > 4 && extFile.leafName.toLowerCase().endsWith(".eml"))
             cs.CopyFileMessage(extFile, targetFolder, null, false, 1, "", null, msgWindow);
         }
       }
@@ -1278,7 +1278,7 @@ let gFolderTreeView = {
         }
         for each (let item in faves) {
           let name = item._folder.abbreviatedName.toLowerCase();
-          item.addServerName = (uniqueNames[name] > 1) ? true : false;
+          item.addServerName = (uniqueNames[name] > 1);
         }
         sortFolderItems(faves);
         return faves;

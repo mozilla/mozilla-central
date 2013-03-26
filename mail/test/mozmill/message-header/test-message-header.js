@@ -14,6 +14,7 @@ var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 var folder, folderMore;
 var gInterestingMessage;
@@ -220,9 +221,7 @@ function assert_shown(id, visible) {
  * Test that clicking references context menu works properly.
  */
 function test_msg_id_context_menu() {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setBoolPref("mailnews.headers.showReferences", true);
+  Services.prefs.setBoolPref("mailnews.headers.showReferences", true);
 
   // Add a new message
   let msg = create_message({
@@ -246,7 +245,7 @@ function test_msg_id_context_menu() {
 
   close_popup(mc, mc.eid("messageIdContext"));
 
-  prefBranch.setBoolPref("mailnews.headers.showReferences", false);
+  Services.prefs.setBoolPref("mailnews.headers.showReferences", false);
 }
 
 /**
@@ -540,9 +539,7 @@ function subtest_more_widget_display(toDescription) {
   let numLines = help_get_num_lines(toDescription);
 
   // get maxline pref
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService).getBranch(null);
-  let maxLines = prefBranch.getIntPref(
+  let maxLines = Services.prefs.getIntPref(
     "mailnews.headers.show_n_lines_before_more");
 
   // allow for a 15% tolerance for any padding that may be applied
@@ -633,9 +630,7 @@ function subtest_more_widget_star_click(toDescription) {
 function test_more_widget_with_maxlines_of_3(){
 
   // set maxLines to 3
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService).getBranch(null);
-  let maxLines = prefBranch.setIntPref(
+  let maxLines = Services.prefs.setIntPref(
     "mailnews.headers.show_n_lines_before_more", 3);
 
   // call test_more_widget again
@@ -650,9 +645,7 @@ function test_more_widget_with_maxlines_of_3(){
 function test_more_widget_with_disabled_more(){
 
   // set maxLines to 0
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-    .getService(Ci.nsIPrefService).getBranch(null);
-  let maxLines = prefBranch.setIntPref(
+  let maxLines = Services.prefs.setIntPref(
     "mailnews.headers.show_n_lines_before_more", 0);
 
   // generate message with 35 recips (effectively guarantees overflow for n=3)
@@ -858,7 +851,7 @@ function subtest_addresses_in_tooltip_text(aRecipients, aHeaderBox,
 
   for (let i = aShownAddrsNum; (i < numAddresses) &&
                                (i < maxTooltipAddrsNum + aShownAddrsNum); i++) {
-    assert_true(tooltipText.indexOf(fullNames.value[i]) != -1, fullNames.value[i]);
+    assert_true(tooltipText.contains(fullNames.value[i]), fullNames.value[i]);
     addrsNumInTooltip += 1;
   }
 

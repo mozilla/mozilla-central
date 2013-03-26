@@ -185,12 +185,11 @@ const DOMLinkHandler = {
       // Verify that the load of this icon is legal.
       // Some error or special pages can load their favicon.
       // To be on the safe side, only allow chrome:// favicons.
-      let isAllowedPage = [
-        /^about:neterror\?/,
-        /^about:blocked\?/,
-        /^about:certerror\?/,
-        /^about:home$/
-      ].some(function (re) { re.test(targetDoc.documentURI); });
+      let isAllowedPage = (targetDoc.documentURI == "about:home") ||
+        ["about:neterror?",
+         "about:blocked?",
+         "about:certerror?"
+        ].some(function (aStart) { targetDoc.documentURI.startsWith(aStart); });
 
       if (!isAllowedPage || !uri.schemeIs("chrome")) {
         // Be extra paraniod and just make sure we're not going to load
@@ -569,8 +568,8 @@ var specialTabs = {
       aTab.root = clone;
 
       // Start setting up the browser.
-      aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
-      aTab.toolbar = aTab.panel.getElementsByClassName("contentTabToolbar")[0];
+      aTab.browser = aTab.panel.querySelector("browser");
+      aTab.toolbar = aTab.panel.querySelector(".contentTabToolbar");
 
       // As we're opening this tab, showTab may not get called, so set
       // the type according to if we're opening in background or not.
@@ -593,7 +592,7 @@ var specialTabs = {
       gPluginHandler.addEventListeners(aTab.browser);
 
       // Now initialise the find bar.
-      aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
+      aTab.findbar = aTab.panel.querySelector("findbar");
       aTab.findbar.setAttribute("browserid",
                                 "contentTabBrowser" + this.lastBrowserId);
 
@@ -1011,7 +1010,7 @@ var specialTabs = {
       aTab.panel.appendChild(clone);
 
       // Start setting up the browser.
-      aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+      aTab.browser = aTab.panel.querySelector("browser");
 
       // As we're opening this tab, showTab may not get called, so set
       // the type according to if we're opening in background or not.

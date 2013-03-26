@@ -322,10 +322,10 @@ function extract_first_address(thread)
 
 function check_address_name(name) {
   let htmlframe = mc.e('multimessage');
-  let matches = htmlframe.contentDocument.getElementsByClassName('sender');
-  if (matches[0].textContent != name)
+  let match = htmlframe.contentDocument.querySelector('.sender');
+  if (match.textContent != name)
     throw new Error("Expected to find sender named '" + name + "', found '" +
-                    matches[0].textContent + "'");
+                    match.textContent + "'");
 }
 
 function test_display_name_no_abook()

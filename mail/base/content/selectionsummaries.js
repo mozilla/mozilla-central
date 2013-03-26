@@ -40,24 +40,19 @@ function loadSelectionSummaryStrings() {
 // Ah, wouldn't it be nice if there was platform code to do the following...
 
 /**
- * the equivalent of jQuery's addClass.  Avoids duplicates, nothing fancy.
+ * Adds a classes to a node. Avoids duplicates, nothing fancy.
  *
  * @param node
  *        any old DOM node
- * @param classname
- *        a string, which will be added as a CSS class
+ * @param classArray
+ *        an array of strings, which will be added as CSS classes
  */
-function _mm_addClass(node, classname) {
-  let classes = [];
-  if (node.hasAttribute('class'))
-    classes = node.getAttribute('class').split(' ');
-
-  for each (let [, klass] in Iterator(classes)) {
-    if (klass == classname) // already have it
-      return;
+function _mm_addClass(node, classArray) {
+  for (let i = 0; i < classArray.length; i++)
+  {
+    if (!node.classList.contains(classArray[i]))
+      node.classList.add(classArray[i]);
   }
-  classes.push(classname);
-  node.setAttribute('class', classes.join(' '));
 }
 
 /**
@@ -70,15 +65,8 @@ function _mm_addClass(node, classname) {
  *        a string, which will be removed from the class set.
  */
 function _mm_removeClass(node, classname) {
-  if (! node.hasAttribute('class'))
-    return;
-  let classes = node.getAttribute('class').split(' ');
-  let newclasses = [];
-  for each (klass in classes) {
-    if (klass != classname)
-      newclasses.push(klass);
-  }
-  node.setAttribute('class', newclasses.join(' '));
+  if (node.classList.contains(classname))
+    node.classList.remove(classname);
 }
 
 /**
@@ -192,8 +180,8 @@ MultiMessageSummary.prototype = {
    *     name without quotes
    **/
   stripQuotes: function(senderName) {
-    if ((senderName[0] == "'" && senderName[senderName.length-1] == "'") ||
-        (senderName[0] == '"' && senderName[senderName.length-1] == '"'))
+    if ((senderName.startsWith("'") && senderName.endsWith("'")) ||
+        (senderName.startsWith('"') && senderName.endsWith('"')))
       senderName = senderName.slice(1, -1);
     return senderName;
   },
@@ -230,8 +218,8 @@ MultiMessageSummary.prototype = {
 
     // set the heading based on the number of messages & threads
     let heading = htmlpane.contentDocument.getElementById('heading');
-    _mm_addClass(heading, "heading");
-    _mm_addClass(heading, "info");
+    _mm_addClass(heading, ["heading"]);
+    _mm_addClass(heading, ["info"]);
 
     let messagesTitle =
       PluralForm.get(numThreads, gSelectionSummaryStrings["NConversations"])
@@ -273,13 +261,13 @@ MultiMessageSummary.prototype = {
       }
 
       let numMsgs = msgs.length;
-      let msg_classes = "message ";
+      let msg_classes = ["message"];
       if (numMsgs > 1)
-        msg_classes += " thread";
+        msg_classes.push("thread");
       if (countUnread)
-        msg_classes += " unread";
+        msg_classes.push("unread");
       if (countStarred)
-        msg_classes += " starred";
+        msg_classes.push("starred");
 
       let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
       let author = _mm_FormatDisplayName(headerParser, msgs[0].mime2DecodedAuthor, "from");
@@ -315,8 +303,8 @@ MultiMessageSummary.prototype = {
       _mm_addClass(msgNode, msg_classes);
       messagesElt.appendChild(msgNode);
 
-      let snippetNode = msgNode.getElementsByClassName("snippet")[0];
-      let authorNode = msgNode.getElementsByClassName("author")[0];
+      let snippetNode = msgNode.querySelector(".snippet");
+      let authorNode = msgNode.querySelector(".author");
       try {
         MsgHdrToMimeMessage(msgs[0], null, function(aMsgHdr, aMimeMsg) {
           if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */
@@ -336,13 +324,13 @@ MultiMessageSummary.prototype = {
       }
 
       // get the subject node.
-      let subjectNode = msgNode.getElementsByClassName("subject")[0];
+      let subjectNode = msgNode.querySelector(".subject");
       subjectNode.msgs = msgs;
       subjectNode.addEventListener("click", function() {
         gFolderDisplay.selectMessages(this.msgs);
       }, true);
 
-      let tagsNode = msgNode.getElementsByClassName("tags")[0];
+      let tagsNode = msgNode.querySelector(".tags");
       while (tagsNode.firstChild)
         tagsNode.removeChild(tagsNode.firstChild);
       this._addTagNodes(msgs, tagsNode);
@@ -378,7 +366,7 @@ MultiMessageSummary.prototype = {
         let tagNode = tagsNode.ownerDocument.createElement('span');
         // see tagColors.css
         let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
-        _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
+        _mm_addClass(tagNode, ["tag", tag.tag, colorClass]);
         tagNode.textContent = tag.tag;
         tagsNode.appendChild(tagNode);
       }
@@ -412,7 +400,7 @@ MultiMessageSummary.prototype = {
       notice.textContent = noticeText;
       _mm_removeClass(notice, 'hidden');
     } else {
-      _mm_addClass(notice, 'hidden');
+      _mm_addClass(notice, ['hidden']);
     }
   },
 
@@ -459,7 +447,7 @@ MultiMessageSummary.prototype = {
       // for tags, there's a minor problem in that if _some_ of the items in a
       // thread got modified
       let key = messageKey + glodaMsg.folder.uri;
-      let tagsNode = headerNode.getElementsByClassName('tags')[0];
+      let tagsNode = headerNode.querySelector('.tags');
       while (tagsNode.firstChild)
         tagsNode.removeChild(tagsNode.firstChild);
       this._addTagNodes([msg.folderMessage for each ([i,msg] in Iterator(aItems))],
@@ -468,11 +456,11 @@ MultiMessageSummary.prototype = {
 
     for ([, headerNode] in Iterator(knownMessageNodes)) {
       if (headerNode.flags['unread'])
-        _mm_addClass(headerNode, "unread");
+        _mm_addClass(headerNode, ["unread"]);
       else
         _mm_removeClass(headerNode, "unread");
       if (headerNode.flags['starred'])
-        _mm_addClass(headerNode, "starred");
+        _mm_addClass(headerNode, ["starred"]);
       else
         _mm_removeClass(headerNode, "starred");
       headerNode.flags = null;
@@ -557,11 +545,11 @@ ThreadSummary.prototype = {
       }
       let msgHdr = this._msgHdrs[i];
 
-      let msg_classes = "message ";
+      let msg_classes = ["message"];
       if (! msgHdr.isRead)
-        msg_classes += " unread";
+        msg_classes.push("unread");
       if (msgHdr.isFlagged)
-        msg_classes += " starred";
+        msg_classes.push("starred");
 
       let senderName = _mm_FormatDisplayName(headerParser, msgHdr.mime2DecodedAuthor, "from");
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
@@ -587,8 +575,8 @@ ThreadSummary.prototype = {
       messagesElt.appendChild(msgNode);
 
       let key = msgHdr.messageKey + msgHdr.folder.URI;
-      let snippetNode = msgNode.getElementsByClassName("snippet")[0];
-      let senderNode = msgNode.getElementsByClassName("sender")[0];
+      let snippetNode = msgNode.querySelector(".snippet");
+      let senderNode = msgNode.querySelector(".sender");
       try {
         MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
           if (aMimeMsg == null) /* shouldn't happen, but sometimes does? */ {
@@ -606,18 +594,18 @@ ThreadSummary.prototype = {
         // that's fixed, this code should adapt. XXX
         snippetNode.textContent = "...";
       }
-      let tagsNode = msgNode.getElementsByClassName("tags")[0];
+      let tagsNode = msgNode.querySelector(".tags");
       let tags = this.getTagsForMsg(msgHdr);
       for each (let [,tag] in Iterator(tags)) {
         let tagNode = tagsNode.ownerDocument.createElement('span');
         // see tagColors.css
         let colorClass = "blc-" + this._msgTagService.getColorForKey(tag.key).substr(1);
-        _mm_addClass(tagNode, "tag " + tag.tag + " " + colorClass);
+        _mm_addClass(tagNode, ["tag", tag.tag, colorClass]);
         tagNode.textContent = tag.tag;
         tagsNode.appendChild(tagNode);
       }
 
-      let sender = msgNode.getElementsByClassName("sender")[0];
+      let sender = msgNode.querySelector(".sender");
       sender.msgHdr = msgHdr;
       sender.addEventListener("click", function(e) {
         // if the msg is the first message in a collapsed thread, we need to

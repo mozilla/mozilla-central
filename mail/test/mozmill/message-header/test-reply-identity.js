@@ -95,7 +95,7 @@ var addIdentitiesAndFolder = function() {
 
 var checkReply = function (replyWin, expectedFromEmail) {
   let identityList = replyWin.e("msgIdentity");
-  if (identityList.selectedItem.label.indexOf(expectedFromEmail) == -1)
+  if (!identityList.selectedItem.label.contains(expectedFromEmail))
     throw new Error("The From address is not correctly selected! Expected: " +
                     expectedFromEmail + "; Actual: "  +
                     identityList.selectedItem.label);

@@ -33,6 +33,7 @@ const nsMsgViewIndex_None = 0xffffffff;
 Cu.import('resource:///modules/MailUtils.js');
 Cu.import('resource:///modules/MailConsts.js');
 Cu.import('resource:///modules/mailViewManager.js');
+Cu.import("resource://gre/modules/Services.jsm");
 
 const FILE_LOAD_PATHS = [
   "../resources",
@@ -324,14 +325,10 @@ function teardownImporter(customTeardown) {
       customTeardown();
 
     // - If there are no 3-pane windows open, open one.
-    let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                           .getService(Ci.nsIWindowMediator);
-    let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+    let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
     if (!mail3PaneWindow) {
       windowHelper.plan_for_new_window("mail:3pane");
-      let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"]
-                            .getService(Ci.nsIWindowWatcher);
-      windowWatcher.openWindow(null,
+      Services.ww.openWindow(null,
           "chrome://messenger/content/", "",
           "all,chrome,dialog=no,status,toolbar", args);
       mc = windowHelper.wait_for_new_window("mail:3pane");
@@ -344,7 +341,7 @@ function teardownImporter(customTeardown) {
     }
 
     // Run through all open windows, closing any that aren't assigned to mc.
-    let enumerator = windowMediator.getEnumerator(null);
+    let enumerator = Services.wm.getEnumerator(null);
     while (enumerator.hasMoreElements()) {
       let win = enumerator.getNext();
       if (win != mc.window) {
@@ -649,10 +646,8 @@ function display_message_in_folder_tab(aMsgHdr, aExpectNew3Pane) {
 function open_message_from_file(file) {
   mark_action("fdh", "open_message_from_file", ["file", file.nativePath]);
 
-  let ios = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-  let fileURL = ios.newFileURI(file)
-                   .QueryInterface(Components.interfaces.nsIFileURL);
+  let fileURL = Services.io.newFileURI(file)
+                        .QueryInterface(Components.interfaces.nsIFileURL);
   fileURL.query = "type=application/x-message-display";
 
   windowHelper.plan_for_new_window("mail:messageWindow");
@@ -786,7 +781,7 @@ function assert_tab_titled_from(aTab, aWhat) {
   else if (aWhat instanceof Ci.nsIMsgDBHdr)
     text = aWhat.mime2DecodedSubject;
 
-  if (aTab.title.indexOf(text) == -1)
+  if (!aTab.title.contains(text))
     mark_failure(["Tab title of tab", aTab,
                   "should include '" + text + "' but does not." +
                   " (Current title: '" + aTab.title + "')"]);
@@ -2646,20 +2641,16 @@ function expand_all_threads() {
  * @param aPref One of "NEW_WINDOW", "EXISTING_WINDOW" or "NEW_TAB"
  */
 function set_open_message_behavior(aPref) {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setIntPref("mail.openMessageBehavior",
-                        MailConsts.OpenMessageBehavior[aPref]);
+  Services.prefs.setIntPref("mail.openMessageBehavior",
+                            MailConsts.OpenMessageBehavior[aPref]);
 }
 
 /**
  * Reset the mail.openMessageBehavior pref.
  */
 function reset_open_message_behavior() {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  if (prefBranch.prefHasUserValue("mail.openMessageBehavior"))
-    prefBranch.clearUserPref("mail.openMessageBehavior");
+  if (Services.prefs.prefHasUserValue("mail.openMessageBehavior"))
+    Services.prefs.clearUserPref("mail.openMessageBehavior");
 }
 
 /**
@@ -2668,19 +2659,15 @@ function reset_open_message_behavior() {
  * @param aPref true/false.
  */
 function set_context_menu_background_tabs(aPref) {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setBoolPref("mail.tabs.loadInBackground", aPref);
+  Services.prefs.setBoolPref("mail.tabs.loadInBackground", aPref);
 }
 
 /**
  * Reset the mail.tabs.loadInBackground pref.
  */
 function reset_context_menu_background_tabs() {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  if (prefBranch.prefHasUserValue("mail.tabs.loadInBackground"))
-    prefBranch.clearUserPref("mail.tabs.loadInBackground");
+  if (Services.prefs.prefHasUserValue("mail.tabs.loadInBackground"))
+    Services.prefs.clearUserPref("mail.tabs.loadInBackground");
 }
 
 /**
@@ -2689,19 +2676,15 @@ function reset_context_menu_background_tabs() {
  * @param aPref true/false.
  */
 function set_close_message_on_delete(aPref) {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setBoolPref("mail.close_message_window.on_delete", aPref);
+  Services.prefs.setBoolPref("mail.close_message_window.on_delete", aPref);
 }
 
 /**
  * Reset the mail.close_message_window.on_delete pref.
  */
 function reset_close_message_on_delete() {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                     .getService(Ci.nsIPrefService).getBranch(null);
-  if (prefBranch.prefHasUserValue("mail.close_message_window.on_delete"))
-    prefBranch.clearUserPref("mail.close_message_window.on_delete");
+  if (Services.prefs.prefHasUserValue("mail.close_message_window.on_delete"))
+    Services.prefs.clearUserPref("mail.close_message_window.on_delete");
 }
 
 /**
@@ -2743,9 +2726,7 @@ const kVerticalMailLayout = 2;
  */
 
 function assert_pane_layout(aLayout) {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService).getBranch(null);
-  let actualPaneLayout = prefBranch.getIntPref("mail.pane_config.dynamic");
+  let actualPaneLayout = Services.prefs.getIntPref("mail.pane_config.dynamic");
   if (actualPaneLayout != aLayout)
     throw new Error("The mail pane layout should be " + aLayout +
                     ", but is actually " + actualPaneLayout);
@@ -2756,9 +2737,7 @@ function assert_pane_layout(aLayout) {
  */
 
 function set_pane_layout(aLayout) {
-  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
-                      .getService(Ci.nsIPrefService).getBranch(null);
-  prefBranch.setIntPref("mail.pane_config.dynamic", aLayout);
+  Services.prefs.setIntPref("mail.pane_config.dynamic", aLayout);
 }
 
 /** exported from messageInjection */
@@ -2780,11 +2759,6 @@ var SyntheticPartMultiRelated;
  * @return An object that serves as the global scope for the loaded file.
  */
 function load_via_src_path(aPath, aModule) {
-  let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
-                 .getService(Ci.mozIJSSubScriptLoader);
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-
   let thisFilePath = os.getFileForPath(__file__);
 
   for (let i = 0; i < FILE_LOAD_PATHS.length; ++i) {
@@ -2797,8 +2771,8 @@ function load_via_src_path(aPath, aModule) {
 
     if (file.exists()) {
       try {
-        let uri = ioService.newFileURI(file).spec;
-        loader.loadSubScript(uri, aModule);
+        let uri = Services.io.newFileURI(file).spec;
+        Services.scriptloader.loadSubScript(uri, aModule);
         return;
       }
       catch (ex) {

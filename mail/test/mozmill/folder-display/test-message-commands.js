@@ -13,6 +13,7 @@ var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
 
 Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var unreadFolder;
 var archiveSrcFolder = null;
@@ -82,9 +83,7 @@ function check_read_menuitems(index, canMarkRead, canMarkUnread) {
 }
 
 function enable_archiving(enabled) {
-  Cc["@mozilla.org/preferences-service;1"]
-   .getService(Ci.nsIPrefService).getBranch(null)
-   .setBoolPref("mail.identity.default.archive_enabled", enabled);
+  Services.prefs.setBoolPref("mail.identity.default.archive_enabled", enabled);
 }
 
 /**
@@ -360,9 +359,7 @@ function monthly_archive(keep_structure) {
 
 function test_folder_structure_archiving() {
   enable_archiving(true);
-  Cc["@mozilla.org/preferences-service;1"]
-   .getService(Ci.nsIPrefService).getBranch(null)
-   .setBoolPref("mail.identity.default.archive_keep_folder_structure", true);
+  Services.prefs.setBoolPref("mail.identity.default.archive_keep_folder_structure", true);
   monthly_archive(true);
   yearly_archive(true);
 }

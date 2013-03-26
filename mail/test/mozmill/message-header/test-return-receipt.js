@@ -103,10 +103,10 @@ function assert_mdn_shown(shouldShow) {
 function assert_mdn_text_contains(text, shouldContain) {
   let mdnBar = mc.e("mdnBar");
   let notificationText = mdnBar.textContent;
-  if (shouldContain && notificationText.indexOf(text) == -1)
+  if (shouldContain && !notificationText.contains(text))
     throw new Error("mdnBar should contain text=" + text +
                     "; notificationText=" + notificationText);
-  if (!shouldContain && notificationText.indexOf(text) != -1)
+  if (!shouldContain && notificationText.contains(text))
     throw new Error("mdnBar shouldn't contain text=" + text +
                     "; notificationText=" + notificationText);
 }

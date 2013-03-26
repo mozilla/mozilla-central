@@ -455,7 +455,7 @@ function LoadPostAccountWizard()
     if (typeof arg0 == "string")
     {
       // filter our any feed urls that came in as arguments to the new window...
-      if (/^feed:/i.test(arg0))
+      if (arg0.toLowerCase().startsWith("feed:"))
       {
         let feedHandler = Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
           .getService(Components.interfaces.nsINewsBlogFeedDownloader);
@@ -1368,7 +1368,7 @@ function ThreadPaneOnDragOver(aEvent) {
                     .QueryInterface(Components.interfaces.nsIFile);
     if (extFile.isFile()) {
       let len = extFile.leafName.length;
-      if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+      if (len > 4 && extFile.leafName.toLowerCase().endsWith(".eml"))
         ds.canDrop = true;
     }
   }
@@ -1383,7 +1383,7 @@ function ThreadPaneOnDrop(aEvent) {
                     .QueryInterface(Components.interfaces.nsIFile);
     if (extFile.isFile()) {
       let len = extFile.leafName.length;
-      if (len > 4 && extFile.leafName.substr(len - 4).toLowerCase() == ".eml")
+      if (len > 4 && extFile.leafName.toLowerCase().endsWith(".eml"))
         cs.CopyFileMessage(extFile, gFolderDisplay.displayedFolder, null, false,
                            1, "", null, msgWindow);
     }

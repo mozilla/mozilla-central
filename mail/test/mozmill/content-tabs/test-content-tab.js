@@ -58,7 +58,7 @@ function test_content_tab_open() {
 function test_spellcheck_in_content_tabs() {
   let tabmail = mc.tabmail;
   let w = tabmail.selectedTab.browser.contentWindow;
-  let textarea = w.document.getElementsByTagName("textarea")[0];
+  let textarea = w.document.querySelector("textarea");
   let eidMailContext = mc.eid("mailContext");
 
   // Test a few random items
@@ -99,7 +99,7 @@ test_spellcheck_in_content_tabs.EXCLUDED_PLATFORMS = ['winnt', 'linux'];
 function test_content_tab_context_menu() {
   let tabmail = mc.tabmail;
   let w = tabmail.selectedTab.browser.contentWindow;
-  let heading = w.document.getElementsByTagName("h1")[0];
+  let heading = w.document.querySelector("h1");
   let mailContext = mc.e("mailContext");
 
   // Make sure the page's menu items are added on right-click.

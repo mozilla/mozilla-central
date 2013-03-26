@@ -60,7 +60,7 @@ function onOK()
   // do name validity check?
 
   // make sure name ends in  "/" if folder to create can only contain folders
-  if ((dialog.folderType == FOLDERS) && name.charAt(name.length-1) != "/")
+  if ((dialog.folderType == FOLDERS) && !name.endsWith("/"))
     dialog.okCallback(name + "/", dialog.folder);
   else
     dialog.okCallback(name, dialog.folder);

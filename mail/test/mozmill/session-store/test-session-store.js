@@ -23,6 +23,7 @@ Cu.import("resource://mozmill/modules/jum.js", jumlib);
 
 Cu.import("resource:///modules/IOUtils.js");
 Cu.import("resource:///modules/sessionStoreManager.js");
+Cu.import("resource://gre/modules/Services.jsm");
 
 // the windowHelper module
 var windowHelper;
@@ -54,22 +55,21 @@ function waitForFileRefresh() {
                 "file should exist");
 }
 
-function open3PaneWindow(windowWatcher) {
+function open3PaneWindow() {
   windowHelper.plan_for_new_window("mail:3pane");
-  windowWatcher.openWindow(null,
-                           "chrome://messenger/content/messenger.xul", "",
-                           "all,chrome,dialog=no,status,toolbar",
-                           null);
+  Services.ww.openWindow(null,
+                         "chrome://messenger/content/messenger.xul", "",
+                         "all,chrome,dialog=no,status,toolbar",
+                         null);
   return windowHelper.wait_for_new_window("mail:3pane");
 }
 
-function openAddressBook(windowWatcher) {
+function openAddressBook() {
   windowHelper.plan_for_new_window("mail:addressbook");
-  windowWatcher.openWindow(
-                      null,
-                      "chrome://messenger/content/addressbook/addressbook.xul", "",
-                      "all,chrome,dialog=no,status,toolbar",
-                      null);
+  Services.ww.openWindow(null,
+                         "chrome://messenger/content/addressbook/addressbook.xul", "",
+                         "all,chrome,dialog=no,status,toolbar",
+                         null);
   return windowHelper.wait_for_new_window("mail:addressbook");
 }
 
@@ -144,9 +144,7 @@ function test_single_3pane_periodic_session_persistence() {
 
   // get the state object. this assumes there is one and only one
   // 3pane window.
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+  let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
   let state = mail3PaneWindow.getWindowStateForSessionPersistence();
 
   sessionStoreManager.startPeriodicSave();
@@ -169,20 +167,16 @@ function test_restore_single_3pane_persistence() {
 
   // get the state object. this assumes there is one and only one
   // 3pane window.
-  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                      getService(Ci.nsIWindowWatcher);
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+  let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
 
   // make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed
-  let abwc = openAddressBook(windowWatcher);
+  let abwc = openAddressBook();
 
   // close the 3pane window
   mail3PaneWindow.close();
 
-  mc = open3PaneWindow(windowWatcher);
+  mc = open3PaneWindow();
   be_in_folder(folderA);
   assert_message_pane_hidden();
   // restore message pane.
@@ -207,11 +201,7 @@ function test_message_pane_height_persistence() {
 
   // Get the state object. This assumes there is one and only one
   // 3pane window.
-  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                      getService(Ci.nsIWindowWatcher);
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+  let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
 
   let oldHeight = mc.e("messagepaneboxwrapper").boxObject.height;
   let minHeight = Math.floor(mc.e("messagepaneboxwrapper").getAttribute("minheight"));
@@ -234,12 +224,12 @@ function test_message_pane_height_persistence() {
 
   // Make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed.
-  let abwc = openAddressBook(windowWatcher);
+  let abwc = openAddressBook();
 
   // The 3pane window is closed.
   mail3PaneWindow.close();
 
-  mc = open3PaneWindow(windowWatcher);
+  mc = open3PaneWindow();
   be_in_folder(folderA);
   assert_message_pane_visible();
 
@@ -255,7 +245,7 @@ function test_message_pane_height_persistence() {
   // The 3pane window is closed.
   mail3PaneWindow.close();
 
-  mc = open3PaneWindow(windowWatcher);
+  mc = open3PaneWindow();
   be_in_folder(folderA);
   assert_message_pane_visible();
 
@@ -282,11 +272,7 @@ function test_message_pane_width_persistence() {
 
   // Get the state object. This assumes there is one and only one
   // 3pane window.
-  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                      getService(Ci.nsIWindowWatcher);
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  let mail3PaneWindow = windowMediator.getMostRecentWindow("mail:3pane");
+  let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
 
   let oldWidth = mc.e("messagepaneboxwrapper").boxObject.width;
   let minWidth = Math.floor(mc.e("messagepaneboxwrapper").getAttribute("minwidth"));
@@ -312,12 +298,12 @@ function test_message_pane_width_persistence() {
 
   // Make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed
-  let abwc = openAddressBook(windowWatcher);
+  let abwc = openAddressBook();
 
   // The 3pane window is closed.
   mail3PaneWindow.close();
 
-  mc = open3PaneWindow(windowWatcher);
+  mc = open3PaneWindow();
   be_in_folder(folderA);
   assert_message_pane_visible();
   assert_pane_layout(kVerticalMailLayout);
@@ -342,7 +328,7 @@ function test_message_pane_width_persistence() {
   // The 3pane window is closed.
   mail3PaneWindow.close();
 
-  mc = open3PaneWindow(windowWatcher);
+  mc = open3PaneWindow();
   be_in_folder(folderA);
   assert_message_pane_visible();
   assert_pane_layout(kVerticalMailLayout);
@@ -363,16 +349,12 @@ function test_message_pane_width_persistence() {
 
 function test_multiple_3pane_periodic_session_persistence() {
   // open a few more 3pane windows
-  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                      getService(Ci.nsIWindowWatcher);
   for (var i = 0; i < 3; ++i)
-    open3PaneWindow(windowWatcher);
+    open3PaneWindow();
 
   // then get the state objects for each window
   let state = [];
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  let enumerator = windowMediator.getEnumerator("mail:3pane");
+  let enumerator = Services.wm.getEnumerator("mail:3pane");
   while (enumerator.hasMoreElements())
     state.push(enumerator.getNext().getWindowStateForSessionPersistence());
 
@@ -393,7 +375,7 @@ function test_multiple_3pane_periodic_session_persistence() {
             "saved state and loaded state should be equal");
 
   // close all but one 3pane window
-  enumerator = windowMediator.getEnumerator("mail:3pane");
+  enumerator = Services.wm.getEnumerator("mail:3pane");
   while (enumerator.hasMoreElements()) {
     let window = enumerator.getNext();
     if (enumerator.hasMoreElements())
@@ -427,21 +409,17 @@ function test_bad_session_file_simple() {
 function test_clean_shutdown_session_persistence_simple() {
 
   // open a few more 3pane windows
-  let windowWatcher = Cc["@mozilla.org/embedcomp/window-watcher;1"].
-                      getService(Ci.nsIWindowWatcher);
   for (var i = 0; i < 3; ++i) {
-    open3PaneWindow(windowWatcher);
+    open3PaneWindow();
   }
 
   // make sure we have a different window open, so that we don't start shutting
   // down just because the last window was closed
-  let abwc = openAddressBook(windowWatcher);
+  let abwc = openAddressBook();
 
   // close all the 3pane windows
   let lastWindowState = null;
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                       getService(Ci.nsIWindowMediator);
-  enumerator = windowMediator.getEnumerator("mail:3pane");
+  enumerator = Services.wm.getEnumerator("mail:3pane");
   while (enumerator.hasMoreElements()) {
     let window = enumerator.getNext();
     if (!enumerator.hasMoreElements())
@@ -463,7 +441,7 @@ function test_clean_shutdown_session_persistence_simple() {
                 "saved state and loaded state should be equal");
 
 
-  open3PaneWindow(windowWatcher);
+  open3PaneWindow();
 
   // We don't need the address book window any more.
   plan_for_window_close(abwc);

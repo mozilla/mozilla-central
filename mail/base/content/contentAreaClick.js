@@ -50,27 +50,24 @@
   {
     // scale any overflowing images
     let doc = document.getElementById("messagepane").contentDocument;
-    let imgs = doc.images;
+    let imgs = doc.querySelectorAll("img.moz-attached-image");
     for (let i = 0; i < imgs.length; i++)
     {
       let img = imgs[i];
-      if (img.className == "moz-attached-image")
+      if (img.naturalWidth <= doc.body.clientWidth)
       {
-        if (img.naturalWidth <= doc.body.clientWidth)
-        {
-          img.removeAttribute("isshrunk");
-          img.removeAttribute("overflowing");
-        }
-        else if (img.hasAttribute("shrinktofit"))
-        {
-          img.setAttribute("isshrunk", "true");
-          img.removeAttribute("overflowing");
-        }
-        else
-        {
-          img.setAttribute("overflowing", "true");
-          img.removeAttribute("isshrunk");
-        }
+        img.removeAttribute("isshrunk");
+        img.removeAttribute("overflowing");
+      }
+      else if (img.hasAttribute("shrinktofit"))
+      {
+        img.setAttribute("isshrunk", "true");
+        img.removeAttribute("overflowing");
+      }
+      else
+      {
+        img.setAttribute("overflowing", "true");
+        img.removeAttribute("isshrunk");
       }
     }
   }
@@ -93,7 +90,7 @@ function contentAreaClick(aEvent)
         return true;
 
       // is it an inline attachment?
-      if (/^moz-attached-image/.test(target.className)) {
+      if (target.classList.contains("moz-attached-image")) {
         if (target.hasAttribute("isshrunk")) {
           // currently shrunk to fit, so unshrink it
           target.removeAttribute("isshrunk");

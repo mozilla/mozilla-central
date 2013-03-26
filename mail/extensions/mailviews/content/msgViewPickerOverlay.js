@@ -123,17 +123,16 @@ var ViewPickerBinding = {
       let value = this.currentViewValue;
 
       let viewPickerPopup = document.getElementById("viewPickerPopup");
-      let selectedItems =
-        viewPickerPopup.getElementsByAttribute("value", value);
-      if (!selectedItems || !selectedItems.length)
+      let selectedItem =
+        viewPickerPopup.querySelector('[value="' + value + '"]');
+      if (!selectedItem)
       {
         // we may have a new item, so refresh to make it show up
         RefreshAllViewPopups(viewPickerPopup, true);
-        selectedItems = viewPickerPopup.getElementsByAttribute("value", value);
+        selectedItem = viewPickerPopup.querySelector('[value="' + value + '"]');
       }
       viewPicker.setAttribute("label",
-                              selectedItems && selectedItems.length &&
-                              selectedItems.item(0).getAttribute("label"));
+                              selectedItem && selectedItem.getAttribute("label"));
     }
   },
 };
@@ -168,14 +167,14 @@ function RefreshViewPopup(aViewPopup)
   // mark default views if selected
   let currentViewValue = ViewPickerBinding.currentViewValue;
 
-  var viewAll = aViewPopup.getElementsByAttribute("value", kViewItemAll)[0];
+  let viewAll = aViewPopup.querySelector('[value="' + kViewItemAll + '"]');
   viewAll.setAttribute("checked", currentViewValue == kViewItemAll);
   let viewUnread =
-    aViewPopup.getElementsByAttribute("value", kViewItemUnread)[0];
+    aViewPopup.querySelector('[value="' + kViewItemUnread + '"]');
   viewUnread.setAttribute("checked", currentViewValue == kViewItemUnread);
 
   let viewNotDeleted =
-    aViewPopup.getElementsByAttribute("value", kViewItemNotDeleted)[0];
+    aViewPopup.querySelector('[value="' + kViewItemNotDeleted + '"]');
   var folderArray = GetSelectedMsgFolders();
   if (folderArray.length == 0)
     return;

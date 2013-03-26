@@ -541,7 +541,7 @@ var messageHeaderSink = {
         var fromMailboxes = kMailboxSeparator +
           MailServices.headerParser.extractHeaderAddressMailboxes(
             currentHeaderData.from.headerValue) + kMailboxSeparator;
-        if (fromMailboxes.indexOf(senderMailbox) >= 0)
+        if (fromMailboxes.contains(senderMailbox))
           delete currentHeaderData.sender;
       }
 
@@ -583,7 +583,7 @@ var messageHeaderSink = {
       }
 
       var size = null;
-      if (isExternalAttachment && /^file:/.test(url)) {
+      if (isExternalAttachment && url.startsWith("file:")) {
         let fileHandler = Services.io.getProtocolHandler("file")
           .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
         try {
@@ -872,7 +872,7 @@ function EnsureMinimumNumberOfHeaders (headerTable)
     // We may have already dynamically created our empty rows and we just need
     // to make them visible.
     for each (let [index, headerEntry] in Iterator(headerTable)) {
-      if (index.indexOf("Dummy-Header") == 0 && numEmptyHeaders) {
+      if (index.startsWith("Dummy-Header") && numEmptyHeaders) {
         headerEntry.valid = true;
         numEmptyHeaders--;
       }
@@ -1835,7 +1835,7 @@ AttachmentInfo.prototype = {
   {
     if (this.isDeleted)
       return false;
-    if (this.isExternalAttachment && /^file:/.test(this.url) &&
+    if (this.isExternalAttachment && this.url.startsWith("file:") &&
         this.size === null)
       return false;
 

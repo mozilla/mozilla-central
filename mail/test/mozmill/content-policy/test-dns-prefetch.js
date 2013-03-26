@@ -20,6 +20,8 @@ Components.utils.import("resource://mozmill/modules/jum.js", jumlib);
 var elib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var folder = null;
 var composeHelper = null;
 var gMsgNo = 0;
@@ -168,20 +170,8 @@ function test_dnsPrefetch_contentTab() {
 
   let newTab = open_content_tab_with_url(dataurl);
 
-  // XXX this should be a check for DNS prefetch being enabled, but bug 545407
-  // needs fixing for that to work.
-  var versionChecker =
-    Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-              .getService(Components.interfaces.nsIVersionComparator);
-
-  if (versionChecker.compare(mc.window.Application.version, "3.2a1pre") >= 0) {
-    if (!mc.tabmail.getBrowserForSelectedTab().docShell.allowDNSPrefetch)
-      throw new Error("DNS prefetch unexpectedly disabled in content tabs");
-  }
-  else {
-    if (mc.tabmail.getBrowserForSelectedTab().docShell.allowDNSPrefetch)
-      throw new Error("DNS prefetch unexpectedly enabled2, has bug 545407 been fixed?" + mc.window.Application.version);
-  }
+  if (!mc.tabmail.getBrowserForSelectedTab().docShell.allowDNSPrefetch)
+    throw new Error("DNS prefetch unexpectedly disabled in content tabs");
 
   mc.tabmail.closeTab(newTab);
 

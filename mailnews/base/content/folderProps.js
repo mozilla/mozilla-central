@@ -229,8 +229,7 @@ function folderPropsOnLoad()
 
     // select the menu item
     var folderCharsetList = document.getElementById("folderCharsetList");
-    var elements = folderCharsetList.getElementsByAttribute("value", gMsgFolder.charset);
-    folderCharsetList.selectedItem = elements[0];
+    folderCharsetList.selectedItem = folderCharsetList.querySelector('[value="' + gMsgFolder.charset + '"]');
 
     // set override checkbox
     document.getElementById("folderCharsetOverride").checked = gMsgFolder.charsetOverride;
@@ -290,7 +289,7 @@ function folderPropsOnLoad()
 
 function hideShowControls(serverType)
 {
-  var controls = document.getElementsByAttribute("hidefor", "*");
+  let controls = document.querySelectorAll("[hidefor]");
   var len = controls.length;
   for (var i=0; i<len; i++) {
     var control = controls[i];

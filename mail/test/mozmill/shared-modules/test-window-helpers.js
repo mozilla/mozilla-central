@@ -19,6 +19,7 @@ Cu.import('resource://mozmill/modules/utils.js', utils);
 
 Cu.import('resource:///modules/iteratorUtils.jsm');
 Cu.import('resource://gre/modules/NetUtil.jsm');
+Cu.import("resource://gre/modules/Services.jsm");
 
 const MODULE_NAME = 'window-helpers';
 
@@ -57,13 +58,7 @@ const WINDOW_CLOSE_CHECK_INTERVAL_MS = 100;
  */
 const WINDOW_FOCUS_TIMEOUT_MS = 10000;
 
-const focusManager = Cc["@mozilla.org/focus-manager;1"].
-                       getService(Ci.nsIFocusManager);
-const threadManager = Cc["@mozilla.org/thread-manager;1"]
-                        .getService(Ci.nsIThreadManager);
-const hiddenWindow = Cc["@mozilla.org/appshell/appShellService;1"]
-                       .getService(Ci.nsIAppShellService)
-                       .hiddenDOMWindow;
+const hiddenWindow = Services.appShell.hiddenDOMWindow;
 
 // Have a dummy mark_action function in case test-folder-display-helpers does
 // not provide us with one.
@@ -461,7 +456,7 @@ var WindowWatcher = {
     mark_action("winhelp", "onOpenWindow",
                 [getWindowTypeForXulWindow(aXULWindow, true) +
                    " (" + getUniqueIdForXulWindow(aXULWindow) + ")",
-                   "active?", focusManager.focusedWindow == aXULWindow]);
+                   "active?", Services.focus.focusedWindow == aXULWindow]);
     if (!this.consider(aXULWindow))
       this.monitorWindowLoad(aXULWindow);
   },
@@ -712,8 +707,6 @@ function _wait_for_generic_load(aDetails, aURLOrPredicate) {
 }
 
 
-let obsService = Cc["@mozilla.org/observer-service;1"]
-                   .getService(Ci.nsIObserverService);
 let observationWaitFuncs = {};
 let observationSaw = {};
 /**
@@ -730,7 +723,7 @@ function plan_for_observable_event(aTopic) {
       observationSaw[aTopic] = true;
     }
   };
-  obsService.addObserver(waiter, aTopic, false);
+  Services.obs.addObserver(waiter, aTopic, false);
 }
 
 /**
@@ -749,7 +742,7 @@ function wait_for_observable_event(aTopic) {
                   "Timed out waiting for notification: " + aTopic);
   }
   finally {
-    obsService.removeObserver(observationWaitFuncs[aTopic], aTopic);
+    Services.obs.removeObserver(observationWaitFuncs[aTopic], aTopic);
     delete observationWaitFuncs[aTopic];
     delete observationSaw[aTopic];
   }
@@ -849,9 +842,9 @@ var AugmentEverybodyWith = {
         let index;
         for (let iNode = 0; iNode < anonNodes.length; iNode++) {
           let node = anonNodes[iNode];
-          let named = node.getElementsByTagName(aQuery.tagName);
-          if (named.length)
-            return named[0];
+          let named = node.querySelector(aQuery.tagName);
+          if (named)
+            return named;
         }
       }
       else {
@@ -974,9 +967,9 @@ var AugmentEverybodyWith = {
       //  in the event that there is no focused element but there is a focused
       //  sub-frame, we can know that.
       for (;;) {
-        focusedElement = focusManager.getFocusedElementForWindow(curWindow,
-                                                                 false,
-                                                                 focusedWinOut);
+        focusedElement = Services.focus.getFocusedElementForWindow(curWindow,
+                                                                   false,
+                                                                   focusedWinOut);
         arr.push("focused kid:");
         arr.push(focusedElement);
 
@@ -993,8 +986,8 @@ var AugmentEverybodyWith = {
   getters: {
     focusedElement: function() {
       let ignoredFocusedWindow = {};
-      return focusManager.getFocusedElementForWindow(this.window, true,
-                                                     ignoredFocusedWindow);
+      return Services.focus.getFocusedElementForWindow(this.window, true,
+                                                       ignoredFocusedWindow);
     },
   },
 };
@@ -1326,11 +1319,10 @@ var UNIQUE_WINDOW_ID_ATTR = "__winHelper_uniqueId";
 var DOM_KEYCODE_TO_NAME = {};
 function populateDomKeycodeMap() {
   let nsIDOMKeyEvent = Ci.nsIDOMKeyEvent;
-  let re_dom_vk = /^DOM_VK_/;
 
   for (let key in nsIDOMKeyEvent) {
-    
-    if (re_dom_vk.test(key)) {
+
+    if (key.startsWith("DOM_VK_")) {
       let val = nsIDOMKeyEvent[key];
       DOM_KEYCODE_TO_NAME[val] = key;
     }
@@ -1743,10 +1735,7 @@ function captureWindowStatesForErrorReporting(normalizeForJsonFunc) {
   let info = {};
   let windows = info.windows = [];
 
-  let windowMediator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                         .getService(Ci.nsIWindowMediator);
-
-  let enumerator = windowMediator.getEnumerator(null);
+  let enumerator = Services.wm.getEnumerator(null);
   let iWin=0;
   while (enumerator.hasMoreElements()) {
     let win = enumerator.getNext().QueryInterface(Ci.nsIDOMWindow);
@@ -1769,10 +1758,10 @@ function captureWindowStatesForErrorReporting(normalizeForJsonFunc) {
       dims: {width: win.outerWidth, height: win.outerHeight},
       pageOffsets: {x: win.pageXOffset, y: win.pageYOffset},
       screenshotDataUrl: screenshotToDataURL(win),
-      isActive: focusManager.activeWindow == win,
+      isActive: Services.focus.activeWindow == win,
       focusedElem: normalizeForJsonFunc(
-        focusManager.getFocusedElementForWindow(win, true,
-                                                ignoredFocusedWindow)),
+        Services.focus.getFocusedElementForWindow(win, true,
+                                                  ignoredFocusedWindow)),
       openPopups: openPopups,
     };
 

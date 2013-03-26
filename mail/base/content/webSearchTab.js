@@ -85,11 +85,11 @@ let webSearchTabType = {
 
     aTab.panel.appendChild(clone);
 
-    aTab.engines = clone.getElementsByClassName("engines")[0];
-    aTab.defaultButton = clone.getElementsByClassName("defaultButton")[0];
+    aTab.engines = clone.querySelector(".engines");
+    aTab.defaultButton = clone.querySelector(".defaultButton");
 
     // Start setting up the browser.
-    aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+    aTab.browser = aTab.panel.querySelector("browser");
 
     // As we're opening this tab, showTab may not get called, so set
     // the type according to if we're opening in background or not.
@@ -108,7 +108,7 @@ let webSearchTabType = {
     gPluginHandler.addEventListeners(aTab.browser);
 
     // Now initialise the find bar.
-    aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
+    aTab.findbar = aTab.panel.querySelector("findbar");
     aTab.findbar.setAttribute("browserid",
                               "webSearchTabBrowser" + this.lastBrowserId);
 
@@ -302,10 +302,10 @@ let webSearchTabType = {
     switch (aEngine.name) {
       case "Google":
         return aPreUri.host == aPostUri.host &&
-               /^\/search\?/.test(aPostUri.path);
+               aPostUri.path.startsWith("/search?");
       case "Yahoo":
-        return /search\.yahoo\.com$/.test(aPostUri.host) &&
-               !/^\/r\//.test(aPostUri.path);
+        return aPostUri.host.endsWith("search.yahoo.com") &&
+               !aPostUri.path.startsWith("/r/");
     }
 
     return aPreUri.host == aPostUri.host;

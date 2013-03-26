@@ -723,7 +723,7 @@ nsContextMenu.prototype = {
       return this.link.href;
     }
     var href = this.link.getAttributeNS("http://www.w3.org/1999/xlink","href");
-    if (!href || !href.match(/\S/)) {
+    if (!href || (href.trim() == "")) {
        // Without this we try to save as the current doc,
        // for example, HTML case also throws if empty.
       throw "Empty href";
@@ -762,16 +762,16 @@ nsContextMenu.prototype = {
    */
   linkText : function CM_linkText() {
     var text = gatherTextUnder(this.link);
-    if (!text || !text.match(/\S/)) {
+    if (!text || (text.trim() == "")) {
       text = this.link.getAttribute("title");
-      if (!text || !text.match(/\S/)) {
+      if (!text || (text.trim() == "")) {
         text = this.link.getAttribute("alt");
-        if (!text || !text.match(/\S/)) {
+        if (!text || (text.trim() == "")) {
           if (this.link.href) {
             text = this.link.href;
           } else {
             text = getAttributeNS("http://www.w3.org/1999/xlink", "href");
-            if (text && text.match(/\S/)) {
+            if (text && !(text.trim() == "")) {
               text = this.makeURLAbsolute(this.link.baseURI, text);
             }
           }
@@ -888,10 +888,8 @@ nsContextMenu.prototype = {
   },
 
   openInBrowser: function CM_openInBrowser() {
-    let uri = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService)
-                        .newURI(this.target.ownerDocument.defaultView.
-                                top.location.href, null, null);
+    let uri = Services.io.newURI(this.target.ownerDocument.defaultView.
+                                 top.location.href, null, null);
 
     Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
               .getService(Components.interfaces.nsIExternalProtocolService)

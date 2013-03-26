@@ -52,7 +52,7 @@ function assert_phishing_bar_visible(msgc) {
  * @param msgc the Mozmill controller for the message window
  */
 function help_test_hide_phishing_bar(msgc) {
-  let phishingButton = msgc.e("phishingBar").getElementsByTagName("button")[0];
+  let phishingButton = msgc.e("phishingBar").querySelector("button");
   assert_phishing_bar_visible(msgc);
 
   msgc.click(new elib.Elem(phishingButton));

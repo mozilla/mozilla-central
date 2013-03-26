@@ -136,7 +136,7 @@ let NotificationWatcher = {
     }
     // Double check the notification box has finished animating.
     let notificationBox =
-      mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+      mc.tabmail.selectedTab.panel.querySelector("notificationbox");
     if (notificationBox && notificationBox._animating)
       aController.waitFor(function () !notificationBox._animating,
                           "Timeout waiting for notification box animation to finish",
@@ -344,7 +344,7 @@ function wait_for_content_tab_element_display_value(aTab, aElem, aValue) {
  */
 function assert_content_tab_text_present(aTab, aText) {
   let html = aTab.browser.contentDocument.documentElement.innerHTML;
-  if (html.indexOf(aText) == -1) {
+  if (!html.contains(aText)) {
     mark_failure(["Unable to find string \"" + aText + "\" on the content tab's page"]);
   }
 }
@@ -354,7 +354,7 @@ function assert_content_tab_text_present(aTab, aText) {
  */
 function assert_content_tab_text_absent(aTab, aText) {
   let html = aTab.browser.contentDocument.documentElement.innerHTML;
-  if (html.indexOf(aText) != -1) {
+  if (html.contains(aText)) {
     mark_failure(["Found string \"" + aText + "\" on the content tab's page"]);
   }
 }
@@ -364,11 +364,11 @@ function assert_content_tab_text_absent(aTab, aText) {
  * null if otherwise.
  */
 function get_notification_bar_for_tab(aTab) {
-  let notificationBoxEls = mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox");
-  if (notificationBoxEls.length == 0)
+  let notificationBoxEls = mc.tabmail.selectedTab.panel.querySelector("notificationbox");
+  if (!notificationBoxEls)
     return null;
 
-  return notificationBoxEls[0];
+  return notificationBoxEls;
 }
 
 /**
@@ -395,14 +395,14 @@ function plugins_run_in_separate_processes(aController) {
   let supportsOOPP = false;
 
   if (aController.mozmillModule.isMac) {
-    if (Services.appinfo.XPCOMABI.match(/x86-/)) {
+    if (Services.appinfo.XPCOMABI.contains("x86-")) {
       try {
         supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.i386.test.plugin");
       } catch(e) {
         supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.i386");
       }
     }
-    else if (Services.appinfo.XPCOMABI.match(/x86_64-/)) {
+    else if (Services.appinfo.XPCOMABI.contains("x86_64-")) {
       try {
         supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.x86_64.test.plugin");
       } catch(e) {

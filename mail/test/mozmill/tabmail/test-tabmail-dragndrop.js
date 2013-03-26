@@ -4,6 +4,7 @@
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
+Cu.import("resource://gre/modules/Services.jsm");
 
 /*
  * Test rearanging tabs via drag'n'drop.
@@ -163,13 +164,10 @@ function test_tab_reorder_window(){
   // ...and then a new 3 pane as our drop target.
   plan_for_new_window("mail:3pane");
 
-  let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"]
-                        .getService(Ci.nsIWindowWatcher);
-
   let args = {msgHdr: msgHdrsInFolder[3]};
   args.wrappedJSObject = args;
 
-  let aWnd2 = ww.openWindow(null,
+  let aWnd2 = Services.ww.openWindow(null,
         "chrome://messenger/content/", "",
         "all,chrome,dialog=no,status,toolbar", args);
 
@@ -417,9 +415,7 @@ function teardownTest(test)
       // Some test cases open new windows, thus we need to ensure all
       // opened windows get closed.
 
-      let en = Cc["@mozilla.org/appshell/window-mediator;1"]
-                 .getService(Ci.nsIWindowMediator)
-                 .getEnumerator("mail:3pane");
+      let en = Services.wm.getEnumerator("mail:3pane");
 
        while(en.hasMoreElements()) {
 

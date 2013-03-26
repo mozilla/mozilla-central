@@ -936,7 +936,7 @@ function InitMessageTags(menuPopup)
     SetMessageTagLabel(newMenuItem, i + 1, taginfo.tag);
     newMenuItem.setAttribute("value", taginfo.key);
     newMenuItem.setAttribute("type", "checkbox");
-    var removeKey = (" " + curKeys + " ").indexOf(" " + taginfo.key + " ") > -1;
+    let removeKey = (" " + curKeys + " ").contains(" " + taginfo.key + " ");
     newMenuItem.setAttribute('checked', removeKey);
     newMenuItem.setAttribute('oncommand', 'ToggleMessageTagMenu(event.target);');
     var color = taginfo.color;
@@ -1160,8 +1160,8 @@ function IsReplyAllEnabled()
   // Check to see if my email address is in the list of addresses.
   let myEmail = getIdentityForHeader(msgHdr).email;
   // We aren't guaranteed to have an email address, so guard against that.
-  let imInAddresses = myEmail && (addresses.toLowerCase().indexOf(
-                                    myEmail.toLowerCase()) != -1);
+  let imInAddresses = myEmail && (addresses.toLowerCase().contains(
+                                    myEmail.toLowerCase()));
 
   // Now, let's get the number of unique addresses.
   let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
@@ -1178,7 +1178,7 @@ function IsReplyAllEnabled()
   // show up in the address at all.)
   for (var i in emailAddresses.value)
   {
-    if (/:/.test(emailAddresses.value[i]))
+    if (emailAddresses.value[i].contains(":"))
       numAddresses--;
   }
 
@@ -3208,7 +3208,7 @@ function HandleMDNResponse(aUrl)
   // we cons up an md5: message id. If we've done that, we'll try to extract
   // the message id out of the mime headers for the whole message.
   var msgId = msgHdr.messageId;
-  if (msgId.split(":")[0] == "md5")
+  if (msgId.startsWith("md5:"))
   {
     var mimeMsgId = mimeHdr.extractHeader("Message-Id", false);
     if (mimeMsgId)

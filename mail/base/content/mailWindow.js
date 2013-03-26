@@ -440,10 +440,7 @@ function loadStartPage(aForce)
   if (startpage)
   {
     try {
-      let urifixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                               .getService(Components.interfaces.nsIURIFixup);
-
-      let uri = urifixup.createFixupURI(startpage, 0);
+      let uri = Services.uriFixup.createFixupURI(startpage, 0);
       GetMessagePaneFrame().location.href = uri.spec;
     }
     catch (e) {

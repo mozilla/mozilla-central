@@ -77,7 +77,7 @@ function testDetach()
   let msgHdr = firstMsgHdr(gLocalInboxFolder);
 
   let messageContent = getContentFromMessage(msgHdr);
-  do_check_true(messageContent.indexOf("AttachmentDetached") != -1);
+  do_check_true(messageContent.contains("AttachmentDetached"));
 }
 
 function SaveAttachmentCallback() {

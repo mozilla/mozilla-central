@@ -37,7 +37,7 @@ function test_tooltips() {
   let tooltip = mc.eid("aHTMLTooltip").node;
 
   /* Test a XUL element */
-  let trashButton = mmDoc.getElementsByClassName("hdrTrashButton")[0];
+  let trashButton = mmDoc.querySelector(".hdrTrashButton");
   trashButton.setAttribute("title", "Title1");
   trashButton.setAttribute("tooltiptext", "TTT1");
   mc.window.FillInHTMLTooltip(trashButton);
@@ -56,7 +56,7 @@ function test_tooltips() {
   div.innerHTML = '<span xmlns:xlink="http://www.w3.org/1999/xlink" version="1.0">'+
     '<a href="#" title="Title3" xlink:title="XTitle3" tooltiptext="TTT3">Hi there</a>'+
     '</span>';
-  let xlink = div.getElementsByTagName("a")[0];
+  let xlink = div.querySelector("a");
   mc.window.FillInHTMLTooltip(xlink);
   assert_equals(tooltip.getAttribute("label"), "XTitle3", "This HTML element had its something else taken as the tooltip instead of the xlink:title attribute.");
 }

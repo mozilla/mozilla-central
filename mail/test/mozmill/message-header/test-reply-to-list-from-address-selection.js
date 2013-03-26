@@ -99,7 +99,7 @@ function test_Reply_To_List_From_Address() {
   var identityList = replyToListWindow.e("msgIdentity");
 
   // see if it's the correct identity selected
-  if (identityList.selectedItem.label.indexOf(identityString1) == -1)
+  if (!identityList.selectedItem.label.contains(identityString1))
     throw new Error("The From address is not correctly selected! Expected: "+
                     identityString1 + "; Actual: "  +
                     identityList.selectedItem.label);
