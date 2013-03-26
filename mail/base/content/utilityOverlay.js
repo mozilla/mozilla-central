@@ -118,14 +118,14 @@ function GenerateValidFilename(filename, extension)
 function validateFileName(aFileName)
 {
   var re = /[\/]+/g;
-  if (navigator.appVersion.indexOf("Windows") != -1) {
+  if (navigator.appVersion.contains("Windows")) {
     re = /[\\\/\|]+/g;
     aFileName = aFileName.replace(/[\"]+/g, "'");
     aFileName = aFileName.replace(/[\*\:\?]+/g, " ");
     aFileName = aFileName.replace(/[\<]+/g, "(");
     aFileName = aFileName.replace(/[\>]+/g, ")");
   }
-  else if (navigator.appVersion.indexOf("Macintosh") != -1)
+  else if (navigator.appVersion.contains("Macintosh"))
     re = /[\:\/]+/g;
   
   return aFileName.replace(re, "_");

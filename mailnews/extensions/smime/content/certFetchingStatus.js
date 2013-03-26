@@ -147,7 +147,7 @@ function kickOffSearch()
     var urlFilter = gLdapServerURL.filter;
 
     if (urlFilter != null && urlFilter.length > 0 && urlFilter != "(objectclass=*)") {
-      if (urlFilter[0] == '(') {
+      if (urlFilter.startsWith('(')) {
         prefix1 = "(&" + urlFilter;
       }
       else {

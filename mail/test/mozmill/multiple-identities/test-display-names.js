@@ -11,6 +11,8 @@ var MODULE_NAME = "test-display-names";
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "address-book-helpers"];
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var folder;
 var decoyFolder;
 var acctMgr;
@@ -63,8 +65,7 @@ function setupModule(module) {
   abManager.directories;
   collectedAddresses = abManager.getDirectory("moz-abmdbdirectory://history.mab");
 
-  let bundle = Cc["@mozilla.org/intl/stringbundle;1"]
-                 .getService(Ci.nsIStringBundleService).createBundle(
+  let bundle = Services.strings.createBundle(
                    "chrome://messenger/locale/messenger.properties");
   headertoFieldMe = bundle.GetStringFromName("headertoFieldMe");
 }

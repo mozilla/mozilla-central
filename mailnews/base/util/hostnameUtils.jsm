@@ -288,8 +288,8 @@ function isLegalLocalIPAddress(aIPAddress)
       return true;
 
     // fc00::/7 - unique local addresses
-    if (ipComponents[0].substr(0,2) == "fc" || // usage has not been defined yet
-        ipComponents[0].substr(0,2) == "fd")
+    if (ipComponents[0].startsWith("fc") || // usage has not been defined yet
+        ipComponents[0].startsWith("fd"))
       return true;
 
     return false;

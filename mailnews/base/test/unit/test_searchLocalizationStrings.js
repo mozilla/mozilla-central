@@ -4,12 +4,13 @@
  
  // tests that localization strings added in bug 484147 are defined in preferences
  
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 const gValidityManager = Cc['@mozilla.org/mail/search/validityManager;1']
                            .getService(Ci.nsIMsgSearchValidityManager);
 
-const gStringBundle = Cc["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Ci.nsIStringBundleService)
-                        .createBundle("chrome://messenger/locale/search-attributes.properties");
+const gStringBundle = Services.strings
+                              .createBundle("chrome://messenger/locale/search-attributes.properties");
 
 // The following table of valid table scopes matches the allowable table
 // scopes in nsMsgSearchValidityManager::GetTable

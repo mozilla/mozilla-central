@@ -122,7 +122,7 @@ var MailOfflineMgr = {
       this.offlineBundle.getString('processMessagesLater'),
       null,
       this.offlineBundle.getString('sendMessagesCheckboxLabel1'),
-      alwaysAsk) == 0 ? true : false;
+      alwaysAsk) == 0;
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)
@@ -170,7 +170,7 @@ var MailOfflineMgr = {
       this.offlineBundle.getString('processMessagesLater'),
       null,
       this.offlineBundle.getString('downloadMessagesCheckboxLabel1'),
-      alwaysAsk) == 0 ? true : false;
+      alwaysAsk) == 0;
 
     // if the user changed the ask me setting then update the global pref based on their yes / no answer
     if (!alwaysAsk.value)

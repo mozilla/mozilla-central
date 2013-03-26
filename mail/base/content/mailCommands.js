@@ -29,7 +29,7 @@ function getBestIdentity(identities, optionalHint)
         if (!identity.email)
           continue;
         if (hints[i].trim() == identity.email.toLowerCase() ||
-            hints[i].indexOf("<" + identity.email.toLowerCase() + ">") != -1)
+            hints[i].contains("<" + identity.email.toLowerCase() + ">"))
           return identity;
       }
     }
@@ -73,7 +73,7 @@ function getIdentityForHeader(hdr, type)
           continue;
         // If the deliver-to header contains the defined identity, that's it.
         if (deliveredTos[i] == identity.email.toLowerCase() ||
-            deliveredTos[i].indexOf("<" + identity.email.toLowerCase() + ">") != -1)
+            deliveredTos[i].contains("<" + identity.email.toLowerCase() + ">"))
           return identity.email;
       }
     }

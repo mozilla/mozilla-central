@@ -56,9 +56,9 @@ const gTestArray =
     let secondMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     // Check that the messages have content
     messageContent = getContentFromMessage(firstMsgHdr);
-    do_check_true(messageContent.indexOf("Some User <bugmail@example.org> changed") != -1);
+    do_check_true(messageContent.contains("Some User <bugmail@example.org> changed"));
     messageContent = getContentFromMessage(secondMsgHdr);
-    do_check_true(messageContent.indexOf("https://bugzilla.mozilla.org/show_bug.cgi?id=436880") != -1);
+    do_check_true(messageContent.contains("https://bugzilla.mozilla.org/show_bug.cgi?id=436880"));
 
     ++gCurTestNum;
     doTest();
@@ -82,9 +82,9 @@ const gTestArray =
     let secondMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     // Check that the messages have content
     messageContent = getContentFromMessage(firstMsgHdr);
-    do_check_true(messageContent.indexOf("Some User <bugmail@example.org> changed") != -1);
+    do_check_true(messageContent.contains("Some User <bugmail@example.org> changed"));
     messageContent = getContentFromMessage(secondMsgHdr);
-    do_check_true(messageContent.indexOf("https://bugzilla.mozilla.org/show_bug.cgi?id=436880") != -1);
+    do_check_true(messageContent.contains("https://bugzilla.mozilla.org/show_bug.cgi?id=436880"));
 
     ++gCurTestNum;
     doTest();

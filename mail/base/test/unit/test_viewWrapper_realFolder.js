@@ -14,6 +14,8 @@ load("../../../../mailnews/resources/messageInjection.js");
 load("resources/viewWrapperTestUtils.js");
 initViewWrapperTestUtils();
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 /* ===== Real Folder, no features ===== */
 
 /**
@@ -541,9 +543,7 @@ function test_real_folder_special_views_persist() {
 function test_real_folder_mark_read_on_exit() {
   // set a pref so that the local folders account will think we should
   // mark messages read when leaving the folder.
-  let prefs = Cc["@mozilla.org/preferences-service;1"]
-              .getService(Ci.nsIPrefBranch);
-  prefs.setBoolPref("mailnews.mark_message_read.none", true);
+  Services.prefs.setBoolPref("mailnews.mark_message_read.none", true);
 
   let viewWrapper = make_view_wrapper();
   let folder = make_empty_folder();
@@ -560,7 +560,7 @@ function test_real_folder_mark_read_on_exit() {
   // as read.
   assert_equals(folder.getNumUnread(false), 0,
                 "messages should have been marked read on view close");
-  prefs.clearUserPref("mailnews.mark_message_read.none");
+  Services.prefs.clearUserPref("mailnews.mark_message_read.none");
 }
 
 var tests = [

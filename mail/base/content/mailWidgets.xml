@@ -1459,7 +1459,7 @@
               (this.valueIds.indexOf(typedValue) < 0) ? "true" : null);
 
             // add a hidden menulist item if value is missing
-            let menuitem = menulist.getElementsByAttribute("value", this.value).item(0);
+            let menuitem = menulist.querySelector('[value="' + this.value + '"]');
             if (!menuitem)
             { // need to add a hidden menuitem
               menuitem = menulist.appendItem(this.valueLabel, this.value);
@@ -1832,9 +1832,9 @@
               // otherwise, switch to the ab picker and select the PAB
               if (this.internalOperator != Components.interfaces.nsMsgSearchOp.IsntInAB &&
                   this.internalOperator != Components.interfaces.nsMsgSearchOp.IsInAB) {
-                var abs = children[4].getElementsByAttribute("value", "moz-abmdbdirectory://abook.mab");
-                if (abs.item(0))
-                  children[4].selectedItem = abs[0];
+                var abs = children[4].querySelector('[value="moz-abmdbdirectory://abook.mab"]');
+                if (abs)
+                  children[4].selectedItem = abs;
                 this.setAttribute("selectedIndex", "4");
               }
             }
@@ -1949,15 +1949,15 @@
           }
           if (attrib == nsMsgSearchAttrib.Priority) {
             var matchingPriority =
-              children[1].getElementsByAttribute("value", val.priority);
-            if (matchingPriority.item(0))
-              children[1].selectedItem = matchingPriority[0];
+              children[1].querySelector('[value="' + val.priority + '"]');
+            if (matchingPriority)
+              children[1].selectedItem = matchingPriority;
           }
           else if (attrib == nsMsgSearchAttrib.MsgStatus) {
             var matchingStatus =
-              children[2].getElementsByAttribute("value", val.status);
-            if (matchingStatus.item(0))
-              children[2].selectedItem = matchingStatus[0];
+              children[2].querySelector('[value="' + val.status + '"]');
+            if (matchingStatus)
+              children[2].selectedItem = matchingStatus;
           }
           else if (attrib == nsMsgSearchAttrib.AgeInDays)
             children[9].value = val.age;
@@ -1971,39 +1971,39 @@
           {
             if (this.internalOperator == Components.interfaces.nsMsgSearchOp.IsntInAB ||
                 this.internalOperator == Components.interfaces.nsMsgSearchOp.IsInAB) {
-              var abs = children[4].getElementsByAttribute("value", val.str);
-              if (abs.item(0))
-                children[4].selectedItem = abs[0];
+              var abs = children[4].querySelector('[value="' + val.str + '"]');
+              if (abs)
+                children[4].selectedItem = abs;
             }
             else
               children[0].value = val.str;
           }
           else if (attrib == nsMsgSearchAttrib.Keywords)
           {
-            var keywordVal = children[5].getElementsByAttribute("value", val.str);
-            if (keywordVal.item(0))
+            var keywordVal = children[5].querySelector('[value="' + val.str + '"]');
+            if (keywordVal)
             {
               children[5].value = val.str;
-              children[5].selectedItem = keywordVal[0];
+              children[5].selectedItem = keywordVal;
             }
           }
           else if (attrib == nsMsgSearchAttrib.JunkStatus) {
             var junkStatus =
-              children[6].getElementsByAttribute("value", val.junkStatus);
-            if (junkStatus.item(0))
-              children[6].selectedItem = junkStatus[0];
+              children[6].querySelector('[value="' + val.junkStatus + '"]');
+            if (junkStatus)
+              children[6].selectedItem = junkStatus;
           }
           else if (attrib == nsMsgSearchAttrib.HasAttachmentStatus) {
             var hasAttachmentStatus =
-              children[7].getElementsByAttribute("value", val.hasAttachmentStatus);
-            if (hasAttachmentStatus.item(0))
-              children[7].selectedItem = hasAttachmentStatus[0];
+              children[7].querySelector('[value="' + val.hasAttachmentStatus + '"]');
+            if (hasAttachmentStatus)
+              children[7].selectedItem = hasAttachmentStatus;
           }
           else if (attrib == nsMsgSearchAttrib.JunkScoreOrigin) {
             var junkScoreOrigin =
-              children[8].getElementsByAttribute("value", val.str);
-            if (junkScoreOrigin.item(0))
-              children[8].selectedItem = junkScoreOrigin[0];
+              children[8].querySelector('[value="' + val.str + '"]');
+            if (junkScoreOrigin)
+              children[8].selectedItem = junkScoreOrigin;
           }
           else if (attrib == nsMsgSearchAttrib.JunkPercent) {
             children[9].value = val.junkPercent;

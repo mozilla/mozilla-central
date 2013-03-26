@@ -10,9 +10,7 @@
  */
 
 Components.utils.import("resource:///modules/mailMigrator.js");
-
-var gPrefBranch = Cc["@mozilla.org/preferences-service;1"]
-                    .getService(Ci.nsIPrefBranch);
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
  * A list of font names to verify using |makeVerifier| and
@@ -53,15 +51,15 @@ function makeVerifier(aFonts) {
 
     // A distinct lack of magic here, so that failing stuff is generally easier
     // to comment out and debug.
-    do_check_eq(gPrefBranch.getCharPref("font.name.serif." + aEncoding),
+    do_check_eq(Services.prefs.getCharPref("font.name.serif." + aEncoding),
                 expectedFonts.serif);
-    do_check_eq(gPrefBranch.getCharPref("font.name.sans-serif." + aEncoding),
+    do_check_eq(Services.prefs.getCharPref("font.name.sans-serif." + aEncoding),
                 expectedFonts.sans);
-    do_check_eq(gPrefBranch.getCharPref("font.name.monospace." + aEncoding),
+    do_check_eq(Services.prefs.getCharPref("font.name.monospace." + aEncoding),
                 expectedFonts.monospace);
-    do_check_eq(gPrefBranch.getIntPref("font.size.variable." + aEncoding),
+    do_check_eq(Services.prefs.getIntPref("font.size.variable." + aEncoding),
                 expectedFonts.variableSize);
-    do_check_eq(gPrefBranch.getIntPref("font.size.fixed." + aEncoding),
+    do_check_eq(Services.prefs.getIntPref("font.size.fixed." + aEncoding),
                 expectedFonts.fixedSize);
   }
 
@@ -137,13 +135,13 @@ function reset_font_prefs(aDontResetVersion) {
   for (let [, prefBranch] in Iterator(kPrefBranchesToClear)) {
     for (let [, encoding] in Iterator(kEncodingsToClear)) {
       let pref = prefBranch + encoding;
-      if (gPrefBranch.prefHasUserValue(pref))
-        gPrefBranch.clearUserPref(pref);
+      if (Services.prefs.prefHasUserValue(pref))
+        Services.prefs.clearUserPref(pref);
     }
   }
   if (!aDontResetVersion &&
-      gPrefBranch.prefHasUserValue("mail.font.windows.version"))
-    gPrefBranch.clearUserPref("mail.font.windows.version");
+      Services.prefs.prefHasUserValue("mail.font.windows.version"))
+    Services.prefs.clearUserPref("mail.font.windows.version");
 }
 
 /**
@@ -172,11 +170,11 @@ function test_not_migrating_serif(aVerifier) {
   };
   // If we do migrate, if the default style is serif, the font size shouldn't be
   // clobbered. (Otherwise it should.)
-  if (gPrefBranch.getCharPref("font.default.x-unicode") == "serif")
+  if (Services.prefs.getCharPref("font.default.x-unicode") == "serif")
     nonDefaultFonts.variableSizeMigrated = 20;
 
-  gPrefBranch.setCharPref("font.name.serif.x-unicode", "Foo Serif");
-  gPrefBranch.setIntPref("font.size.variable.x-unicode", 20);
+  Services.prefs.setCharPref("font.name.serif.x-unicode", "Foo Serif");
+  Services.prefs.setIntPref("font.size.variable.x-unicode", 20);
 
   MailMigrator.migrateToClearTypeFonts();
 
@@ -200,11 +198,11 @@ function test_not_migrating_sans(aVerifier) {
   };
   // If we do migrate, if the default style is sans-serif, the font size
   // shouldn't be clobbered. (Otherwise it should.)
-  if (gPrefBranch.getCharPref("font.default.x-unicode") == "sans-serif")
+  if (Services.prefs.getCharPref("font.default.x-unicode") == "sans-serif")
     nonDefaultFonts.variableSizeMigrated = 20;
 
-  gPrefBranch.setCharPref("font.name.sans-serif.x-unicode", "Foo Sans");
-  gPrefBranch.setIntPref("font.size.variable.x-unicode", 20);
+  Services.prefs.setCharPref("font.name.sans-serif.x-unicode", "Foo Sans");
+  Services.prefs.setIntPref("font.size.variable.x-unicode", 20);
 
   MailMigrator.migrateToClearTypeFonts();
 
@@ -228,8 +226,8 @@ function test_not_migrating_monospace(aVerifier) {
     fixedSizeNonMigrated: 20,
   };
 
-  gPrefBranch.setCharPref("font.name.monospace.x-unicode", "Foo Mono");
-  gPrefBranch.setIntPref("font.size.fixed.x-unicode", 20);
+  Services.prefs.setCharPref("font.name.monospace.x-unicode", "Foo Mono");
+  Services.prefs.setIntPref("font.size.fixed.x-unicode", 20);
 
   MailMigrator.migrateToClearTypeFonts();
 
@@ -246,13 +244,13 @@ function test_not_migrating_monospace(aVerifier) {
  * Test migrating from the default fonts but from font sizes that aren't so.
  */
 function test_migrating_non_default_font_sizes(aVerifier) {
-  gPrefBranch.setIntPref("font.size.variable.x-unicode", 20);
-  gPrefBranch.setIntPref("font.size.fixed.x-western", 30);
-  gPrefBranch.setIntPref("font.size.variable.x-central-euro", 40);
-  gPrefBranch.setIntPref("font.size.fixed.x-cyrillic", 50);
-  gPrefBranch.setIntPref("font.size.variable.x-baltic", 60);
-  gPrefBranch.setIntPref("font.size.fixed.el", 70);
-  gPrefBranch.setIntPref("font.size.variable.tr", 80);
+  Services.prefs.setIntPref("font.size.variable.x-unicode", 20);
+  Services.prefs.setIntPref("font.size.fixed.x-western", 30);
+  Services.prefs.setIntPref("font.size.variable.x-central-euro", 40);
+  Services.prefs.setIntPref("font.size.fixed.x-cyrillic", 50);
+  Services.prefs.setIntPref("font.size.variable.x-baltic", 60);
+  Services.prefs.setIntPref("font.size.fixed.el", 70);
+  Services.prefs.setIntPref("font.size.variable.tr", 80);
 
   MailMigrator.migrateToClearTypeFonts();
 
@@ -269,7 +267,7 @@ function test_migrating_non_default_font_sizes(aVerifier) {
  * Test incremental migration from mail.font.windows.version = 1.
  */
 function test_migrate_from_version_1(aVerifier) {
-  gPrefBranch.setIntPref("mail.font.windows.version", 1);
+  Services.prefs.setIntPref("mail.font.windows.version", 1);
   MailMigrator.migrateToClearTypeFonts();
 
   // Unicode and Western shouldn't have been migrated.

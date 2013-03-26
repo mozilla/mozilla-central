@@ -51,7 +51,7 @@ function initLocaleShortDateFormat()
     else
     {
       // the date will contain a zero if that system settings include leading zeros
-      gSearchDateLeadingZeros = /0/.test(dateString);
+      gSearchDateLeadingZeros = dateString.contains("0");
 
       // match 1 as number, since that will match both "1" and "01"
       if ( arrayOfStrings[0] == 1 )

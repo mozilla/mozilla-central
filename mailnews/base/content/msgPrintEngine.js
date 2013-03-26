@@ -118,12 +118,12 @@ function ReplaceWithSelection()
     var range = selection.getRangeAt( 0 );
     var contents = range.cloneContents();
 
-    var bodies = window.content.document.getElementsByTagName( "body" );
+    var aBody = window.content.document.querySelector( "body" );
 
     /* Replace the content of <body> with the users' selection. */
-    if ( bodies.length > 0 ) {
-      bodies[0].innerHTML = "";
-      bodies[0].appendChild( contents );
+    if ( aBody ) {
+      aBody.innerHTML = "";
+      aBody.appendChild( contents );
     }
   }
 }

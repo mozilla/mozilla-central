@@ -66,7 +66,7 @@ function fixFile(file) {
   sstream.init(fstream);
 
   var str = sstream.read(4096);
-  if (str.substring(0, 5) == "From ") {
+  if (str.startsWith("From ")) {
     sstream.close();
     fstream.close();
     return file;

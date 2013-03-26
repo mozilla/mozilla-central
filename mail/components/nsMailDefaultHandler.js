@@ -18,7 +18,6 @@ const nsIFactory               = Components.interfaces.nsIFactory;
 const nsIFileURL               = Components.interfaces.nsIFileURL;
 const nsINetUtil               = Components.interfaces.nsINetUtil;
 const nsISupportsString        = Components.interfaces.nsISupportsString;
-const nsIURIFixup              = Components.interfaces.nsIURIFixup;
 const nsIURILoader             = Components.interfaces.nsIURILoader;
 
 const NS_ERROR_ABORT = Components.results.NS_ERROR_ABORT;
@@ -45,10 +44,7 @@ function resolveURIInternal(aCmdLine, aArgument) {
   // doesn't exist. Try URI fixup heuristics: see bug 290782.
 
   try {
-    var urifixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
-                             .getService(nsIURIFixup);
-
-    uri = urifixup.createFixupURI(aArgument, 0);
+    uri = Services.uriFixup.createFixupURI(aArgument, 0);
   }
   catch (e) {
     Components.utils.reportError(e);
@@ -271,7 +267,7 @@ var nsMailDefaultHandler = {
       var i = 0;
       while (i < count) {
         var curarg = cmdLine.getArgument(i);
-        if (!curarg.match(/^-/))
+        if (!curarg.startsWith("-"))
           break;
 
         dump ("Warning: unrecognized command line flag " + curarg + "\n");
@@ -286,10 +282,10 @@ var nsMailDefaultHandler = {
 
         // mailto: URIs are frequently passed with spaces in them. They should be
         // escaped into %20, but we hack around bad clients, see bug 231032
-        if (uri.match(/^mailto:/)) {
+        if (uri.startsWith("mailto:")) {
           while (++i < count) {
             var testarg = cmdLine.getArgument(i);
-            if (testarg.match(/^-/))
+            if (testarg.startsWith("-"))
               break;
 
             uri += " " + testarg;
@@ -303,10 +299,7 @@ var nsMailDefaultHandler = {
 
     if (!uri && cmdLine.state != nsICommandLine.STATE_INITIAL_LAUNCH) {
       try {
-        var wmed = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(nsIWindowMediator);
-
-        var wlist = wmed.getEnumerator("mail:3pane");
+        var wlist = Services.wm.getEnumerator("mail:3pane");
         if (wlist.hasMoreElements()) {
           var window = wlist.getNext().QueryInterface(nsIDOMWindow);
           window.focus();
@@ -319,7 +312,7 @@ var nsMailDefaultHandler = {
     }
 
     if (uri) {
-      if (/^feed:/i.test(uri)) {
+      if (uri.toLowerCase().startsWith("feed:")) {
         try {
           Components.classes["@mozilla.org/newsblog-feed-downloader;1"]
                     .getService(Components.interfaces.nsINewsBlogFeedDownloader)
@@ -329,20 +322,18 @@ var nsMailDefaultHandler = {
           // If feed handling is not installed, do nothing
         }
       }
-      else if (/\.mozeml$/i.test(uri) || /\.wdseml$/i.test(uri)) {
+      else if (uri.toLowerCase().endsWith(".mozeml") || uri.toLowerCase().endsWith(".wdseml")) {
         handleIndexerResult(cmdLine.resolveFile(uri));
         cmdLine.preventDefault = true;
       }
-      else if (/\.eml$/i.test(uri)) {
+      else if (uri.toLowerCase().endsWith(".eml")) {
         // Open this eml in a new message window
         let file = cmdLine.resolveFile(uri);
         // No point in trying to open a file if it doesn't exist or is empty
         if (file.exists() && file.fileSize > 0) {
           // Get the URL for this file
-          let ios = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-          let fileURL = ios.newFileURI(file)
-                           .QueryInterface(Components.interfaces.nsIFileURL);
+          let fileURL = Services.io.newFileURI(file)
+                                .QueryInterface(Components.interfaces.nsIFileURL);
           fileURL.query = "?type=application/x-message-display";
 
           Services.ww.openWindow(null,
@@ -367,7 +358,7 @@ var nsMailDefaultHandler = {
           Services.prompt.alert(null, title, message);
         }
       }
-      else if (/\.vcf$/i.test(uri)) {
+      else if (uri.toLowerCase().endsWith(".vcf")) {
         // A VCard! Be smart and open the "add contact" dialog.
         let file = cmdLine.resolveFile(uri);
         if (file.exists() && file.fileSize > 0) {

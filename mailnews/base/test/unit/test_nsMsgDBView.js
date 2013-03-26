@@ -206,10 +206,10 @@ var authorFirstLetterCustomColumn = {
   getCellText: function(row, col) {
     let folder = this.dbView.getFolderForViewIndex(row);
     let msgHdr = this.dbView.getMsgHdrAt(row);
-    return msgHdr.mime2DecodedAuthor.substr(0, 1).toUpperCase() || "?";
+    return msgHdr.mime2DecodedAuthor.charAt(0).toUpperCase() || "?";
   },
   getSortStringForRow: function(msgHdr) {
-    return msgHdr.mime2DecodedAuthor.substr(0, 1).toUpperCase() || "?";
+    return msgHdr.mime2DecodedAuthor.charAt(0).toUpperCase() || "?";
   },
   isString: function() {
     return true;

@@ -975,7 +975,7 @@ DBViewWrapper.prototype = {
       if (mailViewTag && mailViewTag != "0" && mailViewTag != "1") {
         // the tag gets stored with a ":" on the front, presumably done
         //  as a means of name-spacing that was never subsequently leveraged.
-        if (mailViewTag[0] == ":")
+        if (mailViewTag.startsWith(":"))
           mailViewTag = mailViewTag.substr(1);
         // (the true is so we don't persist)
         this.setMailView(MailViewConstants.kViewItemTags, mailViewTag, true);
