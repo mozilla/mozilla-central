@@ -399,8 +399,8 @@ function test_add_contact_from_context_menu() {
 function test_that_msg_without_date_clears_previous_headers() {
   be_in_folder(folder);
 
-  // create a message
-  let msg = create_message();
+  // create a message: with descritive subject
+  let msg = create_message({subject: "this is without date" });
 
   // ensure that this message doesn't have a Date header
   delete msg.headers.Date;
@@ -408,8 +408,9 @@ function test_that_msg_without_date_clears_previous_headers() {
   // this will add the message to the end of the folder
   add_message_to_folder(folder, msg);
 
-  // select and open the first message
-  let curMessage = select_click_row(0);
+  // Not the first anymore. The timestamp is that of "NOW".
+  // select and open the LAST message
+  let curMessage = select_click_row(-1);
 
   // make sure it loads
   wait_for_message_display_completion(mc);
@@ -421,7 +422,7 @@ function test_that_msg_without_date_clears_previous_headers() {
   // certain bugs in the display of this header could cause the collapse
   // never to have happened.
   if (mc.e("expandednewsgroupsRow").collapsed != true) {
-    throw new Error("Expected <row> elemnent for Newsgroups header to be " +
+    throw new Error("Expected <row> element for Newsgroups header to be " +
                     "collapsed, but it wasn't\n!");
   }
 }
@@ -432,13 +433,15 @@ function test_that_msg_without_date_clears_previous_headers() {
 function test_more_widget() {
   // generate message with 35 recips (effectively guarantees overflow for n=3)
   be_in_folder(folder);
-  let msg = create_message({toCount: 35});
+  let msg = create_message({toCount: 35,
+                            subject: "Many To addresses to test_more_widget" });
 
   // add the message to the end of the folder
   add_message_to_folder(folder, msg);
 
-  // select and open the last message
-  let curMessage = select_click_row(-1);
+ // select and open the injected message;
+ // It is at the second last message in the display list.
+ let curMessage = select_click_row(-2);
 
   // make sure it loads
   wait_for_message_display_completion(mc);
@@ -478,13 +481,15 @@ function test_more_widget() {
 function test_show_all_header_mode() {
   // generate message with 35 recips (effectively guarantees overflow for n=3)
   be_in_folder(folder);
-  let msg = create_message({toCount: 35});
+  let msg = create_message({toCount: 35,
+			    subject: "many To addresses for test_show_all_header_mode" });
 
   // add the message to the end of the folder
   add_message_to_folder(folder, msg);
 
-  // select and open the last message
-  let curMessage = select_click_row(-1);
+  // select and open the added message.
+  // It is at the second last position in the display list.
+  let curMessage = select_click_row(-2);
 
   // make sure it loads
   wait_for_message_display_completion(mc);
@@ -634,6 +639,7 @@ function test_more_widget_with_maxlines_of_3(){
     "mailnews.headers.show_n_lines_before_more", 3);
 
   // call test_more_widget again
+  // We need to look at the second last article in the display list.
   test_more_widget();
 }
 
@@ -1007,7 +1013,7 @@ if ("nsIAccessibleRole" in Ci) {
     be_in_folder(folder);
 
     // select and open the interesting message
-    
+
     let curMessage = select_click_row(mc.dbView.findIndexOfMsgHdr(
                                         gInterestingMessage, false));
 
