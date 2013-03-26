@@ -140,7 +140,7 @@ Elem.prototype.getInfo = function () { return 'Elem instance.'; };
 
 var Selector = function(_document, selector) {
   if (_document == undefined || selector == undefined) {
-    throw new Error('Selector constructor did not recieve enough arguments.');
+    throw new Error('Selector constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.selector = selector;
@@ -161,7 +161,7 @@ Selector.prototype.getNode = function (index) {
 
 var ID = function(_document, nodeID) {
   if (_document == undefined || nodeID == undefined) {
-    throw new Error('ID constructor did not recieve enough arguments.');
+    throw new Error('ID constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.nodeID = nodeID;
@@ -180,7 +180,7 @@ ID.prototype.getNode = function () {
 
 var Link = function(_document, linkName) {
   if (_document == undefined || linkName == undefined) {
-    throw new Error('Link constructor did not recieve enough arguments.');
+    throw new Error('Link constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.linkName = linkName;
@@ -233,7 +233,7 @@ Link.prototype.getNode = function () {
 
 var XPath = function(_document, expr) {
   if (_document == undefined || expr == undefined) {
-    throw new Error('XPath constructor did not recieve enough arguments.');
+    throw new Error('XPath constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.expr = expr;
@@ -269,7 +269,7 @@ XPath.prototype.getNode = function () {
 
 var Name = function(_document, nName) {
   if (_document == undefined || nName == undefined) {
-    throw new Error('Name constructor did not recieve enough arguments.');
+    throw new Error('Name constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.nName = nName;
@@ -295,7 +295,7 @@ Name.prototype.getNode = function () {
 
 function Lookup (_document, expression) {
   if (_document == undefined || expression == undefined) {
-    throw new Error('Lookup constructor did not recieve enough arguments.');
+    throw new Error('Lookup constructor did not receive enough arguments.');
   }
   this._view = _document.defaultView;
   this.expression = expression;

@@ -53,7 +53,7 @@
 /**
  * A MIME parser.
  *
- * The inputs to the constructor consist of a callback object which recieves
+ * The inputs to the constructor consist of a callback object which receives
  * information about the output data and an optional object containing the
  * settings for the parser.
  *

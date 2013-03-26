@@ -60,7 +60,7 @@ var taskEdit = {
     onFocus: function tE_onFocus(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
-            // For some reason, we only recieve an onfocus event for the textbox
+            // For some reason, we only receive an onfocus event for the textbox
             // when debugging with venkman.
             edit = edit.parentNode.parentNode;
         }
@@ -90,7 +90,7 @@ var taskEdit = {
     onBlur: function tE_onBlur(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
-            // For some reason, we only recieve the blur event for the input
+            // For some reason, we only receive the blur event for the input
             // element. There are no targets that point to the textbox. Go up
             // the parent chain until we reach the textbox.
             edit = edit.parentNode.parentNode;
