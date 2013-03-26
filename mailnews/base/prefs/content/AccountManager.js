@@ -1028,7 +1028,7 @@ function onPanelLoaded(pageId) {
   pendingPageId = null;
 }
 
-function loadPage(pageId)
+function pageURL(pageId)
 {
   let chromePackageName;
   try {
@@ -1041,8 +1041,14 @@ function loadPage(pageId)
   catch (ex) {
     chromePackageName = "messenger";
   }
+  return "chrome://" + chromePackageName + "/content/" + pageId;
+}
+
+function loadPage(pageId)
+{
   const LOAD_FLAGS_NONE = Components.interfaces.nsIWebNavigation.LOAD_FLAGS_NONE;
-  document.getElementById("contentFrame").webNavigation.loadURI("chrome://" + chromePackageName + "/content/" + pageId, LOAD_FLAGS_NONE, null, null, null);
+  document.getElementById("contentFrame").webNavigation.loadURI(pageURL(pageId),
+    LOAD_FLAGS_NONE, null, null, null);
 }
 
 // save the values of the widgets to the given server

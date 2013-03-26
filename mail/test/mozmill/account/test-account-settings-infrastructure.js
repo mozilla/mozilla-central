@@ -19,7 +19,7 @@ const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
 let elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
 
-let gPopAccount, gOriginalAccountCount;
+let gPopAccount, gImapAccount, gOriginalAccountCount;
 
 function setupModule(module) {
   collector.getModule("window-helpers").installInto(module);
@@ -31,23 +31,37 @@ function setupModule(module) {
 
   // Create a POP server
   let popServer = MailServices.accounts
-    .createIncomingServer("nobody", "example.com", "pop3")
+    .createIncomingServer("nobody", "pop.invalid", "pop3")
     .QueryInterface(Components.interfaces.nsIPop3IncomingServer);
 
   let identity = MailServices.accounts.createIdentity();
-  identity.email = "tinderbox@example.com";
+  identity.email = "tinderbox@pop.invalid";
 
   gPopAccount = MailServices.accounts.createAccount();
   gPopAccount.incomingServer = popServer;
   gPopAccount.addIdentity(identity);
 
+  // Create an IMAP server
+  let imapServer = MailServices.accounts
+    .createIncomingServer("nobody", "imap.invalid", "imap")
+    .QueryInterface(Components.interfaces.nsIImapIncomingServer);
+
+  identity = MailServices.accounts.createIdentity();
+  identity.email = "tinderbox@imap.invalid";
+
+  gImapAccount = MailServices.accounts.createAccount();
+  gImapAccount.incomingServer = imapServer;
+  gImapAccount.addIdentity(identity);
+
   // Now there should be one more account.
-  assert_equals(MailServices.accounts.allServers.length, gOriginalAccountCount + 1);
+  assert_equals(MailServices.accounts.allServers.length, gOriginalAccountCount + 2);
 }
 
 function teardownModule(module) {
-  // Remove our test account to leave the profile clean.
+  // Remove our test accounts to leave the profile clean.
   MailServices.accounts.removeAccount(gPopAccount);
+  MailServices.accounts.removeAccount(gImapAccount);
+
   // There should be only the original accounts left.
   assert_equals(MailServices.accounts.allServers.length, gOriginalAccountCount);
 }
@@ -295,4 +309,57 @@ function subtest_check_locked_prefs_server(amc)
   // Unlock the pref to clean up.
   Services.prefs.unlockPref(controlPref);
   Services.prefs.getDefaultBranch("").deleteBranch(controlPref);
+}
+
+/**
+ * Test for bug 804091.
+ * Check if onchange handlers are properly executed when panes are switched.
+ */
+function test_account_onchange_handler() {
+  open_advanced_settings(function(amc) {
+    subtest_check_onchange_handler(amc);
+  });
+}
+
+/**
+ * Check if onchange handlers are properly executed when panes are switched.
+ *
+ * @param amc  the account options controller
+ */
+function subtest_check_onchange_handler(amc)
+{
+  let accountRow = get_account_tree_row(gImapAccount.key, "am-offline.xul", amc);
+  click_account_tree_row(amc, accountRow);
+
+  let iframe = amc.e("contentFrame").contentDocument;
+
+  let autoSync = iframe.getElementById("autosyncValue");
+  // 30 is the default value so check if we are in clean state.
+  assert_equals(autoSync.value, 30);
+
+  let autoSyncInterval = iframe.getElementById("autosyncInterval");
+  // 1 is the default value and means the 30 is in days.
+  assert_equals(autoSyncInterval.value, 1);
+
+  // Now type in 35 (days).
+  amc.radio(new elib.ID(iframe, "useAutosync.ByAge"));
+  autoSync.select();
+  amc.type(new elib.Elem(autoSync), "35");
+
+  // Immediatelly switch to another pane and back.
+  accountRow = get_account_tree_row(gImapAccount.key, "am-junk.xul", amc);
+  click_account_tree_row(amc, accountRow);
+
+  accountRow = get_account_tree_row(gImapAccount.key, "am-offline.xul", amc);
+  click_account_tree_row(amc, accountRow);
+
+  iframe = amc.e("contentFrame").contentDocument;
+
+  // The pane optimized the entered value a bit. So now we should find 5.
+  autoSync = iframe.getElementById("autosyncValue");
+  assert_equals(autoSync.value, 5);
+
+  // And the unit is 7 days = week.
+  autoSyncInterval = iframe.getElementById("autosyncInterval");
+  assert_equals(autoSyncInterval.value, 7);
 }
