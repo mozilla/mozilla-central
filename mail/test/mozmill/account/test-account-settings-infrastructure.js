@@ -312,6 +312,49 @@ function subtest_check_locked_prefs_server(amc)
 }
 
 /**
+ * Bug 530142.
+ * Check that that if one field is set to a value, switching directly to another
+ * account pane showing the same field really loads the value from the new account,
+ * even when empty. This is tested on the Reply-To field.
+ */
+function test_replyTo_leak() {
+  open_advanced_settings(function(amc) {
+    subtest_check_replyTo_leak(amc);
+  });
+}
+
+/**
+ * @param amc  the account options controller
+ */
+function subtest_check_replyTo_leak(amc)
+{
+  let accountRow = get_account_tree_row(gPopAccount.key, null, amc);
+  click_account_tree_row(amc, accountRow);
+
+  let iframe = amc.window.document.getElementById("contentFrame");
+
+  // The Reply-To field should be empty.
+  let replyAddress = iframe.contentDocument.getElementById("identity.replyTo");
+  assert_equals(replyAddress.value, "");
+
+  // Now we set a value into it and switch to another account, the main pane.
+  replyAddress.value = "somewhere@else.com";
+
+  // This test expects the following POP account to exist by default
+  // in the test profile with port number 110 and no security.
+  let firstServer = MailServices.accounts
+                                .FindServer("tinderbox", "tinderbox", "pop3");
+  let firstAccount = MailServices.accounts.FindAccountForServer(firstServer);
+
+  accountRow = get_account_tree_row(firstAccount.key, null, amc);
+  click_account_tree_row(amc, accountRow);
+
+  // the Reply-To field should be empty as this account does not have it set.
+  replyAddress = iframe.contentDocument.getElementById("identity.replyTo");
+  assert_equals(replyAddress.value, "");
+}
+
+/**
  * Test for bug 804091.
  * Check if onchange handlers are properly executed when panes are switched.
  */
