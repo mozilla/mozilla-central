@@ -21,6 +21,9 @@
 <!ENTITY customizeMailAlert.label         "Customize…">
 <!ENTITY customizeMailAlert.accesskey     "C">
 
+<!ENTITY showTrayIcon.label               "Show a tray icon">
+<!ENTITY showTrayIcon.accesskey           "t">
+
 <!ENTITY play.label                       "Play">
 <!ENTITY play.accesskey                   "P">
 <!ENTITY systemsound.label                "Default system sound for new mail">
