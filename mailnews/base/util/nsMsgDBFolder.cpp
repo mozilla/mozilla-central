@@ -2555,12 +2555,9 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
   if (!userHasClassified)
     filterForJunk = false;
 
-  if (!mDatabase)
-  {
-    rv = GetDatabase();
-    NS_ENSURE_SUCCESS(rv, rv);
-    NS_ENSURE_TRUE(mDatabase, NS_ERROR_NOT_AVAILABLE);
-  }
+  nsCOMPtr<nsIMsgDatabase> database(mDatabase);
+  rv = GetMsgDatabase(getter_AddRefs(database));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // check if trait processing needed
 
@@ -2643,7 +2640,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
   //
   uint32_t numNewKeys;
   uint32_t *newKeys;
-  rv = mDatabase->GetNewList(&numNewKeys, &newKeys);
+  rv = database->GetNewList(&numNewKeys, &newKeys);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsTArray<nsMsgKey> newMessageKeys;
@@ -2665,10 +2662,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
   {
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     nsMsgKey msgKey = newMessageKeys[i];
-    NS_ASSERTION(mDatabase, "null database");
-    if (mDatabase)
-      rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
-    if (!mDatabase || !NS_SUCCEEDED(rv))
+    rv = database->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
+    if (!NS_SUCCEEDED(rv))
       continue;
     // per-message junk tests.
     bool filterMessageForJunk = false;
@@ -2687,8 +2682,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, bool *aFiltersRun)
 
         nsAutoCString msgJunkScore;
         msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
-        mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-        mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
+        database->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
+        database->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
         break; // skip this msg since it's in the white list
       }
       filterMessageForJunk = true;
