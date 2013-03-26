@@ -1517,7 +1517,7 @@ var Gloda = {
           return this;
         };
       }
-      else if (aAttrDef.canQuery || aAttrDef.attributeName[0] == "_") {
+      else if (aAttrDef.canQuery || aAttrDef.attributeName.startsWith("_")) {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
           for (let iArg = 0; iArg < arguments.length; iArg++) {
@@ -2026,7 +2026,7 @@ var Gloda = {
       // ignore keys that start with underscores, they are private and not
       //  persisted by our attribute mechanism.  (they are directly handled by
       //  the object implementation.)
-      if (key[0] == "_")
+      if (key.startsWith("_"))
         continue;
       // find the attribute definition that corresponds to this key
       let attrib = attribsByBoundName[key];
@@ -2157,7 +2157,7 @@ var Gloda = {
       // ignore keys that start with underscores, they are private and not
       //  persisted by our attribute mechanism.  (they are directly handled by
       //  the object implementation.)
-      if (key[0] == "_")
+      if (key.startsWith("_"))
         continue;
       // ignore things we saw in the new guy
       if (key in aItem)

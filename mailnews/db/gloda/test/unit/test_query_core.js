@@ -49,7 +49,7 @@ Widget.prototype = {
     clonus._iAmAClone = true;
 
     for each (let [key, value] in Iterator(this)) {
-      if (key[0] == "_")
+      if (key.startsWith("_"))
         continue;
       clonus[key] = value;
       if (key in this._indexStash) {
@@ -62,7 +62,7 @@ Widget.prototype = {
   _stash: function() {
     this._indexStash = {};
     for each (let [key, value] in Iterator(this)) {
-      if (key[0] == "_")
+      if (key[0].startsWith("_"))
         continue;
       this._indexStash[key] = value;
     }

@@ -225,7 +225,7 @@ GlodaMsgSearcher.prototype = {
     }
 
     while (aSearchString) {
-      if (aSearchString[0] == '"') {
+      if (aSearchString.startsWith('"')) {
         let endIndex = aSearchString.indexOf(aSearchString[0], 1);
         // eat the quote if it has no friend
         if (endIndex == -1) {

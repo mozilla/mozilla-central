@@ -497,7 +497,7 @@
         else
           labelFormat = glodaFacetStrings.get(
               "glodaFacetView.facets."+stringName+".fallbackLabel");
-        if (labelFormat.indexOf("#1") == -1)
+        if (!labelFormat.contains("#1"))
           return labelFormat;
         else
           return labelFormat.replace("#1", facetValue);
@@ -583,7 +583,7 @@
           let facetDef = facetNode.facetDef;
           let groupValue = barNode.groupValue;
           let variety = barNode.getAttribute("variety");
-          let label = barNode.getElementsByClassName("bar-link")[0].textContent;
+          let label = barNode.querySelector(".bar-link").textContent;
           this.build(facetDef, label, groupValue);
           this.node.setAttribute("selected", "true");
           var rtl = window.getComputedStyle(this, null).direction == "rtl";
@@ -1190,9 +1190,9 @@
 
           let node = event.originalTarget;
           while ((! (node && node.hasAttribute && node.hasAttribute("class"))) ||
-                 ((node.getAttribute("class").split(" ")[0] != "bar") &&
-                  (node.getAttribute("class").split(" ")[0] != "facet-more") &&
-                  (node.getAttribute("class").split(" ")[0] != "facet-content")))
+                 (!node.classList.contains("bar") &&
+                  !node.classList.contains("facet-more") &&
+                  !node.classList.contains("facet-content")))
             node = node.parentNode;
 
           if (! (node && node.hasAttribute && node.hasAttribute("class")))
@@ -1200,9 +1200,9 @@
 
           this.currentNode = node;
           node.setAttribute("selected", "true");
-          if (node.getAttribute("class").split(" ")[0] == "bar")
+          if (node.classList.contains("bar"))
             document.getElementById("popup-menu").show(event, this, node);
-          else if (node.getAttribute("class").split(" ")[0] == "facet-more")
+          else if (node.classList.contains("facet-more"))
             this.changeMode("all");
           return false;
         } catch (e) {
@@ -1217,11 +1217,11 @@
         <![CDATA[
         try {
           let node = event.originalTarget;
-          while ((! node.hasAttribute("class")) ||
-                 ((node.getAttribute("class").split(" ")[0] != "facet-more") &&
-                  (node.getAttribute("class").split(" ")[0] != "facet-content")))
+          while ((!node.hasAttribute("class")) ||
+                 (!node.classList.contains("facet-more") &&
+                  !node.classList.contains("facet-content")))
             node = node.parentNode;
-          if (node.getAttribute("class").split(" ")[0] == "facet-more")
+          if (node.classList.contains("facet-more"))
             this.changeMode("all");
           return false;
         } catch (e) {
@@ -1242,24 +1242,18 @@
     <handler event="mouseover"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
       // there are other ways we could accomplish this, but they all sorta suck.
-      let nodeClasses = event.originalTarget.getAttribute("class");
-      if (!nodeClasses)
-        return;
-
-      let nodeClass = nodeClasses.split(" ")[0];
-      if (nodeClass == "bar-link")
+      if (event.originalTarget.hasAttribute("class") &&
+          event.originalTarget.classList.contains("bar-link")) {
         this.barHovered(event.originalTarget.parentNode, true);
+      }
     ]]></handler>
     <handler event="mouseout"><![CDATA[
       // we dispatch based on the class of the thing we clicked on.
       // there are other ways we could accomplish this, but they all sorta suck.
-      let nodeClasses = event.originalTarget.getAttribute("class");
-      if (!nodeClasses)
-        return;
-
-      let nodeClass = nodeClasses.split(" ")[0];
-      if (nodeClass == "bar-link")
+      if (event.originalTarget.hasAttribute("class") &&
+          event.originalTarget.classList.contains("bar-link")) {
         this.barHoverGone(event.originalTarget.parentNode, true);
+      }
     ]]></handler>
   </handlers>
 </binding>
@@ -1723,7 +1717,7 @@
           else
             snippet = bodyText;
           if (ellipses)
-            snippet = snippet.replace(/\s+$/, '') + ellipses;
+            snippet = snippet.trimRight() + ellipses;
 
           let parent = anonElem("snippet");
           let node = document.createTextNode(snippet);

@@ -141,7 +141,7 @@ MimeMessageEmitter.prototype = {
     }
     // this is going to fall-down with TNEF encapsulation and such, we really
     //  need to just be consuming the object model.
-    else if (contentTypeNoParams.indexOf("multipart/") == 0) {
+    else if (contentTypeNoParams.startsWith("multipart/")) {
       this._curPart = new this._mimeMsg.MimeContainer(contentTypeNoParams);
       this._writeBody = false;
     }

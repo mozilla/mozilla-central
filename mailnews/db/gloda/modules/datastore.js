@@ -3479,7 +3479,7 @@ var GlodaDatastore = {
     if (aQuery._order.length) {
       let orderClauses = [];
       for (let [, colName] in Iterator(aQuery._order)) {
-         if (colName[0] == "-")
+         if (colName.startsWith("-"))
            orderClauses.push(colName.substring(1) + " DESC");
          else
            orderClauses.push(colName + " ASC");

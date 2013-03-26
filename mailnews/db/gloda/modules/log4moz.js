@@ -93,7 +93,7 @@ let Log4Moz = {
         let consoleLevelString = branch.getCharPref("console");
         if (consoleLevelString) {
           // capitalize to fit with Log4Moz.Level expectations
-          consoleLevelString =  consoleLevelString.charAt(0).toUpperCase() +
+          consoleLevelString = consoleLevelString.charAt(0).toUpperCase() +
              consoleLevelString.substr(1).toLowerCase();
           consoleLevel = (consoleLevelString == 'None') ?
                           100 : Log4Moz.Level[consoleLevelString];
@@ -105,7 +105,7 @@ let Log4Moz = {
         let dumpLevelString = branch.getCharPref("dump");
         if (dumpLevelString) {
           // capitalize to fit with Log4Moz.Level expectations
-          dumpLevelString =  dumpLevelString.charAt(0).toUpperCase() +
+          dumpLevelString = dumpLevelString.charAt(0).toUpperCase() +
              dumpLevelString.substr(1).toLowerCase();
           dumpLevel = (dumpLevelString == 'None') ?
                        100 : Log4Moz.Level[dumpLevelString];

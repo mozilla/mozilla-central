@@ -473,7 +473,7 @@ var FacetContext = {
           explicitBinding.orderedGroups = faceter.orderedGroups;
           // explicit booleans should always be displayed for consistency
           if (faceter.groupCount >= 1 ||
-              (explicitBinding.getAttribute("type").indexOf("boolean") != -1)) {
+              (explicitBinding.getAttribute("type").contains("boolean"))) {
             try {
               explicitBinding.build(true);
             } catch (e) {

@@ -560,7 +560,7 @@ DateFaceter.prototype = {
   _unionMonth: function(aMonthObj) {
     let dayItemLists = [];
     for each (let [key, dayItemList] in Iterator(aMonthObj)) {
-      if (typeof(key) == "string" && key[0] == '_')
+      if (typeof(key) == "string" && key.startsWith('_'))
         continue;
       dayItemLists.push(dayItemList);
     }
@@ -570,7 +570,7 @@ DateFaceter.prototype = {
   _unionYear: function(aYearObj) {
     let monthItemLists = [];
     for each (let [key, monthObj] in Iterator(aYearObj)) {
-      if (typeof(key) == "string" && key[0] == '_')
+      if (typeof(key) == "string" && key.startsWith('_'))
         continue;
       monthItemLists.push(this._unionMonth(monthObj));
     }

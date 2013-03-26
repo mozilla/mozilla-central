@@ -545,7 +545,7 @@ var GlodaFundAttr = {
         // We also want to avoid dealing with obviously bogus mime types.
         //  (If you don't have a "/", you are probably bogus.)
         if (attachment.isRealAttachment &&
-            (attachment.contentType.indexOf("/") != -1)) {
+            attachment.contentType.contains("/")) {
           attachmentTypes.push(MimeTypeNoun.getMimeType(attachment.contentType));
         }
         if (attachment.isRealAttachment)
@@ -844,13 +844,14 @@ var GlodaFundAttr = {
       if (!line || (line == "\xa0")) /* unicode non breaking space */
         continue;
 
-      if (line[0] == ">") {
+      if (line.startsWith(">")) {
         if (!inQuoteDepth) {
           let rangeEnd = iLine - 1;
           let quoteRangeStart = iLine;
           // see if the last non-blank-line was a lead-in...
           if (lastNonBlankLine != null) {
-            if (aBodyLines[lastNonBlankLine].indexOf("wrote") >= 0) {
+            // TODO: localize quote range start detection
+            if (aBodyLines[lastNonBlankLine].contains("wrote")) {
               quoteRangeStart = lastNonBlankLine;
               rangeEnd = lastNonBlankLine - 1;
               // we 'used up' lastNonBlankLine, let's promote the prev guy to
