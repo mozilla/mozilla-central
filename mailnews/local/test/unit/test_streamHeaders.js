@@ -59,7 +59,7 @@ function goodStreaming()
     function theString(k) {
       dump('the string:\n' + k + '\n');
       // The message contains this header
-      do_check_true(k.indexOf("X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0") > 0);
+      do_check_true(k.contains("X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0"));
       async_driver();
     }), null, true);
   yield false;

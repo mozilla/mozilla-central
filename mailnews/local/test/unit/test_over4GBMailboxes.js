@@ -27,7 +27,7 @@ var gLocalInboxSize;
 // See hardcoded value in nsMsgBrkMBoxStore::HasSpaceAvailable().
 function alert(aDialogTitle, aText) {
   // See "/*/locales/en-US/chrome/*/messenger.properties > mailboxTooLarge".
-  do_check_eq(aText.indexOf("The folder Inbox is full, and can't hold any more messages."), 0);
+  do_check_true(aText.startsWith("The folder Inbox is full, and can't hold any more messages."));
   gGotAlert = true;
 }
 

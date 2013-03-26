@@ -45,9 +45,7 @@ function continueTest()
 
 function createExpectedTemporaryFiles(numFiles) {
   function createTemporaryFile() {
-    let file = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIProperties)
-                 .get("TmpD", Ci.nsIFile);
+    let file = Services.dirsvc.get("TmpD", Ci.nsIFile);
     file.append("newmsg");
     file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
     return file;

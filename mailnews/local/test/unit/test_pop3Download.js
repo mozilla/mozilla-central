@@ -65,7 +65,7 @@ gStreamListener = {
   },
   onStopRequest : function (aRequest, aContext, aStatusCode) {
     // check that the streamed message starts with "From "
-    do_check_eq(this._data.indexOf("From "), 0);
+    do_check_true(this._data.startsWith("From "));
     if (++gHdrIndex == gFiles.length)
       do_test_finished();
     else

@@ -110,9 +110,7 @@ function do_check_transaction(real, expected) {
 }
 
 function create_temporary_directory() {
-  let directory = Cc["@mozilla.org/file/directory_service;1"]
-    .getService(Ci.nsIProperties)
-    .get("TmpD", Ci.nsIFile);
+  let directory = Services.dirsvc.get("TmpD", Ci.nsIFile);
   directory.append("mailFolder");
   directory.createUnique(Ci.nsIFile.DIRECTORY_TYPE, 0700);
   return directory;

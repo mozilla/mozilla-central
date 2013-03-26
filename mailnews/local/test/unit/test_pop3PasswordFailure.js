@@ -9,6 +9,7 @@
  *     we get a new password prompt and can enter the password.
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/alertTestUtils.js");
@@ -120,11 +121,9 @@ function actually_run_test() {
 
   // Check that we haven't forgetton the login even though we've retried and
   // canceled.
-  let loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
   let count = {};
-  let logins = loginMgr.findLogins(count, "mailbox://localhost", null,
-                                   "mailbox://localhost");
+  let logins = Services.logins.findLogins(count, "mailbox://localhost", null,
+                                          "mailbox://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);
@@ -140,8 +139,8 @@ function actually_run_test() {
   dump("\nGot Mail 2\n");
 
   // Now check the new one has been saved.
-  logins = loginMgr.findLogins(count, "mailbox://localhost", null,
-                               "mailbox://localhost");
+  logins = Services.logins.findLogins(count, "mailbox://localhost", null,
+                                      "mailbox://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);

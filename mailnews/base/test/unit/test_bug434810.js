@@ -4,15 +4,15 @@
  
 // Test of setup of localMailFolders
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 function run_test()
 {
   loadLocalMailAccount();
 
   var rootFolder = gLocalIncomingServer.rootFolder;
 
-  var strBundleService = Cc["@mozilla.org/intl/stringbundle;1"]
-                           .getService(Ci.nsIStringBundleService);
-  var msgProps = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
+  var msgProps = Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
 
   var expectedFolders = [ "Inbox" ]; // Inbox hard-coded in mailTestUtils.js
 

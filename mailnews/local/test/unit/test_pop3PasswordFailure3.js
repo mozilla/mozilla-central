@@ -24,7 +24,6 @@ var server;
 var daemon;
 var incomingServer;
 var attempt = 0;
-var loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
 var count = {};
 var logins;
 
@@ -136,8 +135,8 @@ function getMail1() {
 
   // Check that we haven't forgetton the login even though we've retried and
   // canceled.
-  logins = loginMgr.findLogins(count, "mailbox://localhost", null,
-                                   "mailbox://localhost");
+  logins = Services.logins.findLogins(count, "mailbox://localhost", null,
+                                      "mailbox://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);
@@ -158,8 +157,8 @@ function getMail2() {
 
 function endTest() {
   // Now check the new one has been saved.
-  logins = loginMgr.findLogins(count, "mailbox://localhost", null,
-                               "mailbox://localhost");
+  logins = Services.logins.findLogins(count, "mailbox://localhost", null,
+                                      "mailbox://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);

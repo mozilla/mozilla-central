@@ -4,9 +4,7 @@
 
 const MSG_LINEBREAK = "\r\n";
 const dot = do_get_file("data/dot");
-let saveFile = Cc["@mozilla.org/file/directory_service;1"]
-               .getService(Ci.nsIProperties)
-               .get("TmpD", Ci.nsIFile);
+let saveFile = Services.dirsvc.get("TmpD", Ci.nsIFile);
 saveFile.append(dot.leafName + ".eml");
 saveFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
 
