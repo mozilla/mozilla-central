@@ -515,7 +515,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
   if (NS_FAILED(rv)) return rv;
   rv = mEncryptionCinfo->CreateEncrypted(mCerts);
   if (NS_FAILED(rv)) {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotEncrypt").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorEncryptMail").get());
     goto FAIL;
   }
 
@@ -532,7 +532,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
 
   rv = mEncryptionContext->Start(mEncryptionCinfo, mime_crypto_write_base64, mCryptoEncoder);
   if (NS_FAILED(rv)) {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotEncrypt").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorEncryptMail").get());
     goto FAIL;
   }
 
@@ -634,7 +634,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
 
   rv = cinfo->CreateSigned(mSelfSigningCert, mSelfEncryptionCert, (unsigned char*)hashString.get(), hashString.Length());
   if (NS_FAILED(rv))  {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSign").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSignMail").get());
     goto FAIL;
   }
 
@@ -648,14 +648,14 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
   PR_SetError(0,0);
   rv = encoder->Start(cinfo, mime_crypto_write_base64, mSigEncoder);
   if (NS_FAILED(rv)) {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSign").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSignMail").get());
     goto FAIL;
   }
 
   // We're not passing in any data, so no update needed.
   rv = encoder->Finish();
   if (NS_FAILED(rv)) {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSign").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotSignMail").get());
     goto FAIL;
   }
 
@@ -729,7 +729,7 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (bool aSign, nsIMsgSendReport 
   
   rv = mEncryptionContext->Finish();
   if (NS_FAILED(rv)) {
-    SetError(sendReport, NS_LITERAL_STRING("ErrorCanNotEncrypt").get());
+    SetError(sendReport, NS_LITERAL_STRING("ErrorEncryptMail").get());
     goto FAIL;
   }
 
