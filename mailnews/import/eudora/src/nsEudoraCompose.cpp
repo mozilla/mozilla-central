@@ -659,8 +659,7 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
                         s_pIdentity,                  // dummy identity
                         m_pMsgFields,                 // message fields
                         pMimeType,                    // body type
-                        body.get(),                   // body pointer
-                        body.Length(),                // body length
+                        body,                         // body pointer
                         createAsDraft,
                         pAttach,                      // local attachments
                         embeddedObjects,

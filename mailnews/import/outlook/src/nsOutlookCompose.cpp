@@ -324,8 +324,7 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
                         m_pIdentity,                  // dummy identity
                         m_pMsgFields,                 // message fields
                         msg.BodyIsHtml() ? "text/html" : "text/plain",
-                        bodyA.get(),                  // body pointer
-                        bodyA.Length(),               // body length
+                        bodyA,                        // body pointer
                         mode == nsIMsgSend::nsMsgSaveAsDraft,
                         pAttach,                      // local attachments
                         embeddedObjects,

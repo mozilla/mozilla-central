@@ -292,8 +292,7 @@ public:
   nsProxySendRunnable(nsIMsgIdentity *aIdentity,
                        nsIMsgCompFields *aMsgFields,
                        const char *attachment1_type,
-                       const char *attachment1_body,
-                       uint32_t attachment1_body_length,
+                       const nsACString &attachment1_body,
                        bool aIsDraft,
                        nsIArray *aLoadedAttachments,
                        nsISupportsArray *aEmbeddedAttachments,
@@ -305,7 +304,6 @@ private:
   bool m_isDraft;
   nsCString m_bodyType;
   nsCString m_body;
-  uint32_t m_bodyLength;
   nsCOMPtr<nsIArray> m_loadedAttachments;
   nsCOMPtr<nsISupportsArray> m_embeddedAttachments;
   nsCOMPtr<nsIMsgSendListener> m_listener;
@@ -315,15 +313,14 @@ private:
 nsProxySendRunnable::nsProxySendRunnable(nsIMsgIdentity *aIdentity,
                                          nsIMsgCompFields *aMsgFields,
                                          const char *aBodyType,
-                                         const char *aBody,
-                                         uint32_t aBodyLength,
+                                         const nsACString &aBody,
                                          bool aIsDraft,
                                          nsIArray *aLoadedAttachments,
                                          nsISupportsArray *aEmbeddedAttachments,
                                          nsIMsgSendListener *aListener) :
   m_identity(aIdentity), m_compFields(aMsgFields),
   m_isDraft(aIsDraft), m_bodyType(aBodyType),
-  m_body(aBody), m_bodyLength(aBodyLength), m_loadedAttachments(aLoadedAttachments),
+  m_body(aBody), m_loadedAttachments(aLoadedAttachments),
   m_embeddedAttachments(aEmbeddedAttachments),
   m_listener(aListener)
 {
@@ -336,8 +333,8 @@ NS_IMETHODIMP nsProxySendRunnable::Run()
   NS_ENSURE_SUCCESS(rv, rv);
 
   return msgSend->CreateRFC822Message(m_identity, m_compFields,
-                                      m_bodyType.get(), m_body.get(),
-                                      m_bodyLength, m_isDraft, m_loadedAttachments,
+                                      m_bodyType.get(), m_body,
+                                      m_isDraft, m_loadedAttachments,
                                       m_embeddedAttachments,
                                       m_listener);
 }
@@ -347,8 +344,7 @@ NS_IMETHODIMP
 nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
                                      nsIMsgCompFields *aMsgFields,
                                      const char *aBodyType,
-                                     const char *aBody,
-                                     uint32_t aBodyLength,
+                                     const nsACString &aBody,
                                      bool aIsDraft,
                                      nsIArray *aLoadedAttachments,
                                      nsISupportsArray *aEmbeddedAttachments,
@@ -359,7 +355,6 @@ nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
                               aMsgFields,
                               aBodyType,
                               aBody,
-                              aBodyLength,
                               aIsDraft,
                               aLoadedAttachments,
                               aEmbeddedAttachments,

@@ -1684,8 +1684,7 @@ nsMsgComposeAndSend::GetBodyFromEditor()
   else
     mOriginalHTMLBody = (char *)origHTMLBody; // Whoa, origHTMLBody is declared as a PRUnichar *, what's going on here?
 
-  rv = SnarfAndCopyBody(attachment1_body.get(), attachment1_body.Length(),
-                        attachment1_type);
+  rv = SnarfAndCopyBody(attachment1_body, attachment1_type);
 
   return rv;
 }
@@ -1701,13 +1700,15 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 
 // EnsureLineBreaks() will set m_attachment1_body and m_attachment1_body_length
 nsresult
-nsMsgComposeAndSend::EnsureLineBreaks(const char *body, uint32_t bodyLen)
+nsMsgComposeAndSend::EnsureLineBreaks(const nsCString &aBody)
 {
-  NS_ENSURE_ARG_POINTER(body);
+  const char *body = aBody.get();
+  uint32_t bodyLen = aBody.Length();
 
   uint32_t i;
   uint32_t charsSinceLineBreak = 0;
   uint32_t lastPos = 0;
+
 
   char *newBody = nullptr;
   char *newBodyPos = nullptr;
@@ -3171,30 +3172,22 @@ nsMsgComposeAndSend::AddXForwardedMessageIdHeader() {
 }
 
 nsresult
-nsMsgComposeAndSend::SnarfAndCopyBody(const char  *attachment1_body,
-                                      uint32_t    attachment1_body_length,
+nsMsgComposeAndSend::SnarfAndCopyBody(const nsACString &attachment1_body,
                                       const char  *attachment1_type)
 {
   //
   // If we are here, then just process the body from what was
-  // passed in the attachment_1_body field.
+  // passed in the attachment1_body field.
   //
-  // Strip whitespace from beginning and end of body.
-  if (attachment1_body)
-  {
-    // strip out whitespaces from the end of body ONLY.
-    while (attachment1_body_length > 0 &&
-      (attachment1_body[attachment1_body_length - 1] == ' ') )
-    {
-      attachment1_body_length--;
-    }
+  // strip out whitespaces from the end of body ONLY.
+  nsAutoCString body(attachment1_body);
+  body.Trim(" ", false, true);
 
-    if (attachment1_body_length > 0)
-    {
-     // will set m_attachment1_body and m_attachment1_body_length
-     nsresult rv = EnsureLineBreaks(attachment1_body, attachment1_body_length);
-     NS_ENSURE_SUCCESS(rv,rv);
-    }
+  if (body.Length() > 0)
+  {
+    // will set m_attachment1_body and m_attachment1_body_length
+    nsresult rv = EnsureLineBreaks(body);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   PR_FREEIF(m_attachment1_type);
@@ -3215,8 +3208,7 @@ nsMsgComposeAndSend::Init(
               nsMsgDeliverMode mode,
               nsIMsgDBHdr *msgToReplace,
               const char *attachment1_type,
-              const char *attachment1_body,
-              uint32_t attachment1_body_length,
+              const nsACString &attachment1_body,
               nsIArray *attachments,
               nsIArray *preloaded_attachments,
               const char *password,
@@ -3335,7 +3327,7 @@ nsMsgComposeAndSend::Init(
   //
   if (!mEditor)
   {
-    SnarfAndCopyBody(attachment1_body, attachment1_body_length, attachment1_type);
+    SnarfAndCopyBody(attachment1_body, attachment1_type);
   }
   else if (GetMultipartRelatedCount() == 0) // Only do this if there are not embedded objects
   {
@@ -4096,9 +4088,9 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
    themselves messages, and so we should generate a multipart/digest
    container instead of multipart/mixed.  (It's a minor difference.)
 
-   The full text of the first attachment is provided via `attachment1_type',
-   `attachment1_body' and `attachment1_body_length'.  These may all be 0
-   if all attachments are provided externally.
+   The full text of the first attachment is provided via `attachment1_type'
+   and `attachment1_body'. These may all be 0 if all attachments are
+   provided externally.
 
    Subsequent attachments are provided as URLs to load, described in the
    nsMsgAttachmentData structures.
@@ -4127,8 +4119,7 @@ nsMsgComposeAndSend::CreateAndSendMessage(
               nsMsgDeliverMode                  mode,
               nsIMsgDBHdr                       *msgToReplace,
               const char                        *attachment1_type,
-              const char                        *attachment1_body,
-              uint32_t attachment1_body_length,
+              const nsACString                  &attachment1_body,
               nsIArray *attachments,
               nsIArray *preloaded_attachments,
               nsIDOMWindow                      *parentWindow,
@@ -4148,12 +4139,6 @@ nsMsgComposeAndSend::CreateAndSendMessage(
   mSendProgress = progress;
   mListener = aListener;
 
-  if (!attachment1_body || !*attachment1_body)
-  {
-    attachment1_body_length = 0;
-    attachment1_body = (char *) nullptr;
-  }
-
   // Set the editor for MHTML operations if necessary
   if (aEditor)
     mEditor = aEditor;
@@ -4161,7 +4146,6 @@ nsMsgComposeAndSend::CreateAndSendMessage(
   rv = Init(aUserIdentity, aAccountKey, (nsMsgCompFields *)fields, nullptr,
           digest_p, dont_deliver_p, mode, msgToReplace,
           attachment1_type, attachment1_body,
-          attachment1_body_length,
           attachments, preloaded_attachments,
           password, aOriginalMsgURI, aType);
 
@@ -4176,8 +4160,7 @@ nsMsgComposeAndSend::CreateRFC822Message(
               nsIMsgIdentity *aUserIdentity,
               nsIMsgCompFields *aFields,
               const char *aMsgType,
-              const char *aMsgBody,
-              uint32_t aMsgBodyLength,
+              const nsACString &aMsgBody,
               bool aIsDraft,
               nsIArray *aAttachments,
               nsISupportsArray *aEmbeddedObjects,
@@ -4197,16 +4180,10 @@ nsMsgComposeAndSend::CreateRFC822Message(
   mListener = aListener;
   mEmbeddedObjectList = aEmbeddedObjects;
 
-  if (!aMsgBody || !*aMsgBody)
-  {
-    aMsgBodyLength = 0;
-    aMsgBody = (char *) nullptr;
-  }
-
   rv = Init(aUserIdentity, nullptr, (nsMsgCompFields *)aFields, nullptr,
             false, true, mode, nullptr,
-            aMsgType, aMsgBody,
-            aMsgBodyLength,
+            aMsgType,
+            aMsgBody,
             nullptr, aAttachments,
             nullptr, EmptyCString(), nsIMsgCompType::New);
 
@@ -4260,7 +4237,7 @@ nsMsgComposeAndSend::SendMessageFile(
 
   rv = Init(aUserIndentity, aAccountKey, (nsMsgCompFields *)fields, sendIFile,
             digest_p, false, mode, msgToReplace,
-            nullptr, nullptr, 0,
+            nullptr, EmptyCString(),
             nullptr, nullptr,
             password, EmptyCString(), nsIMsgCompType::New);
 

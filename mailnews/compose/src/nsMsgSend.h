@@ -215,8 +215,7 @@ public:
                    nsMsgDeliverMode mode,
                    nsIMsgDBHdr      *msgToReplace,
                    const char       *attachment1_type,
-                   const char       *attachment1_body,
-                   uint32_t         attachment1_body_length,
+                   const nsACString &attachment1_body,
                    nsIArray   *attachments,
                    nsIArray     *preloaded_attachments,
                    const char       *password,
@@ -250,8 +249,7 @@ public:
   nsCOMPtr<nsISupportsArray> mEmbeddedObjectList; // it's initialized when calling GetMultipartRelatedCount
 
   // Body processing
-  nsresult    SnarfAndCopyBody(const char  *attachment1_body,
-                               uint32_t    attachment1_body_length,
+  nsresult    SnarfAndCopyBody(const nsACString &attachment1_body,
                                const char  *attachment1_type);
 
   int32_t     PreProcessPart(nsMsgAttachmentHandler  *ma,
@@ -371,7 +369,7 @@ protected:
   nsresult GetNotificationCallbacks(nsIInterfaceRequestor** aCallbacks);
 private:
   // will set m_attachment1_body & m_attachment1_body_length;
-  nsresult EnsureLineBreaks(const char *body, uint32_t body_len);
+  nsresult EnsureLineBreaks(const nsCString &aBody);
 
   // generates a message id for our message, if necessary
   void GenerateMessageId( );

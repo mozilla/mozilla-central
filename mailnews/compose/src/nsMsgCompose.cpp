@@ -1065,22 +1065,21 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
     mMsgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID);
     if (mMsgSend)
     {
-      bool        newBody = false;
-      char        *bodyString = (char *)m_compFields->GetBody();
-      int32_t     bodyLength;
+      nsCString bodyString(m_compFields->GetBody());
       const char  attachment1_type[] = TEXT_HTML;  // we better be "text/html" at this point
 
       if (!entityConversionDone)
       {
         // Convert body to mail charset
-        char      *outCString;
+        nsAutoCString outCString;
 
-        if (  bodyString && *bodyString )
+        if (!bodyString.IsEmpty())
         {
           // Apply entity conversion then convert to a mail charset.
           bool isAsciiOnly;
           rv = nsMsgI18NSaveAsCharset(attachment1_type, m_compFields->GetCharacterSet(),
-                                      NS_ConvertUTF8toUTF16(bodyString).get(), &outCString,
+                                      NS_ConvertUTF8toUTF16(bodyString).get(),
+                                      getter_Copies(outCString),
                                       nullptr, &isAsciiOnly);
           if (NS_SUCCEEDED(rv))
           {
@@ -1089,12 +1088,9 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
 
             m_compFields->SetBodyIsAsciiOnly(isAsciiOnly);
             bodyString = outCString;
-            newBody = true;
           }
         }
       }
-
-      bodyLength = PL_strlen(bodyString);
 
       // Create the listener for the send operation...
       nsCOMPtr<nsIMsgComposeSendListener> composeSendListener = do_CreateInstance(NS_MSGCOMPOSESENDLISTENER_CONTRACTID);
@@ -1128,25 +1124,20 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
                     identity,
                     accountKey,
                     m_compFields,
-                    false,                           // bool                              digest_p,
-                    false,                           // bool                              dont_deliver_p,
-                    (nsMsgDeliverMode)deliverMode,      // nsMsgDeliverMode                  mode,
-                    nullptr,                             // nsIMsgDBHdr                       *msgToReplace,
-                    m_composeHTML?TEXT_HTML:TEXT_PLAIN, // const char                        *attachment1_type,
-                    bodyString,                         // const char                        *attachment1_body,
-                    bodyLength,                         // uint32_t                          attachment1_body_length,
-                    nullptr,                             // nsIArray  *attachments,
-                    nullptr,                             // nsIArray preloaded_attachments,
-                    m_window,                           // nsIDOMWindow                      *parentWindow;
-                    mProgress,                          // nsIMsgProgress                    *progress,
-                    sendListener,                       // listener
+                    false,
+                    false,
+                    (nsMsgDeliverMode)deliverMode,
+                    nullptr,
+                    m_composeHTML ? TEXT_HTML : TEXT_PLAIN,
+                    bodyString,
+                    nullptr,
+                    nullptr,
+                    m_window,
+                    mProgress,
+                    sendListener,
                     mSmtpPassword.get(),
                     mOriginalMsgURI,
                     mType);
-
-      // Cleanup converted body...
-      if (newBody)
-        PR_FREEIF(bodyString);
     }
     else
         rv = NS_ERROR_FAILURE;

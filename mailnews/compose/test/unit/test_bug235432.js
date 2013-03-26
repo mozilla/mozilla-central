@@ -143,7 +143,6 @@ function send_message_later(aMessageHeaderKeys, aStatus) {
                                null,
                                'text/plain',
                                'bodyText\n',
-                               9,
                                null,
                                null,
                                null,
