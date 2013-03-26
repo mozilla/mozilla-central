@@ -83,7 +83,7 @@ function startMime()
     let url = aMimeMessage.allUserAttachments[0].url;
     // A URL containing this string indicates that the attachment will be
     // downloaded on demand.
-    do_check_true(url.indexOf("/;section=") >= 0);
+    do_check_true(url.contains("/;section="));
     async_driver();
   }, true /* allowDownload */, { partsOnDemand: true });
   yield false;

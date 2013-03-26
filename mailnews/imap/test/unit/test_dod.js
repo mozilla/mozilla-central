@@ -58,7 +58,7 @@ function streamMessages() {
     let file = msgFiles.getNext();
     let msgfileuri =
       Services.io.newFileURI(file).QueryInterface(Ci.nsIFileURL);
-    if (/^bodystructure/i.test(msgfileuri.fileName)) {
+    if (msgfileuri.fileName.toLowerCase().startsWith("bodystructure")) {
       inbox.addMessage(new imapMessage(msgfileuri.spec, inbox.uidnext++, []));
       fileNames.push(msgfileuri.fileName);
     }
@@ -71,11 +71,11 @@ function streamMessages() {
     // 0 orig html 3 sanitized 1 plain text
     Services.prefs.setIntPref ("mailnews.display.html_as", isPlain ? 1 : 0);
     Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", isPlain);
-    let markerRe;
+    let marker;
     if (isPlain)
-      markerRe = /thisplaintextneedstodisplaytopasstest/;
+      marker = "thisplaintextneedstodisplaytopasstest";
     else
-      markerRe = /thishtmltextneedstodisplaytopasstest/;
+      marker = "thishtmltextneedstodisplaytopasstest";
 
     for (let i = 1; i < inbox.uidnext ; i++) {
       let uri = {};
@@ -91,7 +91,7 @@ function streamMessages() {
            "##########\nTesting--->" + fileNames[i-1] +
            "; 'prefer plain text': " + isPlain + "\n");
       try {
-        do_check_true(markerRe.test(buf));
+        do_check_true(buf.contains(marker));
       }
       catch(e){}
     }

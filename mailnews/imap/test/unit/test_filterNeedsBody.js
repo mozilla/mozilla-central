@@ -93,8 +93,8 @@ actionTestOffline =
     for (var i = 0; i < aMsgHdrs.length; i++)
     {
       var msgHdr = aMsgHdrs.queryElementAt(i, Ci.nsIMsgDBHdr);
-      let isOffline = msgHdr.flags & Ci.nsMsgMessageFlags.Offline ? true : false;
-      do_check_eq(isOffline, aActionValue == 'true' ? true : false);
+      let isOffline = msgHdr.flags & Ci.nsMsgMessageFlags.Offline;
+      do_check_eq(isOffline, aActionValue == 'true');
     }
   },
   isValidForType: function(type, scope) {return true;},

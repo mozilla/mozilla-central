@@ -85,7 +85,7 @@ var tests = [
   function checkTagSet() {
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
     let keywords = msgHdr.getStringProperty("keywords");
-    do_check_true(keywords.indexOf("randomtag") != -1);
+    do_check_true(keywords.contains("randomtag"));
     gSecondFolder.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
@@ -97,7 +97,7 @@ var tests = [
   function checkTagCleared() {
     let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
     let keywords = msgHdr.getStringProperty("keywords");
-    do_check_eq(keywords.indexOf("randomtag"), -1);
+    do_check_false(keywords.contains("randomtag"));
   },
   teardown
 ];

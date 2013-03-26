@@ -25,7 +25,7 @@ var gGotAlert = false;
 var gGotMsgAdded = false;
 
 function alert(aDialogTitle, aText) {
-  do_check_eq(aText.indexOf("Connection to server Mail for  timed out."), 0);
+  do_check_true(aText.startsWith("Connection to server Mail for  timed out."));
   gGotAlert = true;
   async_driver();
 }

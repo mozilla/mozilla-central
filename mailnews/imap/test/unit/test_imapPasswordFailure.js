@@ -9,6 +9,7 @@
  *     we get a new password prompt and can enter the password.
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/alertTestUtils.js");
@@ -107,11 +108,10 @@ function run_test() {
 
   // Check that we haven't forgetton the login even though we've retried and
   // canceled.
-  let loginMgr = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
 
   let count = {};
-  let logins = loginMgr.findLogins(count, "imap://localhost", null,
-                                   "imap://localhost");
+  let logins = Services.logins.findLogins(count, "imap://localhost", null,
+                                          "imap://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);
@@ -130,8 +130,8 @@ function run_test() {
   do_check_true(rootFolder.containsChildNamed("Subscribed"));
 
   // Now check the new one has been saved.
-  logins = loginMgr.findLogins(count, "imap://localhost", null,
-                               "imap://localhost");
+  logins = Services.logins.findLogins(count, "imap://localhost", null,
+                                      "imap://localhost");
 
   do_check_eq(count.value, 1);
   do_check_eq(logins[0].username, kUserName);

@@ -177,7 +177,7 @@ var tests = [
       msgServ.streamHeaders(msgURI, streamListener, asyncUrlListener,true);
       yield false;
       dump('\nheaders for messageId ' + msgId + '\n' + streamListener._data + '\n\n');
-      do_check_true(streamListener._data.indexOf(msgId) != -1);
+      do_check_true(streamListener._data.contains(msgId));
     }
   },
   teardown

@@ -41,9 +41,7 @@ function setup() {
    * files). If we pass the test, we'll remove the file afterwards
    * (cf. UrlListener), otherwise it's kept in IMapMD.
    */
-  gSavedMsgFile = Cc["@mozilla.org/file/directory_service;1"]
-                  .getService(Ci.nsIProperties)
-                  .get("IMapMD", Ci.nsILocalFile);
+  gSavedMsgFile = Services.dirsvc.get("IMapMD", Ci.nsIFile);
   gSavedMsgFile.append(gFileName + ".eml");
 
   /*

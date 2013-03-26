@@ -111,7 +111,7 @@ function testDetach()
   let msgHdr = gIMAPInbox.GetMessageHeader(2);
   do_check_neq(msgHdr, null);
   let messageContent = getContentFromMessage(msgHdr);
-  do_check_true(messageContent.indexOf("AttachmentDetached") != -1);
+  do_check_true(messageContent.contains("AttachmentDetached"));
 }
 
 // Cleanup

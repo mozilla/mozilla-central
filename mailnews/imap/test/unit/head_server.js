@@ -25,7 +25,7 @@ function makeServer(daemon, infoString, otherProps) {
 
     var parts = infoString.split(/ *, */);
     for each (var part in parts) {
-      if (part.substring(0, 3) == "RFC")
+      if (part.startsWith("RFC"))
         mixinExtension(handler, eval("IMAP_" + part + "_extension"));
     }
     if (otherProps) {

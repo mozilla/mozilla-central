@@ -13,7 +13,7 @@ load("../../../resources/asyncTestUtils.js");
 var gGotAlert = false;
 
 function alert(aDialogTitle, aText) {
-  do_check_eq(aText.indexOf("Server Mail for  has disconnected"), 0);
+  do_check_true(aText.startsWith("Server Mail for  has disconnected"));
   gGotAlert = true;
 }
 
