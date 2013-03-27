@@ -47,6 +47,42 @@ var currentPageId;
 var pendingAccount;
 var pendingPageId;
 
+/**
+ * This array contains filesystem folders that are deemed inappropriate
+ * for use as the local directory pref for message storage.
+ * It is global to allow extensions to add to/remove from it if needed.
+ * Extentions adding new server types should first consider setting
+ * nsIMsgProtocolInfo(of the server type).defaultLocalPath properly
+ * so that the test will allow that directory automatically.
+ * See the checkLocalDirectoryIsSafe function for description of the members.
+ */
+var gDangerousLocalStorageDirs = [
+  // profile folder
+  { dirsvc: "ProfD",    OS: null },
+  // GRE install folder
+  { dirsvc: "GreD",     OS: null },
+  // Application install folder
+  { dirsvc: "CurProcD", OS: null },
+  // system temporary folder
+  { dirsvc: "TmpD",     OS: null },
+  // Windows system folder
+  { dirsvc: "SysD",     OS: "WINNT" },
+  // Windows folder
+  { dirsvc: "WinD",     OS: "WINNT" },
+  // Program Files folder
+  { dirsvc: "ProgF",    OS: "WINNT" },
+  // trash folder
+  { dirsvc: "Trsh",     OS: "Darwin" },
+  // Mac OS system folder
+  { dir:    "/System",  OS: "Darwin" },
+  // devices folder
+  { dir:    "/dev",     OS: "Darwin,Linux" },
+  // process info folder
+  { dir:    "/proc",    OS: "Linux" },
+  // system state folder
+  { dir:    "/sys",     OS: "Linux" }
+];
+
 // This sets an attribute in a xul element so that we can later
 // know what value to substitute in a prefstring.  Different
 // preference types set different attributes.  We get the value
@@ -267,16 +303,25 @@ function checkDirectoryIsValid(aLocalPath) {
  */
 function checkDirectoryIsAllowed(aLocalPath) {
   /**
-   * Check if the directory contains/is/is a subfolder of the given special
-   * directory.
+   * Check if the local path (aLocalPath) is 'safe' i.e. NOT a parent
+   * or subdirectory of the given special system/app directory (aDirToCheck).
    *
-   * @param aDirToCheck  array of { dir, subdirs[] } objects to check.
-   *                     'dir' is a property to retrieve from Directory service
-   *                     'subdirs' is an array of directory names that are
-   *                     are allowed to use inside 'dir'.
-   * aLocalPath  the nsIFile of the directory to check, intended for message storage.
+   * @param aDirToCheck  An object describing the special directory.
+   *        The object has the following members:
+   *        dirsvc      : A path keyword to retrieve from the Directory service.
+   *        dir         : An absolute filesystem path.
+   *                      Only one of 'dirsvc' or 'dir' can be specified.
+   *        OS          : A string of comma separated values defining on which
+   *                      Operating systems the folder is unusable:
+   *                       null   = all
+   *                       WINNT  = Windows
+   *                       Darwin = OS X
+   *                       Linux  = Linux
+   *        safeSubdirs : An array of directory names that are allowed to be used
+   *                      under the tested directory.
+   * @param aLocalPath  An nsIFile of the directory to check, intended for message storage.
    */
-  function checkDirectoryIsNotSpecial(aDirToCheck, aLocalPath) {
+  function checkLocalDirectoryIsSafe(aDirToCheck, aLocalPath) {
     if (aDirToCheck.OS) {
       if (aDirToCheck.OS.split(",").indexOf(Services.appinfo.OS) == -1)
         return true;
@@ -294,12 +339,15 @@ function checkDirectoryIsAllowed(aLocalPath) {
       if (!testDir)
         return true;
     }
-    else {
+    else if ("dir" in aDirToCheck) {
       testDir = Components.classes["@mozilla.org/file/local;1"]
                           .createInstance(Components.interfaces.nsIFile);
       testDir.initWithPath(aDirToCheck.dir);
       if (!testDir.exists())
         return true;
+    } else {
+      Components.utils.reportError("No directory to check?");
+      return true;
     }
 
     testDir.normalize();
@@ -308,10 +356,13 @@ function checkDirectoryIsAllowed(aLocalPath) {
       return false;
 
     if (testDir.contains(aLocalPath, true)) {
+      if (!("safeSubdirs" in aDirToCheck))
+        return false;
+
       // While the tested directory may not be safe,
       // a subdirectory of some safe subdirectories may be fine.
       let isInSubdir = false;
-      for each (let subDir in aDirToCheck.safeSubdirs) {
+      for (let subDir of aDirToCheck.safeSubdirs) {
         let checkDir = testDir.clone();
         checkDir.append(subDir);
         if (checkDir.contains(aLocalPath, true)) {
@@ -323,36 +374,27 @@ function checkDirectoryIsAllowed(aLocalPath) {
     }
 
     return true;
+  } // end of checkDirectoryIsNotSpecial
+
+  // If the server type has a nsIMsgProtocolInfo.defaultLocalPath set,
+  // allow that directory.
+  if (currentAccount.incomingServer) {
+    try {
+      let defaultPath = Components
+        .classes["@mozilla.org/messenger/protocol/info;1?type=" +
+                 currentAccount.incomingServer.type]
+        .getService(Components.interfaces.nsIMsgProtocolInfo)
+        .defaultLocalPath;
+      if (defaultPath) {
+        defaultPath.normalize();
+        if (defaultPath.contains(aLocalPath, true))
+          return true;
+      }
+    } catch (e) { /* No problem if this fails. */ }
   }
 
-  let kDangerousDirs = [
-    // profile folder
-    { dirsvc: "ProfD",    OS: null,           safeSubdirs: [ "Mail", "ImapMail", "News" ] },
-    // GRE install folder
-    { dirsvc: "GreD",     OS: null,           safeSubdirs: [ ] },
-    // Application install folder
-    { dirsvc: "CurProcD", OS: null,           safeSubdirs: [ ] },
-    // system temporary folder
-    { dirsvc: "TmpD",     OS: null,           safeSubdirs: [ ] },
-    // Windows system folder
-    { dirsvc: "SysD",     OS: "WINNT",        safeSubdirs: [ ] },
-    // Windows folder
-    { dirsvc: "WinD",     OS: "WINNT",        safeSubdirs: [ ] },
-    // Program Files folder
-    { dirsvc: "ProgF",    OS: "WINNT",        safeSubdirs: [ ] },
-    // trash folder
-    { dirsvc: "Trsh",     OS: "Darwin",       safeSubdirs: [ ] },
-    // Mac OS system folder
-    { dir:    "/System",  OS: "Darwin",       safeSubdirs: [ ] },
-    // devices folder
-    { dir:    "/dev",     OS: "Darwin,Linux", safeSubdirs: [ ] },
-    // process info folder
-    { dir:    "/proc",    OS: "Linux",        safeSubdirs: [ ] },
-    // system state folder
-    { dir:    "/sys",     OS: "Linux",        safeSubdirs: [ ] }
-    ];
-  for each (let tryDir in kDangerousDirs) {
-    if (!checkDirectoryIsNotSpecial(tryDir, aLocalPath))
+  for (let tryDir of gDangerousLocalStorageDirs) {
+    if (!checkLocalDirectoryIsSafe(tryDir, aLocalPath))
       return false;
   }
 
@@ -394,8 +436,8 @@ function checkDirectoryIsUsable(aLocalPath) {
   // Check that no other account has this same or dependent local directory.
   let allServers = MailServices.accounts.allServers;
 
-  for each (let server in fixIterator(allServers,
-                                      Components.interfaces.nsIMsgIncomingServer))
+  for (let server in fixIterator(allServers,
+                                 Components.interfaces.nsIMsgIncomingServer))
   {
     if (server.key == currentAccount.incomingServer.key)
       continue;
