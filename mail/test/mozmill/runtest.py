@@ -51,7 +51,6 @@ import imp
 
 PROFILE_DIR = os.path.join(SCRIPT_DIRECTORY, 'mozmillprofile')
 SYMBOLS_PATH = None
-PLUGINS_PATH = None
 # XXX This breaks any semblance of test runner modularity, and only works
 # because we know that we run MozMill only once per process. This needs to be
 # fixed if that ever changes.
@@ -210,13 +209,6 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         if not os.path.exists(PROFILE_DIR):
             raise Exception('somehow failed to create profile dir!')
 
-        if PLUGINS_PATH:
-          if not os.path.exists(PLUGINS_PATH):
-            raise Exception('Plugins path "%s" does not exist.' % PLUGINS_PATH)
-
-          dest = os.path.join(PROFILE_DIR, "plugins")
-          shutil.copytree(PLUGINS_PATH, dest)
-
         if wrapper is not None and hasattr(wrapper, "on_profile_created"):
             # It's a little dangerous to allow on_profile_created access to the
             # profile object, because it isn't fully initalized yet
@@ -340,11 +332,9 @@ class ThunderTestCLI(mozmill.CLI):
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[('--symbols-path',)] = {"default": None, "dest": "symbols",
                                            "help": "The path to the symbol files from build_symbols"}
-    parser_options[('--plugins-path',)] = {"default": None, "dest": "plugins",
-                                           "help": "The path to the plugins directory for the created profile"}
 
     def __init__(self, *args, **kwargs):
-        global SYMBOLS_PATH, PLUGINS_PATH, TEST_NAME
+        global SYMBOLS_PATH, TEST_NAME
 
         # mozmill 1.5.4 still explicitly hardcodes references to Firefox; in
         # order to avoid missing out on initializer logic or needing to copy
@@ -358,7 +348,6 @@ class ThunderTestCLI(mozmill.CLI):
         mozmill.CLI.__init__(self, *args, **kwargs)
 
         SYMBOLS_PATH = self.options.symbols
-        PLUGINS_PATH = self.options.plugins
         if isinstance(self.options.test, basestring):
             test_paths = [self.options.test]
         else:

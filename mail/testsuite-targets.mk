@@ -38,7 +38,6 @@ mozmill:
 	--binary=$(PROGRAM) \
 	--dir=$(call core_abspath,$(topsrcdir))/mail/test/mozmill \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 mozmill-one: solo-test = $(find-solo-test)
@@ -48,7 +47,6 @@ mozmill-one:
 	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(solo-test) \
 	--binary=$(PROGRAM) \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 # XXX The mozilla/testing/testsuite-targets.mk doesn't really allow for hooks

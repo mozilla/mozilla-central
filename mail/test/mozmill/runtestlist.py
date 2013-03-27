@@ -38,10 +38,6 @@ class RunTestListOptions(optparse.OptionParser):
                         help = "The path to the symbol files from build_symbols")
         defaults["symbols"] = ""
 
-        self.add_option("--plugins-path",
-                        action = "store", type = "string", dest = "plugins",
-                        help = "The path to the plugins folder for the test profiles")
-
         self.set_defaults(**defaults);
 
         usage = """\
@@ -75,11 +71,6 @@ for directory in f:
         testDirectory = directory.rstrip()
     args = [sys.executable, "runtest.py", "-t", testDirectory,
             "--binary", options.binary, "--symbols-path", options.symbols]
-
-    if options.plugins:
-        args.append("--plugins-path")
-        args.append(options.plugins)
-
     print args
     outputPipe = subprocess.PIPE
 
