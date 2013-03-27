@@ -547,6 +547,11 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
     case nsIMsgOfflineImapOperation::kFlagsChanged:
     case nsIMsgOfflineImapOperation::kDeletedMsg:
     {
+      if (m_srcHdrs.IsEmpty())
+      {
+        NS_ASSERTION(false, "No msg header to apply undo.");
+        break;
+      }
       nsCOMPtr<nsIMsgDBHdr> firstHdr = m_srcHdrs[0];
       nsMsgKey hdrKey;
       firstHdr->GetMessageKey(&hdrKey);
