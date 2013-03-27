@@ -85,6 +85,7 @@
 @BINPATH@/@MOZ_D3DCOMPILER_DLL@
 #endif
 #ifdef XP_WIN32
+@BINPATH@/plugin-hang-ui@BIN_SUFFIX@
 #ifndef MOZ_DEBUG
 #if MOZ_MSVC_REDIST == 1400
 @BINPATH@/Microsoft.VC80.CRT.manifest
