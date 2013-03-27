@@ -54,6 +54,7 @@ mozmill: mozmill-stage
 	--binary=$(MOZMILLPROGRAM) \
 	--dir=$(call core_abspath,$(MOZMILLDIR))/stage \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
+	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 mozmill-one: solo-test = $(find-solo-test)
@@ -63,5 +64,6 @@ mozmill-one: mozmill-stage
 	--test=$(call core_abspath,$(MOZMILLDIR))/stage/$(solo-test) \
 	--binary=$(MOZMILLPROGRAM) \
 	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
+	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 

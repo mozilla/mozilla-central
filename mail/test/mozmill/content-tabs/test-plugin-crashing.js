@@ -20,6 +20,7 @@ var gContentWindow = null;
 var gJSObject = null;
 var gTabDoc = null;
 var gOldStartPage = null;
+let gOldCrashReporterEnabled = null;
 
 const kPluginId = "test-plugin";
 const kStartPagePref = "mailnews.start_page.override_url";
@@ -50,6 +51,13 @@ function setupModule(module) {
   let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
                         .getService(Ci.nsICrashReporter);
 
+  // Force the crash reporter to be enabled, but record its old setting.
+  gOldCrashReporterEnabled = crashReporter.enabled;
+
+  if (!crashReporter.enabled) {
+    crashReporter.enabled = true;
+  }
+
   /* Bug 689580 - these crash tests fail randomly on 64-bit OSX.  We'll
    * disable them for now, until we can figure out what's going on.
    */
@@ -73,6 +81,11 @@ function setupModule(module) {
 };
 
 function teardownModule(module) {
+  let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
+                        .getService(Ci.nsICrashReporter);
+
+  crashReporter.enabled = gOldCrashReporterEnabled;
+
   Services.prefs.setCharPref(kStartPagePref, gOldStartPage);
   Services.prefs.setCharPref(kPluginCrashDocPref, gOldPluginCrashDocPage);
 }
@@ -199,8 +212,9 @@ function test_crashed_plugin_notification_bar() {
  */
 function test_crashed_plugin_notification_inline() {
   let plugin = gTabDoc.getElementById(kPluginId);
-  plugin.style.width = '200px';
-  plugin.style.height = '200px';
+
+  plugin.style.width = '500px';
+  plugin.style.height = '500px';
 
   assert_true(crash_plugin());
 
@@ -227,8 +241,10 @@ function test_crashed_plugin_notification_inline() {
   // Depending on the environment we're running this test on,
   // the status attribute might be "noReport" or "please".
   let statusString = submitDiv.getAttribute("status");
+
   assert_true(statusString == "noReport" || statusString == "please",
-              "Expected the status to be \"noReport\" or \"please\"");
+              "Expected the status to be \"noReport\" or \"please\". " +
+              "Instead, it was " + statusString);
 
   // Make sure that the help link in the inline notification works.
   let helpIcon = gContentWindow.document
