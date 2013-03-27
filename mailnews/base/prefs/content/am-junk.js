@@ -240,8 +240,6 @@ function onActionTargetChange(aEvent, aWSMElementId)
 /**
  * Enumerates over the "ISPDL" directories, calling buildServerFilterListFromDir
  * for each one.
- *
- * @param aDir  directory to look for .sfd files
  */
 function buildServerFilterMenuList()
 {
@@ -250,12 +248,19 @@ function buildServerFilterMenuList()
   // Now walk through the isp directories looking for sfd files
   let ispDirectories = Services.dirsvc.get(KEY_ISP_DIRECTORY_LIST,
                                            Components.interfaces.nsISimpleEnumerator);
+
+  let menuEntries = [];
   while (ispDirectories.hasMoreElements())
   {
     let ispDirectory = ispDirectories.getNext()
                                      .QueryInterface(Components.interfaces.nsIFile);
     if (ispDirectory)
-      buildServerFilterListFromDir(ispDirectory, ispHeaderList);
+      menuEntries.push.apply(menuEntries, buildServerFilterListFromDir(ispDirectory, menuEntries));
+  }
+
+  menuEntries.sort(function(a,b) a.localeCompare(b));
+  for (let entry of menuEntries) {
+    ispHeaderList.appendItem(entry, entry);
   }
 }
 
@@ -264,28 +269,28 @@ function buildServerFilterMenuList()
  * passed in directory looking for .sfd files. For each entry found, it gets
  * appended to the menu list.
  *
- * @param aDir           directory to look for .sfd files
- * @param aISPHeadeList  the menulist element to append found items into
+ * @param aDir              directory to look for .sfd files
+ * @param aExistingEntries  Filter names already found.
  */
-function buildServerFilterListFromDir(aDir, aISPHeaderList)
+function buildServerFilterListFromDir(aDir, aExistingEntries)
 {
+  let newEntries = [];
   // Now iterate over each file in the directory looking for .sfd files.
   const kSuffix = ".sfd";
   let entries = aDir.directoryEntries
                     .QueryInterface(Components.interfaces.nsIDirectoryEnumerator);
 
-  while (entries.hasMoreElements())
-  {
+  while (entries.hasMoreElements()) {
     let entry = entries.nextFile;
     // we only care about files that end in .sfd
-    if (entry.isFile() && entry.leafName.endsWith(kSuffix))
-    {
+    if (entry.isFile() && entry.leafName.endsWith(kSuffix)) {
       let fileName = entry.leafName.slice(0, -kSuffix.length);
-      // if we've already added an item with this name, then don't add it again.
-      if (!aISPHeaderList.querySelector('[value="'+ fileName + '"]'))
-        aISPHeaderList.appendItem(fileName, fileName);
+      // If we've already added an item with this name, then don't add it again.
+      if (aExistingEntries.indexOf(fileName) == -1)
+        newEntries.push(fileName);
     }
   }
+  return newEntries;
 }
 
 /**
