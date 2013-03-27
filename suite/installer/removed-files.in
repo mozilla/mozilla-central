@@ -570,6 +570,7 @@ Throbber-small.gif
   #endif
   updater.ini
 #endif
+@DLL_PREFIX@xpcom@DLL_SUFFIX@
 #ifdef XP_OS2
   @DLL_PREFIX@xpcomcor@DLL_SUFFIX@
 #else
