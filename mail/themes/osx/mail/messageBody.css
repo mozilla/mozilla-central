@@ -78,14 +78,8 @@ mailattachcount {
 
 .moz-txt-sig,
 .moz-signature {
-  color: #505050;
+  opacity: 0.6;
 }
-
-.moz-txt-sig > a,
-.moz-signature > a {
-  color: #7777FF; /* light blue */
-}
-
 
 /* ::::: attached images ::::: */
 .moz-attached-image[overflowing="true"] {

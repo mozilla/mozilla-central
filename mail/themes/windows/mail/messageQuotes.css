@@ -16,12 +16,7 @@
 
 .moz-txt-sig,
 .moz-signature {
-  color: rgb(136,138,133); /* Aluminum 4 */
-}
-
-.moz-txt-sig > a,
-.moz-signature > a {
-  color: rgb(114,159,207); /* Sky Blue 1 */
+  opacity: 0.6;
 }
 
 /* ::::: Turn on borders and padding for quotes. ::::: */
