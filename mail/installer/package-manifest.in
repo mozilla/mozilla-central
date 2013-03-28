@@ -424,7 +424,6 @@
 @BINPATH@/components/htmlparser.xpt
 @BINPATH@/components/identity.xpt
 @BINPATH@/components/layout_base.xpt
-@BINPATH@/components/layout_forms.xpt
 #ifdef NS_PRINTING
 @BINPATH@/components/layout_printing.xpt
 #endif
