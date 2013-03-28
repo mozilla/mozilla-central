@@ -81,12 +81,7 @@ span.moz-txt-formfeed {
 
 .moz-txt-sig,
 .moz-signature {
-  color: gray;
-}
-
-.moz-txt-sig > a,
-.moz-signature > a {
-  color: #7777FF; /* light blue */
+  opacity: 0.5;
 }
 
 /* ::::: vcard ::::: */
