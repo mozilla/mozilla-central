@@ -227,7 +227,6 @@ public:
   NS_IMETHOD UpdateSummaryTotals(bool force) ;
 
   NS_IMETHOD GetDeletable (bool *deletable);
-  NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
 
   NS_IMETHOD GetSizeOnDisk(uint32_t * size);
 

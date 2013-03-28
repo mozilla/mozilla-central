@@ -1744,12 +1744,6 @@ NS_IMETHODIMP nsImapMailFolder::GetDeletable (bool *deletable)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetRequiresCleanup(bool *requiresCleanup)
-{
-  nsresult rv = NS_ERROR_FAILURE;
-  return rv;
-}
-
 NS_IMETHODIMP nsImapMailFolder::GetSizeOnDisk(uint32_t * size)
 {
   NS_ENSURE_ARG_POINTER(size);

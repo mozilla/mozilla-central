@@ -1102,22 +1102,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDeletable(bool *deletable)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::GetRequiresCleanup(bool *requiresCleanup)
-{
-#ifdef HAVE_PORT
-  if (m_expungedBytes > 0)
-  {
-    int32_t purgeThreshhold = m_master->GetPrefs()->GetPurgeThreshhold();
-    bool purgePrompt = m_master->GetPrefs()->GetPurgeThreshholdEnabled();
-    return (purgePrompt && m_expungedBytes / 1000L > purgeThreshhold);
-  }
-
-  return false;
-#endif
-
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsMsgLocalMailFolder::RefreshSizeOnDisk()
 {
   uint32_t oldFolderSize = mFolderSize;

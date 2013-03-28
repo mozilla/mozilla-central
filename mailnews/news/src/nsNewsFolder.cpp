@@ -843,11 +843,6 @@ NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(bool *deletable)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::GetRequiresCleanup(bool *requiresCleanup)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(uint32_t *size)
 {
   return NS_ERROR_NOT_IMPLEMENTED;

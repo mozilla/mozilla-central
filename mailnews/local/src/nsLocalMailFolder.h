@@ -133,8 +133,7 @@ public:
 
   NS_IMETHOD  GetManyHeadersToDownload(bool *retval);
 
-  NS_IMETHOD GetDeletable (bool *deletable); 
-  NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
+  NS_IMETHOD GetDeletable (bool *deletable);
   NS_IMETHOD GetSizeOnDisk(uint32_t* size);
 
   NS_IMETHOD  GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);

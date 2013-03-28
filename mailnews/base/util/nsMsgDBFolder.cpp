@@ -4409,18 +4409,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetDeletable(bool *deletable)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetRequiresCleanup(bool *requiredCleanup)
-{
-  NS_ENSURE_ARG_POINTER(requiredCleanup);
-  *requiredCleanup = false;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgDBFolder::ClearRequiresCleanup()
-{
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsMsgDBFolder::GetKnowsSearchNntpExtension(bool *knowsExtension)
 {
   NS_ENSURE_ARG_POINTER(knowsExtension);

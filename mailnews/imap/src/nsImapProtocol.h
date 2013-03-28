@@ -274,7 +274,6 @@ public:
   void XAOL_Option(const char *option);
   void MailboxData();
   void GetMyRightsForFolder(const char *mailboxName);
-  void AutoSubscribeToMailboxIfNecessary(const char *mailboxName);
   void Bodystructure(const nsCString &messageId, bool idIsUid);
   void PipelinedFetchMessageParts(const char *uid, nsIMAPMessagePartIDArray *parts);
 

@@ -2385,7 +2385,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
         if (GetServerStateParser().LastCommandSuccessful())
         {
           selectIssued = true;
-          AutoSubscribeToMailboxIfNecessary(mailboxName.get());
           SelectMailbox(mailboxName.get());
         }
       }
@@ -2430,7 +2429,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
     else
     {
       // go to selected state
-      AutoSubscribeToMailboxIfNecessary(mailboxName.get());
       SelectMailbox(mailboxName.get());
       selectIssued = GetServerStateParser().LastCommandSuccessful();
     }
@@ -2964,51 +2962,6 @@ void nsImapProtocol::ProcessSelectedStateURL()
   }
   else if (!DeathSignalReceived())
     HandleMemoryFailure();
-}
-
-void nsImapProtocol::AutoSubscribeToMailboxIfNecessary(const char *mailboxName)
-{
-#ifdef HAVE_PORT
-  if (m_folderNeedsSubscribing)  // we don't know about this folder - we need to subscribe to it / list it.
-  {
-    fHierarchyNameState = kListingForInfoOnly;
-    List(mailboxName, false);
-    fHierarchyNameState = kNoOperationInProgress;
-
-    // removing and freeing it as we go.
-    TIMAPMailboxInfo *mb = NULL;
-    int total = XP_ListCount(fListedMailboxList);
-    do
-    {
-      mb = (TIMAPMailboxInfo *) XP_ListRemoveTopObject(fListedMailboxList);
-      delete mb;
-    } while (mb);
-
-    // if the mailbox exists (it was returned from the LIST response)
-    if (total > 0)
-    {
-      // Subscribe to it, if the pref says so
-      if (TIMAPHostInfo::GetHostIsUsingSubscription(fCurrentUrl->GetUrlHost()) && m_autoSubscribeOnOpen)
-      {
-        XP_Bool lastReportingErrors = GetServerStateParser().GetReportingErrors();
-        GetServerStateParser().SetReportingErrors(false);
-        Subscribe(mailboxName);
-        GetServerStateParser().SetReportingErrors(lastReportingErrors);
-      }
-
-      // Always LIST it anyway, to get it into the folder lists,
-      // so that we can continue to perform operations on it, at least
-      // for this session.
-      fHierarchyNameState = kNoOperationInProgress;
-      List(mailboxName, false);
-    }
-
-    // We should now be subscribed to it, and have it in our folder lists
-    // and panes.  Even if something failed, we don't want to try this again.
-    m_folderNeedsSubscribing = false;
-
-  }
-#endif
 }
 
 nsresult nsImapProtocol::BeginMessageDownLoad(
@@ -6081,7 +6034,6 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
         else if (m_imapMailFolderSink && imapAction == nsIImapUrl::nsImapAppendDraftFromFile )
         {   // *** code me to search for the newly appended message
           // go to selected state
-          AutoSubscribeToMailboxIfNecessary(mailboxName);
           nsCString messageId;
           rv = m_imapMailFolderSink->GetMessageId(m_runningUrl, messageId);
           if (NS_SUCCEEDED(rv) && !messageId.IsEmpty() &&
