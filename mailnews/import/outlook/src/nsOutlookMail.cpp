@@ -390,6 +390,10 @@ nsresult nsOutlookMail::ImportMailbox(uint32_t *pDoneSoFar, bool *pAbort,
 
     rv = msgStore->GetNewMsgOutputStream(dstFolder, getter_AddRefs(msgHdr), &reusable,
                                          getter_AddRefs(outputStream));
+    if (NS_FAILED(rv)) {
+      IMPORT_LOG1("*** Error getting nsIOutputStream of mailbox: %S\n", pName);
+      return rv;
+    }
     totalCount = contents.GetCount();
     doneCalc = *pMsgCount;
     doneCalc /= totalCount;
