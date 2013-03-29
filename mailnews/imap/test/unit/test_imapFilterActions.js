@@ -11,6 +11,7 @@
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
@@ -50,12 +51,9 @@ const gMessageSubject = "Hello, did you receive my bugmail?";
 const gMessageInBody = "an HTML message";
 
 // various object references
-const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                       .getService(Ci.nsIMsgCopyService);
+const gCopyService = MailServices.copy;
 const gDbService = Components.classes["@mozilla.org/msgDatabase/msgDBService;1"]
                              .getService(Components.interfaces.nsIMsgDBService);
-const gMailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                     .getService(Ci.nsIMsgMailSession);
 const kFiltersAppliedAtom = Cc["@mozilla.org/atom-service;1"]
                               .getService(Ci.nsIAtomService)
                               .getAtom("FiltersApplied");
@@ -335,17 +333,15 @@ function run_test()
     loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let localAccount = acctMgr.createAccount();
-  let identity = acctMgr.createIdentity();
+  let localAccount = MailServices.accounts.createAccount();
+  let identity = MailServices.accounts.createIdentity();
   localAccount.addIdentity(identity);
   localAccount.defaultIdentity = identity;
   localAccount.incomingServer = gLocalIncomingServer;
-  acctMgr.defaultAccount = localAccount;
+  MailServices.accounts.defaultAccount = localAccount;
 
   // Let's also have another account, using the same identity
-  let imapAccount = acctMgr.createAccount();
+  let imapAccount = MailServices.accounts.createAccount();
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
   imapAccount.incomingServer = gIMAPIncomingServer;
@@ -405,7 +401,7 @@ function run_test()
   // an action that can be modified by tests
   gAction = gFilter.createAction();
 
-  gMailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event);
+  MailServices.mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event);
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.
@@ -510,7 +506,7 @@ function endTest()
   dump(" Exiting mail tests\n");
   if (gInboxListener)
     gDbService.unregisterPendingListener(gInboxListener);
-  gMailSession.RemoveFolderListener(FolderListener);
+  MailServices.mailSession.RemoveFolderListener(FolderListener);
   gRootFolder = null;
   gIMAPInbox = null;
   gIMAPTrashFolder = null;

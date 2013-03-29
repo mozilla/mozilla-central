@@ -12,6 +12,7 @@ load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 // IMAP pump
@@ -53,11 +54,8 @@ function saveDraft()
   params.composeFields = fields;
   msgCompose.initialize(params);
 
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-
   // Set up the identity
-  var identity = acctMgr.createIdentity();
+  var identity = MailServices.accounts.createIdentity();
   identity.draftFolder = gDraftsFolder.URI;
 
   var progress = Cc["@mozilla.org/messenger/progress;1"]
@@ -96,14 +94,12 @@ function run_test()
 
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  let MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(nsIMFNService);
 
   let flags =
         nsIMFNService.msgsMoveCopyCompleted |
         nsIMFNService.folderAdded |
         nsIMFNService.msgAdded;
-  MFNService.addListener(mfnListener, flags);
+  MailServices.mfn.addListener(mfnListener, flags);
 
   //start first test
   async_run_tests(tests);

@@ -11,6 +11,7 @@ load("../../../resources/messageGenerator.js");
 load("../../../resources/alertTestUtils.js");
 load("../../../resources/IMAPpump.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 
@@ -138,12 +139,9 @@ var tests = [
     gMovedMsgId = msgHdr.messageId;
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
-    const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                          .getService(Ci.nsIMsgCopyService);
-
     gIMAPInbox.compact(asyncUrlListener, gDummyMsgWindow);
-    gCopyService.CopyMessages(gIMAPTrashFolder, array, gIMAPInbox, true,
-                              CopyListener, null, true);
+    MailServices.copy.CopyMessages(gIMAPTrashFolder, array, gIMAPInbox, true,
+                                   CopyListener, null, true);
   },
   function verifyNoOfflineMsg() {
     try {

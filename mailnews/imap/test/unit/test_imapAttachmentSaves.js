@@ -14,6 +14,7 @@ load("../../../resources/messageGenerator.js");
 // javascript mime emitter functions
 mimeMsg = {};
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
+Components.utils.import("resource:///modules/mailServices.js");
 
 // IMAP pump
 load("../../../resources/IMAPpump.js");
@@ -136,16 +137,13 @@ function run_test()
 {
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  let MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(nsIMFNService);
-  MFNService.addListener(mfnListener, nsIMFNService.msgsDeleted);
+  MailServices.mfn.addListener(mfnListener, nsIMFNService.msgsDeleted);
 
   // We need to register the dummyMsgWindow so that when we've finished running
   // the append url, in nsImapMailFolder::OnStopRunningUrl, we'll think the
   // Inbox is open in a folder and update it, which the detach code relies
   // on to finish the detach.
-  Cc["@mozilla.org/messenger/services/session;1"]
-    .getService(Ci.nsIMsgMailSession).AddMsgWindow(dummyMsgWindow);
+  MailServices.mailSession.AddMsgWindow(dummyMsgWindow);
 
   async_run_tests(tests);
 }

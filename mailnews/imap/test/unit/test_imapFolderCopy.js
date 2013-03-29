@@ -9,11 +9,10 @@ load("../../../resources/messageGenerator.js");
 load("../../../resources/IMAPpump.js");
 
 var gEmptyLocal1, gEmptyLocal2, gEmptyLocal3, gNotEmptyLocal4;
-var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Ci.nsIMsgCopyService);
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 var tests = [
   setup,
@@ -22,7 +21,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal1.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
     yield false;
   },
   function copyFolder2() {
@@ -30,7 +29,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal2);
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
     yield false;
   },
   function copyFolder3() {
@@ -38,7 +37,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal3);
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
     yield false;
   },
   function verifyFolders() {
@@ -58,7 +57,7 @@ var tests = [
     let folder2 = gIMAPInbox.getChildNamed("empty 2");
     folders.push(folder2.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, folder1, true, CopyListener, null);
+    MailServices.copy.CopyFolders(array, folder1, true, CopyListener, null);
     yield false;
   },
   function moveImapFolder2() {
@@ -67,7 +66,7 @@ var tests = [
     let folder3 = gIMAPInbox.getChildNamed("empty 3");
     folders.push(folder3.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, folder1, true, CopyListener, null);
+    MailServices.copy.CopyFolders(array, folder1, true, CopyListener, null);
     yield false;
   },
   function verifyImapFolders() {
@@ -88,7 +87,7 @@ var tests = [
     gIMAPDaemon.commandToFail = "APPEND";
     // we expect NS_MSG_ERROR_IMAP_COMMAND_FAILED;
     CopyListener._expectedStatus = 0x80550021;
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
 
     // In failure case OnStopCopy is sent twice, the first one comes from
     // nsMsgCopyService, the second one comes from nsImapFolderCopyState.

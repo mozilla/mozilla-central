@@ -16,12 +16,12 @@ load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/IMAPpump.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gMsgHdr = null;
 
 // Take a multipart message as we're testing attachment URLs as well
 const gFile = do_get_file("../../../data/multipart-complex2");
-const gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(Ci.nsIMsgFolderNotificationService);
                    
 var tests = [
   setup,
@@ -50,7 +50,7 @@ function setup() {
   setupIMAPPump();
 
   // Set up nsIMsgFolderListener to get the header when it's received
-  gMFNService.addListener(msgFolderListener, gMFNService.msgAdded);
+  MailServices.mfn.addListener(msgFolderListener, MailServices.mfn.msgAdded);
 
   gIMAPInbox.flags &= ~Ci.nsMsgFolderFlags.Offline;
 }
@@ -80,7 +80,7 @@ function verifyContentLength() {
 }
 
 function teardown() {
-  gMFNService.removeListener(msgFolderListener);
+  MailServices.mfn.removeListener(msgFolderListener);
   teardownIMAPPump();
 }
 

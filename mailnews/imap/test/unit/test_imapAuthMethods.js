@@ -11,13 +11,13 @@
  * - removeIncomingServer(..., true); (cleanup files) fails.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 load("../../../resources/alertTestUtils.js");
 
 //const kUsername = "fred";
 //const kPassword = "wilma";
 
-var acctMgr;
 var thisTest;
 var test = null;
 
@@ -116,9 +116,9 @@ function nextTest() {
     incomingServer.shutdown();
     incomingServer.clearAllValues();
     deleteIMAPServer(incomingServer);
-    acctMgr.closeCachedConnections();
-    acctMgr.shutdownServers();
-    acctMgr.UnloadAccounts();
+    MailServices.accounts.closeCachedConnections();
+    MailServices.accounts.shutdownServers();
+    MailServices.accounts.UnloadAccounts();
     server.stop();
 
   } catch (e) {
@@ -133,9 +133,9 @@ function nextTest() {
 function deleteIMAPServer(incomingServer) {
   if (!incomingServer)
     return;
-  acctMgr.removeIncomingServer(incomingServer, false); // TODO cleanup files = true fails
+  MailServices.accounts.removeIncomingServer(incomingServer, false); // TODO cleanup files = true fails
   //incomingServer = null;
-  acctMgr.removeAccount(acctMgr.defaultAccount);
+  MailServices.accounts.removeAccount(MailServices.accounts.defaultAccount);
 }
 
 
@@ -143,8 +143,6 @@ function run_test() {
   do_test_pending();
 
   registerAlertTestUtils();
-  acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
 
   nextTest();
 }

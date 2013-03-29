@@ -10,6 +10,8 @@
  *
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
                            "@mozilla.org/msgstore/berkeleystore;1");
 
@@ -189,12 +191,10 @@ function run_test()
 
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  var MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(nsIMFNService);
   let flags =
         nsIMFNService.folderAdded |
         nsIMFNService.msgAdded;
-  MFNService.addListener(mfnListener, flags);
+  MailServices.mfn.addListener(mfnListener, flags);
 
   //start first test
   async_run_tests(quarantineTests);

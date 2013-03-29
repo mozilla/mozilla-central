@@ -14,6 +14,7 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/IMAPpump.js");
 
 // Globals
+Components.utils.import("resource:///modules/mailServices.js");
 
 const gMessage = "bugmail10"; // message file used as the test message
 
@@ -77,10 +78,8 @@ function moveMessageToSubfolder()
                     in boolean allowUndo);
   */
 
-  let copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
-  copyService.CopyMessages(gIMAPInbox, messages, gSubfolder, true,
-                           asyncCopyListener, null, false);
+  MailServices.copy.CopyMessages(gIMAPInbox, messages, gSubfolder, true,
+                                 asyncCopyListener, null, false);
   dl('wait for OnStopCopy');
   yield false;
 }
@@ -128,12 +127,10 @@ function run_test()
   Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  var MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(nsIMFNService);
   let flags =
         nsIMFNService.folderAdded |
         nsIMFNService.msgAdded;
-  MFNService.addListener(mfnListener, flags);
+  MailServices.mfn.addListener(mfnListener, flags);
   async_run_tests(tests);
 }
 

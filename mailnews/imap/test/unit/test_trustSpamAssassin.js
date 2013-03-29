@@ -20,6 +20,8 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/IMAPpump.js");
 
 // Globals
+Components.utils.import("resource:///modules/mailServices.js");
+
 const gMessage = "SpamAssassinYes"; // message file used as the test message
 
 setupIMAPPump();
@@ -97,8 +99,6 @@ function markMessageAsGood()
   let messages = Cc["@mozilla.org/array;1"]
                    .createInstance(Ci.nsIMutableArray);
   messages.appendElement(msgHdr, false);
-  let copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                       .getService(Ci.nsIMsgCopyService);
   /*
   void CopyMessages(in nsIMsgFolder srcFolder,
                     in nsIArray messages,
@@ -109,8 +109,8 @@ function markMessageAsGood()
                     in boolean allowUndo);
   */
 
-  copyService.CopyMessages(gJunkFolder, messages, gIMAPInbox, true,
-                            null, null, false);
+  MailServices.copy.CopyMessages(gJunkFolder, messages, gIMAPInbox, true,
+                                 null, null, false);
   dl('wait for msgsMoveCopyCompleted');
   yield false;
 }
@@ -149,14 +149,12 @@ function run_test()
 
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  let MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                      .getService(nsIMFNService);
 
   let flags =
         nsIMFNService.msgsMoveCopyCompleted |
         nsIMFNService.folderAdded | 
         nsIMFNService.msgAdded;
-  MFNService.addListener(mfnListener, flags);
+  MailServices.mfn.addListener(mfnListener, flags);
 
   //start first test
   async_run_tests(tests);

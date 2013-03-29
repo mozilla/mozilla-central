@@ -4,6 +4,7 @@
  * it drop the connection when it's attempted.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 load("../../../resources/logHelper.js");
@@ -34,14 +35,12 @@ function setup() {
   loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let imapAccount = acctMgr.createAccount();
-  let identity = acctMgr.createIdentity();
+  let imapAccount = MailServices.accounts.createAccount();
+  let identity = MailServices.accounts.createIdentity();
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
   imapAccount.incomingServer = gIMAPIncomingServer;
-  acctMgr.defaultAccount = imapAccount;
+  MailServices.accounts.defaultAccount = imapAccount;
 
   // The server doesn't support more than one connection
   Services.prefs.setIntPref("mail.server.server1.max_cached_connections", 1);

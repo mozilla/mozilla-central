@@ -4,8 +4,7 @@
  * go back online.
  */
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
@@ -52,13 +51,13 @@ var tests = [
     headers2.appendElement(msgHdr2, false);
     msgHdr1.folder.markMessagesFlagged(headers1, true);
     msgHdr2.folder.markMessagesFlagged(headers2, true);
-    copyService.CopyMessages(gIMAPInbox, headers1, gSecondFolder, true, null,
-                             null, true);
-    copyService.CopyMessages(gIMAPInbox, headers2, gThirdFolder, true, null,
-                             null, true);
+    MailServices.copy.CopyMessages(gIMAPInbox, headers1, gSecondFolder, true, null,
+                                   null, true);
+    MailServices.copy.CopyMessages(gIMAPInbox, headers2, gThirdFolder, true, null,
+                                   null, true);
     var file = do_get_file("../../../data/bugmail10");
-    copyService.CopyFileMessage(file, gIMAPInbox, null, false, 0,
-                                "", asyncCopyListener, null);
+    MailServices.copy.CopyFileMessage(file, gIMAPInbox, null, false, 0,
+                                      "", asyncCopyListener, null);
     yield false;
   },
   function goOnline() {

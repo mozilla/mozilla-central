@@ -11,6 +11,8 @@ load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/IMAPpump.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 // Globals
 var gFilter; // a message filter with a subject search
 var gAction; // current message action (reused)
@@ -52,9 +54,7 @@ function setup() {
   gAction = gFilter.createAction();
 
   // add the custom actions
-  var filterService = Cc["@mozilla.org/messenger/services/filters;1"]
-                        .getService(Ci.nsIMsgFilterService);
-  filterService.addCustomAction(actionTestOffline);
+  MailServices.filters.addCustomAction(actionTestOffline);
 }
 
 // basic preparation done for each test

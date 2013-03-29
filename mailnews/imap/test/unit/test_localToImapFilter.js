@@ -14,13 +14,12 @@ load("../../../resources/POP3pump.js");
 load("../../../resources/IMAPpump.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 var gIMAPTrashFolder;
 var gEmptyLocal1, gEmptyLocal2;
 var gLastKey;
 var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Ci.nsIMsgCopyService);
 const gFiles = ["../../../data/bugmail1",
                 "../../../data/draft1"];
 
@@ -31,7 +30,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal1.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
     yield false;
   },
   function copyFolder2() {
@@ -39,7 +38,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal2);
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    MailServices.copy.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
     yield false;
   },
   function getLocalMessages() {

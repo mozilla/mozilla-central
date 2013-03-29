@@ -10,11 +10,12 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 load("../../../resources/IMAPpump.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gEmptyLocal1, gEmptyLocal2;
 var gLastKey;
 var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Ci.nsIMsgCopyService);
+var gCopyService = MailServices.copy;
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
