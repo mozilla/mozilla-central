@@ -4,11 +4,8 @@
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/errUtils.js");
-
-Components.utils.import("resource:///modules/searchSpec.js");
-
 Components.utils.import("resource:///modules/quickFilterManager.js");
-
+Components.utils.import("resource:///modules/searchSpec.js");
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Proper Code

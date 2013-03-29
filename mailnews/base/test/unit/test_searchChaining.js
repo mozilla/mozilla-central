@@ -10,6 +10,8 @@
 
 load("../../../resources/messageGenerator.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gIMAPInbox;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
@@ -30,17 +32,15 @@ function run_test()
   gIMAPIncomingServer.maximumConnectionsNumber = 1;
 
   // We need an identity so that updateFolder doesn't fail
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-  .getService(Ci.nsIMsgAccountManager);
-  let localAccount = acctMgr.createAccount();
-  let identity = acctMgr.createIdentity();
+  let localAccount = MailServices.accounts.createAccount();
+  let identity = MailServices.accounts.createIdentity();
   localAccount.addIdentity(identity);
   localAccount.defaultIdentity = identity;
   localAccount.incomingServer = gLocalIncomingServer;
-  acctMgr.defaultAccount = localAccount;
+  MailServices.accounts.defaultAccount = localAccount;
   
   // Let's also have another account, using the same identity
-  let imapAccount = acctMgr.createAccount();
+  let imapAccount = MailServices.accounts.createAccount();
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
   imapAccount.incomingServer = gIMAPIncomingServer;

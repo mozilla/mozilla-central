@@ -10,6 +10,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/Services.jsm");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
@@ -438,9 +439,7 @@ SearchSpec.prototype = {
           if (!term.matchAll) {
             // for custom terms, we need to getAvailable from the custom term
             if (term.attrib == Ci.nsMsgSearchAttrib.Custom) {
-              let filterService = Cc["@mozilla.org/messenger/services/filters;1"]
-                                    .getService(Ci.nsIMsgFilterService);
-              let customTerm = filterService.getCustomTerm(term.customId);
+              let customTerm = MailServices.filters.getCustomTerm(term.customId);
               if (customTerm) {
                 offlineAvailable = customTerm.getAvailable(offlineScope, term.op);
                 onlineAvailable = customTerm.getAvailable(serverScope, term.op);

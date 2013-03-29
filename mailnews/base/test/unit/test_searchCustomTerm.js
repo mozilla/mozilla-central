@@ -8,8 +8,7 @@
  */
 load("../../../resources/searchTestUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 const kCustomId = "xpcomtest@mozilla.org#test";
 var gHdr;
@@ -61,9 +60,7 @@ var customTerm =
 function run_test()
 {
   loadLocalMailAccount();
-  let filterService = Cc["@mozilla.org/messenger/services/filters;1"]
-                        .getService(Ci.nsIMsgFilterService);
-  filterService.addCustomTerm(customTerm);
+  MailServices.filters.addCustomTerm(customTerm);
 
   var copyListener = 
   {
@@ -79,8 +76,8 @@ function run_test()
   let bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
 
-  copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
 }
 
 var testObject;

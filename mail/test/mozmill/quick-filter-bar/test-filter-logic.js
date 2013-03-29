@@ -93,9 +93,7 @@ function add_email_to_address_book(aEmailAddr) {
                .createInstance(Ci.nsIAbCard);
   card.primaryEmail = aEmailAddr;
 
-  let enumerator = Cc["@mozilla.org/abmanager;1"]
-                     .getService(Ci.nsIAbManager)
-                     .directories;
+  let enumerator = MailServices.ab.directories;
   while (enumerator.hasMoreElements()) {
     let addrbook = enumerator.getNext();
     if (addrbook instanceof Components.interfaces.nsIAbMDBDirectory &&

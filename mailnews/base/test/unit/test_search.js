@@ -10,8 +10,7 @@
  */
 load("../../../resources/searchTestUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
@@ -226,8 +225,8 @@ function run_test()
   // the testing after the copy.
   var bugmail12 = do_get_file("../../../data/bugmail12");
   do_test_pending();
-  copyService.CopyFileMessage(bugmail12, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail12, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
 }
 
 // process each test from queue, calls itself upon completion of each search

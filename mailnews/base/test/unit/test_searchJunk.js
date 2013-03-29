@@ -6,8 +6,7 @@
 
 load("../../../resources/searchTestUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
@@ -230,8 +229,8 @@ function run_test()
   // Get a message into the local filestore. function testJunkSearch() continues the testing after the copy.
   do_test_pending();
   var file = do_get_file(fileName);
-  copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
   return true;
 }
 

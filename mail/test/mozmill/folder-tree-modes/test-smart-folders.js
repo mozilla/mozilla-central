@@ -154,9 +154,7 @@ function test_folder_flag_changes() {
   // create a smart Archives folder.
   select_click_row(0);
   archive_selected_messages();
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let pop3Server = acctMgr.FindServer("tinderbox", "tinderbox", "pop3");
+  let pop3Server = MailServices.accounts.FindServer("tinderbox", "tinderbox", "pop3");
   let pop3Inbox = pop3Server.rootFolder.getChildNamed("Inbox");
   make_new_sets_in_folder(pop3Inbox, [{count: 1}]);
   mc.folderTreeView.selectFolder(pop3Inbox);

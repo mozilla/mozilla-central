@@ -16,6 +16,8 @@ load("../../../../mailnews/resources/messageInjection.js");
 
 load("resources/viewWrapperTestUtils.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 initViewWrapperTestUtils({mode: "imap", offline: false});
 
 /**
@@ -40,9 +42,7 @@ gCustomSearchTermSubject = {
   needsBody: false,
 };
 
-let filterService = Cc["@mozilla.org/messenger/services/filters;1"]
-                      .getService(Ci.nsIMsgFilterService);
-filterService.addCustomTerm(gCustomSearchTermSubject);
+MailServices.filters.addCustomTerm(gCustomSearchTermSubject);
 
 /**
  * Make sure we open a virtual folder backed by a single underlying folder

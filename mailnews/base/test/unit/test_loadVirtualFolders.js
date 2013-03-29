@@ -5,8 +5,7 @@
 // Test loading of virtualFolders.dat, including verification of the search 
 // scopes, i.e., folder uri's.
 
-const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Components.interfaces.nsIMsgAccountManager);
+Components.utils.import("resource:///modules/mailServices.js");
 
 // As currently written, this test will only work with Berkeley store.
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
@@ -28,7 +27,7 @@ function run_test()
   localMailDir.leafName = "invalidserver-local";
   localMailDir.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
 
-  am.loadVirtualFolders();
+  MailServices.accounts.loadVirtualFolders();
   let unreadLocal = gLocalIncomingServer.rootMsgFolder.getChildNamed("unread-local");
   let searchScope = unreadLocal.msgDatabase.dBFolderInfo.getCharProperty("searchFolderUri");
   do_check_eq(searchScope, "mailbox://nobody@Local%20Folders/Inbox|mailbox://nobody@Local%20Folders/Trash");

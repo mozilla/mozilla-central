@@ -12,9 +12,10 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
-Cu.import("resource:///modules/searchSpec.js");
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/errUtils.js");
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource:///modules/searchSpec.js");
 
 const Application = Cc["@mozilla.org/steel/application;1"]
                       .getService(Ci.steelIApplication);
@@ -588,9 +589,7 @@ QuickFilterManager.defineFilter({
   domId: "qfb-inaddrbook",
   appendTerms: function(aTermCreator, aTerms, aFilterValue) {
     let term, value;
-    let enumerator = Components.classes["@mozilla.org/abmanager;1"]
-                               .getService(Components.interfaces.nsIAbManager)
-                               .directories;
+    let enumerator = MailServices.ab.directories;
     let firstBook = true;
     term = null;
     while (enumerator.hasMoreElements()) {
@@ -763,11 +762,9 @@ let TagFacetingFilter = {
 
     // only propagate things that are actually tags though!
     let outKeyMap = {};
-    let tagService = Cc["@mozilla.org/messenger/tagservice;1"]
-                       .getService(Ci.nsIMsgTagService);
-    let tags = tagService.getAllTags({});
+    let tags = MailServices.tags.getAllTags({});
     let tagCount = tags.length;
-    for (let iTag=0; iTag < tagCount; iTag++) {
+    for (let iTag = 0; iTag < tagCount; iTag++) {
       let tag = tags[iTag];
 
       if (tag.key in aKeywordMap)
@@ -854,11 +851,9 @@ let TagFacetingFilter = {
     let addCount = 0;
 
     // -- create an element for each tag
-    let tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                           .getService(Components.interfaces.nsIMsgTagService);
-    let tags = tagService.getAllTags({});
+    let tags = MailServices.tags.getAllTags({});
     let tagCount = tags.length;
-    for (let iTag=0; iTag < tagCount; iTag++) {
+    for (let iTag = 0; iTag < tagCount; iTag++) {
       let tag = tags[iTag];
 
       if (tag.key in keywordMap) {
