@@ -4,6 +4,8 @@
 
 const EXPORTED_SYMBOLS = ['TagNoun'];
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
@@ -25,8 +27,7 @@ var TagNoun = {
   _tagList: null,
 
   _init: function () {
-    this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
-                          getService(Ci.nsIMsgTagService);
+    this._msgTagService = MailServices.tags;
     this._updateTagMap();
   },
 

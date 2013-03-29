@@ -17,6 +17,9 @@
   <content>
   </content>
   <implementation>
+    <constructor><![CDATA[
+      Components.utils.import("resource:///modules/mailServices.js");
+    ]]></constructor>
     <!-- Indicate that we are based on a fulltext search-->
     <method name="setFulltext">
       <parameter name="aMsgSearcher" />
@@ -79,11 +82,8 @@
             let tagLabel = glodaFacetStrings.get(
               "glodaFacetView.constraints.query.tagged.label");
             let tag = constraint[2];
-            let _msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
-                                      getService(Components.interfaces.nsIMsgTagService);
-
             let tagNode = document.createElement("span");
-            let colorClass = "blc-" + _msgTagService.getColorForKey(tag.key).substr(1);
+            let colorClass = "blc-" + MailServices.tags.getColorForKey(tag.key).substr(1);
             tagNode.setAttribute("class", "message-tag tag " + colorClass);
             tagNode.textContent = tag.tag;
             spanify(tagLabel, "explanation-query-tagged");
@@ -1500,6 +1500,7 @@
   </content>
   <implementation>
     <constructor><![CDATA[
+      Components.utils.import("resource:///modules/mailServices.js");
       this.build();
     ]]></constructor>
     <method name="build">
@@ -1603,11 +1604,9 @@
         // - Tags
         let tagsNode = anonElem("tags");
         if ("tags" in message && message.tags.length) {
-          let _msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
-                                    getService(Components.interfaces.nsIMsgTagService);
           for each (let [, tag] in Iterator(message.tags)) {
             let tagNode = document.createElement("span");
-            let colorClass = "blc-" + _msgTagService.getColorForKey(tag.key).substr(1);
+            let colorClass = "blc-" + MailServices.tags.getColorForKey(tag.key).substr(1);
             tagNode.setAttribute("class", "message-tag tag " + colorClass);
             tagNode.textContent = tag.tag;
             tagsNode.appendChild(tagNode);

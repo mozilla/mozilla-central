@@ -21,6 +21,7 @@ Cu.import("resource:///modules/gloda/utils.js");
 
 Cu.import("resource:///modules/iteratorUtils.jsm");
 Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/Services.jsm");
 
 /**
@@ -511,9 +512,7 @@ var Gloda = {
     let existingIdentities = [];
     let identitiesToCreate = [];
 
-    let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
-                            getService(Ci.nsIMsgAccountManager);
-    let numIdentities = msgAccountManager.allIdentities.length;
+    let numIdentities = MailServices.accounts.allIdentities.length;
 
     // nothing to do if there are no accounts/identities.
     if (!numIdentities)
@@ -521,8 +520,8 @@ var Gloda = {
 
     for (let iIdentity = 0; iIdentity < numIdentities; iIdentity++) {
       let msgIdentity =
-        msgAccountManager.allIdentities.queryElementAt(iIdentity,
-                                                       Ci.nsIMsgIdentity);
+        MailServices.accounts.allIdentities.queryElementAt(iIdentity,
+                                                           Ci.nsIMsgIdentity);
 
       if (!fullName)
         fullName = msgIdentity.fullName;

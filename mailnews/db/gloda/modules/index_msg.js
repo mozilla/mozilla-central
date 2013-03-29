@@ -435,9 +435,7 @@ var GlodaMsgIndexer = {
   _datastore: GlodaDatastore,
   _log: Log4Moz.repository.getLogger("gloda.index_msg"),
 
-  _junkService:
-    Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-      .getService(Ci.nsIJunkMailPlugin),
+  _junkService: MailServices.junk,
 
   name: "index_msg",
   /**
@@ -457,18 +455,13 @@ var GlodaMsgIndexer = {
     //   available)
     // - property changes (so we know when a message's read/starred state have
     //   changed.)
-    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-      getService(Ci.nsIMsgMailSession);
     this._folderListener._init(this);
-    mailSession.AddFolderListener(this._folderListener,
-                                  Ci.nsIFolderListener.intPropertyChanged |
-                                  Ci.nsIFolderListener.propertyFlagChanged |
-                                  Ci.nsIFolderListener.event);
+    MailServices.mailSession.AddFolderListener(this._folderListener,
+                                               Ci.nsIFolderListener.intPropertyChanged |
+                                               Ci.nsIFolderListener.propertyFlagChanged |
+                                               Ci.nsIFolderListener.event);
 
-    let notificationService =
-      Cc["@mozilla.org/messenger/msgnotificationservice;1"].
-      getService(Ci.nsIMsgFolderNotificationService);
-    notificationService.addListener(this._msgFolderListener,
+    MailServices.mfn.addListener(this._msgFolderListener,
       // note: intentionally no msgAdded notification is requested.
       Ci.nsIMsgFolderNotificationService.msgsClassified |
         Ci.nsIMsgFolderNotificationService.msgsDeleted |
@@ -488,14 +481,9 @@ var GlodaMsgIndexer = {
   },
   disable: function msg_indexer_disable() {
     // remove FolderLoaded notification listener
-    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
-      getService(Ci.nsIMsgMailSession);
-    mailSession.RemoveFolderListener(this._folderListener);
+    MailServices.mailSession.RemoveFolderListener(this._folderListener);
 
-    let notificationService =
-      Cc["@mozilla.org/messenger/msgnotificationservice;1"].
-      getService(Ci.nsIMsgFolderNotificationService);
-    notificationService.removeListener(this._msgFolderListener);
+    MailServices.mfn.removeListener(this._msgFolderListener);
 
     this._indexerLeaveFolder(); // nop if we aren't "in" a folder
 
@@ -1889,12 +1877,10 @@ var GlodaMsgIndexer = {
    */
   indexEverything: function glodaIndexEverything() {
     this._log.info("Queueing all accounts for indexing.");
-    let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
-                            getService(Ci.nsIMsgAccountManager);
 
     GlodaDatastore._beginTransaction();
     let sideEffects = [this.indexAccount(account) for each
-                       (account in fixIterator(msgAccountManager.accounts,
+                       (account in fixIterator(MailServices.accounts.accounts,
                                                Ci.nsIMsgAccount))];
     GlodaDatastore._commitTransaction();
   },

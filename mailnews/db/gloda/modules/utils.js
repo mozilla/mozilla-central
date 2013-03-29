@@ -9,6 +9,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
+
 /**
  * @namespace A holding place for logic that is not gloda-specific and should
  *  reside elsewhere.
@@ -21,17 +23,11 @@ var GlodaUtils = {
    */
   PART_RE: new RegExp("^[^?]+\\?(?:/;section=\\d+\\?)?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
 
-  _mimeConverter: null,
   deMime: function gloda_utils_deMime(aString) {
-    if (this._mimeConverter == null) {
-      this._mimeConverter = Cc["@mozilla.org/messenger/mimeconverter;1"].
-                            getService(Ci.nsIMimeConverter);
-    }
-
-    return this._mimeConverter.decodeMimeHeader(aString, null, false, true);
+    return MailServices.mimeConverter.decodeMimeHeader(aString, null, false, true);
   },
 
-  _headerParser: null,
+  _headerParser: MailServices.headerParser,
 
   /**
    * Parses an RFC 2822 list of e-mail addresses and returns an object with
@@ -50,10 +46,6 @@ var GlodaUtils = {
    * This method is a convenience wrapper around nsIMsgHeaderParser.
    */
   parseMailAddresses: function gloda_utils_parseMailAddresses(aMailAddresses) {
-    if (this._headerParser == null) {
-      this._headerParser = Cc["@mozilla.org/messenger/headerparser;1"].
-                           getService(Ci.nsIMsgHeaderParser);
-    }
     let addresses = {}, names = {}, fullAddresses = {};
     this._headerParser.parseHeadersWithArray(aMailAddresses, addresses,
                                              names, fullAddresses);
@@ -90,9 +82,7 @@ var GlodaUtils = {
 
   getCardForEmail: function gloda_utils_getCardForEmail(aAddress) {
     // search through all of our local address books looking for a match.
-    let enumerator = Components.classes["@mozilla.org/abmanager;1"]
-                               .getService(Ci.nsIAbManager)
-                               .directories;
+    let enumerator = MailServices.ab.directories;
     let cardForEmailAddress;
     let addrbook;
     while (!cardForEmailAddress && enumerator.hasMoreElements())

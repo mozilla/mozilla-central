@@ -22,6 +22,7 @@ Cu.import("resource:///modules/StringBundle.js");
 Cu.import("resource:///modules/gloda/utils.js");
 Cu.import("resource:///modules/gloda/gloda.js");
 Cu.import("resource:///modules/gloda/noun_tag.js");
+Cu.import("resource:///modules/mailServices.js");
 
 
 const nsMsgMessageFlags_Replied = Ci.nsMsgMessageFlags.Replied;
@@ -43,8 +44,7 @@ var GlodaExplicitAttr = {
   init: function gloda_explattr_init() {
     this._log =  Log4Moz.repository.getLogger("gloda.explattr");
 
-    this._msgTagService = Cc["@mozilla.org/messenger/tagservice;1"].
-                          getService(Ci.nsIMsgTagService);
+    this._msgTagService = MailServices.tags;
 
     try {
       this.defineAttributes();

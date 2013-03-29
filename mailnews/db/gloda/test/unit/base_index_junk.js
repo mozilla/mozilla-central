@@ -12,6 +12,8 @@
 
 load("resources/glodaTestHelper.js");
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const SPAM_BODY = {body: "superspam superspam superspam eevil eevil eevil"};
 const HAM_BODY = {body: "ham ham ham nice nice nice happy happy happy"};
 
@@ -24,10 +26,6 @@ function setup_spam_filter() {
   yield wait_for_message_injection();
   yield wait_for_gloda_indexer([spamSet, hamSet]);
 
-  let junkPlugin =
-    Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-      .getService(Ci.nsIJunkMailPlugin);
-
   let junkListener = {
     onMessageClassified: function() {
       async_driver();
@@ -36,20 +34,20 @@ function setup_spam_filter() {
 
   // ham
   mark_action("actual", "marking message as ham", [hamSet.getMsgHdr(0)]);
-  junkPlugin.setMessageClassification(hamSet.getMsgURI(0),
-                                      null, // no old classification
-                                      junkPlugin.GOOD,
-                                      null,
-                                      junkListener);
+  MailServices.junk.setMessageClassification(hamSet.getMsgURI(0),
+                                             null, // no old classification
+                                             MailServices.junk.GOOD,
+                                             null,
+                                             junkListener);
   yield false;
 
   // spam
   mark_action("actual", "marking message as spam", [spamSet.getMsgHdr(0)]);
-  junkPlugin.setMessageClassification(spamSet.getMsgURI(0),
-                                      null, // no old classification
-                                      junkPlugin.JUNK,
-                                      null,
-                                      junkListener);
+  MailServices.junk.setMessageClassification(spamSet.getMsgURI(0),
+                                             null, // no old classification
+                                             MailServices.junk.JUNK,
+                                             null,
+                                             junkListener);
   yield false;
 }
 
@@ -79,10 +77,7 @@ function test_never_indexes_a_message_marked_as_junk() {
  * Reset the training data so the bayesian classifier stops doing things.
  */
 function reset_spam_filter() {
-  let junkPlugin =
-    Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-      .getService(Ci.nsIJunkMailPlugin);
-  junkPlugin.resetTrainingData();
+  MailServices.junk.resetTrainingData();
 }
 
 /**

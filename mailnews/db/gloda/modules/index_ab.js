@@ -9,16 +9,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource:///modules/gloda/log4moz.js");
-
-Cu.import("resource:///modules/gloda/utils.js");
+Cu.import("resource:///modules/gloda/collection.js");
 Cu.import("resource:///modules/gloda/datastore.js");
 Cu.import("resource:///modules/gloda/gloda.js");
-Cu.import("resource:///modules/gloda/collection.js");
-
 Cu.import("resource:///modules/gloda/indexer.js");
-
+Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/gloda/noun_freetag.js");
+Cu.import("resource:///modules/gloda/utils.js");
+Cu.import("resource:///modules/mailServices.js");
 
 
 var GlodaABIndexer = {
@@ -29,16 +27,14 @@ var GlodaABIndexer = {
     if (this._log == null)
       this._log =  Log4Moz.repository.getLogger("gloda.index_ab");
 
-    let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-    abManager.addAddressBookListener(this,
-                                     Ci.nsIAbListener.itemAdded |
-                                       Ci.nsIAbListener.itemChanged |
-                                       Ci.nsIAbListener.directoryItemRemoved);
+    MailServices.ab.addAddressBookListener(this,
+                                           Ci.nsIAbListener.itemAdded |
+                                           Ci.nsIAbListener.itemChanged |
+                                           Ci.nsIAbListener.directoryItemRemoved);
   },
 
   disable: function() {
-    let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
-    abManager.removeAddressBookListener(this);
+    MailServices.ab.removeAddressBookListener(this);
   },
 
   // it's a getter so we can reference 'this'
