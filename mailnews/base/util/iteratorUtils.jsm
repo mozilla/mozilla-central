@@ -26,7 +26,7 @@ const Ci = Components.interfaces;
  */
 function toArray(aObj, aUseKeys) {
   // - The Iterator object seems to be per-scope, so use a string-based check.
-  //   We use indexOf because the constructor toString returns a function dump,
+  //   We use contains because the constructor toString returns a function dump,
   //   which we don't actually care about.
   // - Not all iterators are instances of Iterator, so additionally use a
   //   duck-typing test.

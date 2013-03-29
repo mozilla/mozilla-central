@@ -7,8 +7,7 @@
 
 load("../../../resources/searchTestUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"].
-                      getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
@@ -57,12 +56,12 @@ var copyListener =
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus) 
   {
-    var fileName = Files.shift();
+    let fileName = Files.shift();
     if (fileName)
     { 
-      var file = do_get_file(fileName);
-      copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+      let file = do_get_file(fileName);
+      MailServices.copy.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+                                        "", copyListener, null);
     }
     else
       testBodySearch();

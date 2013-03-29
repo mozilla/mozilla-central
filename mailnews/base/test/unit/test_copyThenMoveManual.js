@@ -6,14 +6,15 @@
  */
 
 load("../../../resources/POP3pump.js");
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 const gFiles = ["../../../data/bugmail1"];
 var gCopyFolder;
 var gMoveFolder;
 var gFilter; // the test filter
 var gFilterList;
 var gCurTestNum = 1;
-var gFilterService = Cc["@mozilla.org/messenger/services/filters;1"]
-                       .getService(Ci.nsIMsgFilterService);
 const gTestArray =
 [
   function createFilters() {
@@ -50,8 +51,8 @@ const gTestArray =
                      .createInstance(Ci.nsIMutableArray);
     messages.appendElement(gLocalInboxFolder.firstNewMessage, false);
     ++gCurTestNum;
-    gFilterService.applyFilters(Ci.nsMsgFilterType.Manual,
-                                messages, gLocalInboxFolder, null);
+    MailServices.filters.applyFilters(Ci.nsMsgFilterType.Manual,
+                                      messages, gLocalInboxFolder, null);
   },
   function verifyFolders1() {
     // Copy and Move should each now have 1 message in them.
@@ -76,7 +77,7 @@ const gTestArray =
                     .createInstance(Ci.nsIMutableArray);
     folders.appendElement(gLocalInboxFolder, false);
     ++gCurTestNum;
-    gFilterService.applyFiltersToFolders(gFilterList, folders, null);
+    MailServices.filters.applyFiltersToFolders(gFilterList, folders, null);
   },
   function verifyFolders2() {
     // Copy and Move should each now have 2 message in them.
@@ -109,12 +110,10 @@ function run_test()
 
   gCopyFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("CopyFolder");
   gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");
-  const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                        .getService(Ci.nsIMsgMailSession);
 
-  mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |
-                                                Ci.nsIFolderListener.added |
-                                                Ci.nsIFolderListener.removed);
+  MailServices.mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |
+                                                             Ci.nsIFolderListener.added |
+                                                             Ci.nsIFolderListener.removed);
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.

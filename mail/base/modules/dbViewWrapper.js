@@ -9,6 +9,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/mailViewManager.js");
 Cu.import("resource:///modules/searchSpec.js");
 Cu.import("resource:///modules/virtualFolderWrapper.js");
@@ -60,18 +61,12 @@ var FolderNotificationHelper = {
    */
   _init: function FolderNotificationHelper__init() {
     // register with the session for our folded loaded notifications
-    let mailSession =
-      Cc["@mozilla.org/messenger/services/session;1"]
-        .getService(Ci.nsIMsgMailSession);
-    mailSession.AddFolderListener(this,
-                                  Ci.nsIFolderListener.event |
-                                  Ci.nsIFolderListener.intPropertyChanged);
+    MailServices.mailSession.AddFolderListener(this,
+                                               Ci.nsIFolderListener.event |
+                                               Ci.nsIFolderListener.intPropertyChanged);
 
     // register with the notification service for deleted folder notifications
-    let notificationService =
-      Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-        .getService(Ci.nsIMsgFolderNotificationService);
-    notificationService.addListener(this,
+    MailServices.mfn.addListener(this,
       Ci.nsIMsgFolderNotificationService.folderDeleted |
       // we need to track renames because we key off of URIs. frick.
       Ci.nsIMsgFolderNotificationService.folderRenamed |

@@ -14,6 +14,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource://gre/modules/Services.jsm");
 
 /**
@@ -103,8 +104,6 @@ var msgDBCacheManager =
   {
     const gDbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
                          .getService(Ci.nsIMsgDBService);
-    const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                          .getService(Ci.nsIMsgMailSession);
 
     let idleLimit = Services.prefs.getIntPref("mail.db.idle_limit");
     let maxOpenDBs = Services.prefs.getIntPref("mail.db.max_open");
@@ -115,7 +114,7 @@ var msgDBCacheManager =
     let numOpenDBs = 0;
     for (let i = 0; i < cachedDBs.length; i++) {
       db = cachedDBs.queryElementAt(i, Ci.nsIMsgDatabase);
-      if (mailSession.IsFolderOpenInWindow(db.folder)) {
+      if (MailServices.mailSession.IsFolderOpenInWindow(db.folder)) {
         numOpenDBs++;
         continue;
       }
@@ -135,7 +134,7 @@ var msgDBCacheManager =
       dbs.sort(sortByLastUse);
       let dbsToClose = maxOpenDBs - dbs.length;
       for each (let [, db] in Iterator(dbs)) {
-        if (mailSession.IsFolderOpenInWindow(db.folder))
+        if (MailServices.mailSession.IsFolderOpenInWindow(db.folder))
           continue;
         db.folder.msgDatabase = null;
         if (--dbsToClose == 0)

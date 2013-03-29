@@ -2,8 +2,8 @@
  * Test nsMsgDatabase's cleanup of nsMsgDBEnumerators
  */
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
+
 const anyOldMessage = do_get_file("../../../../data/bugmail1");
 
 /**
@@ -30,8 +30,8 @@ function test_enumerator_cleanup() {
 function run_test() {
   loadLocalMailAccount();
   do_test_pending();
-  copyService.CopyFileMessage(anyOldMessage, gLocalInboxFolder, null, false, 0,
-                              "", messageHeaderGetterListener, null);
+  MailServices.copy.CopyFileMessage(anyOldMessage, gLocalInboxFolder, null, false, 0,
+                                    "", messageHeaderGetterListener, null);
   return true;
 }
 

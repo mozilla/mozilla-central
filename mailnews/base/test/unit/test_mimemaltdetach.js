@@ -14,9 +14,7 @@ load("../../../resources/asyncTestUtils.js");
 // javascript mime emitter functions
 mimeMsg = {};
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
-
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 var tests = [
   startCopy,
@@ -28,9 +26,9 @@ var tests = [
 function startCopy()
 {
   // Get a message into the local filestore.
-  var mailFile = do_get_file("../../../data/multipartmalt-detach");
-  copyService.CopyFileMessage(mailFile, gLocalInboxFolder, null, false, 0,
-                              "", asyncCopyListener, null);
+  let mailFile = do_get_file("../../../data/multipartmalt-detach");
+  MailServices.copy.CopyFileMessage(mailFile, gLocalInboxFolder, null, false, 0,
+                                    "", asyncCopyListener, null);
   yield false;
 }
 

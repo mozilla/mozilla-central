@@ -6,8 +6,8 @@
 
 load("../../../../resources/mailTestUtils.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gHdr;
 
 function run_test() {
@@ -16,8 +16,8 @@ function run_test() {
   // Function continue_test() continues the testing after the copy.
   var bugmail1 = do_get_file("../../../../data/bugmail1");
   do_test_pending();
-  copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
 }
 
 var copyListener =

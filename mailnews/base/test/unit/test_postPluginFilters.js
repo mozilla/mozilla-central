@@ -10,10 +10,6 @@ load("../../../resources/POP3pump.js");
 
 // Globals
 
-const nsIJunkMailPlugin =
-  Cc["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-    .getService(Ci.nsIJunkMailPlugin);
-
 const gDbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
                      .getService(Ci.nsIMsgDBService);
 
@@ -37,12 +33,12 @@ var gTests =
   {
     command: kTrain,
     fileName: kGoodFile,
-    traitId: nsIJunkMailPlugin.GOOD_TRAIT,
+    traitId: MailServices.junk.GOOD_TRAIT,
   },
   {
     command: kTrain,
     fileName: kJunkFile,
-    traitId: nsIJunkMailPlugin.JUNK_TRAIT,
+    traitId: MailServices.junk.JUNK_TRAIT,
   },
   // test a filter that acts on GOOD messages
   {
@@ -78,7 +74,7 @@ function run_test()
   searchTerm.attrib = Ci.nsMsgSearchAttrib.JunkStatus;
   let value = searchTerm.value;
   value.attrib = Ci.nsMsgSearchAttrib.JunkStatus;
-  value.junkStatus = nsIJunkMailPlugin.JUNK;
+  value.junkStatus = MailServices.junk.JUNK;
   searchTerm.value = value;
   searchTerm.op = Ci.nsMsgSearchOp.Is;
   searchTerm.booleanAnd = false;
@@ -97,7 +93,7 @@ function run_test()
   searchTerm.attrib = Ci.nsMsgSearchAttrib.JunkStatus;
   let value = searchTerm.value;
   value.attrib = Ci.nsMsgSearchAttrib.JunkStatus;
-  value.junkStatus = nsIJunkMailPlugin.GOOD;
+  value.junkStatus = MailServices.junk.GOOD;
   searchTerm.value = value;
   searchTerm.op = Ci.nsMsgSearchOp.Is;
   searchTerm.booleanAnd = false;
@@ -230,7 +226,7 @@ function startCommand()
       var proArray = [];
       proArray.push(gTest.traitId);
 
-      nsIJunkMailPlugin.setMsgTraitClassification(
+      MailServices.junk.setMsgTraitClassification(
         getSpec(gTest.fileName), //in string aMsgURI
         0,
         null,         // in nsIArray aOldTraits

@@ -86,18 +86,13 @@ function test_mail_account_setup() {
 
 // Remove the account we added.
 function remove_account() {
-  let am = Cc["@mozilla.org/messenger/account-manager;1"]
-      .getService(Ci.nsIMsgAccountManager);
-  let smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                     .getService(Ci.nsISmtpService);
-
-  let incomingServer = am.FindServer("roger.sterling", "testin.example.com", "pop3");
-  let account = am.FindAccountForServer(incomingServer)
+  let incomingServer = MailServices.accounts.FindServer("roger.sterling", "testin.example.com", "pop3");
+  let account = MailServices.accounts.FindAccountForServer(incomingServer)
 
   let identity = account.defaultIdentity;
-  am.removeIncomingServer(incomingServer, true);
-  outgoing = smtpService.getServerByKey(identity.smtpServerKey);
-  smtpService.deleteServer(outgoing);
-  am.removeAccount(account);
+  MailServices.accounts.removeIncomingServer(incomingServer, true);
+  outgoing = MailServices.smtp.getServerByKey(identity.smtpServerKey);
+  MailServices.smtp.deleteServer(outgoing);
+  MailServices.accounts.removeAccount(account);
 }
 

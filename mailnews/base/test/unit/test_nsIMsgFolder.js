@@ -3,15 +3,14 @@
  * Test suite for nsIMsgFolder functions.
  */
 
-function run_test() {
-  var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                          .getService(Components.interfaces.nsIMsgAccountManager);
+Components.utils.import("resource:///modules/mailServices.js");
 
+function run_test() {
   // Create a local mail account (we need this first)
-  acctMgr.createLocalMailAccount();
+  MailServices.accounts.createLocalMailAccount();
 
   // Get the account
-  var account = acctMgr.accounts.queryElementAt(0, Components.interfaces.nsIMsgAccount);
+  let account = MailServices.accounts.accounts.queryElementAt(0, Components.interfaces.nsIMsgAccount);
 
   // Get the root folder
   var root = account.incomingServer.rootFolder;

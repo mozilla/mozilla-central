@@ -4,10 +4,8 @@
 
 // Test of message count changes in virtual folder views
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
-const tagService = Cc["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Ci.nsIMsgTagService);
+Components.utils.import("resource:///modules/mailServices.js");
+
 const dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=" + "quicksearch";
 const dbView = Cc[dbviewContractId].createInstance(Ci.nsIMsgDBView);
 const bugmail1 = do_get_file("../../../data/bugmail1");
@@ -32,8 +30,8 @@ function run_test()
   do_test_pending();
 
   // function setupVirtualFolder() continues the testing after CopyFileMessage.
-  copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
   return true;
 }
 
@@ -50,7 +48,7 @@ var copyListener =
   OnStopCopy: function(aStatus)
   {
     if (--messageCount)
-      copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
+      MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                                   "", copyListener, null);
     else {
       try {
@@ -68,7 +66,7 @@ var numUnreadMessages;
 function setupVirtualFolder()
 {
   // add as valid tag tag1, though probably not really necessary
-  tagService.addTagForKey(tag1, tag1, null, null);
+  MailServices.tags.addTagForKey(tag1, tag1, null, null);
   
   // add tag1 to 4 messages
   var messages0to3 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
@@ -191,12 +189,10 @@ function CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTerm
   dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
   dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
   // This fails because the folder doesn't exist - why were we doing it?
-//  vfdb.summaryValid = true;
+  //  vfdb.summaryValid = true;
   vfdb.Close(true);
   // use acctMgr to setup the virtual folder listener
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  acctMgr = acctMgr.QueryInterface(Ci.nsIFolderListener);
+  acctMgr = MailServices.accounts.QueryInterface(Ci.nsIFolderListener);
   //print(acctMgr);
   acctMgr.OnItemAdded(null, newFolder);
   return newFolder;

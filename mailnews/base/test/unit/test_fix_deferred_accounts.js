@@ -6,8 +6,7 @@
  * This tests that we cleanup the account prefs when a pop3 account has
  * been deferred to a hidden account.
  */
-const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Components.interfaces.nsIMsgAccountManager);
+Components.utils.import("resource:///modules/mailServices.js");
 
 function run_test()
 {
@@ -46,11 +45,11 @@ function run_test()
                              "account1");
 
   // This will force the load of the accounts setup above.
-  do_check_eq(am.accounts.length, 3); // hidden account not included
-  let server4 = am.getAccount("account4").incomingServer
-                  .QueryInterface(Ci.nsIPop3IncomingServer);
+  do_check_eq(MailServices.accounts.accounts.length, 3); // hidden account not included
+  let server4 = MailServices.accounts.getAccount("account4").incomingServer
+                            .QueryInterface(Ci.nsIPop3IncomingServer);
   do_check_eq(server4.deferredToAccount, "account1");
-  let server5 = am.getAccount("account5").incomingServer
-                  .QueryInterface(Ci.nsIPop3IncomingServer);
+  let server5 = MailServices.accounts.getAccount("account5").incomingServer
+                            .QueryInterface(Ci.nsIPop3IncomingServer);
   do_check_eq(server5.deferredToAccount, "account1");
 }

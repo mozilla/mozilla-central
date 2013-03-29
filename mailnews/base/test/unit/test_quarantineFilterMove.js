@@ -119,12 +119,10 @@ function run_test()
                   .createLocalSubfolder("MoveFolder");
   gMoveFolder2 = gLocalIncomingServer.rootMsgFolder
                   .createLocalSubfolder("MoveFolder2");
-  const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                        .getService(Ci.nsIMsgMailSession);
 
-  mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |
-                                                Ci.nsIFolderListener.added |
-                                                Ci.nsIFolderListener.removed);
+  MailServices.mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |
+                                                             Ci.nsIFolderListener.added |
+                                                             Ci.nsIFolderListener.removed);
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.

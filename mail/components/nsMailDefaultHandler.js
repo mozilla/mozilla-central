@@ -381,8 +381,6 @@ var nsMailDefaultHandler = {
       }
       else {
         // This must be a regular filename. Use it to create a new message with attachment.
-        let msgComposeService = Components.classes["@mozilla.org/messengercompose;1"]
-                                          .getService(Components.interfaces.nsIMsgComposeService);
         let msgParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
                                   .createInstance(Components.interfaces.nsIMsgComposeParams);
         let composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
@@ -404,7 +402,7 @@ var nsMailDefaultHandler = {
           msgParams.format = Components.interfaces.nsIMsgCompFormat.Default;
           msgParams.composeFields = composeFields;
 
-          msgComposeService.OpenComposeWindowWithParams(null, msgParams);
+          MailServices.compose.OpenComposeWindowWithParams(null, msgParams);
         } catch (e) {
           openURI(cmdLine.resolveURI(uri));
         }

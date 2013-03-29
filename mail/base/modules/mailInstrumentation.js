@@ -15,8 +15,6 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-var gMFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                     .getService(nsIMFNService);
 
 Cu.import("resource:///modules/IOUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
@@ -49,7 +47,7 @@ var mailInstrumentationManager =
 
   },
   msgAdded: function (aMsg) {
-    gMFNService.removeListener(this);
+    MailServices.mfn.removeListener(this);
     this._mfnListener = false;
     mailInstrumentationManager.addEvent("msgDownloaded", true);
   },
@@ -199,7 +197,7 @@ var mailInstrumentationManager =
     Services.prefs.addObserver("mail.instrumentation.userOptedIn",
                                this._userOptedIn, false);
     Services.prefs.addObserver("mail.smtpservers", this._smtpServerAdded, false);
-    gMFNService.addListener(this, nsIMFNService.msgAdded);
+    MailServices.mfn.addListener(this, nsIMFNService.msgAdded);
     this._observersRegistered = true;
     this._mfnListener = true;
   },
@@ -209,7 +207,7 @@ var mailInstrumentationManager =
     Services.obs.removeObserver(this, "mail:composeSendSucceeded");
     Services.obs.removeObserver(this, "mail:setAsDefault");
     if (this._mfnListener)
-      gMFNService.removeListener(this);
+      MailServices.mfn.removeListener(this);
     Services.prefs.removeObserver("mail.accountmanager.accounts", this);
     Services.prefs.removeObserver("mail.instrumentation.userOptedIn", this);
     Services.prefs.removeObserver("mail.smtpservers", this);

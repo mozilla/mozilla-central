@@ -9,6 +9,7 @@ const Ci = Components.interfaces;
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/MailConsts.js");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 const MC = MailConsts;
 
@@ -25,9 +26,7 @@ var MailUtils =
    * open (the folder tree wouldn't have been initialized yet).
    */
   discoverFolders: function MailUtils_discoverFolders() {
-    let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                           .getService(Ci.nsIMsgAccountManager);
-    let servers = accountManager.allServers;
+    let servers = MailServices.accounts.allServers;
     for each (let server in fixIterator(servers, Ci.nsIMsgIncomingServer)) {
       // Bug 466311 Sometimes this can throw file not found, we're unsure
       // why, but catch it and log the fact.
@@ -55,9 +54,7 @@ var MailUtils =
    */
   getFolderForFileInProfile:
       function MailUtils_getFolderForFileInProfile(aFile) {
-    let accountManager = Cc["@mozilla.org/messenger/account-manager;1"]
-                           .getService(Ci.nsIMsgAccountManager);
-    let folders = accountManager.allFolders;
+    let folders = MailServices.accounts.allFolders;
 
     for (let folder in fixIterator(folders, Ci.nsIMsgFolder)) {
       if (folder.filePath.equals(aFile))

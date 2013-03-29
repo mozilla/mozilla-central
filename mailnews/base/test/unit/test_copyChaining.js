@@ -4,10 +4,9 @@
 
 // Test of chaining copies between the same folders
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
-
 load("../../../resources/messageGenerator.js");
+
+Components.utils.import("resource:///modules/mailServices.js");
 
 var gCopySource;
 var gCopyDest;
@@ -42,8 +41,8 @@ function CopyNextMessage()
       Components.interfaces.nsIMsgDBHdr);
     var messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     messages.appendElement(msgHdr, false);
-    copyService.CopyMessages(gCopySource, messages, gCopyDest, true,
-                             copyListener, null, false);
+    MailServices.copy.CopyMessages(gCopySource, messages, gCopyDest, true,
+                                   copyListener, null, false);
   }
   else
     do_throw ('TEST FAILED - out of messages');

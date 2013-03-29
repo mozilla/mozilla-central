@@ -3,13 +3,12 @@
  * Test suite for nsMsgMailSession functions relating to listeners.
  */
 
-const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
+Components.utils.import("resource:///modules/mailServices.js");
+
 const nsIFolderListener = Components.interfaces.nsIFolderListener;
 const numListenerFunctions = 8;
 
-var gMailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                             .getService(nsIMsgMailSession);
-var gMailSessionNotifier = gMailSession.QueryInterface(nsIFolderListener);
+var gMailSessionNotifier = MailServices.mailSession.QueryInterface(nsIFolderListener);
 
 var gFLAll;
 var gFLSingle = new Array(numListenerFunctions);
@@ -23,42 +22,42 @@ fL.prototype = {
   OnItemAdded: function (parentItem, item) {
     this.mReceived |= nsIFolderListener.added;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemRemoved: function (parentItem, item) {
     this.mReceived |= nsIFolderListener.removed;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIFolderListener.propertyChanged;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemIntPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIFolderListener.intPropertyChanged;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemBoolPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIFolderListener.boolPropertyChanged;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemUnicharPropertyChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIFolderListener.unicharPropertyChanged;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemPropertyFlagChanged: function (item, property, oldValue, newValue) {
     this.mReceived |= nsIFolderListener.propertyFlagChanged;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   },
   OnItemEvent: function (parentItem, item) {
     this.mReceived |= nsIFolderListener.event;
     if (this.mAutoRemoveItem)
-      gMailSession.RemoveFolderListener(this);
+      MailServices.mailSession.RemoveFolderListener(this);
   }
 };
 
@@ -76,17 +75,17 @@ function NotifyMailSession() {
 function run_test() {
   var i;
 
-  do_check_true(gMailSession != null);
+  do_check_true(MailServices.mailSession != null);
 
   // Test - Add a listener
 
   gFLAll = new fL;
 
-  gMailSession.AddFolderListener(gFLAll, nsIFolderListener.all);
+  MailServices.mailSession.AddFolderListener(gFLAll, nsIFolderListener.all);
 
   for (i = 0; i < numListenerFunctions; ++i) {
     gFLSingle[i] = new fL;
-    gMailSession.AddFolderListener(gFLSingle[i], Math.pow(2, i));
+    MailServices.mailSession.AddFolderListener(gFLSingle[i], Math.pow(2, i));
   }
 
   // Test - Notify listener on all available items
@@ -130,5 +129,5 @@ function run_test() {
 
   // Test - Remove main listener
 
-  gMailSession.RemoveFolderListener(gFLAll);
+  MailServices.mailSession.RemoveFolderListener(gFLAll);
 };

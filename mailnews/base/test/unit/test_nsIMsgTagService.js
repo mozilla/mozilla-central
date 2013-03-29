@@ -9,8 +9,8 @@
  * Does not do comprehensive testing.
  *
  */
-const tagService = Cc["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Ci.nsIMsgTagService);
+
+Components.utils.import("resource:///modules/mailServices.js");
 
 function run_test()
 {
@@ -21,57 +21,57 @@ function run_test()
   const tag4 = "istagtoo";
 
   // add a tag
-  tagService.addTagForKey(tag1, tag1, null, null);
+  MailServices.tags.addTagForKey(tag1, tag1, null, null);
 
   // delete any existing tags
-  var tagArray = tagService.getAllTags({});
+  let tagArray = MailServices.tags.getAllTags({});
   for (var i = 0; i < tagArray.length; i++)
-    tagService.deleteKey(tagArray[i].key);
+    MailServices.tags.deleteKey(tagArray[i].key);
 
   // make sure added tag is now gone
-  do_check_false(tagService.isValidKey(tag1));
+  do_check_false(MailServices.tags.isValidKey(tag1));
 
   // add single tag, and check again
-  tagService.addTagForKey(tag1, tag1, null, null);
-  do_check_true(tagService.isValidKey(tag1));
-  do_check_false(tagService.isValidKey(tag4));
+  MailServices.tags.addTagForKey(tag1, tag1, null, null);
+  do_check_true(MailServices.tags.isValidKey(tag1));
+  do_check_false(MailServices.tags.isValidKey(tag4));
 
   // add second tag and check
-  tagService.addTagForKey(tag4, tag4, null, null);
-  do_check_true(tagService.isValidKey(tag1));
-  do_check_false(tagService.isValidKey(tag2));
-  do_check_false(tagService.isValidKey(tag3));
-  do_check_true(tagService.isValidKey(tag4));
+  MailServices.tags.addTagForKey(tag4, tag4, null, null);
+  do_check_true(MailServices.tags.isValidKey(tag1));
+  do_check_false(MailServices.tags.isValidKey(tag2));
+  do_check_false(MailServices.tags.isValidKey(tag3));
+  do_check_true(MailServices.tags.isValidKey(tag4));
 
   // delete a tag and check
-  tagService.deleteKey(tag1);
-  do_check_false(tagService.isValidKey(tag1));
-  do_check_false(tagService.isValidKey(tag2));
-  do_check_false(tagService.isValidKey(tag3));
-  do_check_true(tagService.isValidKey(tag4));
+  MailServices.tags.deleteKey(tag1);
+  do_check_false(MailServices.tags.isValidKey(tag1));
+  do_check_false(MailServices.tags.isValidKey(tag2));
+  do_check_false(MailServices.tags.isValidKey(tag3));
+  do_check_true(MailServices.tags.isValidKey(tag4));
 
   // add many tags and check again
   for (i = 0; i < 100; i++)
-    tagService.addTagForKey(i, "lotsatags" + i, null, null);
-  do_check_false(tagService.isValidKey(tag1));
-  do_check_false(tagService.isValidKey(tag2));
-  do_check_false(tagService.isValidKey(tag3));
-  do_check_true(tagService.isValidKey(tag4));
+    MailServices.tags.addTagForKey(i, "lotsatags" + i, null, null);
+  do_check_false(MailServices.tags.isValidKey(tag1));
+  do_check_false(MailServices.tags.isValidKey(tag2));
+  do_check_false(MailServices.tags.isValidKey(tag3));
+  do_check_true(MailServices.tags.isValidKey(tag4));
 
   for (i = 0; i < 100; i++)
   {
-    do_check_true(tagService.isValidKey(i));
+    do_check_true(MailServices.tags.isValidKey(i));
     // make sure it knows the difference betweens tags and keys
-    do_check_false(tagService.isValidKey("lotsatags" + i));
+    do_check_false(MailServices.tags.isValidKey("lotsatags" + i));
     // are we confused by key at start of tag?
-    do_check_false(tagService.isValidKey(i + "lotsatags"));
+    do_check_false(MailServices.tags.isValidKey(i + "lotsatags"));
   }
 }
 
 /*  
   function printTags()
   {
-    var tags = tagService.getAllTags({});
+    let tags = MailServices.tags.getAllTags({});
     for (var i = 0; i < tags.length; i++)
       print("# " + i + " key [" + tags[i].key + "] tag [" + tags[i].tag + "]");
   }

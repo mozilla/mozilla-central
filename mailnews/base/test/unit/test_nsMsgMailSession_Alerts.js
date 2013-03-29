@@ -4,7 +4,9 @@
  * listeners.
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 load("../../../resources/alertTestUtils.js");
 
 var gDialogTitle = null;
@@ -66,16 +68,13 @@ alertListener.prototype = {
 
 function run_test()
 {
-  var mailSession = Cc["@mozilla.org/messenger/services/session;1"]
-    .getService(Ci.nsIMsgMailSession);
-
   // Test - No listeners, check alert tries to alert the user.
 
   reset();
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("test message", msgUrl);
+  MailServices.mailSession.alertUser("test message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
   do_check_eq(gDialogTitle, null);
@@ -87,7 +86,7 @@ function run_test()
 
   msgUrl._msgWindow = null;
 
-  mailSession.alertUser("test no message", msgUrl);
+  MailServices.mailSession.alertUser("test no message", msgUrl);
 
   // The dialog title doesn't get set at the moment.
   do_check_eq(gDialogTitle, null);
@@ -100,11 +99,11 @@ function run_test()
   var listener1 = new alertListener();
   listener1.mReturn = false;
 
-  mailSession.addUserFeedbackListener(listener1);
+  MailServices.mailSession.addUserFeedbackListener(listener1);
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("message test", msgUrl);
+  MailServices.mailSession.alertUser("message test", msgUrl);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, "message test");
@@ -118,7 +117,7 @@ function run_test()
   reset();
   listener1.reset();
 
-  mailSession.alertUser("message test no prompt", null);
+  MailServices.mailSession.alertUser("message test no prompt", null);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, null);
@@ -134,11 +133,11 @@ function run_test()
   var listener2 = new alertListener();
   listener2.mReturn = false;
 
-  mailSession.addUserFeedbackListener(listener2);
+  MailServices.mailSession.addUserFeedbackListener(listener2);
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("two listeners", msgUrl);
+  MailServices.mailSession.alertUser("two listeners", msgUrl);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, "two listeners");
@@ -159,7 +158,7 @@ function run_test()
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("no prompt", msgUrl);
+  MailServices.mailSession.alertUser("no prompt", msgUrl);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, null);
@@ -176,11 +175,11 @@ function run_test()
   listener1.reset();
   listener2.reset();
 
-  mailSession.removeUserFeedbackListener(listener1);
+  MailServices.mailSession.removeUserFeedbackListener(listener1);
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("remove listener", msgUrl);
+  MailServices.mailSession.alertUser("remove listener", msgUrl);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, null);
@@ -197,11 +196,11 @@ function run_test()
   listener1.reset();
   listener2.reset();
 
-  mailSession.removeUserFeedbackListener(listener2);
+  MailServices.mailSession.removeUserFeedbackListener(listener2);
 
   msgUrl._msgWindow = msgWindow;
 
-  mailSession.alertUser("no listeners", msgUrl);
+  MailServices.mailSession.alertUser("no listeners", msgUrl);
 
   do_check_eq(gDialogTitle, null);
   do_check_eq(gText, "no listeners");

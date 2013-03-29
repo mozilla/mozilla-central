@@ -15,6 +15,8 @@
   * - Compacting imap offline stores.
   */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
                            "@mozilla.org/msgstore/berkeleystore;1");
 
@@ -31,9 +33,6 @@ var gMsgHdrs = new Array();
 var gExpectedInboxSize;
 var gExpectedFolder2Size;
 var gExpectedFolder3Size;
-
-const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
 
 // nsIMsgCopyServiceListener implementation
 var copyListener = 
@@ -75,7 +74,7 @@ var urlListener =
 
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
-  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
+  MailServices.copy.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
 }
 
 function copyMessages(items, isMove, srcFolder, destFolder)
@@ -84,7 +83,7 @@ function copyMessages(items, isMove, srcFolder, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
+  MailServices.copy.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
 }
 
 function deleteMessages(srcFolder, items)

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/activity/alertHook.js");
+Components.utils.import("resource:///modules/mailServices.js");
 alertHook.init();
 
 // Replace the alerts service with our own. This will let us check if we're
@@ -49,23 +50,20 @@ function run_test() {
                      "Mock Alerts Service", "@mozilla.org/alerts-service;1",
                      mockAlertsServiceFactory);
 
-  let msgMailSession = Cc["@mozilla.org/messenger/services/session;1"]
-                         .getService(Ci.nsIMsgMailSession);
-
   // Just text, no url or window => expect no error shown to user
   gAlertShown = false;
-  msgMailSession.alertUser("test error");
+  MailServices.mailSession.alertUser("test error");
   do_check_false(gAlertShown);
 
   // Text, url and window => expect error shown to user
   gAlertShown = false;
-  msgMailSession.alertUser("test error 2", mailnewsURL);
+  MailServices.mailSession.alertUser("test error 2", mailnewsURL);
   do_check_true(gAlertShown);
 
   // Text, url and no window => export no error shown to user
   gAlertShown = false;
   gMsgWindow = null;
-  msgMailSession.alertUser("test error 2", mailnewsURL);
+  MailServices.mailSession.alertUser("test error 2", mailnewsURL);
   do_check_false(gAlertShown);
 
   // XXX There appears to be a shutdown leak within the activity manager when
