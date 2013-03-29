@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var editContactInlineUI = {
@@ -196,10 +197,7 @@ var editContactInlineUI = {
                               .createInstance(Components.interfaces.nsIMutableArray);
     cardArray.appendElement(this._cardDetails.card, false);
 
-    Components.classes["@mozilla.org/abmanager;1"]
-              .getService(Components.interfaces.nsIAbManager)
-              .getDirectory(this._cardDetails.book.URI)
-              .deleteCards(cardArray);
+    MailServices.ab.getDirectory(this._cardDetails.book.URI).deleteCards(cardArray);
   },
 
   saveChanges: function() {
@@ -213,9 +211,7 @@ var editContactInlineUI = {
 
     let abURI = document.getElementById("editContactAddressBookList").value;
     if (abURI != originalBook.URI) {
-      let abManager = Components.classes["@mozilla.org/abmanager;1"]
-                                .getService(Components.interfaces.nsIAbManager);
-      this._cardDetails.book = abManager.getDirectory(abURI);
+      this._cardDetails.book = MailServices.ab.getDirectory(abURI);
     }
 
     // We can assume the email address stays the same, so just update the name

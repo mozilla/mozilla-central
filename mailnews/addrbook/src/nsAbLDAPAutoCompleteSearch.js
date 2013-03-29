@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -100,8 +101,7 @@ nsAbLDAPAutoCompleteSearch.prototype = {
   // The listener to pass back results to.
   _listener: null,
 
-  _parser: Components.classes["@mozilla.org/messenger/headerparser;1"]
-                     .getService(Components.interfaces.nsIMsgHeaderParser),
+  _parser: MailServices.headerParser,
 
   // Private methods
   // fullString is the full search string.
@@ -218,10 +218,7 @@ nsAbLDAPAutoCompleteSearch.prototype = {
     // results to fall back on.
 
     if (aParam != this._cachedParam) {
-      this._cachedIdentity =
-        Components.classes['@mozilla.org/messenger/account-manager;1']
-                  .getService(Components.interfaces.nsIMsgAccountManager)
-                  .getIdentity(aParam);
+      this._cachedIdentity = MailServices.accounts.getIdentity(aParam);
       this._cachedParam = aParam;
     }
 
@@ -244,16 +241,13 @@ nsAbLDAPAutoCompleteSearch.prototype = {
       return;
     }
 
-    var abMgr = Components.classes["@mozilla.org/abmanager;1"]
-                          .getService(Components.interfaces.nsIAbManager);
-
     // If we don't already have a cached query for this URI, build a new one.
     if (!(acDirURI in this._cachedQueries)) {
       var query =
         Components.classes["@mozilla.org/addressbook/ldap-directory-query;1"]
                   .createInstance(Components.interfaces.nsIAbDirectoryQuery);
-      var book = abMgr.getDirectory("moz-abldapdirectory://" + acDirURI)
-                      .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
+      let book = MailServices.ab.getDirectory("moz-abldapdirectory://" + acDirURI)
+                                .QueryInterface(Components.interfaces.nsIAbLDAPDirectory);
 
       // Create a minimal map just for the display name and primary email.
       var attributes =

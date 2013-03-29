@@ -6,8 +6,7 @@
  * Testing of bcc in message summary file added in bug 481667
  */
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
+Components.utils.import("resource:///modules/mailServices.js");
 
 var hdr;
 
@@ -27,8 +26,8 @@ function run_test()
   // Get a message into the local filestore.
   var draft = do_get_file("../../../data/draft1");
   do_test_pending();
-  copyService.CopyFileMessage(draft, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+  MailServices.copy.CopyFileMessage(draft, gLocalInboxFolder, null, false, 0,
+                                    "", copyListener, null);
 }
 
 function continueTest()

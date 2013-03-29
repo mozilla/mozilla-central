@@ -10,10 +10,9 @@ load("../../../resources/searchTestUtils.js");
 // add address book setup
 load("../../../resources/abSetup.js");
 
-const ABUri = kPABData.URI;
+Components.utils.import("resource:///modules/mailServices.js");
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"].
-                      getService(Ci.nsIMsgCopyService);
+const ABUri = kPABData.URI;
 
 const nsMsgSearchScope = Ci.nsMsgSearchScope;
 const nsMsgSearchAttrib = Ci.nsMsgSearchAttrib;
@@ -237,8 +236,8 @@ var copyListener =
     if (fileName)
     { 
       var file = do_get_file(fileName);
-      copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                              "", copyListener, null);
+      MailServices.copy.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+                                        "", copyListener, null);
     }
     else
       testAbSearch();
