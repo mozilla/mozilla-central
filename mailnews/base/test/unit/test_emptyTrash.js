@@ -16,18 +16,16 @@
   */
 
 // Globals
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gMsgFile1;
 var gLocalTrashFolder;
 var gCurTestNum;
 var gMsgHdrs = new Array();
 var gRootFolder;
 
-const mFNSContractID = "@mozilla.org/messenger/msgnotificationservice;1";
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
 const nsIMFListener = Ci.nsIMsgFolderListener;
-
-const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
 
 // nsIMsgCopyServiceListener implementation
 var copyListener = 
@@ -69,7 +67,7 @@ var urlListener =
 
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
-  gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
+  MailServices.copy.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, "", copyListener, null);
 }
 
 function deleteMessages(srcFolder, items)
@@ -121,8 +119,6 @@ const gTestArray =
   }
 ];
 
-var gMFNService = Cc[mFNSContractID].getService(nsIMFNService);
-
 // Our listener, which captures events.
 function gMFListener() {}
 gMFListener.prototype =
@@ -141,7 +137,7 @@ function run_test()
   // our front end code clears the msg db when it gets told the folder for
   // an open view has been deleted - so simulate that.
   var folderDeletedListener = new gMFListener();
-  gMFNService.addListener(folderDeletedListener, nsIMFNService.folderDeleted);
+  MailServices.mfn.addListener(folderDeletedListener, nsIMFNService.folderDeleted);
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of all the operations.
   do_test_pending();

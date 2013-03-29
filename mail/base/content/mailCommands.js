@@ -431,16 +431,12 @@ function ViewPageSource(messages)
   }
 
   try {
-    // First, get the mail session
-    const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
-    var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                                .getService(nsIMsgMailSession);
     var mailCharacterSet = "charset=" + msgWindow.mailCharacterSet;
 
     for (var i = 0; i < numMessages; i++)
     {
       // Now, we need to get a URL from a URI
-      var url = mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
+      var url = MailServices.mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
 
       // Strip out the message-display parameter to ensure that attached emails
       // display the message source, not the processed HTML.

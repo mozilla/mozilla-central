@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/mailViewManager.js");
 
 // these constants are now authoritatively defined in mailViewManager.js (above)
@@ -231,21 +232,19 @@ function RefreshTagsPopup(aMenupopup)
     aMenupopup.removeChild(aMenupopup.lastChild);
 
   // create tag menuitems
-  var currentTagKey = gFolderDisplay.view.mailViewIndex == kViewItemTags ?
+  let currentTagKey = gFolderDisplay.view.mailViewIndex == kViewItemTags ?
                         gFolderDisplay.view.mailViewData : "";
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  var tagArray = tagService.getAllTags({});
-  for (var i = 0; i < tagArray.length; ++i)
+  let tagArray = MailServices.tags.getAllTags({});
+  for (let i = 0; i < tagArray.length; ++i)
   {
-    var tagInfo = tagArray[i];
-    var menuitem = document.createElement("menuitem");
+    let tagInfo = tagArray[i];
+    let menuitem = document.createElement("menuitem");
     menuitem.setAttribute("label", tagInfo.tag);
     menuitem.setAttribute("value", kViewTagMarker + tagInfo.key);
     menuitem.setAttribute("type", "radio");
     if (tagInfo.key == currentTagKey)
       menuitem.setAttribute("checked", true);
-    var color = tagInfo.color;
+    let color = tagInfo.color;
     if (color)
       menuitem.setAttribute("class", "lc-" + color.substr(1));
     aMenupopup.appendChild(menuitem);

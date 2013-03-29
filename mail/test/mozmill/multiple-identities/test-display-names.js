@@ -15,7 +15,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 var folder;
 var decoyFolder;
-var acctMgr;
 var localAccount;
 var secondIdentity;
 var myEmail = "sender@nul.invalid"; // Dictated by messagerInjector.js
@@ -30,16 +29,14 @@ function setupModule(module) {
   let abh = collector.getModule("address-book-helpers");
   abh.installInto(module);
 
-  acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-              .getService(Ci.nsIMsgAccountManager);
-  localAccount = acctMgr.FindAccountForServer(acctMgr.localFoldersServer);
+  localAccount = MailServices.accounts.FindAccountForServer(MailServices.accounts.localFoldersServer);
 
   // We need to make sure we have only one identity:
   // 1) Delete all accounts except for Local Folders
-  for (let i = acctMgr.accounts.length - 1; i >= 0; i--) {
-    let account = acctMgr.accounts.queryElementAt(i, Ci.nsIMsgAccount);
+  for (let i = MailServices.accounts.accounts.length - 1; i >= 0; i--) {
+    let account = MailServices.accounts.accounts.queryElementAt(i, Ci.nsIMsgAccount);
     if (account != localAccount)
-      acctMgr.removeAccount(account);
+      MailServices.accounts.removeAccount(account);
   }
 
   // 2) Delete all identities except for one
@@ -50,7 +47,7 @@ function setupModule(module) {
   }
 
   // 3) Create a second identity and hold onto it for later
-  secondIdentity = acctMgr.createIdentity();
+  secondIdentity = MailServices.accounts.createIdentity();
   secondIdentity.email = "nobody@nowhere.invalid";
 
   folder = create_folder("DisplayNamesA");
@@ -73,15 +70,15 @@ function setupModule(module) {
 function ensure_single_identity() {
   if (localAccount.identities.length > 1)
     localAccount.removeIdentity(secondIdentity);
-  assert_true(acctMgr.allIdentities.length == 1,
-              "Expected 1 identity, but got " + acctMgr.allIdentities.length +
+  assert_true(MailServices.accounts.allIdentities.length == 1,
+              "Expected 1 identity, but got " + MailServices.accounts.allIdentities.length +
               " identities");
 }
 
 function ensure_multiple_identities() {
   if (localAccount.identities.length == 1)
     localAccount.addIdentity(secondIdentity);
-  assert_true(acctMgr.allIdentities.length > 1,
+  assert_true(MailServices.accounts.allIdentities.length > 1,
               "Expected multiple identities, but got only one identity");
 }
 

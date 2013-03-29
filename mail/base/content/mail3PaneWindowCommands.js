@@ -1045,9 +1045,7 @@ function IsSendUnsentMsgsEnabled(unsentMsgsFolder)
     identity = getIdentityForServer(folders[0].server);
 
   if (!identity)
-    identity = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                         .getService(Components.interfaces.nsIMsgAccountManager)
-                         .defaultAccount.defaultIdentity;
+    identity = MailServices.accounts.defaultAccount.defaultIdentity;
 
   return msgSendlater.hasUnsentMessages(identity);
 }

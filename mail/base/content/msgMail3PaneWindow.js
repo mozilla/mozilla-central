@@ -3,17 +3,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/activity/activityModules.js");
+Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource:///modules/folderUtils.jsm");
+Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
 Components.utils.import("resource:///modules/MailConsts.js");
-Components.utils.import("resource:///modules/errUtils.js");
-Components.utils.import("resource:///modules/IOUtils.js");
+Components.utils.import("resource:///modules/mailInstrumentation.js");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/msgDBCacheManager.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
-Components.utils.import("resource:///modules/mailInstrumentation.js");
-Components.utils.import("resource:///modules/msgDBCacheManager.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 /* This is where functions related to the 3 pane window are kept */
@@ -604,9 +605,7 @@ function OnUnloadMessenger()
 
   webSearchTabType.shutdown();
 
-  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                              .getService(Components.interfaces.nsIMsgMailSession);
-  mailSession.RemoveFolderListener(folderListener);
+  MailServices.mailSession.RemoveFolderListener(folderListener);
 
   gPhishingDetector.shutdown();
 
@@ -860,11 +859,9 @@ function loadStartFolder(initialUri)
 
 function AddToSession()
 {
-  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                              .getService(Components.interfaces.nsIMsgMailSession);
   var nsIFolderListener = Components.interfaces.nsIFolderListener;
   var notifyFlags = nsIFolderListener.intPropertyChanged | nsIFolderListener.event;
-  mailSession.AddFolderListener(folderListener, notifyFlags);
+  MailServices.mailSession.AddFolderListener(folderListener, notifyFlags);
 }
 
 function InitPanes()
@@ -1376,16 +1373,14 @@ function ThreadPaneOnDragOver(aEvent) {
 
 function ThreadPaneOnDrop(aEvent) {
   let dt = aEvent.dataTransfer;
-  let cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                     .getService(Components.interfaces.nsIMsgCopyService);
   for (let i = 0; i < dt.mozItemCount; i++) {
     let extFile = dt.mozGetDataAt("application/x-moz-file", i)
                     .QueryInterface(Components.interfaces.nsIFile);
     if (extFile.isFile()) {
       let len = extFile.leafName.length;
       if (len > 4 && extFile.leafName.toLowerCase().endsWith(".eml"))
-        cs.CopyFileMessage(extFile, gFolderDisplay.displayedFolder, null, false,
-                           1, "", null, msgWindow);
+        MailServices.copy.CopyFileMessage(extFile, gFolderDisplay.displayedFolder,
+                                          null, false, 1, "", null, msgWindow);
     }
   }
 }

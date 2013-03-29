@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/gloda/dbview.js");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 const ADDR_DB_LARGE_COMMIT       = 1;
@@ -34,9 +35,6 @@ const kMsgNotificationMDN = 4;
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/MailConsts.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
-
-var gCopyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                     .getService(Components.interfaces.nsIMsgCopyService);
 
 // Timer to mark read, if the user has configured the app to mark a message as
 // read if it is viewed for more than n seconds.
@@ -749,9 +747,7 @@ function RemoveAllMessageTags()
 
   var messages = Components.classes["@mozilla.org/array;1"]
                            .createInstance(Components.interfaces.nsIMutableArray);
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  var tagArray = tagService.getAllTags({});
+  let tagArray = MailServices.tags.getAllTags({});
 
   var allKeys = "";
   for (var j = 0; j < tagArray.length; ++j)
@@ -876,12 +872,10 @@ function ManageTags()
 
 function AddTagCallback(name, color)
 {
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  tagService.addTag(name, color, '');
+  MailServices.tags.addTag(name, color, '');
   try
   {
-    ToggleMessageTag(tagService.getKeyForTag(name), true);
+    ToggleMessageTag(MailServices.tags.getKeyForTag(name), true);
   }
   catch(ex)
   {
@@ -906,9 +900,7 @@ function SetMessageTagLabel(menuitem, index, name)
 
 function InitMessageTags(menuPopup)
 {
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  var tagArray = tagService.getAllTags({});
+  let tagArray = MailServices.tags.getAllTags({});
   var tagCount = tagArray.length;
 
   // Remove any existing non-static entries... (clear tags list before rebuilding it)
@@ -1164,12 +1156,10 @@ function IsReplyAllEnabled()
                                     myEmail.toLowerCase()));
 
   // Now, let's get the number of unique addresses.
-  let hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                            .getService(Components.interfaces.nsIMsgHeaderParser);
-  let uniqueAddresses = hdrParser.removeDuplicateAddresses(addresses, "");
+  let uniqueAddresses = MailServices.headerParser.removeDuplicateAddresses(addresses, "");
   let emailAddresses = {};
-  let numAddresses = hdrParser.parseHeadersWithArray(uniqueAddresses,
-                                                     emailAddresses, {}, {});
+  let numAddresses = MailServices.headerParser.parseHeadersWithArray(uniqueAddresses,
+                                                                     emailAddresses, {}, {});
 
   // XXX: This should be handled by the nsIMsgHeaderParser.  See Bug 498480.
   // Remove addresses that look like email groups, because we don't support
@@ -1648,9 +1638,7 @@ BatchMessageMover.prototype = {
       }
       this._batches[copyBatchKey].push(msgHdr);
     }
-    let notificationService = Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
-                                        .getService(Components.interfaces.nsIMsgFolderNotificationService);
-    notificationService.addListener(this, notificationService.folderAdded);
+    MailServices.mfn.addListener(this, MailServices.mfn.folderAdded);
 
     // Now we launch the code iterating over all message copies, one in turn.
     this.processNextBatch();
@@ -1755,17 +1743,15 @@ BatchMessageMover.prototype = {
         msgs.forEach(function(item){array.appendElement(item, false);});
         // If the source folder doesn't support deleting messages, we
         // make archive a copy, not a move.
-        gCopyService.CopyMessages(srcFolder, array, dstFolder,
-                                  srcFolder.canDeleteMessages, this, msgWindow, true);
+        MailServices.copy.CopyMessages(srcFolder, array, dstFolder,
+                                       srcFolder.canDeleteMessages, this, msgWindow, true);
         return; // only do one.
       }
       delete this._batches[key];
     }
     gFolderDisplay.hintMassMoveCompleted();
 
-    Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
-              .getService(Components.interfaces.nsIMsgFolderNotificationService)
-              .removeListener(this);
+    MailServices.mfn.removeListener(this);
 
   },
   OnStartRunningUrl: function(url) {
@@ -1884,9 +1870,7 @@ function MsgCreateFilter()
 {
   // retrieve Sender direct from selected message's headers
   var msgHdr = gFolderDisplay.selectedMessage;
-  var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                               .getService(Components.interfaces.nsIMsgHeaderParser);
-  var emailAddress = headerParser.extractHeaderAddressMailboxes(msgHdr.author);
+  let emailAddress = MailServices.headerParser.extractHeaderAddressMailboxes(msgHdr.author);
   if (emailAddress)
     top.MsgFilters(emailAddress, null);
 }
@@ -2316,29 +2300,26 @@ function MsgFilters(emailAddress, folder)
 
 function MsgApplyFilters()
 {
-  var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"]
-                                .getService(Components.interfaces.nsIMsgFilterService);
-
-  var preselectedFolder = GetFirstSelectedMsgFolder();
+  let preselectedFolder = GetFirstSelectedMsgFolder();
   let selectedFolders = Components.classes["@mozilla.org/array;1"]
                                   .createInstance(Components.interfaces.nsIMutableArray);
   selectedFolders.appendElement(preselectedFolder, false);
 
-  var curFilterList = preselectedFolder.getFilterList(msgWindow);
+  let curFilterList = preselectedFolder.getFilterList(msgWindow);
   // create a new filter list and copy over the enabled filters to it.
   // We do this instead of having the filter after the fact code ignore
   // disabled filters because the Filter Dialog filter after the fact
   // code would have to clone filters to allow disabled filters to run,
   // and we don't support cloning filters currently.
-  var tempFilterList = filterService.getTempFilterList(preselectedFolder);
-  var numFilters = curFilterList.filterCount;
+  let tempFilterList = MailServices.filters.getTempFilterList(preselectedFolder);
+  let numFilters = curFilterList.filterCount;
   // make sure the temp filter list uses the same log stream
   tempFilterList.logStream = curFilterList.logStream;
   tempFilterList.loggingEnabled = curFilterList.loggingEnabled;
-  var newFilterIndex = 0;
-  for (var i = 0; i < numFilters; i++)
+  let newFilterIndex = 0;
+  for (let i = 0; i < numFilters; i++)
   {
-    var curFilter = curFilterList.getFilterAt(i);
+    let curFilter = curFilterList.getFilterAt(i);
     // only add enabled, UI visibile filters that are in the manual context
     if (curFilter.enabled && !curFilter.temporary &&
         (curFilter.filterType & Components.interfaces.nsMsgFilterType.Manual))
@@ -2347,7 +2328,7 @@ function MsgApplyFilters()
       newFilterIndex++;
     }
   }
-  filterService.applyFiltersToFolders(tempFilterList, selectedFolders, msgWindow);
+  MailServices.filters.applyFiltersToFolders(tempFilterList, selectedFolders, msgWindow);
 }
 
 function MsgApplyFiltersToSelection()
@@ -2358,15 +2339,11 @@ function MsgApplyFiltersToSelection()
 
   var selectedMessages = gFolderDisplay.selectedMessages;
   if (selectedMessages.length) {
-    var filterService =
-      Components.classes["@mozilla.org/messenger/services/filters;1"]
-                .getService(Components.interfaces.nsIMsgFilterService);
-
-    filterService.applyFilters(Components.interfaces.nsMsgFilterType.Manual,
-                               toXPCOMArray(selectedMessages,
-                                            Components.interfaces.nsIMutableArray),
-                               gFolderDisplay.displayedFolder,
-                               msgWindow);
+    MailServices.filters.applyFilters(Components.interfaces.nsMsgFilterType.Manual,
+                                      toXPCOMArray(selectedMessages,
+                                                   Components.interfaces.nsIMutableArray),
+                                      gFolderDisplay.displayedFolder,
+                                      msgWindow);
   }
 }
 
@@ -2647,19 +2624,17 @@ function GetNewMsgs(server, folder)
 
 function SendUnsentMessages()
 {
-  var msgSendlater = Components.classes["@mozilla.org/messengercompose/sendlater;1"]
+  let msgSendlater = Components.classes["@mozilla.org/messengercompose/sendlater;1"]
                                .getService(Components.interfaces.nsIMsgSendLater);
 
-  var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                 .getService(Components.interfaces.nsIMsgAccountManager);
-  var allIdentities = accountManager.allIdentities;
-  var identitiesCount = allIdentities.length;
-  for (var i = 0; i < identitiesCount; i++) {
-    var currentIdentity = allIdentities.queryElementAt(i, Components.interfaces.nsIMsgIdentity);
-    var msgFolder = msgSendlater.getUnsentMessagesFolder(currentIdentity);
+  let allIdentities = MailServices.accounts.allIdentities;
+  let identitiesCount = allIdentities.length;
+  for (let i = 0; i < identitiesCount; i++) {
+    let currentIdentity = allIdentities.queryElementAt(i, Components.interfaces.nsIMsgIdentity);
+    let msgFolder = msgSendlater.getUnsentMessagesFolder(currentIdentity);
     if (msgFolder) {
-      var numMessages = msgFolder.getTotalMessages(false /* include subfolders */);
-      if(numMessages > 0) {
+      let numMessages = msgFolder.getTotalMessages(false /* include subfolders */);
+      if (numMessages > 0) {
         msgSendlater.sendUnsentMessages(currentIdentity);
         // Right now, all identities point to the same unsent messages
         // folder, so to avoid sending multiple copies of the
@@ -2875,9 +2850,7 @@ var gMessageNotificationBar =
   setRemoteContentMsg: function(aMsgHdr)
   {
     // update the allow remote content for sender string
-    var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                 .getService(Components.interfaces.nsIMsgHeaderParser);
-    var emailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
+    let emailAddress = MailServices.headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
     var desc = document.getElementById("bundle_messenger")
                        .getFormattedString("alwaysLoadRemoteContentForSender2",
                                            [emailAddress ? emailAddress : aMsgHdr.author]);
@@ -2900,12 +2873,10 @@ var gMessageNotificationBar =
                  aMimeHdr.extractHeader("Return-Receipt-To", false); // not
     let fromHdr = aMimeHdr.extractHeader("From", false);
 
-    let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                 .getService(Components.interfaces.nsIMsgHeaderParser);
-    let mdnAddr = headerParser.extractHeaderAddressMailboxes(mdnHdr);
-    let fromAddr = headerParser.extractHeaderAddressMailboxes(fromHdr);
+    let mdnAddr = MailServices.headerParser.extractHeaderAddressMailboxes(mdnHdr);
+    let fromAddr = MailServices.headerParser.extractHeaderAddressMailboxes(fromHdr);
 
-    let authorName = headerParser.extractHeaderAddressName(
+    let authorName = MailServices.headerParser.extractHeaderAddressName(
                        aMsgHeader.mime2DecodedAuthor) || aMsgHeader.author;
 
     let mdnBarMsg = document.getElementById("mdnBarMessage");
@@ -2982,22 +2953,18 @@ function allowRemoteContentForSender()
   if (!msgHdr)
     return;
 
-  var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                               .getService(Components.interfaces.nsIMsgHeaderParser);
   var names = {};
   var addresses = {};
   var fullNames = {};
   var numAddresses;
 
-  numAddresses = headerParser.parseHeadersWithArray(msgHdr.author, addresses, names, fullNames);
+  numAddresses = MailServices.headerParser.parseHeadersWithArray(msgHdr.author, addresses, names, fullNames);
   var authorEmailAddress = addresses.value[0];
   if (!authorEmailAddress)
     return;
 
   // search through all of our local address books looking for a match.
-  var enumerator = Components.classes["@mozilla.org/abmanager;1"]
-                             .getService(Components.interfaces.nsIAbManager)
-                             .directories;
+  let enumerator = MailServices.ab.directories;
   var cardForEmailAddress;
   var addrbook;
   while (!cardForEmailAddress && enumerator.hasMoreElements())
@@ -3300,9 +3267,7 @@ function MsgJunkMailInfo(aCheckFirstUse)
 
     // check to see if this is an existing profile where the user has started using
     // the junk mail feature already
-    var junkmailPlugin = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
-                                   .getService(Components.interfaces.nsIJunkMailPlugin);
-    if (junkmailPlugin.userHasClassified)
+    if (MailServices.junk.userHasClassified)
       return;
   }
 

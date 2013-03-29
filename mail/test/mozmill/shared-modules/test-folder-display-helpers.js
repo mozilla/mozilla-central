@@ -30,8 +30,9 @@ const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = ['window-helpers'];
 
 const nsMsgViewIndex_None = 0xffffffff;
-Cu.import('resource:///modules/MailUtils.js');
 Cu.import('resource:///modules/MailConsts.js');
+Cu.import("resource:///modules/mailServices.js");
+Cu.import('resource:///modules/MailUtils.js');
 Cu.import('resource:///modules/mailViewManager.js');
 Cu.import("resource://gre/modules/Services.jsm");
 
@@ -1335,9 +1336,7 @@ function middle_click_on_folder(aFolder) {
  * @returns An nsIMsgFolder representing the smart folder with the given name.
  */
 function get_smart_folder_named(aFolderName) {
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  let smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
+  let smartServer = MailServices.accounts.FindServer("nobody", "smart mailboxes", "none");
   return smartServer.rootFolder.getChildNamed(aFolderName);
 }
 
@@ -1633,11 +1632,8 @@ var FolderListener = {
     if (this._inited)
       return;
 
-    let mailSession =
-      Cc["@mozilla.org/messenger/services/session;1"]
-        .getService(Ci.nsIMsgMailSession);
-    mailSession.AddFolderListener(this,
-                                  Ci.nsIFolderListener.event);
+    MailServices.mailSession.AddFolderListener(this,
+                                               Ci.nsIFolderListener.event);
 
     this._inited = true;
   },

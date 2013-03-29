@@ -308,12 +308,10 @@ function test_summary_when_multiple_identities() {
 
 function extract_first_address(thread)
 {
-  let headerParser = Cc["@mozilla.org/messenger/headerparser;1"]
-                       .getService(Ci.nsIMsgHeaderParser);
   let addresses = {};
   let fullNames = {};
   let names = {};
-  let numAddresses = headerParser.parseHeadersWithArray(
+  let numAddresses = MailServices.headerParser.parseHeadersWithArray(
     thread1.getMsgHdr(0).mime2DecodedAuthor,
     addresses, names, fullNames);
 

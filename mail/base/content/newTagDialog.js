@@ -4,6 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var dialog;
@@ -45,10 +46,8 @@ function initializeForEditing(aTagKey)
   document.documentElement.setAttribute("ondialogaccept", "return onOKEditTag();");
 
   // extract the color and name for the current tag
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Components.interfaces.nsIMsgTagService);
-  document.getElementById("tagColorPicker").color = tagService.getColorForKey(aTagKey);
-  dialog.nameField.value = tagService.getTagForKey(aTagKey);
+  document.getElementById("tagColorPicker").color = MailServices.tags.getColorForKey(aTagKey);
+  dialog.nameField.value = MailServices.tags.getTagForKey(aTagKey);
 }
 
 /**
@@ -56,25 +55,23 @@ function initializeForEditing(aTagKey)
  */
 function onOKEditTag()
 {
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                     .getService(Components.interfaces.nsIMsgTagService);
   // get the tag name of the current key we are editing
-  var existingTagName = tagService.getTagForKey(dialog.editTagKey);
+  new existingTagName = MailServices.tags.getTagForKey(dialog.editTagKey);
 
   // it's ok if the name didn't change
   if (existingTagName != dialog.nameField.value)
   {
     // don't let the user edit a tag to the name of another existing tag
-    if (tagService.getKeyForTag(dialog.nameField.value))
+    if (MailServices.tags.getKeyForTag(dialog.nameField.value))
     {
       alertForExistingTag();
       return false; // abort the OK
     }
 
-    tagService.setTagForKey(dialog.editTagKey, dialog.nameField.value);
+    MailServices.tags.setTagForKey(dialog.editTagKey, dialog.nameField.value);
   }
 
-  tagService.setColorForKey(dialog.editTagKey, document.getElementById("tagColorPicker").color);
+  MailServices.tags.setColorForKey(dialog.editTagKey, document.getElementById("tagColorPicker").color);
   return dialog.okCallback();
 }
 
@@ -86,9 +83,7 @@ function onOKNewTag()
 {
   var name = dialog.nameField.value;
 
-  var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"].getService(Components.interfaces.nsIMsgTagService);
-
-  if (tagService.getKeyForTag(name))
+  if (MailServices.tags.getKeyForTag(name))
   {
     alertForExistingTag();
     return false;

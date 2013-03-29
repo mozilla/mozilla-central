@@ -36,9 +36,7 @@ function OnMailWindowUnload()
   //  the tabs which close their views) and OnUnloadMessageWindow for the
   //  standalone message window.
 
-  var mailSession = Components.classes["@mozilla.org/messenger/services/session;1"]
-                              .getService(Components.interfaces.nsIMsgMailSession);
-  mailSession.RemoveMsgWindow(msgWindow);
+  MailServices.mailSession.RemoveMsgWindow(msgWindow);
   // the tabs have the FolderDisplayWidget close their 'messenger' instances for us
 
   window.QueryInterface(Components.interfaces.nsIDOMChromeWindow)
@@ -90,7 +88,7 @@ function CreateMailWindowGlobals()
   msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
                         .createInstance(Components.interfaces.nsIMsgWindow);
 
-  accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
+  accountManager = MailServices.accounts;
 
   msgWindow.notificationCallbacks = new BadCertHandler();
 }
@@ -102,9 +100,7 @@ function InitMsgWindow()
   msgWindow.domWindow = window;
   msgWindow.statusFeedback = statusFeedback;
   msgWindow.msgHeaderSink = messageHeaderSink;
-  Components.classes["@mozilla.org/messenger/services/session;1"]
-            .getService(Components.interfaces.nsIMsgMailSession)
-            .AddMsgWindow(msgWindow);
+  MailServices.mailSession.AddMsgWindow(msgWindow);
   let messagepane = document.getElementById("messagepane");
   messagepane.docShell.allowAuth = false;
   messagepane.docShell.allowDNSPrefetch = false;

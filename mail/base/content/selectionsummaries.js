@@ -6,6 +6,7 @@ Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/gloda/connotent.js");
 Components.utils.import("resource:///modules/gloda/mimemsg.js");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/templateUtils.js");
 
 let gSelectionSummaryStrings = {
@@ -133,8 +134,7 @@ function MultiMessageSummary(aMessages, aListener) {
 
 MultiMessageSummary.prototype = {
   init: function() {
-    this._msgTagService = Components.classes["@mozilla.org/messenger/tagservice;1"].
-                          getService(Components.interfaces.nsIMsgTagService);
+    this._msgTagService = MailServices.tags;
     this._glodaQueries = [];
     this._msgNodes = {};
     if (this._listener)
@@ -200,8 +200,6 @@ MultiMessageSummary.prototype = {
     // count threads
     let threads = {};
     let numThreads = 0;
-    let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].
-                         getService(Components.interfaces.nsIMsgHeaderParser);
     let viewThreadId = function (aMsgHdr) {
       let thread = gDBView.getThreadContainingMsgHdr(aMsgHdr);
       return thread.threadKey;
@@ -270,7 +268,7 @@ MultiMessageSummary.prototype = {
         msg_classes.push("starred");
 
       let subject = msgs[0].mime2DecodedSubject || gSelectionSummaryStrings['noSubject'];
-      let author = _mm_FormatDisplayName(headerParser, msgs[0].mime2DecodedAuthor, "from");
+      let author = _mm_FormatDisplayName(MailServices.headerParser, msgs[0].mime2DecodedAuthor, "from");
 
       let countstring = "";
       if (numMsgs > 1) {
@@ -531,8 +529,6 @@ ThreadSummary.prototype = {
     while (messagesElt.firstChild)
       messagesElt.removeChild(messagesElt.firstChild);
 
-    let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                    .getService(Components.interfaces.nsIMsgHeaderParser);
     let count = 0;
     const MAX_THREADS = 100;
     const SNIPPET_LENGTH = 300;
@@ -551,7 +547,7 @@ ThreadSummary.prototype = {
       if (msgHdr.isFlagged)
         msg_classes.push("starred");
 
-      let senderName = _mm_FormatDisplayName(headerParser, msgHdr.mime2DecodedAuthor, "from");
+      let senderName = _mm_FormatDisplayName(MailServices.headerParser, msgHdr.mime2DecodedAuthor, "from");
       let date = makeFriendlyDateAgo(new Date(msgHdr.date/1000));
 
       let msgContents = '<div class="row">' +

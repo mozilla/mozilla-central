@@ -1288,9 +1288,6 @@
             for (var i = headerValueNode.childNodes.length - 1; i >= 0; --i)
               headerValueNode.removeChild(headerValueNode.childNodes[i]);
 
-            var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-
             // tokenize the keywords based on ' '
             var tagsArray = aTags.split(' ');
             for (var index = 0; index < tagsArray.length; index++)
@@ -1301,10 +1298,10 @@
               try {
                 // if we got a bad tag name, getTagForKey will throw an exception, skip it
                 // and go to the next one.
-                tagName = tagService.getTagForKey(tagsArray[index]);
+                tagName = MailServices.tags.getTagForKey(tagsArray[index]);
               } catch (ex) { continue; }
 
-              var color = tagService.getColorForKey(tagsArray[index]);
+              let color = MailServices.tags.getColorForKey(tagsArray[index]);
 
               // now create a label for the tag name, and set the color
               var label = document.createElement("label");
@@ -1329,6 +1326,11 @@
         ]]>
         </body>
       </method>
+      <constructor>
+        <![CDATA[
+          Components.utils.import("resource:///modules/mailServices.js");
+        ]]>
+      </constructor>
     </implementation>
   </binding>
 
@@ -1346,10 +1348,6 @@
         <![CDATA[
            Components.classes['@mozilla.org/mail/search/validityManager;1'].getService(Components.interfaces.nsIMsgSearchValidityManager);
         ]]>
-      </field>
-      <field name="filterService">
-        Components.classes["@mozilla.org/messenger/services/filters;1"]
-                  .getService(Components.interfaces.nsIMsgFilterService)
       </field>
       <property name="searchScope" onget="return this.internalScope;">
         <!-- scope ID - retrieve the table -->
@@ -1552,7 +1550,7 @@
           <![CDATA[
             if (isNaN(this.value)) // is this a custom term?
             {
-              let customTerm = this.filterService.getCustomTerm(this.value);
+              let customTerm = MailServices.filters.getCustomTerm(this.value);
               if (customTerm)
                 return customTerm.name;
               else
@@ -1578,7 +1576,7 @@
             var length = new Object;
             let result = this.validityTable.getAvailableAttributes(length);
             // add any available custom search terms
-            let customEnum = this.filterService.getCustomTerms();
+            let customEnum = MailServices.filters.getCustomTerms();
             while (customEnum && customEnum.hasMoreElements())
             {
               let customTerm =
@@ -1614,7 +1612,7 @@
             {
               if (isNaN(ids[i])) // Is this a custom search term?
               {
-                let customTerm = this.filterService.getCustomTerm(ids[i]);
+                let customTerm = MailServices.filters.getCustomTerm(ids[i]);
                 if (customTerm)
                   strings[i] = customTerm.name;
                 else
@@ -1632,6 +1630,7 @@
       </property>
       <constructor>
       <![CDATA[
+        Components.utils.import("resource:///modules/mailServices.js");
         Components.utils.import("resource://gre/modules/Services.jsm", this);
         initializeTermFromId(this.id);
       ]]>
@@ -1663,7 +1662,7 @@
             let isCustom = isNaN(this.searchAttribute);
             if (isCustom)
             {
-              let customTerm = this.filterService.getCustomTerm(this.searchAttribute);
+              let customTerm = MailServices.filters.getCustomTerm(this.searchAttribute);
               if (customTerm)
                 return customTerm.getAvailableOperators(this.searchScope, length);
               return [Components.interfaces.nsMsgSearchOp.Contains];
@@ -1710,6 +1709,7 @@
       </property>
       <constructor>
         <![CDATA[
+          Components.utils.import("resource:///modules/mailServices.js");
           Components.utils.import("resource://gre/modules/Services.jsm", this);
         ]]>
       </constructor>
@@ -1783,10 +1783,6 @@
       <field name="internalOperator">null</field>
       <field name="internalAttribute">null</field>
       <field name="internalValue">null</field>
-      <field name="filterService">
-        Components.classes["@mozilla.org/messenger/services/filters;1"]
-                  .getService(Components.interfaces.nsIMsgFilterService);
-      </field>
       <property name="opParentValue" onget="return this.internalOperator;">
         <setter>
           <![CDATA[
@@ -2085,9 +2081,7 @@
           <![CDATA[
             var children = document.getAnonymousNodes(this);
             var popupMenu = children[5].firstChild;
-            var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                                       .getService(Components.interfaces.nsIMsgTagService);
-            var tagArray = tagService.getAllTags({});
+            let tagArray = MailServices.tags.getAllTags({});
             for (var i = 0; i < tagArray.length; ++i)
             {
               var taginfo = tagArray[i];
@@ -2130,6 +2124,7 @@
       </method>
       <constructor>
       <![CDATA[
+        Components.utils.import("resource:///modules/mailServices.js");
         Components.utils.import("resource://gre/modules/Services.jsm", this);
 
         // initialize strings
@@ -2512,8 +2507,6 @@
               foundNewMsg = true;
 
               var index = 0;
-              var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                                        .getService(Components.interfaces.nsIMsgHeaderParser);
               while (document.getAnonymousNodes(this)[0].childNodes.length < this.mMaxMsgHdrsInPopup && index < numMsgKeys.value)
               {
                 var msgPopup = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryMessage");
@@ -2541,7 +2534,7 @@
 
                 var names = {};
                 var emails = {};
-                var numAddresses = hdrParser.parseHeadersWithArray(msgHdr.mime2DecodedAuthor, emails, names, {});
+                let numAddresses = MailServices.headerParser.parseHeadersWithArray(msgHdr.mime2DecodedAuthor, emails, names, {});
                 msgPopup.setAttribute('sender', names.value[0] ? names.value[0] : emails.value[0]);
                 msgPopup.msgHdr = msgHdr;
                 document.getAnonymousNodes(this)[0].appendChild(msgPopup);
@@ -2599,6 +2592,7 @@
       </method>
       <constructor>
         <![CDATA[
+          Components.utils.import("resource:///modules/mailServices.js");
           Components.utils.import("resource://gre/modules/Services.jsm", this);
         ]]>
       </constructor>

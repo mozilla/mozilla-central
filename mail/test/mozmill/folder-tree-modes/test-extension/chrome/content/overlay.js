@@ -4,14 +4,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 (function () {
+   Components.utils.import("resource:///modules/mailServices.js");
    var testFolderTreeMode = {
      __proto__: IFolderTreeMode,
      generateMap: function testFolderTreeMode_generateMap(aFTV) {
        // Pick the tinderbox@foo.invalid inbox and use it as the only folder
-       let acctMgr =
-         Components.classes["@mozilla.org/messenger/account-manager;1"]
-           .getService(Components.interfaces.nsIMsgAccountManager);
-       let server = acctMgr.FindServer("tinderbox", "tinderbox", "pop3");
+       let server = MailServices.accounts.FindServer("tinderbox", "tinderbox", "pop3");
        let item = new ftvItem(server.rootFolder.getChildNamed("Inbox"));
        item.__defineGetter__("children", function () []);
        return [item];

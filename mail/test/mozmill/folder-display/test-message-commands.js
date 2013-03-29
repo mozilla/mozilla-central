@@ -38,9 +38,7 @@ var setupModule = function(module) {
   // years as well.
   make_new_sets_in_folder(archiveSrcFolder, [{count: 20, age_incr: {weeks: 5}}]);
 
-  let tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
-                             .getService(Components.interfaces.nsIMsgTagService);
-  tagArray = tagService.getAllTags({});
+  tagArray = MailServices.tags.getAllTags({});
 };
 
 /**
@@ -266,11 +264,8 @@ function yearly_archive(keep_structure) {
   make_display_unthreaded();
   mc.folderDisplay.view.sort(Ci.nsMsgViewSortType.byDate, Ci.nsMsgViewSortOrder.ascending);
 
-  acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-              .getService(Ci.nsIMsgAccountManager);
-
-  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
-                                                   .getMsgHdrAt(0).folder.server);
+  let identity = MailServices.accounts.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                                 .getMsgHdrAt(0).folder.server);
   identity.archiveGranularity = Ci.nsIMsgIdentity.perYearArchiveFolders;
   // We need to get all the info about the messages before we do the archive,
   // because deleting the headers could make extracting values from them fail.
@@ -315,8 +310,8 @@ function test_monthly_archive() {
 
 function monthly_archive(keep_structure) {
   be_in_folder(archiveSrcFolder);
-  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
-                                                   .getMsgHdrAt(0).folder.server);
+  let identity = MailServices.accounts.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                                 .getMsgHdrAt(0).folder.server);
   identity.archiveGranularity = Ci.nsIMsgIdentity.perMonthArchiveFolders;
   select_click_row(0);
   select_control_click_row(1);
@@ -367,8 +362,8 @@ function test_folder_structure_archiving() {
 function test_selection_after_archive() {
   enable_archiving(true);
   be_in_folder(archiveSrcFolder);
-  let identity = acctMgr.getFirstIdentityForServer(mc.folderDisplay.view.dbView
-                                                   .getMsgHdrAt(0).folder.server);
+  let identity = MailServices.accounts.getFirstIdentityForServer(mc.folderDisplay.view.dbView
+                                                                 .getMsgHdrAt(0).folder.server);
   identity.archiveGranularity = Ci.nsIMsgIdentity.perMonthArchiveFolders;
   // We had a bug where we would always select the 0th message after an
   // archive, so test that we'll actually select the next remaining message

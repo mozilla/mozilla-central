@@ -4,6 +4,7 @@
 
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
@@ -173,9 +174,7 @@ let gFolderTreeView = {
     aTree.view = this;
 
     // Add this listener so that we can update the tree when things change
-    let session = Cc["@mozilla.org/messenger/services/session;1"]
-                     .getService(Ci.nsIMsgMailSession);
-    session.AddFolderListener(this, Ci.nsIFolderListener.all);
+    MailServices.mailSession.AddFolderListener(this, Ci.nsIFolderListener.all);
   },
 
   /**
@@ -187,9 +186,7 @@ let gFolderTreeView = {
     const Ci = Components.interfaces;
 
     // Remove our listener
-    let session = Cc["@mozilla.org/messenger/services/session;1"]
-                     .getService(Ci.nsIMsgMailSession);
-    session.RemoveFolderListener(this);
+    MailServices.mailSession.RemoveFolderListener(this);
 
     if (aJSONFile) {
       // Write out our json file...
@@ -599,8 +596,7 @@ let gFolderTreeView = {
 
     let dt = this._currentTransfer;
     let count = dt.mozItemCount;
-    let cs = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Ci.nsIMsgCopyService);
+    let cs = MailServices.copy;
 
     // we only support drag of a single flavor at a time.
     let types = dt.mozTypesAt(0);
@@ -1056,9 +1052,7 @@ let gFolderTreeView = {
         vfdb.Close(true);
       }
       parentFolder.NotifyItemAdded(newFolder);
-      Components.classes["@mozilla.org/messenger/account-manager;1"]
-        .getService(Components.interfaces.nsIMsgAccountManager)
-        .saveVirtualFolders();
+      MailServices.accounts.saveVirtualFolders();
     }
     catch(e) {
        throw(e);
@@ -1374,19 +1368,16 @@ let gFolderTreeView = {
        * The smart server. This will create the server if it doesn't exist.
        */
       get _smartServer() {
-        let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                .getService(Components.interfaces.nsIMsgAccountManager);
         let smartServer;
         try {
-          smartServer = acctMgr.FindServer("nobody", "smart mailboxes", "none");
+          smartServer = MailServices.accounts.FindServer("nobody", "smart mailboxes", "none");
         }
         catch (ex) {
-          smartServer = acctMgr.createIncomingServer("nobody",
-                                                     "smart mailboxes", "none");
+          smartServer = MailServices.accounts.createIncomingServer("nobody", "smart mailboxes", "none");
           // We don't want the "smart" server/account leaking out into the ui in
           // other places, so set it as hidden.
           smartServer.hidden = true;
-          let account = acctMgr.createAccount();
+          let account = MailServices.accounts.createAccount();
           account.incomingServer = smartServer;
         }
         delete this._smartServer;
@@ -1494,8 +1485,6 @@ let gFolderTreeView = {
 
       generateMap: function ftv_smart_generateMap(ftv) {
         let map = [];
-        let acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                                .getService(Components.interfaces.nsIMsgAccountManager);
         let accounts = gFolderTreeView._sortedAccounts();
         let smartServer = this._smartServer;
         smartServer.prettyName = document.getElementById("bundle_messenger")
@@ -1630,9 +1619,7 @@ let gFolderTreeView = {
     const Ci = Components.interfaces;
     let folders = [];
 
-    let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                     .getService(Ci.nsIMsgAccountManager);
-    for each (let server in fixIterator(acctMgr.allServers, Ci.nsIMsgIncomingServer)) {
+    for each (let server in fixIterator(MailServices.accounts.allServers, Ci.nsIMsgIncomingServer)) {
       // Skip deferred accounts
       if (server instanceof Ci.nsIPop3IncomingServer &&
           server.deferredToAccount)
@@ -2043,11 +2030,7 @@ let gFolderTreeController = {
       gFolderDisplay.view.close();
 
       // Send a notification that we are triggering a database rebuild.
-      let notifier =
-        Components.classes["@mozilla.org/messenger/msgnotificationservice;1"]
-                  .getService(
-                    Components.interfaces.nsIMsgFolderNotificationService);
-      notifier.notifyItemEvent(folder, "FolderReindexTriggered", null);
+      MailServices.mfn.notifyItemEvent(folder, "FolderReindexTriggered", null);
 
       folder.msgDatabase.summaryValid = false;
 
