@@ -37,7 +37,6 @@
                       label="&columnPicker.applyToFolder.label;">
               <xul:menupopup anonid="applyToFolder"
                              type="folder"
-                             mode="filing"
                              showFileHereLabel="true"
                              position="start_before"
                              />
@@ -46,7 +45,6 @@
                       label="&columnPicker.applyToFolderAndChildren.label;">
               <xul:menupopup anonid="applyToFolderAndChildren"
                              type="folder"
-                             mode="filing"
                              showFileHereLabel="true"
                              showAccountsFileHere="true"
                              position="start_before"/>

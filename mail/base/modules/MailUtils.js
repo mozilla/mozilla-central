@@ -337,10 +337,6 @@ var MailUtils =
     // - worker function
     function folder_string_setter_worker() {
       for each (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
-        // skip folders that can't hold messages, no point setting things there.
-        if (!folder.canFileMessages)
-          continue;
-
         // set the property; this may open the database...
         folder.setStringProperty(aPropertyName, aPropertyValue);
         // force the reference to be forgotten.
