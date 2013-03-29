@@ -3,6 +3,7 @@
  * Test handling of special chars in folder names
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 
 var server;
 
@@ -50,14 +51,11 @@ function run_test() {
   // This basically says to ignore the time stamp in the .msf file
   Services.prefs.setIntPref("mail.db_timestamp_leeway", 0x7FFFFFFF);
   
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-  .getService(Ci.nsIMsgAccountManager);
-  
-  gLocalIncomingServer = acctMgr.localFoldersServer;
+  gLocalIncomingServer = MailServices.accounts.localFoldersServer;
   // force load of accounts.
-  let defaultAccount = acctMgr.defaultAccount;
+  let defaultAccount = MailServices.accounts.defaultAccount;
 
-  let pop3Server = acctMgr.FindServer("user", "poptest", "pop3");
+  let pop3Server = MailServices.accounts.FindServer("user", "poptest", "pop3");
   var rootFolder = gLocalIncomingServer.rootMsgFolder
     .QueryInterface(Ci.nsIMsgLocalMailFolder);
   let pop3Root = pop3Server.rootMsgFolder;

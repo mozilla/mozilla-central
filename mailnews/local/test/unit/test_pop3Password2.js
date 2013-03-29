@@ -4,11 +4,13 @@
  * changed (e.g. realusername and realhostname are different from username and
  * hostname).
  */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 var test = null;
 var server;
 var daemon;
 var incomingServer;
-var pop3Service;
 var firstTest = true;
 var thisTest;
 
@@ -95,8 +97,8 @@ function testNext() {
     daemon.setMessages(thisTest.messages);
 
     // Now get the mail
-    pop3Service.GetNewMail(null, urlListener, gLocalInboxFolder,
-                           incomingServer);
+    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+                                 incomingServer);
 
     server.performTest();
   } catch (e) {
@@ -160,12 +162,9 @@ function run_test() {
   handler.kUsername = "testpop3";
   handler.kPassword = "pop3test";
 
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
+  MailServices.accounts.LoadAccounts();
 
-  acctMgr.LoadAccounts();
-
-  gLocalIncomingServer = acctMgr.localFoldersServer;
+  gLocalIncomingServer = MailServices.accounts.localFoldersServer;
 
   var rootFolder = gLocalIncomingServer.rootMsgFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
@@ -176,14 +175,11 @@ function run_test() {
   gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 
   // Create the incoming server with "original" details.
-  incomingServer = acctMgr.getIncomingServer("server2");
+  incomingServer = MailServices.accounts.getIncomingServer("server2");
 
   // Check that we haven't got any messages in the folder, if we have its a test
   // setup issue.
   do_check_eq(gLocalInboxFolder.getTotalMessages(false), 0);
-
-  pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                      .getService(Ci.nsIPop3Service);
 
   do_test_pending();
 

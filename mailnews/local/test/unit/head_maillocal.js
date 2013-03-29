@@ -9,6 +9,8 @@ load("../../../fakeserver/maild.js")
 load("../../../fakeserver/auth.js")
 load("../../../fakeserver/pop3d.js")
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 const POP3_PORT = 1024+110;
 
 // Setup the daemon and server
@@ -82,15 +84,13 @@ function copyFileMessageInLocalFolder(aMessageFile,
 
   gCopyListener.callbackFunction = aCallback;
   // Copy a message into the local folder
-  Cc["@mozilla.org/messenger/messagecopyservice;1"]
-    .getService(Ci.nsIMsgCopyService)
-    .CopyFileMessage(aMessageFile,
-                     gLocalInboxFolder,
-                     null, false,
-                     aMessageFlags,
-                     aMessageKeywords,
-                     gCopyListener,
-                     aMessageWindow);
+  MailServices.copy.CopyFileMessage(aMessageFile,
+                                    gLocalInboxFolder,
+                                    null, false,
+                                    aMessageFlags,
+                                    aMessageKeywords,
+                                    gCopyListener,
+                                    aMessageWindow);
 }
 
 function do_check_transaction(real, expected) {

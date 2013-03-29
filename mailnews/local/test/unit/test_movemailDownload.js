@@ -2,6 +2,7 @@
  * The intent of this file is to test that movemail download code
  * works correctly.
  */
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var testSubjects = ["[Bug 397009] A filter will let me tag, but not untag",
@@ -24,9 +25,7 @@ function run_test()
 {
   loadLocalMailAccount();
   
-  let acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
-  var incoming = acctMgr.createIncomingServer("", "", "movemail");
+  let incoming = MailServices.accounts.createIncomingServer("", "", "movemail");
   let workingDir = Services.dirsvc.get("CurWorkD", Ci.nsIFile);
   let workingDirFile = workingDir.clone();
   let fullPath = workingDirFile.path + "/data/movemailspool";

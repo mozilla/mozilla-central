@@ -4,12 +4,13 @@
  *
  * Test code <copied from="test_pop3GetNewMail.js">
  */
+
+Components.utils.import("resource:///modules/mailServices.js");
+
 var server;
 var daemon;
 var handler;
 var incomingServer;
-var pop3Service;
-var acctMgr;
 var thisTest;
 var test = null;
 
@@ -131,8 +132,8 @@ function testNext() {
     msgServer.QueryInterface(Ci.nsIMsgIncomingServer);
     msgServer.authMethod = thisTest.clientAuthMethod;
 
-    pop3Service.GetNewMail(null, urlListener, gLocalInboxFolder,
-                           incomingServer);
+    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+                                 incomingServer);
     server.performTest();
   } catch (e) {
     server.stop();
@@ -143,7 +144,7 @@ function testNext() {
 // <copied from="head_maillocal.js::createPop3ServerAndLocalFolders()">
 function createPop3Server()
 {
-  var incoming = acctMgr.createIncomingServer("fred", "localhost", "pop3");
+  let incoming = MailServices.accounts.createIncomingServer("fred", "localhost", "pop3");
   incoming.port = POP3_PORT;
   incoming.password = "wilma";
   return incoming;
@@ -154,7 +155,7 @@ function deletePop3Server()
 {
   if (!incomingServer)
     return;
-  acctMgr.removeIncomingServer(incomingServer, true);
+  MailServices.accounts.removeIncomingServer(incomingServer, true);
   incomingServer = null;
 }
 
@@ -173,11 +174,6 @@ function run_test() {
 
   //incomingServer = createPop3ServerAndLocalFolders();
   loadLocalMailAccount();
-
-  pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                      .getService(Ci.nsIPop3Service);
-  acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
 
   do_test_pending();
 

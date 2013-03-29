@@ -3,6 +3,7 @@
  * Extra tests for POP3 passwords (forgetPassword)
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 const kUser1 = "testpop3";
@@ -25,16 +26,12 @@ function run_test()
   // it from signons.txt).
   loadLocalMailAccount();
 
-  var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
+  let incomingServer1 = MailServices.accounts.createIncomingServer(kUser1, kHostname,
+                                                                   kProtocol);
 
-  var incomingServer1 = acctMgr.createIncomingServer(kUser1, kHostname,
-                                                     kProtocol);
+  let incomingServer2 = MailServices.accounts.createIncomingServer(kUser2, kHostname,
+                                                                   kProtocol);
 
-  var incomingServer2 = acctMgr.createIncomingServer(kUser2, kHostname,
-                                                     kProtocol);
-
-  var i;
   var count = {};
 
   // Test - Check there are two logins to begin with.

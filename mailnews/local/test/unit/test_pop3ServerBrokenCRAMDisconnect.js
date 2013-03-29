@@ -23,10 +23,11 @@
  * @author Ben Bucksch
  */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var server;
 var daemon;
 var incomingServer;
-var pop3Service;
 const test = "Server which advertises CRAM-MD5, but closes the connection when it's tried";
 // that's how it currently looks like (we fail to log in):
 const expectedTransaction = [ "AUTH", "CAPA", "AUTH CRAM-MD5" ];
@@ -109,10 +110,8 @@ function run_test() {
     // check that login works after we fell back.
     msgServer.authMethod = Ci.nsMsgAuthMethod.anything;
 
-    pop3Service = Cc["@mozilla.org/messenger/popservice;1"]
-                        .getService(Ci.nsIPop3Service);
-    pop3Service.GetNewMail(null, urlListener, gLocalInboxFolder,
-                           incomingServer);
+    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+                                 incomingServer);
     server.performTest();
   } catch (e) {
     server.stop();
