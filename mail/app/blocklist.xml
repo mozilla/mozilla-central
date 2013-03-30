@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1363988948000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1364243610000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -308,6 +308,10 @@
                         <versionRange  minVersion="2.0" maxVersion="2.0">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i326" id="/^((support2_en@adobe14\.com)|(XN4Xgjw7n4@yUWgc\.com)|(C7yFVpIP@WeolS3acxgS\.com)|(Kbeu4h0z@yNb7QAz7jrYKiiTQ3\.com)|(aWQzX@a6z4gWdPu8FF\.com)|(CBSoqAJLYpCbjTP90@JoV0VMywCjsm75Y0toAd\.com)|(zZ2jWZ1H22Jb5NdELHS@o0jQVWZkY1gx1\.com))$/">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i162" id="{EB7508CA-C7B2-46E0-8C04-3E94A035BD49}">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
@@ -322,10 +326,6 @@
                   </emItem>
       <emItem  blockID="i86" id="{45147e67-4020-47e2-8f7a-55464fb535aa}">
                         <versionRange  minVersion="0" maxVersion="*">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i326" id="/^((support2_en@adobe14\.com)|(XN4Xgjw7n4@yUWgc\.com)|(C7yFVpIP@WeolS3acxgS\.com)|(Kbeu4h0z@yNb7QAz7jrYKiiTQ3\.com)|(aWQzX@a6z4gWdPu8FF\.com)|(CBSoqAJLYpCbjTP90@JoV0VMywCjsm75Y0toAd\.com))$/">
-                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i312" id="extension21804@extension21804.com">
