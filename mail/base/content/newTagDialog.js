@@ -56,7 +56,7 @@ function initializeForEditing(aTagKey)
 function onOKEditTag()
 {
   // get the tag name of the current key we are editing
-  new existingTagName = MailServices.tags.getTagForKey(dialog.editTagKey);
+  let existingTagName = MailServices.tags.getTagForKey(dialog.editTagKey);
 
   // it's ok if the name didn't change
   if (existingTagName != dialog.nameField.value)
