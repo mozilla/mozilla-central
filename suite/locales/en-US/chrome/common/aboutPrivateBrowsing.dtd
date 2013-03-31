@@ -5,7 +5,7 @@
 <!ENTITY privatebrowsingpage.title        "Private Browsing">
 <!-- LOCALIZATION NOTE: The experimental title is temporary -->
 <!ENTITY privatebrowsingpage.experimental "&privatebrowsingpage.title; is currently an experimental feature.">
-<!ENTITY privatebrowsingpage.description  "In a &privatebrowsingpage.title; window, &brandShortName; won't keep any disk cache, cookies or browser, search download or web form history. However downloaded files and bookmarks will still be saved.">
+<!ENTITY privatebrowsingpage.description  "In a &privatebrowsingpage.title; window, &brandShortName; won't keep any disk cache, cookies or browser, search, download or web form history. However downloaded files and bookmarks will still be saved.">
 <!ENTITY privatebrowsingpage.moreinfo     "While this computer won't have a record of your browsing history, your employer or Internet service provider might still be able to track the pages you visit.">
 <!ENTITY privatebrowsingpage.learnmore.label     "Learn more">
 <!ENTITY privatebrowsingpage.learnmore.accesskey "L">
