@@ -6326,6 +6326,66 @@ esac
 
 AC_OUTPUT([config/autoconf.mk])
 
+# Build the config.status for comm-central
+changequote(<<<,>>>)dnl
+: ${CONFIG_STATUS=./config.status}
+
+echo creating $CONFIG_STATUS
+cat > $CONFIG_STATUS <<EOF
+#!${PYTHON}
+
+import os
+topsrcdir = '''${WIN_TOP_SRC:-$srcdir}'''
+if not os.path.isabs(topsrcdir):
+    rel = os.path.join(os.path.dirname(<<<__file__>>>), topsrcdir)
+    topsrcdir = os.path.normpath(os.path.abspath(rel))
+
+topobjdir = os.path.dirname(<<<__file__>>>)
+
+from mozbuild.backend.configenvironment import BuildConfig
+mozfile = os.path.join(topobjdir, 'mozilla', 'config.status')
+mozbuildcfg = BuildConfig.from_config_status(mozfile)
+
+dnl No need to tweak these from mozilla-central
+defines = mozbuildcfg.defines
+non_global_defines = mozbuildcfg.non_global_defines
+
+dnl Fix up substitutitons
+def remap_subst(pair):
+    name, value = pair
+    value = value.replace('\$(DEPTH)', '\$(DEPTH)/mozilla')
+    value = value.replace('\$(topsrcdir)', '\$(topsrcdir)/mozilla')
+    if name == 'ac_configure_args':
+        value = r''' $ac_configure_args '''[1:-1]
+    elif name in ['MOZ_BRANDING_DIRECTORY', 'MOZ_BUILD_APP']:
+        value = value[3:] # Strip off ../ from the beginning
+    elif name in ['top_srcdir', 'MOZ_BUILD_ROOT', 'WIN_TOP_SRC']:
+        value = value[:-8] # Strip off /mozilla from the end
+    return name, value
+
+substs = map(remap_subst, mozbuildcfg.substs)
+substs.append(('COMM_BUILD', '1'))
+
+dnl These are what we output
+files = ['config/autoconf.mk']
+headers = []
+
+__all__ = ['topobjdir', 'topsrcdir', 'defines', 'non_global_defines', 'substs', 'files', 'headers']
+
+dnl Do the actual work
+if __name__ == '__main__':
+    args = dict([(name, globals()[name]) for name in __all__])
+    import sys
+dnl Don't rely on virtualenv here. Standalone js doesn't use it.
+    sys.path.append(os.path.join(topsrcdir, ${extra_python_path}'build'))
+    from ConfigStatus import config_status
+    config_status(**args)
+EOF
+changequote([,])dnl
+
+# Make the config.status file executable
+chmod +x $CONFIG_STATUS
+
 dnl ========================================================
 dnl = Setup a nice relatively clean build environment for
 dnl = sub-configures.
@@ -6348,6 +6408,11 @@ export WRAP_LDFLAGS
 if test -n "$_WRAP_MALLOC"; then
     # Avoid doubling wrap malloc arguments
     _SUBDIR_CONFIG_ARGS="`echo $_SUBDIR_CONFIG_ARGS | sed -e 's/--enable-wrap-malloc *//'`"
+fi
+
+if test -n "$UNIFY_DIST"; then
+    # Make --with-unify-dist point to the right path
+    _SUBDIR_CONFIG_ARGS="$_SUBDIR_CONFIG_ARGS --with-unify-dist=$UNIFY_DIST"
 fi
 
 # build Mozilla first
@@ -6382,3 +6447,6 @@ fi
 AC_OUTPUT_SUBDIRS(mozilla)
 ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 MOZ_BUILD_APP="$MOZ_BUILD_APP_CACHED"
+
+# Build the comm-central files with config.status
+test "$no_create" = yes || ${PYTHON} $CONFIG_STATUS || exit 1
