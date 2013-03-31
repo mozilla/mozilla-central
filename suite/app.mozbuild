@@ -23,6 +23,10 @@ else:
     bridge_reldir = ''
     include('/bridge/bridge.mozbuild')
 
+    if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
+        add_tier_dir('app', app_libxul_static_dirs, static=True)
+        add_tier_dir('app', app_libxul_dirs)
+
     if CONFIG['MOZ_COMPOSER']:
         add_tier_dir('app', 'editor/ui')
 
