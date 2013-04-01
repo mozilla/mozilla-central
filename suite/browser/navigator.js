@@ -475,6 +475,7 @@ function Startup()
     titlemodifier += document.documentElement.getAttribute("titleprivate");
     document.documentElement.setAttribute("titlemodifier", titlemodifier);
     document.title = titlemodifier;
+    gBrowser.mFaviconFlags = gBrowser.mFaviconService.FAVICON_LOAD_PRIVATE;
   }
 
   // initialize observers and listeners

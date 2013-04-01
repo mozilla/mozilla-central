@@ -159,8 +159,8 @@
       <field name="mLastRelatedIndex">
         0
       </field>
-      <field name="mMissedIconCache">
-        null
+      <field name="mFaviconFlags">
+        this.mFaviconService.FAVICON_LOAD_NON_PRIVATE
       </field>
       <field name="mContextTab">
         null
@@ -707,7 +707,7 @@
             if (aURI && this.mFaviconService) {
               this.mFaviconService.setAndFetchFaviconForPage(browser.currentURI,
                                                              aURI, false,
-                                                             this.mFaviconService.FAVICON_LOAD_NON_PRIVATE);
+                                                             this.mFaviconFlags);
             }
 
             this.updateIcon(aTab);
@@ -779,7 +779,7 @@
             var iconURL = this.buildFavIconString(aURI);
             if (this.mFaviconService) {
               let uri = this.mIOService.newURI(iconURL, null, null);
-              this.mFaviconService.setAndFetchFaviconForPage(aURI, uri, false, this.mFaviconService.FAVICON_LOAD_NON_PRIVATE);
+              this.mFaviconService.setAndFetchFaviconForPage(aURI, uri, false, this.mFaviconFlags);
               if (this.mFaviconService.isFailedFavicon(uri))
                 return;
             }
