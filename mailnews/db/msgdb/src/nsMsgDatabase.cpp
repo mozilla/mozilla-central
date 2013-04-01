@@ -47,6 +47,7 @@
 #include "nsIMsgPluggableStore.h"
 #include "nsAlgorithm.h"
 #include "nsArrayEnumerator.h"
+#include "nsIMemoryReporter.h"
 #include <algorithm>
 
 #if defined(DEBUG_sspitzer_) || defined(DEBUG_seth_)
@@ -996,6 +997,115 @@ void nsMsgDatabase::DumpCache()
   }
 }
 
+// Memory Reporting implementations
+
+size_t nsMsgDatabase::HeaderHashSizeOf(PLDHashEntryHdr *hdr,
+                                       nsMallocSizeOfFun aMallocSizeOf,
+                                       void *arg)
+{
+  MsgHdrHashElement *entry = reinterpret_cast<MsgHdrHashElement*>(hdr);
+  // Sigh, this is dangerous, but so long as this is a closed system, this is
+  // safe.
+  return static_cast<nsMsgHdr*>(entry->mHdr)->
+    SizeOfIncludingThis(aMallocSizeOf);
+}
+
+size_t nsMsgDatabase::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+{
+  size_t totalSize = 0;
+  if (m_dbFolderInfo)
+    totalSize += m_dbFolderInfo->SizeOfExcludingThis(aMallocSizeOf);
+  if (m_mdbEnv)
+  {
+    nsIMdbHeap *morkHeap = nullptr;
+    m_mdbEnv->GetHeap(&morkHeap);
+    if (morkHeap)
+      totalSize += morkHeap->GetUsedSize();
+  }
+  totalSize += m_newSet.SizeOfExcludingThis(aMallocSizeOf);
+  totalSize += m_ChangeListeners.SizeOfExcludingThis(aMallocSizeOf);
+  totalSize += m_threads.SizeOfExcludingThis(aMallocSizeOf);
+  // We have two tables of header objects, but every header in m_cachedHeaders
+  // should be in m_headersInUse.
+  // double-counting...
+  size_t headerSize = 0;
+  if (m_headersInUse)
+  {
+    headerSize = PL_DHashTableSizeOfIncludingThis(m_headersInUse,
+      nsMsgDatabase::HeaderHashSizeOf, aMallocSizeOf);
+  }
+  totalSize += headerSize;
+  if (m_msgReferences)
+    totalSize += PL_DHashTableSizeOfIncludingThis(m_msgReferences, nullptr,
+      aMallocSizeOf);
+  return totalSize;
+}
+
+namespace mozilla {
+namespace mailnews {
+
+NS_MEMORY_REPORTER_MALLOC_SIZEOF_FUN(GetMallocSize)
+
+class MsgDBReporter MOZ_FINAL : public nsIMemoryReporter
+{
+  nsMsgDatabase *mDatabase;
+public:
+  MsgDBReporter(nsMsgDatabase *db) : mDatabase(db) {}
+
+  NS_DECL_ISUPPORTS
+  NS_IMETHOD GetProcess(nsACString &process)
+  {
+    process.Truncate();
+    return NS_OK;
+  }
+
+  NS_IMETHOD GetPath(nsACString &memoryPath)
+  {
+    memoryPath.AssignLiteral("explicit/maildb/database(");
+    nsCOMPtr<nsIMsgFolder> folder;
+    mDatabase->GetFolder(getter_AddRefs(folder));
+    if (folder)
+    {
+      nsAutoCString folderURL;
+      folder->GetFolderURL(folderURL);
+      folderURL.ReplaceChar('/', '\\');
+      memoryPath += folderURL;
+    } else {
+      memoryPath.AppendLiteral("UNKNOWN-FOLDER");
+    }
+    memoryPath.Append(')');
+    return NS_OK;
+  }
+
+  NS_IMETHOD GetKind(int *kind)
+  {
+    *kind = nsIMemoryReporter::KIND_HEAP;
+    return NS_OK;
+  }
+
+  NS_IMETHOD GetUnits(int *units)
+  {
+    *units = nsIMemoryReporter::UNITS_BYTES;
+    return NS_OK;
+  }
+
+  NS_IMETHOD GetAmount(int64_t *amount)
+  {
+    *amount = mDatabase->SizeOfIncludingThis(GetMallocSize);
+    return NS_OK;
+  }
+
+  NS_IMETHOD GetDescription(nsACString &desc)
+  {
+    desc.AssignLiteral("Memory used for the folder database.");
+    return NS_OK;
+  }
+};
+
+NS_IMPL_ISUPPORTS1(MsgDBReporter, nsIMemoryReporter)
+}
+}
+
 nsMsgDatabase::nsMsgDatabase()
         : m_dbFolderInfo(nullptr),
         m_nextPseudoMsgKey(kFirstPseudoKey),
@@ -1042,10 +1152,13 @@ nsMsgDatabase::nsMsgDatabase()
         m_msgReferences(nullptr),
         m_cacheSize(kMaxHdrsInCache)
 {
+  mMemReporter = new mozilla::mailnews::MsgDBReporter(this);
+  NS_RegisterMemoryReporter(mMemReporter);
 }
 
 nsMsgDatabase::~nsMsgDatabase()
 {
+  NS_UnregisterMemoryReporter(mMemReporter);
   //  Close(FALSE);  // better have already been closed.
   ClearCachedObjects(true);
   ClearEnumerators();

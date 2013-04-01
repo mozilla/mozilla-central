@@ -460,7 +460,8 @@ public:
     
   NS_IMETHOD Free(nsIMdbEnv* ev, // free block from Alloc or Resize()
     void* ioBlock) = 0;     // block to be destroyed/deallocated
-    
+
+  virtual size_t GetUsedSize() = 0;
 // } ===== end nsIMdbHeap methods =====
 };
 

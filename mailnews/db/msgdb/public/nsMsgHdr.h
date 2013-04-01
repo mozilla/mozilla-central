@@ -40,6 +40,16 @@ public:
     bool        IsAncestorOf(nsIMsgDBHdr *possibleChild);
     bool        IsAncestorKilled(uint32_t ancestorsToCheck);
     void        ReparentInThread(nsIMsgThread *thread);
+
+    size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOfFun) const
+    {
+      return m_references.SizeOfExcludingThis(aMallocSizeOfFun);
+    }
+    size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOfFun) const
+    {
+      return aMallocSizeOfFun(this) + SizeOfExcludingThis(aMallocSizeOfFun);
+    }
+
 protected:
     nsresult SetStringColumn(const char *str, mdb_token token);
     nsresult SetUInt32Column(uint32_t value, mdb_token token);

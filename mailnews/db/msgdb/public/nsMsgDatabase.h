@@ -98,6 +98,12 @@ protected:
 
 };
 
+namespace mozilla {
+namespace mailnews {
+class MsgDBReporter;
+}
+}
+
 class nsMsgDatabase : public nsIMsgDatabase
 {
 public:
@@ -407,8 +413,20 @@ protected:
   // not-reference holding array of enumerators we've handed out.
   // If a db goes away, it will clean up the outstanding enumerators.
   nsTArray<nsMsgDBEnumerator *> m_enumerators;
+
+  // Memory reporter details
+public:
+  static size_t HeaderHashSizeOf(PLDHashEntryHdr *hdr,
+                                 nsMallocSizeOfFun aMallocSizeOf,
+                                 void *arg);
+  virtual size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const;
+  virtual size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  {
+    return aMallocSizeOf(this) + SizeOfExcludingThis(aMallocSizeOf);
+  }
 private:
   uint32_t m_cacheSize;
+  nsRefPtr<mozilla::mailnews::MsgDBReporter> mMemReporter;
 };
 
 class nsMsgRetentionSettings : public nsIMsgRetentionSettings

@@ -59,7 +59,15 @@ public:
                                       uint64_t *propertyValue);
 
   nsTArray<nsMsgKey> m_lateredKeys; // list of latered messages
-  
+
+  virtual size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  {
+    return m_lateredKeys.SizeOfExcludingThis(aMallocSizeOf);
+  }
+  virtual size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  {
+    return aMallocSizeOf(this) + SizeOfExcludingThis(aMallocSizeOf);
+  }
 protected:
 
   // initialize from appropriate table and row in existing db.
