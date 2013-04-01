@@ -888,11 +888,13 @@ function SetMessageTagLabel(menuitem, index, name)
 {
   // if a <key> is defined for this tag, use its key as the accesskey
   // (the key for the tag at index n needs to have the id key_tag<n>)
-  var shortcutkey = document.getElementById("key_tag" + index);
-  var accesskey = shortcutkey ? shortcutkey.getAttribute("key") : "";
-  if (accesskey)
+  let shortcutkey = document.getElementById("key_tag" + index);
+  let accesskey = shortcutkey ? shortcutkey.getAttribute("key") : "  ";
+  if (accesskey != "  ") {
     menuitem.setAttribute("accesskey", accesskey);
-  var label = document.getElementById("bundle_messenger")
+    menuitem.setAttribute("acceltext", accesskey);
+  }
+  let label = document.getElementById("bundle_messenger")
                       .getFormattedString("mailnews.tags.format",
                                           [accesskey, name]);
   menuitem.setAttribute("label", label);
