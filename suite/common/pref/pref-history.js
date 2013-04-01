@@ -24,15 +24,15 @@ function Startup()
   }
     
   var globalHistButton = document.getElementById("browserClearHistory");
-  var globalHistory = Components.classes["@mozilla.org/browser/global-history;2"]
-                                .getService(Components.interfaces.nsIBrowserHistory);
-  if (globalHistory.count == 0)
+  var globalHistory = Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                                .getService(Components.interfaces.nsINavHistoryService);
+  if (!globalHistory.hasHistoryEntries)
     globalHistButton.disabled = true;
 }
 
 function prefClearGlobalHistory()
 {
-  var globalHistory = Components.classes["@mozilla.org/browser/global-history;2"]
+  var globalHistory = Components.classes["@mozilla.org/browser/nav-history-service;1"]
                                 .getService(Components.interfaces.nsIBrowserHistory);
   globalHistory.removeAllPages();
 }

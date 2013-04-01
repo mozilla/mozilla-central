@@ -210,8 +210,8 @@
       return;
 
     if (!gGlobalHistory)
-      gGlobalHistory = Components.classes["@mozilla.org/browser/global-history;2"]
-                                 .getService(Components.interfaces.nsIBrowserHistory);
+      gGlobalHistory = Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                                 .getService(Components.interfaces.nsINavHistoryService);
 
     if (!gURIFixup)
       gURIFixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
