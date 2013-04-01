@@ -9,10 +9,9 @@
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
-<?xul-overlay href="chrome://global/content/dialogOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/searchTermOverlay.xul"?>
 
-<!DOCTYPE window [
+<!DOCTYPE dialog [
 <!ENTITY % folderDTD SYSTEM "chrome://messenger/locale/virtualFolderProperties.dtd">%folderDTD;
 <!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd"> %pickerDTD;
 ]>
@@ -40,8 +39,6 @@
   <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript" src="chrome://messenger/content/virtualFolderProperties.js"/>
 
-  <keyset id="dialogKeys"/>
-   
   <grid>
     <columns>
       <column/>
@@ -91,3 +88,4 @@
   </vbox>
 
 </dialog>
+

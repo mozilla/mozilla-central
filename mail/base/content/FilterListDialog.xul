@@ -28,8 +28,6 @@
     <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
   </stringbundleset>
 
-  <keyset id="dialogKeys"/>
-
   <keyset>
     <key key="&closeCmd.key;" modifiers="accel" oncommand="if (onFilterClose()) window.close();"/>
     <key keycode="VK_ESCAPE" oncommand="if (onFilterClose()) window.close();"/>

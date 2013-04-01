@@ -80,7 +80,6 @@ function onLoad()
   if (typeof windowArgs.searchOnline != "undefined")
     document.getElementById('searchOnline').checked = windowArgs.searchOnline;
   updateOnlineSearchState();
-  doSetOKCancel(onOK, onCancel);
 }
 
 function setupSearchRows(aSearchTerms)
@@ -201,12 +200,6 @@ function onOK()
                                                searchOnline);
   }
 
-  return true;
-}
-
-function onCancel()
-{
-  // close the window
   return true;
 }
 

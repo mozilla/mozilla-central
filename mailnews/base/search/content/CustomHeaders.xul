@@ -3,16 +3,18 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
-<?xul-overlay href="chrome://global/content/dialogOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://messenger/locale/CustomHeaders.dtd">
-<window class="dialog" id="customHeaders"
-  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-  windowtype="mailnews:customheaders"
-  onload="onLoad();"
-  style="width: 30em; height: 25em;"
-  persist="width height screenX screenY"
-  title="&window.title;">
+<!DOCTYPE dialog SYSTEM "chrome://messenger/locale/CustomHeaders.dtd">
+<dialog id="customHeadersDialog"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="onLoad();"
+        ondialogaccept="return onOk();"
+        ondialogextra1="onAddHeader();"
+        ondialogextra2="onRemoveHeader();"
+        style="width: 30em; height: 25em;"
+        persist="width height screenX screenY"
+        title="&window.title;"
+        buttons="accept,cancel,extra1,extra2">
 
   <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
@@ -20,15 +22,6 @@
   </stringbundleset>
 
   <script type="application/javascript" src="chrome://messenger/content/CustomHeaders.js"/>
-
-  <!-- we need to override the dialogs default key behavior so we can re-route enter/return
-       to the add button if the add button is suddenly the default action
-  -->
-  <keyset id="customHeaderDialogKeys">
-    <key keycode="VK_ENTER" oncommand="enterKeyPressed();"/>
-    <key keycode="VK_RETURN" oncommand="enterKeyPressed();"/>
-    <key keycode="VK_ESCAPE" oncommand="doCancelButton();"/>
- </keyset>
 
   <grid flex="1">
     <columns>
@@ -49,15 +42,16 @@
         </vbox>
 
         <vbox>
-          <button id="addButton" label="&addButton.label;" accesskey="&addButton.accesskey;" oncommand="onAddHeader();"/>
-          <button id="removeButton" label="&removeButton.label;" accesskey="&removeButton.accesskey;" oncommand="onRemoveHeader();"/>
+          <button id="addButton"
+                  label="&addButton.label;"
+                  accesskey="&addButton.accesskey;"
+                  dlgtype="extra1"/>
+          <button id="removeButton"
+                  label="&removeButton.label;"
+                  accesskey="&removeButton.accesskey;"
+                  dlgtype="extra2"/>
         </vbox>
       </row>
     </rows>
   </grid>
-     
-  <separator/>
-
-  <hbox id="okCancelButtonsRight"/>
-
-</window>
+</dialog>

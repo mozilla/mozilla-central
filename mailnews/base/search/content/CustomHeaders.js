@@ -6,7 +6,6 @@
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gAddButton;
-var gOKButton;
 var gRemoveButton;
 var gHeaderInputElement;
 var gArrayHdrs;
@@ -25,12 +24,8 @@ function onLoad()
     gArrayHdrs = new Array();
     gAddButton = document.getElementById("addButton");
     gRemoveButton = document.getElementById("removeButton");
-    gOKButton = document.getElementById("ok");
 
     initializeDialog(hdrs);
-
-    doSetOKCancel(onOk, null);
-
     updateAddButton(true);
     updateRemoveButton();
 }
@@ -60,21 +55,6 @@ function onTextInput()
   updateAddButton( (gHeaderInputElement.value == "") );
 }
 
-function enterKeyPressed()
-{
-   // if the add button is currently the default action then add the text
-  if (gHeaderInputElement.value != "" && !gAddButton.disabled)
-  {
-    onAddHeader();
-  }
-  else
-  {
-    // otherwise, the default action for the dialog is the OK button
-    if (!gOKButton.disabled)
-      doOKButton();
-  }
-}
-
 function onOk()
 {
   if (gArrayHdrs.length)
@@ -92,7 +72,7 @@ function onOk()
   {
     Services.prefs.clearUserPref("mailnews.customHeaders"); //clear the pref, no custom headers
   }
-  window.close();
+  return true;
 }
 
 function customHeaderOverflow()
@@ -197,27 +177,20 @@ function addRow(newHdr)
 
 function updateAddButton(aDisable)
 {
-  // only update the button if we absolutely have to...
-  if (aDisable != gAddButton.disabled)
-  {
-    gAddButton.disabled = aDisable;
-    if (aDisable)
-    {
-      gOKButton.setAttribute('default', true);
-      gAddButton.removeAttribute('default');
-    }
-    else
-    {
-      gOKButton.removeAttribute('default');
-      gAddButton.setAttribute('default', true);
-    }
-  }
+  // only update the button if the disabled state changed
+  if (aDisable == gAddButton.disabled)
+    return;
+
+  gAddButton.disabled = aDisable;
+  document.documentElement.defaultButton = aDisable ? "accept" : "extra1";
 }
 
 function updateRemoveButton()
 {
   var headerSelected = (gHdrsList.selectedItems.length > 0);
   gRemoveButton.disabled = !headerSelected;
+  if (gRemoveButton.disabled)
+    gHeaderInputElement.focus();
 }
 
 //Remove whitespace from both ends of a string
