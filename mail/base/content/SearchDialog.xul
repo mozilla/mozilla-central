@@ -178,13 +178,13 @@
       </vbox>
       <hbox align="start"> 
         <button label="&openButton.label;" id="openButton" command="cmd_open" accesskey="&openButton.accesskey;"/>
-        <button id="fileMessageButton" type="menu" label="&fileButton.label;"
-                accesskey="&fileButton.accesskey;"
+        <button id="fileMessageButton" type="menu" label="&moveButton.label;"
+                accesskey="&moveButton.accesskey;"
                 observes="file_message_button"
                 oncommand="MoveMessageInSearch(event.target)">
         <menupopup type="folder" showFileHereLabel="true" mode="filing"
-                   fileHereLabel="&fileHereMenu.label;"
-                   fileHereAccessKey="&fileHereMenu.accesskey;"/>
+                   fileHereLabel="&moveHereMenu.label;"
+                   fileHereAccessKey="&moveHereMenu.accesskey;"/>
       </button>
 
       <button label="&deleteButton.label;" id="deleteButton" command="button_delete" accesskey="&deleteButton.accesskey;"/>
