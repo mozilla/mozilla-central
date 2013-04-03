@@ -36,8 +36,6 @@
 <!ENTITY newIMContactCmd.accesskey "h">
 <!ENTITY openMessageFileCmd.label "Open Saved Message…">
 <!ENTITY openMessageFileCmd.accesskey "O">
-<!ENTITY openAttachmentCmd.label "Attachments">
-<!ENTITY openAttachmentCmd.accesskey "A">
 <!ENTITY saveAsMenu.label "Save As">
 <!ENTITY saveAsMenu.accesskey "S">
 <!ENTITY saveAsFileCmd.label "File">
@@ -428,6 +426,8 @@
 <!ENTITY openConversationCmd.label "Open in Conversation">
 <!ENTITY openConversationCmd.accesskey "s">
 <!ENTITY openConversationCmd.key "o">
+<!ENTITY openAttachmentListCmd.label "Attachments">
+<!ENTITY openAttachmentListCmd.accesskey "h">
 <!ENTITY openFeedMessage1.label "When Opening Feed Messages">
 <!ENTITY openFeedMessage1.accesskey "O">
 <!ENTITY openFeedWebPage.label "Open as Web Page">

@@ -610,15 +610,15 @@ var messageHeaderSink = {
       // We only need to do this on the first attachment.
       var numAttachments = currentAttachments.length;
       if (numAttachments == 1) {
-        // we also have to enable the File/Attachments menuitem
-        var node = document.getElementById("fileAttachmentMenu");
+        // We also have to enable the Message/Attachments menuitem.
+        var node = document.getElementById("msgAttachmentMenu");
         if (node)
           node.removeAttribute("disabled");
 
         // convert the uri into a hdr
         this.mSaveHdr.markHasAttachments(true);
         // we also do the same on appmenu
-        let appmenunode = document.getElementById("appmenu_fileAttachmentMenu");
+        let appmenunode = document.getElementById("appmenu_msgAttachmentMenu");
         if (appmenunode)
           appmenunode.removeAttribute("disabled");
 
@@ -1106,12 +1106,12 @@ function HideMessageHeaderPane()
 {
   document.getElementById("msgHeaderView").collapsed = true;
 
-  // disable the File/Attachments menuitem
-  document.getElementById("fileAttachmentMenu").setAttribute("disabled", "true");
+  // Disable the Message/Attachments menuitem.
+  document.getElementById("msgAttachmentMenu").setAttribute("disabled", "true");
 
   // If the App Menu is being used, disable the attachment menu in there as
   // well.
-  let appMenuNode = document.getElementById("appmenu_fileAttachmentMenu");
+  let appMenuNode = document.getElementById("appmenu_msgAttachmentMenu");
   if (appMenuNode)
     appMenuNode.setAttribute("disabled", "true");
 
@@ -2642,12 +2642,12 @@ function HandleMultipleAttachments(attachments, action)
 
 function ClearAttachmentList()
 {
-  // we also have to disable the File/Attachments menuitem
-  var node = document.getElementById("fileAttachmentMenu");
+  // We also have to disable the Message/Attachments menuitem.
+  var node = document.getElementById("msgAttachmentMenu");
   if (node)
     node.setAttribute("disabled", "true");
-  // we also do the same on appmenu
-  let appmenunode = document.getElementById("appmenu_fileAttachmentMenu");
+  // Do the same on appmenu.
+  let appmenunode = document.getElementById("appmenu_msgAttachmentMenu");
   if (appmenunode)
     appmenunode.setAttribute("disabled", "true");
 
