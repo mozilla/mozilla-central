@@ -135,41 +135,35 @@ NS_IMETHODIMP nsMsgMailViewList::GetMailViewCount(uint32_t * aCount)
 {
     NS_ENSURE_ARG_POINTER(aCount);
 
-    if (m_mailViews)
-       m_mailViews->Count(aCount);
-    else
-        *aCount = 0;
+    *aCount = m_mailViews.Length();
     return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailViewList::GetMailViewAt(uint32_t aMailViewIndex, nsIMsgMailView ** aMailView)
 {
     NS_ENSURE_ARG_POINTER(aMailView);
-    NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
 
-    uint32_t mailViewCount;
-    m_mailViews->Count(&mailViewCount);
-    NS_ENSURE_TRUE(mailViewCount >= aMailViewIndex, NS_ERROR_FAILURE);
+    uint32_t mailViewCount = m_mailViews.Length();
 
-    return m_mailViews->QueryElementAt(aMailViewIndex, NS_GET_IID(nsIMsgMailView),
-                                      (void **)aMailView);
+    NS_ENSURE_ARG(mailViewCount > aMailViewIndex);
+
+    NS_IF_ADDREF(*aMailView = m_mailViews[aMailViewIndex]);
+    return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailViewList::AddMailView(nsIMsgMailView * aMailView)
 {
     NS_ENSURE_ARG_POINTER(aMailView);
-    NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
 
-    m_mailViews->AppendElement(static_cast<nsISupports*>(aMailView));
+    m_mailViews.AppendElement(aMailView);
     return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgMailViewList::RemoveMailView(nsIMsgMailView * aMailView)
 {
     NS_ENSURE_ARG_POINTER(aMailView);
-    NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
 
-    m_mailViews->RemoveElement(static_cast<nsISupports*>(aMailView));
+    m_mailViews.RemoveElement(aMailView);
     return NS_OK;
 }
 
@@ -207,10 +201,7 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
 
 nsresult nsMsgMailViewList::ConvertMailViewListToFilterList()
 {
-  uint32_t mailViewCount = 0;
-
-  if (m_mailViews)
-    m_mailViews->Count(&mailViewCount);
+  uint32_t mailViewCount = m_mailViews.Length();
   nsCOMPtr<nsIMsgMailView> mailView;
   nsCOMPtr<nsIMsgFilter> newMailFilter;
   nsString mailViewName;
@@ -270,46 +261,45 @@ nsresult nsMsgMailViewList::LoadMailViews()
     rv = filterService->OpenFilterList(file, NULL, NULL, getter_AddRefs(mFilterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // now convert the filter list into our mail view objects, stripping out just the info we need
-    ConvertFilterListToMailView(mFilterList, getter_AddRefs(m_mailViews));
-    return rv;
+    return ConvertFilterListToMailViews();
 }
-
-nsresult nsMsgMailViewList::ConvertFilterListToMailView(nsIMsgFilterList * aFilterList, nsISupportsArray ** aMailViewList)
+/**
+ * Converts the filter list into our mail view objects,
+ * stripping out just the info we need.
+ */
+nsresult nsMsgMailViewList::ConvertFilterListToMailViews()
 {
     nsresult rv = NS_OK;
-    NS_ENSURE_ARG_POINTER(aFilterList);
-    NS_ENSURE_ARG_POINTER(aMailViewList);
-
-    nsCOMPtr<nsISupportsArray> mailViewList = do_CreateInstance(
-        NS_SUPPORTSARRAY_CONTRACTID);
+    m_mailViews.Clear();
 
     // iterate over each filter in the list
-    nsCOMPtr<nsIMsgFilter> msgFilter;
-    uint32_t numFilters;
-    aFilterList->GetFilterCount(&numFilters);
+    uint32_t numFilters = 0;
+    mFilterList->GetFilterCount(&numFilters);
     for (uint32_t index = 0; index < numFilters; index++)
     {
-        aFilterList->GetFilterAt(index, getter_AddRefs(msgFilter));
-        if (!msgFilter)
+        nsCOMPtr<nsIMsgFilter> msgFilter;
+        rv = mFilterList->GetFilterAt(index, getter_AddRefs(msgFilter));
+        if (NS_FAILED(rv) || !msgFilter)
             continue;
+
         // create a new nsIMsgMailView for this item
-        nsCOMPtr<nsIMsgMailView> newMailView; 
+        nsCOMPtr<nsIMsgMailView> newMailView;
         rv = CreateMailView(getter_AddRefs(newMailView));
         NS_ENSURE_SUCCESS(rv, rv);
+
         nsString filterName;
         msgFilter->GetFilterName(filterName);
         newMailView->SetMailViewName(filterName.get());
 
         nsCOMPtr<nsISupportsArray> filterSearchTerms;
-        msgFilter->GetSearchTerms(getter_AddRefs(filterSearchTerms));
-        newMailView->SetSearchTerms(filterSearchTerms);
+        rv = msgFilter->GetSearchTerms(getter_AddRefs(filterSearchTerms));
+        NS_ENSURE_SUCCESS(rv, rv);
+        rv = newMailView->SetSearchTerms(filterSearchTerms);
+        NS_ENSURE_SUCCESS(rv, rv);
 
         // now append this new mail view to our global list view
-        mailViewList->AppendElement(static_cast<nsISupports*>(newMailView));
+        m_mailViews.AppendElement(newMailView);
     }
-
-    NS_IF_ADDREF(*aMailViewList = mailViewList);
 
     return rv;
 }

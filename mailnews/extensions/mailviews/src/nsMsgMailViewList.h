@@ -10,6 +10,7 @@
 #include "nscore.h"
 #include "nsIMsgMailViewList.h"
 #include "nsCOMPtr.h"
+#include "nsCOMArray.h"
 #include "nsISupportsArray.h"
 #include "nsIStringBundle.h"
 #include "nsStringGlue.h"
@@ -43,10 +44,10 @@ public:
 
 protected:
   nsresult LoadMailViews(); // reads in user defined mail views from our default file
-  nsresult ConvertFilterListToMailView(nsIMsgFilterList * aFilterList, nsISupportsArray ** aMailViewList);
+  nsresult ConvertFilterListToMailViews();
   nsresult ConvertMailViewListToFilterList();
 
-  nsCOMPtr<nsISupportsArray> m_mailViews;
+  nsCOMArray<nsIMsgMailView> m_mailViews;
   nsCOMPtr<nsIMsgFilterList> mFilterList; // our internal filter list representation
 };
 
