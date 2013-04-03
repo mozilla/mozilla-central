@@ -485,7 +485,8 @@ nsresult nsMsgDatabase::AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key) // do we w
 {
 
   MsgHdrHashElement* element = reinterpret_cast<MsgHdrHashElement*>(hdr);
-  NS_IF_RELEASE(element->mHdr);
+  if (element)
+    NS_IF_RELEASE(element->mHdr);
   return PL_DHASH_NEXT;
 }
 
