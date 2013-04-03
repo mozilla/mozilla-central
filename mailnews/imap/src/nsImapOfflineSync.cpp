@@ -735,15 +735,15 @@ int32_t nsImapOfflineSync::GetCurrentUIDValidity()
   return mCurrentUIDValidity; 
 }
 
-// Playing back offline operations is one giant state machine that runs through ProcessNextOperation.
-// The first state is creating online any folders created offline (we do this first, so we can play back
-// any operations in them in the next pass)
-
+/**
+ * Playing back offline operations is one giant state machine that runs through
+ * ProcessNextOperation.
+ * The first state is creating online any folders created offline (we do this
+ * first, so we can play back any operations in them in the next pass)
+ */
 nsresult nsImapOfflineSync::ProcessNextOperation()
 {
   nsresult rv = NS_OK;
-  // find a folder that needs to process operations
-  nsIMsgFolder *deletedAllOfflineEventsInFolder = nullptr;
 
   // if we haven't created offline folders, and we're updating all folders,
   // first, find offline folders to create.
@@ -846,8 +846,6 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
         if (NS_FAILED(m_currentDB->ListAllOfflineOpIds(&m_CurrentKeys)) || m_CurrentKeys.IsEmpty())
         {
           ClearDB();
-          if (deletedGhostMsgs)
-            deletedAllOfflineEventsInFolder = m_currentFolder;
         }
         else if (folderFlags & nsMsgFolderFlags::ImapBox)
         {

@@ -3727,7 +3727,7 @@ void nsImapProtocol::HandleMessageDownLoadLine(const char *line, bool isPartialL
       msgUrl->GetCanonicalLineEnding(&canonicalLineEnding);
 
     NS_PRECONDITION(MSG_LINEBREAK_LEN == 1 ||
-                    MSG_LINEBREAK_LEN == 2 && !PL_strcmp(CRLF, MSG_LINEBREAK),
+                    (MSG_LINEBREAK_LEN == 2 && !PL_strcmp(CRLF, MSG_LINEBREAK)),
                     "violated assumptions on MSG_LINEBREAK");
     if (MSG_LINEBREAK_LEN == 1 && !canonicalLineEnding)
     {
@@ -5276,8 +5276,7 @@ void nsImapProtocol::HandleCurrentUrlError()
 {
   // This is to handle a move/copy failing, especially because the user
   // cancelled the password prompt.
-  nsresult res;
-  res = m_runningUrl->GetImapAction(&m_imapAction);
+  (void) m_runningUrl->GetImapAction(&m_imapAction);
     if (m_imapAction == nsIImapUrl::nsImapOfflineToOnlineMove || m_imapAction == nsIImapUrl::nsImapAppendMsgFromFile
       || m_imapAction == nsIImapUrl::nsImapAppendDraftFromFile)
   {
@@ -6503,8 +6502,8 @@ void nsImapProtocol::OnStatusForFolder(const char *mailboxName)
     int32_t prevNumMessages = GetServerStateParser().NumberOfMessages();
     Noop();
     // OnNewIdleMessages will cause the ui thread to update the folder
-    if (m_imapMailFolderSink && GetServerStateParser().NumberOfRecentMessages()
-          || prevNumMessages != GetServerStateParser().NumberOfMessages())
+    if (m_imapMailFolderSink && (GetServerStateParser().NumberOfRecentMessages()
+          || prevNumMessages != GetServerStateParser().NumberOfMessages()))
       m_imapMailFolderSink->OnNewIdleMessages();
     return;
   }
@@ -7739,10 +7738,6 @@ void nsImapProtocol::Copy(const char * messageList,
 
   int32_t msgCountLeft = msgKeys.Length();
   uint32_t msgsHandled = 0;
-  const char *formatString;
-  formatString = (idsAreUid)
-      ? "%s uid store %s %s" CRLF
-      : "%s store %s %s" CRLF;
 
   do
   {

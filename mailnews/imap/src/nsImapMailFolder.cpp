@@ -188,13 +188,13 @@ nsImapMailFolder::nsImapMailFolder() :
     m_folderQuotaCommandIssued(false),
     m_folderQuotaDataIsValid(false),
     m_updatingFolder(false),
-    m_downloadingFolderForOfflineUse(false),
-    m_folderQuotaUsedKB(0),
-    m_folderQuotaMaxKB(0),
     m_compactingOfflineStore(false),
     m_expunging(false),
     m_applyIncomingFilters(false),
-    m_filterListRequiresBody(false)
+    m_downloadingFolderForOfflineUse(false),
+    m_filterListRequiresBody(false),
+    m_folderQuotaUsedKB(0),
+    m_folderQuotaMaxKB(0)
 {
   MOZ_COUNT_CTOR(nsImapMailFolder); // double count these for now.
 
@@ -6279,11 +6279,11 @@ NS_IMETHODIMP nsImapMailFolder::GetOtherUsersWithAccess(
   return GetFolderACL()->GetOtherUsers(aResult);
 }
 
-class AdoptUTF8StringEnumerator : public nsIUTF8StringEnumerator
+class AdoptUTF8StringEnumerator MOZ_FINAL : public nsIUTF8StringEnumerator
 {
 public:
   AdoptUTF8StringEnumerator(nsTArray<nsCString>* array) :
-    mIndex(0), mStrings(array)
+    mStrings(array), mIndex(0)
   {}
   ~AdoptUTF8StringEnumerator()
   {
@@ -7609,7 +7609,7 @@ done:
   return rv;
 }
 
-class nsImapFolderCopyState : public nsIUrlListener, public nsIMsgCopyServiceListener
+class nsImapFolderCopyState MOZ_FINAL : public nsIUrlListener, public nsIMsgCopyServiceListener
 {
 public:
   nsImapFolderCopyState(nsIMsgFolder *destParent, nsIMsgFolder *srcFolder,

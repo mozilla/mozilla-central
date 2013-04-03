@@ -7,6 +7,7 @@
 #include "nsIMAPHostSessionList.h"
 #include "nsIMAPBodyShell.h"
 #include "nsImapProtocol.h"
+#include "nsImapStringBundle.h"
 
 #include "nsMimeTypes.h"
 #include "nsIPrefBranch.h"
@@ -507,18 +508,25 @@ int32_t nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, b
 int32_t nsIMAPBodypart::GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch)
 {
   if (prefetch)
-    return 0;	// don't need to prefetch anything
-  
-  const char emptyString[] = "This body part will be downloaded on demand.";
-  // XP_GetString(MK_IMAP_EMPTY_MIME_PART);  ### need to be able to localize
-  if (emptyString)
+    return 0; // don't need to prefetch anything
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  nsresult rv = IMAPGetStringBundle(getter_AddRefs(bundle));
+  NS_ENSURE_SUCCESS(rv, 0);
+
+  nsAutoString emptyString;
+  rv = bundle->GetStringFromID(IMAP_EMPTY_MIME_PART,
+                               getter_Copies(emptyString));
+  if (NS_SUCCEEDED(rv) && !emptyString.IsEmpty())
   {
     if (stream)
     {
-      aShell->GetConnection()->Log("SHELL","GENERATE-Filling",m_partNumberString);
-      aShell->GetConnection()->HandleMessageDownLoadLine(emptyString, false);
+      nsImapProtocol *conn = aShell->GetConnection();
+      conn->Log("SHELL", "GENERATE-Filling", m_partNumberString);
+      conn->HandleMessageDownLoadLine(NS_ConvertUTF16toUTF8(emptyString).get(),
+                                      false);
     }
-    return PL_strlen(emptyString);
+    return emptyString.Length();
   }
   else
     return 0;

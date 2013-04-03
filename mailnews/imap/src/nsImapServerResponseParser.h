@@ -69,7 +69,7 @@ public:
   uint32_t   HighestRecordedUID();
   void       SetCurrentResponseUID(uint32_t uid);
   bool       IsNumericString(const char *string);
-  int32_t    SizeOfMostRecentMessage();
+  uint32_t   SizeOfMostRecentMessage();
   void       SetTotalDownloadSize(int32_t newSize) { fTotalDownloadSize = newSize; }
 
   nsImapSearchResultIterator *CreateSearchResultIterator();

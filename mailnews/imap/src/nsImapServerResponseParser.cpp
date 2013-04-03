@@ -116,7 +116,7 @@ void nsImapServerResponseParser::SetFlagState(nsIImapFlagAndUidState *state)
   fFlagState = state;
 }
 
-int32_t nsImapServerResponseParser::SizeOfMostRecentMessage()
+uint32_t nsImapServerResponseParser::SizeOfMostRecentMessage()
 {
   return fSizeOfMostRecentMessage;
 }
@@ -339,11 +339,9 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
     if (!fServerConnection.DeathSignalReceived())
     {
       char *placeInTokenString = copyCurrentCommand.BeginWriting();
-      char *tagToken = NS_strtok(WHITESPACE, &placeInTokenString);
-      char *uidToken = NS_strtok(WHITESPACE, &placeInTokenString);
+      (void) NS_strtok(WHITESPACE, &placeInTokenString); // skip tag token
+      (void) NS_strtok(WHITESPACE, &placeInTokenString); // skip uid token
       char *fetchToken = NS_strtok(WHITESPACE, &placeInTokenString);
-      uidToken = nullptr; // use variable to quiet compiler warning
-      tagToken = nullptr; // use variable to quiet compiler warning
       if (!PL_strcasecmp(fetchToken, "FETCH") )
       {
         char *uidStringToken = NS_strtok(WHITESPACE, &placeInTokenString);
@@ -1035,7 +1033,6 @@ msg_fetch       ::= "(" 1#("BODY" SPACE body /
 
 void nsImapServerResponseParser::msg_fetch()
 {
-  nsresult res;
   bool bNeedEndMessageDownload = false;
 
   // we have not seen a uid response or flags for this fetch, yet
@@ -1053,7 +1050,7 @@ void nsImapServerResponseParser::msg_fetch()
     if (!PL_strcasecmp(fNextToken, "FLAGS"))
     {
       if (fCurrentResponseUID == 0)
-        res = fFlagState->GetUidOfMessage(fFetchResponseIndex - 1, &fCurrentResponseUID);
+        fFlagState->GetUidOfMessage(fFetchResponseIndex - 1, &fCurrentResponseUID);
 
       AdvanceToNextToken();
       if (ContinueParse())
@@ -1414,16 +1411,16 @@ void nsImapServerResponseParser::msg_fetch()
             && fCurrentLineContainedFlagInfo && fFlagState)
           {
             fFlagState->AddUidFlagPair(CurrentResponseUID(), fSavedFlagInfo, fFetchResponseIndex - 1);
-            for (int32_t i = 0; i < fCustomFlags.Length(); i++)
+            for (uint32_t i = 0; i < fCustomFlags.Length(); i++)
               fFlagState->AddUidCustomFlagPair(CurrentResponseUID(), fCustomFlags[i].get());
             fCustomFlags.Clear();
           }
 
           if (fFetchingAllFlags)
-            fCurrentLineContainedFlagInfo = false;	// do not fire if in PostProcessEndOfLine
+            fCurrentLineContainedFlagInfo = false;  // do not fire if in PostProcessEndOfLine
 
-          AdvanceToNextToken();	// eat the ')' ending token
-										// should be at end of line
+          AdvanceToNextToken(); // eat the ')' ending token
+          // should be at end of line
           if (bNeedEndMessageDownload)
           {
             if (ContinueParse())
@@ -1797,8 +1794,8 @@ void nsImapServerResponseParser::resp_cond_state(bool isTagged)
   // which the associated command can not be determined; it can also indicate an
   // internal server failure."
   // Thus, we flag an error for a tagged NO response and for any BAD response.
-  if (isTagged && !PL_strcasecmp(fNextToken, "NO") ||
-    !PL_strcasecmp(fNextToken, "BAD"))
+  if ((isTagged && !PL_strcasecmp(fNextToken, "NO")) ||
+      !PL_strcasecmp(fNextToken, "BAD"))
     fCurrentCommandFailed = true;
 
   AdvanceToNextToken();

@@ -279,40 +279,33 @@ nsIMAPNamespace *nsIMAPNamespaceList::GetNamespaceForMailbox(const char *boxname
 
 #define SERIALIZER_SEPARATORS ","
 
-/* prefixes is an array of strings;  len is the length of that array.
-   If there is only one string, simply copy it and return it.
-   Otherwise, put them in quotes and comma-delimit them. 
-   Returns a newly allocated string. */
-nsresult nsIMAPNamespaceList::SerializeNamespaces(char **prefixes, int len, nsCString &serializedNamespaces)
+/**
+ * If len is one, copies the first element of prefixes into serializedNamespaces.
+ * If len > 1, copies len strings from prefixes into serializedNamespaces
+ * as a comma-separated list of quoted strings.
+ */
+nsresult nsIMAPNamespaceList::SerializeNamespaces(char **prefixes, int len,
+                                                  nsCString &serializedNamespaces)
 {
-	nsresult rv = NS_OK;
-	if (len <= 0)
-		return rv;
-	if (len == 1)
-	{
-		serializedNamespaces = prefixes[0];
-		return rv;
-	}
-	else
-	{
-		for (int i = 0; i < len; i++)
-		{
-			char *temp = nullptr;
-			if (i == 0)
-			{
-				serializedNamespaces += "\"";
+  if (len <= 0)
+    return NS_OK;
 
-				temp = PR_smprintf("\"%s\"",prefixes[i]);	/* quote the string */
-			}
-			else
-			{
-				serializedNamespaces += ',';
-			}
-			serializedNamespaces += prefixes[i];
-			serializedNamespaces += "\"";
-		}
-		return rv;
-	}
+  if (len == 1)
+  {
+    serializedNamespaces.Assign(prefixes[0]);
+    return NS_OK;
+  }
+
+  for (int i = 0; i < len; i++)
+  {
+    if (i > 0)
+      serializedNamespaces.AppendLiteral(",");
+
+    serializedNamespaces.AppendLiteral("\"");
+    serializedNamespaces.Append(prefixes[i]);
+    serializedNamespaces.AppendLiteral("\"");
+  }
+  return NS_OK;
 }
 
 /* str is the string which needs to be unserialized.
