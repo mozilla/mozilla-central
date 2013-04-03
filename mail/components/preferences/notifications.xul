@@ -23,6 +23,7 @@
       <preference id="mail.biff.alert.show_preview" name="mail.biff.alert.show_preview" type="bool"/>
       <preference id="mail.biff.alert.show_subject" name="mail.biff.alert.show_subject" type="bool"/>
       <preference id="mail.biff.alert.show_sender" name="mail.biff.alert.show_sender" type="bool"/>
+      <preference id="alerts.totalOpenTime" name="alerts.totalOpenTime" type="int"/>
     </preferences>
 
     <description>&alertCustomization.intro;</description>
@@ -31,5 +32,18 @@
     <checkbox id="sender"  class="indent" label="&sender.label;" accesskey="&sender.accesskey;" preference="mail.biff.alert.show_sender"/>
 
     <separator/>
+    <hbox align="center">
+      <label id="totalOpenTimeBefore"
+             control="totalOpenTime"
+             value="&totalOpenTimeBefore.label;"
+             accesskey="&totalOpenTimeBefore.accesskey;"/>
+      <textbox id="totalOpenTime" type="number" decimalplaces="1" size="3" min="1" max="3600" increment="0.5"
+               preference="alerts.totalOpenTime"
+               onsyncfrompreference="return document.getElementById(this.getAttribute('preference')).value / 1000;"
+               onsynctopreference="return this.value * 1000;"/>
+      <label id="totalOpenTimeEnd" value="&totalOpenTimeEnd.label;"/>
+    </hbox>
+    <separator/>
+
   </prefpane>
 </prefwindow>
