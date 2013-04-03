@@ -100,8 +100,7 @@ protected:
   virtual nsresult InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder);
 
   nsCOMArray<nsIMsgFolder> m_folders;
-  nsCOMPtr <nsISupportsArray> m_hdrsForEachFolder;
-  nsCOMPtr <nsISupportsArray> m_copyListenerList;
+  nsCOMArray<nsIMutableArray> m_hdrsForEachFolder;
   nsCOMArray<nsIMsgFolder> m_uniqueFoldersSelected;
   uint32_t mCurIndex;
 

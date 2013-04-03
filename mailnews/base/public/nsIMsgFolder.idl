@@ -26,7 +26,6 @@ interface nsIMsgIdentity;
 interface nsIMsgThread;
 interface nsIArray;
 interface nsIMutableArray;
-interface nsISupportsArray;
 interface nsIMsgPluggableStore;
 
 typedef long nsMsgBiffState;

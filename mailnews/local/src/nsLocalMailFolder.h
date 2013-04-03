@@ -253,7 +253,7 @@ protected:
 #define DOWNLOAD_NOTIFY_STYLE DOWNLOAD_NOTIFY_FIRST
 #endif
 
-  nsCOMPtr<nsISupportsArray> mDownloadMessages;
+  nsCOMArray<nsIMsgDBHdr> mDownloadMessages;
   nsCOMPtr<nsIMsgWindow> mDownloadWindow;
   nsMsgKey mDownloadSelectKey;
   uint32_t mDownloadState;

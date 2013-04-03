@@ -15,7 +15,6 @@
 #include "nsMsgMessageFlags.h"
 #include "prprf.h"
 #include "prmem.h"
-#include "nsISupportsArray.h"
 #include "nsIArray.h"
 #include "nsIServiceManager.h"
 #include "nsIMailboxService.h"
@@ -2825,11 +2824,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, bool
 
     // Walk through all the selected headers, looking for a matching
     // Message-ID.
-    mDownloadMessages->Count(&numMsgs);
+    numMsgs = mDownloadMessages.Length();
     for (uint32_t i = 0; i < numMsgs; i++)
     {
       nsresult rv;
-      nsCOMPtr<nsIMsgDBHdr> msgDBHdr (do_QueryElementAt(mDownloadMessages, i, &rv));
+      nsCOMPtr<nsIMsgDBHdr> msgDBHdr = mDownloadMessages[i];
       char *oldMsgId = nullptr;
       msgDBHdr->GetMessageId(&oldMsgId);
 
@@ -2856,7 +2855,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteDownloadMsg(nsIMsgDBHdr *aMsgHdr, bool
         if (aDoSelect && mDownloadState == DOWNLOAD_STATE_GOTMSG)
           *aDoSelect = true;
 #endif
-        mDownloadMessages->DeleteElementAt(i);
+        mDownloadMessages.RemoveElementAt(i);
         break;
       }
     }
@@ -2906,7 +2905,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsIArray *aMessag
   aMessages->GetLength(&srcCount);
 
   nsresult rv;
-  NS_NewISupportsArray(getter_AddRefs(mDownloadMessages));
   for (uint32_t i = 0; i < srcCount; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgDBHdr (do_QueryElementAt(aMessages, i, &rv));
@@ -2915,7 +2913,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsIArray *aMessag
       uint32_t flags = 0;
       msgDBHdr->GetFlags(&flags);
       if (flags & nsMsgMessageFlags::Partial)
-        mDownloadMessages->AppendElement(msgDBHdr);
+        mDownloadMessages.AppendElement(msgDBHdr);
     }
   }
   mDownloadWindow = aWindow;
@@ -3031,7 +3029,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
   if (mDownloadState != DOWNLOAD_STATE_NONE)
   {
     mDownloadState = DOWNLOAD_STATE_NONE;
-    mDownloadMessages = nullptr;
+    mDownloadMessages.Clear();
     mDownloadWindow = nullptr;
     return nsMsgDBFolder::OnStopRunningUrl(aUrl, aExitCode);
   }

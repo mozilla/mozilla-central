@@ -7631,8 +7631,8 @@ protected:
   nsCOMPtr<nsIMsgCopyServiceListener> m_copySrvcListener;
   nsCOMPtr<nsIMsgWindow> m_msgWindow;
   int32_t                 m_childIndex;
-  nsCOMPtr<nsISupportsArray> m_srcChildFolders;
-  nsCOMPtr<nsISupportsArray> m_destParents;
+  nsCOMArray<nsIMsgFolder> m_srcChildFolders;
+  nsCOMArray<nsIMsgFolder> m_destParents;
 
 };
 
@@ -7648,8 +7648,6 @@ nsImapFolderCopyState::nsImapFolderCopyState(nsIMsgFolder *destParent, nsIMsgFol
   m_msgWindow = msgWindow;
   m_copySrvcListener = listener;
   m_childIndex = -1;
-  m_srcChildFolders = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
-  m_destParents = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
 }
 
 nsImapFolderCopyState::~nsImapFolderCopyState()
@@ -7673,12 +7671,9 @@ nsImapFolderCopyState::StartNextCopy()
 
 nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
 {
-  nsresult rv;
+  nsresult rv = NS_OK;
   m_childIndex++;
-  uint32_t childCount = 0;
-  if (m_srcChildFolders)
-    m_srcChildFolders->Count(&childCount);
-  if (m_childIndex >= (int32_t) childCount)
+  if (m_childIndex >= m_srcChildFolders.Count())
   {
     if (m_newDestFolder)
       m_newDestFolder->OnCopyCompleted(m_origSrcFolder, aStatus);
@@ -7686,8 +7681,8 @@ nsresult nsImapFolderCopyState::AdvanceToNextFolder(nsresult aStatus)
   }
   else
   {
-    m_curDestParent = do_QueryElementAt(m_destParents, m_childIndex, &rv);
-    m_curSrcFolder = do_QueryElementAt(m_srcChildFolders, m_childIndex, &rv);
+    m_curDestParent = m_destParents[m_childIndex];
+    m_curSrcFolder = m_srcChildFolders[m_childIndex];
     rv = StartNextCopy();
   }
   return rv;
@@ -7742,38 +7737,39 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           rv = m_curSrcFolder->GetSubFolders(getter_AddRefs(enumerator));
           NS_ENSURE_SUCCESS(rv, rv);
 
-          bool hasMore;
+          nsCOMPtr<nsISupports> item;
+          bool hasMore = false;
           uint32_t childIndex = 0;
           while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
           {
-            nsCOMPtr<nsISupports> child;
-            rv = enumerator->GetNext(getter_AddRefs(child));
+            rv = enumerator->GetNext(getter_AddRefs(item));
+            nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item, &rv));
             if (NS_SUCCEEDED(rv))
             {
-              m_srcChildFolders->InsertElementAt(child, m_childIndex + childIndex + 1);
-              m_destParents->InsertElementAt(newMsgFolder, m_childIndex + childIndex + 1);
+              m_srcChildFolders.InsertElementAt(m_childIndex + childIndex + 1, folder);
+              m_destParents.InsertElementAt(m_childIndex + childIndex + 1, newMsgFolder);
             }
             ++childIndex;
           }
 
-          nsCOMPtr<nsISimpleEnumerator> messages;
-          rv = m_curSrcFolder->GetMessages(getter_AddRefs(messages));
+          rv = m_curSrcFolder->GetMessages(getter_AddRefs(enumerator));
           nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
           NS_ENSURE_TRUE(msgArray, rv);
-          bool hasMoreElements = false;
-          nsCOMPtr<nsISupports> aSupport;
+          hasMore = false;
 
-          if (messages)
-            messages->HasMoreElements(&hasMoreElements);
+          if (enumerator)
+            rv = enumerator->HasMoreElements(&hasMore);
 
-          if (!hasMoreElements)
+          if (!hasMore)
             return AdvanceToNextFolder(NS_OK);
 
-          while (hasMoreElements && NS_SUCCEEDED(rv))
+          while (NS_SUCCEEDED(rv) && hasMore)
           {
-            rv = messages->GetNext(getter_AddRefs(aSupport));
-            rv = msgArray->AppendElement(aSupport, false);
-            messages->HasMoreElements(&hasMoreElements);
+            rv = enumerator->GetNext(getter_AddRefs(item));
+            NS_ENSURE_SUCCESS(rv, rv);
+            rv = msgArray->AppendElement(item, false);
+            NS_ENSURE_SUCCESS(rv, rv);
+            rv = enumerator->HasMoreElements(&hasMore);
           }
 
           nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
