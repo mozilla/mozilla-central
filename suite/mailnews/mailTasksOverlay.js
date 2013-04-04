@@ -49,11 +49,9 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(aCurrentServer,
     inbox.clearNewMessages();
     aLocalFoldersToDownloadTo.push(inbox);
     index = aPOP3DownloadServersArray.length;
-    aPOP3DownloadServersArray[index] =
-      Components.classes["@mozilla.org/supports-array;1"]
-                .createInstance(Components.interfaces.nsISupportsArray);
+    aPOP3DownloadServersArray.push([]);
   }
-  aPOP3DownloadServersArray[index].AppendElement(aCurrentServer);
+  aPOP3DownloadServersArray[index].push(aCurrentServer);
 }
 
 function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
@@ -64,7 +62,7 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
     var allServers = Components.classes["@mozilla.org/messenger/account-manager;1"]
                                .getService(Components.interfaces.nsIMsgAccountManager)
                                .allServers;
-    // array of ISupportsArrays of servers for a particular folder
+    // array of array of servers for a particular folder
     var pop3DownloadServersArray = [];
     // parallel array of folders to download to...
     var localFoldersToDownloadTo = [];
@@ -129,6 +127,7 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
         // any ol' pop3Server will do -
         // the serversArray specifies which servers to download from
         pop3Server.downloadMailFromServers(pop3DownloadServersArray[i],
+                                           pop3DownloadServersArray[i].length,
                                            aMsgWindow,
                                            localFoldersToDownloadTo[i],
                                            null);

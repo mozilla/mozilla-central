@@ -1385,11 +1385,10 @@ function MsgGetMessagesForAllServers(defaultServer)
   try
   {
     var allServers = accountManager.allServers;
-    // Array of isupportsarrays of servers for a particular folder.
-    var pop3DownloadServersArray = new Array();
-    // Parallel isupports array of folders to download to...
-    var localFoldersToDownloadTo = Components.classes["@mozilla.org/supports-array;1"]
-                                             .createInstance(Components.interfaces.nsISupportsArray);
+    // Array of arrays of servers for a particular folder.
+    var pop3DownloadServersArray = [];
+    // Parallel array of folders to download to...
+    var localFoldersToDownloadTo = [];
     var pop3Server;
     for (var i = 0; i < allServers.length; ++i)
     {
@@ -1421,8 +1420,11 @@ function MsgGetMessagesForAllServers(defaultServer)
     {
       // Any ol' pop3Server will do - the serversArray specifies which servers
       // to download from.
-      pop3Server.downloadMailFromServers(pop3DownloadServersArray[i], msgWindow,
-                                         localFoldersToDownloadTo.GetElementAt(i), null);
+      pop3Server.downloadMailFromServers(pop3DownloadServersArray[i],
+                                         pop3DownloadServersArray[i].length,
+                                         msgWindow,
+                                         localFoldersToDownloadTo[i],
+                                         null);
     }
   }
   catch(ex)
@@ -2656,7 +2658,7 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
   const kInboxFlag = Components.interfaces.nsMsgFolderFlags.Inbox;
   var inboxFolder = currentServer.rootMsgFolder.getFolderWithFlags(kInboxFlag);
   // coalesce the servers that download into the same folder...
-  var index = localFoldersToDownloadTo.GetIndexOf(inboxFolder);
+  var index = localFoldersToDownloadTo.indexOf(inboxFolder);
   if (index == -1)
   {
     if (inboxFolder)
@@ -2664,12 +2666,11 @@ function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer,
       inboxFolder.biffState =  Components.interfaces.nsIMsgFolder.nsMsgBiffState_NoMail;
       inboxFolder.clearNewMessages();
     }
-    localFoldersToDownloadTo.AppendElement(inboxFolder);
-    index = pop3DownloadServersArray.length
-    pop3DownloadServersArray[index] = Components.classes["@mozilla.org/supports-array;1"]
-                                                .createInstance(Components.interfaces.nsISupportsArray);
+    localFoldersToDownloadTo.push(inboxFolder);
+    index = pop3DownloadServersArray.length;
+    pop3DownloadServersArray.push([]);
   }
-  pop3DownloadServersArray[index].AppendElement(currentServer);
+  pop3DownloadServersArray[index].push(currentServer);
 }
 
 function GetMessagesForAllAuthenticatedAccounts()
@@ -2679,10 +2680,9 @@ function GetMessagesForAllAuthenticatedAccounts()
   {
     var allServers = accountManager.allServers;
     // array of isupportsarrays of servers for a particular folder
-    var pop3DownloadServersArray = new Array();
-    // parallel isupports array of folders to download to...
-    var localFoldersToDownloadTo = Components.classes["@mozilla.org/supports-array;1"]
-                                             .createInstance(Components.interfaces.nsISupportsArray);
+    var pop3DownloadServersArray = [];
+    // parallel array of folders to download to...
+    var localFoldersToDownloadTo = [];
     var pop3Server;
 
     for (var i = 0; i < allServers.length; ++i)
@@ -2706,8 +2706,11 @@ function GetMessagesForAllAuthenticatedAccounts()
     for (var i = 0; i < pop3DownloadServersArray.length; ++i)
     {
       // any ol' pop3Server will do - the serversArray specifies which servers to download from
-      pop3Server.downloadMailFromServers(pop3DownloadServersArray[i], msgWindow,
-                                         localFoldersToDownloadTo.GetElementAt(i), null);
+      pop3Server.downloadMailFromServers(pop3DownloadServersArray[i],
+                                         pop3DownloadServersArray[i].length,
+                                         msgWindow,
+                                         localFoldersToDownloadTo[i],
+                                         null);
     }
   }
   catch(ex)
