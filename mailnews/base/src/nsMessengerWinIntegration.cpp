@@ -595,14 +595,14 @@ nsresult nsMessengerWinIntegration::AlertFinished()
 {
   // okay, we are done showing the alert
   // now put an icon in the system tray, if allowed
-  bool showTrayIcon = !mSuppressBiffIcon;
+  bool showTrayIcon = !mSuppressBiffIcon || sBiffIconData.szInfo[0];
   if (showTrayIcon)
   {
     nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
     if (prefBranch)
       prefBranch->GetBoolPref(SHOW_TRAY_ICON_PREF, &showTrayIcon);
   }
-  if (showTrayIcon || sBiffIconData.szInfo[0])
+  if (showTrayIcon)
   {
     GenericShellNotify(NIM_ADD);
     mBiffIconVisible = true;
