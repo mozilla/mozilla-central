@@ -599,9 +599,43 @@
         <parameter name="objLoadingContent"/>
         <body>
           <![CDATA[
-            var nsIObjectLoadingContent = Components.interfaces.nsIObjectLoadingContent;
-            return !objLoadingContent.activated &&
-                   objLoadingContent.pluginFallbackType !== nsIObjectLoadingContent.PLUGIN_PLAY_PREVIEW;
+            const nsIObjectLoadingContent = Components.interfaces.nsIObjectLoadingContent;
+            var actualType = objLoadingContent.actualType;
+            if (objLoadingContent.getContentTypeForMIMEType(actualType) != nsIObjectLoadingContent.TYPE_PLUGIN ||
+                objLoadingContent.activated ||
+                objLoadingContent.pluginFallbackType < nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY ||
+                objLoadingContent.pluginFallbackType > nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE)
+              return false;
+
+            var ph = Components.classes["@mozilla.org/plugin/host;1"]
+                               .getService(Components.interfaces.nsIPluginHost);
+            var permissionString = ph.getPermissionStringForType(actualType);
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, permissionString);
+            return pluginPermission != nsIPermissionManager.DENY_ACTION;
+          ]]>
+        </body>
+      </method>
+
+      <method name="setPermissionForPlugins">
+        <parameter name="aPermission"/>
+        <body>
+          <![CDATA[
+            var ph = Components.classes["@mozilla.org/plugin/host;1"]
+                               .getService(Components.interfaces.nsIPluginHost);
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
+                               .getService(nsIPermissionManager);
+            var plugins = this.contentWindowUtils.plugins;
+            for (var plugin of plugins) {
+              var objLoadingContent = plugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+              if (this.canActivatePlugin(objLoadingContent)) {
+                var permissionString = ph.getPermissionStringForType(objLoadingContent.actualType);
+                pm.add(this.activeBrowser.currentURI, permissionString, aPermission);
+              }
+            }
           ]]>
         </body>
       </method>
@@ -1223,16 +1257,13 @@
             checkbox.setAttribute("label", this._stringBundle.GetStringFromName("activatepluginsMessage.remember"));
 
             const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                               .getService(nsIPermissionManager);
             var messageString = this._stringBundle.GetStringFromName("activatepluginsMessage.title");
             var buttons = [{
               label: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.label"),
               accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.accesskey"),
               callback: (function () {
                 if (checkbox.checked)
-                  pm.add(this.activeBrowser.currentURI, "plugins",
-                         nsIPermissionManager.ALLOW_ACTION);
+                  this.setPermissionForPlugins(nsIPermissionManager.ALLOW_ACTION);
                 this.activatePlugins();
               }).bind(this)
             }, {
@@ -1240,8 +1271,7 @@
               accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.dismiss.accesskey"),
               callback: (function () {
                 if (checkbox.checked)
-                  pm.add(this.activeBrowser.currentURI, "plugins",
-                         nsIPermissionManager.DENY_ACTION);
+                  this.setPermissionForPlugins(nsIPermissionManager.DENY_ACTION);
               }).bind(this)
             }];
             var box = this.appendNotification(messageString,
@@ -1260,20 +1290,17 @@
         <parameter name="pluginElement"/>
         <body>
           <![CDATA[
-            if (this.clickToPlayPluginsActivated) {
-              pluginElement.playPlugin();
-              return;
-            }
-
             var doc = pluginElement.ownerDocument;
             var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
 
-            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                               .getService(nsIPermissionManager);
-            var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
-            if (pluginPermission == nsIPermissionManager.DENY_ACTION) {
+            var objLoadingContent = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
+            if (!this.canActivatePlugin(objLoadingContent)) {
               overlay.style.visibility = "hidden";
+              return;
+            }
+
+            if (this.clickToPlayPluginsActivated) {
+              pluginElement.playPlugin();
               return;
             }
 
@@ -2228,13 +2255,6 @@
           if (!event.persisted || !this._prefs.getBoolPref("plugins.click_to_play"))
             return;
 
-          const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-          var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                             .getService(nsIPermissionManager);
-          var pluginPermission = pm.testPermission(this.activeBrowser.currentURI, "plugins");
-          if (pluginPermission == nsIPermissionManager.DENY_ACTION)
-            return;
-
           var pluginNeedsActivation = this.contentWindowUtils.plugins.some(function(aPlugin) {
             var objLoadingContent = aPlugin.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
             return this.canActivatePlugin(objLoadingContent);
@@ -2364,8 +2384,6 @@
           <![CDATA[
             this.clickToPlayPromptShown = true;
             const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-            var pm = Components.classes["@mozilla.org/permissionmanager;1"]
-                               .getService(nsIPermissionManager);
             var messageString = this._stringBundle.GetStringFromName("activatepluginsMessage.title");
             var mainAction = {
               label: this._stringBundle.GetStringFromName("activatepluginsMessage.activate.label"),
@@ -2376,16 +2394,14 @@
               label: this._stringBundle.GetStringFromName("activatepluginsMessage.always.label"),
               accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.always.accesskey"),
               callback: (function () {
-                pm.add(this.activeBrowser.currentURI, "plugins",
-                       nsIPermissionManager.ALLOW_ACTION);
+                this.setPermissionForPlugins(nsIPermissionManager.ALLOW_ACTION);
                 this.activatePlugins();
               }).bind(this)
             }, {
               label: this._stringBundle.GetStringFromName("activatepluginsMessage.never.label"),
               accessKey: this._stringBundle.GetStringFromName("activatepluginsMessage.never.accesskey"),
               callback: (function () {
-                pm.add(this.activeBrowser.currentURI, "plugins",
-                       nsIPermissionManager.DENY_ACTION);
+                this.setPermissionForPlugins(nsIPermissionManager.DENY_ACTION);
                 var notification = PopupNotifications.getNotification("click-to-play-plugins",
                                                                       this.activeBrowser);
                 if (notification)
