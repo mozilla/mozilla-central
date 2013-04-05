@@ -163,6 +163,11 @@
   border-top: 1px solid ThreeDShadow;
 }
 
+#attachmentBar {
+  color: -moz-dialogtext;
+  background-color: -moz-Dialog;
+}
+
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {

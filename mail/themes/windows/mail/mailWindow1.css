@@ -49,8 +49,7 @@ toolbar:only-of-type {
   }
 }
 
-#mailContent {
-  -moz-appearance: toolbox;
+#messengerBox {
   background-color: -moz-Dialog;
 }
 

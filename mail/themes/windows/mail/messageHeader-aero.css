@@ -188,6 +188,18 @@
   border-top: 1px solid #A9B7C9; /* The same color as the splitters */
 }
 
+#attachmentBar {
+  color: -moz-dialogtext;
+  background-color: -moz-Dialog;
+}
+
+@media (-moz-windows-default-theme) {
+  #attachmentBar {
+    background-color: hsl(210, 75%, 92%);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.05))
+  }
+}
+
 /* ::::: msg header captions ::::: */
 
 #msgHeaderView {
