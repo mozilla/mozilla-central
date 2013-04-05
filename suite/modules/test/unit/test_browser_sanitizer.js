@@ -1,45 +1,26 @@
 Cu.import("resource:///modules/Sanitizer.jsm", this);
 
-function getWindows(aType, aSingle) {
-  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                     .getService(Components.interfaces.nsIWindowMediator);
-  var window = null;
-  if (aSingle)
-    window = wm.getMostRecentWindow(aType);
-  else
-    window = wm.getEnumerator(aType);
-  return window;
-}
-
 var sanTests = {
   cache: {
     desc: "Cache",
     setup: function() {
       var entry = null;
-      var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
-                                   .getService(Components.interfaces.nsICacheService);
-      try {
-        this.cs = cacheService.createSession("SanitizerTest", Components.interfaces.nsICache.STORE_ANYWHERE, true);
-        entry = this.cs.openCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ_WRITE, true);
-        entry.setMetaDataElement("Foo", "Bar");
-        entry.markValid();
-        entry.close();
-      } catch(ex) {}
-
-      return this.check();
+      this.cs = Services.cache.createSession("SanitizerTest", Components.interfaces.nsICache.STORE_ANYWHERE, true);
+      entry = yield promiseOpenCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ_WRITE, this.cs);
+      entry.setMetaDataElement("Foo", "Bar");
+      entry.markValid();
+      entry.close();
     },
 
-    check: function() {
-      var entry = null;
-      try {
-        entry = this.cs.openCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ, true);
-      } catch(ex) {}
+    check: function(aShouldBeCleared) {
+      let entry = null;
+      entry = yield promiseOpenCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ, this.cs);
 
       if (entry) {
         entry.close();
-        return true;
       }
-      return false;
+
+      do_check_eq(!entry, aShouldBeCleared);
     }
   },
 
@@ -48,30 +29,21 @@ var sanTests = {
     setup: function() {
       //XXX test offline DOMStorage
       var entry = null;
-      var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
-                                   .getService(Components.interfaces.nsICacheService);
-      try {
-        this.cs = cacheService.createSession("SanitizerTest", Components.interfaces.nsICache.STORE_OFFLINE, true);
-        entry = this.cs.openCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ_WRITE, true);
-        entry.setMetaDataElement("Foo", "Bar");
-        entry.markValid();
-        entry.close();
-      } catch(ex) {}
-
-      return this.check();
+      this.cs = Services.cache.createSession("SanitizerTest", Components.interfaces.nsICache.STORE_OFFLINE, true);
+      entry = yield promiseOpenCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ_WRITE, this.cs);
+      entry.setMetaDataElement("Foo", "Bar");
+      entry.markValid();
+      entry.close();
     },
 
-    check: function() {
+    check: function(aShouldBeCleared) {
       var entry = null;
-      try {
-        entry = this.cs.openCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ, true);
-      } catch(ex) {}
-
+      entry = yield promiseOpenCacheEntry("http://santizer.test", Components.interfaces.nsICache.ACCESS_READ, this.cs);
       if (entry) {
         entry.close();
-        return true;
       }
-      return false;
+
+      do_check_eq(!entry, aShouldBeCleared);
     }
   },
 
@@ -85,11 +57,13 @@ var sanTests = {
       this.cs = Components.classes["@mozilla.org/cookieService;1"]
                           .getService(Components.interfaces.nsICookieService);
       this.cs.setCookieString(this.uri, null, "Sanitizer!", null);
-      return this.check();
     },
 
-    check: function() {
-      return (this.cs.getCookieString(this.uri, null) == "Sanitizer!");
+    check: function(aShouldBeCleared) {
+      if (aShouldBeCleared)
+        do_check_neq(this.cs.getCookieString(this.uri, null), "Sanitizer!");
+      else
+        do_check_eq(this.cs.getCookieString(this.uri, null), "Sanitizer!");
     }
   },
 
@@ -99,16 +73,14 @@ var sanTests = {
       var ios = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
       var uri = ios.newURI("http://sanitizer.test/", null, null);
-
-      PlacesUtils.history.addVisit(uri, Date.now() * 1000, null,
-                                   Ci.nsINavHistoryService.TRANSITION_LINK,
-                                   false, 0);
-      PlacesUtils.ghistory2.setPageTitle(uri, "Sanitizer!");
-
-      return this.check();
+      yield promiseAddVisits({
+        uri: uri,
+        title: "Sanitizer!"
+      });
     },
 
-    check: function() {
+    check: function(aShouldBeCleared) {
+      var rv = false;
       var history = Components.classes["@mozilla.org/browser/nav-history-service;1"]
                               .getService(Components.interfaces.nsINavHistoryService);
       var options = history.getNewQueryOptions();
@@ -117,10 +89,16 @@ var sanTests = {
       var results = history.executeQuery(query, options).root;
       results.containerOpen = true;
       for (var i = 0; i < results.childCount; i++) {
-        if (results.getChild(i).uri == "http://sanitizer.test/")
-          return true;
+        if (results.getChild(i).uri == "http://sanitizer.test/") {
+          rv = true;
+          break;
+        }
       }
-      return false;
+
+      // Close container after reading from it
+      results.containerOpen = false;
+
+      do_check_eq(rv, !aShouldBeCleared);
     }
   },
 
@@ -148,29 +126,20 @@ var sanTests = {
       supStr.data = "Sanitizer!";
       Services.prefs.setComplexValue("general.open_location.last_url",
                                       Components.interfaces.nsISupportsString, supStr);
-
-      return this.check(true);
     },
 
-    check: function(aCheckAll) {
-      var locDialog = false;
+    check: function(aShouldBeCleared) {
+      let locData;
       try {
-        locDialog = (Services.prefs.getComplexValue("general.open_location.last_url",
-                                                     Components.interfaces.nsISupportsString).data == "Sanitizer!");
+        locData = Services.prefs.getComplexValue("general.open_location.last_url", Components.interfaces.nsISupportsString).data;
       } catch(ex) {}
 
-      if (locDialog == !aCheckAll)
-        return locDialog;
+      do_check_eq(locData == "Sanitizer!", !aShouldBeCleared);
 
       var file = Components.classes["@mozilla.org/file/directory_service;1"]
                            .getService(Components.interfaces.nsIProperties)
                            .get("ProfD", Components.interfaces.nsIFile);
       file.append("urlbarhistory.sqlite");
-      if (!file.exists())
-        return false;
-
-      if (!aCheckAll)
-        return true;
 
       var connection = Components.classes["@mozilla.org/storage/service;1"]
                                  .getService(Components.interfaces.mozIStorageService)
@@ -186,7 +155,7 @@ var sanTests = {
       }
       connection.close();
 
-      return urlbar;
+      do_check_eq(urlbar, !aShouldBeCleared);
     }
   },
 
@@ -196,11 +165,10 @@ var sanTests = {
       this.forms = Components.classes["@mozilla.org/satchel/form-history;1"]
                              .getService(Components.interfaces.nsIFormHistory2);
       this.forms.addEntry("Sanitizer", "Foo");
-      return this.check();
     },
 
-    check: function() {
-      return this.forms.entryExists("Sanitizer", "Foo");
+    check: function(aShouldBeCleared) { 
+      do_check_eq(this.forms.entryExists("Sanitizer", "Foo"), !aShouldBeCleared);
     }
   },
 
@@ -234,16 +202,18 @@ var sanTests = {
 
       // Stupid DM...
       this.dm.cancelDownload(this.dl.id);
-      return this.check();
     },
 
-    check: function() {
+    check: function(aShouldBeCleared) { 
       var dl = null;
       try {
         dl = this.dm.getDownload(this.dl.id);
       } catch(ex) {}
 
-      return (dl && dl.displayName == "Sanitizer!");
+      if (aShouldBeCleared)
+        do_check_eq(!dl, aShouldBeCleared)
+      else
+        do_check_eq(dl.displayName, "Sanitizer!");
     }
   },
 
@@ -257,17 +227,19 @@ var sanTests = {
       var login = new info("http://sanitizer.test", null, "Rick Astley Fan Club",
                            "dolske", "iliketurtles1", "", "");
       this.pm.addLogin(login);
-
-      return this.check();
     },
 
-    check: function() {
-      var logins = this.pm.findLogins({}, "http://sanitizer.test", null, "Rick Astley Fan Club");
+    check: function(aShouldBeCleared) {
+      let rv = false;
+      let logins = this.pm.findLogins({}, "http://sanitizer.test", null, "Rick Astley Fan Club");
       for (var i = 0; i < logins.length; i++) {
-        if (logins[i].username == "dolske")
-          return true;
+        if (logins[i].username == "dolske") {
+          rv = true;
+          break;
+        }
       }
-      return false;
+
+      do_check_eq(rv, !aShouldBeCleared);
     }
   },
 
@@ -279,10 +251,9 @@ var sanTests = {
 
       this.authMgr.setAuthIdentity("http", "sanitizer.test", 80, "basic", "Sanitizer",
                                    "", "Foo", "fooo", "foo12");
-      return this.check();
     },
 
-    check: function() {
+    check: function(aShouldBeCleared) {
       var domain = {};
       var user = {};
       var password = {};
@@ -292,19 +263,20 @@ var sanTests = {
                                      "", domain, user, password);
       } catch(ex) {}
 
-      return (domain.value == "Foo");
+      do_check_eq(domain.value == "Foo", !aShouldBeCleared);
     }
   }
-};
+}
 
 function fullSanitize() {
+  do_print("Now doing a full sanitize run");
   var prefs = Services.prefs.getBranch("privacy.item.");
 
   Services.prefs.setBoolPref("privacy.sanitize.promptOnSanitize", false);
 
   for (var testName in sanTests) {
     var test = sanTests[testName];
-    ok(test.setup(), test.desc + " test setup successfully for full sanitize");
+    yield test.setup();
     prefs.setBoolPref(testName, true);
   }
 
@@ -312,7 +284,8 @@ function fullSanitize() {
 
   for (var testName in sanTests) {
     var test = sanTests[testName];
-    ok(!test.check(), test.desc + " data cleared by full sanitize");
+    yield test.check(true);
+    do_print(test.desc + " data cleared by full sanitize");
     try {
       prefs.clearUserPref(testName);
     } catch (ex) {}
@@ -323,23 +296,25 @@ function fullSanitize() {
   } catch(ex) {}
 }
 
-function test() {
-  waitForExplicitFinish();
-
-  // Sanitize one item at a time.
-  for (var testName in sanTests) {
-    var test = sanTests[testName];
-
-    ok(test.setup(), test.desc + " test setup successfully");
-
-    ok(Sanitizer.items[testName].canClear, test.desc + " can be cleared");
-    Sanitizer.items[testName].clear();
-    ok(!test.check(), test.desc + " data cleared");
-  }
-
-  // Sanitize all items at once.
-  fullSanitize();
-
-  // executeSoon() prevents (in the "pass" case only) leaking Console messages (...) to the next test.
-  executeSoon(finish);
+function run_test()
+{
+  run_next_test();
 }
+
+add_task(function test_browser_sanitizer()
+{
+  for (var testName in sanTests) {
+    let test = sanTests[testName];
+    dump("\nExecuting test: " + testName + "\n" + "*** " + test.desc + "\n");
+    yield test.setup();
+    yield test.check(false);
+
+    do_check_true(Sanitizer.items[testName].canClear);
+    Sanitizer.items[testName].clear();
+    do_print(test.desc + " data cleared");
+
+    yield test.check(true);
+  }
+});
+
+add_task(fullSanitize);

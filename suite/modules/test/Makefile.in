@@ -6,13 +6,10 @@ DEPTH     = @DEPTH@
 VPATH     = @srcdir@
 srcdir    = @srcdir@
 topsrcdir = @top_srcdir@
-relsrcdir = suite/modules/test
+relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
+
+XPCSHELL_TESTS = unit
+
 include $(topsrcdir)/config/rules.mk
-
-_BROWSER_FILES = browser_sanitizer.js \
-               $(NULL)
-
-libs::	$(_BROWSER_FILES)
-	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relsrcdir)
