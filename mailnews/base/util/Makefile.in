@@ -35,6 +35,7 @@ CPPSRCS		= \
 		nsMsgCompressOStream.cpp \
 		nsMsgReadStateTxn.cpp \
 		nsStopwatch.cpp \
+		Services.cpp \
 		$(NULL)
 
 EXPORTS		= \
@@ -55,6 +56,13 @@ EXPORTS		= \
 		nsImapMoveCoalescer.h \
 		nsMsgReadStateTxn.h \
 		$(NULL)
+
+EXPORTS_mozilla/mailnews = \
+		Services.h \
+		ServiceList.h \
+		$(NULL)
+
+EXPORTS_NAMESPACES = mozilla/mailnews
 
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
