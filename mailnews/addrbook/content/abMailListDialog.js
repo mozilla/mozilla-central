@@ -528,7 +528,7 @@ function DropOnAddressListTree(event)
       continue;
 
     // pull the URL out of the data object
-    len address = dataObj.data.substring(0, len.value);
+    let address = dataObj.data.substring(0, len.value);
     if (!address)
       continue;
 
