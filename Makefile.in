@@ -90,7 +90,7 @@ export MOZ_SOURCE_STAMP
 
 DIST_GARBAGE = config.cache config.log config.status* config-defs.h \
    config/autoconf.mk \
-   unallmakefiles comm-config.h \
+   unallmakefiles \
    $(topsrcdir)/.mozconfig.mk $(topsrcdir)/.mozconfig.out
 
 distclean::

@@ -1164,7 +1164,7 @@ if test "$GNU_CC"; then
     dnl Turn pedantic on but disable the warnings for long long
     _PEDANTIC=1
 
-    _DEFINES_CFLAGS='-include $(DEPTH)/comm-config.h -DMOZILLA_CLIENT'
+    _DEFINES_CFLAGS='-include $(DEPTH)/mozilla/mozilla-config.h -DMOZILLA_CLIENT'
     _USE_CPP_INCLUDE_FLAG=1
 
 elif test "$SOLARIS_SUNPRO_CC"; then
@@ -1234,7 +1234,7 @@ if test "$GNU_CXX"; then
        esac
     fi
 
-    _DEFINES_CXXFLAGS='-DMOZILLA_CLIENT -include $(DEPTH)/comm-config.h'
+    _DEFINES_CXXFLAGS='-DMOZILLA_CLIENT -include $(DEPTH)/mozilla/mozilla-config.h'
     _USE_CPP_INCLUDE_FLAG=1
 
     # Recent clang and gcc support C++11 deleted functions without warnings if
@@ -1717,8 +1717,8 @@ ia64*-hpux*)
         MKSHLIB_UNFORCE_ALL=
         DSO_LDOPTS=-SUBSYSTEM:WINDOWS
         _USE_CPP_INCLUDE_FLAG=1
-        _DEFINES_CFLAGS='-FI $(DEPTH)/comm-config.h -DMOZILLA_CLIENT'
-        _DEFINES_CXXFLAGS='-FI $(DEPTH)/comm-config.h -DMOZILLA_CLIENT'
+        _DEFINES_CFLAGS='-FI $(DEPTH)/mozilla/mozilla-config.h -DMOZILLA_CLIENT'
+        _DEFINES_CXXFLAGS='-FI $(DEPTH)/mozilla/mozilla-config.h -DMOZILLA_CLIENT'
         CFLAGS="$CFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
         CXXFLAGS="$CXXFLAGS -W3 -Gy -Fd\$(COMPILE_PDBFILE)"
         # MSVC warning C4345 warns of newly conformant behavior as of VS2003.
@@ -6324,7 +6324,7 @@ case "$host" in
     ;;
 esac
 
-AC_OUTPUT([comm-config.h config/autoconf.mk])
+AC_OUTPUT([config/autoconf.mk])
 
 dnl ========================================================
 dnl = Setup a nice relatively clean build environment for
