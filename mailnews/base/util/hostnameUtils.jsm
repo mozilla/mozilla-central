@@ -117,17 +117,20 @@ function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
   }
   else if (aAllowExtendedIPFormats)
   {
-    // Convert to a binary to test for possible DWORD.
-    let binaryDword = parseInt(aHostName).toString(2);
-    if (isNaN(binaryDword))
+    // Check if it is a DWORD (32-bit unsigned integer).
+    if (!/^([0-9]*)$/.test(aHostName))
       return null;
 
-    // convert the dword into its component IP parts.
-    ipComponents = new Array;
-    ipComponents[0] = (aHostName >> 24) & 255;
-    ipComponents[1] = (aHostName >> 16) & 255;
-    ipComponents[2] = (aHostName >>  8) & 255;
-    ipComponents[3] = (aHostName & 255);
+    let value = parseInt(aHostName, 10);
+    if (value >= 4294967295) // MAX_UINT32
+      return null;
+
+    // Convert the DWORD into its component IP parts.
+    ipComponents = [];
+    ipComponents[0] = (value >> 24) & 255;
+    ipComponents[1] = (value >> 16) & 255;
+    ipComponents[2] = (value >>  8) & 255;
+    ipComponents[3] = (value & 255);
   }
   else {
     return null;
@@ -135,17 +138,19 @@ function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
 
   // Make sure each part of the IP address is in fact a number, and that
   // each part isn't larger than 255.
-  for (let i = 0; i < ipComponents.length; i++)
+  for (let component of ipComponents)
   {
-    // If any part of the IP address is not a number, or longer than 255,
+    // If any part of the IP address is not a number between 0..255
     // then we can safely return.
-    if (isNaN(ipComponents[i]) || ipComponents[i] > 255)
+    if (isNaN(component) || component > 255)
       return null;
   }
 
-  let hostName = ipComponents.join(".");
-  // Treat 0.0.0.0 as an invalid IPv4 address.
-  return (hostName != "0.0.0.0") ? hostName : null;
+  // First component of zero is not valid.
+  if (ipComponents[0] == 0)
+    return null;
+
+  return ipComponents.join(".");
 }
 
 /**
@@ -215,7 +220,7 @@ function isLegalIPv6Address(aHostName)
     if (ipComponents[i] == "")
       ipComponents[i] = 0;
 
-    // Make sure the component is a number and it isn't larger then 0xffff.
+    // Make sure the component is a number and it isn't larger than 0xffff.
     if (/^[0-9a-f]{1,4}$/.test(ipComponents[i])) {
       ipComponents[i] = parseInt(ipComponents[i], 16);
       if (isNaN(ipComponents[i]) || ipComponents[i] > 0xffff)
@@ -249,14 +254,18 @@ function isLegalIPv6Address(aHostName)
 function isLegalIPAddress(aHostName, aAllowExtendedIPFormats)
 {
   return isLegalIPv4Address(aHostName, aAllowExtendedIPFormats) ||
-         isLegalIPv6Address(aHostName, aAllowExtendedIPFormats);
+         isLegalIPv6Address(aHostName);
 }
 
 /**
- * Check if aIPAddress is a local IP address.
+ * Check if aIPAddress is a local or private IP address.
  *
  * @param aIPAddress  A valid IP address literal in canonical (unobscured) form.
- * @return            True if it is a local IPv4 or IPv6 address, otherwise false.
+ * @return            True if it is a local/private IPv4 or IPv6 address,
+ *                    otherwise false.
+ *
+ * Note: if the passed in address is not in canonical (unobscured form),
+ *       the result may be wrong.
  */
 function isLegalLocalIPAddress(aIPAddress)
 {
@@ -264,7 +273,7 @@ function isLegalLocalIPAddress(aIPAddress)
   let ipComponents = aIPAddress.split(".");
   if (ipComponents.length == 4)
   {
-     // Check if it's a local IPv4 address.
+     // Check if it's a local or private IPv4 address.
     return ipComponents[0] == 10 ||
            ipComponents[0] == 127 || // loopback address
           (ipComponents[0] == 192 && ipComponents[1] == 168) ||
@@ -294,6 +303,7 @@ function isLegalLocalIPAddress(aIPAddress)
 
     return false;
   }
+
   return false;
 }
 
