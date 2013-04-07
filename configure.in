@@ -3779,10 +3779,8 @@ MOZ_ARG_HEADER(Application)
 ENABLE_TESTS=1
 MOZ_BRANDING_DIRECTORY=
 MOZ_OFFICIAL_BRANDING=
-MOZ_CALENDAR=
 MOZ_FEEDS=1
 MOZ_JSDEBUGGER=1
-MOZ_LDAP_XPCOM=
 MOZ_MORK=
 MOZ_MORKREADER=1
 MOZ_AUTH_EXTENSION=1
@@ -3873,6 +3871,20 @@ if test -f "${srcdir}/${MOZ_BUILD_APP}/confvars.sh" ; then
   . "${srcdir}/${MOZ_BUILD_APP}/confvars.sh"
 else
   AC_MSG_RESULT([no])
+fi
+
+# Allow the application to provide a subconfigure script
+if test -f "${srcdir}/${MOZ_BUILD_APP}/configure.in" ; then
+  do_output_subdirs() {
+    # XXX: This will be run by mozilla's configure for LDAP for us.
+    :
+  }
+  tmpscript=`$PYTHON -c 'import os, tempfile; print tempfile.mktemp(prefix="subscript.").replace(os.sep, "/")'` || exit 1
+  m4 "${srcdir}/mozilla/build/autoconf/subconfigure.m4" \
+     "${srcdir}/mozilla/build/autoconf/altoptions.m4" \
+     "${srcdir}/${MOZ_BUILD_APP}/configure.in" > $tmpscript
+  . $tmpscript
+  rm -f $tmpscript
 fi
 
 # Special cases where we need to AC_DEFINE something. Also a holdover for apps
@@ -4098,23 +4110,6 @@ MOZ_ARG_ENABLE_STRING(ui-locale,
                           Select the user interface locale (default: en-US)],
     MOZ_UI_LOCALE=$enableval )
 AC_SUBST(MOZ_UI_LOCALE)
-
-dnl =========================================================
-dnl = Calendar client
-dnl =========================================================
-MOZ_ARG_ENABLE_BOOL(calendar,
-[  --enable-calendar      Enable building of the Lightning calendar extension],
-    MOZ_CALENDAR=1,
-    MOZ_CALENDAR= )
-AC_SUBST(MOZ_CALENDAR)
-
-dnl =========================================================
-dnl = LDAP
-dnl =========================================================
-MOZ_ARG_DISABLE_BOOL(ldap,
-[  --disable-ldap          Disable LDAP support],
-    MOZ_LDAP_XPCOM=,
-    MOZ_LDAP_XPCOM=1)
 
 dnl ========================================================
 dnl = Trademarked Branding 
@@ -5760,14 +5755,6 @@ AC_SUBST(JS_SHARED_LIBRARY)
 
 XPCOM_LIBS="$LIBXUL_LIBS"
 
-MOZ_ARG_ENABLE_BOOL(incomplete-external-linkage,
-[  --enable-incomplete-external-linkage Changes some comm-central code to be built with external linkage. Developer only option, incomplete broken builds will result - There are already existing bugs for this. ],
-    MOZ_INCOMPLETE_EXTERNAL_LINKAGE=1,
-    MOZ_INCOMPLETE_EXTERNAL_LINKAGE= )
-
-export MOZ_INCOMPLETE_EXTERNAL_LINKAGE
-AC_SUBST(MOZ_INCOMPLETE_EXTERNAL_LINKAGE)
-
 dnl ========================================================
 dnl =
 dnl = Standalone module options
@@ -5913,22 +5900,6 @@ if test "$BUILD_CTYPES"; then
     AC_DEFINE(BUILD_CTYPES)
 fi
 
-dnl Only build Mork if it's required
-AC_SUBST(MOZ_MORK)
-if test "$MOZ_MORK"; then
-  AC_DEFINE(MOZ_MORK)
-  MORK_COMPONENT=mork
-  export MORK_COMPONENT
-  MORK_MODULE="MODULE(nsMorkModule)"
-  export MORK_MODULE
-fi
-
-dnl Build the lightweight Mork reader if required
-AC_SUBST(MOZ_MORKREADER)
-if test "$MOZ_MORKREADER"; then
-  AC_DEFINE(MOZ_MORKREADER)
-fi
-
 AC_SUBST(MOZ_PLACES)
 if test "$MOZ_PLACES"; then
   AC_DEFINE(MOZ_PLACES)
@@ -5968,37 +5939,6 @@ dnl ========================================================
 if test "$MOZ_DEBUG" -o "$NS_TRACE_MALLOC"; then
     MOZ_COMPONENTS_VERSION_SCRIPT_LDFLAGS=
 fi
-
-if test "$MOZ_LDAP_XPCOM"; then
-    MOZ_ARG_ENABLE_BOOL(incomplete-toolkit-ldap-autocomplete,
-    [  --enable-incomplete-toolkit-ldap-autocomplete Builds a JavaScript component that implements an LDAP autocomplete component using the toolkit interfaces rather than the C++ component using the obsolete XPFE interfaces. ],
-        MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE=1,
-        MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE= )
-
-    LDAP_CFLAGS='-I${DIST}/public/ldap'
-    if test "$OS_ARCH" = "WINNT"; then
-        if test -n "$GNU_CC"; then
-            LDAP_LIBS='-L$(DIST)/lib -lnsldap32v60 -lnsldappr32v60 -lnsldif32v60'
-        else
-            LDAP_LIBS='$(DIST)/lib/$(LIB_PREFIX)nsldap32v60.${IMPORT_LIB_SUFFIX} $(DIST)/lib/$(LIB_PREFIX)nsldappr32v60.${IMPORT_LIB_SUFFIX} $(DIST)/lib/$(LIB_PREFIX)nsldif32v60.${IMPORT_LIB_SUFFIX}'
-        fi
-    elif test "$OS_ARCH" = "OS2"; then
-            LDAP_LIBS='$(DIST)/lib/$(LIB_PREFIX)ldap60.${IMPORT_LIB_SUFFIX} $(DIST)/lib/$(LIB_PREFIX)prldap60.${IMPORT_LIB_SUFFIX} $(DIST)/lib/$(LIB_PREFIX)ldif60.${IMPORT_LIB_SUFFIX}'
-    else
-        LDAP_LIBS='-L${DIST}/bin -L${DIST}/lib -lldap60 -lprldap60 -lldif60'
-    fi
-
-    dnl export LDAP_LIBS so that confvars.sh can pick it up, so when we get to
-    dnl linking libxul in the mozilla-central build system, we'll have the LDAP
-    dnl LIBS
-    export LDAP_LIBS
-    LDAP_COMPONENT=mozldap
-    export LDAP_COMPONENT
-    LDAP_MODULE="MODULE(nsLDAPProtocolModule)"
-    export LDAP_MODULE
-fi
-AC_SUBST(MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE)
-
 
 dnl ========================================================
 dnl =
@@ -6046,9 +5986,6 @@ AC_SUBST(MOZ_ENABLE_PROFILER_SPS)
 AC_SUBST(MOZ_JPROF)
 AC_SUBST(MOZ_SHARK)
 AC_SUBST(MOZ_PROFILING)
-AC_SUBST(MOZ_LDAP_XPCOM)
-AC_SUBST(LDAP_CFLAGS)
-AC_SUBST(LDAP_LIBS)
 AC_SUBST(LIBICONV)
 AC_SUBST(MOZ_PLACES_BOOKMARKS)
 AC_SUBST(MOZ_STORAGE)
@@ -6312,13 +6249,10 @@ dnl ========================================================
 if test "$OS_ARCH" = "Darwin"; then
   AC_DEFINE(XP_UNIX)
   AC_DEFINE(UNIX_ASYNC_DNS)
-  MOZ_MOVEMAIL=1
 elif test "$OS_ARCH" != "WINNT" -a "$OS_ARCH" != "OS2"; then
   AC_DEFINE(XP_UNIX)
   AC_DEFINE(UNIX_ASYNC_DNS)
-  MOZ_MOVEMAIL=1
 fi
-AC_SUBST(MOZ_MOVEMAIL)
 
 if test "$ACCESSIBILITY" -a "$MOZ_ENABLE_GTK2" ; then
     AC_DEFINE(MOZ_ACCESSIBILITY_ATK)
@@ -6448,33 +6382,3 @@ fi
 AC_OUTPUT_SUBDIRS(mozilla)
 ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 MOZ_BUILD_APP="$MOZ_BUILD_APP_CACHED"
-
-# if we're building the LDAP XPCOM component, we need to build 
-# the c-sdk first.  
-if test -n "$COMPILE_ENVIRONMENT" -a -n "$MOZ_LDAP_XPCOM"; then
-    # these subdirs may not yet have been created in the build tree.
-    # don't use the "-p" switch to mkdir, since not all platforms have it
-    if test ! -d "ldap/sdks/c-sdk/ldap"; then
-        if test ! -d "ldap/sdks/c-sdk"; then
-            if test ! -d "ldap/sdks"; then
-                if test ! -d "ldap"; then
-                    mkdir "ldap"
-                fi
-                mkdir "ldap/sdks"
-            fi
-            mkdir "ldap/sdks/c-sdk"
-        fi
-        mkdir "ldap/sdks/c-sdk/ldap"
-    fi
-
-    ac_configure_args="$_SUBDIR_CONFIG_ARGS --prefix=$MOZ_BUILD_ROOT/mozilla/dist --with-dist-prefix=$MOZ_BUILD_ROOT/mozilla/dist --without-nss --with-mozilla"
-    if test -n "$HAVE_64BIT_OS"; then
-        dnl A 64-bit OS was (auto-)detected: (explicitly) enable 64-bit support.
-        ac_configure_args="$ac_configure_args --enable-64bit"
-    fi
-    if test -n "$LIBXUL_SDK"; then
-        ac_configure_args="$ac_configure_args --with-nspr=$LIBXUL_DIST"
-    fi
-    AC_OUTPUT_SUBDIRS(ldap/sdks/c-sdk)
-    ac_configure_args="$_SUBDIR_CONFIG_ARGS"
-fi # COMPILE_ENVIRONMENT && MOZ_LDAP_XPCOM

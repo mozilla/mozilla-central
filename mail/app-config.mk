@@ -5,6 +5,8 @@
 MOZ_THUNDERBIRD = 1
 DEFINES += -DMOZ_THUNDERBIRD=1
 
+ifdef COMM_BUILD
 ifdef MOZ_CALENDAR
 include $(topsrcdir)/calendar/lightning/app-config.mk
+endif
 endif
