@@ -697,8 +697,14 @@
 <!ENTITY contextReplyList.accesskey "L">
 <!ENTITY contextForward.label "Forward">
 <!ENTITY contextForward.accesskey "F">
-<!ENTITY contextForwardAsAttachment.label "Forward as Attachments">
-<!ENTITY contextForwardAsAttachment.accesskey "o">
+<!ENTITY contextForwardAsMenu.label "Forward As">
+<!ENTITY contextForwardAsMenu.accesskey "o">
+<!ENTITY contextForwardAsInline.label "Inline">
+<!ENTITY contextForwardAsInline.accesskey "I">
+<!ENTITY contextForwardAsAttachmentItem.label "Attachment">
+<!ENTITY contextForwardAsAttachmentItem.accesskey "A">
+<!ENTITY contextMultiForwardAsAttachment.label "Forward as Attachments">
+<!ENTITY contextMultiForwardAsAttachment.accesskey "o">
 <!ENTITY contextMoveMsgMenu.label "Move To">
 <!ENTITY contextMoveMsgMenu.accesskey "M">
 <!ENTITY contextMoveCopyMsgRecentMenu.label "Recent">

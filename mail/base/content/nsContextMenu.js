@@ -249,7 +249,8 @@ nsContextMenu.prototype = {
         "mailContext-archive", "mailContext-replySender",
         "mailContext-editAsNew", "mailContext-replyNewsgroup",
         "mailContext-replyAll", "mailContext-replyList",
-        "mailContext-forward", "mailContext-forwardAsAttachment",
+        "mailContext-forward", "mailContext-forwardAsMenu",
+        "mailContext-multiForwardAsAttachment",
         "mailContext-copyMessageUrl", "mailContext-moveMenu",
         "mailContext-copyMenu", "mailContext-moveToFolderAgain",
         "mailContext-tags", "mailContext-mark", "mailContext-saveAs",
@@ -280,8 +281,9 @@ nsContextMenu.prototype = {
     this.setSingleSelection("mailContext-replyAll");
     this.setSingleSelection("mailContext-replyList");
     this.setSingleSelection("mailContext-forward");
+    this.setSingleSelection("mailContext-forwardAsMenu");
 
-    this.showItem("mailContext-forwardAsAttachment",
+    this.showItem("mailContext-multiForwardAsAttachment",
                   this.numSelectedMessages > 1 && this.inThreadPane &&
                   !this.hideMailItems);
 

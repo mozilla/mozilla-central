@@ -683,9 +683,23 @@
               label="&contextForward.label;"
               accesskey="&contextForward.accesskey;"
               oncommand="MsgForwardMessage(event);"/>
-    <menuitem id="mailContext-forwardAsAttachment"
-              label="&contextForwardAsAttachment.label;"
-              accesskey="&contextForwardAsAttachment.accesskey;"
+    <menu id="mailContext-forwardAsMenu"
+          label="&contextForwardAsMenu.label;"
+          accesskey="&contextForwardAsMenu.accesskey;">
+      <menupopup id="mailContext-forwardAsPopup">
+        <menuitem id="mailContext-forwardAsInline"
+                  label="&contextForwardAsInline.label;"
+                  accesskey="&contextForwardAsInline.accesskey;"
+                  command="cmd_forwardInline"/>
+        <menuitem id="mailContext-forwardAsAttachment"
+                  label="&contextForwardAsAttachmentItem.label;"
+                  accesskey="&contextForwardAsAttachmentItem.accesskey;"
+                  command="cmd_forwardAttachment"/>
+      </menupopup>
+    </menu>
+    <menuitem id="mailContext-multiForwardAsAttachment"
+              label="&contextMultiForwardAsAttachment.label;"
+              accesskey="&contextMultiForwardAsAttachment.accesskey;"
               oncommand="MsgForwardAsAttachment(event);"/>
     <menuitem id="mailContext-editAsNew"
               label="&contextEditAsNew.label;"
