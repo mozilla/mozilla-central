@@ -107,25 +107,21 @@ function InitEditMessagesMenu()
   document.commandDispatcher.updateCommands('create-menu-edit');
 
   // initialize the favorite Folder checkbox in the edit menu
-  var favoriteFolderMenu = document.getElementById('menu_favoriteFolder');
-  if (!favoriteFolderMenu.disabled)
-  {
-    var folders = gFolderTreeView.getSelectedFolders();
-    if (folders.length == 1 && !folders[0].isServer)
-    {
+  let favoriteFolderMenu = document.getElementById('menu_favoriteFolder');
+  if (!favoriteFolderMenu.hasAttribute("disabled")) {
+    let folders = gFolderTreeView.getSelectedFolders();
+    if (folders.length == 1 && !folders[0].isServer) {
       const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
       // Adjust the checked state on the menu item.
       favoriteFolderMenu.setAttribute("checked", folders[0].getFlag(kFavoriteFlag));
       favoriteFolderMenu.hidden = false;
-    }
-    else
-    {
+    } else {
       favoriteFolderMenu.hidden = true;
     }
   }
 }
 
-function InitAppEditMessagesMenu()
+function InitAppFolderViewsMenu()
 {
   goSetMenuValue('cmd_delete', 'valueDefault');
   goSetAccessKey('cmd_delete', 'valueDefaultAccessKey');
@@ -133,7 +129,7 @@ function InitAppEditMessagesMenu()
 
   // initialize the favorite Folder checkbox in the appmenu menu
   let favoriteAppFolderMenu = document.getElementById('appmenu_favoriteFolder');
-  if (!favoriteAppFolderMenu.disabled) {
+  if (!favoriteAppFolderMenu.hasAttribute("disabled")) {
     let folders = gFolderTreeView.getSelectedFolders();
     if (folders.length == 1 && !folders[0].isServer) {
       const kFavoriteFlag = Components.interfaces.nsMsgFolderFlags.Favorite;
@@ -255,11 +251,9 @@ function InitViewLayoutStyleMenu(event)
  */
 function InitViewFolderViewsMenu(event)
 {
-  for (let i = 0; i < event.target.childNodes.length; i++) {
-    if (event.target.childNodes[i].value == gFolderTreeView.mode) {
-      event.target.childNodes[i].setAttribute("checked", true);
-      break;
-    }
+  let selected = event.target.querySelector("[value=" + gFolderTreeView.mode + "]");
+  if (selected) {
+    selected.setAttribute("checked", "true");
   }
 }
 
@@ -3546,7 +3540,7 @@ function initAppMenuPopup(aMenuPopup, aEvent)
   InitGoMessagesMenu();
   menu_new_init();
   CommandUpdate_UndoRedo();
-  InitAppEditMessagesMenu();
+  InitAppFolderViewsMenu();
   document.commandDispatcher.updateCommands('create-menu-tasks');
 
   // If the onpopupshowing event's target is on one of the splitmenu

@@ -1121,7 +1121,8 @@
         <menu id="appmenu_FolderViews"
               label="&folderView.label;">
           <menupopup id="appmenu_FolderViewsPopup"
-                     onpopupshowing="InitViewFolderViewsMenu(event)">
+                     onpopupshowing="InitAppFolderViewsMenu();
+                                     InitViewFolderViewsMenu(event);">
             <menuitem id="appmenu_allFolders"
                       value="all"
                       label="&allFolders.label;"

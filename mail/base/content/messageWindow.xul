@@ -89,7 +89,7 @@
     <key keycode="VK_ESCAPE" oncommand="window.close();"/>
   </keyset>
 
-  <popupset>
+  <popupset id="mainPopupSet">
     <panel id="editContactPanel"/>
     <menupopup id="emailAddressPopup" class="emailAddressPopup" position="after_start"
                onpopupshowing="setupEmailAddressPopup(findEmailNodeFromPopupNode(document.popupNode, 'emailAddressPopup')); goUpdateCommand('cmd_createFilterFromPopup')"

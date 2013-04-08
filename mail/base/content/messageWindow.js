@@ -570,6 +570,10 @@ function HideMenus()
   if (viewLayoutMenu)
     viewLayoutMenu.setAttribute("hidden", "true");
 
+  let paneViewSeparator = document.getElementById("appmenu_paneViewSeparator");
+  if (paneViewSeparator)
+    paneViewSeparator.setAttribute("hidden", "true");
+
   var viewFolderMenu = document.getElementById("menu_FolderViews");
   if (viewFolderMenu)
     viewFolderMenu.setAttribute("hidden", "true");
@@ -614,7 +618,7 @@ function HideMenus()
   if (viewSortMenuSeparator)
     viewSortMenuSeparator.setAttribute("hidden", "true");
 
-  viewSortMenuSeparator = document.getElementById('appmenu_viewSortMenuSeparator');
+  viewSortMenuSeparator = document.getElementById('appmenu_viewAfterThreadsSeparator');
   if (viewSortMenuSeparator)
     viewSortMenuSeparator.setAttribute("hidden", "true");
 
@@ -653,13 +657,13 @@ function HideMenus()
   var favoriteFolder = document.getElementById('menu_favoriteFolder');
   if (favoriteFolder)
   {
-    favoriteFolder.disabled = true;
+    favoriteFolder.setAttribute("disabled", "true");
     favoriteFolder.setAttribute("hidden", "true");
   }
 
   favoriteFolder = document.getElementById('appmenu_favoriteFolder');
   if (favoriteFolder) {
-    favoriteFolder.disabled = true;
+    favoriteFolder.setAttribute("disabled", "true");
     favoriteFolder.setAttribute("hidden", "true");
   }
 
@@ -675,6 +679,14 @@ function HideMenus()
   if (trashSeparator)
     trashSeparator.setAttribute("hidden", "true");
 
+  let fileMenuAfterRenameSeparator = document.getElementById('appmenu_fileMenuAfterRenameSeparator');
+  if (fileMenuAfterRenameSeparator)
+    fileMenuAfterRenameSeparator.setAttribute("hidden", "true");
+
+  let fileMenuAfterCompactSeparator = document.getElementById('appmenu_fileMenuAfterCompactSeparator');
+  if (fileMenuAfterCompactSeparator)
+    fileMenuAfterCompactSeparator.setAttribute("hidden", "true");
+
   var goStartPageSeparator = document.getElementById('goNextSeparator');
   if (goStartPageSeparator)
     goStartPageSeparator.hidden = true;
@@ -683,6 +695,14 @@ function HideMenus()
   if (goStartPageSeparator)
     goStartPageSeparator.hidden = true;
 
+  let goRecentlyClosedTabsSeparator = document.getElementById('goRecentlyClosedTabsSeparator');
+  if (goRecentlyClosedTabsSeparator)
+    goRecentlyClosedTabsSeparator.setAttribute("hidden", "true");
+
+  goRecentlyClosedTabsSeparator = document.getElementById('appmenu_goRecentlyClosedTabsSeparator');
+  if (goRecentlyClosedTabsSeparator)
+    goRecentlyClosedTabsSeparator.setAttribute("hidden", "true");
+
   var goStartPage = document.getElementById('goStartPage');
   if (goStartPage)
    goStartPage.hidden = true;
@@ -690,6 +710,10 @@ function HideMenus()
   goStartPage = document.getElementById('appmenu_goStartPage');
   if (goStartPage)
    goStartPage.hidden = true;
+
+  let quickFilterBar = document.getElementById('appmenu_quickFilterBar');
+  if (quickFilterBar)
+   quickFilterBar.hidden = true;
 
   var menuFileClose = document.getElementById('menu_close');
   var menuFileQuit = document.getElementById('menu_FileQuitItem');
