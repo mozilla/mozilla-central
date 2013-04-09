@@ -5,6 +5,7 @@
 
 #include "nsAbLDAPListenerBase.h"
 #include "nsIWindowWatcher.h"
+#include "nsIWindowMediator.h"
 #include "nsIDOMWindow.h"
 #include "nsIAuthPrompt.h"
 #include "nsIStringBundle.h"
@@ -145,6 +146,32 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
       return rv;
     }
 
+    // get the window mediator service, so we can get an auth prompter
+    //
+    nsCOMPtr<nsIWindowMediator> windowMediator =
+      do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
+               " couldn't get window mediator service.");
+      InitFailed();
+      return rv;
+    }
+
+    // get the addressbook window, as it will be used to parent the auth
+    // prompter dialog
+    //
+    nsCOMPtr<nsIDOMWindow> window;
+    rv = windowMediator->GetMostRecentWindow(nullptr,
+                                               getter_AddRefs(window));
+    if (NS_FAILED(rv))
+    {
+      NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
+               " error getting most recent window");
+      InitFailed();
+      return rv;
+    }
+
     // get the window watcher service, so we can get an auth prompter
     //
     nsCOMPtr<nsIWindowWatcher> windowWatcherSvc = 
@@ -157,25 +184,10 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
       return rv;
     }
 
-    // get the addressbook window, as it will be used to parent the auth
-    // prompter dialog
-    //
-    nsCOMPtr<nsIDOMWindow> abDOMWindow;
-    rv = windowWatcherSvc->GetWindowByName(NS_LITERAL_STRING("addressbookWindow").get(),
-                                           nullptr,
-                                           getter_AddRefs(abDOMWindow));
-    if (NS_FAILED(rv))
-    {
-      NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
-               " error getting addressbook Window");
-      InitFailed();
-      return rv;
-    }
-
     // get the auth prompter itself
     //
     nsCOMPtr<nsIAuthPrompt> authPrompter;
-    rv = windowWatcherSvc->GetNewAuthPrompter(abDOMWindow,
+    rv = windowWatcherSvc->GetNewAuthPrompter(window,
                                               getter_AddRefs(authPrompter));
     if (NS_FAILED(rv))
     {
