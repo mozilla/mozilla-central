@@ -18,12 +18,17 @@ const kToASCII    = "to@foo.invalid";
 const kToValid    = "to@v\u00E4lid.foo.invalid";
 const kToValidACE = "to@xn--vlid-loa.foo.invalid";
 const kToInvalid  = "b\u00F8rken.to@invalid.foo.invalid";
+const kToInvalidWithoutDomain = "b\u00F8rken.to";
 const NS_ERROR_BUT_DONT_SHOW_ALERT = 0x805530ef;
 
 
 // nsIPrompt
 function alert(aDialogText, aText)
 {
+  // ignore without domain situation (this is crash test)
+  if (test == kToInvalidWithoutDomain)
+    return;
+
   // we should only get here for the kToInvalid test case
   do_check_eq(test, kToInvalid);
   do_check_eq(aText, expectedAlertMessage);
@@ -199,4 +204,9 @@ function run_test()
   // The new code will present an informational message box and deny sending.
   test = kToInvalid;
   DoSendTest(kToInvalid, kToInvalid, NS_ERROR_BUT_DONT_SHOW_ALERT);
+
+  // Test 4:
+  // Bug 856506. invalid char without '@' casues crash.
+  test = kToInvalidWithoutDomain;
+  DoSendTest(kToInvalidWithoutDomain, kToInvalidWithoutDomain, NS_ERROR_BUT_DONT_SHOW_ALERT);
 }

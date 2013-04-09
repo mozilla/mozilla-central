@@ -1773,7 +1773,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
             // (which charset would it be anyway?), hence we error out in that
             // case as well.
             nsresult rv = NS_ERROR_FAILURE; // anything but NS_OK
-            if (firstEvil > lastAt)
+            if (lastAt && firstEvil > lastAt)
             {
               // illegal char in the domain part, hence use ACE
               nsAutoCString domain;
