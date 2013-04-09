@@ -106,6 +106,10 @@ ShowUnInstDetails nevershow
 BrandingText " "
 
 Function .onInit
+  ; Remove the current exe directory from the search order.
+  ; This only effects LoadLibrary calls and not implicitly loaded DLLs.
+  System::Call 'kernel32::SetDllDirectoryW(w "")'
+
   SetSilent silent
 !ifdef HAVE_64BIT_OS
   ; We plan to eventually enable 64bit native builds to use the maintenance
@@ -123,6 +127,10 @@ Function .onInit
 FunctionEnd
 
 Function un.onInit
+  ; Remove the current exe directory from the search order.
+  ; This only effects LoadLibrary calls and not implicitly loaded DLLs.
+  System::Call 'kernel32::SetDllDirectoryW(w "")'
+
   StrCpy $BrandFullNameDA "${MaintFullName}"
   StrCpy $BrandFullName "${MaintFullName}"
 FunctionEnd
