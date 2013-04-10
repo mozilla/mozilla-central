@@ -131,7 +131,8 @@
                                   <treerow>
                                     <treecell label="?LeafName"
                                               properties="ServerType-?ServerType Subscribable-?Subscribable"/>
-                                    <treecell properties="Subscribed-?Subscribed Subscribable-?Subscribable"/>
+                                    <treecell value="?Subscribed"
+                                              properties="Subscribed-?Subscribed Subscribable-?Subscribable"/>
                                     <!-- commenting out until bug 38906 is fixed
                                     <treecell label="?TotalMessages"/> -->
                                   </treerow>
