@@ -31,3 +31,15 @@ function waitForCondition(condition, nextTest, errorMsg) {
   }, 100);
   var moveOn = function() { clearInterval(interval); nextTest(); };
 }
+
+function whenNewWindowLoaded(aOptions, aCallback) {
+  var { private } = aOptions;
+  var features = private ? "private,chrome,all,dialog=no" :
+                           "non-private,chrome,all,dialog=no";
+  var win = window.openDialog(getBrowserURL(), "_blank", features,
+                              "about:blank");
+  win.addEventListener("load", function onLoad() {
+    win.removeEventListener("load", onLoad, false);
+    aCallback(win);
+  }, false);
+}

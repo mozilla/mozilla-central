@@ -367,8 +367,24 @@ WebContentConverterRegistrar.prototype = {
    * See nsIWebContentHandlerRegistrar
    */
   registerProtocolHandler: function registerProtocolHandler(aProtocol, aURIString,
-                                                             aTitle, aContentWindow) {
+                                                            aTitle, aContentWindow) {
     LOG("registerProtocolHandler(" + aProtocol + "," + aURIString + "," + aTitle + ")");
+
+    var win = aContentWindow;
+    var isPB = win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                  .getInterface(Components.interfaces.nsIWebNavigation)
+                  .QueryInterface(Components.interfaces.nsIDocShell)
+                  .QueryInterface(Components.interfaces.nsILoadContext)
+                  .usePrivateBrowsing;
+    if (isPB) {
+      // Inside the private browsing mode, we don't want to alert the user to save
+      // a protocol handler.  We log it to the error console so that web developers
+      // would have some way to tell what's going wrong.
+      Components.classes["@mozilla.org/consoleservice;1"]
+                .getService(Components.interfaces.nsIConsoleService)
+                .logStringMessage("Web page denied access to register a protocol handler inside private browsing mode");
+      return;
+    }
 
     // First, check to make sure this isn't already handled internally (we don't
     // want to let them take over, say "chrome").
@@ -810,8 +826,8 @@ WebContentConverterRegistrar.prototype = {
 
   classID: WCCR_CLASSID,
   classInfo: XPCOMUtils.generateCI({
-	  classID: WCCR_CLASSID,
-	  contractID: WCCR_CONTRACTID,
+      classID: WCCR_CLASSID,
+      contractID: WCCR_CONTRACTID,
       interfaces: [Components.interfaces.nsIWebContentConverterService,
                    Components.interfaces.nsIWebContentHandlerRegistrar,
                    Components.interfaces.nsIObserver,
