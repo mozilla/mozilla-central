@@ -11,6 +11,10 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#messengerWindow:-moz-lwtheme {
+  padding-top: 22px;
+}
+
 description.error {
   color: #FF0000;
 }
