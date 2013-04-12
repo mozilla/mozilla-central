@@ -1272,6 +1272,7 @@
               callback: (function () {
                 if (checkbox.checked)
                   this.setPermissionForPlugins(nsIPermissionManager.DENY_ACTION);
+                this.removeClickToPlayOverlays();
               }).bind(this)
             }];
             var box = this.appendNotification(messageString,
@@ -1282,6 +1283,28 @@
             // Force a style flush, so that we ensure the binding is attached.
             box.clientTop;
             box.appendChild(checkbox);
+          ]]>
+        </body>
+      </method>
+
+      <method name="removeClickToPlayOverlays">
+        <body>
+          <![CDATA[
+            var plugins = this.contentWindowUtils.plugins;
+            for (let plugin of plugins)
+              this.hideClickToPlayOverlay(plugin);
+          ]]>
+        </body>
+      </method>
+
+      <method name="hideClickToPlayOverlay">
+        <parameter name="pluginElement"/>
+        <body>
+          <![CDATA[
+            var doc = pluginElement.ownerDocument;
+            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+            if (overlay) // no overlay if plugin has been activated
+              overlay.style.visibility = "hidden";
           ]]>
         </body>
       </method>
@@ -2416,28 +2439,6 @@
                                     messageString, "plugins-notification-icon",
                                     mainAction, secondaryActions, options);
            ]]>
-        </body>
-      </method>
-
-      <method name="removeClickToPlayOverlays">
-        <body>
-          <![CDATA[
-            var plugins = this.contentWindowUtils.plugins;
-            for (let plugin of plugins)
-              this.hideClickToPlayOverlay(plugin);
-          ]]>
-        </body>
-      </method>
-
-      <method name="hideClickToPlayOverlay">
-        <parameter name="pluginElement"/>
-        <body>
-          <![CDATA[
-            var doc = pluginElement.ownerDocument;
-            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
-            if (overlay) // no overlay if plugin has been activated
-              overlay.style.visibility = "hidden";
-          ]]>
         </body>
       </method>
 
