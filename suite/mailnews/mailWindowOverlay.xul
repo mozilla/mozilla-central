@@ -495,7 +495,7 @@
     <menuitem id="context-openlink"
               label="&openLinkCmd.label;"
               accesskey="&openLinkCmd.accesskey;"
-              oncommand="gContextMenu.openLink();"/>
+              oncommand="gContextMenu.openLinkInWindow();"/>
     <menuseparator id="mailContext-sep-link"/>
     <menuitem id="context-selectall"/>
     <menuitem id="context-copy"/>
