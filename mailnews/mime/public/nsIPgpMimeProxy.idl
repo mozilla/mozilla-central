@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsIStreamListener.idl"
+#include "nsIURI.idl"
 
 %{C++
 typedef int (*MimeDecodeCallbackFun)(const char *buf, int32_t buf_size, void *output_closure);
@@ -11,9 +12,9 @@ typedef int (*MimeDecodeCallbackFun)(const char *buf, int32_t buf_size, void *ou
 #define NS_PGPMIMEPROXY_CONTRACTID "@mozilla.org/mime/pgp-mime-decrypt;1"
 
 #define NS_PGPMIMEPROXY_CID                     \
-{ /* c200d239-6dad-434f-a614-1b58a58c61ec */      \
-   0xc200d239, 0x6dad, 0x434f,                    \
-{0xa6, 0x14, 0x1b, 0x58, 0xa5, 0x8c, 0x61, 0xec } }
+{ /* da0a2b4c-cef3-4631-9371-a23f15a1aba6 */      \
+   0xda0a2b4c, 0xcef3, 0x4631,                    \
+{0x93, 0x71, 0xa2, 0x3f, 0x15, 0xa1, 0xab, 0xa6 } }
 %}
 
 native MimeDecodeCallbackFun(MimeDecodeCallbackFun);
@@ -22,14 +23,15 @@ native MimeDecodeCallbackFun(MimeDecodeCallbackFun);
  * nsIPgpMimeProxy is a proxy for a (JS-)addon for OpenPGP/MIME decryption
  */
 
-[scriptable, uuid(c200d239-6dad-434f-a614-1b58a58c61ec)]
+[scriptable, uuid(da0a2b4c-cef3-4631-9371-a23f15a1aba6)]
 interface nsIPgpMimeProxy : nsIStreamListener
 {
   /**
    * set the decoder callback into mimelib
    */
   [noscript] void setMimeCallback(in MimeDecodeCallbackFun outputFun,
-                                  in voidPtr outputClosure);
+                                  in voidPtr outputClosure,
+                                  in nsIURI myUri);
 
   /**
    * init function

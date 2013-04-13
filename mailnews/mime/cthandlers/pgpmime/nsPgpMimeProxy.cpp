@@ -12,6 +12,7 @@
 #include "nsIStringBundle.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsIURI.h"
 #include "mimexpcom.h"
 #include "nsMsgUtils.h"
 
@@ -161,7 +162,14 @@ MimePgpe_init(MimeObject *obj,
   if (NS_FAILED(rv))
     return nullptr;
 
-  if (NS_FAILED(data->mimeDecrypt->SetMimeCallback(output_fn, output_closure)))
+  mime_stream_data *msd = (mime_stream_data *) (data->self->options->stream_closure);
+  nsIChannel *channel = msd->channel;
+
+  nsCOMPtr<nsIURI> uri;
+  if (channel)
+    channel->GetURI(getter_AddRefs(uri));
+
+  if (NS_FAILED(data->mimeDecrypt->SetMimeCallback(output_fn, output_closure, uri)))
     return nullptr;
 
   return data;
@@ -245,7 +253,8 @@ nsPgpMimeProxy::Finalize()
 
 NS_IMETHODIMP
 nsPgpMimeProxy::SetMimeCallback(MimeDecodeCallbackFun outputFun,
-                        void* outputClosure)
+                        void* outputClosure,
+                        nsIURI* myUri)
 {
   if (!outputFun || !outputClosure)
     return NS_ERROR_NULL_POINTER;
@@ -258,7 +267,7 @@ nsPgpMimeProxy::SetMimeCallback(MimeDecodeCallbackFun outputFun,
   mByteBuf.Truncate();
 
   if (mDecryptor)
-    return mDecryptor->OnStartRequest((nsIRequest*) this, nullptr);
+    return mDecryptor->OnStartRequest((nsIRequest*) this, myUri);
 
   return NS_OK;
 }
