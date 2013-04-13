@@ -471,8 +471,50 @@
       <pluginItem  blockID="p113">
                   <match name="filename" exp="npuplaypc\.dll" />                      <versionRange  minVersion="0" maxVersion="1.0.0.0" severity="1"></versionRange>
                   </pluginItem>
+      <pluginItem  blockID="p119">
+      <match name="name" exp="Java\(TM\) Plug-in 1\.(6\.0_(\d|[0-2]\d?|3[0-2])|7\.0(_0?([1-4]))?)([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p123">
+                  <match name="filename" exp="JavaPlugin2_NPAPI\.plugin" />                                    <versionRange  minVersion="0" maxVersion="14.2.0" severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p125">
+      <match name="name" exp="Java\(TM\) Platform SE ((6( U(\d|([0-2]\d)|3[0-2]))?)|(7(\sU[0-4])?))(\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
       <pluginItem  blockID="p129">
                   <match name="filename" exp="Silverlight\.plugin" />                      <versionRange  minVersion="0" maxVersion="5.0.99999" severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p132">
+      <match name="name" exp="Java\(TM\) Plug-in 1\.7\.0(_0?([5-6]))?([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p134">
+      <match name="name" exp="Java\(TM\) Platform SE 7 U[5-6](\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p138">
+                  <match name="filename" exp="JavaAppletPlugin\.plugin" />                                    <versionRange  minVersion="Java 7 Update 01" maxVersion="Java 7 Update 06" severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
                   </pluginItem>
       <pluginItem  blockID="p152">
                   <match name="filename" exp="npctrl\.dll" />                      <versionRange  minVersion="0" maxVersion="4.1.10328.0" severity="0" vulnerabilitystatus="1"></versionRange>
@@ -539,6 +581,27 @@
       <match name="name" exp="Java\(TM\) Plug-in 1\.6\.0_3[1-8]([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                                    <versionRange  severity="0" vulnerabilitystatus="1">
                                 <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
                               <versionRange  minVersion="2.14" maxVersion="*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p210">
+      <match name="name" exp="Java\(TM\) Plug-in 1\.7\.0(_0?7)?([^\d\._]|$)" />            <match name="filename" exp="libnpjp2\.so" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p212">
+                  <match name="filename" exp="JavaAppletPlugin\.plugin" />                                    <versionRange  minVersion="Java 7 Update 07" maxVersion="Java 7 Update 07" severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
+                          </targetApplication>
+                  </versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p214">
+      <match name="name" exp="Java\(TM\) Platform SE 7 U7(\s[^\d\._U]|$)" />            <match name="filename" exp="npjp2\.dll" />                                    <versionRange  severity="1">
+                                <targetApplication  id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
+                              <versionRange  minVersion="0.1" maxVersion="2.14.*" />
                           </targetApplication>
                   </versionRange>
                   </pluginItem>
