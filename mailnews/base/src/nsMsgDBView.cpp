@@ -5443,6 +5443,53 @@ void nsMsgDBView::RemoveRows(nsMsgViewIndex viewIndex, int32_t numRows)
   m_levels.RemoveElementsAt(viewIndex, numRows);
 }
 
+NS_IMETHODIMP nsMsgDBView::InsertTreeRows(nsMsgViewIndex aIndex,
+                                          uint32_t aNumRows,
+                                          nsMsgKey aKey,
+                                          nsMsgViewFlagsTypeValue aFlags,
+                                          uint32_t aLevel,
+                                          nsIMsgFolder *aFolder)
+{
+  if (GetSize() < aIndex)
+    return NS_ERROR_UNEXPECTED;
+
+  nsCOMArray<nsIMsgFolder> *folders = GetFolders();
+  if (folders)
+  {
+    // In a search/xfvf view only, a folder is required.
+    NS_ENSURE_ARG_POINTER(aFolder);
+    for (int32_t i = 0; i < aNumRows; i++)
+      // Insert into m_folders.
+      if (!folders->InsertObjectAt(aFolder, aIndex + i))
+        return NS_ERROR_UNEXPECTED;
+  }
+
+  if (m_keys.InsertElementsAt(aIndex, aNumRows, aKey) &&
+      m_flags.InsertElementsAt(aIndex, aNumRows, aFlags) &&
+      m_levels.InsertElementsAt(aIndex, aNumRows, aLevel))
+    return NS_OK;
+
+  return NS_ERROR_UNEXPECTED;
+}
+
+NS_IMETHODIMP nsMsgDBView::RemoveTreeRows(nsMsgViewIndex aIndex,
+                                          uint32_t aNumRows)
+{
+  // Prevent a crash if attempting to remove rows which don't exist.
+  if (GetSize() < aIndex + aNumRows)
+    return NS_ERROR_UNEXPECTED;
+
+  nsMsgDBView::RemoveRows(aIndex, aNumRows);
+
+  nsCOMArray<nsIMsgFolder> *folders = GetFolders();
+  if (folders)
+    // In a search/xfvf view only, remove from m_folders.
+    if (!folders->RemoveObjectsAt(aIndex, aNumRows))
+      return NS_ERROR_UNEXPECTED;
+
+  return NS_OK;
+}
+
 nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, uint32_t *pNumListed)
 {
   NS_ENSURE_ARG(threadHdr);
@@ -6020,9 +6067,9 @@ NS_IMETHODIMP nsMsgDBView::GetSuppressChangeNotifications(bool * aSuppressChange
   return NS_OK;
 }
 
-
-void nsMsgDBView::NoteChange(nsMsgViewIndex firstLineChanged, int32_t numChanged,
-                             nsMsgViewNotificationCodeValue changeType)
+NS_IMETHODIMP nsMsgDBView::NoteChange(nsMsgViewIndex firstLineChanged,
+                                      int32_t numChanged,
+                                      nsMsgViewNotificationCodeValue changeType)
 {
   if (mTree && !mSuppressChangeNotification)
   {
@@ -6043,6 +6090,7 @@ void nsMsgDBView::NoteChange(nsMsgViewIndex firstLineChanged, int32_t numChanged
       break;
     }
   }
+  return NS_OK;
 }
 
 void nsMsgDBView::NoteStartChange(nsMsgViewIndex firstlineChanged, int32_t numChanged,

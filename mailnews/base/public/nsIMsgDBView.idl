@@ -214,7 +214,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(cc1fb1d8-b033-478f-be73-982aff2248ef)]
+[scriptable, uuid(b22e6c7f-7fc6-41b2-9de4-31be6c1f7bf8)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -403,6 +403,40 @@ interface nsIMsgDBView : nsISupports
    * @return         the thread object at the requested view index
    */
   nsIMsgThread getThreadContainingIndex(in nsMsgViewIndex aIndex);
+
+  /**
+   * Insert rows into the view. The caller should use NoteChange() below to
+   * update the view.
+   *
+   * @param aIndex   view index for insertion start.
+   * @param aNumRows number of rows to insert.
+   * @param aKey     msgKey.
+   * @param aFlags   msgFlags.
+   * @param aLevel   treeview indent level.
+   * @param aFolder  nsIMsgFolder, required for search/xfvf views.
+   */
+  void insertTreeRows(in nsMsgViewIndex aIndex, in unsigned long aNumRows,
+                      in nsMsgKey aKey, in nsMsgViewFlagsTypeValue aFlags,
+                      in unsigned long aLevel, in nsIMsgFolder aFolder);
+
+  /**
+   * Remove rows from the view.  The caller should use NoteChange() below to
+   * update the view.
+   *
+   * @param aIndex   view index for removal start.
+   * @param aNumRows number of rows to remove.
+   */
+  void removeTreeRows(in nsMsgViewIndex aIndex, in unsigned long aNumRows);
+
+  /**
+   * Notify tree that rows have changed.
+   *
+   * @param aFirstLineChanged   first view index for changed rows.
+   * @param aNumRows            number of rows changed; < 0 means removed.
+   * @param aChangeType         changeType.
+   */
+  void NoteChange(in nsMsgViewIndex aFirstLineChanged, in long aNumRows,
+                  in nsMsgViewNotificationCodeValue aChangeType);
 
   /**
    * Return the view thread corresponding to aMsgHdr. If we're a cross-folder

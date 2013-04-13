@@ -480,6 +480,50 @@ function  test_number_of_messages() {
              gDBView.numMsgsInView + "\n");
 }
 
+function test_insert_remove_view_rows() {
+  // Test insertion/removal into m_keys.
+  let startCount = gTreeView.rowCount;
+  let index = 0;
+  let rows = 3;
+  let msgKey = rows * 1000;
+  let flags = 0;
+  let level = 0;
+  let folder = null;
+  let xfview = gDBView.viewType == ViewType.eShowSearch ||
+               gDBView.viewType == ViewType.eShowVirtualFolderResults;
+  if (xfview)
+    folder = gDBView.getFolderForViewIndex(index);
+
+  gDBView.insertTreeRows(index, rows, msgKey, flags, level, folder);
+  assert_view_row_count(startCount + rows);
+  let key = gDBView.getKeyAt(rows - 1);
+  if (key != msgKey)
+    view_throw("msgKey is " + key + " but should be " + msgKey + "\n");
+  gDBView.removeTreeRows(index, rows);
+  assert_view_row_count(startCount);
+
+  // These should fail.
+  try {
+    gDBView.insertTreeRows(startCount + 10, rows, msgKey, flags, level, folder);
+    view_throw("expected exception not caught; inserting at illegal index \n");
+  }
+  catch (ex) {}
+  try {
+    gDBView.insertTreeRows(index, rows, msgKey, flags, level, folder);
+    gDBView.removeTreeRows(index, gTreeView.rowCount + 10);
+    view_throw("expected exception not caught; removing illegal rows \n");
+  }
+  catch (ex) {
+    gDBView.removeTreeRows(index, rows);
+  }
+  if (xfview)
+    try {
+      gDBView.insertTreeRows(index, rows, msgKey, flags, level, null);
+      view_throw("expected exception not caught; folder required for xfvf view \n");
+    }
+    catch (ex) {}
+}
+
 function test_msg_added_to_search_view() {
   // if the view is a non-grouped search view, test adding a header to
   // the search results, and verify it gets put at top.
@@ -676,7 +720,8 @@ var view_types = [
 
 var tests_for_all_views = [
   test_sort_columns,
-  test_number_of_messages
+  test_number_of_messages,
+  test_insert_remove_view_rows
 ];
 
 var tests_for_specific_views = {

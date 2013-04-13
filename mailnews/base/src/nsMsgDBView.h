@@ -276,8 +276,6 @@ protected:
   uint32_t GetSize(void) {return(m_keys.Length());}
 
   // notification api's
-  void  NoteChange(nsMsgViewIndex firstlineChanged, int32_t numChanged,
-                    nsMsgViewNotificationCodeValue changeType);
   void  NoteStartChange(nsMsgViewIndex firstlineChanged, int32_t numChanged,
                         nsMsgViewNotificationCodeValue changeType);
   void  NoteEndChange(nsMsgViewIndex firstlineChanged, int32_t numChanged,
