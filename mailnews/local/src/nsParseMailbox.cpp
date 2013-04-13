@@ -1053,7 +1053,7 @@ nsresult nsParseMailMessageState::ParseHeaders ()
 
       ToLowerCase(headerStr);
       uint32_t customHeaderIndex = m_customDBHeaders.IndexOf(headerStr);
-      if (customHeaderIndex != nsTArray<nsCString>::NoIndex)
+      if (customHeaderIndex != m_customDBHeaders.NoIndex)
         header = & m_customDBHeaderValues[customHeaderIndex];
     }
 
@@ -1152,8 +1152,7 @@ SEARCH_NEWLINE:
         // Someone might want the received header saved.
         if (m_customDBHeaders.Length())
         {
-          uint32_t customHeaderIndex = m_customDBHeaders.IndexOf(NS_LITERAL_CSTRING("received"));
-          if (customHeaderIndex != nsTArray<nsCString>::NoIndex)
+          if (m_customDBHeaders.Contains(NS_LITERAL_CSTRING("received")))
           {
             if (!m_receivedValue.IsEmpty())
               m_receivedValue.Append(' ');
@@ -2595,7 +2594,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 
   if (movedMsgIsNew)
     destIFolder->SetHasNewMessages(true);
-  if (m_filterTargetFolders.IndexOf(destIFolder) == -1) // IndexOf() type?
+  if (!m_filterTargetFolders.Contains(destIFolder))
     m_filterTargetFolders.AppendObject(destIFolder);
 
   destIFolder->ReleaseSemaphore (myISupports);

@@ -523,7 +523,7 @@ nsresult FormatFileSize(uint64_t size, bool useKB, nsAString &formattedSize)
     formattedSize, sizeAbbr.get(),
     (unitIndex != 0) && (unitSize < 99.95 && unitSize != 0) ? 1 : 0, unitSize);
 
-  PRInt32 separatorPos = formattedSize.FindChar('.');
+  int32_t separatorPos = formattedSize.FindChar('.');
   if (separatorPos != kNotFound) {
     // The ssprintf returned a decimal number using a dot (.) as the decimal
     // separator. Now we try to localize the separator.

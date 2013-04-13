@@ -258,7 +258,7 @@ nsresult nsMsgMailViewList::LoadMailViews()
     nsCOMPtr<nsIMsgFilterService> filterService = do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
     nsCOMPtr<nsIMsgFilterList> mfilterList;
       
-    rv = filterService->OpenFilterList(file, NULL, NULL, getter_AddRefs(mFilterList));
+    rv = filterService->OpenFilterList(file, nullptr, nullptr, getter_AddRefs(mFilterList));
     NS_ENSURE_SUCCESS(rv, rv);
 
     return ConvertFilterListToMailViews();

@@ -74,7 +74,7 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
     oclass.Assign(nsDependentCString(aClasses[i]));
     ToLowerCase(oclass);
    
-    if (m_objectClass.IndexOf(oclass) == nsTArray<nsCString>::NoIndex)
+    if (!m_objectClass.Contains(oclass))
     {
       m_objectClass.AppendElement(oclass);
       printf("LDAP : adding objectClass %s\n", oclass.get());
@@ -165,12 +165,12 @@ NS_IMETHODIMP nsAbLDAPCard::GetLDAPMessageInfo(
       printf("LDAP : setting attribute %s (%s) to '%s'\n", attr.get(),
         props[i], propvalue.get());
       modArray->AppendElement(mod, false);
-      if (index != nsTArray<nsCString>::NoIndex)
+      if (index != m_attributes.NoIndex)
         m_attributes.AppendElement(attr);
 
     }
     else if (aType == nsILDAPModification::MOD_REPLACE &&
-             index != nsTArray<nsCString>::NoIndex)
+             index != m_attributes.NoIndex)
     {
       // If the new value is empty, we are performing an update
       // and the attribute was previously set, clear it

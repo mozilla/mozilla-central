@@ -15,9 +15,9 @@ interface nsIAbLDIFService : nsISupports {
    * names that commonly appear in LDIF files.
    *
    * @param       aSrc   The file to examine
-   *    
-   * @return      PR_TRUE if the file appears to be of LDIF type,
-   *              PR_FALSE otherwise
+   *
+   * @return      true if the file appears to be of LDIF type,
+   *              false otherwise
    */
   boolean isLDIFFile(in nsIFile aSrc);
 

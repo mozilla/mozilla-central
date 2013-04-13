@@ -3403,7 +3403,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
           folder->GetURI(folderURI);
 
           int32_t index = searchURI.Find(folderURI);
-          if (index == -1)
+          if (index == kNotFound)
           {
             searchURI.Cut(0, 1);
             searchURI.Append(folderURI);
@@ -3505,7 +3505,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIMsgFolder *parentItem, nsISu
       searchURI.Insert('|', 0);
       searchURI.Append('|');
       int32_t index = searchURI.Find(removedFolderURI);
-      if (index != -1)
+      if (index != kNotFound)
       {
         RemoveVFListenerForVF(savedSearch, folder);
 
@@ -3627,7 +3627,7 @@ nsMsgAccountManager::RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
         searchURI.Insert('|', 0);
         searchURI.Append('|');
         int32_t index = searchURI.Find(removedFolderURI);
-        if (index != -1)
+        if (index != kNotFound)
         {
           RemoveVFListenerForVF(listener->m_virtualFolder, aFolder);
 

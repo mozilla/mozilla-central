@@ -2718,18 +2718,16 @@ void CorpusStore::remove(const char* word, uint32_t aTraitId, uint32_t aCount)
 
 uint32_t CorpusStore::getMessageCount(uint32_t aTraitId)
 {
-  const uint32_t kNoIndex = uint32_t(-1);
   uint32_t index = mMessageCountsId.IndexOf(aTraitId);
-  if (index == kNoIndex)
+  if (index == mMessageCountsId.NoIndex)
     return 0;
   return mMessageCounts.ElementAt(index);
 }
 
 void CorpusStore::setMessageCount(uint32_t aTraitId, uint32_t aCount)
 {
-  const uint32_t kNoIndex = uint32_t(-1);
   uint32_t index = mMessageCountsId.IndexOf(aTraitId);
-  if (index == kNoIndex)
+  if (index == mMessageCountsId.NoIndex)
   {
     mMessageCounts.AppendElement(aCount);
     mMessageCountsId.AppendElement(aTraitId);

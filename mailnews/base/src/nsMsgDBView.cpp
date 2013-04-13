@@ -1824,12 +1824,12 @@ bool nsMsgDBView::WasHdrRecentlyDeleted(nsIMsgDBHdr *msgHdr)
 NS_IMETHODIMP nsMsgDBView::AddColumnHandler(const nsAString& column, nsIMsgCustomColumnHandler* handler)
 {
 
-  int32_t index = m_customColumnHandlerIDs.IndexOf(column);
+  uint32_t index = m_customColumnHandlerIDs.IndexOf(column);
 
   nsAutoString strColID(column);
 
   //does not exist
-  if (index == -1)
+  if (index == m_customColumnHandlerIDs.NoIndex)
   {
     m_customColumnHandlerIDs.AppendElement(strColID);
     m_customColumnHandlers.AppendObject(handler);
@@ -3458,12 +3458,12 @@ nsMsgDBView::PerformActionsOnJunkMsgs(bool msgsAreJunk)
         }
         hdrsToDelete->GetLength(&cnt);
         if (cnt)
-          rv = srcFolder->DeleteMessages(hdrsToDelete, msgWindow, PR_FALSE, PR_FALSE,
-                                         nullptr, PR_TRUE);
+          rv = srcFolder->DeleteMessages(hdrsToDelete, msgWindow, false, false,
+                                         nullptr, true);
       }
       else
-        rv = srcFolder->DeleteMessages(mJunkHdrs, msgWindow, PR_FALSE, PR_FALSE,
-                                       nullptr, PR_TRUE);
+        rv = srcFolder->DeleteMessages(mJunkHdrs, msgWindow, false, false,
+                                       nullptr, true);
 
     }
     else if (mDeleteModel == nsMsgImapDeleteModels::IMAPDelete)

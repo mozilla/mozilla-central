@@ -125,7 +125,7 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   // servArray may have duplicates already in m_filterHeaders.
   for (uint32_t i = 0; i < servArray.Length(); i++)
   {
-    if (m_filterHeaders.IndexOf(servArray[i]) == m_filterHeaders.NoIndex)
+    if (!m_filterHeaders.Contains(servArray[i]))
       m_filterHeaders.AppendElement(servArray[i]);
   }
   return NS_OK;
@@ -1086,7 +1086,7 @@ nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
   {
     rv = m_newMsgHdr->SetLineCount(atol(value));
   }
-  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != m_filterHeaders.NoIndex)
+  else if (m_filterHeaders.Contains(nsDependentCString(header)))
   {
     rv = m_newMsgHdr->SetStringProperty(header, value);
   }

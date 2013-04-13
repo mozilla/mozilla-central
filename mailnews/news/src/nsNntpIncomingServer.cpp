@@ -1073,7 +1073,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SetAsSubscribed(const nsACString &path)
 {
     mTempSubscribed.AppendElement(path);
-    if (mGetOnlyNew && (mGroupsOnServer.IndexOf(path) == mGroupsOnServer.NoIndex))
+    if (mGetOnlyNew && (!mGroupsOnServer.Contains(path)))
       return NS_OK;
 
     nsresult rv = EnsureInner();
@@ -1730,7 +1730,7 @@ nsNntpIncomingServer::GetCellProperties(int32_t row, nsITreeColumn* col, nsAStri
         // in the "subscribedCol"
         if (mSearchResultSortDescending)
           row = mSubscribeSearchResult.Length() - 1 - row;
-        if (mTempSubscribed.IndexOf(mSubscribeSearchResult.ElementAt(row)) != mTempSubscribed.NoIndex) {
+        if (mTempSubscribed.Contains(mSubscribeSearchResult.ElementAt(row))) {
           properties.AssignLiteral("subscribed");
         }
     }
