@@ -217,10 +217,10 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
     // customization wrapping preserves its children, but not its initialized
     // state. Fix that here.
     // Fix Bug 565045: Only treat "Get Message Button" if it is in our toolbox
-    let popup = toolbox.getElementById("button-getMsgPopup");
+    let popup = toolbox.querySelector("#button-getMsgPopup");
     if (popup) {
       // We can't use _teardown here, because it'll remove the Get All menuitem
-      let sep = toolbox.getElementById("button-getAllNewMsgSeparator");
+      let sep = toolbox.querySelector("#button-getAllNewMsgSeparator");
       while (popup.lastChild != sep)
         popup.removeChild(popup.lastChild);
     }
