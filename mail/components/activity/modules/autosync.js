@@ -35,7 +35,7 @@ const nsIAutoSyncMgrListener = Components.interfaces.nsIAutoSyncMgrListener;
 let autosyncModule =
 {
 
-  _inQFolderList : new Array(),
+  _inQFolderList : [],
   _runnning : false,
   _syncInfoPerFolder: {},
   _syncInfoPerServer: {},
@@ -328,27 +328,21 @@ let autosyncModule =
   },
 
   getFolderListString : function() {
-    let folderList;
-    if (this._inQFolderList.length > 0)
-      folderList = this._inQFolderList[0].prettiestName;
+    let folderList = [];
+    for (let folder of this._inQFolderList)
+      folderList.push(folder.prettiestName);
 
-    for (let i = 1; i < this._inQFolderList.length; i++)
-      folderList = folderList + ", " + this._inQFolderList[i].prettiestName;
-
-    return folderList;
+    return folderList.join(", ");
   },
 
   getAccountListString : function() {
-    let accountList;
-    if (this._inQFolderList.length > 0)
-      accountList = this._inQFolderList[0].server.prettyName;
-
-    for (let i = 1; i < this._inQFolderList.length; i++) {
+    let accountList = [];
+    for (let folder of this._inQFolderList) {
       // do not include already existing account names
-      if (!accountList.contains(this._inQFolderList[i].server.prettyName))
-        accountList = accountList + ", " + this._inQFolderList[i].server.prettyName;
+      if (accountList.indexOf(folder.server.prettyName) == -1)
+        accountList.push(folder.server.prettyName);
     }
-    return accountList;
+    return accountList.join(", ");
   },
 
   init: function() {
