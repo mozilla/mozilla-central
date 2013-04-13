@@ -20,7 +20,6 @@ LIBXUL_LIBRARY	= 1
 else
 FORCE_SHARED_LIB = 1
 endif
-GRE_MODULE	= 1
 FORCE_USE_PIC   = 1
 
 MODULE_NAME	= nsMailModule
