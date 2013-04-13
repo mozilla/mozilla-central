@@ -1069,7 +1069,7 @@ public:
     {
       nsAutoCString folderURL;
       folder->GetFolderURL(folderURL);
-      folderURL.ReplaceChar('/', '\\');
+      MsgReplaceChar(folderURL, '/', '\\');
       memoryPath += folderURL;
     } else {
       memoryPath.AppendLiteral("UNKNOWN-FOLDER");
