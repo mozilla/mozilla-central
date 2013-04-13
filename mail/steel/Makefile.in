@@ -10,8 +10,8 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_PP_COMPONENTS = steelApplication.js \
-                      steelApplication.manifest
+EXTRA_COMPONENTS = steelApplication.manifest
+EXTRA_PP_COMPONENTS = steelApplication.js
 
 ifdef ENABLE_TESTS
 XPCSHELL_TESTS = test
