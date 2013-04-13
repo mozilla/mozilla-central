@@ -41,6 +41,8 @@ public:
   nsresult UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
                             nsMsgMessageFlagType flag,
                             nsIOutputStream *fileStream);
+  bool DiskSpaceAvailableInStore(nsIFile *aFile,
+                                 uint64_t aSpaceRequested);
 };
 
 #endif

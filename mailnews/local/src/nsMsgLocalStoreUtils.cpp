@@ -8,6 +8,8 @@
 #include "nsIFile.h"
 #include "prprf.h"
 
+#define EXTRA_SAFETY_SPACE 0x400000 // (4MiB)
+
 nsMsgLocalStoreUtils::nsMsgLocalStoreUtils()
 {
 }
@@ -280,4 +282,41 @@ nsMsgLocalStoreUtils::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
   else
     rv = NS_ERROR_FAILURE;
   return rv;
+}
+
+/**
+ * Returns true if there is enough space on disk.
+ *
+ * @param aFile  Any file in the message store that is on a logical
+ *               disk volume so that it can be queried for disk space.
+ * @param aSpaceRequested  The size of free space there must be on the disk
+ *                         to return true.
+ */
+bool
+nsMsgLocalStoreUtils::DiskSpaceAvailableInStore(nsIFile *aFile, uint64_t aSpaceRequested)
+{
+  int64_t diskFree;
+  nsresult rv = aFile->GetDiskSpaceAvailable(&diskFree);
+  if (NS_SUCCEEDED(rv)) {
+#ifdef DEBUG
+    printf("GetDiskSpaceAvailable returned: %lld bytes\n", diskFree);
+#endif
+    // When checking for disk space available, take into consideration
+    // possible database changes, therefore ask for a little more
+    // (EXTRA_SAFETY_SPACE) than what the requested size is. Also, due to disk
+    // sector sizes, allocation blocks, etc. The space "available" may be greater
+    // than the actual space usable.
+    return ((aSpaceRequested + EXTRA_SAFETY_SPACE) < (uint64_t) diskFree);
+  } else {
+    // The call to GetDiskSpaceAvailable FAILED!
+    // This will happen on certain platforms where GetDiskSpaceAvailable
+    // is not implemented. Since people on those platforms still need
+    // to download mail, we will simply bypass the disk-space check.
+    //
+    // We'll leave a debug message to warn people.
+#ifdef DEBUG
+    printf("Call to GetDiskSpaceAvailable FAILED! \n");
+#endif
+    return true;
+  }
 }

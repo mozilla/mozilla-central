@@ -15,7 +15,7 @@
 #include "nsInterfaceHashtable.h"
 #include "nsMsgMessageFlags.h"
 
-class nsMsgMaildirStore : public nsMsgLocalStoreUtils, nsIMsgPluggableStore
+class nsMsgMaildirStore MOZ_FINAL : public nsMsgLocalStoreUtils, nsIMsgPluggableStore
 {
 public:
   NS_DECL_ISUPPORTS

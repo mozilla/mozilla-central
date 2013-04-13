@@ -238,10 +238,14 @@ NS_IMETHODIMP nsMsgMaildirStore::HasSpaceAvailable(nsIMsgFolder *aFolder,
                                                    int64_t aSpaceRequested,
                                                    bool *aResult)
 {
-  // This should probably check disk space available, though the caller
-  // might be doing that as well.
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = true;
+  NS_ENSURE_ARG_POINTER(aFolder);
+
+  nsCOMPtr<nsIFile> pathFile;
+  nsresult rv = aFolder->GetFilePath(getter_AddRefs(pathFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  *aResult = DiskSpaceAvailableInStore(pathFile, aSpaceRequested);
   return NS_OK;
 }
 

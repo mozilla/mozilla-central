@@ -187,16 +187,19 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::HasSpaceAvailable(nsIMsgFolder *aFolder,
 {
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_ARG_POINTER(aFolder);
+
   nsCOMPtr<nsIFile> pathFile;
   nsresult rv = aFolder->GetFilePath(getter_AddRefs(pathFile));
   NS_ENSURE_SUCCESS(rv, rv);
+
   int64_t fileSize;
   rv = pathFile->GetFileSize(&fileSize);
   NS_ENSURE_SUCCESS(rv, rv);
-  // ### I think we're allowing mailboxes > 4GB, so we should be checking
-  // for disk space here, not total file size.
-  // 0xFFC00000 = 4 GiB - 4 MiB.
-  *aResult = ((fileSize + aSpaceRequested) < 0xFFC00000);
+
+  // Allow the mbox to only reach 0xFFC00000 = 4 GiB - 4 MiB for now.
+  *aResult = ((fileSize + aSpaceRequested) < 0xFFC00000) &&
+              DiskSpaceAvailableInStore(pathFile, aSpaceRequested);
+
   return NS_OK;
 }
 
