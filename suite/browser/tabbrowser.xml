@@ -159,8 +159,11 @@
       <field name="mLastRelatedIndex">
         0
       </field>
-      <field name="mFaviconFlags">
-        this.mFaviconService.FAVICON_LOAD_NON_PRIVATE
+      <field name="usePrivateBrowsing" readonly="true">
+        window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+              .getInterface(Components.interfaces.nsIWebNavigation)
+              .QueryInterface(Components.interfaces.nsILoadContext)
+              .usePrivateBrowsing
       </field>
       <field name="mContextTab">
         null
@@ -705,9 +708,12 @@
             browser.mIconURL = aURI.spec;
 
             if (aURI && this.mFaviconService) {
+              var faviconFlags = this.usePrivateBrowsing ?
+                  this.mFaviconService.FAVICON_LOAD_PRIVATE :
+                  this.mFaviconService.FAVICON_LOAD_NON_PRIVATE;
               this.mFaviconService.setAndFetchFaviconForPage(browser.currentURI,
                                                              aURI, false,
-                                                             this.mFaviconFlags);
+                                                             faviconFlags);
             }
 
             this.updateIcon(aTab);
@@ -779,7 +785,10 @@
             var iconURL = this.buildFavIconString(aURI);
             if (this.mFaviconService) {
               let uri = this.mIOService.newURI(iconURL, null, null);
-              this.mFaviconService.setAndFetchFaviconForPage(aURI, uri, false, this.mFaviconFlags);
+              var faviconFlags = this.usePrivateBrowsing ?
+                  this.mFaviconService.FAVICON_LOAD_PRIVATE :
+                  this.mFaviconService.FAVICON_LOAD_NON_PRIVATE;
+              this.mFaviconService.setAndFetchFaviconForPage(aURI, uri, false, faviconFlags);
               if (this.mFaviconService.isFailedFavicon(uri))
                 return;
             }
@@ -935,9 +944,12 @@
               let tbattr = menuitem.getAttribute("tbattr");
 
               if (tbattr.contains("tabbrowser-undoclosetab")) {
-                menuitem.setAttribute("disabled", this.mSessionStore.getClosedTabCount(window) == 0);
-                menuitem.hidden = this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0 &&
-                                  this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0;
+                menuitem.setAttribute("disabled", (this.usePrivateBrowsing ?
+                    this.savedBrowsers.length :
+                    this.mSessionStore.getClosedTabCount(window)) == 0);
+                menuitem.hidden = (this.usePrivateBrowsing ||
+                                   this.mPrefs.getIntPref("browser.sessionstore.max_tabs_undo") <= 0) &&
+                                  this.mPrefs.getIntPref("browser.tabs.max_tabs_undo") <= 0;
               }
               else
                 menuitem.setAttribute("disabled", tbattr.contains("tabbrowser-multiple") && !isMultiple ||
@@ -1513,8 +1525,9 @@
       <method name="getUndoList">
         <body>
           <![CDATA[
-            return JSON.parse(this.mSessionStore.getClosedTabData(window))
-                       .map(function(aTabData) { return aTabData.title; });
+            var tabData = this.usePrivateBrowsing ?  this.savedBrowsers :
+                JSON.parse(this.mSessionStore.getClosedTabData(window));
+            return tabData.map(function(aTabData) { return aTabData.title; });
           ]]>
         </body>
       </method>
@@ -1523,6 +1536,9 @@
         <parameter name="aIndex"/>
         <body>
           <![CDATA[
+            if (this.usePrivateBrowsing)
+              return this.savedBrowsers.length ? this.restoreTab(aIndex) : null;
+
             return this.mSessionStore.getClosedTabCount(window) ?
                      this.mSessionStore.undoCloseTab(window, aIndex) : null;
           ]]>
