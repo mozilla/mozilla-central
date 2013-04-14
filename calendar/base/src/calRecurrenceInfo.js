@@ -580,7 +580,7 @@ calRecurrenceInfo.prototype = {
         // The list was already sorted above, chop anything over aMaxCount, if
         // specified.
         if (aMaxCount && dates.length > aMaxCount) {
-            dates = dates.splice(aMaxCount, dates.length - aMaxCount);
+            dates = dates.slice(0, aMaxCount);
         }
 
         return dates;
@@ -600,14 +600,17 @@ calRecurrenceInfo.prototype = {
                                                 aRangeEnd,
                                                 aMaxCount,
                                                 aCount) {
-        var results = [];
-        var dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount);
+        let results = [];
+        let dates = this.calculateDates(aRangeStart, aRangeEnd, aMaxCount);
         if (dates.length) {
-            var count = aMaxCount;
-            if (!count)
+            let count;
+            if (aMaxCount) {
+                count = Math.min(aMaxCount, dates.length);
+            } else {
                 count = dates.length;
+            }
 
-            for (var i = 0; i < count; i++) {
+            for (let i = 0; i < count; i++) {
                 results.push(this.getOccurrenceFor(dates[i].id));
             }
         }
