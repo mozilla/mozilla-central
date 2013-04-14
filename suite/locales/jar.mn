@@ -123,6 +123,7 @@
   locale/@AB_CD@/communicator/help/images/mail_flag_column.png              (%chrome/common/help/images/mail_flag_column.png)
   locale/@AB_CD@/communicator/help/images/mail_junk_column.png              (%chrome/common/help/images/mail_junk_column.png)
   locale/@AB_CD@/communicator/help/images/mail_newmail_alert.png            (%chrome/common/help/images/mail_newmail_alert.png)
+  locale/@AB_CD@/communicator/help/images/mail_newmail_balloon.png          (%chrome/common/help/images/mail_newmail_balloon.png)
   locale/@AB_CD@/communicator/help/images/mail_newmail_trayicon.png         (%chrome/common/help/images/mail_newmail_trayicon.png)
   locale/@AB_CD@/communicator/help/images/mail_quicksearch.png              (%chrome/common/help/images/mail_quicksearch.png)
   locale/@AB_CD@/communicator/help/images/mail_read.png                     (%chrome/common/help/images/mail_read.png)

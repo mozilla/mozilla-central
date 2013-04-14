@@ -202,28 +202,39 @@
 </ol>
 
 <ul>
-  <li class="win"><strong>Show an alert</strong>: Select this if you want 
-    &brandShortName; Mail &amp; Newsgroups to display a sliding alert above 
-    your system tray in the lower right corner of your screen when new 
-    messages arrive. The sliding alert only appears once when new messages
-    arrive, and won&apos;t appear again until you bring the Mail &amp;
-    Newsgroups window to the front.
+  <li><strong>Show an alert for [__] seconds</strong>: Select this if you want 
+    &brandShortName; Mail &amp; Newsgroups to display an alert on your desktop
+    when new messages arrive. This alert is usually located above your system
+    tray in the lower right corner of your screen. The alert only appears once
+    when new messages arrive, stays for the specified amount of time, and
+    won&apos;t appear again until you have visited one of your folders with new
+    mail, read one of the new messages, or checked for new messages manually.
     <table>
       <tr>
         <td colspan="2"><img src="images/mail_newmail_alert.png" alt=""/></td>
       </tr>
       <tr>
         <td style="width: 20px;"></td>
-        <td><strong>Sliding new mail alert</strong></td>
+        <td><strong>New mail desktop alert</strong></td>
       </tr>
     </table>
-
-    <p>When the alert appears, clicking the link displayed in the alert will
-      take you to the first folder that has new mail.
+    The following options determine which message-specific items are shown in
+    the alert for each new message:
+    <ul>
+      <li><strong>Show a preview of the message text</strong>: Check this to
+        show the first few words of the message received in the alert.</li>
+      <li><strong>Show the subject</strong>: Check this to show the subject
+        line of the message in the alert.</li>
+      <li><strong>Show the sender</strong>: Check this to show the sender&apos;s
+        name or email address in the alert.</li>
+    </ul>
+    <p>When the alert appears, clicking an entry for a message will take you
+      to the respective folder and opens that message. You can close the alert
+      using the <strong>x</strong> button.
     </p>
 
     <p>The new message alert will continue to work even after you close the
-      Mail window (as long as another &brandShortName; application is running).
+      Mail window (as long as another &brandShortName; window is open).
     </p>
   </li>
 
@@ -231,12 +242,37 @@
     &brandShortName; Mail &amp; Newsgroups to display an icon in your system
     tray (which is usually found in the lower right corner of your screen) when
     new messages arrive. This icon will stay in the system tray until you have
-    visited one of your folders with new mail or checked for new messages
-    manually.
+    visited one of your folders with new mail, read one of the new messages,
+    or checked for new messages manually.
     <p style="text-indent: 20px"><img src="images/mail_newmail_trayicon.png"
       alt=""/>&nbsp;&nbsp;<strong>New mail tray icon</strong></p>
     <p>When the icon appears, double-clicking it will open the &brandShortName;
       Mail &amp; Newsgroups main window.</p>
+    <p><strong>Note</strong>: On Windows 7 and above, the Notification Area
+      Icons settings for &brandShortName; must read <q>Show icon and
+      notifications</q> for the icon to stay visible. Otherwise, it may be
+      hidden after a short period of time.</p>
+    <ul>
+      <li><strong>Show a balloon alert</strong>: As an alternative to the
+        desktop alert described above, you can use the operating system&apos;s
+        balloon notification. When new mail arrives, this will show the icon
+        along with a balloon indicating the number of new messages available
+        for the account.
+        <p style="text-indent: 20px"><img src="images/mail_newmail_balloon.png"
+          alt=""/><strong>Balloon&nbsp;alert</strong></p>
+        <p>When the balloon appears, clicking into it will open the Main &amp;
+          Newsgroup main window. The duration of the balloon alert depends on
+          the respective setting in your operating system. You can close the
+          balloon using the <strong>x</strong> button.</p>
+
+        <p>The new message alert will continue to work even after you close the
+          Mail window (as long as another &brandShortName; window is open).</p>
+
+        <p><strong>Note</strong>: <q>Show an alert for [__] seconds</q> and
+          <q>Show a balloon alert</q> cannot be selected at the same time.
+          Checking one option will uncheck the other.</p>
+      </li>
+    </ul>
   </li>
 
   <li class="mac"><strong>Animate the Dock icon</strong>: Select this if you
@@ -251,7 +287,7 @@
 
     <p>Once &brandShortName; Mail has been started, the new messages sound will
       continue to work even after you close the Mail window (as long as another
-      &brandShortName; application is running).</p>
+      &brandShortName; window is open).</p>
   </li>
 </ul>
 

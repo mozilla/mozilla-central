@@ -16,10 +16,28 @@
     <preferences id="notifications_preferences">
       <preference id="mail.biff.show_alert"
                   name="mail.biff.show_alert"
+                  type="bool"
+                  onchange="EnableAlert(this.value);"/>
+      <preference id="alerts.totalOpenTime"
+                  name="alerts.totalOpenTime"
+                  type="int"/>
+      <preference id="mail.biff.alert.show_preview"
+                  name="mail.biff.alert.show_preview"
+                  type="bool"/>
+      <preference id="mail.biff.alert.show_subject"
+                  name="mail.biff.alert.show_subject"
+                  type="bool"/>
+      <preference id="mail.biff.alert.show_sender"
+                  name="mail.biff.alert.show_sender"
                   type="bool"/>
       <preference id="mail.biff.show_tray_icon"
                   name="mail.biff.show_tray_icon"
-                  type="bool"/>
+                  type="bool"
+                  onchange="EnableTrayIcon(this.value);"/>
+      <preference id="mail.biff.show_balloon"
+                  name="mail.biff.show_balloon"
+                  type="bool"
+                  onchange="ClearAlert(this.value);"/>
       <preference id="mail.biff.animate_dock_icon"
                   name="mail.biff.animate_dock_icon"
                   type="bool"/>
@@ -40,43 +58,82 @@
       <caption label="&notifications.caption;"/>
 
       <label value="&newMessagesArrive.label;"/>
-      <vbox align="start">
-        <checkbox id="newMailNotificationAlert"
-                  label="&showAnimatedAlert.label;"
-                  accesskey="&showAnimatedAlert.accesskey;"
-                  preference="mail.biff.show_alert"/>
+      <vbox id="newMailNotificationAlertBox">
+        <hbox align="center">
+          <checkbox id="newMailNotificationAlert"
+                    label="&showAlertFor.label;"
+                    accesskey="&showAlertFor.accesskey;"
+                    preference="mail.biff.show_alert"/>
+          <textbox id="showAlertTime"
+                   type="number"
+                   size="3"
+                   min="1"
+                   max="3600"
+                   preference="alerts.totalOpenTime"
+                   onsyncfrompreference="return document.getElementById(this.getAttribute('preference')).value / 1000;"
+                   onsynctopreference="return this.value * 1000;"
+                   aria-labelledby="showAlertTime showAlertTimeEnd"/>
+          <label id="showAlertTimeEnd"
+                 control="showAlertTime"
+                 value="&showAlertTimeEnd.label;"
+                 accesskey="&showAlertTimeEnd.accesskey;"/>
+        </hbox>
+        <checkbox id="showAlertPreviewText"
+                  class="indent"
+                  label="&showAlertPreviewText.label;"
+                  accesskey="&showAlertPreviewText.accesskey;"
+                  preference="mail.biff.alert.show_preview"/>
+        <checkbox id="showAlertSubject"
+                  class="indent"
+                  label="&showAlertSubject.label;"
+                  accesskey="&showAlertSubject.accesskey;"
+                  preference="mail.biff.alert.show_subject"/>
+        <checkbox id="showAlertSender"
+                  class="indent"
+                  label="&showAlertSender.label;"
+                  accesskey="&showAlertSender.accesskey;"
+                  preference="mail.biff.alert.show_sender"/>
+        <separator id="newMailNotificationAlertSeparator"
+                   class="thin"/>
+      </vbox>
+      <vbox id="newMailNotificationTrayIconBox">
         <checkbox id="newMailNotificationTrayIcon"
                   label="&showTrayIcon.label;"
                   accesskey="&showTrayIcon.accesskey;"
-                  preference="mail.biff.show_tray_icon"
-                  hidden="true"/>
+                  preference="mail.biff.show_tray_icon"/>
+        <checkbox id="newMailNotificationBalloon"
+                  class="indent"
+                  label="&showBalloon.label;"
+                  accesskey="&showBalloon.accesskey;"
+                  preference="mail.biff.show_balloon"/>
+        <separator id="newMailNotificationTrayIconSeparator"
+                   class="thin"/>
+      </vbox>
+      <vbox id="newMailNotificationBounceBox">
         <checkbox id="newMailNotificationBounce"
                   label="&bounceSystemDockIcon.label;"
                   accesskey="&bounceSystemDockIcon.accesskey;"
                   preference="mail.biff.animate_dock_icon"/>
-        <checkbox id="newMailNotification"
-                  label="&playSound.label;"
-                  accesskey="&playSound.accesskey;"
-                  preference="mail.biff.play_sound"/>
+        <separator id="newMailNotificationBounceSeparator"
+                   class="thin"/>
       </vbox>
-
-      <hbox align="center" class="indent">
-        <radiogroup id="newMailNotificationType"
-                    preference="mail.biff.play_sound.type"
-                    orient="vertical"
-                    aria-labelledby="newMailNotification">
-          <radio id="system"
-                 class="iconic"
-                 value="0"
-                 label="&systemsound.label;"
-                 accesskey="&systemsound.accesskey;"/>
-          <radio id="custom"
-                 class="iconic"
-                 value="1"
-                 label="&customsound.label;"
-                 accesskey="&customsound.accesskey;"/>
-        </radiogroup>
-      </hbox>
+      <checkbox id="newMailNotification"
+                label="&playSound.label;"
+                accesskey="&playSound.accesskey;"
+                preference="mail.biff.play_sound"/>
+      <radiogroup id="newMailNotificationType"
+                  preference="mail.biff.play_sound.type"
+                  class="indent"
+                  aria-labelledby="newMailNotification">
+        <radio id="system"
+               value="0"
+               label="&systemsound.label;"
+               accesskey="&systemsound.accesskey;"/>
+        <radio id="custom"
+               value="1"
+               label="&customsound.label;"
+               accesskey="&customsound.accesskey;"/>
+      </radiogroup>
 
       <hbox align="center" class="indent">
         <filefield id="mailnewsSoundFileUrl"
