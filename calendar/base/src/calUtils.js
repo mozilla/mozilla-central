@@ -1792,7 +1792,7 @@ function binarySearch(itemArray, newItem, comptor) {
     }
     if (!comptor) {
         comptor = function defaultComptor(a,b) {
-            return a > b;
+            return (a > b) - (a < b);
         }
     }
     return binarySearchInternal(0, itemArray.length - 1);
