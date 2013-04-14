@@ -161,13 +161,14 @@ calRecurrenceRule::SetCount(int32_t aRecurCount)
         if (aRecurCount < 0 || aRecurCount > INT_MAX)
             return NS_ERROR_ILLEGAL_VALUE;
         mIcalRecur.count = static_cast<int>(aRecurCount);
+        mIsByCount = true;
     } else {
         mIcalRecur.count = 0;
+        mIsByCount = false;
     }
 
     mIcalRecur.until = icaltime_null_time();
 
-    mIsByCount = true;
 
     return NS_OK;
 }
