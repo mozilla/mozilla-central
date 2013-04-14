@@ -320,13 +320,7 @@ calIcalProperty::GetNextParameterName(nsACString &name)
 NS_IMETHODIMP
 calIcalProperty::RemoveParameter(const nsACString &param)
 {
-    icalparameter_kind paramkind =
-        icalparameter_string_to_kind(PromiseFlatCString(param).get());
-
-    if (paramkind == ICAL_NO_PARAMETER || paramkind == ICAL_X_PARAMETER)
-        return NS_ERROR_INVALID_ARG;
-
-    icalproperty_remove_parameter(mProperty, paramkind);
+    icalproperty_remove_parameter_by_name(mProperty, PromiseFlatCString(param).get());
     // XXX check ical errno
     return NS_OK;
 }
