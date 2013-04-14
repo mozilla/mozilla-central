@@ -287,7 +287,8 @@ calAlarm.prototype = {
 
         // All Day events are handled as 00:00:00
         alarmDate.isDate = false;
-        return alarmDate.addDuration(this.mDuration);
+        alarmDate.addDuration(this.mDuration);
+        return alarmDate;
     },
 
     getAttendees: function getAttendees(aCount) {
@@ -418,12 +419,12 @@ calAlarm.prototype = {
 
         // Set up repeat and duration (OPTIONAL, but if one exists, the other
         // MUST also exist)
-        if (this.repeat && this.duration) {
+        if (this.repeat && this.repeatOffset) {
             let repeatProp = icssvc.createIcalProperty("REPEAT");
             let durationProp = icssvc.createIcalProperty("DURATION");
 
             repeatProp.value = this.repeat;
-            durationProp.valueAsIcalString = this.duration.icalString;
+            durationProp.valueAsIcalString = this.repeatOffset.icalString;
 
             comp.addProperty(repeatProp);
             comp.addProperty(durationProp);
@@ -539,12 +540,12 @@ calAlarm.prototype = {
         }
 
         if (durationProp && repeatProp) {
-            this.duration = cal.createDuration(durationProp.valueAsIcalString);
+            this.repeatOffset = cal.createDuration(durationProp.valueAsIcalString);
             this.repeat = repeatProp.value;
         } else if (durationProp || repeatProp) {
             throw Components.results.NS_ERROR_INVALID_ARG;
         } else {
-            this.duration = null;
+            this.repeatOffset = null;
             this.repeat = 0;
         }
 
