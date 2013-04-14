@@ -210,8 +210,9 @@ calIcsParser.prototype = {
  *
  * @param aParser       The parser that is using this state
  */
-function parserState(aParser) {
+function parserState(aParser, aListener) {
     this.parser = aParser;
+    this.listener = aListener;
 
     this.extraComponents = [];
     this.items = [];
@@ -230,6 +231,7 @@ parserState.prototype = {
     uid2parent: null,
     excItems: null,
     tzErrors: null,
+    listener: null,
 
     /**
      * Checks if the timezones are missing and notifies the user via error console
