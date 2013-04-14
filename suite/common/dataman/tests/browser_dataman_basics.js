@@ -15,16 +15,17 @@ var gLocSvc = {
 const DATAMAN_LOADED = "dataman-loaded";
 const TEST_DONE = "dataman-test-done";
 
-const kPreexistingDomains = 12;
+const kPreexistingDomains = 13;
 
 function test() {
   // Preload data.
   // Note that before this test starts, what is already set are permissions for
   // getpersonas.com and addons.mozilla.org to install addons as well as
   // permissions for a number of sites used in mochitest to load XUL/XBL.
-  // For the latter, those 12 domains are used/listed: 127.0.0.1, bank1.com,
+  // For the latter, those 13 domains are used/listed: 127.0.0.1, bank1.com,
   // bank2.com, example.com, example.org, mochi.test, mozilla.com, test,
-  // w3.org, w3c-test.org, xn--exmple-cua.test, xn--hxajbheg2az3al.xn--jxalpdlp
+  // w3.org, w3c-test.org, xn--exaple-kqf.test, xn--exmple-cua.test,
+  // xn--hxajbheg2az3al.xn--jxalpdlp
   // We should not touch those permissions so other tests can run, which means
   // we should avoid using those domains altogether as we can't remove them.
 
@@ -248,7 +249,7 @@ function test_fdata_panel(aWin) {
 },
 
 function test_cookies_panel(aWin) {
-  aWin.gDomains.tree.view.selection.select(7);
+  aWin.gDomains.tree.view.selection.select(8);
   is(aWin.gDomains.selectedDomain.title, "geckoisgecko.org",
      "For cookie tests 1, correct domain is selected");
   is(aWin.gTabs.activePanel, "cookiesPanel",
@@ -311,7 +312,7 @@ function test_cookies_panel(aWin) {
 },
 
 function test_permissions_panel(aWin) {
-  aWin.gDomains.tree.view.selection.select(7);
+  aWin.gDomains.tree.view.selection.select(8);
   is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
      "For permissions tests, correct domain is selected");
   is(aWin.gTabs.activePanel, "permissionsPanel",
@@ -458,7 +459,7 @@ function test_permissions_panel(aWin) {
   }
 
   aWin.gDomains.tree.view.selection.select(0); // Switch to * domain.
-  aWin.gDomains.tree.view.selection.select(7); // Switch back to rebuild the perm list.
+  aWin.gDomains.tree.view.selection.select(8); // Switch back to rebuild the perm list.
   is(aWin.gPerms.list.children.length, 1,
      "After the test, the correct number of permissions is displayed in the list");
   Services.obs.notifyObservers(window, TEST_DONE, null);
@@ -520,7 +521,7 @@ function test_permissions_add(aWin) {
   aWin.gTabs.tabbox.selectedTab = aWin.document.getElementById("permissionsTab");
   is(aWin.gPerms.list.disabled, true,
      "After switching between panels, the permissions list is disabled again");
-  aWin.gDomains.tree.view.selection.select(7);
+  aWin.gDomains.tree.view.selection.select(8);
   is(aWin.gDomains.selectedDomain.title, "getpersonas.com",
      "Switched to correct domain for another add test");
   is(aWin.gTabs.activePanel, "permissionsPanel",
@@ -613,7 +614,7 @@ function test_prefs_panel(aWin) {
 },
 
 function test_passwords_panel(aWin) {
-  aWin.gDomains.tree.view.selection.select(6);
+  aWin.gDomains.tree.view.selection.select(7);
   is(aWin.gDomains.selectedDomain.title, "geckoisgecko.org",
      "For passwords tests, correct domain is selected");
   is(aWin.gTabs.activePanel, "cookiesPanel",
@@ -699,7 +700,7 @@ function test_idn(aWin) {
      "Search for 'xn--' returns one result");
   is(aWin.gDomains.displayedDomains.map(function(aDom) { return aDom.title; })
                                    .join(","),
-     "xn--exmple-cua.test", "In xn-- search, only the non-decodable domain is listed");
+     "xn--exaple-kqf.test", "In xn-- search, only the non-decodable domain is listed");
   aWin.document.getElementById("domainSearch").value = idnDomain.charAt(3);
   aWin.document.getElementById("domainSearch").doCommand();
   is(aWin.gDomains.tree.view.rowCount, 1,
