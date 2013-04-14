@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Helper function to asynchronously call a certain method on the objects passed
@@ -25,30 +26,22 @@ function callOrderedServices(method, services) {
 }
 
 function calStartupService() {
+    this.wrappedJSObject = this;
     this.setupObservers();
 }
 
+const calStartupServiceInterfaces = [Components.interfaces.nsIObserver];
+const calStartupServiceClassID = Components.ID("{2547331f-34c0-4a4b-b93c-b503538ba6d6}");
 calStartupService.prototype = {
-    // nsIClassInfo
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Calendar Startup Service",
-    contractID: "@mozilla.org/calendar/startup-service;1",
-    classID: Components.ID("{2547331f-34c0-4a4b-b93c-b503538ba6d6}"),
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-
-    // nsISupports
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calStartupService.prototype, aIID, null, this);
-    },
+    QueryInterface: XPCOMUtils.generateQI(calStartupServiceInterfaces),
+    classID: calStartupServiceClassID,
+    classInfo: XPCOMUtils.generateCI({
+        contractID: "@mozilla.org/calendar/startup-service;1",
+        classDescription: "Calendar Startup Service",
+        classID: calStartupServiceClassID,
+        interfaces: calStartupServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     // Startup Service Methods
 
@@ -113,4 +106,3 @@ calStartupService.prototype = {
         }
     }
 };
-
