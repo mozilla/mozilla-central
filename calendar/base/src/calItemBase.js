@@ -462,10 +462,14 @@ calItemBase.prototype = {
     setPropertyParameter: function cIB_setPropertyParameter(aPropName, aParamName, aParamValue) {
         let propName = aPropName.toUpperCase();
         let paramName = aParamName.toUpperCase();
-        if (!(propName in this.mPropertyParams)) {
-            throw "Property " + aPropName + " not set";
-        }
         this.modify();
+        if (!(propName in this.mPropertyParams)) {
+            if (!this.hasProperty(propName)) {
+                throw "Property " + aPropName + " not set";
+            } else {
+                this.mPropertyParams[propName] = {};
+            }
+        }
         if (aParamValue || !isNaN(parseInt(aParamValue, 10))) {
             this.mPropertyParams[propName][paramName] = aParamValue;
         } else {
@@ -581,7 +585,7 @@ calItemBase.prototype = {
     removeAttachment: function cIB_removeAttachment(aAttachment) {
         this.modify();
         for (var attIndex in this.mAttachments) {
-            if (cal.compareObjects(mAttachments[attIndex], aAttachment, Components.interfaces.calIAttachment)) {
+            if (cal.compareObjects(this.mAttachments[attIndex], aAttachment, Components.interfaces.calIAttachment)) {
                 this.modify();
                 this.mAttachments.splice(attIndex, 1);
                 break;
@@ -693,6 +697,7 @@ calItemBase.prototype = {
     // void setCategories(in PRUint32 aCount,
     //                    [array, size_is(aCount)] in wstring aCategories);
     setCategories: function cib_setCategories(aCount, aCategories) {
+        this.modify();
         this.mCategories = aCategories.concat([]);
     },
 
