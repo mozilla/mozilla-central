@@ -9,6 +9,7 @@
 interface nsIMsgFolder;
 interface nsIMsgFolderCache;
 interface nsIMsgWindow;
+interface nsIMsgProtocolInfo;
 interface nsIMsgFilterList;
 interface nsIMsgRetentionSettings;
 interface nsIMsgDownloadSettings;
@@ -26,7 +27,7 @@ interface nsIMsgPluggableStore;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(92f4ee31-a14d-48dc-8676-22417caefa83)]
+[scriptable, uuid(92f4ee31-a14d-48dc-8676-22417caefa84)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -74,6 +75,11 @@ interface nsIMsgIncomingServer : nsISupports {
    * used to construct URLs
    */
   attribute ACString type;
+
+  /**
+   * The proper instance of nsIMsgProtocolInfo corresponding to this server type.
+   */
+  readonly attribute nsIMsgProtocolInfo protocolInfo;
 
   readonly attribute AString accountManagerChrome;
 

@@ -40,6 +40,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIRssIncomingServer.h"
 #include "nsIMsgFolder.h"
+#include "nsIMsgProtocolInfo.h"
 #include "nsIMsgMessageService.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIOutputStream.h"
@@ -959,16 +960,19 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     // for imap folders, path needs to have .msf appended to the name
     msgFolder->GetFilePath(getter_AddRefs(folderPath));
 
-    nsCString type;
-    rv = server->GetType(type);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
+    rv = server->GetProtocolInfo(getter_AddRefs(protocolInfo));
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    bool isImapFolder = type.Equals("imap");
+    bool isAsyncFolder;
+    rv = protocolInfo->GetFoldersCreatedAsync(&isAsyncFolder);
+    NS_ENSURE_SUCCESS(rv, rv);
+
     // if we can't get the path from the folder, then try to create the storage.
     // for imap, it doesn't matter if the .msf file exists - it still might not
     // exist on the server, so we should try to create it
     bool exists = false;
-    if (!isImapFolder && folderPath)
+    if (!isAsyncFolder && folderPath)
       folderPath->Exists(&exists);
     if (!exists)
     {
@@ -996,7 +1000,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
       // we should look into making it so no matter what the folder type
       // we always call the listener
       // this code should move into local folder's version of CreateStorageIfMissing()
-      if (!isImapFolder && aListener) {
+      if (!isAsyncFolder && aListener) {
         rv = aListener->OnStartRunningUrl(nullptr);
         NS_ENSURE_SUCCESS(rv,rv);
 

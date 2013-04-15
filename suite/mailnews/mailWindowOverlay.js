@@ -1179,16 +1179,16 @@ BatchMessageMover.prototype =
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let dstFolder = archiveFolder;
-      // For imap folders, we need to create the sub-folders asynchronously,
-      // so we chain the urls using the listener called back from 
-      // createStorageIfMissing. For local, createStorageIfMissing is
-      // synchronous.
-      let isImap = archiveFolder.server.type == "imap";
+      // For folders on some servers (e.g. IMAP), we need to create the
+      // sub-folders asynchronously, so we chain the urls using the listener
+      // called back from createStorageIfMissing. For local,
+      // createStorageIfMissing is synchronous.
+      let isAsync = archiveFolder.server.protocolInfo.foldersCreatedAsync;
       if (!archiveFolder.parent)
       {
         archiveFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Archive);
         archiveFolder.createStorageIfMissing(this);
-        if (isImap)
+        if (isAsync)
           return;
       }
       if (!archiveFolder.canCreateSubfolders)
@@ -1200,7 +1200,7 @@ BatchMessageMover.prototype =
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);
-          if (isImap)
+          if (isAsync)
             return;
         }
       }
@@ -1211,7 +1211,7 @@ BatchMessageMover.prototype =
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);
-          if (isImap)
+          if (isAsync)
             return;
         }
       }
@@ -1239,14 +1239,14 @@ BatchMessageMover.prototype =
           let folderName = folderNames[i];
           if (!dstFolder.containsChildNamed(folderName))
           {
-            // Create Archive sub-folder (IMAP: async) 
-            if (isImap)
+            // Create Archive sub-folder (IMAP: async)
+            if (isAsync)
             {
               this._dstFolderParent = dstFolder;
               this._dstFolderName = folderName;
             }
             dstFolder.createSubfolder(folderName, msgWindow);
-            if (isImap)
+            if (isAsync)
               return;
           }
           dstFolder = dstFolder.getChildNamed(folderName);

@@ -13,7 +13,7 @@ interface nsIFile;
 %}
 
 
-[scriptable, uuid(9428b5f5-8b12-493c-aae2-18296c2877b0)]
+[scriptable, uuid(9428b5f5-8b12-493c-aae2-18296c2877b1)]
 interface nsIMsgProtocolInfo : nsISupports
 {
     /**
@@ -90,5 +90,10 @@ interface nsIMsgProtocolInfo : nsISupports
      * do we need to show compose message link in the AccountCentral page ? 
      */
     readonly attribute boolean showComposeMsgLink;
+
+    /**
+     * Will new folders be created asynchronously?
+     */
+    readonly attribute boolean foldersCreatedAsync;
 };
 

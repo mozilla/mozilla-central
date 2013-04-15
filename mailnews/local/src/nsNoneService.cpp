@@ -158,3 +158,11 @@ nsNoneService::GetShowComposeMsgLink(bool *showComposeMsgLink)
     *showComposeMsgLink = false;    
     return NS_OK;
 }
+
+NS_IMETHODIMP
+nsNoneService::GetFoldersCreatedAsync(bool *aAsyncCreation)
+{
+  NS_ENSURE_ARG_POINTER(aAsyncCreation);
+  *aAsyncCreation = false;
+  return NS_OK;
+}

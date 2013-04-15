@@ -609,6 +609,14 @@ nsPop3Service::GetShowComposeMsgLink(bool *showComposeMsgLink)
 }
 
 NS_IMETHODIMP
+nsPop3Service::GetFoldersCreatedAsync(bool *aAsyncCreation)
+{
+  NS_ENSURE_ARG_POINTER(aAsyncCreation);
+  *aAsyncCreation = false;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsPop3Service::GetDefaultServerPort(bool isSecure, int32_t *aPort)
 {
     NS_ENSURE_ARG_POINTER(aPort);

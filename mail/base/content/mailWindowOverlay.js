@@ -1653,23 +1653,23 @@ BatchMessageMover.prototype = {
 
       let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
       let dstFolder = archiveFolder;
-      // For imap folders, we need to create the sub-folders asynchronously,
-      // so we chain the urls using the listener called back from
-      // createStorageIfMissing. For local, createStorageIfMissing is
-      // synchronous.
-      let isImap = archiveFolder.server.type == "imap";
+      // For folders on some servers (e.g. IMAP), we need to create the
+      // sub-folders asynchronously, so we chain the urls using the listener
+      // called back from createStorageIfMissing. For local,
+      // createStorageIfMissing is synchronous.
+      let isAsync = archiveFolder.server.protocolInfo.foldersCreatedAsync;
       if (!archiveFolder.parent)
       {
         archiveFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Archive);
         archiveFolder.createStorageIfMissing(this);
-        if (isImap)
+        if (isAsync)
           return;
       }
 
       let forceSingle = !archiveFolder.canCreateSubfolders;
-      if (!forceSingle && isImap)
-        forceSingle = archiveFolder.server.QueryInterface(
-          Components.interfaces.nsIImapIncomingServer).isGMailServer;
+      if (!forceSingle && (archiveFolder.server instanceof
+          Components.interfaces.nsIImapIncomingServer))
+        forceSingle = archiveFolder.server.isGMailServer;
       if (forceSingle)
          granularity = Components.interfaces.nsIMsgIncomingServer
                                  .singleArchiveFolder;
@@ -1681,7 +1681,7 @@ BatchMessageMover.prototype = {
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);
-          if (isImap)
+          if (isAsync)
             return;
         }
       }
@@ -1692,7 +1692,7 @@ BatchMessageMover.prototype = {
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);
-          if (isImap)
+          if (isAsync)
             return;
         }
       }
@@ -1721,13 +1721,13 @@ BatchMessageMover.prototype = {
           if (!dstFolder.containsChildNamed(folderName))
           {
             // Create Archive sub-folder (IMAP: async)
-            if (isImap)
+            if (isAsync)
             {
               this._dstFolderParent = dstFolder;
               this._dstFolderName = folderName;
             }
             dstFolder.createSubfolder(folderName, msgWindow);
-            if (isImap)
+            if (isAsync)
               return;
           }
           dstFolder = dstFolder.getChildNamed(folderName);

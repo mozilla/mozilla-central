@@ -633,3 +633,11 @@ nsMovemailService::GetShowComposeMsgLink(bool *showComposeMsgLink)
   *showComposeMsgLink = true;
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsMovemailService::GetFoldersCreatedAsync(bool *aAsyncCreation)
+{
+  NS_ENSURE_ARG_POINTER(aAsyncCreation);
+  *aAsyncCreation = false;
+  return NS_OK;
+}

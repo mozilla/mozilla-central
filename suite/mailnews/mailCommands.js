@@ -379,9 +379,9 @@ function SaveAsTemplate(uri)
     if (!templates.parent)
     {
       templates.setFlag(Components.interfaces.nsMsgFolderFlags.Templates);
-      let isImap = templates.server.type == "imap";
+      let isAsync = templates.server.protocolInfo.foldersCreatedAsync;
       templates.createStorageIfMissing(new saveAsUrlListener(uri, identity));
-      if (isImap)
+      if (isAsync)
         return;
     }
     messenger.saveAs(uri, false, identity, null);

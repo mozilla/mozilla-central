@@ -71,7 +71,6 @@ protected:
 
   nsresult InternalSetHostName(const nsACString& aHostname, const char * prefName);
 
-  nsresult getProtocolInfo(nsIMsgProtocolInfo **aResult);
   nsCOMPtr <nsIFile> mFilterFile;
   nsCOMPtr <nsIMsgFilterList> mFilterList;
   nsCOMPtr <nsIMsgFilterList> mEditableFilterList;

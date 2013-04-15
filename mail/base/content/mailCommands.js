@@ -400,9 +400,9 @@ function SaveAsTemplate(uri) {
     let templates = MailUtils.getFolderForURI(identity.stationeryFolder, false);
     if (!templates.parent) {
       templates.setFlag(Ci.nsMsgFolderFlags.Templates);
-      let isImap = templates.server.type == "imap";
+      let isAsync = templates.server.protocolInfo.foldersCreatedAsync;
       templates.createStorageIfMissing(new saveAsUrlListener(uri, identity));
-      if (isImap)
+      if (isAsync)
         return;
     }
     messenger.saveAs(uri, false, identity, null);

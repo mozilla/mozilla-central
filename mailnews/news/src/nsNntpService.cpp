@@ -1359,6 +1359,14 @@ nsNntpService::GetShowComposeMsgLink(bool *showComposeMsgLink)
     return NS_OK;
 }
 
+NS_IMETHODIMP
+nsNntpService::GetFoldersCreatedAsync(bool *aAsyncCreation)
+{
+  NS_ENSURE_ARG_POINTER(aAsyncCreation);
+  *aAsyncCreation = false;
+  return NS_OK;
+}
+
 //
 // rhp: Right now, this is the same as simple DisplayMessage, but it will change
 // to support print rendering.

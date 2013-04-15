@@ -885,7 +885,7 @@ nsMsgIncomingServer::SetDefaultLocalPath(nsIFile *aDefaultLocalPath)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
-  rv = getProtocolInfo(getter_AddRefs(protocolInfo));
+  rv = GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
   return protocolInfo->SetDefaultLocalPath(aDefaultLocalPath);
 }
@@ -905,7 +905,7 @@ nsMsgIncomingServer::GetLocalPath(nsIFile **aLocalPath)
   // hostname, unless that directory exists.
 // this should prevent all collisions.
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
-  rv = getProtocolInfo(getter_AddRefs(protocolInfo));
+  rv = GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIFile> localPath;
@@ -1357,7 +1357,7 @@ nsMsgIncomingServer::GetDoBiff(bool *aDoBiff)
   // if the pref isn't set, use the default
   // value based on the protocol
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
-  rv = getProtocolInfo(getter_AddRefs(protocolInfo));
+  rv = GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = protocolInfo->GetDefaultDoBiff(aDoBiff);
@@ -1393,7 +1393,7 @@ nsMsgIncomingServer::GetPort(int32_t *aPort)
   // if the port isn't set, use the default
   // port based on the protocol
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
-  rv = getProtocolInfo(getter_AddRefs(protocolInfo));
+  rv = GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
   int32_t socketType;
@@ -1409,7 +1409,7 @@ nsMsgIncomingServer::SetPort(int32_t aPort)
   nsresult rv;
 
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
-  rv = getProtocolInfo(getter_AddRefs(protocolInfo));
+  rv = GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, rv);
 
   int32_t socketType;
@@ -1422,14 +1422,13 @@ nsMsgIncomingServer::SetPort(int32_t aPort)
   return SetIntValue("port", aPort == defaultPort ? PORT_NOT_SET : aPort);
 }
 
-nsresult
-nsMsgIncomingServer::getProtocolInfo(nsIMsgProtocolInfo **aResult)
+NS_IMETHODIMP
+nsMsgIncomingServer::GetProtocolInfo(nsIMsgProtocolInfo **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  nsresult rv;
 
   nsCString type;
-  rv = GetType(type);
+  nsresult rv = GetType(type);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
@@ -1437,7 +1436,8 @@ nsMsgIncomingServer::getProtocolInfo(nsIMsgProtocolInfo **aResult)
 
   nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  protocolInfo.swap(*aResult);
+
+  protocolInfo.forget(aResult);
   return NS_OK;
 }
 

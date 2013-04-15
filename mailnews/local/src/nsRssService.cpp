@@ -119,3 +119,10 @@ NS_IMETHODIMP nsRssService::GetShowComposeMsgLink(bool *aShowComposeMsgLink)
     *aShowComposeMsgLink = false;    
     return NS_OK;
 }
+
+NS_IMETHODIMP nsRssService::GetFoldersCreatedAsync(bool *aAsyncCreation)
+{
+  NS_ENSURE_ARG_POINTER(aAsyncCreation);
+  *aAsyncCreation = false;
+  return NS_OK;
+}

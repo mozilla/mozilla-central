@@ -25,6 +25,7 @@ imProtocolInfo.prototype = {
   get canGetIncomingMessages() false,
   get defaultDoBiff() false,
   get showComposeMsgLink() false,
+  get foldersCreatedAsync() false,
 
   classDescription: "IM Msg Protocol Info implementation",
   classID: Components.ID("{13118758-dad2-418c-a03d-1acbfed0cd01}"),
