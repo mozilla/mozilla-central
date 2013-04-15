@@ -19,9 +19,7 @@
         Components.utils.import("resource:///modules/folderUtils.jsm", this);
         Components.utils.import("resource:///modules/iteratorUtils.jsm", this);
 
-        // If we are a child of a menulist, and we aren't in a wrapper, we
-        // need to build our content right away, otherwise the menulist
-        // won't have proper sizing.
+        // Find out if we are in a wrapper (customize toolbars mode is active).
         let inWrapper = false;
         let node = this;
         while (node instanceof XULElement) {
@@ -31,10 +29,10 @@
           }
           node = node.parentNode;
         }
-        if (this.parentNode && this.parentNode.localName == "menulist" &&
-            !inWrapper) {
-          // If we were in a wrapper before and have a width stored, restore it now.
+
+        if (!inWrapper) {
           if (this.hasAttribute("original-width")) {
+            // If we were in a wrapper before and have a width stored, restore it now.
             if (this.getAttribute("original-width") == "none")
               this.removeAttribute("width");
             else
@@ -42,12 +40,17 @@
 
             this.removeAttribute("original-width");
           }
-          this._ensureInitialized();
-        }
-        // But if we're in a wrapper, remove our children, because we're
-        // getting re-created when the toolbar customization closes.
-        if (inWrapper) {
+
+          // If we are a child of a menulist, and we aren't in a wrapper, we
+          // need to build our content right away, otherwise the menulist
+          // won't have proper sizing.
+          if (this.parentNode && this.parentNode.localName == "menulist")
+            this._ensureInitialized();
+        } else {
+          // But if we're in a wrapper, remove our children, because we're
+          // getting re-created when the toolbar customization closes.
           this._teardown();
+
           // Store our current width and set a safe small width when we show
           // in a wrapper.
           if (!this.hasAttribute("original-width")) {
