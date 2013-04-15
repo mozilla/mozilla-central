@@ -609,8 +609,16 @@
       <method name="showDate">
         <parameter name="aDate"/>
         <body><![CDATA[
-          this.setDateRange(aDate.startOfMonth, aDate.endOfMonth);
-          this.selectedDay = aDate;
+          // If aDate is null it means that only a refresh is needed
+          // without changing the start and end of the view.
+          if (aDate) {
+              this.setDateRange(aDate.startOfMonth, aDate.endOfMonth);
+              this.selectedDay = aDate;
+          } else {
+              this.refresh();
+              // Refresh the selected day if it doesn't appear in the view.
+              this.selectedDay = this.selectedDay;
+          }
         ]]></body>
       </method>
 

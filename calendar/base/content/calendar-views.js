@@ -637,7 +637,7 @@ function toggleWorkdaysOnly() {
     }
 
     // Refresh the current view
-    currentView().goToDay(currentView().selectedDay);
+    currentView().goToDay();
 }
 
 /**
@@ -654,7 +654,7 @@ function toggleTasksInView() {
     }
 
     // Refresh the current view
-    currentView().goToDay(currentView().selectedDay);
+    currentView().goToDay();
 }
 
 /**
@@ -671,7 +671,7 @@ function toggleShowCompletedInView() {
     }
 
     // Refresh the current view
-    currentView().goToDay(currentView().selectedDay);
+    currentView().goToDay();
 }
 
 /**

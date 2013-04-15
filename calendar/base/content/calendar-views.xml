@@ -27,6 +27,7 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
+                    aDate = aDate || currentView().selectedDay;
                     aDate = aDate.getInTimezone(this.timezone);
                     this.setDateRange(aDate, aDate);
                     this.selectedDay = aDate;
@@ -86,6 +87,7 @@
                 <body><![CDATA[
                     this.displayDaysOff = !this.mWorkdaysOnly;
 
+                    aDate = aDate || currentView().selectedDay;
                     aDate = aDate.getInTimezone(this.timezone);
                     var d1 = getWeekInfoService().getStartOfWeek(aDate);
                     var d2 = d1.clone();
@@ -169,19 +171,24 @@
                     this.showFullMonth = false;
                     this.displayDaysOff = !this.mWorkdaysOnly;
 
-                    aDate = aDate.getInTimezone(this.timezone);
-
-                    // Get the first date that should be shown.  This is the
-                    // start of the week of the day that we're centering around
-                    // adjusted for the day the week starts on and the number
-                    // of previous weeks we're supposed to display.
-                    let d1 = getWeekInfoService().getStartOfWeek(aDate);
-                    d1.day -= (7 * cal.getPrefSafe("calendar.previousweeks.inview", 0));
-                    // The last day we're supposed to show
-                    let d2 = d1.clone();
-                    d2.day += ((7 * this.mWeeksInView) - 1);
-                    this.setDateRange(d1,d2);
-                    this.selectedDay = aDate;
+                    // If aDate is null it means that only a refresh is needed
+                    // without changing the start and end of the view.
+                    if (aDate) {
+                        aDate = aDate.getInTimezone(this.timezone);
+                        // Get the first date that should be shown. This is the
+                        // start of the week of the day that we're centering around
+                        // adjusted for the day the week starts on and the number
+                        // of previous weeks we're supposed to display.
+                        let d1 = getWeekInfoService().getStartOfWeek(aDate);
+                        d1.day -= (7 * cal.getPrefSafe("calendar.previousweeks.inview", 0));
+                        // The last day we're supposed to show
+                        let d2 = d1.clone();
+                        d2.day += ((7 * this.mWeeksInView) - 1);
+                        this.setDateRange(d1, d2);
+                        this.selectedDay = aDate;
+                    } else {
+                        this.refresh();
+                    }
                 ]]></body>
             </method>
             <method name="moveView">
@@ -221,7 +228,9 @@
                 <body><![CDATA[
                     this.displayDaysOff = !this.mWorkdaysOnly;
 
-                    aDate = aDate.getInTimezone(this.timezone);
+                    if (aDate) {
+                        aDate = aDate.getInTimezone(this.timezone);
+                    }
                     this.showDate(aDate);
                 ]]></body>
             </method>
