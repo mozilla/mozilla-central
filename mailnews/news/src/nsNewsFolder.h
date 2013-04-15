@@ -49,6 +49,8 @@ public:
   NS_IMETHOD GetExpungedBytesCount(uint32_t *count);
   NS_IMETHOD GetDeletable (bool *deletable);
 
+  NS_IMETHOD RefreshSizeOnDisk();
+
   NS_IMETHOD GetSizeOnDisk(uint32_t *size);
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);

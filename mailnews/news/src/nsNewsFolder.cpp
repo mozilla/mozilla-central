@@ -1,43 +1,7 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is mozilla.org code.
- *
- * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Seth Spitzer <sspitzer@netscape.com>
- *   Håkan Waara  <hwaara@chello.se>
- *   Pierre Phaneuf <pp@ludusdesign.com>
- *   Markus Hossner <markushossner@gmx.de>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
@@ -109,6 +73,8 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 #define kNewsSortOffset 9000
 
+#define kSizeUnknown 1
+
 #define NEWS_SCHEME "news:"
 #define SNEWS_SCHEME "snews:"
 
@@ -171,6 +137,7 @@ nsMsgNewsFolder::nsMsgNewsFolder(void) :
      mReadSet(nullptr), mSortOrder(kNewsSortOffset)
 {
   MOZ_COUNT_CTOR(nsNewsFolder); // double count these for now.
+  mFolderSize = kSizeUnknown;
 }
 
 nsMsgNewsFolder::~nsMsgNewsFolder(void)
@@ -426,6 +393,7 @@ nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
   // We're not getting messages because either get_messages_on_select is
   // false or we're offline. Send an immediate folder loaded notification.
   NotifyFolderEvent(mFolderLoadedAtom);
+  (void) RefreshSizeOnDisk();
   return NS_OK;
 }
 
@@ -644,6 +612,8 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
   rv = nntpServer->RemoveNewsgroup(name);
   NS_ENSURE_SUCCESS(rv,rv);
 
+  (void) RefreshSizeOnDisk();
+
   return SetNewsrcHasChanged(true);
 }
 
@@ -843,9 +813,48 @@ NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(bool *deletable)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgNewsFolder::RefreshSizeOnDisk()
+{
+  uint64_t oldFolderSize = mFolderSize;
+  // We set size to unknown to force it to get recalculated from disk.
+  mFolderSize = kSizeUnknown;
+  if (NS_SUCCEEDED(GetSizeOnDisk(&mFolderSize)))
+    NotifyIntPropertyChanged(kFolderSizeAtom, oldFolderSize, mFolderSize);
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(uint32_t *size)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  NS_ENSURE_ARG_POINTER(size);
+
+  // 0 is a valid folder size (meaning empty file with no offline messages),
+  // but 1 is not. So use 1 as a special value meaning no file size was fetched
+  // from disk yet.
+  if (mFolderSize == kSizeUnknown)
+  {
+    nsCOMPtr<nsIFile> diskFile;
+    nsresult rv = GetFilePath(getter_AddRefs(diskFile));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // If there were no news messages downloaded for offline use, the folder file
+    // may not exist yet. In that case size is 0.
+    bool exists = false;
+    rv = diskFile->Exists(&exists);
+    if (NS_FAILED(rv) || !exists)
+    {
+      mFolderSize = 0;
+    }
+    else
+    {
+      int64_t fileSize;
+      rv = diskFile->GetFileSize(&fileSize);
+      NS_ENSURE_SUCCESS(rv, rv);
+      mFolderSize = fileSize;
+    }
+  }
+
+  *size = mFolderSize;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -888,6 +897,8 @@ nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
   if (!isMove) 
     NotifyFolderEvent(NS_SUCCEEDED(rv) ? mDeleteOrMoveMsgCompletedAtom :
       mDeleteOrMoveMsgFailedAtom);
+
+  (void) RefreshSizeOnDisk();
 
   return NS_OK;
 }
@@ -1723,7 +1734,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
 {
   nsTArray<nsMsgKey> srcKeyArray;
   SetSaveArticleOffline(true);
-  nsresult rv;
+  nsresult rv = NS_OK;
 
   // build up message keys.
   if (mDatabase)
@@ -1754,7 +1765,9 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
   if (!downloadState)
     return NS_ERROR_OUT_OF_MEMORY;
   m_downloadingMultipleMessages = true;
-  return downloadState->DownloadArticles(msgWindow, this, &srcKeyArray);
+  rv = downloadState->DownloadArticles(msgWindow, this, &srcKeyArray);
+  (void) RefreshSizeOnDisk();
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window)
@@ -1780,7 +1793,10 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsIArray *messages, ns
   if (!downloadState)
     return NS_ERROR_OUT_OF_MEMORY;
   m_downloadingMultipleMessages = true;
-  return downloadState->DownloadArticles(window, this, &srcKeyArray);
+
+  rv = downloadState->DownloadArticles(window, this, &srcKeyArray);
+  (void) RefreshSizeOnDisk();
+  return rv;
 }
 
 // line does not have a line terminator (e.g., CR or CRLF)
@@ -1852,6 +1868,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *
   rv = GetDatabase();
   if (mDatabase)
     ApplyRetentionSettings();
+  (void) RefreshSizeOnDisk();
   return rv;
 }
 
