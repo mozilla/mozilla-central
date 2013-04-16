@@ -2664,6 +2664,11 @@ function GenericSendMessage(msgType)
       msgType == nsIMsgCompDeliverMode.Background;
   if (sending)
   {
+    // Check if e-mail addresses are complete, in case user turned off
+    // autocomplete to local domain.
+    if (!CheckValidEmailAddress(msgCompFields))
+      return;
+
     // Do we need to check the spelling?
     if (DoSpellCheckBeforeSend())
     {
@@ -2767,10 +2772,6 @@ function GenericSendMessage(msgType)
     // eventually abort.
     var convert = DetermineConvertibility();
     var action = DetermineHTMLAction(convert);
-    // Check if e-mail addresses are complete, in case user turned off
-    // autocomplete to local domain.
-    if (!CheckValidEmailAddress(msgCompFields.to, msgCompFields.cc, msgCompFields.bcc))
-      return;
 
     if (action == nsIMsgCompSendFormat.AskUser)
     {
@@ -2891,17 +2892,35 @@ function GenericSendMessage(msgType)
     SetDocumentCharacterSet(gMsgCompose.compFields.characterSet);
 }
 
-function CheckValidEmailAddress(to, cc, bcc)
+/**
+ * Check if the entered addresses are valid and alert the user if they are not.
+ *
+ * @param aMsgCompFields  A nsIMsgCompFields object containing the fields to check.
+ */
+const NS_MSG_NO_RECIPIENTS = "12511"; // from composeMsgs.properties
+function CheckValidEmailAddress(aMsgCompFields)
 {
-  var invalidStr = null;
-  // crude check that the to, cc, and bcc fields contain at least one '@'.
-  // We could parse each address, but that might be overkill.
-  if (to.length > 0 && (!to.contains("@", 1) && to.toLowerCase() != "postmaster" || to.endsWith("@")))
-    invalidStr = to;
-  else if (cc.length > 0 && (!cc.contains("@", 1) && cc.toLowerCase() != "postmaster" || cc.endsWith("@")))
-    invalidStr = cc;
-  else if (bcc.length > 0 && (!bcc.contains("@", 1) && bcc.toLowerCase() != "postmaster" || bcc.endsWith("@")))
-    invalidStr = bcc;
+  if (!aMsgCompFields.hasRecipients) {
+    Services.prompt.alert(window, getComposeBundle().getString("addressInvalidTitle"),
+                          getComposeBundle().getString(NS_MSG_NO_RECIPIENTS));
+
+    return false;
+  }
+
+  let invalidStr;
+   // Crude check that the to, cc, and bcc fields contain at least one '@'.
+   // We could parse each address, but that might be overkill.
+  function isInvalidAddress(aAddress) {
+    return (aAddress.length > 0 &&
+            ((!aAddress.contains("@", 1) && aAddress.toLowerCase() != "postmaster") ||
+              aAddress.endsWith("@")));
+  }
+  if (isInvalidAddress(aMsgCompFields.to))
+    invalidStr = aMsgCompFields.to;
+  else if (isInvalidAddress(aMsgCompFields.cc))
+    invalidStr = aMsgCompFields.cc;
+  else if (isInvalidAddress(aMsgCompFields.bcc))
+    invalidStr = aMsgCompFields.bcc;
   if (invalidStr)
   {
     Services.prompt.alert(window, getComposeBundle().getString("addressInvalidTitle"),
@@ -2909,6 +2928,7 @@ function CheckValidEmailAddress(to, cc, bcc)
                           [invalidStr], 1));
     return false;
   }
+
   return true;
 }
 

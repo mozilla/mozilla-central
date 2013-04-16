@@ -192,6 +192,16 @@ NS_IMETHODIMP nsMsgCompFields::GetFollowupTo(nsAString &_retval)
   return GetUnicodeHeader(MSG_FOLLOWUP_TO_HEADER_ID, _retval);
 }
 
+NS_IMETHODIMP nsMsgCompFields::GetHasRecipients(bool *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+
+  *_retval = NS_SUCCEEDED(mime_sanity_check_fields_recipients(
+    GetTo(), GetCc(), GetBcc(), GetNewsgroups()));
+
+  return NS_OK;
+}
+
 NS_IMETHODIMP nsMsgCompFields::SetSubject(const nsAString &value)
 {
   return SetUnicodeHeader(MSG_SUBJECT_HEADER_ID, value);

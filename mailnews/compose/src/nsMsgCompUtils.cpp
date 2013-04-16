@@ -156,6 +156,38 @@ nsMsgMIMESetConformToStandard (bool conform_p)
   }
 }
 
+/**
+ * Checks if the recipient fields have sane values for message send.
+ */
+nsresult mime_sanity_check_fields_recipients (
+          const char *to,
+          const char *cc,
+          const char *bcc,
+          const char *newsgroups)
+{
+  if (to)
+    while (IS_SPACE(*to))
+      to++;
+  if (cc)
+    while (IS_SPACE(*cc))
+      cc++;
+  if (bcc)
+    while (IS_SPACE(*bcc))
+      bcc++;
+  if (newsgroups)
+    while (IS_SPACE(*newsgroups))
+      newsgroups++;
+
+  if ((!to || !*to) && (!cc || !*cc) &&
+      (!bcc || !*bcc) && (!newsgroups || !*newsgroups))
+    return NS_MSG_NO_RECIPIENTS;
+
+  return NS_OK;
+}
+
+/**
+ * Checks if the compose fields have sane values for message send.
+ */
 nsresult mime_sanity_check_fields (
           const char *from,
           const char *reply_to,
@@ -171,39 +203,23 @@ nsresult mime_sanity_check_fields (
           const char * /*other_random_headers*/)
 {
   if (from)
-    while (IS_SPACE (*from))
+    while (IS_SPACE(*from))
       from++;
   if (reply_to)
-    while (IS_SPACE (*reply_to))
+    while (IS_SPACE(*reply_to))
       reply_to++;
-  if (to)
-    while (IS_SPACE (*to))
-      to++;
-  if (cc)
-    while (IS_SPACE (*cc))
-      cc++;
-  if (bcc)
-    while (IS_SPACE (*bcc))
-      bcc++;
   if (fcc)
-    while (IS_SPACE (*fcc))
+    while (IS_SPACE(*fcc))
       fcc++;
-  if (newsgroups)
-    while (IS_SPACE (*newsgroups))
-      newsgroups++;
   if (followup_to)
-    while (IS_SPACE (*followup_to))
+    while (IS_SPACE(*followup_to))
       followup_to++;
 
-  /* #### sanity check other_random_headers for newline conventions */
+  // TODO: sanity check other_random_headers for newline conventions
   if (!from || !*from)
     return NS_MSG_NO_SENDER;
-  else
-    if ((!to || !*to) && (!cc || !*cc) &&
-        (!bcc || !*bcc) && (!newsgroups || !*newsgroups))
-      return NS_MSG_NO_RECIPIENTS;
-  else
-    return NS_OK;
+
+  return mime_sanity_check_fields_recipients(to, cc, bcc, newsgroups);
 }
 
 static char *

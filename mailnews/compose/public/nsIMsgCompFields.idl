@@ -7,7 +7,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISimpleEnumerator.idl"
 
-[scriptable, uuid(bb793677-87c1-4125-b929-252bd9177793)]
+[scriptable, uuid(bb793677-87c1-4125-b929-252bd9177794)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -15,6 +15,7 @@ interface nsIMsgCompFields : nsISupports {
   attribute AString to;
   attribute AString cc;
   attribute AString bcc;
+  readonly attribute bool hasRecipients;
 
   attribute AString fcc;
   attribute AString fcc2;
