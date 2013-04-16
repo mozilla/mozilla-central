@@ -1982,5 +1982,6 @@ nsDummyMsgHeader.prototype =
   listPost : null,
   date : 0,
   accountKey : "",
+  flags : 0,
   folder : null
 };

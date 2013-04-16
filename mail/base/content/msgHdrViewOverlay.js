@@ -2747,6 +2747,7 @@ nsDummyMsgHeader.prototype =
   messageId : null,
   date : 0,
   accountKey : "",
+  flags : 0,
   // If you change us to return a fake folder, please update
   // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
   folder : null

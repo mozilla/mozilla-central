@@ -1332,7 +1332,7 @@ populateDomKeycodeMap();
 /**
  * Given something you would find on event.target (should be a DOM node /
  *  DOM window), attempt to describe the hierarchy of that thing all the way
- *  to the outermost enclosing window.  This is intended to solve the probem
+ *  to the outermost enclosing window.  This is intended to solve the problem
  *  where our event target can be the "Window" of an iframe, which is not
  *  very enlightening.  We really want to know the frameElement and what
  *  window it lives in.
@@ -1347,20 +1347,24 @@ populateDomKeycodeMap();
  * @returns a list suitable for concatenating with another list to be passed
  *   to mark_action.
  */
-function describeEventElementInHierarchy(elem) {
-  let arr = [], win;
-  // DOM element.
-  if ("ownerDocument" in elem) {
-    arr.push(normalize_for_json(elem));
-    win = elem.ownerDocument.defaultView;
+function describeEventElementInHierarchy(aNode) {
+  let arr = [];
+  let win = null;
+  // DOM node ?
+  if ("ownerDocument" in aNode) {
+    arr.push(normalize_for_json(aNode));
+    if (aNode.ownerDocument)
+      win = aNode.ownerDocument.defaultView;
+    else
+      win = aNode.defaultView;
   }
-  // should already be a window
   else {
-    win = elem;
+    // Otherwise this should be a window.
+    win = aNode;
   }
   let treeItem = win.QueryInterface(Ci.nsIInterfaceRequestor)
-                  .getInterface(Ci.nsIWebNavigation)
-                  .QueryInterface(Ci.nsIDocShellTreeItem);
+                    .getInterface(Ci.nsIWebNavigation)
+                    .QueryInterface(Ci.nsIDocShellTreeItem);
   while (treeItem) {
     win = treeItem.QueryInterface(Ci.nsIInterfaceRequestor)
                   .getInterface(Ci.nsIDOMWindow);

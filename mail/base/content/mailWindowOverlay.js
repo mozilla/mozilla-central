@@ -3358,9 +3358,9 @@ let FeedMessageHandler = {
    * @return true if message is a feed, false if not.
    */
   isFeedMessage: function (aMsgHdr) {
-    return Boolean(aMsgHdr &&
-                   (aMsgHdr.flags & Components.interfaces.nsMsgMessageFlags.FeedMsg ||
-                    (aMsgHdr.folder && aMsgHdr.folder.server.type == "rss")));
+    return (aMsgHdr instanceof Components.interfaces.nsIMsgDBHdr) &&
+           ((aMsgHdr.flags & Components.interfaces.nsMsgMessageFlags.FeedMsg) ||
+            (aMsgHdr.folder && aMsgHdr.folder.server.type == "rss"));
   },
 
   /**

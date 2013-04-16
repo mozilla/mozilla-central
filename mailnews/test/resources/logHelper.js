@@ -383,22 +383,28 @@ function _normalize_for_json(aObj, aDepthAllowed, aJsonMeNotNeeded) {
   // DOM nodes, including elements
   else if (aObj instanceof Ci.nsIDOMNode) {
     let name = aObj.nodeName;
+    let objAttrs = {};
+
     if (aObj instanceof Ci.nsIDOMElement)
       name += "#" + aObj.getAttribute("id");
 
-    let nodeAttrs = aObj.attributes, objAttrs = {};
-    for (let iAttr = 0; iAttr < nodeAttrs.length; iAttr++) {
-      objAttrs[nodeAttrs[iAttr].name] = nodeAttrs[iAttr].value;
+    if ("attributes" in aObj) {
+      let nodeAttrs = aObj.attributes;
+      for (let iAttr = 0; iAttr < nodeAttrs.length; iAttr++) {
+        objAttrs[nodeAttrs[iAttr].name] = nodeAttrs[iAttr].value;
+      }
     }
 
-    let bounds = aObj.getBoundingClientRect();
+    let bounds = { left: null, top: null, width: null, height: null }
+    if ("getBoundingClientRect" in aObj)
+      bounds = aObj.getBoundingClientRect();
+
     return {
       type: "domNode",
       name: name,
       value: aObj.nodeValue,
       namespace: aObj.namespaceURI,
-      boundingClientRect: {left: bounds.left, top: bounds.top,
-                           width: bounds.width, height: bounds.height},
+      boundingClientRect: bounds,
       attrs: objAttrs,
     };
   }
