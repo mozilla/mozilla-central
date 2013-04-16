@@ -158,9 +158,10 @@ calOutlookCSVImporter.prototype = {
 
             let locale;
             let i;
+            let knownIndxs;
             for (i in locales) {
                 locale = locales[i];
-                let knownIndxs = 0;
+                knownIndxs = 0;
                 args.titleIndex = 0;
                 args.startDateIndex = 0;
                 for (let i = 1; i <= header.length; ++i) {
@@ -222,7 +223,7 @@ calOutlookCSVImporter.prototype = {
             const eventRegExp = new RegExp(regExpStr, "gm");
 
             // match first line
-            let eventFields = eventRegExp(str);
+            let eventFields = eventRegExp.exec(str);
 
             if (eventFields == null)
                 break parse;
@@ -351,7 +352,7 @@ calOutlookCSVImporter.prototype = {
                     if ("categoriesIndex" in args) {
                         txt = this.parseTextField(eventFields[args.categoriesIndex])
                         if (txt) {
-                            let categories = categoriesStringToArray(txt);
+                            let categories = cal.categoriesStringToArray(txt);
                             event.setCategories(categories.length, categories);
                         }
                     }
@@ -367,7 +368,7 @@ calOutlookCSVImporter.prototype = {
                 }
 
                 //get next events fields
-                eventFields = eventRegExp(str);
+                eventFields = eventRegExp.exec(str);
 
             } while (eventRegExp.lastIndex != 0);
 
