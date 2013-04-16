@@ -19,6 +19,11 @@ if test "$OS_ARCH" = "WINNT"; then
   fi
 fi
 
+# Disable Accessibility on Mac for now as unit tests fail (bug 862238).
+if test "$OS_ARCH" = "Darwin"; then
+  ACCESSIBILITY=
+fi
+
 # Disable WebRTC as we don't use it currently and to work around bug 837618
 # for Mac
 MOZ_WEBRTC=
