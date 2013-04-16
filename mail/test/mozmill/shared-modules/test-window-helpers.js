@@ -209,14 +209,14 @@ var WindowWatcher = {
    *  that appear and dis-appear do so without dangerously confusing us (as
    *  long as another one comes along...)
    */
-  waitingList: {},
+  waitingList: new Map(),
   /**
    * Note that we will be looking for a window with the given window type
    *  (ex: "mailnews:search").  This allows us to be ready if an event shows
    *  up before waitForWindow is called.
    */
   planForWindowOpen: function WindowWatcher_planForWindowOpen(aWindowType) {
-    this.waitingList[aWindowType] = null;
+    this.waitingList.set(aWindowType, null);
   },
 
   /**
@@ -224,7 +224,7 @@ var WindowWatcher = {
    */
   planForAlreadyOpenWindow:
       function WindowWatcher_planForAlreadyOpenWindow(aWindowType) {
-    this.waitingList[aWindowType] = null;
+    this.waitingList.set(aWindowType, null);
     // We need to iterate over all the XUL windows and consider them all.
     //  We can't pass the window type because the window might not have a
     //  window type yet.
@@ -260,10 +260,10 @@ var WindowWatcher = {
                   this);
 
     this.waitingForOpen = null;
-    let xulWindow = this.waitingList[aWindowType];
+    let xulWindow = this.waitingList.get(aWindowType);
     let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                       .getInterface(Ci.nsIDOMWindow);
-    delete this.waitingList[aWindowType];
+    this.waitingList.delete(aWindowType);
     // spin the event loop to make sure any setTimeout 0 calls have gotten their
     //  time in the sun.
     controller.sleep(0);
@@ -296,7 +296,7 @@ var WindowWatcher = {
       this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     this.waitingForOpen = aWindowType;
     this.subTestFunc = aSubTestFunc;
-    this.waitingList[aWindowType] = null;
+    this.waitingList.set(aWindowType, null);
 
     this._timerRuntimeSoFar = 0;
     this._timer.initWithCallback(this, WINDOW_OPEN_CHECK_INTERVAL_MS,
@@ -309,13 +309,13 @@ var WindowWatcher = {
   notify: function WindowWatcher_notify() {
     if (this.monitorizeOpen()) {
       // okay, the window is opened, and we should be in its event loop now.
-      let xulWindow = this.waitingList[this.waitingForOpen];
+      let xulWindow = this.waitingList.get(this.waitingForOpen);
       let domWindow = xulWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
                                         .getInterface(Ci.nsIDOMWindow);
       let troller = new controller.MozMillController(domWindow);
       augment_controller(troller, this.waitingForOpen);
 
-      delete this.waitingList[this.waitingForOpen];
+      this.waitingList.delete(this.waitingForOpen);
       this._timer.cancel();
 
       // now we are waiting for it to close...
@@ -365,7 +365,7 @@ var WindowWatcher = {
     let windowType =
       aXULWindow.document.documentElement.getAttribute("windowtype") ||
       aXULWindow.document.documentElement.getAttribute("id");
-    this.waitingList[windowType] = aXULWindow;
+    this.waitingList.set(windowType, aXULWindow);
     this.waitingForClose = windowType;
   },
 
@@ -378,8 +378,8 @@ var WindowWatcher = {
     utils.waitFor(function () this.monitorizeClose(),
                   "Timeout waiting for window to close!",
       WINDOW_CLOSE_TIMEOUT_MS, WINDOW_CLOSE_CHECK_INTERVAL_MS, this);
-    let didDisappear = this.waitingList[this.waitingForClose] == null;
-    delete this.waitingList[windowType];
+    let didDisappear = (this.waitingList.get(this.waitingForClose) == null);
+    this.waitingList.delete(windowType);
     let windowType = this.waitingForClose;
     this.waitingForClose = null;
     if (!didDisappear)
@@ -412,7 +412,8 @@ var WindowWatcher = {
         this.monitoringList.splice(iWin, 1);
     }
 
-    return this.waitingList[this.waitingForOpen] != null;
+    return this.waitingList.has(this.waitingForOpen) &&
+           (this.waitingList.get(this.waitingForOpen) != null);
   },
 
   /**
@@ -422,7 +423,7 @@ var WindowWatcher = {
    * @return true if it closed.
    */
   monitorizeClose: function () {
-    return this.waitingList[this.waitingForClose] == null;
+    return this.waitingList.get(this.waitingForClose) == null;
   },
 
   /**
@@ -475,8 +476,8 @@ var WindowWatcher = {
       return false;
 
     // stash the window if we were watching for it
-    if (windowType in this.waitingList) {
-      this.waitingList[windowType] = aXULWindow;
+    if (this.waitingList.has(windowType)) {
+      this.waitingList.set(windowType, aXULWindow);
     }
 
     return true;
@@ -495,10 +496,8 @@ var WindowWatcher = {
     mark_action("winhelp", "onCloseWindow",
                 [getWindowTypeForXulWindow(aXULWindow, true) +
                    " (" + getUniqueIdForXulWindow(aXULWindow) + ")"]);
-    // XXX because of how we dance with things, equivalence is not gonna
-    //  happen for us.  This is most pragmatic.
-    if (this.waitingList[windowType] !== null)
-      this.waitingList[windowType] = null;
+    if (this.waitingList.has(windowType))
+      this.waitingList.set(windowType, null);
   },
 };
 

@@ -344,7 +344,7 @@ function test_privacy_warning_notification() {
     aListener.onStartRequest(null, null);
     cwc.window.setTimeout(function() {
       aListener.onStopRequest(null, null,
-                              Ci.nsIMsgCloudFileProvider.NS_OK);
+                              Components.results.NS_OK);
     }, 500);
   }
   let cwc = open_compose_new_mail(mc);
@@ -383,7 +383,7 @@ function test_privacy_warning_notification_no_persist() {
     aListener.onStartRequest(null, null);
     cwc.window.setTimeout(function() {
       aListener.onStopRequest(null, null,
-                              Ci.nsIMsgCloudFileProvider.NS_OK);
+                              Components.results.NS_OK);
     }, 500);
   }
   let cwc = open_compose_new_mail(mc);
@@ -422,7 +422,7 @@ function test_privacy_warning_notification_open_after_close() {
     aListener.onStartRequest(null, null);
     cwc.window.setTimeout(function() {
       aListener.onStopRequest(null, null,
-                              Ci.nsIMsgCloudFileProvider.NS_OK);
+                              Components.results.NS_OK);
     }, 500);
   }
   let cwc = open_compose_new_mail(mc);

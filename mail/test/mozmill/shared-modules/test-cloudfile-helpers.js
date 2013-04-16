@@ -15,7 +15,6 @@ const MODULE_REQUIRES = ['folder-display-helpers'];
 const kMockContractIDPrefix = "@mozilla.org/mail/mockCloudFile;1?id=";
 
 const kDefaults = {
-  displayName: "Mock Storage",
   iconClass: "chrome://messenger/skin/icons/dropbox.png",
   accountKey: null,
   settingsURL: "",

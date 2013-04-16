@@ -168,7 +168,7 @@
           // Generate an observer notification when we have finished configuring
           // all folders.  This is currently done for the benefit of our mozmill
           // tests.
-          function observerCallback() {
+          let observerCallback = function() {
             Services.obs.notifyObservers(gFolderDisplay.displayedFolder,
                                          "msg-folder-columns-propagated", "");
           }

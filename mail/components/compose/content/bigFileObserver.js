@@ -83,7 +83,8 @@ var gBigFileObserver = {
       bucketCallbacks[event.type].call(this, event.detail);
 
     if (event.type in itemCallbacks)
-      itemCallbacks[event.type].call(this, event.target, event.detail);
+      itemCallbacks[event.type].call(this, event.target,
+                                     ("detail" in event) ? event.detail : null);
 
     this.updateNotification();
   },

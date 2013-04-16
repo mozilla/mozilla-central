@@ -262,6 +262,7 @@ StandaloneMessageDisplayWidget.prototype = {
       window.close();
       return true;
     }
+    return false;
   },
 };
 

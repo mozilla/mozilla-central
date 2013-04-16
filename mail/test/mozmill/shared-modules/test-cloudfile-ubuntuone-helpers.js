@@ -278,13 +278,18 @@ MockUbuntuOneServer.prototype = {
                                                            aOptions) {
 
     aOptions = this._overrideDefault(kDefaultReturnHeader, aOptions);
+
+    let subjectString = Cc["@mozilla.org/supports-string;1"]
+                          .createInstance(Ci.nsISupportsString);
+    subjectString.data = aString;
+
     let func = function(aMeta, aResponse) {
       try {
         aResponse.setStatusLine(null, aOptions.statusCode,
                                 aOptions.statusString);
         aResponse.setHeader("Content-Type", aOptions.contentType);
         aResponse.write(aString);
-        Services.obs.notifyObservers(aString, aKey, aValue);
+        Services.obs.notifyObservers(subjectString, aKey, aValue);
       }
       catch(ex) {
         dump("Failed to generate server response: " + ex);
