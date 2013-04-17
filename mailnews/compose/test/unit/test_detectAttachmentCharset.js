@@ -29,9 +29,14 @@ function testUTF8() {
   checkAttachmentCharset("UTF-8");
 }
 
-function testUTF16() {
-  yield async_run({ func: createMessage, args: [do_get_file("data/test-UTF-16.txt")] });
-  checkAttachmentCharset("UTF-16");
+function testUTF16BE() {
+  yield async_run({ func: createMessage, args: [do_get_file("data/test-UTF-16BE.txt")] });
+  checkAttachmentCharset("UTF-16BE");
+}
+
+function testUTF16LE() {
+  yield async_run({ func: createMessage, args: [do_get_file("data/test-UTF-16LE.txt")] });
+  checkAttachmentCharset("UTF-16LE");
 }
 
 function testShiftJIS() {
@@ -41,7 +46,8 @@ function testShiftJIS() {
 
 var tests = [
   testUTF8,
-  testUTF16,
+  testUTF16BE,
+  testUTF16LE,
   testShiftJIS,
   do_test_finished
 ]
