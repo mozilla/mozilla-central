@@ -62,9 +62,11 @@
 @BINPATH@/@DLL_PREFIX@mozjs@DLL_SUFFIX@
 #endif
 #ifndef MOZ_NATIVE_NSPR
+#ifndef MOZ_FOLD_LIBS
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plds4@DLL_SUFFIX@
+#endif
 #endif
 #ifdef XP_MACOSX
 @BINPATH@/XUL
@@ -123,7 +125,9 @@
 @BINPATH@/@DLL_PREFIX@mozsqlt3@DLL_SUFFIX@
 #else
 #ifndef MOZ_NATIVE_SQLITE
+#ifndef MOZ_FOLD_LIBS
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
 #endif
 #endif
 @BINPATH@/license.txt
@@ -180,6 +184,9 @@
 @BINPATH@/components/dom_devicestorage.xpt
 @BINPATH@/components/dom_events.xpt
 @BINPATH@/components/dom_file.xpt
+#ifdef MOZ_GAMEPAD
+@BINPATH@/components/dom_gamepad.xpt
+#endif
 @BINPATH@/components/dom_geolocation.xpt
 @BINPATH@/components/dom_html.xpt
 @BINPATH@/components/dom_indexeddb.xpt
@@ -191,6 +198,7 @@
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_permissionsettings.xpt
 @BINPATH@/components/dom_power.xpt
+@BINPATH@/components/dom_quota.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_settings.xpt
 @BINPATH@/components/dom_sidebar.xpt
@@ -200,6 +208,10 @@
 @BINPATH@/components/dom_svg.xpt
 @BINPATH@/components/dom_system.xpt
 @BINPATH@/components/dom_traversal.xpt
+#ifdef MOZ_WEBSPEECH
+@BINPATH@/components/dom_webspeechrecognition.xpt
+@BINPATH@/components/dom_webspeechsynth.xpt
+#endif
 @BINPATH@/components/dom_xbl.xpt
 @BINPATH@/components/dom_xpath.xpt
 @BINPATH@/components/dom_xul.xpt
@@ -364,6 +376,8 @@
 @BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/messageWakeupService.js
 @BINPATH@/components/messageWakeupService.manifest
+@BINPATH@/components/NavigatorPropertyHelper.js
+@BINPATH@/components/NavigatorPropertyHelper.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
@@ -640,10 +654,12 @@
 #ifndef NSS_DISABLE_DBM
 @BINPATH@/@DLL_PREFIX@nssdbm3@DLL_SUFFIX@
 #endif
+#ifndef MOZ_FOLD_LIBS
 @BINPATH@/@DLL_PREFIX@nssutil3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@smime3@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@ssl3@DLL_SUFFIX@
+#endif
+@BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
 #endif
 @BINPATH@/chrome/pippki@JAREXT@
 @BINPATH@/chrome/pippki.manifest
