@@ -4,7 +4,7 @@ var testdata = {
   dummy: "smile.smile-test",
   string: "browser.active_color",
   integer: "permissions.default.image",
-  boolean: "browser.blink_allowed"
+  boolean: "browser.underline_anchors"
 };
 
 function test() {
