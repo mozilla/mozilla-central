@@ -815,7 +815,7 @@
               <listcell class="addressingWidgetCell" align="stretch">
                 <menulist id="addressCol1#1" disableonsend="true"
                           class="aw-menulist menulist-compact" flex="1"
-                          oncommand="gContentChanged=true; awSetAutoComplete(this.id.slice(this.id.lastIndexOf('#') + 1));">
+                          oncommand="onAddressColCommand(this.id);">
                   <menupopup>
                     <menuitem value="addr_to" label="&toAddr.label;"/>
                     <menuitem value="addr_cc" label="&ccAddr.label;"/>
@@ -836,9 +836,10 @@
                          minresultsforpopup="3" ignoreblurwhilesearching="true"
                          ontextentered="awRecipientTextCommand(eventParam, this)"
                          onerrorcommand="awRecipientErrorCommand(eventParam, this)"
-                         oninput="gContentChanged=true; setupAutocomplete();" disableonsend="true"
+                         oninput="onRecipientsInput();"
                          onkeypress="awRecipientKeyPress(event, this)"
-                         onkeydown="awRecipientKeyDown(event, this)">
+                         onkeydown="awRecipientKeyDown(event, this)"
+                         disableonsend="true">
                   <image class="person-icon" onclick="this.parentNode.select();"/>
                 </textbox>
               </listcell>

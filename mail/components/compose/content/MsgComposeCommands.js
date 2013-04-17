@@ -54,6 +54,7 @@ var gSpellChecker = new InlineSpellChecker();
 var gHideMenus;
 var gMsgCompose;
 var gWindowLocked;
+var gSendLocked;
 var gContentChanged;
 var gAutoSaving;
 var gCurrentIdentity;
@@ -261,6 +262,7 @@ var gComposeRecyclingListener = {
 var stateListener = {
   NotifyComposeFieldsReady: function() {
     ComposeFieldsReady();
+    updateSendCommands(true);
   },
 
   NotifyComposeBodyReady: function() {
@@ -408,7 +410,7 @@ var defaultController = {
         cmd.hidden = !Services.prefs.getBoolPref("mail.cloud_files.enabled") ||
                      (cloudFileAccounts.accounts.length == 0) ||
                      Services.io.offline;
-        return !cmd.hidden;
+        return !cmd.hidden && !gWindowLocked;
       },
       doCommand: function() {
         // We should never actually call this, since the <command> node calls
@@ -472,7 +474,7 @@ var defaultController = {
 
     cmd_sendButton: {
       isEnabled: function() {
-        return !gWindowLocked && !gNumUploadingAttachments;
+        return !gWindowLocked && !gNumUploadingAttachments && !gSendLocked;
       },
       doCommand: function() {
         if (Services.io.offline)
@@ -484,7 +486,7 @@ var defaultController = {
 
     cmd_sendNow: {
       isEnabled: function() {
-        return !gWindowLocked && !Services.io.offline &&
+        return !gWindowLocked && !Services.io.offline && !gSendLocked &&
                !gNumUploadingAttachments;
       },
       doCommand: function() {
@@ -494,7 +496,7 @@ var defaultController = {
 
     cmd_sendLater: {
       isEnabled: function() {
-        return !gWindowLocked && !gNumUploadingAttachments;
+        return !gWindowLocked && !gNumUploadingAttachments && !gSendLocked;
       },
       doCommand: function() {
         SendMessageLater();
@@ -503,7 +505,7 @@ var defaultController = {
 
     cmd_sendWithCheck: {
       isEnabled: function() {
-        return !gWindowLocked && !gNumUploadingAttachments;
+        return !gWindowLocked && !gNumUploadingAttachments && !gSendLocked;
       },
       doCommand: function() {
         SendMessageWithCheck();
@@ -981,12 +983,20 @@ function updateAttachmentItems()
 /**
  * Update all the commands for sending a message to reflect their current state.
  */
-function updateSendCommands()
+function updateSendCommands(aHaveController)
 {
-  goUpdateCommand("cmd_sendButton");
-  goUpdateCommand("cmd_sendNow");
-  goUpdateCommand("cmd_sendLater");
-  goUpdateCommand("cmd_sendWithCheck");
+  updateSendLock();
+  if (aHaveController) {
+    goUpdateCommand("cmd_sendButton");
+    goUpdateCommand("cmd_sendNow");
+    goUpdateCommand("cmd_sendLater");
+    goUpdateCommand("cmd_sendWithCheck");
+  } else {
+    goSetCommandEnabled("cmd_sendButton",    defaultController.isCommandEnabled("cmd_sendButton"));
+    goSetCommandEnabled("cmd_sendNow",       defaultController.isCommandEnabled("cmd_sendNow"));
+    goSetCommandEnabled("cmd_sendLater",     defaultController.isCommandEnabled("cmd_sendLater"));
+    goSetCommandEnabled("cmd_sendWithCheck", defaultController.isCommandEnabled("cmd_sendWithCheck"));
+  }
 }
 
 function addAttachCloudMenuItems(aParentMenu)
@@ -1051,7 +1061,7 @@ function uploadListener(aAttachment, aFile, aCloudProvider)
   // and show a "connecting" icon for the attachment.
   this.attachment.sendViaCloud = true;
   gNumUploadingAttachments++;
-  updateSendCommands();
+  updateSendCommands(true);
 
   let bucket = document.getElementById("attachmentBucket");
   let item = bucket.findItemForAttachment(this.attachment);
@@ -1183,7 +1193,7 @@ uploadListener.prototype = {
     }
 
     gNumUploadingAttachments--;
-    updateSendCommands();
+    updateSendCommands(true);
   },
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIRequestObserver,
@@ -1488,7 +1498,7 @@ function MessageComposeOfflineStateChanged(goingOffline)
     }
 
     // don't use goUpdateCommand here ... the defaultController might not be installed yet
-    goSetCommandEnabled("cmd_sendNow", defaultController.isCommandEnabled("cmd_sendNow"));
+    updateSendCommands(false);
 
     if (goingOffline)
     {
@@ -2893,6 +2903,22 @@ function GenericSendMessage(msgType)
 }
 
 /**
+ * Keep the Send buttons disabled until any recipient is entered.
+ */
+function updateSendLock()
+{
+  gSendLocked = true;
+  if (!gMsgCompose)
+    return;
+
+  let msgCompFields = gMsgCompose.compFields;
+  Recipients2CompFields(msgCompFields);
+  // Enabled send buttons if anything was entered into the recipient fields.
+  // A more thorough check will be performed when a send button is actually clicked.
+  gSendLocked = !msgCompFields.hasRecipients;
+}
+
+/**
  * Check if the entered addresses are valid and alert the user if they are not.
  *
  * @param aMsgCompFields  A nsIMsgCompFields object containing the fields to check.
@@ -3137,6 +3163,20 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
 
     gSpellChecker.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
   }
+}
+
+function onAddressColCommand(aAddressWidgetId)
+{
+  gContentChanged = true;
+  awSetAutoComplete(aAddressWidgetId.slice(aAddressWidgetId.lastIndexOf('#') + 1));
+  updateSendCommands(true);
+}
+
+function onRecipientsInput()
+{
+  gContentChanged = true;
+  setupAutocomplete();
+  updateSendCommands(true);
 }
 
 function InitLanguageMenu()
