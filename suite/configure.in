@@ -8,7 +8,7 @@ dnl Things we need to carry from confvars.sh
 AC_DEFINE(MOZ_SUITE)
 AC_SUBST(MOZ_SUITE)
 AC_SUBST(MOZ_COMPOSER)
-AC_SUBST(SUITE_VERSION)
+AC_SUBST(SEAMONKEY_VERSION)
 
 dnl Optional parts of the build.
 AC_SUBST(MOZ_MORK)
