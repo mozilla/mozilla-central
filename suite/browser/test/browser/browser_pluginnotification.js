@@ -109,7 +109,7 @@ function test1() {
 
   var plugin = getTestPlugin();
   ok(plugin, "Should have a test plugin");
-  plugin.disabled = false;
+  plugin.enabledState = Ci.nsIPluginTag.STATE_ENABLED;
   plugin.blocklisted = false;
   prepareTest(test2, gTestRoot + "plugin_test.html");
 }
@@ -123,7 +123,7 @@ function test2() {
 
   var plugin = getTestPlugin();
   ok(plugin, "Should have a test plugin");
-  plugin.disabled = true;
+  plugin.enabledState = Ci.nsIPluginTag.STATE_DISABLED;
   prepareTest(test3, gTestRoot + "plugin_test.html");
 }
 
