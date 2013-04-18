@@ -45,31 +45,45 @@
 
 <h3 id="ssl_protocol_versions">SSL Protocol Versions</h3>
 
-<p>The Secure Sockets Layer (SSL) protocol defines rules governing mutual
-  authentication between a website and browser software and the encryption of
-  information that flows between them. The Transport Layer Security (TLS)
-  protocol is an IETF standard based on SSL. TLS 1.0 can be thought of as SSL
-  3.1.</p>
+<p>The <a href="glossary.xhtml#ssl">Secure Sockets Layer (SSL)</a> protocol
+  defines rules governing mutual authentication between a website and browser
+  software and the encryption of information that flows between them. It is
+  also used for secure communication in various other protocols, e.g., for
+  protection of sensitive information exchanged with email, calendar, or
+  directory servers. The newer Transport Layer Security (TLS) protocol is an
+  IETF standard based on SSL but with its own version numbering. TLS 1.0 can
+  be thought of as SSL 3.1, and TLS 1.1 is in turn an update to TLS 1.0. Newer
+  protocols are preferred over older ones as they provide better security and
+  more features. Older protocols are supported to ensure compatibility.</p>
 
-<p>You should normally leave all of the following checkboxes selected to ensure
-  that both older and newer web servers can work with the browser:</p>
+<p>By default, &brandShortName; will select the most secure version which is
+  widely supported to connect to the server. If that attempt doesn&apos;t
+  succeed, it will try to connect with the next older version, etc., to the
+  extent allowed by the settings in this panel. The connection will fail if no
+  protocol supported by both sides is found. You can exclude older versions
+  explicitly or allow newer versions which may not be widely supported yet
+  with the following options:</p>
 
 <ul>
-  <li><strong>Enable SSL 3.0</strong>: Allows web servers that support SSL 3.0
-    to work with the browser.</li>
-  <li><strong>Enable TLS 1.0</strong>: Allows newer web servers that support TLS
-    to take advantage of it.</li>
+  <li><strong>Enable</strong>: Check the <strong>SSL 3.0</strong>, <strong>TLS
+    1.0</strong>, and/or <strong>TLS 1.1</strong> boxes to indicate which
+    protocol versions can be used for a secure connection to a server.</li>
 </ul>
 
-<p><strong>Important note regarding TLS</strong>: Some servers that do not
-  implement SSL correctly cannot negotiate the SSL handshake with client
-  software (such as the browser) that supports TLS. Such servers are known as
-  <q>TLS intolerant</q>.</p>
+<p><strong>Notes</strong>:</p>
 
-<p>When the Enable TLS 1.0 option in the SSL preferences panel is selected, the
-  browser attempts to use the TLS protocol when making secure connections with
-  a server. If that connection fails because the server is TLS intolerant, the
-  browser will fall back to using SSL 3.0 (if enabled).</p>
+<ul>
+  <li>At least one protocol version must be selected, thus it is not possible
+    to uncheck the last remaining box.</li>
+  <li>Also, the selection must be contiguous. It is not possible to select both
+    SSL 3.0 and TLS 1.1 but to exclude the intermediate TLS 1.0 version.</li>
+  <li>You can extend the range by multiple versions. For example, if only SSL
+    3.0 is currently checked and you select TLS 1.1, the TLS 1.0 version is
+    automatically selected as well.</li>
+  <li>Checkboxes may appear checked but grayed out if you cannot uncheck them
+    without violating these rules. Uncheck the outermost boxes to regain
+    access to an enclosed intermediate version.</li>
+</ul>
 
 <h3 id="ssl_warnings">SSL Warnings</h3>
 

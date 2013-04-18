@@ -15,14 +15,15 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <prefpane id="ssl_pane"
-            label="&pref.ssl.title;">
+            label="&pref.ssl.title;"
+            script="chrome://pippki/content/pref-ssl.js">
     <preferences id="ssl_preferences">
-      <preference id="security.enable_ssl3"
-                  name="security.enable_ssl3"
-                  type="bool"/>
-      <preference id="security.enable_tls"
-                  name="security.enable_tls"
-                  type="bool"/>
+      <preference id="security.tls.version.min"
+                  name="security.tls.version.min"
+                  type="int"/>
+      <preference id="security.tls.version.max"
+                  name="security.tls.version.max"
+                  type="int"/>
       <preference id="security.warn_entering_secure"
                   name="security.warn_entering_secure"
                   type="bool"/>
@@ -49,19 +50,29 @@
                   type="bool"/>
     </preferences>
 
-    <groupbox orient="horizontal">
+    <groupbox align="start">
       <caption label="&SSLProtocolVersions.caption;"/>
+      <description>&limit.description;</description>
 
-      <vbox flex="1" align="start">
-        <checkbox id="enableSSL30"
-                  label="&enable.ssl30.label;"
-                  accesskey="&enable.ssl30.accesskey;"
-                  preference="security.enable_ssl3"/>
-        <checkbox id="enableTLS10"
-                  label="&enable.tls10.label;"
-                  accesskey="&enable.tls10.accesskey;"
-                  preference="security.enable_tls"/>
-      </vbox>
+      <hbox align="center">
+        <label id="allowEnable"
+               value="&limit.enable.label;"/>
+        <checkbox id="allowSSL30"
+                  class="nogray-disabled"
+                  label="&limit.ssl30.label;"
+                  accesskey="&limit.ssl30.accesskey;"
+                  oncommand="UpdateSslPrefs()"/>
+        <checkbox id="allowTLS10"
+                  class="nogray-disabled"
+                  label="&limit.tls10.label;"
+                  accesskey="&limit.tls10.accesskey;"
+                  oncommand="UpdateSslPrefs()"/>
+        <checkbox id="allowTLS11"
+                  class="nogray-disabled"
+                  label="&limit.tls11.label;"
+                  accesskey="&limit.tls11.accesskey;"
+                  oncommand="UpdateSslPrefs()"/>
+      </hbox>
 
     </groupbox>
 

@@ -19,6 +19,13 @@
   -moz-box-flex: 1;
 }
 
+/* checkbox which is disabled for changes but non-gray text (i.e., in effect) */
+
+checkbox.nogray-disabled[disabled="true"][nogray="true"] {
+  color: inherit;
+  text-shadow: inherit;
+}
+
 /* ::::: Applications ::::: */
 .handler-action > .menu-iconic-left {
   /**

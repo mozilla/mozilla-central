@@ -19,6 +19,13 @@
   -moz-box-flex: 1;
 }
 
+/* checkbox which is disabled for changes but non-gray text (i.e., in effect) */
+
+checkbox.nogray-disabled[disabled="true"][nogray="true"]
+  > .checkbox-label-box > .checkbox-label {
+  color: inherit !important;
+}
+
 /* ::::: Applications ::::: */
 /**
  * Line up the actions menu with action labels above and below it.
