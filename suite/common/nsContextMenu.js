@@ -1399,12 +1399,11 @@ nsContextMenu.prototype = {
         media.setAttribute("controls", "true");
         break;
       case "showstats":
-        media.dispatchEvent(new CustomEvent("media-showStatistics",
-          { bubbles: false, cancelable: true, detail: true }));
-        break;
       case "hidestats":
-        media.dispatchEvent(new CustomEvent("media-showStatistics",
-          { bubbles: false, cancelable: true, detail: false }));
+        var win = media.ownerDocument.defaultView;
+        var showing = aCommand == "showstats";
+        media.dispatchEvent(new win.CustomEvent("media-showStatistics",
+          { bubbles: false, cancelable: true, detail: showing }));
         break;
     }
   },
