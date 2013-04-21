@@ -702,24 +702,6 @@ function calGetString(aBundleName, aStringName, aParams, aComponent) {
 }
 
 /**
- * Gets the value of the fields of a string array in a .properties file from the calendar bundle
- *
- * @param aBundleName  the name of the properties file. It is assumed that the
- *                     file lives in chrome://calendar/locale/
- * @param aStringNames the array with the name of the strings within the properties file
- * @param aParams      optional array of parameters to format the string
- * @param aComponent   optional stringbundle component name
- */
-
-function calGetStringArray(aBundleName, aStringNames, aParams, aComponent) {
-    var retArray = [];
-    for (var i = 0; i < aStringNames.length; ++i) {
-        retArray.push(calGetString(aBundleName, aStringNames[i], aParams, aComponent));
-    }
-    return retArray;
-}
-
-/**
  * Make a UUID using the UUIDGenerator service available, we'll use that.
  */
 function getUUID() {
@@ -1199,21 +1181,6 @@ function isSunbird() {
     return isSunbird.mIsSunbird;
 }
 
-function hasPositiveIntegerValue(elementId)
-{
-    var value = document.getElementById(elementId).value;
-    if (value && (parseInt(value) == value) && value > 0) {
-        return true;
-    }
-    return false;
-}
-
-function getAtomFromService(aStr) {
-    var atomService = Components.classes["@mozilla.org/atom-service;1"]
-                      .getService(Components.interfaces.nsIAtomService);
-    return atomService.getAtom(aStr);
-}
-
 function calInterfaceBag(iid) {
     this.init(iid);
 }
@@ -1440,53 +1407,6 @@ function calSetProdidVersion(aIcalComponent) {
  * TODO: The following UI-related functions need to move somewhere different,
  * i.e calendar-ui-utils.js
  */
-
-/**
- * This function returns a sibling of a XUL element, that is positioned behind
- * it in the DOM hierarchy *
- * @param
- *      aElement  The XUL element to derive the sibling from
- * @param
- *      aDistance  An integer value denoting how the relative position
- *                  of the returned sibling within the parent container
- */
-function getAdjacentSibling(aElement, aDistance) {
-    var retElement = aElement;
-    if (aDistance > 0) {
-        for (var i = 0; i < aDistance; i++) {
-            if (retElement) {
-                try {
-                    retElement = retElement.nextSibling;
-                } catch (e) {
-                    retElement = null;
-                    i = aDistance;
-                }
-            }
-        }
-    }
-    return retElement;
-}
-
-/**
- * deeply clones a popupmenu
- *
- * @param aMenuPopupId The Id of the popup-menu to be cloned
- * @param aNewPopupId The new id of the cloned popup-menu
- * @param aNewIdPrefix To keep the ids unique the childnodes of the returned
- * popup-menu are prepended with a prefix
- * @return the cloned popup-menu
- */
-function clonePopupMenu(aMenuPopupId, aNewPopupId, aNewIdPrefix) {
-    var oldMenuPopup = document.getElementById(aMenuPopupId);
-    var retMenuPopup = oldMenuPopup.cloneNode(true);
-    retMenuPopup.setAttribute("id", aNewPopupId);
-    var menuElements = retMenuPopup.getElementsByAttribute("id", "*");
-    for (var i = 0; i < menuElements.length; i++) {
-        var lid = menuElements[i].getAttribute("id");
-        menuElements[i].setAttribute("id", aNewIdPrefix + lid);
-    }
-    return retMenuPopup;
-}
 
 /**
  * applies a value to all children of a Menu. If the respective childnodes define
