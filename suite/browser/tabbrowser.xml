@@ -2703,6 +2703,10 @@
                              .getService(Components.interfaces.nsIObserverService);
           os.addObserver(this, "browser:purge-session-history", false);
           this.mPrefs.addObserver("browser.tabs.max_tabs_undo", this, false);
+
+          var onclick = this.getAttribute("oncontentclick");
+          if (onclick)
+            this.contentAreaClick = new Function("event", onclick);
         ]]>
       </constructor>
 
@@ -2787,6 +2791,14 @@
       <handler event="keypress" keycode="VK_DOWN" modifiers="accel" action="if (event.target == this) { this.moveTabForward(); event.preventDefault(); }"/>
       <handler event="keypress" keycode="VK_HOME" modifiers="accel" action="if (event.target == this) { this.moveTabToStart(); event.preventDefault(); }"/>
       <handler event="keypress" keycode="VK_END" modifiers="accel" action="if (event.target == this) { this.moveTabToEnd(); event.preventDefault(); }"/>
+
+      <handler event="click" phase="capturing" group="system">
+        <![CDATA[
+          if (this.contentAreaClick)
+            this.contentAreaClick(event);
+        ]]>
+      </handler>
+
     </handlers>
   </binding>
 

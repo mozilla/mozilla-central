@@ -460,7 +460,7 @@
                     onnewtabclick="checkForMiddleClick(this, event);"
                     autocompletepopup="PopupAutoComplete"
                     onbookmarkgroup="PlacesCommandHook.bookmarkCurrentPages();"
-                    onclick="return contentAreaClick(event);"
+                    oncontentclick="return contentAreaClick(event);"
                     oncommand="BrowserOnCommand(event);"/>
         <!-- The oncommand listener above lets us fix bugs like 401575 which
              require error page UI to do privileged things, without letting
