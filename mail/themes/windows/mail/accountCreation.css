@@ -84,22 +84,6 @@ window {
   background: -moz-dialog;
 }
 
-.icon[state='strong'] {
-  background-image: url("chrome://messenger/skin/icons/secure.png");
-}
-
-.icon[state='failed'] {
-  background-image: url("chrome://messenger/skin/icons/failed.png");
-}
-
-.icon[state='probing'] {
-  background-image: url("chrome://messenger/skin/icons/probing.png");
-}
-
-.icon[state='weak'] {
-  background-image: url("chrome://messenger/skin/icons/insecure.png");
-}
-
 #warningbox {
   width: 650px;
   height: 400px;
