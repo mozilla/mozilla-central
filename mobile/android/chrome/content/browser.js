@@ -954,6 +954,21 @@ var BrowserApp = {
           pref.value = MasterPassword.enabled;
           prefs.push(pref);
           continue;
+#ifdef MOZ_CRASHREPORTER
+        } else if (prefName == "datareporting.crashreporter.submitEnabled") {
+          // Crash reporter submit pref must be fetched from nsICrashReporter service.
+          pref.type = "bool";
+          pref.value = CrashReporter.submitReports;
+          prefs.push(pref);
+          continue;
+#endif
+        } else if (prefName == Telemetry.SHARED_PREF_TELEMETRY_ENABLED) {
+          // Android Telemetry-enabled pref does not map to Telemetry's
+          // per-release prefs.
+          pref.type = "bool";
+          pref.value = Telemetry.getEnabled();
+          prefs.push(pref);
+          continue;
         }
 
         try {
@@ -1051,6 +1066,17 @@ var BrowserApp = {
     } else if (json.name == SearchEngines.PREF_SUGGEST_ENABLED) {
       // Enabling or disabling suggestions will prevent future prompts
       Services.prefs.setBoolPref(SearchEngines.PREF_SUGGEST_PROMPTED, true);
+#ifdef MOZ_CRASHREPORTER
+    } else if (json.name == "datareporting.crashreporter.submitEnabled") {
+      // Crash reporter submit pref.
+      CrashReporter.submitReports = json.value;
+      return;
+#endif
+    } else if (json.name == Telemetry.SHARED_PREF_TELEMETRY_ENABLED) {
+      // Java Telemetry-enabled pref does not map directly to Telemetry's
+      // per-release pref.
+      Telemetry.setEnabled(json.value);
+      return;
     }
 
     // when sending to java, we normalized special preferences that use
@@ -6348,28 +6374,17 @@ var RemoteDebugger = {
 var Telemetry = {
 #ifdef MOZ_TELEMETRY_ON_BY_DEFAULT
   _PREF_TELEMETRY_ENABLED: "toolkit.telemetry.enabledPreRelease",
-  _PREF_TELEMETRY_DISPLAYED: "toolkit.telemetry.notifiedOptOut",
 #else
   _PREF_TELEMETRY_ENABLED: "toolkit.telemetry.enabled",
-  _PREF_TELEMETRY_DISPLAYED: "toolkit.telemetry.prompted",
 #endif
-  _PREF_TELEMETRY_REJECTED: "toolkit.telemetry.rejected",
-  _PREF_TELEMETRY_SERVER_OWNER: "toolkit.telemetry.server_owner",
-
-  // This is used to reprompt Beta/GA users and notify again
-  // Nightly/Aurora users when privacy message changes
-  _TELEMETRY_DISPLAY_REV: @MOZ_TELEMETRY_DISPLAY_REV@,
+  SHARED_PREF_TELEMETRY_ENABLED: "datareporting.telemetry.enabled",
 
   init: function init() {
-    Services.obs.addObserver(this, "Preferences:Set", false);
     Services.obs.addObserver(this, "Telemetry:Add", false);
-    Services.obs.addObserver(this, "Telemetry:Prompt", false);
   },
 
   uninit: function uninit() {
-    Services.obs.removeObserver(this, "Preferences:Set");
     Services.obs.removeObserver(this, "Telemetry:Add");
-    Services.obs.removeObserver(this, "Telemetry:Prompt");
   },
 
   addData: function addData(aHistogramId, aValue) {
@@ -6379,131 +6394,18 @@ var Telemetry = {
   },
 
   observe: function observe(aSubject, aTopic, aData) {
-    if (aTopic == "Preferences:Set") {
-      // if user changes telemetry pref, treat it like they have been prompted
-      let pref = JSON.parse(aData);
-      if (pref.name == this._PREF_TELEMETRY_ENABLED) {
-        Services.prefs.setIntPref(this._PREF_TELEMETRY_DISPLAYED, this._TELEMETRY_DISPLAY_REV);
-        Services.prefs.setBoolPref(this._PREF_TELEMETRY_REJECTED, !pref.value);
-      }
-    } else if (aTopic == "Telemetry:Add") {
+    if (aTopic == "Telemetry:Add") {
       let json = JSON.parse(aData);
       this.addData(json.name, json.value);
-    } else if (aTopic == "Telemetry:Prompt") {
-#ifdef MOZ_TELEMETRY_REPORTING
-      this.prompt();
-#endif
     }
   },
 
-  prompt: function prompt() {
-    let brandShortName = Strings.brand.GetStringFromName("brandShortName");
-    let serverOwner = Services.prefs.getCharPref(this._PREF_TELEMETRY_SERVER_OWNER);
-    let telemetryEnabled = Services.prefs.getBoolPref(this._PREF_TELEMETRY_ENABLED);
-    let message;
-    let buttons;
-    let self = this;
+  getEnabled: function() {
+    return Services.prefs.getBoolPref(this._PREF_TELEMETRY_ENABLED);
+  },
 
-    /*
-     * Display an opt-out notification when telemetry is enabled by default,
-     * an opt-in prompt otherwise.
-     *
-     * But do not display this prompt/notification if:
-     *
-     * - The last accepted/refused policy (either by accepting the prompt or by
-     *   manually flipping the telemetry preference) is already at version
-     *   TELEMETRY_DISPLAY_REV or higher (to avoid the prompt in tests).
-     */
-    let telemetryDisplayed;
-    try {
-      telemetryDisplayed = Services.prefs.getIntPref(self._PREF_TELEMETRY_DISPLAYED);
-    } catch(e) {}
-    if (telemetryDisplayed >= self._TELEMETRY_DISPLAY_REV)
-      return;
-
-#ifdef MOZ_TELEMETRY_ON_BY_DEFAULT
-    /*
-     * Additionally, in opt-out builds, don't display the notification if:
-     *
-     * - Telemetry is disabled
-     * - Telemetry was explicitly refused through the UI
-     * - Opt-in telemetry was already enabled, don't notify the user until next
-     *   policy update. (Do the check only at first run with opt-out builds)
-     */
-
-    let telemetryEnabled = Services.prefs.getBoolPref(self._PREF_TELEMETRY_ENABLED);
-    if (!telemetryEnabled)
-      return;
-
-    // If telemetry was explicitly refused through the UI,
-    // also disable opt-out telemetry and bail out.
-    let telemetryRejected = false;
-    try {
-      telemetryRejected = Services.prefs.getBoolPref(self._PREF_TELEMETRY_REJECTED);
-    } catch(e) {}
-    if (telemetryRejected) {
-      Services.prefs.setBoolPref(self._PREF_TELEMETRY_ENABLED, false);
-      Services.prefs.setIntPref(self._PREF_TELEMETRY_DISPLAYED, self._TELEMETRY_DISPLAY_REV);
-      return;
-    }
-
-    // If opt-in telemetry was already enabled, don't notify the user until next
-    // policy update. (Do the check only at first run with opt-out builds)
-    let optInTelemetryEnabled = false;
-    try {
-      optInTelemetryEnabled = Services.prefs.getBoolPref("toolkit.telemetry.enabled");
-    } catch(e) {}
-    if (optInTelemetryEnabled && telemetryDisplayed === undefined) {
-      Services.prefs.setBoolPref(self._PREF_TELEMETRY_REJECTED, false);
-      Services.prefs.setIntPref(self._PREF_TELEMETRY_DISPLAYED, self._TELEMETRY_DISPLAY_REV);
-      return;
-    }
-
-    message = Strings.browser.formatStringFromName("telemetry.optout.message2",
-                                                    [brandShortName, serverOwner, brandShortName], 3);
-    buttons = [
-      {
-        label: Strings.browser.GetStringFromName("telemetry.optout.ok"),
-        callback: function () {
-          Services.prefs.setIntPref(self._PREF_TELEMETRY_DISPLAYED, self._TELEMETRY_DISPLAY_REV);
-        }
-      }
-    ];
-#else
-    // Clear old prefs and reprompt
-    Services.prefs.clearUserPref(self._PREF_TELEMETRY_DISPLAYED);
-    Services.prefs.clearUserPref(self._PREF_TELEMETRY_ENABLED);
-    Services.prefs.clearUserPref(self._PREF_TELEMETRY_REJECTED);
-
-    message = Strings.browser.formatStringFromName("telemetry.optin.message2",
-                                                  [serverOwner, brandShortName], 2);
-    buttons = [
-      {
-        label: Strings.browser.GetStringFromName("telemetry.optin.send"),
-        callback: function () {
-          Services.prefs.setIntPref(self._PREF_TELEMETRY_DISPLAYED, self._TELEMETRY_DISPLAY_REV);
-          Services.prefs.setBoolPref(self._PREF_TELEMETRY_ENABLED, true);
-        }
-      },
-      {
-        label: Strings.browser.GetStringFromName("telemetry.optin.dontSend"),
-        callback: function () {
-          Services.prefs.setIntPref(self._PREF_TELEMETRY_DISPLAYED, self._TELEMETRY_DISPLAY_REV);
-          Services.prefs.setBoolPref(self._PREF_TELEMETRY_REJECTED, true);
-        }
-      }
-    ];
-#endif
-    let learnMoreLabel = Strings.browser.GetStringFromName("telemetry.optin.learnMore");
-    let learnMoreUrl = Services.urlFormatter.formatURLPref("app.support.baseURL");
-    learnMoreUrl += "how-can-i-help-submitting-performance-data";
-    let options = {
-      link: {
-        label: learnMoreLabel,
-        url: learnMoreUrl
-      }
-    };
-    NativeWindow.doorhanger.show(message, "telemetry-prompt", buttons, BrowserApp.selectedTab.id, options);
+  setEnabled: function(toEnable) {
+    Services.prefs.setBoolPref(this._PREF_TELEMETRY_ENABLED, toEnable);
   },
 };
 

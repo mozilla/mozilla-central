@@ -5,6 +5,7 @@
 
 package org.mozilla.gecko;
 
+import org.mozilla.gecko.DataReportingNotification;
 import org.mozilla.gecko.background.announcements.AnnouncementsBroadcastService;
 import org.mozilla.gecko.db.BrowserDB;
 import org.mozilla.gecko.gfx.Layer;
@@ -1568,10 +1569,8 @@ abstract public class GeckoApp
 
         initializeChrome(passedUri, isExternalURL);
 
-        // Show telemetry door hanger if we aren't restoring a session
         if (mRestoreMode == RESTORE_NONE) {
             Tabs.getInstance().notifyListeners(null, Tabs.TabEvents.RESTORED);
-            GeckoAppShell.sendEventToGecko(GeckoEvent.createBroadcastEvent("Telemetry:Prompt", null));
         }
 
         Telemetry.HistogramAdd("FENNEC_STARTUP_GECKOAPP_ACTION", startupAction.ordinal());
@@ -1670,6 +1669,9 @@ abstract public class GeckoApp
                 // We do this by invoking the broadcast receiver, which uses the
                 // system alarm infrastructure to perform tasks at intervals.
                 GeckoPreferences.broadcastAnnouncementsPref(context);
+
+                // Display notification for Mozilla data reporting.
+                DataReportingNotification.checkAndNotifyPolicy(context);
 
                 /*
                   XXXX see bug 635342

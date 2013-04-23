@@ -77,6 +77,7 @@
   <string name="pref_category_general">&pref_category_general;</string>
   <string name="pref_category_privacy">&pref_category_privacy;</string>
   <string name="pref_category_content">&pref_category_content;</string>
+  <string name="pref_category_advanced">&pref_category_advanced;</string>
   <string name="pref_category_importexport">&pref_category_importexport;</string>
   <string name="pref_about_firefox">&pref_about_firefox;</string>
   <string name="pref_do_not_track">&pref_do_not_track;</string>
@@ -122,6 +123,17 @@
   <string name="pref_update_autodownload_wifi">&pref_update_autodownload_wifi;</string>
   <string name="pref_update_autodownload_disabled">&pref_update_autodownload_disabled;</string>
   <string name="pref_update_autodownload_enabled">&pref_update_autodownload_enabled;</string>
+
+  <string name="datareporting_notification_title">&datareporting_notification_title;</string>
+  <string name="datareporting_notification_summary">&datareporting_notification_summary;</string>
+
+  <string name="datareporting_title">&datareporting_title;</string>
+  <string name="datareporting_telemetry_title">&datareporting_telemetry_title;</string>
+  <string name="datareporting_telemetry_summary">&datareporting_telemetry_summary;</string>
+  <string name="datareporting_fhr_title">&datareporting_fhr_title;</string>
+  <string name="datareporting_fhr_summary">&datareporting_fhr_summary;</string>
+  <string name="datareporting_crashreporter_title">&datareporting_crashreporter_title;</string>
+  <string name="datareporting_crashreporter_summary">&datareporting_crashreporter_summary;</string>
 
   <string name="go">&go;</string>
   <string name="search">&search;</string>

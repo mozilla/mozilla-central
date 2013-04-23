@@ -73,6 +73,7 @@ FENNEC_JAVA_FILES = \
   db/BrowserDB.java \
   db/LocalBrowserDB.java \
   db/DBUtils.java \
+  DataReportingNotification.java \
   Distribution.java \
   Divider.java \
   DoorHanger.java \
@@ -101,7 +102,9 @@ FENNEC_JAVA_FILES = \
   GeckoMenuItem.java \
   GeckoMessageReceiver.java \
   GeckoSubMenu.java \
+  GeckoPreferencesActivity.java \
   GeckoPreferences.java \
+  GeckoDataPreferences.java \
   GeckoProfile.java \
   GeckoPopupMenu.java \
   GeckoSmsManager.java \
@@ -266,6 +269,7 @@ FENNEC_PP_JAVA_FILES = \
   $(NULL)
 
 FENNEC_PP_XML_FILES = \
+  res/xml/preferences.xml \
   res/xml/searchable.xml \
   $(NULL)
 
@@ -523,7 +527,8 @@ RES_VALUES_V14 = \
   $(NULL)
 
 RES_XML = \
-  res/xml/preferences.xml \
+  res/xml/datareporting_preferences.xml \
+  res/xml-v14/datareporting_preferences.xml \
   $(SYNC_RES_XML) \
   $(NULL)
 
@@ -1059,6 +1064,7 @@ RES_DIRS= \
   res/values-xlarge-v11         \
   res/values-land-v14           \
   res/xml                       \
+  res/xml-v14                   \
   res/anim                      \
   res/drawable-ldpi             \
   res/drawable-mdpi             \

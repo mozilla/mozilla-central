@@ -25,6 +25,8 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.ComponentName;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -534,6 +536,8 @@ abstract public class BrowserApp extends GeckoApp
         registerEventListener("Feedback:OpenPlayStore");
         registerEventListener("Feedback:MaybeLater");
         registerEventListener("Telemetry:Gather");
+        registerEventListener("Activity:Launch");
+        registerEventListener("AndroidSharedPreferences:Set");
 
         Distribution.init(this, getPackageResourcePath());
         JavaAddonManager.getInstance().init(getApplicationContext());
@@ -633,6 +637,8 @@ abstract public class BrowserApp extends GeckoApp
         unregisterEventListener("Feedback:OpenPlayStore");
         unregisterEventListener("Feedback:MaybeLater");
         unregisterEventListener("Telemetry:Gather");
+        unregisterEventListener("Activity:Launch");
+        unregisterEventListener("AndroidSharedPreferences:Set");
 
         if (AppConstants.MOZ_ANDROID_BEAM && Build.VERSION.SDK_INT >= 14) {
             NfcAdapter nfc = NfcAdapter.getDefaultAdapter(this);
@@ -998,6 +1004,39 @@ abstract public class BrowserApp extends GeckoApp
                 Telemetry.HistogramAdd("PLACES_BOOKMARKS_COUNT", BrowserDB.getCount(getContentResolver(), "bookmarks"));
                 Telemetry.HistogramAdd("FENNEC_FAVICONS_COUNT", BrowserDB.getCount(getContentResolver(), "favicons"));
                 Telemetry.HistogramAdd("FENNEC_THUMBNAILS_COUNT", BrowserDB.getCount(getContentResolver(), "thumbnails"));
+            } else if (event.equals("Activity:Launch")) {
+                // Launch an Activity by given classname.
+                Intent intent = new Intent();
+                intent.setComponent(new ComponentName(getPackageName(), message.getString("classname")));
+                startActivity(intent);
+            } else if (event.equals("AndroidSharedPreferences:Set")) {
+                // Set a SharedPreference in Android. Requires preference "name", "type" [bool, int, string],
+                // and "branch" specifying SharedPreference branch for preference.
+                SharedPreferences.Editor editor = null;
+                if (message.has("branch")) {
+                    editor = getSharedPreferences(message.getString("branch"), Activity.MODE_PRIVATE).edit();
+                } else {
+                    Log.e(LOGTAG, "No branch specified for AndroidSharedPreference:Set.");
+                    return;
+                }
+                JSONArray jsonPrefs = message.getJSONArray("preferences");
+
+                for (int i = 0; i < jsonPrefs.length(); i++) {
+                    JSONObject pref = jsonPrefs.getJSONObject(i);
+                    String name = pref.getString("name");
+                    String type = pref.getString("type");
+                    if ("bool".equals(type)) {
+                        editor.putBoolean(name, pref.getBoolean("value"));
+                    } else if ("int".equals(type)) {
+                        editor.putInt(name, pref.getInt("value"));
+                    } else if ("string".equals(type)) {
+                        editor.putString(name, pref.getString("value"));
+                    } else {
+                        Log.e(LOGTAG, "Unknown pref value type [" + type + "] for pref [" + name + "]");
+                        return;
+                    }
+                }
+                editor.commit();
             } else if (event.equals("Reader:Added")) {
                 final int result = message.getInt("result");
                 final String title = message.getString("title");

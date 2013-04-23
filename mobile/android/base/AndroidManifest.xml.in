@@ -190,6 +190,10 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="org.mozilla.gecko.DataReportingNotification"
+            android:exported="false" />
+
         <activity android:name="org.mozilla.gecko.Restarter"
                   android:process="@ANDROID_PACKAGE_NAME@Restarter"
                   android:theme="@style/Gecko">
@@ -230,6 +234,12 @@
         <activity android:name="org.mozilla.gecko.GeckoPreferences"
                   android:theme="@style/Gecko.Preferences"
                   android:label="@string/settings_title"
+                  android:configChanges="orientation|screenSize"
+                  android:excludeFromRecents="true"/>
+
+        <activity android:name="org.mozilla.gecko.GeckoDataPreferences"
+                  android:theme="@style/Gecko.TitleBar.Preferences"
+                  android:label="@string/datareporting_title"
                   android:configChanges="orientation|screenSize"
                   android:excludeFromRecents="true"/>
 

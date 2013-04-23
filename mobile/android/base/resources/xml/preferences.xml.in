@@ -1,3 +1,4 @@
+#filter substitution
 <?xml version="1.0" encoding="utf-8"?>
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,7 +7,7 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   xmlns:gecko="http://schemas.android.com/apk/res-auto"
-                  android:enabled="false">
+                  android:enabled="false" >
 
     <PreferenceCategory android:title="@string/pref_category_general"
                         android:key="category_general">
@@ -92,14 +93,19 @@
                             android:defaultValue="true"
                             android:persistent="false" />
 
-        <CheckBoxPreference android:key="toolkit.telemetry.enabled"
-                            android:title="@string/pref_telemetry"
-                            android:persistent="false" />
-
         <CheckBoxPreference android:key="android.not_a_preference.privacy.announcements.enabled"
                             android:title="@string/pref_show_product_announcements"
                             android:defaultValue="true"
                             android:persistent="true" />
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_category_advanced">
+        <Preference android:title="@string/datareporting_title">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:targetPackage="@ANDROID_PACKAGE_NAME@"
+                android:targetClass="org.mozilla.gecko.GeckoDataPreferences" />
+        </Preference>
 
     </PreferenceCategory>
 
