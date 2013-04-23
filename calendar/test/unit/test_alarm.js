@@ -16,11 +16,13 @@ function run_test() {
 
     test_clone();
     test_immutable();
+    test_serialize();
+    test_strings();
 }
 
 function test_initial_creation() {
     dump("Testing initial creation...");
-    alarm = cal.createAlarm();
+    let alarm = cal.createAlarm();
 
     let passed;
     try {
@@ -54,10 +56,15 @@ function test_display_alarm() {
     let attendee = cal.createAttendee();
     attendee.id = "mailto:horst";
 
-    try {
+    do_check_throws(function() {
+        // DISPLAY alarm should not be able to save attendees
         alarm.addAttendee(attendee);
-        do_throw("DISPLAY alarm should not be able to save attendees");
-    } catch (e) {}
+    }, Components.results.NS_ERROR_XPC_JS_THREW_JS_OBJECT);
+
+    do_check_throws(function() {
+        // DISPLAY alarm should not be able to save attachment
+        alarm.addAttachment(cal.createAttachment());
+    }, Components.results.NS_ERROR_XPC_JS_THREW_JS_OBJECT);
 
     dump("Done\n");
 }
@@ -77,6 +84,10 @@ function test_email_alarm() {
     alarm.summary = "summary";
     do_check_eq(alarm.summary, "summary");
 
+    // Set an offset of some sort
+    alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
+    alarm.offset = cal.createDuration();
+
     // Check for at least one attendee
     let attendee1 = cal.createAttendee();
     attendee1.id = "mailto:horst";
@@ -93,6 +104,9 @@ function test_email_alarm() {
     do_check_eq(addedAttendees.length, 2);
     do_check_eq(addedAttendees[0], attendee2);
     do_check_eq(addedAttendees[1], attendee1);
+
+    do_check_true(!!alarm.icalComponent.serializeToICS().match(/mailto:horst/));
+    do_check_true(!!alarm.icalComponent.serializeToICS().match(/mailto:gustav/));
 
     alarm.deleteAttendee(attendee1);
     do_check_eq(alarm.getAttendees({}).length, 1);
@@ -129,6 +143,11 @@ function test_audio_alarm() {
         alarm.addAttendee(attendee);
         do_throw("AUDIO alarm should not be able to save attendees");
     } catch (e) {}
+
+    // No attendee yet, should not be initialized
+    do_check_throws(function() {
+        alarm.icalComponent;
+    }, Components.results.NS_ERROR_NOT_INITIALIZED);
 
     // Test attachments
     let sound = cal.createAttachment();
@@ -257,9 +276,22 @@ function test_repeat() {
         do_throw("Could not set repeatOffset attribute to null" + e);
     }
 
-    // Check final value
+    // Check unset value
     do_check_eq(alarm.repeat, 0);
     do_check_eq(alarm.repeatOffset, null);
+
+    // Check repeatDate
+    alarm = cal.createAlarm();
+    alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
+    alarm.alarmDate = cal.createDateTime();
+    alarm.repeat = 1;
+    alarm.repeatOffset = cal.createDuration();
+    alarm.repeatOffset.inSeconds = 3600;
+
+    let dt = alarm.alarmDate.clone();
+    dt.second += 3600;
+    do_check_eq(alarm.repeatDate.icalString, dt.icalString);
+
     dump("Done\n");
 }
 
@@ -272,6 +304,18 @@ function test_xprop() {
     alarm.deleteProperty("X-PROP");
     do_check_false(alarm.hasProperty("X-PROP"));
     do_check_eq(alarm.getProperty("X-PROP"), null);
+
+    // also check X-MOZ-LASTACK prop
+    let dt = cal.createDateTime();
+    alarm.setProperty("X-MOZ-LASTACK", dt.icalString);
+    alarm.action = "DISPLAY";
+    alarm.description = "test";
+    alarm.related = Ci.calIAlarm.ALARM_RELATED_START
+    alarm.offset = createDuration("-PT5M");
+    do_check_true(alarm.icalComponent.serializeToICS().indexOf(dt.icalString) > -1);
+
+    alarm.deleteProperty("X-MOZ-LASTACK");
+    do_check_false(alarm.icalComponent.serializeToICS().indexOf(dt.icalString) > -1);
     dump("Done\n");
 }
 
@@ -314,6 +358,7 @@ function test_dates() {
     if (!passed) {
         do_throw("Setting offset when alarm is absolute should not succeed");
     }
+
     dump("Done\n");
 }
 
@@ -336,9 +381,22 @@ let clonePropMap = { "related": Ci.calIAlarm.ALARM_RELATED_END,
 function test_immutable() {
 
     dump("Testing immutable alarms...");
+    let alarm = cal.createAlarm();
+    // Set up each attribute
+    for (let prop in propMap) {
+        alarm[prop] = propMap[prop];
+    }
+
+    // Set up some extra props
+    alarm.setProperty("X-FOO", "X-VAL");
+    alarm.setProperty("X-DATEPROP", cal.createDateTime());
+    alarm.addAttendee(cal.createAttendee());
+
     let passed = false;
     // Initial checks
     do_check_true(alarm.isMutable);
+    alarm.makeImmutable();
+    do_check_false(alarm.isMutable);
     alarm.makeImmutable();
     do_check_false(alarm.isMutable);
 
@@ -347,35 +405,23 @@ function test_immutable() {
         try {
             alarm[prop] = propMap[prop];
         } catch (e) {
-            // XXX do_check_eq(e.result, Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE);
+            do_check_eq(e.result, Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE);
             continue;
         }
         do_throw("Attribute " + prop + " was writable while item was immutable");
     }
 
     // Functions
-    try {
-        alarm.setProperty("X-FOO", "BAR");
-        passed = false;
-    } catch (e) {
-        passed = true
-    }
+    do_check_throws(function() {
+        alarm.setProperty("X-FOO", "changed");
+    }, Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE);
 
-    if (!passed) {
-        do_throw("setProperty succeeded while item was immutable");
-    }
-
-    try {
+    do_check_throws(function() {
         alarm.deleteProperty("X-FOO");
-        passed = false;
-    } catch (e) {
-        passed = true;
-        do_check_eq(e.result, Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE);
-    }
+    }, Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE);
 
-    if (!passed) {
-        do_throw("setProperty succeeded while item was immutable");
-    }
+    do_check_false(alarm.getProperty("X-DATEPROP").isMutable);
+
     dump("Done\n");
 }
 
@@ -386,6 +432,12 @@ function test_clone() {
     for (let prop in propMap) {
         alarm[prop] = propMap[prop];
     }
+
+    // Set up some extra props
+    alarm.setProperty("X-FOO", "X-VAL");
+    alarm.setProperty("X-DATEPROP", cal.createDateTime());
+    alarm.addAttendee(cal.createAttendee());
+
     // Make a copy
     let newAlarm = alarm.clone();
     newAlarm.makeImmutable();
@@ -416,5 +468,117 @@ function test_clone() {
         dump("OK!\n");
         break;
     }
+
+    // Check x props
+    alarm.setProperty("X-FOO", "BAR");
+    do_check_eq(alarm.getProperty("X-FOO"), "BAR");
+    let dt = alarm.getProperty("X-DATEPROP");
+    do_check_eq(dt.isMutable, true);
+
+    // Test xprop params
+    alarm.icalString =
+        "BEGIN:VALARM\n" +
+        "ACTION:DISPLAY\n" +
+        "TRIGGER:-PT15M\n" +
+        "X-FOO;X-PARAM=PARAMVAL:BAR\n" +
+        "DESCRIPTION:TEST\n" +
+        "END:VALARM";
+
+    newAlarm = alarm.clone();
+    do_check_eq(alarm.icalString, newAlarm.icalString);
+
     dump("Done\n");
+}
+
+function test_serialize() {
+    // most checks done by other tests, these don't fit into categories
+    let alarm = cal.createAlarm();
+    let srv = cal.getIcsService();
+
+    do_check_throws(function() {
+        alarm.icalComponent = srv.createIcalComponent("BARF");
+    }, Components.results.NS_ERROR_INVALID_ARG);
+
+    function addProp(k,v) { let p = srv.createIcalProperty(k); p.value = v; comp.addProperty(p) }
+    function addActionDisplay() addProp("ACTION", "DISPLAY");
+    function addActionEmail() addProp("ACTION", "EMAIL");
+    function addTrigger() addProp("TRIGGER", "-PT15M");
+    function addDescr() addProp("DESCRIPTION", "TEST");
+    function addDuration() addProp("DURATION", "-PT15M");
+    function addRepeat() addProp("REPEAT", "1");
+    function addAttendee() addProp("ATTENDEE", "mailto:horst");
+    function addAttachment() addProp("ATTACH", "data:yeah");
+
+    // All is there, should not throw
+    let comp = srv.createIcalComponent("VALARM");
+    addActionDisplay(); addTrigger(); addDescr(); addDuration(); addRepeat();
+    alarm.icalComponent = comp;
+    alarm.toString();
+
+    // Attachments and attendees
+    let comp = srv.createIcalComponent("VALARM");
+    addActionEmail(); addTrigger(); addDescr();
+    addAttendee(); addAttachment();
+    alarm.icalComponent = comp;
+    alarm.toString();
+
+    // Missing action
+    do_check_throws(function() {
+        comp = srv.createIcalComponent("VALARM");
+        addTrigger(); addDescr();
+        alarm.icalComponent = comp;
+    }, Components.results.NS_ERROR_INVALID_ARG);
+
+    // Missing trigger
+    do_check_throws(function() {
+        comp = srv.createIcalComponent("VALARM");
+        addActionDisplay(); addDescr();
+        alarm.icalComponent = comp;
+    }, Components.results.NS_ERROR_INVALID_ARG);
+
+    // Missing duration with repeat
+    do_check_throws(function() {
+        comp = srv.createIcalComponent("VALARM");
+        addActionDisplay(); addTrigger(); addDescr();
+        addRepeat();
+        alarm.icalComponent = comp;
+    }, Components.results.NS_ERROR_INVALID_ARG);
+
+    // Missing repeat with duration
+    do_check_throws(function() {
+        comp = srv.createIcalComponent("VALARM");
+        addActionDisplay(); addTrigger(); addDescr();
+        addDuration();
+        alarm.icalComponent = comp;
+    }, Components.results.NS_ERROR_INVALID_ARG);
+
+}
+
+function test_strings() {
+    // Serializing the string shouldn't throw, but we don't really care about
+    // the string itself.
+    let alarm = cal.createAlarm();
+    alarm.action = "DISPLAY";
+    alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
+    alarm.alarmDate = cal.createDateTime();
+    alarm.toString();
+
+    alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_START;
+    alarm.offset = cal.createDuration();
+    alarm.toString();
+    alarm.toString(cal.createTodo());
+
+    alarm.related = Components.interfaces.calIAlarm.ALARM_RELATED_END;
+    alarm.offset = cal.createDuration();
+    alarm.toString();
+    alarm.toString(cal.createTodo());
+
+    alarm.offset = cal.createDuration("P1D");
+    alarm.toString();
+
+    alarm.offset = cal.createDuration("PT1H");
+    alarm.toString();
+
+    alarm.offset = cal.createDuration("-PT1H");
+    alarm.toString();
 }

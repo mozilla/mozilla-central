@@ -37,6 +37,8 @@ function run_test() {
 
     // test icalproperty
     r2.icalProperty;
+
+    test_icalprop();
 }
 
 function checkRelations(event, expRel) {
@@ -73,4 +75,53 @@ function modifyRelations(event, oldRel) {
     event.addRelation(oldRel[0]);
     event.removeAllRelations();
     do_check_eq(event.getRelations({}), 0);
+}
+
+function test_icalprop() {
+    let rel = cal.createRelation();
+
+    rel.relType = "SIBLING";
+    rel.setParameter("X-PROP", "VAL");
+    rel.relId = "value";
+
+    let prop = rel.icalProperty;
+    let propOrig = rel.icalProperty;
+
+    do_check_eq(rel.icalString, prop.icalString);
+
+    do_check_eq(prop.value, "value");
+    do_check_eq(prop.getParameter("X-PROP"), "VAL");
+    do_check_eq(prop.getParameter("RELTYPE"), "SIBLING");
+
+    prop.value = "changed";
+    prop.setParameter("RELTYPE", "changedtype");
+    prop.setParameter("X-PROP", "changedxprop");
+
+    do_check_eq(rel.relId, "value");
+    do_check_eq(rel.getParameter("X-PROP"), "VAL");
+    do_check_eq(rel.relType, "SIBLING");
+
+    rel.icalProperty = prop;
+
+    do_check_eq(rel.relId, "changed");
+    do_check_eq(rel.getParameter("X-PROP"), "changedxprop");
+    do_check_eq(rel.relType, "changedtype");
+
+    rel.icalString = propOrig.icalString;
+
+    do_check_eq(rel.relId, "value");
+    do_check_eq(rel.getParameter("X-PROP"), "VAL");
+    do_check_eq(rel.relType, "SIBLING");
+
+    let rel2 = rel.clone();
+    rel.icalProperty = prop;
+
+    do_check_neq(rel.icalString, rel2.icalString);
+
+    rel.deleteParameter("X-PROP");
+    do_check_eq(rel.icalProperty.getParameter("X-PROP"), null);
+
+    do_check_throws(function() {
+        rel.icalString = "X-UNKNOWN:value";
+    }, Components.results.NS_ERROR_ILLEGAL_VALUE);
 }

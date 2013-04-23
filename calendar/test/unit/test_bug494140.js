@@ -27,8 +27,11 @@ function run_test() {
                                          "DESCRIPTION:Mozilla Alarm: Test\r\n" +
                                          "END:VALARM\r\n" +
                                          "END:VEVENT");
+
     // There should be one alarm, one relation and one attachment
     do_check_eq(item.getAlarms({}).length, 1);
+    do_check_eq(item.getRelations({}).length, 1);
+    do_check_eq(item.getAttachments({}).length, 1);
 
     // Change the occurrence to another day
     let occ = item.recurrenceInfo.getOccurrenceFor(cal.createDateTime("20090604T073000Z"));

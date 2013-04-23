@@ -5,6 +5,7 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 function run_test() {
+    test_serialize();
     test_hashes();
     test_uriattach();
     test_binaryattach();
@@ -54,8 +55,8 @@ function test_binaryattach() {
     let e = cal.createEvent();
 
     let attachString =
-        "ATTACH;VALUE=BINARY;ENCODING=BASE64;FMTTYPE=x-moz/test2:aHR0cDovL2hlbGxvMg\r\n" +
-        " ==\r\n";
+        "ATTACH;ENCODING=BASE64;FMTTYPE=x-moz/test2;VALUE=BINARY:aHR0cDovL2hlbGxvMg==\r\n";
+    let foldedAttachString = ics_foldline(attachString);
     let icalString =
         "BEGIN:VEVENT\r\n" +
         attachString +
@@ -72,6 +73,40 @@ function test_binaryattach() {
     do_check_eq(attach.rawData, "aHR0cDovL2hlbGxvMg==");
     do_check_eq(attach.getParameter("VALUE"), "BINARY");
 
-    do_check_eq(attach.icalProperty.icalString, attachString);
-    do_check_eq(attach.clone().icalProperty.icalString, attachString);
+    let propIcalString = attach.icalProperty.icalString;
+    do_check_true(!!propIcalString.match(/ENCODING=BASE64/));
+    do_check_true(!!propIcalString.match(/FMTTYPE=x-moz\/test2/));
+    do_check_true(!!propIcalString.match(/VALUE=BINARY/));
+    do_check_true(!!propIcalString.match(/:aHR0cDovL2hlbGxvMg\r\n ==/));
+
+    propIcalString = attach.clone().icalProperty.icalString;
+
+    do_check_true(!!propIcalString.match(/ENCODING=BASE64/));
+    do_check_true(!!propIcalString.match(/FMTTYPE=x-moz\/test2/));
+    do_check_true(!!propIcalString.match(/VALUE=BINARY/));
+    do_check_true(!!propIcalString.match(/:aHR0cDovL2hlbGxvMg\r\n ==/));
+
+}
+
+function test_serialize() {
+    let attach = cal.createAttachment();
+    attach.formatType = "x-moz/test2";
+    attach.uri = Services.io.newURI("data:text/plain,", null, null);
+    do_check_eq(attach.icalString, "ATTACH;FMTTYPE=x-moz/test2:data:text/plain,\r\n");
+
+    attach = cal.createAttachment();
+    attach.encoding = "BASE64";
+    attach.uri = Services.io.newURI("data:text/plain,", null, null);
+    do_check_eq(attach.icalString, "ATTACH;ENCODING=BASE64:data:text/plain,\r\n");
+
+    do_check_throws(function() {
+        attach.icalString = "X-STICKER:smiley";
+    }, Components.results.NS_ERROR_ILLEGAL_VALUE);
+
+    attach = cal.createAttachment();
+    attach.uri = Services.io.newURI("data:text/plain,", null, null);
+    attach.setParameter("X-PROP", "VAL");
+    do_check_eq(attach.icalString, "ATTACH;X-PROP=VAL:data:text/plain,\r\n");
+    attach.setParameter("X-PROP", null);
+    do_check_eq(attach.icalString, "ATTACH:data:text/plain,\r\n");
 }

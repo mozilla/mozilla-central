@@ -68,16 +68,33 @@ function test_deleted_items() {
     do_check_null(delmgr.getDeletedDate(item.id));
     do_check_null(delmgr.getDeletedDate(item.id, memory.id));
 
-    // Deleting an item and adding it again should consider it not deleted
+    // Deleting an item and adding it again should consider it not deleted. The
+    // deleted items manager runs the statements asynchronously. Timeouts are
+    // usually a bad way to test, but since the deleted items manager is only
+    // used as a hint, the sql calls in the observers are async.
+    // *** If this test is failing, the timeouts might not be enough ***
     useFutureDate = false;
-    memory.addItem(item, null);
-    memory.deleteItem(item, null);
-    memory.addItem(item, null);
-    do_check_null(delmgr.getDeletedDate(item.id));
 
-    // Revert now function, in case more tests are written
-    cal.now = oldNowFunction;
+    function doFirstAdd() {
+        memory.addItem(item, null);
+        do_timeout(100, doRemove);
+    }
+    function doRemove() {
+        memory.deleteItem(item, null);
+        do_timeout(100, doSecondAdd);
+    }
+    function doSecondAdd() {
+        memory.addItem(item, null);
+        do_timeout(100, doCleanup);
+    }
+    function doCleanup() {
+        do_check_null(delmgr.getDeletedDate(item.id));
+        // Revert now function, in case more tests are written
+        cal.now = oldNowFunction;
 
-    run_next_test();
+        run_next_test();
+    }
+
+    doFirstAdd();
 }
 

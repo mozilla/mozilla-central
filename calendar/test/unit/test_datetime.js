@@ -15,10 +15,11 @@ function run_test() {
     do_check_eq(cd.hour, 10);
     do_check_eq(cd.icalString, "20051113T100000");
 
-    let cd_floating = cd.getInTimezone(floating());
+    let cd_floating = cd.getInTimezone(cal.floating());
     do_check_eq(cd_floating.hour, 10);
 
-    let cd_utc = cd.getInTimezone(UTC());
+
+    let cd_utc = cd.getInTimezone(cal.UTC());
     do_check_eq(cd_utc.hour, 15);
     do_check_eq(cd_utc.icalString, "20051113T150000Z");
 
@@ -89,4 +90,9 @@ function run_test() {
     let createdDate = cal.jsDateToDateTime(someDate).getInTimezone(cal.calendarDefaultTimezone());
     do_check_eq(Math.floor(someDate.getTime() / 1000),
                 Math.floor(createdDate.jsDate.getTime() / 1000));
+
+    // Comparing a date-time with a date of the same day should be 0
+    do_check_eq(cal.createDateTime("20120101T120000").compare(cal.createDateTime("20120101")), 0);
+    do_check_eq(cal.createDateTime("20120101").compare(cal.createDateTime("20120101T120000")), 0);
 }
+

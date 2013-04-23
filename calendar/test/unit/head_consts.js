@@ -3,15 +3,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://testing-common/AppInfo.jsm");
+updateAppInfo();
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cr = Components.results;
 
 (function load_lightning_manifest() {
   let bindir = Services.dirsvc.get("CurProcD", Components.interfaces.nsIFile);
   bindir.append("extensions");
   bindir.append("{e2fda1a4-762b-4020-b5ad-a41df1933103}");
   bindir.append("chrome.manifest");
+  dump("Loading" + bindir.path + "\n");
   Components.manager.autoRegister(bindir);
 })();
 
@@ -204,9 +208,13 @@ function do_check_throws(func, result, stack)
   try {
     func();
   } catch (exc) {
-    if (exc.result == result)
+    if (exc.result == result || exc == result) {
+      ++_passedChecks;
+      dump("TEST-PASS | " + stack.filename + " | [" + stack.name + " : " +
+           stack.lineNumber + "] " + exc.result + " == " + result + "\n");
       return;
-    do_throw("expected result " + result + ", caught " + exc, stack);
+    }
+    do_throw("expected result " + result + ", caught " + (exc.result || exc), stack);
   }
 
   if (result) {
