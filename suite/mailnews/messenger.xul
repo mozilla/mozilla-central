@@ -110,6 +110,8 @@
     <panel id="customizeToolbarSheetPopup"/>
   </popupset>
 
+  <vbox id="titlebar"/>
+
   <toolbox id="mail-toolbox" class="toolbox-top">
     <toolbar id="mail-toolbar-menubar2">
       <toolbaritem id="menubar-items">

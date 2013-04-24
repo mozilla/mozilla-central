@@ -188,6 +188,8 @@
 
 <menupopup id="toolbar-context-menu"/>
 
+<vbox id="titlebar"/>
+
 <toolbox id="ab-toolbox"
          mode="full"
          defaultmode="full"

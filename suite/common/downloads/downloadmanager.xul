@@ -165,6 +165,8 @@
     </menupopup>
   </popupset>
 
+  <vbox id="titlebar"/>
+
   <toolbox id="download-toolbox">
     <menubar id="download-menubar"
              grippytooltiptext="&menuBar.tooltip;">

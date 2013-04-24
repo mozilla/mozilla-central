@@ -139,6 +139,8 @@
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
 
+  <vbox id="titlebar"/>
+
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true"
            mode="full" defaultmode="full">
     <!-- Menu -->

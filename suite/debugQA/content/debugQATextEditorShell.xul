@@ -78,6 +78,8 @@
 
   <popupset id="contentAreaContextSet"/>
 
+  <vbox id="titlebar"/>
+
   <toolbox id="EditorToolbox">
     <menubar id="main-menubar" class="chromeclass-menubar">
       <menu id="menu_File"/>

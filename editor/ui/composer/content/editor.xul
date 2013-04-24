@@ -129,6 +129,8 @@
     <key keycode="VK_TAB" modifiers="control,shift" oncommand="return true;"/>
   </keyset>
 
+  <vbox id="titlebar"/>
+
   <toolbox class="toolbox-top" id="EditorToolbox">
   <menubar id="main-menubar" class="chromeclass-menubar" persist="collapsed" grippytooltiptext="&menuBar.tooltip;">
     <menu id="menu_File"/>
