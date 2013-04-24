@@ -791,6 +791,8 @@ pref("security.warn_submit_insecure", false);
 pref("security.warn_viewing_mixed", true);
 pref("security.warn_mixed_active_content", true);
 pref("security.warn_mixed_display_content", false);
+// Block insecure active content on https pages
+pref("security.mixed_content.block_active_content", true);
 
 // FAQ URLs
 pref("browser.geolocation.warning.infoURL", "http://www.seamonkey-project.org/doc/2.0/geolocation");
