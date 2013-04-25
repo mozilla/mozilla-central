@@ -34,7 +34,11 @@ function EnableAlert(aEnable)
 {
   // switch off the balloon if the user wants regular alerts
   if (aEnable)
-    document.getElementById("mail.biff.show_balloon").value = false;
+  {
+    let balloonAlert = document.getElementById("mail.biff.show_balloon");
+    if (!balloonAlert.locked)
+      balloonAlert.value = false;
+  }
 
   EnableElementById("showAlertTime", aEnable, false);
   EnableElementById("showAlertPreviewText", aEnable, false);
@@ -51,7 +55,11 @@ function ClearAlert(aEnable)
 {
   // switch off the regular alerts if the user wants the balloon
   if (aEnable)
-    document.getElementById("mail.biff.show_alert").value = false;
+  {
+    let showAlert = document.getElementById("mail.biff.show_alert");
+    if (!showAlert.locked)
+      showAlert.value = false;
+  }
 }
 
 function PlaySoundCheck(aPlaySound)
