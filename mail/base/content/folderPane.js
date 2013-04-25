@@ -598,6 +598,11 @@ let gFolderTreeView = {
     let count = dt.mozItemCount;
     let cs = MailServices.copy;
 
+    // This is a potential rss feed.  A link image as well as link text url
+    // should be handled; try to extract a url from non moz apps as well.
+    let feedUri = targetFolder.server.type == "rss" && count == 1 ?
+                    FeedUtils.getFeedUriFromDataTransfer(dt) : null;
+
     // we only support drag of a single flavor at a time.
     let types = dt.mozTypesAt(0);
     if (Array.indexOf(types, "text/x-moz-folder") != -1) {
@@ -658,6 +663,11 @@ let gFolderTreeView = {
       cs.CopyMessages(sourceFolder, array, targetFolder, isMove, null,
                         msgWindow, true);
     }
+    else if (feedUri) {
+      Cc["@mozilla.org/newsblog-feed-downloader;1"]
+         .getService(Ci.nsINewsBlogFeedDownloader)
+         .subscribeToFeed(feedUri.spec, targetFolder, msgWindow);
+    }
     else if (Array.indexOf(types, "application/x-moz-file") != -1) {
       for (let i = 0; i < count; i++) {
         let extFile = dt.mozGetDataAt("application/x-moz-file", i)
@@ -668,17 +678,6 @@ let gFolderTreeView = {
             cs.CopyFileMessage(extFile, targetFolder, null, false, 1, "", null, msgWindow);
         }
       }
-    }
-
-    if (targetFolder.server.type == "rss" && count == 1) {
-      // This is a potential rss feed.  A link image as well as link text url
-      // should be handled; try to extract a url from non moz apps as well.
-      let validUri = FeedUtils.getFeedUriFromDataTransfer(dt);
-
-      if (validUri)
-        Cc["@mozilla.org/newsblog-feed-downloader;1"]
-           .getService(Ci.nsINewsBlogFeedDownloader)
-           .subscribeToFeed(validUri.spec, targetFolder, msgWindow);
     }
   },
 
