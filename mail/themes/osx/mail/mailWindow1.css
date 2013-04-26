@@ -40,7 +40,7 @@ treechildren::-moz-tree-twisty {
 }
 
 #folderPaneBox {
-  border-right: 1px solid #8B8B8B;
+  -moz-border-end: 1px solid #BDBDBD;
   -moz-margin-end: -3px !important;
 }
 
@@ -50,7 +50,7 @@ treechildren::-moz-tree-twisty {
 }
 
 #folderPaneHeader, #folderTree {
-  background-color: #DEE4EA !important;
+  background-color: #E2E7ED !important;
   border-bottom: 2px solid transparent;
 }
 

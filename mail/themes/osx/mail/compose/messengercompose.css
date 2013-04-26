@@ -1329,8 +1329,9 @@ toolbarbutton.formatting-button > .toolbarbutton-menubutton-dropmarker {
 }
 
 sidebarheader {
+  background: #E2E7ED;
+  background-image: url("chrome://messenger/skin/grain.png");
   text-shadow: none;
-  border-bottom: 1px solid #A3A3A3;
 }
 
 #sidebar-box {
