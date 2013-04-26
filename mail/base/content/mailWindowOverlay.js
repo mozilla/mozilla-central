@@ -3517,14 +3517,16 @@ let FeedMessageHandler = {
    */
   setContent: function (aMsgHdr, aShowSummary) {
     if (aShowSummary) {
-      // Only here if toggling to summary.
+      // Only here if toggling to summary in 3pane.
       if (this.gToggle && gDBView && GetNumSelectedMessages() == 1)
         ReloadMessage();
     }
     else {
+      let browser = getBrowser();
+      if (browser && browser.contentDocument && browser.contentDocument.body)
+        browser.contentDocument.body.hidden = true;
       // If in a non rss folder, hide possible remote content bar on a web
       // page load, as it doesn't apply.
-      getBrowser().contentDocument.body.hidden = true;
       gMessageNotificationBar.clearMsgNotifications();
 
       this.loadWebPage(aMsgHdr, {messagepane:true});

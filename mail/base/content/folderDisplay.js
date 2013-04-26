@@ -1263,8 +1263,11 @@ FolderDisplayWidget.prototype = {
     let msgHdr = (viewIndex != nsMsgViewIndex_None) ?
                    this.view.dbView.getMsgHdrAt(viewIndex) : null;
 
-    if (!FeedMessageHandler.shouldShowSummary(msgHdr, false))
+    if (this._tabInfo && !FeedMessageHandler.shouldShowSummary(msgHdr, false)) {
+      // Load a web page if we have a tabInfo (i.e. 3pane), but not for a
+      // standalone window instance; it has its own method.
       FeedMessageHandler.setContent(msgHdr, false);
+    }
 
     this.messageDisplay.onDisplayingMessage(msgHdr);
 
