@@ -474,6 +474,8 @@
 @BINPATH@/components/commandlines.xpt
 @BINPATH@/components/chrome.xpt
 @BINPATH@/components/cryptoComponents.manifest
+@BINPATH@/components/Downloads.manifest
+@BINPATH@/components/DownloadLegacy.js
 @BINPATH@/components/nsDefaultCLH.js
 @BINPATH@/components/nsDefaultCLH.manifest
 @BINPATH@/components/nsFormAutoComplete.js
