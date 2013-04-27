@@ -55,7 +55,7 @@ nsresult nsStatusBarBiffManager::Init()
 
   nsresult rv;
 
-  kBiffStateAtom = MsgNewAtom("BiffState");
+  kBiffStateAtom = MsgNewAtom("BiffState").get();
 
   nsCOMPtr<nsIMsgMailSession> mailSession = 
     do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv); 

@@ -183,19 +183,19 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_RENAME), &kNC_Rename);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), &kNC_EmptyTrash);
 
-    kTotalMessagesAtom           = MsgNewAtom("TotalMessages");
-    kTotalUnreadMessagesAtom     = MsgNewAtom("TotalUnreadMessages");
-    kFolderSizeAtom              = MsgNewAtom("FolderSize");
-    kBiffStateAtom               = MsgNewAtom("BiffState");
-    kSortOrderAtom               = MsgNewAtom("SortOrder");
-    kNewMessagesAtom             = MsgNewAtom("NewMessages");
-    kNameAtom                    = MsgNewAtom("Name");
-    kSynchronizeAtom             = MsgNewAtom("Synchronize");
-    kOpenAtom                    = MsgNewAtom("open");
-    kIsDeferredAtom              = MsgNewAtom("isDeferred");
-    kIsSecureAtom                = MsgNewAtom("isSecure");
-    kCanFileMessagesAtom         = MsgNewAtom("canFileMessages");
-    kInVFEditSearchScopeAtom     = MsgNewAtom("inVFEditSearchScope");
+    kTotalMessagesAtom           = MsgNewAtom("TotalMessages").get();
+    kTotalUnreadMessagesAtom     = MsgNewAtom("TotalUnreadMessages").get();
+    kFolderSizeAtom              = MsgNewAtom("FolderSize").get();
+    kBiffStateAtom               = MsgNewAtom("BiffState").get();
+    kSortOrderAtom               = MsgNewAtom("SortOrder").get();
+    kNewMessagesAtom             = MsgNewAtom("NewMessages").get();
+    kNameAtom                    = MsgNewAtom("Name").get();
+    kSynchronizeAtom             = MsgNewAtom("Synchronize").get();
+    kOpenAtom                    = MsgNewAtom("open").get();
+    kIsDeferredAtom              = MsgNewAtom("isDeferred").get();
+    kIsSecureAtom                = MsgNewAtom("isSecure").get();
+    kCanFileMessagesAtom         = MsgNewAtom("canFileMessages").get();
+    kInVFEditSearchScopeAtom     = MsgNewAtom("inVFEditSearchScope").get();
   }
 
   CreateLiterals(rdf);

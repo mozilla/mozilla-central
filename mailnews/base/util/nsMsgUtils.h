@@ -427,7 +427,7 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, int32_t aLen);
 // Existing replacement for IsUTF8
 NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString);
 /// Equivalent of NS_NewAtom(aUTF8String)
-NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString);
+NS_MSG_BASE already_AddRefed<nsIAtom> MsgNewAtom(const char* aString);
 /// Replacement of NS_RegisterStaticAtoms
 NS_MSG_BASE nsIAtom* MsgNewPermanentAtom(const char* aString);
 /// Equivalent of do_GetAtom(aUTF8String)

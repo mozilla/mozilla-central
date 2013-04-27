@@ -149,8 +149,8 @@ nsMsgDBView::nsMsgDBView()
 
 void nsMsgDBView::InitializeAtomsAndLiterals()
 {
-  kJunkMsgAtom = MsgNewAtom("junk");
-  kNotJunkMsgAtom = MsgNewAtom("notjunk");
+  kJunkMsgAtom = MsgNewAtom("junk").get();
+  kNotJunkMsgAtom = MsgNewAtom("notjunk").get();
 
   // priority strings
   kHighestPriorityString = GetString(NS_LITERAL_STRING("priorityHighest").get());
