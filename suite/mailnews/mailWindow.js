@@ -300,14 +300,6 @@ nsMsgStatusFeedback.prototype =
       if (status.length > 0)
         this.showStatusString(status);
     },
-  setJSDefaultStatus : function(status)
-    {
-      if (status.length > 0)
-      {
-        this.myDefaultStatus = status;
-        this.statusTextFld.label = status;
-      }
-    },
   setOverLink : function(link, context)
     {
       this.ensureStatusFields();
@@ -340,6 +332,14 @@ nsMsgStatusFeedback.prototype =
         this.myDefaultStatus = "";
       this.statusTextFld.label = statusText;
   },
+  setStatusString : function(status)
+    {
+      if (status.length > 0)
+      {
+        this.myDefaultStatus = status;
+        this.statusTextFld.label = status;
+      }
+    },
   _startMeteors : function()
     {
       this.ensureStatusFields();
@@ -385,7 +385,7 @@ nsMsgStatusFeedback.prototype =
         gTimelineService.resetTimer("FolderLoading");
       }
       this.ensureStatusFields();
-      this.showStatusString(defaultStatus);
+      this.showStatusString(this.myDefaultStatus);
 
       // stop the throbber
       if (this.throbber)

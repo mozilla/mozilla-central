@@ -160,13 +160,6 @@ nsMsgStatusFeedback.prototype =
       this.showStatusString(status);
   },
 
-  setJSDefaultStatus: function(status) {
-    if (status.length > 0) {
-      this._defaultStatusText = status;
-      this._statusText.label = status;
-    }
-  },
-
   setOverLink: function(link, context) {
     this._statusText.label = link;
   },
@@ -194,6 +187,13 @@ nsMsgStatusFeedback.prototype =
     else
       this._defaultStatusText = "";
     this._statusText.label = statusText;
+  },
+
+  setStatusString: function(status) {
+    if (status.length > 0) {
+      this._defaultStatusText = status;
+      this._statusText.label = status;
+    }
   },
 
   _startMeteors: function() {
@@ -229,7 +229,7 @@ nsMsgStatusFeedback.prototype =
   },
 
   _stopMeteors: function() {
-    this.showStatusString(defaultStatus);
+    this.showStatusString(this._defaultStatusText);
 
     // stop the throbber
     if (this._throbber)
