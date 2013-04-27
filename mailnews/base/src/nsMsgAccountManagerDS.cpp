@@ -161,7 +161,7 @@ nsMsgAccountManagerDataSource::nsMsgAccountManagerDataSource()
     // that's easily extensible
     getRDFService()->GetResource(NS_LITERAL_CSTRING(NC_RDF_SETTINGS), &kNC_Settings);
 
-    kDefaultServerAtom = MsgNewAtom("DefaultServer");
+    kDefaultServerAtom = MsgNewAtom("DefaultServer").get();
   }
 }
 
