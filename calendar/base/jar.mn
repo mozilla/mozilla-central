@@ -106,7 +106,6 @@ calendar.jar:
     content/calendar/Windows98ToZoneInfoTZId.properties    (src/Windows98ToZoneInfoTZId.properties)
     content/calendar/WindowsNTToZoneInfoTZId.properties    (src/WindowsNTToZoneInfoTZId.properties)
 % skin calendar classic/1.0 %skin/calendar/
-% style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-task-view.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-event-dialog.css
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/common/dialogs/calendar-event-dialog.css
