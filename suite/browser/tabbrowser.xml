@@ -2706,7 +2706,7 @@
 
           var onclick = this.getAttribute("oncontentclick");
           if (onclick)
-            this.contentAreaClick = new Function("event", onclick);
+            this.onContentClick = new Function("event", onclick);
         ]]>
       </constructor>
 
@@ -2794,8 +2794,8 @@
 
       <handler event="click" phase="capturing" group="system">
         <![CDATA[
-          if (this.contentAreaClick)
-            this.contentAreaClick(event);
+          if (this.onContentClick)
+            this.onContentClick(event);
         ]]>
       </handler>
 
