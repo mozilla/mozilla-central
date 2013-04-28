@@ -928,6 +928,16 @@ function updateAllItems(aDisable)
   }
 }
 
+function InitFileSaveAsMenu()
+{
+  document.getElementById("cmd_saveAsFile")
+          .setAttribute("checked", defaultSaveOperation == "file");
+  document.getElementById("cmd_saveAsDraft")
+          .setAttribute("checked", defaultSaveOperation == "draft");
+  document.getElementById("cmd_saveAsTemplate")
+          .setAttribute("checked", defaultSaveOperation == "template");
+}
+
 function openEditorContextMenu(popup)
 {
   gSpellChecker.clearSuggestionsFromMenu();

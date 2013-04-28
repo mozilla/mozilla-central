@@ -444,13 +444,15 @@
           <menuitem id="menu_SaveCmd" label="&saveCmd.label;" accesskey="&saveCmd.accesskey;"
                     key="key_save" command="cmd_saveDefault"/>
           <menu id="menu_SaveAsCmd" label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
-            <menupopup id="menu_SaveAsCmdPopup">
+            <menupopup id="menu_SaveAsCmdPopup" onpopupshowing="InitFileSaveAsMenu();">
               <menuitem id="menu_SaveAsFileCmd"
                         label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;"
-                        command="cmd_saveAsFile"/>
+                        command="cmd_saveAsFile" type="radio" name="radiogroup_SaveAs"/>
               <menuseparator/>
-              <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
-              <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;" command="cmd_saveAsTemplate"/>
+              <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;"
+                        command="cmd_saveAsDraft" type="radio" name="radiogroup_SaveAs"/>
+              <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;"
+                        command="cmd_saveAsTemplate" type="radio" name="radiogroup_SaveAs"/>
             </menupopup>
           </menu>
           <menuseparator/>
@@ -716,11 +718,14 @@
                id="button-save" label="&saveButton.label;"
                tooltiptext="&saveButton.tooltip;"
                command="cmd_saveDefault">
-         <menupopup id="button-savePopup">
-           <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
+         <menupopup id="button-savePopup" onpopupshowing="InitFileSaveAsMenu();">
+           <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;"
+                     command="cmd_saveAsFile" type="radio" name="radiogroup_SaveAs"/>
            <menuseparator/>
-           <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
-           <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;" command="cmd_saveAsTemplate"/>
+           <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;"
+                     command="cmd_saveAsDraft" type="radio" name="radiogroup_SaveAs"/>
+           <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;"
+                     command="cmd_saveAsTemplate" type="radio" name="radiogroup_SaveAs"/>
          </menupopup>
     </toolbarbutton>
 
