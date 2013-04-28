@@ -365,6 +365,8 @@
 @BINPATH@/components/contentSecurityPolicy.manifest
 @BINPATH@/components/crypto-SDR.js
 @BINPATH@/components/cryptoComponents.manifest
+@BINPATH@/components/Downloads.manifest
+@BINPATH@/components/DownloadLegacy.js
 @BINPATH@/components/FeedConverter.js
 @BINPATH@/components/FeedProcessor.js
 @BINPATH@/components/FeedProcessor.manifest
