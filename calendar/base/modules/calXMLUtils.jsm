@@ -43,7 +43,6 @@ cal.xml.evalXPath = function evaluateXPath(aNode, aExpr, aResolver, aType) {
             break;
         case XPR.UNORDERED_NODE_ITERATOR_TYPE:
         case XPR.ORDERED_NODE_ITERATOR_TYPE:
-        case XPR.ORDERED_NODE_ITERATOR_TYPE:
             returnResult = [];
             while ((next = result.iterateNext())) {
                 if (next instanceof Components.interfaces.nsIDOMText) {
@@ -86,7 +85,7 @@ cal.xml.evalXPath = function evaluateXPath(aNode, aExpr, aResolver, aType) {
 };
 
 /**
- * Convenince function to evaluate an XPath expression and return null or the
+ * Convenience function to evaluate an XPath expression and return null or the
  * first result. Helpful if you just expect one value in a text() expression,
  * but its possible that there will be more than one. The result may be:
  *
@@ -119,7 +118,8 @@ cal.xml.evalXPathFirst = function evalXPathFirst(aNode, aExpr, aResolver, aType)
  */
 cal.xml.parseString = function(str, docUri, baseUri) {
     let parser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
-                 .createInstance(Components.interfaces.nsIDOMParser);
+                           .createInstance(Components.interfaces.nsIDOMParser);
+
     parser.init(null, docUri, baseUri);
     return parser.parseFromString(str, "application/xml");
 };
