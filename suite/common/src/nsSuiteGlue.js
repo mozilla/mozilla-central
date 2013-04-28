@@ -47,9 +47,6 @@ SuiteGlue.prototype = {
   _saveSession: false,
   _sound: null,
   _isIdleObserver: false,
-  _isPlacesInitObserver: false,
-  _isPlacesLockedObserver: false,
-  _isPlacesShutdownObserver: false,
   _isPlacesDatabaseLocked: false,
   _migrationImportsDefaultBookmarks: false,
 
@@ -106,8 +103,8 @@ SuiteGlue.prototype = {
   observe: function(subject, topic, data)
   {
     switch(topic) {
-      case "xpcom-shutdown":
-        this._dispose();
+      case "profile-before-change":
+        this._onProfileShutdown();
         break;
       case "profile-after-change":
         this._onProfileAfterChange();
@@ -167,25 +164,19 @@ SuiteGlue.prototype = {
           this._initPlaces(false);
 
         Services.obs.removeObserver(this, "places-init-complete");
-        this._isPlacesInitObserver = false;
         // No longer needed, since history was initialized completely.
         Services.obs.removeObserver(this, "places-database-locked");
-        this._isPlacesLockedObserver = false;
         break;
       case "places-database-locked":
         this._isPlacesDatabaseLocked = true;
         // Stop observing, so further attempts to load history service
         // will not show the prompt.
         Services.obs.removeObserver(this, "places-database-locked");
-        this._isPlacesLockedObserver = false;
         break;
       case "places-shutdown":
-        if (this._isPlacesShutdownObserver) {
-          Services.obs.removeObserver(this, "places-shutdown");
-          this._isPlacesShutdownObserver = false;
-        }
+        Services.obs.removeObserver(this, "places-shutdown");
         // places-shutdown is fired when the profile is about to disappear.
-        this._onProfileShutdown();
+        this._onPlacesShutdown();
         break;
       case "idle":
         if (this._idleService.idleTime > BOOKMARKS_BACKUP_IDLE_TIME * 1000)
@@ -233,58 +224,26 @@ SuiteGlue.prototype = {
   _init: function()
   {
     // observer registration
-    Services.obs.addObserver(this, "xpcom-shutdown", false);
-    Services.obs.addObserver(this, "profile-after-change", false);
-    Services.obs.addObserver(this, "final-ui-startup", false);
-    Services.obs.addObserver(this, "sessionstore-windows-restored", false);
-    Services.obs.addObserver(this, "browser:purge-session-history", false);
-    Services.obs.addObserver(this, "quit-application-requested", false);
-    Services.obs.addObserver(this, "quit-application-granted", false);
-    Services.obs.addObserver(this, "browser-lastwindow-close-requested", false);
-    Services.obs.addObserver(this, "browser-lastwindow-close-granted", false);
-    Services.obs.addObserver(this, "console-api-log-event", false);
-    Services.obs.addObserver(this, "weave:service:ready", false);
-    Services.obs.addObserver(this, "weave:engine:clients:display-uri", false);
-    Services.obs.addObserver(this, "session-save", false);
-    Services.obs.addObserver(this, "dl-done", false);
-    Services.obs.addObserver(this, "places-init-complete", false);
-    this._isPlacesInitObserver = true;
-    Services.obs.addObserver(this, "places-database-locked", false);
-    this._isPlacesLockedObserver = true;
-    Services.obs.addObserver(this, "places-shutdown", false);
-    this._isPlacesShutdownObserver = true;
+    Services.obs.addObserver(this, "profile-before-change", true);
+    Services.obs.addObserver(this, "profile-after-change", true);
+    Services.obs.addObserver(this, "final-ui-startup", true);
+    Services.obs.addObserver(this, "sessionstore-windows-restored", true);
+    Services.obs.addObserver(this, "browser:purge-session-history", true);
+    Services.obs.addObserver(this, "quit-application-requested", true);
+    Services.obs.addObserver(this, "quit-application-granted", true);
+    Services.obs.addObserver(this, "browser-lastwindow-close-requested", true);
+    Services.obs.addObserver(this, "browser-lastwindow-close-granted", true);
+    Services.obs.addObserver(this, "console-api-log-event", true);
+    Services.obs.addObserver(this, "weave:service:ready", true);
+    Services.obs.addObserver(this, "weave:engine:clients:display-uri", true);
+    Services.obs.addObserver(this, "session-save", true);
+    Services.obs.addObserver(this, "dl-done", true);
+    Services.obs.addObserver(this, "places-init-complete", true);
+    Services.obs.addObserver(this, "places-database-locked", true);
+    Services.obs.addObserver(this, "places-shutdown", true);
     Components.classes['@mozilla.org/docloaderservice;1']
               .getService(Components.interfaces.nsIWebProgress)
               .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
-  },
-
-  // cleanup (called on application shutdown)
-  _dispose: function()
-  {
-    // observer removal
-    Services.obs.removeObserver(this, "xpcom-shutdown");
-    Services.obs.removeObserver(this, "profile-after-change");
-    Services.obs.removeObserver(this, "final-ui-startup");
-    Services.obs.removeObserver(this, "sessionstore-windows-restored");
-    Services.obs.removeObserver(this, "browser:purge-session-history");
-    Services.obs.removeObserver(this, "quit-application-requested");
-    Services.obs.removeObserver(this, "quit-application-granted");
-    Services.obs.removeObserver(this, "browser-lastwindow-close-requested");
-    Services.obs.removeObserver(this, "browser-lastwindow-close-granted");
-    Services.obs.removeObserver(this, "console-api-log-event");
-    Services.obs.removeObserver(this, "weave:service:ready");
-    Services.obs.removeObserver(this, "weave:engine:clients:display-uri");
-    Services.obs.removeObserver(this, "session-save");
-    Services.obs.removeObserver(this, "dl-done");
-    if (this._isIdleObserver)
-      this._idleService.removeIdleObserver(this, BOOKMARKS_BACKUP_IDLE_TIME);
-    if (this._isPlacesInitObserver)
-      Services.obs.removeObserver(this, "places-init-complete");
-    if (this._isPlacesLockedObserver)
-      Services.obs.removeObserver(this, "places-database-locked");
-    if (this._isPlacesShutdownObserver)
-      Services.obs.removeObserver(this, "places-shutdown");
-    UserAgentOverrides.uninit();
   },
 
   // profile is available
@@ -384,12 +343,14 @@ SuiteGlue.prototype = {
     this._checkForDefaultClient(aWindow);
   },
 
-  // profile shutdown handler (contains profile cleanup routines)
+  /**
+   * Profile shutdown handler (contains profile cleanup routines).
+   * All components depending on Places should be shut down in
+   * _onPlacesShutdown() and not here.
+   */
   _onProfileShutdown: function()
   {
-    this._shutdownPlaces();
-    if (!Sanitizer.doPendingSanitize())
-      Services.prefs.setBoolPref("privacy.sanitize.didShutdownSanitize", true);
+    UserAgentOverrides.uninit()
   },
 
   _promptForMasterPassword: function()
@@ -822,11 +783,9 @@ SuiteGlue.prototype = {
    * Places shut-down tasks
    * - back up bookmarks if needed.
    * - export bookmarks as HTML, if so configured.
-   *
-   * Note: quit-application-granted notification is received twice
-   *       so replace this method with a no-op when first called.
+   * - finalize components depending on Places.
    */
-  _shutdownPlaces: function() {
+  _onPlacesShutdown: function() {
     if (this._isIdleObserver) {
       this._idleService.removeIdleObserver(this, BOOKMARKS_BACKUP_IDLE_TIME);
       this._isIdleObserver = false;
@@ -860,6 +819,9 @@ SuiteGlue.prototype = {
         }
       }
     } catch(ex) { /* Don't export */ }
+
+    if (!Sanitizer.doPendingSanitize())
+      Services.prefs.setBoolPref("privacy.sanitize.didShutdownSanitize", true);
   },
 
   /**
