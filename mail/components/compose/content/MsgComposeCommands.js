@@ -4651,6 +4651,7 @@ function toggleAddressPicker()
 function AddRecipient(recipientType, address)
 {
   awAddRecipient(recipientType, address);
+  onRecipientsInput();
 }
 
 function loadHTMLMsgPrefs()
