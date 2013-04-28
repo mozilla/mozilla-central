@@ -574,10 +574,16 @@ function AdjustHeaderView(headermode)
 
 function InitViewBodyMenu()
 {
-  var html_as = 0;
-  var prefer_plaintext = false;
-  var disallow_classes = 0;
-  var isFeed = gFolderDisplay.selectedMessageIsFeed;
+  // Separate render prefs not implemented for feeds, bug 458606.  Show the
+  // checked item for feeds as for the regular pref.
+  //  let html_as = Services.prefs.getIntPref("rss.display.html_as");
+  //  let prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
+  //  let disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
+
+  let html_as = Services.prefs.getIntPref("mailnews.display.html_as");
+  let prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
+  let disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
+  let isFeed = gFolderDisplay.selectedMessageIsFeed;
   const defaultIDs = ["bodyAllowHTML",
                       "bodySanitized",
                       "bodyAsPlaintext",
@@ -585,32 +591,16 @@ function InitViewBodyMenu()
   const rssIDs = ["bodyFeedSummaryAllowHTML",
                   "bodyFeedSummarySanitized",
                   "bodyFeedSummaryAsPlaintext"];
-  var menuIDs = isFeed ? rssIDs : defaultIDs;
-  try
-  {
-    prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
-    html_as = Services.prefs.getIntPref("mailnews.display.html_as");
-    disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
+  let menuIDs = isFeed ? rssIDs : defaultIDs;
+  
+  if (disallow_classes > 0)
+    gDisallow_classes_no_html = disallow_classes;
+  // else gDisallow_classes_no_html keeps its inital value (see top)
 
-    // Separate render prefs not implemented for feeds, bug 458606.  Show the
-    // checked item for feeds as for the regular pref.
-    //  prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
-    //  html_as = Services.prefs.getIntPref("rss.display.html_as");
-    //  disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
-
-    if (disallow_classes > 0)
-      gDisallow_classes_no_html = disallow_classes;
-    // else gDisallow_classes_no_html keeps its inital value (see top)
-  }
-  catch (ex)
-  {
-    dump("failed to get the body plaintext vs. HTML prefs\n");
-  }
-
-  var AllowHTML_menuitem = document.getElementById(menuIDs[0]);
-  var Sanitized_menuitem = document.getElementById(menuIDs[1]);
-  var AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
-  var AllBodyParts_menuitem = menuIDs[3] ? document.getElementById(menuIDs[3])
+  let AllowHTML_menuitem = document.getElementById(menuIDs[0]);
+  let Sanitized_menuitem = document.getElementById(menuIDs[1]);
+  let AsPlaintext_menuitem = document.getElementById(menuIDs[2]);
+  let AllBodyParts_menuitem = menuIDs[3] ? document.getElementById(menuIDs[3])
         : null;
 
   document.getElementById("bodyAllParts").hidden = 
@@ -640,9 +630,9 @@ function InitViewBodyMenu()
 
 function InitAppmenuViewBodyMenu()
 {
-  let html_as = 0;
-  let prefer_plaintext = false;
-  let disallow_classes = 0;
+  let html_as = Services.prefs.getIntPref("mailnews.display.html_as");
+  let prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
+  let disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
   let isFeed = gFolderDisplay.selectedMessageIsFeed;
   const kDefaultIDs = ["appmenu_bodyAllowHTML",
                        "appmenu_bodySanitized",
@@ -652,16 +642,6 @@ function InitAppmenuViewBodyMenu()
                    "appmenu_bodyFeedSummarySanitized",
                    "appmenu_bodyFeedSummaryAsPlaintext"];
   let menuIDs = isFeed ? kRssIDs : kDefaultIDs;
-  // Get prefs
-  if (isFeed) {
-    prefer_plaintext = Services.prefs.getBoolPref("rss.display.prefer_plaintext");
-    html_as = Services.prefs.getIntPref("rss.display.html_as");
-    disallow_classes = Services.prefs.getIntPref("rss.display.disallow_mime_handlers");
-  } else {
-    prefer_plaintext = Services.prefs.getBoolPref("mailnews.display.prefer_plaintext");
-    html_as = Services.prefs.getIntPref("mailnews.display.html_as");
-    disallow_classes = Services.prefs.getIntPref("mailnews.display.disallow_mime_handlers");
-  }
 
   if (disallow_classes > 0)
     gDisallow_classes_no_html = disallow_classes;
@@ -2407,9 +2387,14 @@ function MsgBodyAllParts()
 
 function MsgFeedBodyRenderPrefs(plaintext, html, mime)
 {
-  Services.prefs.setBoolPref("rss.display.prefer_plaintext", plaintext);
-  Services.prefs.setIntPref("rss.display.html_as", html);
-  Services.prefs.setIntPref("rss.display.disallow_mime_handlers", mime);
+  // Separate render prefs not implemented for feeds, bug 458606.
+  //  Services.prefs.setBoolPref("rss.display.prefer_plaintext", plaintext);
+  //  Services.prefs.setIntPref("rss.display.html_as", html);
+  //  Services.prefs.setIntPref("rss.display.disallow_mime_handlers", mime);
+
+  Services.prefs.setBoolPref("mailnews.display.prefer_plaintext", plaintext);
+  Services.prefs.setIntPref("mailnews.display.html_as", html);
+  Services.prefs.setIntPref("mailnews.display.disallow_mime_handlers", mime);
   // Reload only if showing rss summary; menuitem hidden if web page..
   ReloadMessage();
 }
