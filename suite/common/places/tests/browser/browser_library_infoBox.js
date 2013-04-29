@@ -20,74 +20,76 @@ gTests.push({
     var PO = gLibrary.PlacesOrganizer;
     var infoBoxExpanderWrapper = getAndCheckElmtById("infoBoxExpanderWrapper");
 
-    // add a visit to browser history
-    var bhist = PlacesUtils.history.QueryInterface(Ci.nsIBrowserHistory);
-    PlacesUtils.history.addVisit(PlacesUtils._uri(TEST_URI), Date.now() * 1000,
-                                 null, PlacesUtils.history.TRANSITION_TYPED,
-                                 false, 0);
-    ok(bhist.isVisited(PlacesUtils._uri(TEST_URI)), "Visit has been added.");
+    function addVisitsCallback() {
+      // open all bookmarks node
+      PO.selectLeftPaneQuery("AllBookmarks");
+      isnot(PO._places.selectedNode, null,
+            "Correctly selected all bookmarks node.");
+      checkInfoBoxSelected(PO);
+      ok(infoBoxExpanderWrapper.hidden,
+         "Expander button is hidden for all bookmarks node.");
+      checkAddInfoFieldsCollapsed(PO);
 
-    // open all bookmarks node
-    PO.selectLeftPaneQuery("AllBookmarks");
-    isnot(PO._places.selectedNode, null,
-          "Correctly selected all bookmarks node.");
-    checkInfoBoxSelected(PO);
-    ok(infoBoxExpanderWrapper.hidden,
-       "Expander button is hidden for all bookmarks node.");
-    checkAddInfoFieldsCollapsed(PO);
+      // open bookmarks menu node
+      PO.selectLeftPaneQuery("BookmarksMenu");
+      isnot(PO._places.selectedNode, null,
+            "Correctly selected bookmarks menu node.");
+      checkInfoBoxSelected(PO);
+      ok(infoBoxExpanderWrapper.hidden,
+         "Expander button is hidden for bookmarks menu node.");
+      checkAddInfoFieldsCollapsed(PO);
 
-    // open bookmarks menu node
-    PO.selectLeftPaneQuery("BookmarksMenu");
-    isnot(PO._places.selectedNode, null,
-          "Correctly selected bookmarks menu node.");
-    checkInfoBoxSelected(PO);
-    ok(infoBoxExpanderWrapper.hidden,
-       "Expander button is hidden for bookmarks menu node.");
-    checkAddInfoFieldsCollapsed(PO);
+      // open recently bookmarked node
+      var menuNode = PO._places.selectedNode.
+                     QueryInterface(Ci.nsINavHistoryContainerResultNode);
+      menuNode.containerOpen = true;
+      var childNode = menuNode.getChild(0);
+      isnot(childNode, null, "Bookmarks menu child node exists.");
+      var recentlyBookmarkedTitle = PlacesUIUtils.
+                                    getString("recentlyBookmarkedTitle");
+      isnot(recentlyBookmarkedTitle, null,
+            "Correctly got the recently bookmarked title locale string.");
+      is(childNode.title, recentlyBookmarkedTitle,
+         "Correctly selected recently bookmarked node.");
+      PO._places.selectNode(childNode);
+      checkInfoBoxSelected(PO);
+      // Note: SeaMonkey differs from Firefox UI in this case.
+      ok(infoBoxExpanderWrapper.hidden,
+         "Expander button is hidden for recently bookmarked node.");
+      checkAddInfoFieldsNotCollapsed(PO);
 
-    // open recently bookmarked node
-    var menuNode = PO._places.selectedNode.
-                   QueryInterface(Ci.nsINavHistoryContainerResultNode);
-    menuNode.containerOpen = true;
-    var childNode = menuNode.getChild(0);
-    isnot(childNode, null, "Bookmarks menu child node exists.");
-    var recentlyBookmarkedTitle = PlacesUIUtils.
-                                  getString("recentlyBookmarkedTitle");
-    isnot(recentlyBookmarkedTitle, null,
-          "Correctly got the recently bookmarked title locale string.");
-    is(childNode.title, recentlyBookmarkedTitle,
-       "Correctly selected recently bookmarked node.");
-    PO._places.selectNode(childNode);
-    checkInfoBoxSelected(PO);
-    // Note: SeaMonkey differs from Firefox UI in this case.
-    ok(infoBoxExpanderWrapper.hidden,
-       "Expander button is hidden for recently bookmarked node.");
-    checkAddInfoFieldsNotCollapsed(PO);
+      // open first bookmark
+      PO._content.focus();
+      var view = PO._content.treeBoxObject.view;
+      ok(view.rowCount > 0, "Bookmark item exists.");
+      view.selection.select(0);
+      checkInfoBoxSelected(PO);
+      ok(!infoBoxExpanderWrapper.hidden,
+         "Expander button is not hidden for bookmark item.");
+      checkAddInfoFieldsNotCollapsed(PO);
+      checkAddInfoFields(PO, "bookmark item");
 
-    // open first bookmark
-    PO._content.focus();
-    var view = PO._content.treeBoxObject.view;
-    ok(view.rowCount > 0, "Bookmark item exists.");
-    view.selection.select(0);
-    checkInfoBoxSelected(PO);
-    ok(!infoBoxExpanderWrapper.hidden,
-       "Expander button is not hidden for bookmark item.");
-    checkAddInfoFieldsNotCollapsed(PO);
-    checkAddInfoFields(PO, "bookmark item");
+      // make sure additional fields are still hidden in second bookmark item
+      ok(view.rowCount > 1, "Second bookmark item exists.");
+      view.selection.select(1);
+      checkInfoBoxSelected(PO);
+      ok(!infoBoxExpanderWrapper.hidden,
+         "Expander button is not hidden for second bookmark item.");
+      checkAddInfoFieldsNotCollapsed(PO);
+      checkAddInfoFields(PO, "second bookmark item");
 
-    // make sure additional fields are still hidden in second bookmark item
-    ok(view.rowCount > 1, "Second bookmark item exists.");
-    view.selection.select(1);
-    checkInfoBoxSelected(PO);
-    ok(!infoBoxExpanderWrapper.hidden,
-       "Expander button is not hidden for second bookmark item.");
-    checkAddInfoFieldsNotCollapsed(PO);
-    checkAddInfoFields(PO, "second bookmark item");
+      menuNode.containerOpen = false;
 
-    menuNode.containerOpen = false;
+      waitForClearHistory(nextTest);
+    };
 
-    waitForClearHistory(nextTest);
-  }
+    // Add a visit to browser history
+    addVisits(
+      { uri: PlacesUtils._uri(TEST_URI),
+        visitDate: Date.now()*1000,
+        transition: PlacesUtils.history.TRANSITION_TYPED },
+      addVisitsCallback);
+  } 
 });
 
 function checkInfoBoxSelected(PO) {

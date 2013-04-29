@@ -16,6 +16,7 @@ XPCSHELL_TESTS = unit
 include $(topsrcdir)/config/rules.mk
 
 _CHROME_FILES = \
+    head.js \
     test_treeview_date.xul \
     test_bug485100-change-case-loses-tag.xul \
     test_bug427633_no_newfolder_if_noip.xul \
