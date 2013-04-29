@@ -379,6 +379,8 @@ NS_IMETHODIMP nsMsgDBService::CreateNewDB(nsIMsgFolder *aFolder,
 
   HookupPendingListeners(msgDB, aFolder);
 
+  msgDatabase->RememberLastUseTime();
+
   return NS_OK;
 }
 
