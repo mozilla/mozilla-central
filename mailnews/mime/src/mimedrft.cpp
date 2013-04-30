@@ -480,6 +480,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
   //It's possible we must treat the message body as attachment!
   bool bodyAsAttachment = false;
   if (mdd->messageBody &&
+      !mdd->messageBody->m_type.IsEmpty() &&
       mdd->messageBody->m_type.Find("text/html", CaseInsensitiveCompare) == -1 &&
       mdd->messageBody->m_type.Find("text/plain", CaseInsensitiveCompare) == -1 &&
       !mdd->messageBody->m_type.LowerCaseEqualsLiteral("text"))

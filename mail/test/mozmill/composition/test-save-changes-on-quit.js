@@ -35,8 +35,31 @@ var setupModule = function (module) {
   collector.getModule("window-helpers").installInto(module);
 
   folder = create_folder("PromptToSaveTest");
-  add_message_to_folder(folder, create_message());
+
+  add_message_to_folder(folder, create_message()); // row 0
+
+  folder.addMessage(msgSource("content type: text", "text")); // row 1
+  folder.addMessage(msgSource("content type missing", null)); // row 2
 };
+
+function msgSource(aSubject, aContentType) {
+  let msgId = Components.classes["@mozilla.org/uuid-generator;1"]
+                        .getService(Components.interfaces.nsIUUIDGenerator)
+                        .generateUUID() + "@invalid";
+
+  return "From - Sun Apr 07 22:47:11 2013\r\n" +
+         "X-Mozilla-Status: 0001\r\n" +
+         "X-Mozilla-Status2: 00000000\r\n" +
+         "Message-ID: <" + msgId + ">\r\n" +
+         "Date: Sun, 07 Apr 2013 22:47:11 +0300\r\n" +
+         "From: Someone <some.one@invalid>\r\n" +
+         "To: someone.else@invalid\r\n" +
+         "Subject: " + aSubject + "\r\n" +
+         "MIME-Version: 1.0\r\n" +
+         (aContentType ? "Content-Type: " + aContentType + "\r\n" : "") +
+         "Content-Transfer-Encoding: 7bit\r\n\r\n" +
+         "A msg with contentType " + aContentType + "\r\n";
+}
 
 /**
  * Test that when a compose window is open with changes, and
@@ -219,5 +242,41 @@ function test_prompt_on_close_for_modified() {
   let fwc = open_compose_with_forward();
   fwc.type(fwc.eid("content-frame"), "Greetings!");
   close_compose_window(fwc, true);
+}
+
+/**
+ * Test there's no prompt on close when no changes was made in reply/forward
+ * windows - for the case the original msg had content type "text".
+ */
+function test_no_prompt_on_close_for_unmodified_content_type_text() {
+  be_in_folder(folder);
+  let msg = select_click_row(1); // row 1 is the one with content type text
+  assert_selected_and_displayed(mc, msg);
+
+  let rwc = open_compose_with_reply();
+  close_compose_window(rwc, false);
+
+  let fwc = open_compose_with_forward();
+  assert_equals(fwc.e("attachmentBucket").getRowCount(), 0,
+                "forwarding msg created attachment");
+  close_compose_window(fwc, false);
+}
+
+/**
+ * Test there's no prompt on close when no changes was made in reply/forward
+ * windows - for the case the original msg had no content type.
+ */
+function test_no_prompt_on_close_for_unmodified_no_content_type() {
+  be_in_folder(folder);
+  let msg = select_click_row(2); // row 2 is the one with no content type
+  assert_selected_and_displayed(mc, msg);
+
+  let rwc = open_compose_with_reply();
+  close_compose_window(rwc, false);
+
+  let fwc = open_compose_with_forward();
+  assert_equals(fwc.e("attachmentBucket").getRowCount(), 0,
+                "forwarding msg created attachment");
+  close_compose_window(fwc, false);
 }
 

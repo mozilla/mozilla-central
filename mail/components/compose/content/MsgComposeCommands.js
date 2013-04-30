@@ -2579,7 +2579,8 @@ function UpdateMailEditCharset()
   var send_default_charset = gMsgCompose.compFields.defaultCharacterSet;
 //  dump("send_default_charset is " + send_default_charset + "\n");
 
-  var compFieldsCharset = gMsgCompose.compFields.characterSet;
+  let compFieldsCharset = gMsgCompose.compFields.characterSet ||
+                          "ISO-8859-1";
 //  dump("gMsgCompose.compFields is " + compFieldsCharset + "\n");
 
   if (gCharsetConvertManager) {
@@ -2619,7 +2620,7 @@ function GetCharsetUIString()
   }
 
   charset = charset.toUpperCase();
-  if (charset == "US-ASCII")
+  if (!charset || charset == "US-ASCII")
     charset = "ISO-8859-1";
 
   if (charset != gSendDefaultCharset) {
