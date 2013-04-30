@@ -776,7 +776,8 @@ function test_storage_load(aWin) {
   Services.perms.add(Services.io.newURI("http://mochi.test:8888/", null, null),
                      "offline-app", Services.perms.ALLOW_ACTION);
 
-  let rootDir = "http://mochi.test:8888/browser/extensions/dataman/tests/";
+  // Get the http address from the current chrome test path
+  let rootDir = getRootDirectory(gTestPath).replace("chrome://mochitests/content/", "http://mochi.test:8888/");
   let testURL = rootDir + "dataman_storage.html";
   let storagetab = gBrowser.addTab(testURL);
   let stWin = storagetab.linkedBrowser.contentWindow.wrappedJSObject;
