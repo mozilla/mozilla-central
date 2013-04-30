@@ -22,6 +22,9 @@ XPCOMUtils.defineLazyModuleGetter(this, "FileUtils",
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
                                   "resource://gre/modules/PlacesUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "PlacesBackups",
+                                  "resource://gre/modules/PlacesBackups.jsm");
+
 XPCOMUtils.defineLazyModuleGetter(this, "BookmarkHTMLUtils",
                                   "resource://gre/modules/BookmarkHTMLUtils.jsm");
 
@@ -647,7 +650,7 @@ SuiteGlue.prototype = {
     // We must instantiate the history service since it will tell us if we
     // need to import or restore bookmarks due to first-run, corruption or
     // forced migration (due to a major schema change).
-    var bookmarksBackupFile = PlacesUtils.backups.getMostRecent("json");
+    var bookmarksBackupFile = PlacesBackups.getMostRecent("json");
 
     // If the database is corrupt or has been newly created we should
     // import bookmarks. Same if we don't have any JSON backups, which
@@ -828,18 +831,18 @@ SuiteGlue.prototype = {
    * Backup bookmarks if needed.
    */
   _backupBookmarks: function() {
-    let lastBackupFile = PlacesUtils.backups.getMostRecent();
+    let lastBackupFile = PlacesBackups.getMostRecent();
 
     // Backup bookmarks if there are no backups or the maximum interval between
     // backups elapsed.
     if (!lastBackupFile ||
-        new Date() - PlacesUtils.backups.getDateForFile(lastBackupFile) > BOOKMARKS_BACKUP_INTERVAL) {
+        new Date() - PlacesBackups.getDateForFile(lastBackupFile) > BOOKMARKS_BACKUP_INTERVAL) {
       let maxBackups = BOOKMARKS_BACKUP_MAX_BACKUPS;
       try {
         maxBackups = Services.prefs.getIntPref("browser.bookmarks.max_backups");
       } catch(ex) { /* Use default. */ }
 
-      PlacesUtils.backups.create(maxBackups); // Don't force creation.
+      PlacesBackups.create(maxBackups); // Don't force creation.
     }
   },
 
