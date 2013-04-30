@@ -371,8 +371,6 @@
 @BINPATH@/components/FeedProcessor.js
 @BINPATH@/components/FeedProcessor.manifest
 @BINPATH@/components/FeedWriter.js
-@BINPATH@/components/GPSDGeolocationProvider.js
-@BINPATH@/components/GPSDGeolocationProvider.manifest
 @BINPATH@/components/Identity.manifest
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
