@@ -153,7 +153,7 @@ function test4(tab, win) {
 
 function prepareTest5() {
   var plugin = getTestPlugin();
-  plugin.disabled = false;
+  plugin.enabledState = Ci.nsIPluginTag.STATE_ENABLED;
   plugin.blocklisted = true;
   prepareTest(test5, gTestRoot + "plugin_test.html");
 }
@@ -196,7 +196,7 @@ function test7() {
   ok(notificationBox.missingPlugins.has("application/x-test"), "Test 7, Should know about application/x-test");
 
   var plugin = getTestPlugin();
-  plugin.disabled = false;
+  plugin.enabledState = Ci.nsIPluginTag.STATE_ENABLED;
   plugin.blocklisted = false;
   Services.prefs.setBoolPref("plugins.click_to_play", true);
 
@@ -463,7 +463,7 @@ function test14() {
   ok(objLoadingContent.activated, "Test 14, Plugin should be activated");
 
   var plugin = getTestPlugin();
-  plugin.disabled = false;
+  plugin.enabled = Ci.nsIPluginTag.STATE_ENABLED;
   plugin.blocklisted = false;
   Services.prefs.setBoolPref("plugins.click_to_play", true);
   prepareTest(test15, gTestRoot + "plugin_alternate_content.html");
