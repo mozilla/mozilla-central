@@ -827,7 +827,11 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
   nsCOMPtr<nsIDocShellTreeItem> treeItem(do_QueryInterface(window->GetDocShell(), &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIXULWindow> xulWindow(do_GetInterface(treeItem, &rv));
+  nsCOMPtr <nsIDocShellTreeOwner> treeOwner;
+  rv = treeItem->GetTreeOwner(getter_AddRefs(treeOwner));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  nsCOMPtr<nsIXULWindow> xulWindow(do_GetInterface(treeOwner, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   int32_t i;
