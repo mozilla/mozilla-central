@@ -895,6 +895,8 @@ multigetSyncHandler.prototype = {
                                                             this.baseUri,
                                                             r.getetag,
                                                             this.listener);
+                    } else {
+                        cal.LOG("CalDAV: skipping item with unmodified etag : " + oldEtag);
                     }
                 } else {
                     cal.WARN("CalDAV: Unexpected response, status: " +
