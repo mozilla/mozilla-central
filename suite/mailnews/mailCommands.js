@@ -371,10 +371,20 @@ saveAsUrlListener.prototype = {
   }
 };
 
-function SaveAsTemplate(uri)
+function SaveAsTemplate(aUris)
 {
-  if (uri)
+  // For backwards compatibility check if the argument is a string and,
+  // if so, convert to an array.
+  if (typeof aUris == "string")
+    aUris = [aUris];
+
+  var num = aUris.length;
+  if (!num)
+    return;
+
+  for (let i = 0; i < num; i++)
   {
+    let uri = aUris[i];
     var hdr = messenger.msgHdrFromURI(uri);
     var identity = GetIdentityForHeader(hdr, Components.interfaces.nsIMsgCompType.Template);
     var templates = MailUtils.getFolderForURI(identity.stationeryFolder, false);
@@ -384,7 +394,7 @@ function SaveAsTemplate(uri)
       let isAsync = templates.server.protocolInfo.foldersCreatedAsync;
       templates.createStorageIfMissing(new saveAsUrlListener(uri, identity));
       if (isAsync)
-        return;
+        continue;
     }
     messenger.saveAs(uri, false, identity, null);
   }

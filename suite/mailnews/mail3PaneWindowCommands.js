@@ -263,7 +263,7 @@ var DefaultController =
       case "cmd_saveAsTemplate":
         var msgFolder = GetSelectedMsgFolders();
         var target = msgFolder[0].server.localStoreType;
-        if (GetNumSelectedMessages() > 1 || target == "news")
+        if (GetNumSelectedMessages() == 0 || target == "news")
           return false;   // else fall thru
       case "cmd_reply":
       case "button_reply":

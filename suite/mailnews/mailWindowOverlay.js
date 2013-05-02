@@ -1522,7 +1522,7 @@ function MsgSaveAsFile()
 
 function MsgSaveAsTemplate()
 {
-  SaveAsTemplate(gFolderDisplay.selectedMessageUri);
+  SaveAsTemplate(gFolderDisplay.selectedMessageUris);
 }
 
 const nsIFilePicker = Components.interfaces.nsIFilePicker;
