@@ -50,16 +50,13 @@ var tests = [
   // will not work well with UTF-16BE.
   //testUTF16BE,
   testUTF16LE,
-  testShiftJIS,
-  do_test_finished
+  testShiftJIS
 ]
 
 function run_test() {
   // Ensure we have at least one mail account
   loadLocalMailAccount();
   Services.prefs.setIntPref("mail.strictly_mime.parm_folding", 0);
-
-  do_test_pending();
 
   async_run_tests(tests);
 }

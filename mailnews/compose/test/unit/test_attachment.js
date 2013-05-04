@@ -126,12 +126,10 @@ function testInput1() {
 
 var tests = [
   testInput0,
-  testInput1,
-  do_test_finished
+  testInput1
 ]
 
 function run_test() {
   loadLocalMailAccount();
-  do_test_pending();
   async_run_tests(tests);
 }
