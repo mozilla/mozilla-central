@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "calICalendar.idl"
-#include "calIDateTime.idl"
+interface calIDateTime;
 interface calIWcapSession;
 
 /** Adds WCAP specific capabilities to calICalendar.
