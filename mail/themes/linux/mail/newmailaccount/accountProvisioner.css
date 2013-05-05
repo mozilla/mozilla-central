@@ -21,7 +21,7 @@ button::-moz-focus-inner {
 input[type="submit"],
 button {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75) inset;
-  background-image: -moz-linear-gradient(center top , #EEEEEE 0%, #EEEEEE 50%, #E1E1E1 50%, #E1E1E1 100%);
+  background-image: linear-gradient(#EEEEEE 0%, #EEEEEE 50%, #E1E1E1 50%, #E1E1E1 100%);
   border-color: #AAAAAA #AAAAAA #888888;
   border-style: solid;
   border-width: 1px;
