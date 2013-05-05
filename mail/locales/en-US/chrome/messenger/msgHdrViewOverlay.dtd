@@ -2,24 +2,24 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
-<!ENTITY toField3.label "To ">
-<!ENTITY fromField3.label "From ">
-<!ENTITY senderField3.label "Sender ">
-<!ENTITY organizationField3.label "Organization ">
-<!ENTITY replyToField3.label "Reply to ">
+<!ENTITY toField4.label "To">
+<!ENTITY fromField4.label "From">
+<!ENTITY senderField4.label "Sender">
+<!ENTITY organizationField4.label "Organization">
+<!ENTITY replyToField4.label "Reply to">
 
-<!ENTITY subjectField3.label "Subject ">
-<!ENTITY ccField3.label "Cc ">
-<!ENTITY bccField3.label "Bcc ">
-<!ENTITY newsgroupsField3.label "Newsgroups ">
-<!ENTITY followupToField3.label "Followup to ">
-<!ENTITY tagsHdr3.label "Tags ">
-<!ENTITY dateField3.label "Date ">
-<!ENTITY userAgentField3.label "User agent ">
-<!ENTITY referencesField3.label "References ">
-<!ENTITY messageIdField3.label "Message ID ">
-<!ENTITY inReplyToField3.label "In reply to ">
-<!ENTITY originalWebsite3.label "Website ">
+<!ENTITY subjectField4.label "Subject">
+<!ENTITY ccField4.label "Cc">
+<!ENTITY bccField4.label "Bcc">
+<!ENTITY newsgroupsField4.label "Newsgroups">
+<!ENTITY followupToField4.label "Followup to">
+<!ENTITY tagsHdr4.label "Tags">
+<!ENTITY dateField4.label "Date">
+<!ENTITY userAgentField4.label "User agent">
+<!ENTITY referencesField4.label "References">
+<!ENTITY messageIdField4.label "Message ID">
+<!ENTITY inReplyToField4.label "In reply to">
+<!ENTITY originalWebsite4.label "Website">
 
 <!ENTITY editMessageDescription.label "This is a draft message">
 <!ENTITY editMessageButton.label "Edit…">

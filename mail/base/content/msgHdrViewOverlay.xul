@@ -385,7 +385,7 @@
             <rows id="expandedHeaderRows">
               <row id="expandedfromRow">
                 <label id="expandedfromLabel" class="headerName"
-                       value="&fromField3.label;" control="expandedfromBox"/>
+                       value="&fromField4.label;" control="expandedfromBox"/>
                 <mail-multi-emailHeaderField id="expandedfromBox" flex="1"/>
               </row>
             </rows>
@@ -409,92 +409,92 @@
                    performance hit of creating them dynamically. -->
               <row id="expandedsubjectRow">
                 <label id="expandedsubjectLabel" class="headerName"
-                       value="&subjectField3.label;"
+                       value="&subjectField4.label;"
                        control="expandedsubjectBox"/>
                 <mail-headerfield id="expandedsubjectBox" flex="1"/>
               </row>
               <row id="expandedorganizationRow" collapsed="true">
                 <label id="expandedorganizationLabel" class="headerName"
-                       value="&organizationField3.label;"
+                       value="&organizationField4.label;"
                        control="expandedorganizationBox"/>
                 <mail-headerfield id="expandedorganizationBox"/>
               </row>
               <row id="expandedsenderRow" collapsed="true">
                 <label id="expandedsenderLabel" class="headerName"
-                       value="&senderField3.label;" control="expandedsenderBox"/>
+                       value="&senderField4.label;" control="expandedsenderBox"/>
                 <mail-emailheaderfield id="expandedsenderBox"/>
               </row>
               <row id="expandedreply-toRow" collapsed="true">
                 <label id="expandedreply-toLabel" class="headerName"
-                       value="&replyToField3.label;"
+                       value="&replyToField4.label;"
                        control="expandedreply-toBox"/>
                 <mail-multi-emailHeaderField id="expandedreply-toBox"/>
               </row>
               <row id="expandedtoRow" collapsed="true">
                 <label id="expandedtoLabel" class="headerName"
-                       value="&toField3.label;" control="expandedtoBox"/>
+                       value="&toField4.label;" control="expandedtoBox"/>
                 <mail-multi-emailHeaderField id="expandedtoBox" flex="1"/>
               </row>
               <row id="expandedccRow" collapsed="true">
                 <label id="expandedccLabel" class="headerName"
-                       value="&ccField3.label;" control="expandedccBox"/>
+                       value="&ccField4.label;" control="expandedccBox"/>
                 <mail-multi-emailHeaderField id="expandedccBox" flex="1"/>
               </row>
               <row id="expandedbccRow" collapsed="true">
                 <label id="expandedbccLabel" class="headerName"
-                       value="&bccField3.label;" control="expandedbccBox"/>
+                       value="&bccField4.label;" control="expandedbccBox"/>
                 <mail-multi-emailHeaderField id="expandedbccBox"/>
               </row>
               <row id="expandednewsgroupsRow" collapsed="true">
                 <label id="expandednewsgroupsLabel" class="headerName"
-                       value="&newsgroupsField3.label;"
+                       value="&newsgroupsField4.label;"
                        control="expandednewsgroupsBox"/>
                 <mail-newsgroups-headerfield id="expandednewsgroupsBox"/>
               </row>
               <row id="expandedfollowup-toRow" collapsed="true">
                 <label id="expandedfollowup-toLabel" class="headerName"
-                       value="&followupToField3.label;"
+                       value="&followupToField4.label;"
                        control="expandedfollowup-toBox"/>
                 <mail-newsgroups-headerfield id="expandedfollowup-toBox"/>
               </row>
               <row id="expandeddateRow" collapsed="true">
                 <label id="expandeddateLabel" class="headerName"
-                       value="&dateField3.label;" control="expandeddateBox"/>
+                       value="&dateField4.label;" control="expandeddateBox"/>
                 <mail-headerfield id="expandeddateBox" flex="1"/>
               </row>
               <row id="expandedmessage-idRow" collapsed="true">
                 <label id="expandedmessage-idLabel" class="headerName"
-                       value="&messageIdField3.label;"
+                       value="&messageIdField4.label;"
                        control="expandedmessage-idBox"/>
                 <mail-messageids-headerfield id="expandedmessage-idBox"/>
               </row>
               <row id="expandedin-reply-toRow" collapsed="true">
                 <label id="expandedin-reply-toLabel" class="headerName"
-                       value="&inReplyToField3.label;"
+                       value="&inReplyToField4.label;"
                        control="expandedin-reply-toBox"/>
                 <mail-messageids-headerfield id="expandedin-reply-toBox"/>
               </row>
               <row id="expandedreferencesRow" collapsed="true">
                 <label id="expandedreferencesLabel" class="headerName"
-                       value="&referencesField3.label;"
+                       value="&referencesField4.label;"
                        control="expandedReferencesBox"/>
                 <mail-messageids-headerfield id="expandedreferencesBox"
                                              flex="1"/>
               </row>
               <row id="expandedtagsRow" collapsed="true">
                 <label id="expandedtagsLabel" class="headerName"
-                       value="&tagsHdr3.label;" control="expandedtagsBox"/>
+                       value="&tagsHdr4.label;" control="expandedtagsBox"/>
                 <mail-tagfield id="expandedtagsBox"/>
               </row>
               <row id="expandedcontent-baseRow" collapsed="true">
                 <label id="expandedcontent-baseLabel" class="headerName"
-                       value="&originalWebsite3.label;"
+                       value="&originalWebsite4.label;"
                        control="expandedcontent-baseBox"/>
                 <mail-urlfield id="expandedcontent-baseBox"/>
               </row>
               <row id="expandeduser-agentRow" collapsed="true">
                 <label id="expandeduser-agentLabel" class="headerName"
-                       value="&userAgentField3.label;"
+                       value="&userAgentField4.label;"
                        control="expandeduser-agentBox"/>
                 <mail-headerfield id="expandeduser-agentBox" flex="1"/>
               </row>

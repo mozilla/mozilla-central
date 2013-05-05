@@ -372,7 +372,7 @@ toolbarpaletteitem #hdrDummyReplyButton {
   background-color: transparent;
   padding: 0px;
   margin-top: 0;
-  -moz-margin-end: 0;
+  -moz-margin-end: 3px;
 }
 
 .headerValueBox {
