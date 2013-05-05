@@ -68,6 +68,9 @@
         if (this.parentNode.parentNode.localName == "toolbarpaletteitem")
           return;
 
+        if (this.usePrivateBrowsing)
+          this._textbox.searchParam += "|private";
+
         this.searchService.init(this);
         var os = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
@@ -100,6 +103,12 @@
       <field name="_searchService">
         Components.classes["@mozilla.org/browser/search-service;1"]
                   .getService(Components.interfaces.nsIBrowserSearchService);
+      </field>
+      <field name="usePrivateBrowsing" readonly="true">
+        window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+              .getInterface(Components.interfaces.nsIWebNavigation)
+              .QueryInterface(Components.interfaces.nsILoadContext)
+              .usePrivateBrowsing
       </field>
       <field name="_addedObserver">false</field>
       <field name="_engines">null</field>
@@ -411,10 +420,9 @@
           }
 
           // Save the current value in the form history
-          if (textValue) {
+          if (textValue && !this.usePrivateBrowsing) {
             try {
-              textBox._formHistSvc.addEntry(textBox.getAttribute("autocompletesearchparam"),
-                                            textValue);
+              textBox._formHistSvc.addEntry("searchbar-history", textValue);
             } catch (ex) {
               Components.utils.reportError("Saving search to form history failed: " + ex);
             }
@@ -591,7 +599,7 @@
                              .getControllerForCommand("cmd_paste")
                              .isCommandEnabled("cmd_paste");
             case "cmd_clearhistory":
-              return this._formHistSvc.nameExists(this.searchParam);
+              return this._formHistSvc.nameExists("searchbar-history");
             case "cmd_togglesuggest":
               return true;
           }
@@ -606,8 +614,7 @@
               this.onTextEntered();
               break;
             case "cmd_clearhistory":
-              var param = this.getAttribute("autocompletesearchparam");
-              this._formHistSvc.removeEntriesForName(param);
+              this._formHistSvc.removeEntriesForName("searchbar-history");
               this.value = "";
               break;
             case "cmd_togglesuggest":
