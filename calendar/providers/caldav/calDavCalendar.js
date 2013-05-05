@@ -2781,15 +2781,4 @@ const scriptLoadOrder = [
     "calDavRequestHandlers.js"
 ];
 
-function NSGetFactory(cid) {
-    if (!this.scriptsLoaded) {
-        Services.io.getProtocolHandler("resource")
-                .QueryInterface(Components.interfaces.nsIResProtocolHandler)
-                .setSubstitution("calendar", Services.io.newFileURI(__LOCATION__.parent.parent));
-        Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
-        this.scriptsLoaded = true;
-    }
-
-    return (XPCOMUtils.generateNSGetFactory([calDavCalendar]))(cid);
-}
+var NSGetFactory = cal.loadingNSGetFactory(scriptLoadOrder, [calDavCalendar], this);

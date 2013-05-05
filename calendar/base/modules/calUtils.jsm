@@ -47,6 +47,20 @@ let cal = {
         }
     },
 
+    loadingNSGetFactory: function(scriptNames, components, scope) {
+        return function NSGetFactory(cid) {
+            if (!this.inner) {
+                let global = Components.utils.getGlobalForObject(scope);
+                cal.loadScripts(scriptNames, global);
+                if (typeof components == "function") {
+                    components = components.call(global);
+                }
+                this.inner = XPCOMUtils.generateNSGetFactory(components);
+            }
+            return this.inner(cid);
+        };
+    },
+
     /**
      * Schedules execution of the passed function to the current thread's queue.
      */

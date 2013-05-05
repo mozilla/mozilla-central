@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 //
 // init code for globals, prefs:
@@ -46,13 +45,13 @@ function initWcapProvider() {
         initLogging();
 
         // some string resources:
-        g_privateItemTitle = calGetString("wcap", "privateItem.title.text");
-        g_confidentialItemTitle = calGetString("wcap", "confidentialItem.title.text");
-        g_busyItemTitle = calGetString("wcap", "busyItem.title.text");
+        g_privateItemTitle = cal.calGetString("wcap", "privateItem.title.text");
+        g_confidentialItemTitle = cal.calGetString("wcap", "confidentialItem.title.text");
+        g_busyItemTitle = cal.calGetString("wcap", "busyItem.title.text");
         g_busyPhantomItemUuidPrefix = ("PHANTOM_uuid_" + cal.getUUID());
 
-        CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
-        CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);
+        CACHE_LAST_RESULTS = cal.getPrefSafe("calendar.wcap.cache_last_results", 4);
+        CACHE_LAST_RESULTS_INVALIDATE = cal.getPrefSafe("calendar.wcap.cache_last_results_invalidate", 120);
     } catch (exc) {
         logError(exc, "error in init sequence");
     }
@@ -69,28 +68,14 @@ const scriptLoadOrder = [
     "calWcapCalendarItems.js"
 ];
 
-function NSGetFactory(cid) {
-    try {
-    if (!this.scriptsLoaded) {
-        Services.io.getProtocolHandler("resource")
-                .QueryInterface(Components.interfaces.nsIResProtocolHandler)
-                .setSubstitution("calendar", Services.io.newFileURI(__LOCATION__.parent.parent));
-        Components.utils.import("resource://calendar/modules/calUtils.jsm");
-        cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
-        initWcapProvider();
-        this.scriptsLoaded = true;
+function getComponents() {
+    initWcapProvider();
 
-    }
-
-    let components = [
+    return [
         calWcapCalendar,
         calWcapNetworkRequest,
         calWcapSession
     ];
-
-    return (XPCOMUtils.generateNSGetFactory(components))(cid);
-
-    } catch (e) {
-        cal.WARN("ERROR: " + e);
-    }
 }
+
+var NSGetFactory = cal.loadingNSGetFactory(scriptLoadOrder, getComponents, this);
