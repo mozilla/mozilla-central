@@ -1699,7 +1699,9 @@ function loadCloudProviders() {
         }
 
         // Add the item to the different places we advertise cloud providers
-        toolbarPopup.appendChild(item.cloneNode()).cloudProvider = cloudProvider;
+        if (toolbarPopup) {
+            toolbarPopup.appendChild(item.cloneNode()).cloudProvider = cloudProvider;
+        }
         attachmentPopup.appendChild(item.cloneNode()).cloudProvider = cloudProvider;
 
         // The last one doesn't need to clone, just use the item itself.
