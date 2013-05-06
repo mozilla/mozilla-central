@@ -12,12 +12,12 @@ function Startup()
   UpdateMarkAsReadOptions(autoPref.value);
 }
 
-function UpdateMarkAsReadOptions(aEnableRadioGroup)
+function UpdateMarkAsReadOptions(aEnableReadDelay)
 {
-  EnableElementById("markAsReadAutoPreferences", aEnableRadioGroup, false);
+  EnableElementById("markAsReadAfterPreferences", aEnableReadDelay, false);
   // ... and the extras!
   var delayPref = document.getElementById("mailnews.mark_message_read.delay");
-  UpdateMarkAsReadTextbox(aEnableRadioGroup && delayPref.value, false);
+  UpdateMarkAsReadTextbox(aEnableReadDelay && delayPref.value, false);
 }
 
 function UpdateMarkAsReadTextbox(aEnable, aFocus)
