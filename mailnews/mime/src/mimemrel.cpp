@@ -606,7 +606,6 @@ MimeMultipartRelated_parse_child_line (MimeObject *obj,
 {
   MimeContainer *cont = (MimeContainer *) obj;
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) obj;
-  int status;
   MimeObject *kid;
 
   if (obj->options && !obj->options->write_html_p
@@ -760,14 +759,12 @@ push_tag(MimeMultipartRelated* relobj, const char* buf, int32_t size)
 {
   if (size + relobj->curtag_length > relobj->curtag_max) {
     relobj->curtag_max += 2 * size;
-    if (relobj->curtag_max < 1024) relobj->curtag_max = 1024;
-    if (!relobj->curtag) {
-      relobj->curtag = (char*) PR_MALLOC(relobj->curtag_max);
-    } else {
-      relobj->curtag = (char*) PR_Realloc(relobj->curtag,
-                        relobj->curtag_max);
-    }
-    if (!relobj->curtag) return MIME_OUT_OF_MEMORY;
+    if (relobj->curtag_max < 1024)
+      relobj->curtag_max = 1024;
+
+    char* newBuf = (char*) PR_Realloc(relobj->curtag, relobj->curtag_max);
+    NS_ENSURE_TRUE(newBuf, MIME_OUT_OF_MEMORY);
+    relobj->curtag = newBuf;
   }
   memcpy(relobj->curtag + relobj->curtag_length, buf, size);
   relobj->curtag_length += size;

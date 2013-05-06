@@ -90,7 +90,7 @@ protected:
   nsresult            DumpRestOfHeaders();
   nsresult            OutputGenericHeader(const char *aHeaderVal);
 
-  nsresult            WriteHelper(const char *buf, uint32_t count, uint32_t *countWritten);
+  nsresult            WriteHelper(const nsACString &buf, uint32_t *countWritten);
 
   // For string bundle usage...
   nsCOMPtr<nsIStringBundle>  m_stringBundle;        // for translated strings

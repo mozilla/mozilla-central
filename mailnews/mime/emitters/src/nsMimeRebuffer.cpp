@@ -8,69 +8,42 @@
 
 MimeRebuffer::MimeRebuffer(void)
 {
-  mSize = 0;
-  mBuf = NULL;
 }
 
 MimeRebuffer::~MimeRebuffer(void)
 {
-  if (mBuf)
-  {
-    PR_FREEIF(mBuf);
-    mBuf = NULL;
-  }
 }
 
 uint32_t
 MimeRebuffer::GetSize()
 {
-  return mSize;
+  return mBuf.Length();
 }
 
-uint32_t      
-MimeRebuffer::IncreaseBuffer(const char *addBuf, uint32_t size)
+uint32_t
+MimeRebuffer::IncreaseBuffer(const nsACString &addBuf)
 {
-  if ( (!addBuf) || (size == 0) )
-    return mSize;
-
-  mBuf = (char *)PR_Realloc(mBuf, size + mSize);
-  if (!mBuf)
-  {
-    mSize = 0;
-    return mSize;
-  }
-
-  memcpy(mBuf+mSize, addBuf, size);
-  mSize += size;
-  return mSize;
+  mBuf.Append(addBuf);
+  return mBuf.Length();
 }
 
-uint32_t      
+uint32_t
 MimeRebuffer::ReduceBuffer(uint32_t numBytes)
 {
   if (numBytes == 0)
-    return mSize;
+    return mBuf.Length();
 
-  if (!mBuf)
+  if (numBytes >= mBuf.Length())
   {
-    mSize = 0;
-    return mSize;
+    mBuf.Truncate(0);
+    return 0;
   }
 
-  if (numBytes >= mSize)
-  {
-    PR_FREEIF(mBuf);
-    mBuf = NULL;
-    mSize = 0;
-    return mSize;
-  }
-
-  memmove(mBuf, mBuf + numBytes, (mSize - numBytes)); /* overlapping */
-  mSize -= numBytes;
-  return mSize;
+  mBuf.Cut(0, numBytes);
+  return mBuf.Length();
 }
 
-char *
+nsACString &
 MimeRebuffer::GetBuffer()
 {
   return mBuf;

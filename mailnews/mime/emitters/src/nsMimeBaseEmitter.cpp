@@ -451,7 +451,7 @@ nsMimeBaseEmitter::Write(const nsACString &buf, uint32_t *amountWritten)
   // First, handle any old buffer data...
   if (needToWrite > 0)
   {
-    rv = WriteHelper(mBufferMgr->GetBuffer(), needToWrite, &written);
+    rv = WriteHelper(mBufferMgr->GetBuffer(), &written);
 
     mTotalWritten += written;
     mBufferMgr->ReduceBuffer(written);
@@ -461,7 +461,7 @@ nsMimeBaseEmitter::Write(const nsACString &buf, uint32_t *amountWritten)
     // and return
     if (mBufferMgr->GetSize() > 0)
     {
-      mBufferMgr->IncreaseBuffer(buf.BeginReading(), buf.Length());
+      mBufferMgr->IncreaseBuffer(buf);
       return rv;
     }
   }
@@ -469,24 +469,24 @@ nsMimeBaseEmitter::Write(const nsACString &buf, uint32_t *amountWritten)
 
   // if we get here, we are dealing with new data...try to write
   // and then do the right thing...
-  rv = WriteHelper(buf.BeginReading(), buf.Length(), &written);
+  rv = WriteHelper(buf, &written);
   *amountWritten = written;
   mTotalWritten += written;
 
   if (written < buf.Length()) {
     const nsACString &remainder = Substring(buf, written);
-    mBufferMgr->IncreaseBuffer(remainder.BeginReading(), remainder.Length());
+    mBufferMgr->IncreaseBuffer(remainder);
   }
 
   return rv;
 }
 
 nsresult
-nsMimeBaseEmitter::WriteHelper(const char *buf, uint32_t count, uint32_t *countWritten)
+nsMimeBaseEmitter::WriteHelper(const nsACString &buf, uint32_t *countWritten)
 {
   NS_ENSURE_TRUE(mOutStream, NS_ERROR_NOT_INITIALIZED);
 
-  nsresult rv = mOutStream->Write(buf, count, countWritten);
+  nsresult rv = mOutStream->Write(buf.BeginReading(), buf.Length(), countWritten);
   if (rv == NS_BASE_STREAM_WOULD_BLOCK) {
     // pipe is full, push contents of pipe to listener...
     uint64_t avail;
@@ -496,7 +496,7 @@ nsMimeBaseEmitter::WriteHelper(const char *buf, uint32_t count, uint32_t *countW
                                     std::min(avail, uint64_t(PR_UINT32_MAX)));
 
       // try writing again...
-      rv = mOutStream->Write(buf, count, countWritten);
+      rv = mOutStream->Write(buf.BeginReading(), buf.Length(), countWritten);
     }
   }
   return rv;

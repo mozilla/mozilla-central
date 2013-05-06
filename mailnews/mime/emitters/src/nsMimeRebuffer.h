@@ -6,6 +6,7 @@
 #define _rebuffer_h_
 
 #include "mozilla/StandardInteger.h"
+#include "nsStringGlue.h"
 
 //////////////////////////////////////////////////////////////
 // A rebuffering class necessary for stream output buffering
@@ -17,13 +18,12 @@ public:
     virtual       ~MimeRebuffer (void);
 
     uint32_t      GetSize();
-    uint32_t      IncreaseBuffer(const char *addBuf, uint32_t size);
+    uint32_t      IncreaseBuffer(const nsACString &addBuf);
     uint32_t      ReduceBuffer(uint32_t numBytes);
-    char          *GetBuffer();
+    nsACString &  GetBuffer();
 
 protected:
-    uint32_t      mSize;
-    char          *mBuf;
+    nsCString     mBuf;
 };
 
 #endif /* _rebuffer_h_ */
