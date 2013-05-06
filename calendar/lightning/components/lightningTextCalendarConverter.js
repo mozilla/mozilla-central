@@ -9,18 +9,20 @@ Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
 Components.utils.import("resource://calendar/modules/calRecurrenceUtils.jsm");
 
 function ltnMimeConverter() {
+    this.wrappedJSObject = this;
 }
 
+const ltnMimeConverterClassID = Components.ID("{c70acb08-464e-4e55-899d-b2c84c5409fa}");
+const ltnMimeConverterInterfaces = [Components.interfaces.nsISimpleMimeConverter];
 ltnMimeConverter.prototype = {
-    classID: Components.ID("{c70acb08-464e-4e55-899d-b2c84c5409fa}"),
-
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsISimpleMimeConverter]),
+    classID: ltnMimeConverterClassID,
+    QueryInterface: XPCOMUtils.generateQI(ltnMimeConverterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{c70acb08-464e-4e55-899d-b2c84c5409fa}"),
+        classID: ltnMimeConverterClassID,
         contractID: "@mozilla.org/lightning/mime-converter;1",
         classDescription: "Lightning text/calendar handler",
-        interfaces: [Components.interfaces.nsISimpleMimeConverter]
+        interfaces: ltnMimeConverterInterfaces
     }),
 
     /**

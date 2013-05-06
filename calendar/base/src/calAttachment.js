@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 //
 // calAttachment.js
@@ -13,42 +14,20 @@ function calAttachment() {
     this.mProperties = new cal.calPropertyBag();
 }
 
+const calAttachmentClassID = Components.ID("{5f76b352-ab75-4c2b-82c9-9206dbbf8571}");
+const calAttachmentInterfaces = [Components.interfaces.calIAttachment];
 calAttachment.prototype = {
     mData: null,
     mHashId: null,
 
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this,
-                                    calAttachment.prototype,
-                                    aIID,
-                                    null,
-                                    this);
-    },
-
-    /**
-     * nsIClassInfo
-     */
-
-    getInterfaces: function cA_getInterfaces(aCount) {
-        var ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIAttachment,
-            Components.interfaces.nsIClassInfo
-        ];
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function cA_getHelperForLanguage(language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/attachment;1",
-    classDescription: "Calendar Item Attachment",
-    classID: Components.ID("{5f76b352-ab75-4c2b-82c9-9206dbbf8571}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
+    classID: calAttachmentClassID,
+    QueryInterface: XPCOMUtils.generateQI(calAttachmentInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calAttachmentClassID,
+        contractID: "@mozilla.org/calendar/attachment;1",
+        classDescription: "Calendar Item Attachment",
+        interfaces: calAttachmentInterfaces
+    }),
 
     get hashId() {
         if (!this.mHashId) {

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function calIcsParser() {
     this.wrappedJSObject = this;
@@ -12,32 +13,18 @@ function calIcsParser() {
     this.mComponents = new Array();
     this.mProperties = new Array();
 }
-
+const calIcsParserClassID = Components.ID("{6fe88047-75b6-4874-80e8-5f5800f14984}");
+const calIcsParserInterfaces = [Components.interfaces.calIIcsParser];
 calIcsParser.prototype = {
-    contractID: "@mozilla.org/calendar/ics-parser;1",
-    classDescription: "Calendar ICS Parser",
-    classID: Components.ID("{6fe88047-75b6-4874-80e8-5f5800f14984}"),
-
-    getInterfaces: function ip_getInterfaces (count) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIIcsParser,
-            Components.interfaces.nsIClassInfo
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function ip_getHelperForLanguage(language) {
-        return null;
-    },
-
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.THREADSAFE,
-
-    QueryInterface: function ip_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calIcsParser.prototype, aIID, null, this);
-    },
+    classID: calIcsParserClassID,
+    QueryInterface: XPCOMUtils.generateQI(calIcsParserInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calIcsParserClassID,
+        contractID: "@mozilla.org/calendar/ics-parser;1",
+        classDescription: "Calendar ICS Parser",
+        interfaces: calIcsParserInterfaces,
+        flags: Components.interfaces.nsIClassInfo.THREADSAFE
+    }),
 
     processIcalComponent: function ip_processIcalComponent(rootComp, aAsyncParsing) {
         let calComp;

@@ -12,17 +12,20 @@ Components.utils.import("resource://calendar/modules/calPrintUtils.jsm");
  * Prints a two column view of a week of events, much like a paper day-planner
  */
 function calWeekPrinter() {
+    this.wrappedJSObject = this;
 }
 
+const calWeekPrinterClassID = Components.ID("{2d6ec97b-9109-4b92-89c5-d4b4806619ce}");
+const calWeekPrinterInterfaces = [Components.interfaces.calIPrintFormatter];
 calWeekPrinter.prototype = {
-    classID: Components.ID("{2d6ec97b-9109-4b92-89c5-d4b4806619ce}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIPrintFormatter]),
+    classID: calWeekPrinterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calWeekPrinterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{2d6ec97b-9109-4b92-89c5-d4b4806619ce}"),
+        classID: calWeekPrinterClassID,
         contractID: "@mozilla.org/calendar/printformatter;1?type=weekplan",
         classDescription: "Calendar Week Print Formatter",
-        interfaces: [Components.interfaces.calIPrintFormatter]
+        interfaces: calWeekPrinterInterfaces
     }),
 
     get name() cal.calGetString("calendar", "weekPrinterName"),

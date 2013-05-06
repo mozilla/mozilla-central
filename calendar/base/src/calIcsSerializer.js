@@ -11,29 +11,17 @@ function calIcsSerializer() {
     this.mProperties = [];
     this.mComponents = [];
 }
-
+const calIcsSerializerClassID = Components.ID("{207a6682-8ff1-4203-9160-729ec28c8766}");
+const calIcsSerializerInterfaces = [Components.interfaces.calIIcsSerializer];
 calIcsSerializer.prototype = {
-    // nsIClassInfo:
-    classID: Components.ID("{207a6682-8ff1-4203-9160-729ec28c8766}"),
-    contractID: "@mozilla.org/calendar/ics-serializer;1",
-    classDescription: "Calendar ICS Serializer",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calIIcsSerializer,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return doQueryInterface(this, calIcsSerializer.prototype, aIID, null, this);
-    },
+    classID: calIcsSerializerClassID,
+    QueryInterface: XPCOMUtils.generateQI(calIcsSerializerInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calIcsSerializerClassID,
+        contractID: "@mozilla.org/calendar/ics-serializer;1",
+        classDescription: "Calendar ICS Serializer",
+        interfaces: calIcsSerializerInterfaces,
+    }),
 
     addItems: function is_addItems(aItems, aCount) {
         if (aCount > 0) {

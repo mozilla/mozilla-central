@@ -47,39 +47,29 @@ function calICSCalendar() {
     this.queue = new Array();
     this.mModificationActions = [];
 }
-
+const calICSCalendarClassID = Components.ID("{f8438bff-a3c9-4ed5-b23f-2663b5469abf}");
+const calICSCalendarInterfaces = [
+    Components.interfaces.calICalendarProvider,
+    Components.interfaces.calICalendar,
+    Components.interfaces.calISchedulingSupport,
+    Components.interfaces.nsIStreamListener,
+    Components.interfaces.nsIStreamLoaderObserver,
+    Components.interfaces.nsIChannelEventSink,
+    Components.interfaces.nsIInterfaceRequestor,
+];
 calICSCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
-
-    classID: Components.ID("{f8438bff-a3c9-4ed5-b23f-2663b5469abf}"),
-    contractID: "@mozilla.org/calendar/calendar;1?type=ics",
-    classDescription: "Calendar ICS provider",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calICalendarProvider,
-                        Components.interfaces.calICalendar,
-                        Components.interfaces.calISchedulingSupport,
-                        Components.interfaces.nsIStreamListener,
-                        Components.interfaces.nsIStreamLoaderObserver,
-                        Components.interfaces.nsIChannelEventSink,
-                        Components.interfaces.nsIInterfaceRequestor,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: calICSCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calICSCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calICSCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=ics",
+        classDescription: "Calendar ICS provider",
+        interfaces: calICSCalendarInterfaces,
+    }),
 
     mObserver: null,
     locked: false,
-
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calICSCalendar.prototype, aIID, null, this);
-    },
 
     initICSCalendar: function() {
         this.mMemoryCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=memory"]

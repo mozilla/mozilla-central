@@ -48,30 +48,23 @@ function calCalendarSearchService() {
     this.wrappedJSObject = this;
     this.mProviders = new calInterfaceBag(Components.interfaces.calICalendarSearchProvider);
 }
+const calCalendarSearchServiceClassID = Components.ID("{f5f743cd-8997-428e-bc1b-644e73f61203}");
+const calCalendarSearchServiceInterfaces = [
+    Components.interfaces.calICalendarSearchProvider,
+    Components.interfaces.calICalendarSearchService
+];
 calCalendarSearchService.prototype = {
     mProviders: null,
 
-    QueryInterface: function calCalendarSearchService_QueryInterface(aIID) {
-        return doQueryInterface(this, calCalendarSearchService.prototype, aIID, null, this);
-    },
-
-    // nsIClassInfo:
-    getInterfaces: function calCalendarSearchService_getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsISupports,
-                        Components.interfaces.calICalendarSearchProvider,
-                        Components.interfaces.calICalendarSearchService,
-                        Components.interfaces.nsIClassInfo];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function calCalendarSearchService_getHelperForLanguage(language) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/calendarsearch-service;1",
-    classDescription: "Calendar Search Service",
-    classID: Components.ID("{f5f743cd-8997-428e-bc1b-644e73f61203}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
+    classID: calCalendarSearchServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(calCalendarSearchServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calCalendarSearchServiceClassID,
+        contractID: "@mozilla.org/calendar/calendarsearch-service;1",
+        classDescription: "Calendar Search Service",
+        interfaces: calCalendarSearchServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     // calICalendarSearchProvider:
     searchForCalendars: function calCalendarSearchService_searchForCalendars(aString,

@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
@@ -12,39 +11,28 @@ const ITIP_HANDLER_MIMETYPE = "application/x-itip-internal";
 const ITIP_HANDLER_PROTOCOL = "moz-cal-handle-itip";
 
 
-function NYI()
-{
+function NYI() {
     throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 }
 
-function ItipChannel(URI)
-{
+function ItipChannel(URI) {
    this.URI = this.originalURI = URI;
 }
-
+const ItipChannelClassID = Components.ID("{643e0328-36f6-411d-a107-16238dff9cd7}");
+const ItipChannelInterfaces = [
+    Components.interfaces.nsIChannel,
+    Components.interfaces.nsIRequest
+];
 ItipChannel.prototype = {
-    classID: Components.ID("{643e0328-36f6-411d-a107-16238dff9cd7}"),
-    contractID: "@mozilla.org/calendar/itip-channel;1",
-    classDescription: "Calendar Itip Channel",
+    classID: ItipChannelClassID,
+    QueryInterface: XPCOMUtils.generateQI(ItipChannelInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: ItipChannelClassID,
+        contractID: "@mozilla.org/calendar/itip-channel;1",
+        classDescription: "Calendar Itip Channel",
+        interfaces: ItipChannelInterfaces,
+    }),
 
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsIChannel,
-                        Components.interfaces.nsIRequest,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, ItipChannel.prototype, aIID, null, this);
-    },
-    
     contentType: ITIP_HANDLER_MIMETYPE,
     loadAttributes: null,
     contentLength: 0,
@@ -68,33 +56,25 @@ ItipChannel.prototype = {
     resume: NYI,
 };
 
-function ItipProtocolHandler() { }
-
+function ItipProtocolHandler() {
+    this.wrappedJSObject = this;
+}
+const ItipProtocolHandlerClassID = Components.ID("{6e957006-b4ce-11d9-b053-001124736B74}");
+const ItipProtocolHandlerInterfaces = [Components.interfaces.nsIProtocolHandler];
 ItipProtocolHandler.prototype = {
-    classID: Components.ID("{6e957006-b4ce-11d9-b053-001124736B74}"),
-    contractID: "@mozilla.org/network/protocol;1?name=" + ITIP_HANDLER_PROTOCOL,
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsIProtocolHandler,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: ItipProtocolHandlerClassID,
+    QueryInterface: XPCOMUtils.generateQI(ItipProtocolHandlerInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: ItipProtocolHandlerClassID,
+        contractID: "@mozilla.org/network/protocol;1?name=" + ITIP_HANDLER_PROTOCOL,
+        classDescription: "iTIP Protocol Handler",
+        interfaces: ItipProtocolHandlerInterfaces
+    }),
 
-    QueryInterface: function QI(aIID) {
-        return cal.doQueryInterface(this, ItipProtocolHandler.prototype, aIID, null, this);
-    },
-    
     protocolFlags: CI.nsIProtocolHandler.URI_NORELATIVE | CI.nsIProtocolHandler.URI_DANGEROUS_TO_LOAD,
-    allowPort: function () { return false; },
+    allowPort: function () false,
     isSecure: false,
-    newURI: function (spec, charSet, baseURI)
-    {
+    newURI: function (spec, charSet, baseURI) {
         let cls = Components.classes["@mozilla.org/network/standard-url;1"];
         let url = cls.createInstance(CI.nsIStandardURL);
         url.init(CI.nsIStandardURL.URLTYPE_STANDARD, 0, spec, charSet, baseURI);
@@ -108,32 +88,22 @@ ItipProtocolHandler.prototype = {
     },
 };
 
-function ItipContentHandler() { }
-
+function ItipContentHandler() {
+    this.wrappedJSObject = this;
+}
+const ItipContentHandlerClassID = Components.ID("{47c31f2b-b4de-11d9-bfe6-001124736B74}");
+const ItipContentHandlerInterfaces = [Components.interfaces.nsIContentHandler];
 ItipContentHandler.prototype = {
-    classID: Components.ID("{47c31f2b-b4de-11d9-bfe6-001124736B74}"),
-    contractID: "@mozilla.org/uriloader/content-handler;1?type=" + ITIP_HANDLER_MIMETYPE,
-    classDescription: "Lightning text/calendar content handler",
+    classID: ItipContentHandlerClassID,
+    QueryInterface: XPCOMUtils.generateQI(ItipContentHandlerInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: ItipContentHandlerClassID,
+        contractID: "@mozilla.org/uriloader/content-handler;1?type=" + ITIP_HANDLER_MIMETYPE,
+        classDescription: "Lightning text/calendar content handler",
+        interfaces: ItipContentHandlerInterfaces
+    }),
 
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsIContentHandler,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, ItipContentHandler.prototype, aIID, null, this);
-    },
-
-    handleContent: function (contentType, windowTarget, request)
-    {
+    handleContent: function (contentType, windowTarget, request) {
         let channel = request.QueryInterface(CI.nsIChannel);
         let uri = channel.URI.spec;
         if (uri.indexOf(ITIP_HANDLER_PROTOCOL + ":") != 0) {

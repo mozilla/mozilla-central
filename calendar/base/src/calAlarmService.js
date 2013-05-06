@@ -130,6 +130,11 @@ function calAlarmService() {
     };
 }
 
+const calAlarmServiceClassID = Components.ID("{7a9200dd-6a64-4fff-a798-c5802186e2cc}");
+const calAlarmServiceInterfaces = [
+    Components.interfaces.calIAlarmService,
+    Components.interfaces.nsIObserver
+];
 calAlarmService.prototype = {
     mRangeStart: null,
     mRangeEnd: null,
@@ -139,33 +144,15 @@ calAlarmService.prototype = {
     mObservers: null,
     mTimezone: null,
 
-    getInterfaces: function cAS_getInterfaces(aCount) {
-        let ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIAlarmService,
-            Components.interfaces.nsIObserver,
-            Components.interfaces.nsIClassInfo
-        ];
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function cAS_getHelperForLanguage(language) {
-        return null;
-    },
-
-    /**
-     * nsIClassInfo
-     */
-    contractID: "@mozilla.org/calendar/alarm-service;1",
-    classDescription: "Calendar Alarm Service",
-    classID: Components.ID("{7a9200dd-6a64-4fff-a798-c5802186e2cc}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-
-    QueryInterface: function cAS_QueryInterface(aIID) {
-        return doQueryInterface(this, calAlarmService.prototype, aIID, null, this);
-    },
+    classID: calAlarmServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(calAlarmServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calAlarmServiceClassID,
+        contractID: "@mozilla.org/calendar/alarm-service;1",
+        classDescription: "Calendar Alarm Service",
+        interfaces: calAlarmServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     /**
      * nsIObserver

@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 function calFreeBusyListener(numOperations, finalListener) {
     this.mFinalListener = finalListener;
     this.mNumOperations = numOperations;
@@ -16,6 +18,8 @@ calFreeBusyListener.prototype = {
     mFinalListener: null,
     mNumOperations: 0,
     opGroup: null,
+
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIGenericOperationListener]),
 
     notifyResult: function calFreeBusyListener_notifyResult(result) {
         var listener = this.mFinalListener
@@ -47,30 +51,23 @@ function calFreeBusyService() {
     this.wrappedJSObject = this;
     this.mProviders = new calInterfaceBag(Components.interfaces.calIFreeBusyProvider);
 }
+const calFreeBusyServiceClassID = Components.ID("{29c56cd5-d36e-453a-acde-0083bd4fe6d3}");
+const calFreeBusyServiceInterfaces = [
+    Components.interfaces.calIFreeBusyProvider,
+    Components.interfaces.calIFreeBusyService
+];
 calFreeBusyService.prototype = {
     mProviders: null,
 
-    QueryInterface: function calFreeBusyService_QueryInterface(aIID) {
-        return doQueryInterface(this, calFreeBusyService.prototype, aIID, null, this);
-    },
-
-    // nsIClassInfo:
-    getInterfaces: function calFreeBusyService_getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsISupports,
-                        Components.interfaces.calIFreeBusyProvider,
-                        Components.interfaces.calIFreeBusyService,
-                        Components.interfaces.nsIClassInfo];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function calFreeBusyService_getHelperForLanguage(language) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/freebusy-service;1",
-    classDescription: "Calendar FreeBusy Service",
-    classID: Components.ID("{29c56cd5-d36e-453a-acde-0083bd4fe6d3}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
+    classID: calFreeBusyServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(calFreeBusyServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calFreeBusyServiceClassID,
+        contractID: "@mozilla.org/calendar/freebusy-service;1",
+        classDescription: "Calendar FreeBusy Service",
+        interfaces: calFreeBusyServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     // calIFreeBusyProvider:
     getFreeBusyIntervals: function calFreeBusyService_getFreeBusyIntervals(aCalId,

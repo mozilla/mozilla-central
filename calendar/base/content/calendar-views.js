@@ -5,6 +5,7 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Controller for the views
@@ -487,12 +488,7 @@ function updateStyleSheetForViews(aCalendar) {
  */
 var categoryPrefBranch;
 var categoryManagement = {
-    QueryInterface: function cM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this,
-                                    categoryManagement.__proto__,
-                                    aIID,
-                                    [Components.interfaces.nsIObserver]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver]),
 
     initCategories: function cM_initCategories() {
       categoryPrefBranch = Services.prefs.getBranch("calendar.category.color.");

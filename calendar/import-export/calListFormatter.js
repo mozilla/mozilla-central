@@ -9,17 +9,20 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
  * A thin wrapper around the html list exporter for the list print format.
  */
 function calListFormatter() {
+    this.wrappedJSObject = this;
 }
 
+const calListFormatterClassID = Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}");
+const calListFormatterInterfaces = [Components.interfaces.calIPrintFormatter];
 calListFormatter.prototype = {
-    classID: Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIPrintFormatter]),
+    classID: calListFormatterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calListFormatterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{9ae04413-fee3-45b9-8bbb-1eb39a4cbd1b}"),
+        classID: calListFormatterClassID,
         contractID: "@mozilla.org/calendar/printformatter;1?type=list",
         classDescription: "Calendar List Print Formatter",
-        interfaces: [Components.interfaces.calIPrintFormatter]
+        interfaces: calListFormatterInterfaces
     }),
 
     get name() cal.calGetString("calendar", "formatListName"),

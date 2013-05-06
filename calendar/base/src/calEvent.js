@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 //
 // constructor
@@ -16,35 +17,23 @@ function calEvent() {
         __proto__: this.itemBasePromotedProps
     }
 }
-
+const calEventClassID = Components.ID("{974339d5-ab86-4491-aaaf-2b2ca177c12b}");
+const calEventInterfaces = [
+    Components.interfaces.calIItemBase,
+    Components.interfaces.calIEvent,
+    Components.interfaces.calIInternalShallowCopy
+];
 calEvent.prototype = {
     __proto__: calItemBase.prototype,
 
-    getInterfaces: function (count) {
-        var ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIItemBase,
-            Components.interfaces.calIEvent,
-            Components.interfaces.calIInternalShallowCopy,
-            Components.interfaces.nsIClassInfo
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/event;1",
-    classDescription: "Calendar Event",
-    classID: Components.ID("{974339d5-ab86-4491-aaaf-2b2ca177c12b}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calEvent.prototype, aIID, null, this);
-    },
+    classID: calEventClassID,
+    QueryInterface: XPCOMUtils.generateQI(calEventInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calEventClassID,
+        contractID: "@mozilla.org/calendar/event;1",
+        classDescription: "Calendar Event",
+        interfaces: calEventInterfaces
+    }),
 
     cloneShallow: function (aNewParent) {
         let m = new calEvent();

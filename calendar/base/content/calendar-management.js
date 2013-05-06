@@ -249,11 +249,7 @@ function openCalendarSubscriptionsDialog() {
  * Calendar Offline Manager
  */
 var calendarOfflineManager = {
-    QueryInterface: function cOM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, null, aIID,
-                                    [Components.interfaces.nsIObserver,
-                                     Components.interfaces.nsISupports]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver]),
 
     init: function cOM_init() {
         if (this.initialized) {

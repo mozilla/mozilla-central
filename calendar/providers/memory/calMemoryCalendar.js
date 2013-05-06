@@ -20,37 +20,24 @@ function calMemoryCalendar() {
     this.initProviderBase();
     this.initMemoryCalendar();
 }
-
+const calMemoryCalendarClassID = Components.ID("{bda0dd7f-0a2f-4fcf-ba08-5517e6fbf133}");
+const calMemoryCalendarInterfaces = [
+    Components.interfaces.calICalendar,
+    Components.interfaces.calISchedulingSupport,
+    Components.interfaces.calIOfflineStorage,
+    Components.interfaces.calISyncWriteCalendar,
+    Components.interfaces.calICalendarProvider
+];
 calMemoryCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
-
-    classID: Components.ID("{bda0dd7f-0a2f-4fcf-ba08-5517e6fbf133}"),
-    contractID: "@mozilla.org/calendar/calendar;1?type=memory",
-    classDescription: "Calendar Memory Provider",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calICalendar,
-                        Components.interfaces.calISchedulingSupport,
-                        Components.interfaces.calIOfflineStorage,
-                        Components.interfaces.calISyncWriteCalendar,
-                        Components.interfaces.calICalendarProvider,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    //
-    // nsISupports interface
-    // 
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calMemoryCalendar.prototype, aIID, null, this);
-    },
+    classID: calMemoryCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calMemoryCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calMemoryCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=memory",
+        classDescription: "Calendar Memory Provider",
+        interfaces: calMemoryCalendarInterfaces
+    }),
 
     mItems: null,
     mOfflineFlags: null,

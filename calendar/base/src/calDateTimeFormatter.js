@@ -3,10 +3,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const nsIScriptableDateFormat = Components.interfaces.nsIScriptableDateFormat;
 
 function calDateTimeFormatter() {
+    this.wrappedJSObject = this;
     this.mDateStringBundle = Services.strings.createBundle("chrome://calendar/locale/dateFormat.properties");
 
     this.mDateService =
@@ -62,29 +64,17 @@ function calDateTimeFormatter() {
         this.mUseLongDateService = false;
     }
 }
-
+const calDateTimeFormatterClassID = Components.ID("{4123da9a-f047-42da-a7d0-cc4175b9f36a}");
+const calDateTimeFormatterInterfaces = [Components.interfaces.calIDateTimeFormatter];
 calDateTimeFormatter.prototype = {
-    getInterfaces: function getInterfaces(aCount) {
-        const interfaces = [Components.interfaces.calIDateTimeFormatter,
-                            Components.interfaces.nsIClassInfo,
-                            Components.interfaces.nsISupports];
-
-        aCount.value = interfaces.length;
-        return interfaces;
-    },
-
-    getHelperForLanguage: function cA_getHelperForLanguage(aLang) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/datetime-formatter;1",
-    classDescription: "Formats Dates and Times",
-    classID: Components.ID("{4123da9a-f047-42da-a7d0-cc4175b9f36a}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calDateTimeFormatter.prototype, aIID, null, this);
-    },
+    classID: calDateTimeFormatterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calDateTimeFormatterInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calDateTimeFormatterClassID,
+        contractID: "@mozilla.org/calendar/datetime-formatter;1",
+        classDescription: "Formats Dates and Times",
+        interfaces: calDateTimeFormatterInterfaces,
+    }),
 
     formatDate: function formatDate(aDate) {
         // Format the date using user's format preference (long or short)

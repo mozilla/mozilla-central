@@ -18,6 +18,7 @@
 */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function generateRequestId() {
     if (!generateRequestId.mRequestPrefix) {
@@ -191,6 +192,13 @@ function calWcapNetworkRequest(url, respFunc, bLogging) {
     this.m_respFunc = respFunc;
     this.m_bLogging = (bLogging === undefined ? true : bLogging);
 }
+const calWcapNetworkRequestClassID = Components.ID("{e3c62b37-83cf-41ec-9872-0af9f952430a}");
+const calWcapNetworkRequestInterfaces = [
+    Components.interfaces.nsIUnicharStreamLoaderObserver,
+    Components.interfaces.nsIInterfaceRequestor,
+    Components.interfaces.nsIChannelEventSink,
+    Components.interfaces.calIOperation,
+];
 calWcapNetworkRequest.prototype = {
     m_id: 0,
     m_url: null,
@@ -198,28 +206,14 @@ calWcapNetworkRequest.prototype = {
     m_respFunc: null,
     m_bLogging: false,
 
-    getInterfaces: function ci_wcapNetworkRequest_getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsIUnicharStreamLoaderObserver,
-                        Components.interfaces.nsIInterfaceRequestor,
-                        Components.interfaces.nsIChannelEventSink,
-                        Components.interfaces.calIOperation,
-                        Components.interfaces.nsIClassInfo,
-                        nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Sun Java System Calendar Server WCAP Network Request",
-    contractID: "@mozilla.org/calendar/wcap/network-request;1",
-    classID: Components.ID("{e3c62b37-83cf-41ec-9872-0af9f952430a}"),
-    getHelperForLanguage: function ci_wcapNetworkRequest_getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function calWcapNetworkRequest_QueryInterface(iid) {
-        return cal.doQueryInterface(this, calWcapNetworkRequest.prototype, iid, null, this);
-    },
+    classID: calWcapNetworkRequestClassID,
+    QueryInterface: XPCOMUtils.generateQI(calWcapNetworkRequestInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calWcapNetworkRequestClassID,
+        contractID: "@mozilla.org/calendar/wcap/network-request;1",
+        classDescription: "Sun Java System Calendar Server WCAP Network Request",
+        interfaces: calWcapNetworkRequestInterfaces
+    }),
 
     /**
      * @see nsIInterfaceRequestor

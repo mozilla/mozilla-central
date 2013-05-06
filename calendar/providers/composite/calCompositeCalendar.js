@@ -81,46 +81,32 @@ function calCompositeCalendar () {
     this.mStatusObserver = null;
 }
 
+const calCompositeCalendarClassID = Components.ID("{aeff788d-63b0-4996-91fb-40a7654c6224}");
+const calCompositeCalendarInterfaces = [
+    Components.interfaces.calICalendarProvider,
+    Components.interfaces.calICalendar,
+    Components.interfaces.calICompositeCalendar,
+];
 calCompositeCalendar.prototype = {
-    classID: Components.ID("{aeff788d-63b0-4996-91fb-40a7654c6224}"),
-    contractID: "@mozilla.org/calendar/calendar;1?type=composite",
-    classDescription: "Composite Calendar Provider",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calICalendarProvider,
-                        Components.interfaces.calICalendar,
-                        Components.interfaces.calICompositeCalendar,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calCompositeCalendar.prototype, aIID, null, this);
-    },
+    classID: calCompositeCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calCompositeCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calCompositeCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=composite",
+        classDescription: "Composite Calendar Provider",
+        interfaces: calCompositeCalendarInterfaces,
+    }),
 
     //
     // private members
     //
     mDefaultCalendar: null,
 
-
     //
     // calICalendarProvider interface
     //
-    get prefChromeOverlay() {
-        return null;
-    },
-
-    get displayName() {
-        return cal.calGetString("calendar", "compositeName");
-    },
+    get prefChromeOverlay() null,
+    get displayName() cal.calGetString("calendar", "compositeName"),
 
     createCalendar: function comp_createCal() {
         throw NS_ERROR_NOT_IMPLEMENTED;

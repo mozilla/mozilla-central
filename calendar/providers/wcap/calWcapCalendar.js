@@ -3,39 +3,31 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.initProviderBase();
     this.m_session = session;
     this.m_calProps = calProps;
 }
+const calWcapCalendarClassID = Components.ID("{cf4d93e5-af79-451a-95f3-109055b32ef0}");
+const calWcapCalendarInterfaces = [
+    calIWcapCalendar,
+    calICalendar,
+    Components.interfaces.calISchedulingSupport,
+    Components.interfaces.calIChangeLog,
+    Components.interfaces.calICalendarProvider,
+];
 calWcapCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
-
-    getInterfaces: function ci_wcapCalendar_getInterfaces(count) {
-        const ifaces = [calIWcapCalendar,
-                        calICalendar,
-                        Components.interfaces.calISchedulingSupport,
-                        Components.interfaces.calIChangeLog,
-                        Components.interfaces.calICalendarProvider,
-                        Components.interfaces.nsIClassInfo,
-                        nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Sun Java System Calendar Server WCAP Provider",
-    contractID: "@mozilla.org/calendar/calendar;1?type=wcap",
-    classID: Components.ID("{cf4d93e5-af79-451a-95f3-109055b32ef0}"),
-    getHelperForLanguage: function ci_wcapCalendar_getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    // nsISupports:
-    QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        return cal.doQueryInterface(this, calWcapCalendar.prototype, iid, null, this);
-    },
+    classID: calWcapCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calWcapCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calWcapCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=wcap",
+        classDescription: "Sun Java System Calendar Server WCAP Provider",
+        interfaces: calWcapCalendarInterfaces
+    }),
 
     toString: function calWcapCalendar_toString() {
         var str = this.session.toString();

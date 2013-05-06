@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Used by the "quick add" feature for tasks, for example in the task view or
@@ -167,10 +168,7 @@ var taskEdit = {
      * @see calIObserver
      */
     calendarObserver: {
-        QueryInterface: function tE_calObs_QueryInterface(aIID) {
-            return doQueryInterface(this, null, aIID,
-                                    [Components.interfaces.calIObserver]);
-        },
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIObserver]),
 
         // calIObserver:
         onStartBatch: function() {},
@@ -217,11 +215,10 @@ var taskEdit = {
      * @see calICompositeObserver
      */
     compositeObserver: {
-        QueryInterface: function tE_compObs_QueryInterface(aIID) {
-            return doQueryInterface(this, null, aIID,
-                                    [Components.interfaces.calIObserver,
-                                     Components.interfaces.calICompositeObserver]);
-        },
+        QueryInterface: XPCOMUtils.generateQI([
+            Components.interfaces.calIObserver,
+            Components.interfaces.calICompositeObserver
+        ]),
 
         // calIObserver:
         onStartBatch: function() {},

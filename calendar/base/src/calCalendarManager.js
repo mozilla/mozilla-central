@@ -16,37 +16,26 @@ function calCalendarManager() {
     this.mCalendarObservers = new calListenerBag(Components.interfaces.calIObserver);
 }
 
+const calCalendarManagerClassID = Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}");
+const calCalendarManagerInterfaces = [
+    Components.interfaces.calICalendarManager,
+    Components.interfaces.calIStartupService,
+    Components.interfaces.nsIObserver,
+];
 calCalendarManager.prototype = {
-    classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
-    QueryInterface: XPCOMUtils.generateQI([
-        Components.interfaces.calICalendarManager,
-        Components.interfaces.calIStartupService,
-        Components.interfaces.nsIObserver,
-    ]),
-
+    classID: calCalendarManagerClassID,
+    QueryInterface: XPCOMUtils.generateQI(calCalendarManagerInterfaces),
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
+        classID: calCalendarManagerClassID,
         contractID: "@mozilla.org/calendar/manager;1",
         classDescription: "Calendar Manager",
-        interfaces: [
-            Components.interfaces.calICalendarManager,
-            Components.interfaces.calIStartupService,
-            Components.interfaces.nsIObserver,
-        ],
+        interfaces: calCalendarManagerInterfaces,
         flags: Components.interfaces.nsIClassInfo.SINGLETON
     }),
 
-    get networkCalendarCount() {
-        return this.mNetworkCalendarCount;
-    },
-
-    get readOnlyCalendarCount() {
-        return this.mReadonlyCalendarCount;
-    },
-
-    get calendarCount() {
-        return this.mCalendarCount;
-    },
+    get networkCalendarCount() this.mNetworkCalendarCount,
+    get readOnlyCalendarCount() this.mReadonlyCalendarCount,
+    get calendarCount() this.mCalendarCount,
 
     // calIStartupService:
     startup: function ccm_startup(aCompleteListener) {

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * calRelation prototype definition
@@ -15,44 +16,20 @@ function calRelation() {
     this.wrappedJSObject = this;
     this.mProperties = new calPropertyBag();
 }
-
+const calRelationClassID = Components.ID("{76810fae-abad-4019-917a-08e95d5bbd68}");
+const calRelationInterfaces = [Components.interfaces.calIRelation];
 calRelation.prototype = {
     mType: null,
     mId: null,
 
-    /**
-     * @see nsISupports
-     */
-    QueryInterface: function (aIID) {
-        return doQueryInterface(this,
-                                calRelation.prototype,
-                                aIID,
-                                null,
-                                this);
-    },
-
-    /**
-     * @see nsIClassInfo
-     */
-    getInterfaces: function cR_getInterfaces(aCount) {
-        let ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIRelation,
-            Components.interfaces.nsIClassInfo
-        ];
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function cR_getHelperForLanguage(language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/relation;1",
-    classDescription: "Calendar Item Relation",
-    classID: Components.ID("{76810fae-abad-4019-917a-08e95d5bbd68}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: calRelationClassID,
+    QueryInterface: XPCOMUtils.generateQI(calRelationInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calRelationClassID,
+        contractID: "@mozilla.org/calendar/relation;1",
+        classDescription: "Calendar Item Relation",
+        interfaces: calRelationInterfaces
+    }),
 
     /**
      * @see calIRelation

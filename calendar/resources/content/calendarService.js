@@ -20,33 +20,20 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /* Command Line handler service */
 function CLineService() {
+    this.wrappedJSObject = this;
 }
-
+const CLineServiceClassID = Components.ID("{65ef4b0b-d116-4b93-bf8a-84525992bf27}");
+const CLineServiceInterfaces = [Components.interfaces.nsICommandLineHandler];
 CLineService.prototype = {
-    getInterfaces: function getInterfaces(aCount) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.nsICommandLineHandler
-        ];
-
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/commandlinehandler/general-startup;1?type=calendar",
-    classDescription: "Calendar Commandline Handler",
-    classID: Components.ID("{65ef4b0b-d116-4b93-bf8a-84525992bf27}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, CLineService.prototype, aIID, null, this);
-    },
+    classID: CLineServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(CLineServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: CLineServiceClassID,
+        contractID: "@mozilla.org/commandlinehandler/general-startup;1?type=calendar",
+        classDescription: "Calendar Commandline Handler",
+        interfaces: CLineServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     /* nsICommandLineHandler */
     handle : function service_handle(cmdLine) {
@@ -65,32 +52,20 @@ CLineService.prototype = {
 };
 
 /* text/calendar content handler */
-function ICALContentHandler() {}
-
+function ICALContentHandler() {
+    this.wrappedJSObject = this;
+}
+const ICALContentHandlerClassID = Components.ID("{9ebf4c8a-7770-40a6-aeed-e1738129535a}");
+const ICALContentHandlerInterfaces = [Components.interfaces.nsIContentHandler];
 ICALContentHandler.prototype = {
-    getInterfaces: function getInterfaces(aCount) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.nsIContentHandler
-        ];
-
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/uriloader/content-handler;1?type=text/calendar",
-    classDescription: "text/calendar Content Handler",
-    classID: Components.ID("{9ebf4c8a-7770-40a6-aeed-e1738129535a}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, ICALContentHandler.prototype, aIID, null, this);
-    },
+    classID: ICALContentHandlerClassID,
+    QueryInterface: XPCOMUtils.generateQI(ICALContentHandlerInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: ICALContentHandlerClassID,
+        contractID: "@mozilla.org/uriloader/content-handler;1?type=text/calendar",
+        classDescription: "text/calendar Content Handler",
+        interfaces: ICALContentHandlerInterfaces
+    }),
 
     handleContent: function handleContent(aContentType, aWindowTarget, aRequest) {
         let channel = aRequest.QueryInterface(Components.interfaces.nsIChannel);
@@ -137,36 +112,23 @@ function BogusChannel(aURI) {
     this.URI = aURI;
     this.originalURI = aURI;
 }
-
+const BogusChannelClassID = Components.ID("{1e36ef5d-92d9-488f-ada6-9f15a1b57acf}");
+const BogusChannelInterfaces = [
+    Components.interfaces.nsIRequest,
+    Components.interfaces.nsIChannel
+];
 BogusChannel.prototype = {
-    getInterfaces: function getInterfaces(aCount) {
-        const ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.nsIRequest,
-            Components.interfaces.nsIChannel
-        ];
-
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/webcal-channel;1",
-    classDescription: "webcal bogus channel",
-
-    classID: Components.ID("{1e36ef5d-92d9-488f-ada6-9f15a1b57acf}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+    classID: BogusChannelClassID,
+    QueryInterface: XPCOMUtils.generateQI(BogusChannelInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: BogusChannelClassID,
+        contractID: "@mozilla.org/calendar/webcal-channel;1",
+        classDescription: "webcal bogus channel",
+        interfaces: BogusChannelInterfaces
+    }),
 
     URI: null,
     originalURI: null,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, BogusChannel.prototype, aIID, null, this);
-    },
 
     /* nsIChannel */
     loadAttributes: null,

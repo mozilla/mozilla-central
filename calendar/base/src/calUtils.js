@@ -8,6 +8,7 @@
  */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 function _calIcalCreator(cid, iid) {
@@ -797,6 +798,7 @@ function compareArrays(aOne, aTwo, compareFunc) {
  * Takes care of all QueryInterface business, including calling the QI of any
  * existing parent prototypes.
  *
+ * @deprecated
  * @param aSelf         The object the QueryInterface is being made to
  * @param aProto        Caller's prototype object
  * @param aIID          The IID to check for
@@ -806,6 +808,13 @@ function compareArrays(aOne, aTwo, compareFunc) {
  *                        prototype.
  */
 function doQueryInterface(aSelf, aProto, aIID, aList, aClassInfo) {
+    if (!doQueryInterface.warningIssued) {
+        cal.WARN("Use of doQueryInterface() is deprecated and will be removed " +
+                 "with the next release. Use XPCOMUtils.generateQI() instead.\n" +
+                 cal.STACK(10));
+        doQueryInterface.warningIssued = true;
+    }
+
     if (aClassInfo) {
         if (aIID.equals(Components.interfaces.nsIClassInfo)) {
             return aClassInfo;
@@ -1643,9 +1652,7 @@ calPropertyBagEnumerator.prototype = {
         }
         var name = this.mKeys[this.mIndex++];
         return { // nsIProperty:
-            QueryInterface: function cpb_enum_prop_QueryInterface(aIID) {
-                return doQueryInterface(this, null, aIID, [Components.interfaces.nsIProperty]);
-            },
+            QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIProperty]),
             name: name,
             value: this.mCurrentValue
         };

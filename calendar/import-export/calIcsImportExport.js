@@ -22,17 +22,19 @@ function getIcsFileTypes(aCount) {
 
 // Importer
 function calIcsImporter() {
+    this.wrappedJSObject = this;
 }
 
+const calIcsImporterClassID = Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}");
+const calIcsImporterInterfaces = [Components.interfaces.calIImporter];
 calIcsImporter.prototype = {
-    classID: Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIImporter]),
-
+    classID: calIcsImporterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calIcsImporterInterfaces),
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{1e3e33dc-445a-49de-b2b6-15b2a050bb9d}"),
+        classID: calIcsImporterClassID,
         contractID: "@mozilla.org/calendar/import;1?type=ics",
         classDescription: "Calendar ICS Importer",
-        interfaces: [Components.interfaces.calIImporter]
+        interfaces: calIcsImporterInterfaces
     }),
 
     getFileTypes: getIcsFileTypes,
@@ -47,17 +49,20 @@ calIcsImporter.prototype = {
 
 // Exporter
 function calIcsExporter() {
+    this.wrappedJSObject = this;
 }
 
+const calIcsExporterClassID = Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}");
+const calIcsExporterInterfaces = [Components.interfaces.calIExporter];
 calIcsExporter.prototype = {
-    classID: Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIExporter]),
+    classID: calIcsExporterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calIcsExporterInterfaces);
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc60}"),
+        classID: calIcsExporterClassID,
         contractID: "@mozilla.org/calendar/export;1?type=ics",
         classDescription: "Calendar ICS Exporter",
-        interfaces: [Components.interfaces.calIExporter]
+        interfaces: calIcsExporterInterfaces
     }),
 
     getFileTypes: getIcsFileTypes,

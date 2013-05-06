@@ -21,37 +21,25 @@ function calItipEmailTransport() {
     this.wrappedJSObject = this;
     this._initEmailTransport();
 }
-
+const calItipEmailTransportClassID = Components.ID("{d4d7b59e-c9e0-4a7a-b5e8-5958f85515f0}");
+const calItipEmailTransportInterfaces = [Components.interfaces.calIItipTransport];
 calItipEmailTransport.prototype = {
-    classID: Components.ID("{d4d7b59e-c9e0-4a7a-b5e8-5958f85515f0}"),
-    contractID: "@mozilla.org/calendar/itip-transport;1?type=email",
-    classDescription: "Calendar iTIP Email Transport",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calIItipTransport,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calItipEmailTransport.prototype, aIID, null, this);
-    },
+    classID: calItipEmailTransportClassID,
+    QueryInterface: XPCOMUtils.generateQI(calItipEmailTransportInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calItipEmailTransportClassID,
+        contractID: "@mozilla.org/calendar/itip-transport;1?type=email",
+        classDescription: "Calendar iTIP Email Transport",
+        interfaces: calItipEmailTransportInterfaces,
+    }),
 
     mHasXpcomMail: false,
     mDefaultAccount: null,
     mDefaultIdentity: null,
     mDefaultSmtpServer: null,
 
-    get scheme() {
-        return "mailto";
-    },
+    get scheme() "mailto",
+    get type() "email",
 
     mSenderAddress: null,
     get senderAddress() {
@@ -61,9 +49,6 @@ calItipEmailTransport.prototype = {
         return (this.mSenderAddress = aValue);
     },
 
-    get type() {
-        return "email";
-    },
 
     sendItems: function cietSI(aCount, aRecipients, aItipItem) {
         if (this.mHasXpcomMail) {

@@ -83,40 +83,28 @@ const kDavResourceTypeCalendar = 2;
 const CALDAV_MODIFY_ITEM = "modify";
 const CALDAV_DELETE_ITEM = "delete";
 
+const calDavCalendarClassID = Components.ID("{a35fc6ea-3d92-11d9-89f9-00045ace3b8d}");
+const calDavCalendarInterfaces = [
+    Components.interfaces.calICalendarProvider,
+    Components.interfaces.nsIInterfaceRequestor,
+    Components.interfaces.calIFreeBusyProvider,
+    Components.interfaces.nsIChannelEventSink,
+    Components.interfaces.calIItipTransport,
+    Components.interfaces.calISchedulingSupport,
+    Components.interfaces.calICalendar,
+    Components.interfaces.calIChangeLog,
+    calICalDavCalendar,
+];
 calDavCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
-
-    classID: Components.ID("{a35fc6ea-3d92-11d9-89f9-00045ace3b8d}"),
-    contractID: "@mozilla.org/calendar/calendar;1?type=caldav",
-    classDescription: "Calendar CalDAV back-end",
-
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.calICalendarProvider,
-                        Components.interfaces.nsIInterfaceRequestor,
-                        Components.interfaces.calIFreeBusyProvider,
-                        Components.interfaces.nsIChannelEventSink,
-                        Components.interfaces.calIItipTransport,
-                        Components.interfaces.calISchedulingSupport,
-                        Components.interfaces.calICalendar,
-                        Components.interfaces.calIChangeLog,
-                        calICalDavCalendar,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    //
-    // nsISupports interface
-    //
-    QueryInterface: function caldav_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calDavCalendar.prototype, aIID, null, this);
-    },
+    classID: calDavCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calDavCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calDavCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=caldav",
+        classDescription: "Calendar CalDAV back-end",
+        interfaces: calDavCalendarInterfaces,
+    }),
 
     // An array of components that are supported by the server. The default is
     // to support VEVENT and VTODO, if queries for these components return a 4xx

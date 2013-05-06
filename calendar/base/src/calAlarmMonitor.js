@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function peekAlarmWindow() {
     return Services.wm.getMostRecentWindow("Calendar:AlarmWindow");
@@ -22,6 +23,11 @@ function calAlarmMonitor() {
                             .createInstance(Components.interfaces.nsISound);
 }
 
+const calAlarmMonitorClassID = Components.ID("{4b7ae030-ed79-11d9-8cd6-0800200c9a66}");
+const calAlarmMonitorInterfaces = [
+    Components.interfaces.nsIObserver,
+    Components.interfaces.calIAlarmServiceObserver
+];
 calAlarmMonitor.prototype = {
     mAlarms: null,
 
@@ -33,33 +39,15 @@ calAlarmMonitor.prototype = {
     // nsISound instance used for playing all sounds
     mSound: null,
 
-    QueryInterface: function cAM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calAlarmMonitor.prototype, aIID, null, this);
-    },
-
-    /**
-     * nsIClassInfo
-     */
-    getInterfaces: function cAM_getInterfaces(aCount) {
-        let ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.nsIObserver,
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.calIAlarmServiceObserver
-        ];
-        aCount.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function cAM_getHelperForLanguage(aLanguage) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/alarm-monitor;1",
-    classDescription: "Calendar Alarm Monitor",
-    classID: Components.ID("{4b7ae030-ed79-11d9-8cd6-0800200c9a66}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
+    classID: calAlarmMonitorClassID,
+    QueryInterface: XPCOMUtils.generateQI(calAlarmMonitorInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        contractID: "@mozilla.org/calendar/alarm-monitor;1",
+        classDescription: "Calendar Alarm Monitor",
+        classID: calAlarmMonitorClassID,
+        interfaces: calAlarmMonitorInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     /**
      * nsIObserver

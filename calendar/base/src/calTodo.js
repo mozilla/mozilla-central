@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 //
 // constructor
@@ -19,34 +20,23 @@ function calTodo() {
     };
 }
 
+const calTodoClassID = Components.ID("{7af51168-6abe-4a31-984d-6f8a3989212d}");
+const calTodoInterfaces = [
+    Components.interfaces.calIItemBase,
+    Components.interfaces.calITodo,
+    Components.interfaces.calIInternalShallowCopy
+];
 calTodo.prototype = {
     __proto__: calItemBase.prototype,
 
-    getInterfaces: function (count) {
-        var ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIItemBase,
-            Components.interfaces.calITodo,
-            Components.interfaces.calIInternalShallowCopy,
-            Components.interfaces.nsIClassInfo
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/todo;1",
-    classDescription: "Calendar Todo",
-    classID: Components.ID("{7af51168-6abe-4a31-984d-6f8a3989212d}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calTodo.prototype, aIID, null, this);
-    },
+    classID: calTodoClassID,
+    QueryInterface: XPCOMUtils.generateQI(calTodoInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calTodoClassID,
+        contractID: "@mozilla.org/calendar/todo;1",
+        classDescription: "Calendar Todo",
+        interfaces: calTodoInterfaces,
+    }),
 
     cloneShallow: function (aNewParent) {
         let m = new calTodo();

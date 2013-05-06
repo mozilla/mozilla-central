@@ -20,12 +20,7 @@ function calIntrinsicTimezone(tzid, component, latitude, longitude) {
     this.longitude = longitude;
 }
 calIntrinsicTimezone.prototype = {
-    QueryInterface: function QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calIntrinsicTimezone, aIID, [
-            Components.interfaces.calITimezone,
-            Components.interfaces.nsISupports
-        ]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calITimezone]),
     toString: function calIntrinsicTimezone_toString() {
         return (this.component ? this.component.toString() : this.tzid);
     },
@@ -80,6 +75,12 @@ function calTimezoneService() {
     this.mTimezoneCache = {};
     this.mBlacklist = {};
 }
+const calTimezoneServiceClassID = Components.ID("{e736f2bd-7640-4715-ab35-887dc866c587}");
+const calTimezoneServiceInterfaces = [
+    Components.interfaces.calITimezoneService,
+    Components.interfaces.calITimezoneProvider,
+    Components.interfaces.calIStartupService
+];
 calTimezoneService.prototype = {
     mTimezoneCache: null,
     mBlacklist: null,
@@ -89,29 +90,15 @@ calTimezoneService.prototype = {
     mUTC: null,
     mDb: null,
 
-
-    // nsIClassInfo:
-    getInterfaces: function calTimezoneService_getInterfaces(count) {
-        const ifaces = [Components.interfaces.calITimezoneService,
-                        Components.interfaces.calITimezoneProvider,
-                        Components.interfaces.calIStartupService,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsISupports];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Calendar Timezone Service",
-    contractID: "@mozilla.org/calendar/timezone-service;1",
-    classID: Components.ID("{e736f2bd-7640-4715-ab35-887dc866c587}"),
-    getHelperForLanguage: function calTimezoneService_getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-
-    QueryInterface: function calTimezoneService_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calTimezoneService.prototype, aIID, null, this);
-    },
+    classID: calTimezoneServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(calTimezoneServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calTimezoneServiceClassID,
+        contractID: "@mozilla.org/calendar/timezone-service;1",
+        classDescription: "Calendar Timezone Service",
+        interfaces: calTimezoneServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     // calIStartupService:
     startup: function startup(aCompleteListener) {

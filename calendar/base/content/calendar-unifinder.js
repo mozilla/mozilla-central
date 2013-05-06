@@ -52,15 +52,11 @@ function getCurrentUnifinderFilter() {
  * @see calICompositeObserver
  */
 var unifinderObserver = {
-
-    QueryInterface: function uO_QueryInterface (aIID) {
-        return cal.doQueryInterface(this,
-                                    null, // this singleton has no prototype
-                                    aIID,
-                                    [Components.interfaces.calICompositeObserver,
-                                     Components.interfaces.nsIObserver,
-                                     Components.interfaces.calIObserver]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([
+        Components.interfaces.calICompositeObserver,
+        Components.interfaces.nsIObserver,
+        Components.interfaces.calIObserver
+    ]),
 
     // calIObserver:
     onStartBatch: function uO_onStartBatch() {

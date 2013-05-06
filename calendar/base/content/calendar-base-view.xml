@@ -84,13 +84,11 @@
       <field name="mObserver"><![CDATA[
         // the calIObserver, calICompositeObserver, and calIAlarmServiceObserver
         ({
-            QueryInterface: function QueryInterface(aIID) {
-                return cal.doQueryInterface(this, null, aIID,
-                                    [Components.interfaces.calIObserver,
-                                     Components.interfaces.calIAlarmServiceObserver,
-                                     Components.interfaces.calICompositeObserver,
-                                     Components.interfaces.nsISupports]);
-            },
+            QueryInterface: XPCOMUtils.generateQI([
+                Components.interfaces.calIObserver,
+                Components.interfaces.calIAlarmServiceObserver,
+                Components.interfaces.calICompositeObserver
+            ]),
 
             calView: this,
 
@@ -252,6 +250,7 @@
 
       <constructor><![CDATA[
         Components.utils.import("resource://gre/modules/Services.jsm");
+        Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
         const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
         const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";

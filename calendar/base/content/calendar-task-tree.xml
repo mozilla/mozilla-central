@@ -117,6 +117,7 @@
         Components.utils.import("resource://gre/modules/PluralForm.jsm");
         Components.utils.import("resource://gre/modules/Services.jsm");
         Components.utils.import("resource://calendar/modules/calItemUtils.jsm");
+        Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
         let self = this;
 
         // set up the tree filter
@@ -820,13 +821,12 @@
       ({
           binding: this,
 
-          QueryInterface: function tTO_QueryInterface(aIID) {
-              return doQueryInterface(this, null, aIID,
-                                      [Components.interfaces.calICompositeObserver,
-                                       Components.interfaces.calIObserver]);
-          },
+          QueryInterface: XPCOMUtils.generateQI([
+              Components.interfaces.calICompositeObserver,
+              Components.interfaces.calIObserver
+          ]),
 
-         /**
+          /**
            * calIObserver methods and properties
            */
           onStartBatch: function tTO_onStartBatch() {

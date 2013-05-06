@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const ALARM_RELATED_ABSOLUTE = Components.interfaces.calIAlarm.ALARM_RELATED_ABSOLUTE;
 const ALARM_RELATED_START = Components.interfaces.calIAlarm.ALARM_RELATED_START;
@@ -17,6 +18,8 @@ function calAlarm() {
     this.mAttachments = [];
 }
 
+const calAlarmClassID = Components.ID("{b8db7c7f-c168-4e11-becb-f26c1c4f5f8f}");
+const calAlarmInterfaces = [Components.interfaces.calIAlarm];
 calAlarm.prototype = {
 
     mProperties: null,
@@ -34,29 +37,14 @@ calAlarm.prototype = {
     mRelated: 0,
     mRepeat: 0,
 
-    QueryInterface: function cA_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calAlarm.prototype, aIID, null, this);
-    },
-
-    /**
-     * nsIClassInfo
-     */
-    getInterfaces: function cA_getInterfaces(aCount) {
-        let interfaces = [Components.interfaces.calIAlarm,
-                            Components.interfaces.nsISupports,
-                            Components.interfaces.nsIClassInfo];
-
-        aCount.value = interfaces.length;
-        return interfaces;
-    },
-    getHelperForLanguage: function cA_getHelperForLanguage(aLang) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/alarm;1",
-    classDescription: "Describes a VALARM",
-    classID: Components.ID("{b8db7c7f-c168-4e11-becb-f26c1c4f5f8f}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: calAlarmClassID,
+    QueryInterface: XPCOMUtils.generateQI(calAlarmInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calAlarmClassID,
+        contractID: "@mozilla.org/calendar/alarm;1",
+        classDescription: "Describes a VALARM",
+        interfaces: calAlarmInterfaces
+    }),
 
     /**
      * calIAlarm

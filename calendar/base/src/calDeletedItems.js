@@ -14,22 +14,25 @@ Components.utils.import("resource:///modules/FileUtils.jsm");
  * except when a calendar id is passed to getDeletedDate.
  */
 function calDeletedItems() {
+    this.wrappedJSObject = this;
 }
 
+const calDeletedItemsClassID = Components.ID("{8e6799af-e7e9-4e6c-9a82-a2413e86d8c3}");
+const calDeletedItemsInterfaces = [
+    Components.interfaces.calIDeletedItems,
+    Components.interfaces.nsIObserver,
+    Components.interfaces.calIObserver
+];
 calDeletedItems.prototype = {
 
-    classID: Components.ID("{8e6799af-e7e9-4e6c-9a82-a2413e86d8c3}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIDeletedItems,
-                                           Components.interfaces.nsIObserver,
-                                           Components.interfaces.calIObserver]),
+    classID: calDeletedItemsClassID,
+    QueryInterface: XPCOMUtils.generateQI(calDeletedItemsInterfaces),
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{8e6799af-e7e9-4e6c-9a82-a2413e86d8c3}"),
+        classID: calDeletedItemsClassID,
         contractID: "@mozilla.org/calendar/deleted-items-manager;1",
         classDescription: "Database containing information about deleted items",
-        interfaces: [Components.interfaces.calIDeletedItems,
-                     Components.interfaces.nsIObserver,
-                     Components.interfaces.calIObserver],
-        flags: Components.interfaces.nsIClassInfo.SINGLETON,
+        interfaces: calDeletedItemsInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
     }),
 
     DB_SCHEMA_VERSION: 1,

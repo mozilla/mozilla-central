@@ -6,21 +6,24 @@ Components.utils.import("resource:///modules/XPCOMUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 function calRecurrenceDate() {
+    this.wrappedJSObject = this;
 }
 
+const calRecurrenceDateClassID = Components.ID("{806b6423-3aaa-4b26-afa3-de60563e9cec}");
+const calRecurrenceDateInterfaces = [Components.interfaces.calIRecurrenceDate];
 calRecurrenceDate.prototype = {
     isMutable: true,
 
     mIsNegative: false,
     mDate: null,
 
-    classID: Components.ID("{806b6423-3aaa-4b26-afa3-de60563e9cec}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIRecurrenceDate]),
+    classID: calRecurrenceDateClassID,
+    QueryInterface: XPCOMUtils.generateQI(calRecurrenceDateInterfaces),
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{806b6423-3aaa-4b26-afa3-de60563e9cec}"),
+        classID: calRecurrenceDateClassID,
         contractID: "@mozilla.org/calendar/recurrence-date;1",
-        classDescription: "The Date of an occurrence of a recurring item",
-        interfaces: [Components.interfaces.calIRecurrenceDate],
+        classDescription: "The date of an occurrence of a recurring item",
+        interfaces: calRecurrenceDateInterfaces
     }),
     makeImmutable: function makeImmutable() {
         this.isMutable = false;

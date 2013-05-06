@@ -11,17 +11,20 @@ Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
  * HTML Export Plugin
  */
 function calHtmlExporter() {
+    this.wrappedJSObject = this;
 }
 
+const calHtmlExporterClassID = Components.ID("{72d9ab35-9b1b-442a-8cd0-ae49f00b159b}");
+const calHtmlExporterInterfaces = [Components.interfaces.calIExporter];
 calHtmlExporter.prototype = {
-    classID: Components.ID("{72d9ab35-9b1b-442a-8cd0-ae49f00b159b}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIExporter]),
+    classID: calHtmlExporterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calHtmlExporterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{72d9ab35-9b1b-442a-8cd0-ae49f00b159b}"),
+        classID: calHtmlExporterClassID,
         contractID: "@mozilla.org/calendar/export;1?type=html",
         classDescription: "Calendar HTML Exporter",
-        interfaces: [Components.interfaces.calIExporter]
+        interfaces: calHtmlExporterInterfaces
     }),
 
     getFileTypes: function getFileTypes(aCount) {

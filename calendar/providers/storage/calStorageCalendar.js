@@ -25,34 +25,24 @@ function calStorageCalendar() {
     this.mRecEventCache = {};
     this.mRecTodoCache = {};
 }
-
+const calStorageCalendarClassID = Components.ID("{b3eaa1c4-5dfe-4c0a-b62a-b3a514218461}");
+const calStorageCalendarInterfaces = [
+    Components.interfaces.calICalendar,
+    Components.interfaces.calICalendarProvider,
+    Components.interfaces.calIOfflineStorage,
+    Components.interfaces.calISchedulingSupport,
+    Components.interfaces.calISyncWriteCalendar,
+];
 calStorageCalendar.prototype = {
     __proto__: cal.ProviderBase.prototype,
-
-    //
-    // nsIClassInfo interface
-    //
-    classID: Components.ID("{b3eaa1c4-5dfe-4c0a-b62a-b3a514218461}"),
-    contractID: "@mozilla.org/calendar/calendar;1?type=storage",
-    classDescription: "Calendar Storage Provider",
-    getInterfaces: function (count) {
-        let ifaces = [
-            Components.interfaces.nsISupports,
-            Components.interfaces.calICalendar,
-            Components.interfaces.calICalendarProvider,
-            Components.interfaces.calIOfflineStorage,
-            Components.interfaces.calISchedulingSupport,
-            Components.interfaces.calISyncWriteCalendar,
-            Components.interfaces.nsIClassInfo
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function (language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: calStorageCalendarClassID,
+    QueryInterface: XPCOMUtils.generateQI(calStorageCalendarInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calStorageCalendarClassID,
+        contractID: "@mozilla.org/calendar/calendar;1?type=storage",
+        classDescription: "Calendar Storage Provider",
+        interfaces: calStorageCalendarInterfaces
+    }),
 
     //
     // private members
@@ -63,13 +53,6 @@ calStorageCalendar.prototype = {
     mRecEventCache: null,
     mRecTodoCache: null,
     mLastStatement: null,
-
-    //
-    // nsISupports interface
-    //
-    QueryInterface: function (aIID) {
-        return cal.doQueryInterface(this, calStorageCalendar.prototype, aIID, null, this);
-    },
 
     //
     // calICalendarProvider interface

@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /** Constructor for webcal: protocol handler */
 function calProtocolHandlerWebcal() {
@@ -22,36 +23,12 @@ function calProtocolHandlerWebcals() {
 function calProtocolHandler(scheme) {
     this.scheme = scheme;
     this.mHttpProtocol = Services.io.getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
+    this.wrappedJSObject = this;
 }
 
 calProtocolHandler.prototype = {
-    getInterfaces: function cP_getInterfaces(aCount) {
-        const interfaces = [Components.interfaces.nsIProtocolHandler,
-                            Components.interfaces.nsIClassInfo,
-                            Components.interfaces.nsISupports];
-
-        aCount.value = interfaces.length;
-        return interfaces;
-    },
-    getHelperForLanguage: function cP_getHelperForLanguage(aLang) {
-        return null;
-    },
-    classDescription: "Calendar webcal(s) protocal handler",
-    /* classID/contractID is filled in at the end of this file */
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function cph_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calProtocolHandler.prototype, aIID, null, this);
-    },
-
-    get defaultPort() {
-        return this.mHttpProtocol.defaultPort;
-    },
-
-    get protocolFlags() {
-        return this.mHttpProtocol.protocolFlags;
-    },
+    get defaultPort() this.mHttpProtocol.defaultPort,
+    get protocolFlags() this.mHttpProtocol.protocolFlags,
 
     newURI: function cph_newURI(aSpec, anOriginalCharset, aBaseURI) {
         var uri = Components.classes["@mozilla.org/network/standard-url;1"].
@@ -72,20 +49,34 @@ calProtocolHandler.prototype = {
         return channel;
     },
     
-    allowPort: function cph_allowPort(aPort, aScheme) {
-        // We are not overriding any special ports
-        return false;
-    }
+    // We are not overriding any special ports
+    allowPort: function cph_allowPort(aPort, aScheme) false
 };
 
+const calProtocolHandlerWebcalClassID = Components.ID("{1153c73a-39be-46aa-9ba9-656d188865ca}");
+const calProtocolHandlerWebcalInterfaces = [Components.interfaces.nsIProtocolHandler];
 calProtocolHandlerWebcal.prototype = {
     __proto__: calProtocolHandler.prototype,
-    contractID: "@mozilla.org/network/protocol;1?name=webcal",
-    classID: Components.ID("{1153c73a-39be-46aa-9ba9-656d188865ca}")
-};
-calProtocolHandlerWebcals.prototype = {
-    __proto__: calProtocolHandler.prototype,
-    contractID: "@mozilla.org/network/protocol;1?name=webcals",
-    classID: Components.ID("{bdf71224-365d-4493-856a-a7e74026f766}")
+    classID: calProtocolHandlerWebcalClassID,
+    QueryInterface: XPCOMUtils.generateQI(calProtocolHandlerWebcalInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calProtocolHandlerWebcalClassID,
+        contractID: "@mozilla.org/network/protocol;1?name=webcal",
+        classDescription: "Calendar webcal protocal handler",
+        interfaces: calProtocolHandlerWebcalInterfaces
+    }),
 };
 
+const calProtocolHandlerWebcalsClassID = Components.ID("{bdf71224-365d-4493-856a-a7e74026f766}");
+const calProtocolHandlerWebcalsInterfaces = [Components.interfaces.nsIProtocolHandler];
+calProtocolHandlerWebcals.prototype = {
+    __proto__: calProtocolHandler.prototype,
+    classID: calProtocolHandlerWebcalsClassID,
+    QueryInterface: XPCOMUtils.generateQI(calProtocolHandlerWebcalsInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calProtocolHandlerWebcalsClassID,
+        contractID: "@mozilla.org/network/protocol;1?name=webcals",
+        classDescription: "Calendar webcals protocal handler",
+        interfaces: calProtocolHandlerWebcalsInterfaces
+    }),
+};

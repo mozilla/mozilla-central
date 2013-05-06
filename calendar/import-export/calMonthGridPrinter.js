@@ -12,17 +12,20 @@ Components.utils.import("resource://calendar/modules/calPrintUtils.jsm");
  * Prints a rough month-grid of events/tasks
  */
 function calMonthPrinter() {
+    this.wrappedJSObject = this;
 }
 
+const calMonthPrinterClassID = Components.ID("{f42d5132-92c4-487b-b5c8-38bf292d74c1}");
+const calMonthPrinterInterfaces = [Components.interfaces.calIPrintFormatter];
 calMonthPrinter.prototype = {
-    classID: Components.ID("{f42d5132-92c4-487b-b5c8-38bf292d74c1}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIPrintFormatter]),
+    classID: calMonthPrinterClassID,
+    QueryInterface: XPCOMUtils.generateQI(calMonthPrinterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{f42d5132-92c4-487b-b5c8-38bf292d74c1}"),
+        classID: calMonthPrinterClassID,
         contractID: "@mozilla.org/calendar/printformatter;1?type=monthgrid",
         classDescription: "Calendar Month Grid Print Formatter",
-        interfaces: [Components.interfaces.calIPrintFormatter]
+        interfaces: calMonthPrinterInterfaces
     }),
 
     get name() cal.calGetString("calendar", "monthPrinterName"),

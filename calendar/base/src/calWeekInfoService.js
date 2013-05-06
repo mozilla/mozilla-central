@@ -2,29 +2,24 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function calWeekInfoService() {
-}
-calWeekInfoService.prototype = {
-    QueryInterface: function QueryInterface(aIID) {
-        return doQueryInterface(this, calWeekInfoService.prototype, aIID, null, this);
-    },
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
-    // nsIClassInfo:
-    getInterfaces: function(count) {
-        const ifaces = [Components.interfaces.nsISupports,
-                        Components.interfaces.calIWeekInfoService,
-                        Components.interfaces.nsIClassInfo];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    getHelperForLanguage: function(language) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/weekinfo-service;1",
-    classDescription: "Calendar WeekInfo Service",
-    classID: Components.ID("{6877bbdd-f336-46f5-98ce-fe86d0285cc1}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
+function calWeekInfoService() {
+    this.wrappedJSObject = this;
+}
+const calWeekInfoServiceClassID = Components.ID("{6877bbdd-f336-46f5-98ce-fe86d0285cc1}");
+const calWeekInfoServiceInterfaces = [Components.interfaces.calIWeekInfoService];
+calWeekInfoService.prototype = {
+    classID: calWeekInfoServiceClassID,
+    QueryInterface: XPCOMUtils.generateQI(calWeekInfoServiceInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calWeekInfoServiceClassID,
+        contractID: "@mozilla.org/calendar/weekinfo-service;1",
+        classDescription: "Calendar WeekInfo Service",
+        interfaces: calWeekInfoServiceInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     // calIWeekInfoService:
     getWeekTitle: function(aDateTime) {
@@ -60,7 +55,7 @@ calWeekInfoService.prototype = {
         // which may be part of the week counted in the previous year.) So we
         // need the startWeekday.
         const SUNDAY = 0;
-        var startWeekday = getPrefSafe("calendar.week.start", SUNDAY); // default to monday per ISO8601 standard.
+        var startWeekday = cal.getPrefSafe("calendar.week.start", SUNDAY); // default to monday per ISO8601 standard.
 
         // The number of days since the start of the week.
         // Notice that the result of the substraction might be negative.
@@ -101,7 +96,7 @@ calWeekInfoService.prototype = {
     getStartOfWeek: function(aDate) {
         var date = aDate.clone();
         date.isDate = true;
-        var offset = (getPrefSafe("calendar.week.start", 0) - aDate.weekday);
+        var offset = (cal.getPrefSafe("calendar.week.start", 0) - aDate.weekday);
         if (offset > 0) {
             date.day -= (7 - offset);
         } else {

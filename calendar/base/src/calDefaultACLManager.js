@@ -12,20 +12,20 @@ function calDefaultACLManager() {
     this.mCalendarEntries = {};
 }
 
+const calDefaultACLManagerClassID = Components.ID("{7463258c-6ef3-40a2-89a9-bb349596e927}");
+const calDefaultACLManagerInterfaces = [Components.interfaces.calICalendarACLManager];
 calDefaultACLManager.prototype = {
     mCalendarEntries: null,
 
-    /* nsISupports */
-    classID: Components.ID("{7463258c-6ef3-40a2-89a9-bb349596e927}"),
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICalendarACLManager]),
-
-    /* nsIClassInfo */
+    /* nsISupports, nsIClassInfo */
+    classID: calDefaultACLManagerClassID,
+    QueryInterface: XPCOMUtils.generateQI(calDefaultACLManagerInterfaces),
     classInfo: XPCOMUtils.generateCI({
-        classID: Components.ID("{7463258c-6ef3-40a2-89a9-bb349596e927}"),
+        classID: calDefaultACLManagerClassID,
         contractID: "@mozilla.org/calendar/acl-manager;1?type=default",
         classDescription: "Default Calendar ACL Provider",
-        interfaces: [Components.interfaces.calICalendarACLManager],
-        flags: Components.interfaces.nsIClassInfo.SINGLETON,
+        interfaces: calDefaultACLManagerInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
     }),
 
     /* calICalendarACLManager */

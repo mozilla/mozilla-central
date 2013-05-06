@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calProviderUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const calICalendar = Components.interfaces.calICalendar;
 const cICL = Components.interfaces.calIChangeLog;
@@ -129,15 +130,16 @@ function calCachedCalendar(uncachedCalendar) {
 }
 calCachedCalendar.prototype = {
     QueryInterface: function cCC_QueryInterface(aIID) {
-        if (aIID.equals(Components.interfaces.calISchedulingSupport)) {
+        if (aIID.equals(Components.interfaces.calISchedulingSupport) &&
+            this.mUncachedCalendar.QueryInterface(aIID)) {
             // check whether uncached calendar supports it:
-            if (this.mUncachedCalendar.QueryInterface(aIID)) {
-                return this;
-            }
+            return this;
+        } else if (aIID.equals(Components.interfaces.calICalendar) ||
+                   aIID.equals(Components.interfaces.nsISupports)) {
+            return this;
+        } else {
+            throw Components.results.NS_ERROR_NO_INTERFACE;
         }
-        return cal.doQueryInterface(this, calCachedCalendar.prototype, aIID,
-                                    [Components.interfaces.calICalendar,
-                                     Components.interfaces.nsISupports]);
     },
 
     mCachedCalendar: null,

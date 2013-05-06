@@ -3,8 +3,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calItipUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function calTransactionManager() {
+    this.wrappedJSObject = this;
     if (!this.transactionManager) {
         this.transactionManager =
             Components.classes["@mozilla.org/transactionmanager;1"]
@@ -12,31 +14,21 @@ function calTransactionManager() {
     }
 }
 
+const calTransactionManagerClassID = Components.ID("{40a1ccf4-5f54-4815-b842-abf06f84dbfd}");
+const calTransactionManagerInterfaces = [Components.interfaces.calITransactionManager];
 calTransactionManager.prototype = {
-    // nsIClassInfo:
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsISupports,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.calITransactionManager];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Calendar Transaction Manager",
-    contractID: "mozilla.org/calendar/transactionmanager;1",
-    classID: Components.ID("{40a1ccf4-5f54-4815-b842-abf06f84dbfd}"),
 
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: Components.interfaces.nsIClassInfo.SINGLETON,
-
-    QueryInterface: function cTM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calTransactionManager.prototype, aIID, null, this);
-    },
+    classID: calTransactionManagerClassID,
+    QueryInterface: XPCOMUtils.generateQI(calTransactionManagerInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calTransactionManagerClassID,
+        classDescription: "Calendar Transaction Manager",
+        contractID: "mozilla.org/calendar/transactionmanager;1",
+        interfaces: calTransactionManagerInterfaces,
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    }),
 
     transactionManager: null,
-
     createAndCommitTxn: function cTM_createAndCommitTxn(aAction,
                                                         aItem,
                                                         aCalendar,
@@ -109,7 +101,20 @@ function calTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
     this.mListener = aListener;
 }
 
+const calTransactionClassID = Components.ID("{fcb54c82-2fb9-42cb-bf44-1e197a55e520}");
+const calTransactionInterfaces = [
+    Components.interfaces.nsITransaction,
+    Components.interfaces.calIOperationListener
+];
 calTransaction.prototype = {
+    classID: calTransactionClassID,
+    QueryInterface: XPCOMUtils.generateQI(calTransactionInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calTransactionClassID,
+        classDescription: "Calendar Transaction",
+        contractID: "mozilla.org/calendar/transaction;1",
+        interfaces: calTransactionInterfaces,
+    }),
 
     mAction: null,
     mCalendar: null,
@@ -118,29 +123,6 @@ calTransaction.prototype = {
     mOldCalendar: null,
     mListener: null,
     mIsDoTransaction: false,
-
-    // nsIClassInfo:
-    getInterfaces: function getInterfaces(count) {
-        const ifaces = [Components.interfaces.nsISupports,
-                        Components.interfaces.nsIClassInfo,
-                        Components.interfaces.nsITransaction,
-                        Components.interfaces.calIOperationListener];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-    classDescription: "Calendar Transaction",
-    contractID: "mozilla.org/calendar/transaction;1",
-    classID: Components.ID("{fcb54c82-2fb9-42cb-bf44-1e197a55e520}"),
-
-    getHelperForLanguage: function getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function cTM_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, calTransaction.prototype, aIID, null, this);
-    },
 
     onOperationComplete: function cT_onOperationComplete(aCalendar,
                                                          aStatus,

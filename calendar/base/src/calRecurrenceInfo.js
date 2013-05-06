@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function getRidKey(dt) {
     if (!dt) {
@@ -22,6 +23,8 @@ function calRecurrenceInfo() {
     this.wrappedJSObject = this;
 }
 
+const calRecurrenceInfoClassID = Components.ID("{04027036-5884-4a30-b4af-f2cad79f6edf}");
+const calRecurrenceInfoInterfaces = [Components.interfaces.calIRecurrenceInfo];
 calRecurrenceInfo.prototype = {
     mImmutable: false,
     mBaseItem: null,
@@ -30,29 +33,14 @@ calRecurrenceInfo.prototype = {
     mNegativeRules: null,
     mExceptionMap: null,
 
-    QueryInterface: function cRI_QueryInterface(aIID) {
-        return doQueryInterface(this, calRecurrenceInfo.__proto__, aIID, null, this);
-    },
-
-    /**
-     * nsIClassInfo
-     */
-    getInterfaces: function cRI_getInterfaces(aCount) {
-        const interfaces = [Components.interfaces.nsISupports,
-                            Components.interfaces.calIRecurrenceInfo,
-                            Components.interfaces.nsIClassInfo];
-
-        aCount.value = interfaces.length;
-        return interfaces;
-    },
-    getHelperForLanguage: function cRI_getHelperForLanguage(aLang) {
-        return null;
-    },
-    contractID: "@mozilla.org/calendar/recurrence-info;1",
-    classDescription: "Calendar Recurrence Info",
-    classID: Components.ID("{04027036-5884-4a30-b4af-f2cad79f6edf}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    classID: calRecurrenceInfoClassID,
+    QueryInterface: XPCOMUtils.generateQI(calRecurrenceInfoInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calRecurrenceInfoClassID,
+        contractID: "@mozilla.org/calendar/recurrence-info;1",
+        classDescription: "Calendar Recurrence Info",
+        interfaces: calRecurrenceInfoInterfaces,
+    }),
 
     /**
      * Helpers

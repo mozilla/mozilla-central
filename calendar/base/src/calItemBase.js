@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * calItemBase prototype definition
@@ -52,10 +53,7 @@ calItemBase.prototype = {
     /**
      * @see nsISupports
      */
-    QueryInterface: function cIB_QueryInterface(aIID) {
-        return doQueryInterface(this, calItemBase.prototype, aIID,
-                                [Components.interfaces.calIItemBase]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIItemBase]),
 
     /**
      * @see calIItemBase
@@ -494,9 +492,7 @@ calItemBase.prototype = {
             getNext: function cIB_gPE_getNext() {
                 let paramName = this.mParamNames.pop()
                 return { // nsIProperty
-                    QueryInterface: function cIB_gPE_gN_QueryInterface(aIID) {
-                        return doQueryInterface(this, null, aIID, [Components.interfaces.nsIProperty]);
-                    },
+                    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIProperty]),
                     name: paramName,
                     value: parameters[paramName]
                 };

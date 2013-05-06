@@ -144,11 +144,7 @@ cal.BadCertHandler = function calBadCertHandler(thisProvider) {
     this.thisProvider = thisProvider;
 };
 cal.BadCertHandler.prototype = {
-    QueryInterface: function cBCL_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, cal.BadCertListener.prototype, aIID,
-                                    [Components.interfaces.nsISupports,
-                                     Components.interfaces.nsIBadCertListener2]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIBadCertListener2]),
 
     notifyCertProblem: function cBCL_notifyCertProblem(socketInfo, status, targetSite) {
         if (!status) {
@@ -226,13 +222,7 @@ cal.FreeBusyInterval = function calFreeBusyInterval(aCalId, aFreeBusyType, aStar
     this.freeBusyType = aFreeBusyType || Components.interfaces.calIFreeBusyInterval.UNKNOWN;
 };
 cal.FreeBusyInterval.prototype = {
-    QueryInterface: function cFBI_QueryInterface(aIID) {
-        return doQueryInterface(this,
-                                cal.FreeBusyInterval.prototype,
-                                aIID,
-                                [Components.interfaces.calIFreeBusyInterval]);
-    },
-
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIFreeBusyInterval]),
     calId: null,
     interval: null,
     freeBusyType: Components.interfaces.calIFreeBusyInterval.UNKNOWN
@@ -523,12 +513,10 @@ cal.ProviderBase.mTransientProperties = {
     "organizerCN": true
 };
 cal.ProviderBase.prototype = {
-    QueryInterface: function cPB_QueryInterface(aIID) {
-        return cal.doQueryInterface(this, cal.ProviderBase.prototype, aIID,
-                                    [Components.interfaces.nsISupports,
-                                     Components.interfaces.calICalendar,
-                                     Components.interfaces.calISchedulingSupport]);
-    },
+    QueryInterface: XPCOMUtils.generateQI([
+        Components.interfaces.calICalendar,
+        Components.interfaces.calISchedulingSupport
+    ]),
 
     mID: null,
     mUri: null,

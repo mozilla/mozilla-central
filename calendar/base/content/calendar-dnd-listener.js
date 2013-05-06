@@ -5,6 +5,7 @@
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var itemConversion = {
 
@@ -559,11 +560,9 @@ function invokeEventDragSession(aItem, aXULBox) {
     transfer.addDataFlavor("text/calendar");
 
     let flavourProvider = {
-        QueryInterface: function(aIID) {
-            return doQueryInterface(aXULBox, null, aIID, [Components.interfaces.nsIFlavorDataProvider]);
-        },
-        item: aItem,
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFlavorDataProvider]),
 
+        item: aItem,
         getFlavorData: function(aInTransferable, aInFlavor, aOutData, aOutDataLen) {
             if ((aInFlavor == "application/vnd.x-moz-cal-event") ||
                 (aInFlavor == "application/vnd.x-moz-cal-task")) {

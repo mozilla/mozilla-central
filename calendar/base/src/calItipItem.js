@@ -5,6 +5,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Constructor of calItipItem object
@@ -13,34 +14,19 @@ function calItipItem() {
     this.wrappedJSObject = this;
     this.mCurrentItemIndex = 0;
 }
-
+const calItipItemClassID = Components.ID("{f41392ab-dcad-4bad-818f-b3d1631c4d93}");
+const calItipItemInterfaces = [Components.interfaces.calIItipItem];
 calItipItem.prototype = {
     mIsInitialized: false,
 
-    // nsIClassInfo:
-    getInterfaces: function ciiGI(count) {
-        let ifaces = [
-            Components.interfaces.nsIClassInfo,
-            Components.interfaces.nsISupports,
-            Components.interfaces.calIItipItem
-        ];
-        count.value = ifaces.length;
-        return ifaces;
-    },
-
-    getHelperForLanguage: function ciiGHFL(aLanguage) {
-        return null;
-    },
-
-    contractID: "@mozilla.org/calendar/itip-item;1",
-    classDescription: "Calendar iTIP item",
-    classID: Components.ID("{f41392ab-dcad-4bad-818f-b3d1631c4d93}"),
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    QueryInterface: function ciiQI(aIID) {
-        return cal.doQueryInterface(this, calItipItem.prototype, aIID, null, this);
-    },
+    classID: calItipItemClassID,
+    QueryInterface: XPCOMUtils.generateQI(calItipItemInterfaces),
+    classInfo: XPCOMUtils.generateCI({
+        classID: calItipItemClassID,
+        contractID: "@mozilla.org/calendar/itip-item;1",
+        classDescription: "Calendar iTIP item",
+        interfaces: calItipItemInterfaces
+    }),
 
     mIsSend: false,
     get isSend() {
