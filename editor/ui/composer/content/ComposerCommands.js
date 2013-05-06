@@ -105,7 +105,7 @@ function SetupComposerWindowCommands()
   //   We can't use the composer controller created on the content window else
   //     we can't process commands when in HTMLSource editor
   // IMPORTANT: For each of these commands, the doCommand method
-  //            must first call FinishHTMLSource()
+  //            must first call SetEditMode(gPreviousNonSourceDisplayMode);
   //            to go from HTML Source mode to any other edit mode
 
   var windowControllers = window.controllers;
@@ -527,7 +527,7 @@ var nsSaveCommand =
     if (editor)
     {
       if (IsHTMLEditor())
-        FinishHTMLSource();
+        SetEditMode(gPreviousNonSourceDisplayMode);
       result = SaveDocument(IsUrlAboutBlank(GetDocumentUrl()), false, editor.contentsMIMEType);
     }
     return result;
@@ -551,7 +551,7 @@ var nsSaveAsCommand =
     if (editor)
     {
       if (IsHTMLEditor())
-        FinishHTMLSource();
+        SetEditMode(gPreviousNonSourceDisplayMode);
       result = SaveDocument(true, false, editor.contentsMIMEType);
     }
     return result;
@@ -572,7 +572,7 @@ var nsExportToTextCommand =
   {
     if (GetCurrentEditor())
     {
-      FinishHTMLSource();
+      SetEditMode(gPreviousNonSourceDisplayMode);
       var result = SaveDocument(true, true, "text/plain");
       return result;
     }
@@ -592,7 +592,7 @@ var nsSaveAndChangeEncodingCommand =
 
   doCommand: function(aCommand)
   {
-    FinishHTMLSource();
+    SetEditMode(gPreviousNonSourceDisplayMode);
     window.ok = false;
     window.exportToText = false;
     var oldTitle = GetDocumentTitle();
@@ -676,7 +676,7 @@ var nsPublishCommand =
       }
       if (publishData)
       {
-        FinishHTMLSource();
+        SetEditMode(gPreviousNonSourceDisplayMode);
         return Publish(publishData);
       }
     }
@@ -698,7 +698,7 @@ var nsPublishAsCommand =
   {
     if (GetCurrentEditor())
     {
-      FinishHTMLSource();
+      SetEditMode(gPreviousNonSourceDisplayMode);
 
       window.ok = false;
       var publishData = {};
@@ -2206,7 +2206,7 @@ var nsPrintCommand =
   doCommand: function(aCommand)
   {
     // In editor.js
-    FinishHTMLSource();
+    SetEditMode(gPreviousNonSourceDisplayMode);
     try {
       PrintUtils.print();
     } catch (e) {}
@@ -2227,7 +2227,7 @@ var nsPrintPreviewCommand =
   doCommand: function(aCommand)
   {
     // In editor.js
-    FinishHTMLSource();
+    SetEditMode(gPreviousNonSourceDisplayMode);
     try {
       PrintUtils.printPreview(PrintPreviewListener);
     } catch (e) {}
@@ -2248,7 +2248,7 @@ var nsPrintSetupCommand =
   doCommand: function(aCommand)
   {
     // In editor.js
-    FinishHTMLSource();
+    SetEditMode(gPreviousNonSourceDisplayMode);
     PrintUtils.showPageSetup();
   }
 };
@@ -3754,7 +3754,7 @@ var nsFinishHTMLSource =
   doCommand: function(aCommand)
   {
     // In editor.js
-    FinishHTMLSource();
+    SetEditMode(gPreviousNonSourceDisplayMode);
   }
 };
 

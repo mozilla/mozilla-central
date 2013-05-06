@@ -682,12 +682,7 @@ function CheckAndSaveDocument(command, allowDontSave)
   if (result == 0)
   {
     // Save, but first finish HTML source mode
-    if (IsHTMLSourceChanged()) {
-      try {
-        FinishHTMLSource();
-      } catch (e) { return false;}
-    }
-
+    SetEditMode(gPreviousNonSourceDisplayMode);
     if (doPublish)
     {
       // We save the command the user wanted to do in a global
@@ -1686,30 +1681,6 @@ function CancelHTMLSource()
   // Don't convert source text back into the DOM document
   gSourceTextEditor.resetModificationCount();
   SetDisplayMode(gPreviousNonSourceDisplayMode);
-}
-
-function FinishHTMLSource()
-{
-  var editor = GetCurrentEditor();
-
-  if (IsInHTMLSourceMode() && editor.contentsMIMEType == kXHTMLMimeType)
-  {
-    var html = null;
-    try {
-      var htmlSource = gSourceTextEditor.outputToString(kTextMimeType,
-                                                        kOutputLFLineBreak);
-      editor.document.createRange().createContextualFragment(htmlSource);
-    } catch (e) {
-      AlertWithTitle(GetString("Alert"), GetString("Malformed"));
-      //cheat to force back to Source Mode
-      gEditorDisplayMode = kDisplayModePreview;
-      SetDisplayMode(kDisplayModeSource);
-      throw e;
-    }
-  }
-
-  // Switch edit modes -- converts source back into DOM document
-  SetEditMode(gPreviousNonSourceDisplayMode);
 }
 
 function SetDisplayMode(mode)
