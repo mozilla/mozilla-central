@@ -2586,16 +2586,17 @@
              */
             var clickedOnce = false;
             function enableDblClick(event) {
-              if (event.detail == 1 && !clickedOnce) {
+              var target = event.originalTarget;
+              if (target.className == "tab-close-button")
+                target._ignoredClick = true;
+              if (!clickedOnce) {
                 clickedOnce = true;
                 return;
               }
-              setTimeout(function() {
-                tabbedBrowser._blockDblClick = false;
-              }, 0);
-              tabbedBrowser.removeEventListener("click", enableDblClick, false);
+              tabContainer._blockDblClick = false;
+              tabContainer.removeEventListener("click", enableDblClick, true);
             }
-            tabbedBrowser.addEventListener("click", enableDblClick, false);
+            tabContainer.addEventListener("click", enableDblClick, true);
           }
           else // "tabs"
             tabbedBrowser.removeCurrentTab();
