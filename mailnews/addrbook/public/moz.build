@@ -41,7 +41,7 @@ if CONFIG['MOZ_LDAP_XPCOM']:
 
     if not CONFIG['MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE']:
         XPIDL_SOURCES += [
-            'nsILDAPAutoCompleteSession.idl',
-            'nsILDAPAutoCompFormatter.idl',
             'nsIAbLDAPAutoCompFormatter.idl',
+            'nsILDAPAutoCompFormatter.idl',
+            'nsILDAPAutoCompleteSession.idl',
         ]
