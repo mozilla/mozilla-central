@@ -528,7 +528,7 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     icalproperty *prop;
     struct icalrecurrencetype icalrecur;
 
-    prop = aProp->GetIcalProperty();
+    prop = aProp->GetLibicalProperty();
 
     icalrecur = icalproperty_get_rrule(prop);
 
@@ -587,4 +587,16 @@ calRecurrenceRule::GetIcalString(nsACString &str)
     }
 
     return rv;
+}
+
+NS_IMETHODIMP
+calRecurrenceRule::GetWeekStart(short*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calRecurrenceRule::SetWeekStart(short)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }

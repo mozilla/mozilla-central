@@ -47,6 +47,18 @@ calDuration::calDuration(const struct icaldurationtype * const aDurationPtr)
 }
 
 NS_IMETHODIMP
+calDuration::GetIcalDuration(JS::Value*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calDuration::SetIcalDuration(JS::Value const&)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 calDuration::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);

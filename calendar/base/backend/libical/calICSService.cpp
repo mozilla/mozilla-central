@@ -26,15 +26,15 @@ NS_IMPL_CLASSINFO(calIcalProperty, NULL, 0, CAL_ICALPROPERTY_CID)
 NS_IMPL_ISUPPORTS1_CI(calIcalProperty, calIIcalProperty)
 
 NS_IMETHODIMP_(icalproperty *)
-calIcalProperty::GetIcalProperty()
+calIcalProperty::GetLibicalProperty()
 {
     return mProperty;
 }
 
 NS_IMETHODIMP_(icalcomponent *)
-calIcalProperty::GetIcalComponent()
+calIcalProperty::GetLibicalComponent()
 {
-    return mParent->GetIcalComponent();
+    return mParent->GetLibicalComponent();
 }
 
 NS_IMETHODIMP
@@ -462,6 +462,36 @@ calIcalComponent::~calIcalComponent()
         }
     }
 }
+NS_IMETHODIMP
+calIcalComponent::GetIcalComponent(JS::Value*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calIcalComponent::SetIcalComponent(JS::Value const&)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calIcalComponent::GetParent(calIIcalComponent** parent)
+{
+    NS_ADDREF(*parent = mParent);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calIcalComponent::GetIcalTimezone(JS::Value*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calIcalComponent::SetIcalTimezone(JS::Value const&)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 NS_IMETHODIMP
 calIcalComponent::AddTimezoneReference(calITimezone *aTimezone)
@@ -711,6 +741,25 @@ nsresult calIcalComponent::SetDateTimeAttribute(icalproperty_kind kind,
 }
 
 NS_IMETHODIMP
+calIcalProperty::GetParent(calIIcalComponent** parent)
+{
+    NS_ADDREF(*parent = mParent);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calIcalProperty::GetIcalProperty(JS::Value*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calIcalProperty::SetIcalProperty(JS::Value const&)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 calIcalProperty::SetValueAsDatetime(calIDateTime *dt)
 {
     NS_ENSURE_ARG_POINTER(dt);
@@ -808,13 +857,13 @@ NS_IMPL_CI_INTERFACE_GETTER1(calIcalComponent, calIIcalComponent)
 NS_IMPL_THREADSAFE_CI(calIcalComponent)
 
 NS_IMETHODIMP_(icalcomponent *)
-calIcalComponent::GetIcalComponent()
+calIcalComponent::GetLibicalComponent()
 {
     return mComponent;
 }
 
 NS_IMETHODIMP_(icaltimezone *)
-calIcalComponent::GetIcalTimezone()
+calIcalComponent::GetLibicalTimezone()
 {
     NS_ASSERTION(icalcomponent_isa(mComponent) == ICAL_VTIMEZONE_COMPONENT, "no VTIMEZONE -- unexpected!");
     if (!mTimezone && (icalcomponent_isa(mComponent) == ICAL_VTIMEZONE_COMPONENT)) {
@@ -824,7 +873,7 @@ calIcalComponent::GetIcalTimezone()
             icalproperty * const tzidProp = icalcomponent_get_first_property(mComponent, ICAL_TZID_PROPERTY);
             NS_ASSERTION(tzidProp, "no TZID property in VTIMEZONE!?");
             if (tzidProp) {
-                mTimezone = icalcomponent_get_timezone(mParent->GetIcalComponent(),
+                mTimezone = icalcomponent_get_timezone(mParent->GetLibicalComponent(),
                                                        icalvalue_get_string(icalproperty_get_value(tzidProp)));
             }
         }

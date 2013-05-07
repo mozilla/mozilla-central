@@ -43,6 +43,10 @@ interface calIRecurrenceRule : calIRecurrenceItem
   // it was set by count or not
   readonly attribute boolean isByCount;
 
+  // The week start for this rule, used for certain calculations. This is a
+  // value from 0=Sunday to 6=Saturday.
+  attribute short weekStart;
+
   // the components defining the recurrence
   // "BYSECOND", "BYMINUTE", "BYHOUR", "BYDAY",
   // "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO", "BYMONTH",

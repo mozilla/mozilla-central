@@ -98,6 +98,7 @@ interface calIDuration : nsISupports
   AUTF8String toString();
 
   [noscript,notxpcom] void toIcalDuration(in icaldurationtypeptr idt);
+  attribute jsval icalDuration;
 
   /**
    * This object as an iCalendar DURATION string

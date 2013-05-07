@@ -34,6 +34,18 @@ interface nsIInputStream;
 interface calIIcalComponent : nsISupports
 {
     /**
+     * The parent ical property
+     */
+    readonly attribute calIIcalComponent parent;
+
+    /**
+     * Access to the inner ical.js objects. Only use these if you know what you
+     * are doing.
+     */
+    attribute jsval icalComponent;
+    attribute jsval icalTimezone;
+
+    /**
      * This is the value that an integer-valued getter will provide if
      * there is no such property on the wrapped ical structure.
      */
@@ -142,8 +154,8 @@ interface calIIcalComponent : nsISupports
      */
     calIIcalComponent clone();
 
-    [noscript,notxpcom] icalcomponentptr getIcalComponent();
-    [noscript,notxpcom] icaltimezoneptr getIcalTimezone();
+    [noscript,notxpcom] icalcomponentptr getLibicalComponent();
+    [noscript,notxpcom] icaltimezoneptr getLibicalTimezone();
 };
 
 [scriptable,uuid(17349a10-5d80-47fa-9bea-f22957357675)]
@@ -154,6 +166,17 @@ interface calIIcalProperty : nsISupports
      * @exception Any libical error will be thrown as an calIError::ICS_ error.
      */
     readonly attribute AUTF8String icalString;
+
+    /**
+     * Access to the inner ical.js objects. Only use these if you know what you
+     * are doing.
+     */
+    attribute jsval icalProperty;
+
+    /**
+     * The parent component containing this property
+     */
+    readonly attribute calIIcalComponent parent;
 
     /**
      * Return a string representation of this instance.
@@ -187,21 +210,12 @@ interface calIIcalProperty : nsISupports
 
     AUTF8String getFirstParameterName();
     AUTF8String getNextParameterName();
-    /**
-     * This does not work with X-PARAMETERS, due to limitations in libical.
-     * You have to use clearXParameters() and then rebuild the ones you wanted
-     * to preserve.  Sorry about that.
-     */
+
     void removeParameter(in AUTF8String paramname);
     void clearXParameters();
 
-    [noscript,notxpcom] icalpropertyptr getIcalProperty();
-    /**
-     * Returns the icalcompoment this property belongs to. Please note
-     * that the returned object is a raw pointer to the appropriate
-     * component and is owned by libical.
-     */
-    [noscript,notxpcom] icalcomponentptr getIcalComponent();
+    [noscript,notxpcom] icalpropertyptr getLibicalProperty();
+    [noscript,notxpcom] icalcomponentptr getLibicalComponent();
 };
 
 [scriptable,uuid(41fb4cbd-9977-41c7-b179-ab567e4b9395)]

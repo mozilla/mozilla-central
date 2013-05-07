@@ -34,6 +34,18 @@ calPeriod::calPeriod(struct icalperiodtype const* aPeriodPtr)
 }
 
 NS_IMETHODIMP
+calPeriod::GetIcalPeriod(JS::Value*)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+calPeriod::SetIcalPeriod(JS::Value const&)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 calPeriod::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
