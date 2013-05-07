@@ -5,6 +5,7 @@
 function run_test() {
     test_roundtrip();
     test_async();
+    if (cal.getPrefSafe("calendar.backend") == "icaljs") test_failures();
     test_fake_parent();
     test_props_comps();
     test_timezone();
@@ -34,6 +35,35 @@ function test_props_comps() {
     do_check_eq(comps.length, 1);
     do_check_eq(comps[0].componentType, "VJOURNAL");
     do_check_eq(comps[0].location, "BEFORE TIME");
+}
+
+function test_failures() {
+    let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                           .createInstance(Components.interfaces.calIIcsParser);
+
+    do_test_pending()
+    parser.parseString("BOGUS", null, {
+        onParsingComplete: function(rc, parser) {
+            dump("Note: The previous error message is expected ^^\n");
+            do_check_eq(rc, Components.results.NS_ERROR_FAILURE);
+            do_test_finished();
+        }
+    });
+
+    // No real error here, but there is a message...
+    let parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
+                           .createInstance(Components.interfaces.calIIcsParser);
+    let str = [
+        "BEGIN:VWORLD",
+        "BEGIN:VEVENT",
+        "UID:123",
+        "END:VEVENT",
+        "END:VWORLD"].join("\r\n");
+    dump("Note: The following error message is expected:\n");
+    parser.parseString(str);
+    do_check_eq(parser.getComponents({}).length, 0);
+    do_check_eq(parser.getItems({}).length, 0);
+
 }
 
 function test_fake_parent() {

@@ -77,15 +77,14 @@ function test_binaryattach() {
     do_check_true(!!propIcalString.match(/ENCODING=BASE64/));
     do_check_true(!!propIcalString.match(/FMTTYPE=x-moz\/test2/));
     do_check_true(!!propIcalString.match(/VALUE=BINARY/));
-    do_check_true(!!propIcalString.match(/:aHR0cDovL2hlbGxvMg\r\n ==/));
+    do_check_true(!!propIcalString.replace("\r\n ", "").match(/:aHR0cDovL2hlbGxvMg==/));
 
     propIcalString = attach.clone().icalProperty.icalString;
 
     do_check_true(!!propIcalString.match(/ENCODING=BASE64/));
     do_check_true(!!propIcalString.match(/FMTTYPE=x-moz\/test2/));
     do_check_true(!!propIcalString.match(/VALUE=BINARY/));
-    do_check_true(!!propIcalString.match(/:aHR0cDovL2hlbGxvMg\r\n ==/));
-
+    do_check_true(!!propIcalString.replace("\r\n ", "").match(/:aHR0cDovL2hlbGxvMg==/));
 }
 
 function test_serialize() {

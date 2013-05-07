@@ -8,6 +8,9 @@ function run_test() {
     test_icsservice();
     test_icalstring();
     test_param();
+
+    // Only supported with ical.js
+    if (cal.getPrefSafe("calendar.backend") == "icaljs") test_icalproperty();
 }
 
 function test_icalstring() {
@@ -56,10 +59,17 @@ function test_icalstring() {
                           { count: 5, isByCount: true, type: "WEEKLY", interval: 2 });
     do_check_eq(rrule.getComponent("BYDAY", {}).toString(), [2].toString());
 
-    let rdate = checkComp(cal.createRecurrenceDate.bind(cal),
-                          "RDATE;VALUE=DATE-TIME:20120101T000000",
-                          { isNegative: false });
-    do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000")), 0);
+    if (cal.getPrefSafe("calendar.backend") == "icaljs") {
+        let rdate = checkComp(cal.createRecurrenceDate.bind(cal),
+                              "RDATE:20120101T000000",
+                              { isNegative: false });
+        do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000")), 0);
+    } else {
+        let rdate = checkComp(cal.createRecurrenceDate.bind(cal),
+                              "RDATE;VALUE=DATE-TIME:20120101T000000",
+                              { isNegative: false });
+        do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000")), 0);
+    }
 
     /* TODO consider removing period support, ics throws badarg
     let rdateperiod = checkComp(cal.createRecurrenceDate.bind(cal),
@@ -70,7 +80,7 @@ function test_icalstring() {
     let exdate = checkComp(cal.createRecurrenceDate.bind(cal),
                            "EXDATE:20120101T000000",
                            { isNegative: true });
-    do_check_eq(rdate.date.compare(cal.createDateTime("20120101T000000")), 0);
+    do_check_eq(exdate.date.compare(cal.createDateTime("20120101T000000")), 0);
 }
 
 function test_icsservice() {
@@ -103,9 +113,25 @@ function test_icsservice() {
     do_check_eq(attach2.icalString, "ATTACH:http://example.com/\r\n");
 }
 
+function test_icalproperty() {
+    let svc = cal.getIcsService();
+    let comp = svc.createIcalComponent("VEVENT");
+    let comp2 = svc.createIcalComponent("VTODO");
+    let prop = svc.createIcalProperty("PROP");
+    prop.value = "VAL";
+
+    comp.addProperty(prop);
+    do_check_eq(prop.parent.toString(), comp.toString());
+}
+
 function test_icalcomponent() {
     let svc = cal.getIcsService();
     let event = svc.createIcalComponent("VEVENT");
+    let todo = svc.createIcalComponent("VTODO");
+    let alarm = svc.createIcalComponent("VALARM");
+    event.addSubcomponent(alarm);
+
+    do_check_eq(alarm.parent.toString(), event.toString());
 
     function check_getset(k, v) {
         dump("Checking " + k + " = " + v + "\n");
@@ -200,7 +226,7 @@ function test_iterator() {
     }
 
     // Now try again, but start with next. Should act like first
-    params = ["ONE", "TWO"];
+    params = ["X-ONE", "X-TWO"];
     for (let p = prop.getNextParameterName();
          p;
          p = prop.getNextParameterName()) {

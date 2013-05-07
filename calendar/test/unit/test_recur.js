@@ -290,7 +290,12 @@ function test_clone(event) {
 function test_interface() {
     let RRULE = "RRULE:FREQ=WEEKLY;COUNT=6;BYDAY=TU,WE\r\n";
     let EXDATE = "EXDATE:20020403T114500Z\r\n"
-    let RDATE = "RDATE;VALUE=DATE-TIME:20020401T114500Z\r\n";
+    let RDATE;
+    if (cal.getPrefSafe("calendar.backend") == "icaljs") {
+        RDATE = "RDATE:20020401T114500Z\r\n";
+    } else {
+        RDATE = "RDATE;VALUE=DATE-TIME:20020401T114500Z\r\n";
+    }
 
     let item = makeEvent("DTSTART:20020402T114500Z\n" +
                          "DTEND:20020402T124500Z\n" +
