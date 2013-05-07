@@ -2803,6 +2803,8 @@ nsresult nsMsgDBFolder::NotifyHdrsNotBeingClassified()
       msgHdrsNotBeingClassified = do_CreateInstance(NS_ARRAY_CONTRACTID);
       if (!msgHdrsNotBeingClassified)
         return NS_ERROR_OUT_OF_MEMORY;
+      nsresult rv = GetDatabase();
+      NS_ENSURE_SUCCESS(rv, rv);
       MsgGetHeadersFromKeys(mDatabase, keys, msgHdrsNotBeingClassified);
 
       // Since we know we've handled all the NotReportedClassified messages,

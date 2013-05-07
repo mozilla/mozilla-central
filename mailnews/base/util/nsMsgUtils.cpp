@@ -2015,6 +2015,8 @@ nsresult NS_FASTCALL MsgQueryElementAt::operator()( const nsIID& aIID, void** aR
 NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aMsgKeys,
                                            nsIMutableArray *aHeaders)
 {
+  NS_ENSURE_ARG_POINTER(aDB);
+
   uint32_t count = aMsgKeys.Length();
   nsresult rv = NS_OK;
 
