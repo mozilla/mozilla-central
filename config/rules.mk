@@ -44,6 +44,11 @@ include backend.mk
 endif
 endif
 
+ifdef TIERS
+DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))
+STATIC_DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_staticdirs))
+endif
+
 ifndef MOZILLA_DIR
 MOZILLA_DIR = $(MOZILLA_SRCDIR)
 endif
@@ -1236,8 +1241,28 @@ normalizepath = $(1)
 endif
 
 ###############################################################################
-# Update Makefiles
+# Update Files Managed by Build Backend
 ###############################################################################
+
+ifdef MOZBUILD_DERIVED
+
+# If this Makefile is derived from moz.build files, substitution for all .in
+# files is handled by SUBSTITUTE_FILES. This includes Makefile.in.
+ifneq ($(SUBSTITUTE_FILES),,)
+$(SUBSTITUTE_FILES): % : $(srcdir)/%.in $(DEPTH)/config/autoconf.mk
+	@$(PYTHON) $(DEPTH)/config.status -n --file=$@
+	@$(TOUCH) $@
+endif
+
+# Detect when the backend.mk needs rebuilt. This will cause a full scan and
+# rebuild. While relatively expensive, it should only occur once per recursion.
+ifneq ($(BACKEND_INPUT_FILES),,)
+backend.mk: $(BACKEND_INPUT_FILES)
+	@$(PYTHON) $(DEPTH)/config.status -n
+	@$(TOUCH) $@
+endif
+
+endif # MOZBUILD_DERIVED
 
 ifndef NO_MAKEFILE_RULE
 Makefile: Makefile.in
