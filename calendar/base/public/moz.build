@@ -16,7 +16,6 @@ XPIDL_SOURCES += [
     'calICalendarView.idl',
     'calICalendarViewController.idl',
     'calIChangeLog.idl',
-    'calIDateTime.idl',
     'calIDateTimeFormatter.idl',
     'calIDeletedItems.idl',
     'calIDuration.idl',
