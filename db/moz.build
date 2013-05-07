@@ -4,5 +4,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 if not CONFIG['NSS_DISABLE_DBM'] and CONFIG['MOZ_MORK']:
-    PARALLEL_DIRS += ['mork']
-
+    DIRS += [
+        'mork/public',
+        'mork/src',
+        'mork/build',
+    ]

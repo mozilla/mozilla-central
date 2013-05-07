@@ -12,7 +12,7 @@ if 'mozldap' in component_libs or CONFIG['MOZ_LDAP_XPCOM']:
     app_libxul_dirs += [bridge_reldir + 'ldap/xpcom']
 
 if 'mork' in component_libs or CONFIG['MOZ_MORK']:
-    app_libxul_dirs += [bridge_reldir + 'db/mork']
+    app_libxul_dirs += [bridge_reldir + 'db']
 
 app_libxul_dirs += [bridge_reldir + 'mailnews']
 

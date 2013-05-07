@@ -6,13 +6,16 @@
 # These extensions are not optional.
 PARALLEL_DIRS += [
     'mdn',
-    'mailviews',
+    'mailviews/public',
+    'mailviews/src',
+    'mailviews/content',
     'bayesian-spam-filter',
     'offline-startup',
     'newsblog',
-    'fts3',
+    'fts3/public',
+    'fts3/src',
 ]
 
-if CONFIG['BUILD_SMIME'] or CONFIG['MOZ_PSM']:
+if CONFIG['MOZ_PSM']:
     PARALLEL_DIRS += ['smime']
 

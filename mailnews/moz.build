@@ -10,14 +10,40 @@ PARALLEL_DIRS += [
     'db/gloda',
     'db/msgdb',
     'extensions',
-    'imap',
-    'import',
-    'local',
+    'imap/public',
+    'imap/src',
+    'import/public',
+    'import/src',
+    'import/text/src',
+    'import/vcard/src',
+    'local/public',
+    'local/src',
     'mime',
     'news',
 ]
 
-TEST_DIRS += ['test/performance/bloat']
+if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+    PARALLEL_DIRS += [
+        'import/eudora/src',
+        'import/applemail/src',
+    ]
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    PARALLEL_DIRS += ['import/eudora/src']
+
+    if not CONFIG['GNU_CC']:
+        PARALLEL_DIRS += [
+            'import/oexpress',
+            'import/outlook/src',
+            'import/winlivemail',
+        ]
+
+TEST_TOOL_DIRS += [
+    'test/performance/bloat',
+    'imap/test',
+    'import/test',
+    'local/test',
+]
 
 if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
     PARALLEL_DIRS += [
@@ -25,5 +51,8 @@ if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
         'mapi/mapihook',
     ]
 
-DIRS += ['build']
+DIRS += [
+    'build',
+    'import/build',
+]
 
