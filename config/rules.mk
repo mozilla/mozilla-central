@@ -737,7 +737,10 @@ endif
 HOST_LIBS_DEPS = $(filter %.$(LIB_SUFFIX),$(HOST_LIBS))
 
 # Dependencies which, if modified, should cause everything to rebuild
-GLOBAL_DEPS += Makefile Makefile.in $(DEPTH)/config/autoconf.mk $(topsrcdir)/config/config.mk
+GLOBAL_DEPS += Makefile $(DEPTH)/config/autoconf.mk $(topsrcdir)/config/config.mk
+ifndef NO_MAKEFILE_RULE
+GLOBAL_DEPS += Makefile.in
+endif
 
 ##############################################
 ifdef PARALLEL_DIRS
@@ -1236,15 +1239,19 @@ endif
 # Update Makefiles
 ###############################################################################
 
+ifndef NO_MAKEFILE_RULE
 Makefile: Makefile.in
 	@$(PYTHON) $(DEPTH)/config.status -n --file=Makefile
 	@$(TOUCH) $@
+endif
 
+ifndef NO_SUBMAKEFILES_RULE
 ifdef SUBMAKEFILES
 # VPATH does not work on some machines in this case, so add $(srcdir)
 $(SUBMAKEFILES): % : $(srcdir)/%.in
 	$(PYTHON) $(DEPTH)/config.status -n --file="$@"
 	@$(TOUCH) $@
+endif
 endif
 
 ifdef AUTOUPDATE_CONFIGURE
