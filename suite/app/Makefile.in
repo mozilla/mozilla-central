@@ -262,15 +262,3 @@ else
 endif # cocoa
 endif # SKIP_COPY_XULRUNNER
 endif # LIBXUL_SDK
-
-ifdef ENABLE_TESTS
-# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests
-# and that we can share the core mozilla-central xpcshell.ini.
-# mozilla-central does this in testing/xpcshell-tests which means that it is
-# very hard for anyone to specify anything else.
-libs::
-	$(NSINSTALL) -D $(MOZDEPTH)/_tests/xpcshell
-	cp $(MOZILLA_SRCDIR)/testing/xpcshell/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/xpcshell-core.ini
-	$(INSTALL) $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell
-	cp $(topsrcdir)/suite/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
-endif

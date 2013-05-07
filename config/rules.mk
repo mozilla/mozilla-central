@@ -132,7 +132,6 @@ libs::
 	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
 	$(PYTHON) $(MOZILLA_DIR)/build/xpccheck.py \
 	  $(topsrcdir) \
-	  $(topsrcdir)/$(MOZ_BUILD_APP)/test/xpcshell.ini \
 	  $(addprefix $(topsrcdir)/$(relativesrcdir)/,$(XPCSHELL_TESTS))
 
 testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell

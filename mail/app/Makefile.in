@@ -195,15 +195,11 @@ libs:: $(srcdir)/blocklist.xml
 	$(INSTALL) $(IFLAGS1) $^ $(DIST)/bin
 
 ifdef ENABLE_TESTS
-# XXX This is a hack to ensure that we get the right xpcshell.ini for our tests
-# and that we can share the core mozilla-central xpcshell.ini.
-# mozilla-central does this in testing/xpcshell-tests which means that it is
-# very hard for anyone to specify anything else.
+# Bug 680203 - When making and running packaged tests on our buildbots,
+# Lightning is not included in the package, so Lightning tests cannot run
+# properly even though we build Lightning.
 libs::
-	$(NSINSTALL) -D $(MOZDEPTH)/_tests/xpcshell
-	cp $(MOZILLA_SRCDIR)/testing/xpcshell/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/xpcshell-core.ini
-	$(INSTALL) $(topsrcdir)/mail/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell
-	cp $(topsrcdir)/mail/test/xpcshell.ini $(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
+	sed -e '/calendar/d' $(MOZDEPTH)/_tests/xpcshell/xpcshell.ini >$(MOZDEPTH)/_tests/xpcshell/all-test-dirs.list
 endif
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
