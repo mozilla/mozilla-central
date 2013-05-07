@@ -48,7 +48,7 @@ SHARED_LIBRARY_LIBS = \
 	        ../addrbook/src/$(LIB_PREFIX)addrbook_s.$(LIB_SUFFIX) \
 	        ../news/src/$(LIB_PREFIX)msgnews_s.$(LIB_SUFFIX) \
 	        ../mime/src/$(LIB_PREFIX)mime_s.$(LIB_SUFFIX) \
-	        ../mime/emitters/src/$(LIB_PREFIX)emitterutil_s.$(LIB_SUFFIX) \
+	        ../mime/emitters/$(LIB_PREFIX)emitterutil_s.$(LIB_SUFFIX) \
 	        ../extensions/bayesian-spam-filter/src/$(LIB_PREFIX)bayesflt_s.$(LIB_SUFFIX) \
 	        ../extensions/fts3/src/$(LIB_PREFIX)fts3tok_s.$(LIB_SUFFIX) \
 	        ../extensions/mailviews/src/$(LIB_PREFIX)mailview_s.$(LIB_SUFFIX) \
@@ -99,7 +99,7 @@ LOCAL_INCLUDES = -I$(srcdir) \
                  -I$(srcdir)/../compose/src \
                  -I$(srcdir)/../base/search/src \
                  -I$(srcdir)/../mime/src \
-                 -I$(srcdir)/../mime/emitters/src \
+                 -I$(srcdir)/../mime/emitters \
                  -I$(srcdir)/../news/src \
                  -I$(srcdir)/../extensions/bayesian-spam-filter/src \
                  -I$(srcdir)/../extensions/fts3/src \
