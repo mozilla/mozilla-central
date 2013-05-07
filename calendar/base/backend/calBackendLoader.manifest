@@ -1,0 +1,3 @@
+component {0314c271-7168-40fa-802e-83c8c46a557e} calBackendLoader.js
+contract @mozilla.org/calendar/backend-loader;1 {0314c271-7168-40fa-802e-83c8c46a557e}
+category profile-after-change calendar-backend-loader @mozilla.org/calendar/backend-loader;1

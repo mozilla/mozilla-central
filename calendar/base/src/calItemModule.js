@@ -34,6 +34,8 @@ const scriptLoadOrder = [
 ];
 
 function getComponents() {
+    Components.classes["@mozilla.org/calendar/backend-loader;1"].getService();
+
     return [
         calAlarm,
         calAlarmService,

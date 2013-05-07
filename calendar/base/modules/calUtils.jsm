@@ -9,6 +9,11 @@ var gCalThreadingEnabled;
 Components.utils.import("resource:///modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
+// Usually the backend loader gets loaded via profile-after-change, but in case
+// a calendar component hooks in earlier, its very likely it will use calUtils.
+// Getting the service here will load if its not already loaded
+Components.classes["@mozilla.org/calendar/backend-loader;1"].getService();
+
 EXPORTED_SYMBOLS = ["cal"];
 let cal = {
     // new code should land here,

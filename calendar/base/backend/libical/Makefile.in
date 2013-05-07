@@ -1,0 +1,28 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+DEPTH = @DEPTH@
+topsrcdir = @top_srcdir@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+LIBRARY_NAME     = calbase_s
+MODULE_NAME      = calBaseModule
+FORCE_STATIC_LIB = 1
+GRE_MODULE       = 1
+FORCE_USE_PIC   = 1 # Force use of PIC
+USE_STATIC_LIBS = 1
+
+CPPSRCS = calDateTime.cpp \
+	  calDuration.cpp \
+	  calPeriod.cpp \
+	  calICSService.cpp \
+	  calTimezone.cpp \
+	  calRecurrenceRule.cpp \
+	  calUtils.cpp \
+	  $(NULL)
+
+include $(topsrcdir)/config/rules.mk

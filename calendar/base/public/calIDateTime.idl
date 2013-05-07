@@ -159,13 +159,6 @@ interface calIDateTime : nsISupports
   AUTF8String toString();
 
   /**
-   * Set the value of this calIDateTime instance
-   * to aTime milliseconds since the epoch in the
-   * given timezone.
-   */
-  void setTimeInTimezone(in PRTime aTime, in calITimezone aTimezone);
-
-  /**
    * Return a new calIDateTime instance that's the result of
    * converting this one into the given timezone.  Valid values
    * for aTimezone are the same as the timezone field.  If

@@ -219,17 +219,6 @@ calDateTime::ToString(nsACString & aResult)
 }
 
 NS_IMETHODIMP
-calDateTime::SetTimeInTimezone(PRTime aTime, calITimezone * aTimezone)
-{
-    NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
-    NS_ENSURE_ARG_POINTER(aTimezone);
-    icaltimetype icalt;
-    PRTimeToIcaltime(aTime, false, cal::getIcalTimezone(aTimezone), &icalt);
-    FromIcalTime(&icalt, aTimezone);
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 calDateTime::GetInTimezone(calITimezone * aTimezone, calIDateTime ** aResult)
 {
     NS_ENSURE_ARG_POINTER(aTimezone);
