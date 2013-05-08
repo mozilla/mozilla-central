@@ -11,6 +11,8 @@ Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource:///modules/MailConsts.js");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 const MC = MailConsts;
 
 /**
@@ -238,9 +240,9 @@ var MailUtils =
         "chrome://messenger/locale/messenger.properties");
 
       let title = bundle.GetStringFromName("openWindowWarningTitle");
-      let params = [numMessages];
-      let message = bundle.formatStringFromName("openWindowWarningText",
-                                                params, params.length);
+      let message = PluralForm.get(numMessages,
+        bundle.GetStringFromName("openWindowWarningConfirmation"))
+                              .replace("#1", numMessages);
       if (!Services.prompt.confirm(null, title, message))
         return;
     }

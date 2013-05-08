@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 
@@ -1615,7 +1616,9 @@ function MsgOpenSelectedMessages()
     if (!gMessengerBundle)
         gMessengerBundle = document.getElementById("bundle_messenger");
     var title = gMessengerBundle.getString("openWindowWarningTitle");
-    var text = gMessengerBundle.getFormattedString("openWindowWarningText", [numMessages]);
+    var text = PluralForm.get(numMessages,
+      gMessengerBundle.getString("openWindowWarningConfirmation"))
+                         .replace("#1", numMessages);
     if (!Services.prompt.confirm(window, title, text))
       return;
   }
@@ -2084,8 +2087,9 @@ function IsGetNextNMessagesEnabled()
     var menuItem = document.getElementById("menu_getnextnmsg");
     if ((serverType == "nntp") && !folder.isServer) {
         var newsServer = server.QueryInterface(Components.interfaces.nsINntpIncomingServer);
-        var menuLabel = gMessengerBundle.getFormattedString("getNextNMessages",
-                                                            [ newsServer.maxArticles ]);
+        var menuLabel = PluralForm.get(newsServer.maxArticles,
+          gMessengerBundle.getString("getNextNewsMessages"))
+                                  .replace("#1", newsServer.maxArticles);
         menuItem.setAttribute("label",menuLabel);
         menuItem.removeAttribute("hidden");
         return true;

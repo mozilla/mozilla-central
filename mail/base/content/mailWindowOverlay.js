@@ -6,6 +6,7 @@
 Components.utils.import("resource:///modules/gloda/dbview.js");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 const ADDR_DB_LARGE_COMMIT       = 1;
 
@@ -2460,9 +2461,10 @@ function IsGetNextNMessagesEnabled()
   var menuItem = document.getElementById("menu_getnextnmsg");
   if (folder && !folder.isServer &&
       folder.server instanceof Components.interfaces.nsINntpIncomingServer) {
-    menuItem.label = document.getElementById("bundle_messenger")
-                             .getFormattedString("getNextNMessages",
-                                                 [folder.server.maxArticles]);
+    menuItem.label = PluralForm.get(folder.server.maxArticles,
+                                    document.getElementById("bundle_messenger")
+                                            .getString("getNextNewsMessages"))
+                               .replace("#1", folder.server.maxArticles);
     menuItem.removeAttribute("hidden");
     return true;
   }
