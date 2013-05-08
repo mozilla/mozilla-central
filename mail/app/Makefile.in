@@ -102,6 +102,9 @@ embedded-icons::
 GARBAGE += write-message.ico address-book.ico
 
 RCINCLUDE = splash.rc
+# Rebuild thunderbird.exe if the manifest changes - it's included by splash.rc.
+# (this dependency should really be just for thunderbird.exe, not other targets)
+EXTRA_DEPS += $(PROGRAM).manifest
 ifndef GNU_CC
 RCFLAGS += -DMOZ_THUNDERBIRD -I$(srcdir)
 else
