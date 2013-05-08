@@ -46,9 +46,7 @@ function testShiftJIS() {
 
 var tests = [
   testUTF8,
-  // Currently nsMsgAttachmentHandler::PickCharset()
-  // will not work well with UTF-16BE.
-  //testUTF16BE,
+  testUTF16BE,
   testUTF16LE,
   testShiftJIS
 ]
