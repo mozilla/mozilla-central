@@ -64,6 +64,9 @@ endif
 
 ifeq ($(OS_ARCH),WINNT)
 RCINCLUDE = splash.rc
+# Rebuild seamonkey.exe if the manifest changes - it's included by splash.rc.
+# (this dependency should really be just for seamonkey.exe, not other targets)
+EXTRA_DEPS += $(PROGRAM).manifest
 ifndef GNU_CC
 RCFLAGS += -DMOZ_SUITE -I$(srcdir)
 else
