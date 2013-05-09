@@ -88,9 +88,8 @@ function run_test()
     case "string":
         do_check_eq(value, Services.prefs.getCharPref(key));
         break;
-    case "undefined":
-        do_check_eq(value, Services.prefs.getPref(key));
-        break;
+    default:
+        do_throw("The preference " + key + " is of unknown type: " + typeof value);
     }
   }
   
