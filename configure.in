@@ -237,6 +237,7 @@ changequote([,])dnl
 # Make the config.status file executable
 chmod +x $CONFIG_STATUS
 
+_SUBDIR_CONFIG_ARGS="$ac_configure_args"
 if test -n "$UNIFY_DIST"; then
     # Make --with-unify-dist point to the right path
     _SUBDIR_CONFIG_ARGS="$_SUBDIR_CONFIG_ARGS --with-unify-dist=$UNIFY_DIST"
