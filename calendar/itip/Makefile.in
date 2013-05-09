@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = calItipEmailTransport
-
 EXTRA_COMPONENTS = \
     calItipEmailTransport.js \
     calItipEmailTransport.manifest \

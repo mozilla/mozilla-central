@@ -7,5 +7,5 @@ XPIDL_SOURCES += [
     'nsISuiteProfileMigrator.idl',
 ]
 
-XPIDL_MODULE = 'suitemigration'
+MODULE = 'suitemigration'
 

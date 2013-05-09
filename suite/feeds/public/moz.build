@@ -8,5 +8,5 @@ XPIDL_SOURCES += [
     'nsIWebContentConverterRegistrar.idl',
 ]
 
-XPIDL_MODULE = 'suitefeeds'
+MODULE = 'suitefeeds'
 

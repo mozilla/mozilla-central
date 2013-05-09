@@ -6,3 +6,5 @@
 PARALLEL_DIRS += ['src']
 TEST_DIRS += ['test']
 
+MODULE = 'bayesflt'
+

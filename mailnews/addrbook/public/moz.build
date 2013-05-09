@@ -45,3 +45,6 @@ if CONFIG['MOZ_LDAP_XPCOM']:
             'nsILDAPAutoCompFormatter.idl',
             'nsILDAPAutoCompleteSession.idl',
         ]
+
+MODULE = 'addrbook'
+

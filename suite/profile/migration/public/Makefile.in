@@ -9,6 +9,5 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= suitemigration
 include $(topsrcdir)/config/rules.mk
 

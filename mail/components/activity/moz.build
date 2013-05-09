@@ -9,3 +9,5 @@ XPIDL_SOURCES += [
     'nsIActivityManagerUI.idl',
 ]
 
+MODULE = 'activity'
+

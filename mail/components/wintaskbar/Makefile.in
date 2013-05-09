@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = wintaskbar
-
 EXTRA_JS_MODULES = \
 	windowsJumpLists.js \
 	$(NULL)

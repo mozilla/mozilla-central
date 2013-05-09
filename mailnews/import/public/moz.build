@@ -22,3 +22,5 @@ XPIDL_FLAGS += [
     '-I$(topsrcdir)/mailnews/compose/public',
 ]
 
+MODULE = 'import'
+

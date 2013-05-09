@@ -10,7 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= mail
 LIBRARY_NAME = mail
 EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1

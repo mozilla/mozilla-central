@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= addrbook
-
 EXPORTS		= \
 		nsAbBaseCID.h \
 		$(NULL)

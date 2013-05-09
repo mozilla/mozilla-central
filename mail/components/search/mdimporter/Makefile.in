@@ -13,8 +13,6 @@ include $(DEPTH)/config/autoconf.mk
 # the selected build style/configuration.
 XCODE_PRODUCT_DIR = build/$(BUILDSTYLE)
 
-MODULE = mdimporter
-
 include $(topsrcdir)/config/rules.mk
 
 ifeq (,$(findstring pbxbuild,$(PBBUILD)))

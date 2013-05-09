@@ -10,7 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= msgMapi
 LIBRARY_NAME	= $(MODULE)
 MODULE_NAME	= msgMapiModule
 EXPORT_LIBRARY  = 1

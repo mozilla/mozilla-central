@@ -11,5 +11,5 @@ XPIDL_SOURCES += [
     'nsISuiteGlue.idl',
 ]
 
-XPIDL_MODULE = 'suitecommon'
+MODULE = 'suitecommon'
 

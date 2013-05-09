@@ -10,7 +10,6 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE           = calbase
 LIBRARY_NAME     = calbase_s
 MODULE_NAME      = calBaseModule
 FORCE_STATIC_LIB = 1

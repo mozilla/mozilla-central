@@ -7,3 +7,5 @@ XPIDL_SOURCES += [
     'nsIMsgCloudFileProvider.idl',
 ]
 
+MODULE = 'cloudfile'
+

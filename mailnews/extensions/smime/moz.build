@@ -10,3 +10,5 @@ PARALLEL_DIRS += [
 
 DIRS += ['build']
 
+MODULE = 'msgsmime'
+

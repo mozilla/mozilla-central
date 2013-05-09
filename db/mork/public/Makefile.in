@@ -10,7 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= mork
 EXPORTS		= mdb.h
 
 include $(topsrcdir)/config/rules.mk

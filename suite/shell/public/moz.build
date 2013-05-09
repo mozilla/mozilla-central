@@ -12,3 +12,5 @@ if CONFIG['OS_ARCH'] == 'WINNT':
         'nsIWindowsShellService.idl',
     ]
 
+MODULE = 'shellservice'
+

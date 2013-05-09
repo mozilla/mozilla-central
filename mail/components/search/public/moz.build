@@ -7,5 +7,5 @@ XPIDL_SOURCES += [
     'nsIMailWinSearchHelper.idl',
 ]
 
-XPIDL_MODULE = 'mailwinsearch'
+MODULE = 'mailwinsearch'
 

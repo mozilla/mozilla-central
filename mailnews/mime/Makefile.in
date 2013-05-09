@@ -10,10 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= mime
-
-# Install the MIME parser (recommended API) to mimeParser.jsm, but install all
-# of the other JS files to a mime subdirectory
 libs:: jsmime/mimeParser.jsm
 	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_TARGET)/modules)
 

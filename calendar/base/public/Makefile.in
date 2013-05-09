@@ -9,7 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= calbase
 EXPORTS		= calBaseCID.h
 
 include $(topsrcdir)/config/rules.mk

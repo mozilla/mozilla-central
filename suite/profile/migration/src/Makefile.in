@@ -9,7 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= suitemigration
 LIBRARY_NAME	= suitemigration_s
 
 CPPSRCS = \

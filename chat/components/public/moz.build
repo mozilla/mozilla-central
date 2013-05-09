@@ -22,3 +22,5 @@ XPIDL_SOURCES += [
     'prplITooltipInfo.idl',
 ]
 
+MODULE = 'chat'
+

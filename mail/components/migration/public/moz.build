@@ -7,5 +7,5 @@ XPIDL_SOURCES += [
     'nsIMailProfileMigrator.idl',
 ]
 
-XPIDL_MODULE = 'mailprofilemigration'
+MODULE = 'mailprofilemigration'
 

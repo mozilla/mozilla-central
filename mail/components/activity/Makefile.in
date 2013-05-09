@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE    = activity
-
 EXTRA_COMPONENTS = \
   nsActivity.js \
   nsActivityManager.js \

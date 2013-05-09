@@ -48,5 +48,5 @@ XPIDL_SOURCES += [
     'calIWeekInfoService.idl',
 ]
 
-XPIDL_MODULE = 'calbase'
+MODULE = 'calbase'
 

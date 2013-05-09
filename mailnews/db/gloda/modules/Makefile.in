@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = mailnewsglobaldb
-
 libs:: $(wildcard $(srcdir)/*.js)
 	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/modules/gloda
 

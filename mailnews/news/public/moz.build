@@ -20,3 +20,5 @@ XPIDL_FLAGS += [
     '-I$(topsrcdir)/mailnews/base/public',
 ]
 
+MODULE = 'msgnews'
+

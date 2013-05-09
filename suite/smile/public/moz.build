@@ -7,5 +7,5 @@ XPIDL_SOURCES += [
     'smileIApplication.idl',
 ]
 
-XPIDL_MODULE = 'smile'
+MODULE = 'smile'
 

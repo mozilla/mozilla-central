@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = calICSCalendar
-
 EXTRA_COMPONENTS = calICSCalendar.js calICSCalendar.manifest
 
 include $(topsrcdir)/config/rules.mk

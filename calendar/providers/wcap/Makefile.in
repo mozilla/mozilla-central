@@ -9,8 +9,6 @@ VPATH           = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE          = wcap
-
 EXTRA_SCRIPTS = \
                 calWcapUtils.js \
                 calWcapRequest.js \

@@ -23,7 +23,6 @@ endif
 
 # If on Windows, build Windows Search integration
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-MODULE = mailwinsearch
 LIBRARY_NAME = winsearch_s
 MODULE_NAME = nsMailWinSearchHelperModule
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)

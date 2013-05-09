@@ -9,5 +9,4 @@ VPATH           = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE          = wcap
 include $(topsrcdir)/config/rules.mk

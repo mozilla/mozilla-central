@@ -35,3 +35,5 @@ XPIDL_SOURCES += [
 
 XPIDL_MODULE = 'mailcompsbase'
 
+MODULE = 'mailcomps'
+

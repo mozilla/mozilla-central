@@ -11,8 +11,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = mozmill
-
 include $(topsrcdir)/config/rules.mk
 
 # We're installing to _tests/mozmill

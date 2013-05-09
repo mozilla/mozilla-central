@@ -5,3 +5,5 @@
 
 DIRS += ['public']
 
+MODULE = 'wcap'
+

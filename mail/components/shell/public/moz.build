@@ -8,5 +8,5 @@ XPIDL_SOURCES += [
     'nsIWindowsShellService.idl',
 ]
 
-XPIDL_MODULE = 'shellservice'
+MODULE = 'shellservice'
 

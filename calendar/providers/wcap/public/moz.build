@@ -9,5 +9,5 @@ XPIDL_SOURCES += [
     'calIWcapSession.idl',
 ]
 
-XPIDL_MODULE = 'wcap'
+MODULE = 'wcap'
 

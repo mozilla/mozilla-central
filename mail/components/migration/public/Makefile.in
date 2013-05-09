@@ -9,7 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= mailprofilemigration
 EXPORTS = nsMailMigrationCID.h
 
 include $(topsrcdir)/config/rules.mk

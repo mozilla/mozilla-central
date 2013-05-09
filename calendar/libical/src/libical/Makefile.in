@@ -43,7 +43,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE           = ical
 LIBRARY_NAME     = mozical
 MODULE_NAME      = mozIcalModule
 FORCE_STATIC_LIB = 1

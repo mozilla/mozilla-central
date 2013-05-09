@@ -8,3 +8,5 @@ PARALLEL_DIRS += [
     'migration/src',
 ]
 
+MODULE = 'suiteprofile'
+

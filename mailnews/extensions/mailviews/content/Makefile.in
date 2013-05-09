@@ -10,8 +10,6 @@ srcdir		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE       = mailview
-
 EXPORT_DIR	= $(DIST)/bin/defaults/messenger
 
 EXPORT_RESOURCE_FILES	= \

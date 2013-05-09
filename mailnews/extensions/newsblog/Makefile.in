@@ -19,8 +19,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= newsblog
-
 EXPORT_DIR	= $(DIST)/bin/isp
 
 GARBAGE += $(EXPORT_DIR)/rss.rdf 

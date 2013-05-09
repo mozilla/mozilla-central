@@ -56,3 +56,5 @@ DIRS += [
     'import/build',
 ]
 
+MODULE = 'mailnews'
+

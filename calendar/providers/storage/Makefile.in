@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = calStorageCalendar
-
 EXTRA_COMPONENTS = \
     calStorageCalendar.js \
     calStorageCalendar.manifest \

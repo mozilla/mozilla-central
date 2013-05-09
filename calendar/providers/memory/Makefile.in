@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = calMemoryCalendar
-
 EXTRA_COMPONENTS = calMemoryCalendar.js calMemoryCalendar.manifest
 
 include $(topsrcdir)/config/rules.mk

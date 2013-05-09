@@ -10,8 +10,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= mailbloat
-
 USE_EXTENSION_MANIFEST = 1
 DIST_FILES = install.rdf
 

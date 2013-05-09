@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = caldav
-
 EXTRA_COMPONENTS = calDavCalendar.js calDavCalendar.manifest
 EXTRA_SCRIPTS = calDavRequestHandlers.js
 
