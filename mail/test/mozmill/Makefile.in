@@ -53,7 +53,7 @@ libs::
 VIRTUALENV_DIR = $(_DEST_DIR)/../mozmill-virtualenv
 mozmill-virtualenv: NSDISTMODE=copy
 mozmill-virtualenv:
-	$(DIR_INSTALL) $(topsrcdir)/mail/test/resources $(_DEST_DIR)
+	$(INSTALL) $(topsrcdir)/mail/test/resources $(_DEST_DIR)
 	rm -rf $(VIRTUALENV_DIR) && \
 	mkdir $(VIRTUALENV_DIR) && \
 	unset MACOSX_DEPLOYMENT_TARGET && \
