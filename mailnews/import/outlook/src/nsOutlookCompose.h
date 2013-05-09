@@ -10,7 +10,6 @@
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
-#include "nsVoidArray.h"
 #include "nsIImportService.h"
 
 class nsIMsgSend;

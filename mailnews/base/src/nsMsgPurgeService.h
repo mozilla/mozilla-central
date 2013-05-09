@@ -10,7 +10,6 @@
 #include "nsIMsgPurgeService.h"
 #include "nsIMsgSearchSession.h"
 #include "nsITimer.h"
-#include "nsVoidArray.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgSearchNotify.h"
 #include "nsIMsgFolder.h"
@@ -43,7 +42,6 @@ protected:
   nsCOMPtr<nsIMsgSearchSession> mSearchSession;
   nsCOMPtr<nsIMsgFolder> mSearchFolder;
   nsCOMPtr<nsIMutableArray> mHdrsToDelete;
-  nsVoidArray mPurgeArray;
   bool mHaveShutdown;
 
 private:

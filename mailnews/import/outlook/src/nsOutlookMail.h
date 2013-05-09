@@ -8,7 +8,6 @@
 
 #include "nsISupportsArray.h"
 #include "nsStringGlue.h"
-#include "nsVoidArray.h"
 #include "nsOutlookCompose.h"
 #include "nsIFile.h"
 #include "MapiApi.h"
