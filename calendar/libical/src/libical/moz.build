@@ -5,3 +5,7 @@
 
 MODULE = 'ical'
 
+EXPORTS += [
+    'ical.h',
+]
+

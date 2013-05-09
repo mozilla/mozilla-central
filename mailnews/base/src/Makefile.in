@@ -84,12 +84,6 @@ ifdef MOZ_LDAP_XPCOM
 DEFINES         += -DMOZ_LDAP_XPCOM
 endif
 
-EXPORTS = \
-		nsMsgRDFDataSource.h \
-		nsMsgRDFUtils.h \
-		nsMailDirServiceDefs.h \
-		$(NULL)
-
 EXTRA_COMPONENTS = \
 		nsMailNewsCommandLineHandler.js \
 		msgAsyncPrompter.js \

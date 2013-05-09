@@ -22,3 +22,7 @@ XPIDL_FLAGS += [
 
 MODULE = 'msgnews'
 
+EXPORTS += [
+    'nsMsgNewsCID.h',
+]
+

@@ -7,3 +7,7 @@ XPIDL_MODULE = 'msgmdb'
 
 MODULE = 'mork'
 
+EXPORTS += [
+    'mdb.h',
+]
+

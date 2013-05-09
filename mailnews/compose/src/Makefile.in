@@ -45,10 +45,6 @@ CPPSRCS		= \
 		nsSmtpServer.cpp \
 		$(NULL)
 
-EXPORTS		= \
-		nsComposeStrings.h \
-		$(NULL)
-
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 CPPSRCS += \
 	nsMsgAppleDoubleEncode.cpp \

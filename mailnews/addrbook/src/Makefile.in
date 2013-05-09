@@ -53,10 +53,6 @@ EXTRA_PP_COMPONENTS += \
 		nsAddrbook.manifest \
 		$(NULL)
 
-EXPORTS		= \
-                nsVCardObj.h \
-		$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 OS_CXXFLAGS += -DNOMINMAX
 ifndef GNU_CC

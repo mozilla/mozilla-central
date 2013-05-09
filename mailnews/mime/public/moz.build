@@ -20,3 +20,13 @@ XPIDL_FLAGS += [
 
 MODULE = 'mime'
 
+EXPORTS += [
+    'nsIMimeContentTypeHandler.h',
+    'nsIMimeObjectClassAccess.h',
+    'nsMailHeaders.h',
+    'nsMsgMimeCID.h',
+]
+
+EXPORTS.mozilla.mailnews += [
+    'MimeEncoder.h',
+]

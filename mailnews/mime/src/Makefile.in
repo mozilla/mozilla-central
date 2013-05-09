@@ -73,26 +73,6 @@ CPPSRCS += \
                 mimemcms.cpp
 endif
 
-EXPORTS		= \
-		nsMimeStringResources.h \
-		nsStreamConverter.h \
-		mimecryp.h \
-		mimemoz2.h \
-		mimetext.h \
-		mimeleaf.h \
-		mimecth.h \
-		mimeobj.h \
-		mimei.h \
-		modmimee.h \
-		mimecont.h \
-		mimemult.h \
-		mimemsig.h \
-		mimehdrs.h \
-		mimepbuf.h \
-		modlmime.h \
-		comi18n.h \
-		$(NULL)
-
 EXTRA_COMPONENTS = \
 		mimeJSComponents.js \
 		msgMime.manifest \

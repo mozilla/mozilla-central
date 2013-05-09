@@ -29,3 +29,7 @@ XPIDL_FLAGS += [
 
 MODULE = 'msglocal'
 
+EXPORTS += [
+    'nsMsgLocalCID.h',
+]
+

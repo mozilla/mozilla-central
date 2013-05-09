@@ -32,3 +32,8 @@ XPIDL_FLAGS += [
 
 MODULE = 'msgcompose'
 
+EXPORTS += [
+    'nsMsgAttachmentData.h',
+    'nsMsgCompCID.h',
+]
+

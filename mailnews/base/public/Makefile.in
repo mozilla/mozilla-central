@@ -10,13 +10,5 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXPORTS		= \
-		MailNewsTypes.h \
-		msgCore.h \
-		nsMsgBaseCID.h \
-		nsMsgHeaderMasks.h \
-		nsMsgLocalFolderHdrs.h \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 

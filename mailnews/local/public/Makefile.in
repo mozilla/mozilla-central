@@ -10,10 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXPORTS		= \
-		nsMsgLocalCID.h \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 
 ifdef MOZ_MOVEMAIL

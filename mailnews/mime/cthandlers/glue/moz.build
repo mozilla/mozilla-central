@@ -5,3 +5,7 @@
 
 MODULE = 'mime'
 
+EXPORTS += [
+    'nsMimeContentTypeHandler.h',
+]
+

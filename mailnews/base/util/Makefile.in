@@ -37,32 +37,6 @@ CPPSRCS		= \
 		Services.cpp \
 		$(NULL)
 
-EXPORTS		= \
-		nsMsgLineBuffer.h \
-		nsMsgKeyArray.h \
-		nsMsgKeySet.h \
-		nsMsgDBFolder.h \
-		nsMsgDBFolderAtomList.h \
-		nsMsgIdentity.h \
-		nsMsgIncomingServer.h \
-		nsMsgUtils.h \
-		nsMsgProtocol.h \
-		nsMsgMailNewsUrl.h \
-		nsMsgCompressIStream.h \
-		nsMsgCompressOStream.h \
-		nsMsgTxn.h \
-		nsMsgI18N.h \
-		nsImapMoveCoalescer.h \
-		nsMsgReadStateTxn.h \
-		$(NULL)
-
-EXPORTS_mozilla/mailnews = \
-		Services.h \
-		ServiceList.h \
-		$(NULL)
-
-EXPORTS_NAMESPACES = mozilla/mailnews
-
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
 		errUtils.js \

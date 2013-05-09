@@ -29,3 +29,8 @@ XPIDL_FLAGS += [
 
 MODULE = 'msgimap'
 
+EXPORTS += [
+    'nsIIMAPHostSessionList.h',
+    'nsMsgImapCID.h',
+]
+

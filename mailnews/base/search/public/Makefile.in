@@ -10,14 +10,5 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXPORTS		= \
-		nsMsgBodyHandler.h \
-		nsMsgResultElement.h \
-		nsMsgSearchBoolExpression.h \
-		nsMsgSearchScopeTerm.h \
-		nsMsgSearchTerm.h \
-		nsMsgSearchAdapter.h \
-		$(NULL)
-
 include $(topsrcdir)/config/rules.mk
 

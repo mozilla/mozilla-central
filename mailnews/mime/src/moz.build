@@ -5,3 +5,23 @@
 
 MODULE = 'mime'
 
+EXPORTS += [
+    'comi18n.h',
+    'mimecont.h',
+    'mimecryp.h',
+    'mimecth.h',
+    'mimehdrs.h',
+    'mimei.h',
+    'mimeleaf.h',
+    'mimemoz2.h',
+    'mimemsig.h',
+    'mimemult.h',
+    'mimeobj.h',
+    'mimepbuf.h',
+    'mimetext.h',
+    'modlmime.h',
+    'modmimee.h',
+    'nsMimeStringResources.h',
+    'nsStreamConverter.h',
+]
+

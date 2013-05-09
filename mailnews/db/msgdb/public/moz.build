@@ -18,3 +18,14 @@ XPIDL_FLAGS += [
 
 MODULE = 'msgdb'
 
+EXPORTS += [
+    'nsDBFolderInfo.h',
+    'nsImapMailDatabase.h',
+    'nsMailDatabase.h',
+    'nsMsgDBCID.h',
+    'nsMsgDatabase.h',
+    'nsMsgHdr.h',
+    'nsMsgThread.h',
+    'nsNewsDatabase.h',
+]
+

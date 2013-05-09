@@ -5,3 +5,7 @@
 
 MODULE = 'MapiProxy'
 
+EXPORTS += [
+    'msgMapi.h',
+]
+

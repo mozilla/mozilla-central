@@ -50,3 +50,7 @@ XPIDL_SOURCES += [
 
 MODULE = 'calbase'
 
+EXPORTS += [
+    'calBaseCID.h',
+]
+

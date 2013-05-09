@@ -5,3 +5,7 @@
 
 MODULE = 'msgimap'
 
+EXPORTS += [
+    'nsImapCore.h',
+]
+

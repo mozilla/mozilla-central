@@ -5,3 +5,9 @@
 
 MODULE = 'msgbase'
 
+EXPORTS += [
+    'nsMailDirServiceDefs.h',
+    'nsMsgRDFDataSource.h',
+    'nsMsgRDFUtils.h',
+]
+

@@ -10,7 +10,5 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXPORTS		= mdb.h
-
 include $(topsrcdir)/config/rules.mk
 

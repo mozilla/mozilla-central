@@ -5,3 +5,26 @@
 
 MODULE = 'msgbaseutil'
 
+EXPORTS += [
+    'nsImapMoveCoalescer.h',
+    'nsMsgCompressIStream.h',
+    'nsMsgCompressOStream.h',
+    'nsMsgDBFolder.h',
+    'nsMsgDBFolderAtomList.h',
+    'nsMsgI18N.h',
+    'nsMsgIdentity.h',
+    'nsMsgIncomingServer.h',
+    'nsMsgKeyArray.h',
+    'nsMsgKeySet.h',
+    'nsMsgLineBuffer.h',
+    'nsMsgMailNewsUrl.h',
+    'nsMsgProtocol.h',
+    'nsMsgReadStateTxn.h',
+    'nsMsgTxn.h',
+    'nsMsgUtils.h',
+]
+
+EXPORTS.mozilla.mailnews += [
+    'ServiceList.h',
+    'Services.h',
+]

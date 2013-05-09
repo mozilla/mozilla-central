@@ -24,10 +24,6 @@ CPPSRCS = \
   nsPgpMimeProxy.cpp \
   $(NULL)
 
-EXPORTS	= \
-  nsPgpMimeProxy.h \
-  $(NULL)
-
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
   $(LIBS_DIR) \

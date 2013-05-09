@@ -10,18 +10,5 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXPORTS		= \
-                nsMsgMimeCID.h \
-		nsIMimeObjectClassAccess.h \
-		nsMailHeaders.h \
-		nsIMimeContentTypeHandler.h \
-		$(NULL)
-
-EXPORTS_mozilla/mailnews = \
-	MimeEncoder.h \
-	$(NULL)
-
-EXPORTS_NAMESPACES = mozilla/mailnews
-
 include $(topsrcdir)/config/rules.mk
 

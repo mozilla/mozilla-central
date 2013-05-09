@@ -23,9 +23,6 @@ CPPSRCS		= \
 		nsMimeContentTypeHandler.cpp \
 		$(NULL)
 
-EXPORTS     = nsMimeContentTypeHandler.h
-
-# glue lib should be static
 FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk

@@ -5,3 +5,7 @@
 
 MODULE = 'pgpmime'
 
+EXPORTS += [
+    'nsPgpMimeProxy.h',
+]
+

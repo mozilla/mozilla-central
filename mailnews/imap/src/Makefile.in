@@ -17,10 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-EXPORTS = \
-		nsImapCore.h \
-		$(NULL)
-
 CPPSRCS		= \
 		nsImapUtils.cpp \
 		nsIMAPBodyShell.cpp \

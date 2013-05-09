@@ -5,3 +5,7 @@
 
 MODULE = 'mimeemitter'
 
+EXPORTS += [
+    'nsMimeEmitterCID.h',
+]
+

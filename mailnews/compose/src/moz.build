@@ -5,3 +5,7 @@
 
 MODULE = 'msgcompose'
 
+EXPORTS += [
+    'nsComposeStrings.h',
+]
+

@@ -5,3 +5,8 @@
 
 MODULE = 'mork'
 
+EXPORTS += [
+    'nsIMdbFactoryFactory.h',
+    'nsMorkCID.h',
+]
+

@@ -32,3 +32,12 @@ XPIDL_FLAGS += [
 
 MODULE = 'msgbase'
 
+EXPORTS += [
+    'nsMsgBodyHandler.h',
+    'nsMsgResultElement.h',
+    'nsMsgSearchAdapter.h',
+    'nsMsgSearchBoolExpression.h',
+    'nsMsgSearchScopeTerm.h',
+    'nsMsgSearchTerm.h',
+]
+

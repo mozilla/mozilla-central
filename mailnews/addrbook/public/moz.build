@@ -48,3 +48,7 @@ if CONFIG['MOZ_LDAP_XPCOM']:
 
 MODULE = 'addrbook'
 
+EXPORTS += [
+    'nsAbBaseCID.h',
+]
+

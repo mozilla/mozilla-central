@@ -24,11 +24,6 @@ endif
 
 CPPSRCS		= nsMorkFactory.cpp
 
-EXPORTS		= \
-		nsMorkCID.h \
-		nsIMdbFactoryFactory.h \
-		$(NULL)
-
 SHARED_LIBRARY_LIBS = ../src/$(LIB_PREFIX)msgmork_s.$(LIB_SUFFIX)
 
 ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
