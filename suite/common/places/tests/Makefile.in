@@ -11,8 +11,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-XPCSHELL_TESTS = unit
-
 include $(topsrcdir)/config/rules.mk
 
 _CHROME_FILES = \

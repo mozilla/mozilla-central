@@ -13,11 +13,4 @@ include $(DEPTH)/config/autoconf.mk
 EXTRA_COMPONENTS = steelApplication.manifest
 EXTRA_PP_COMPONENTS = steelApplication.js
 
-ifdef ENABLE_TESTS
-XPCSHELL_TESTS = test
-
-# Uncomment this when we need it for more general tests.
-#XPCSHELL_TESTS += unit
-endif
-
 include $(topsrcdir)/config/rules.mk
