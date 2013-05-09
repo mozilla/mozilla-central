@@ -1222,52 +1222,45 @@ nsresult nsMsgSearchTerm::MatchDate (PRTime dateToMatch, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
 
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   bool result = false;
 
+  PRExplodedTime tmToMatch, tmThis;
+  if (NS_SUCCEEDED(GetLocalTimes(dateToMatch, m_value.u.date, tmToMatch, tmThis)))
+  {
   switch (m_operator)
   {
   case nsMsgSearchOp::IsBefore:
-    if (dateToMatch < m_value.u.date)
-      result = true;
+      if (tmToMatch.tm_year < tmThis.tm_year ||
+          (tmToMatch.tm_year == tmThis.tm_year &&
+           tmToMatch.tm_yday < tmThis.tm_yday))
+        result = true;
     break;
   case nsMsgSearchOp::IsAfter:
-    {
-      PRTime adjustedDate = m_value.u.date;
-      adjustedDate += 60*60*24; // we want to be greater than the next day....
-      if (dateToMatch > adjustedDate)
+      if (tmToMatch.tm_year > tmThis.tm_year ||
+          (tmToMatch.tm_year == tmThis.tm_year &&
+           tmToMatch.tm_yday > tmThis.tm_yday))
         result = true;
-    }
     break;
   case nsMsgSearchOp::Is:
-    {
-      PRExplodedTime tmToMatch, tmThis;
-      if (NS_OK == GetLocalTimes (dateToMatch, m_value.u.date, tmToMatch, tmThis))
-      {
-        if (tmThis.tm_year == tmToMatch.tm_year &&
+      if (tmThis.tm_year == tmToMatch.tm_year &&
           tmThis.tm_month == tmToMatch.tm_month &&
           tmThis.tm_mday == tmToMatch.tm_mday)
-          result = true;
-      }
-    }
+        result = true;
     break;
   case nsMsgSearchOp::Isnt:
-    {
-      PRExplodedTime tmToMatch, tmThis;
-      if (NS_OK == GetLocalTimes (dateToMatch, m_value.u.date, tmToMatch, tmThis))
-      {
-        if (tmThis.tm_year != tmToMatch.tm_year ||
+      if (tmThis.tm_year != tmToMatch.tm_year ||
           tmThis.tm_month != tmToMatch.tm_month ||
           tmThis.tm_mday != tmToMatch.tm_mday)
-          result = true;
-      }
-    }
+        result = true;
     break;
   default:
+    rv = NS_ERROR_FAILURE;
     NS_ASSERTION(false, "invalid compare op for dates");
   }
+  }
   *pResult = result;
-  return err;
+  return rv;
 }
 
 
