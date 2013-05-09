@@ -35,6 +35,7 @@ XPCSHELL_TEST_DIRS = addrbook base compose db/gloda db/msgdb extensions/bayesian
 
 xpcshell-tests::
 	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
+	  -I$(MOZDEPTH)/build \
 	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
 	  $(MOZILLA_SRCDIR)/testing/xpcshell/runxpcshelltests.py \
 	  --symbols-path=$(DIST)/crashreporter-symbols \

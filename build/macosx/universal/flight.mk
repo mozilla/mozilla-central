@@ -41,6 +41,8 @@ ifdef ENABLE_TESTS
                 -d $(DIST_ARCH_2)/test-package-stage; then              \
            cp $(DIST_ARCH_1)/test-package-stage/mochitest/automation.py \
              $(DIST_ARCH_2)/test-package-stage/mochitest/;              \
+           cp $(DIST_ARCH_1)/test-package-stage/xpcshell/automation.py   \
+             $(DIST_ARCH_2)/test-package-stage/xpcshell/;                \
            cp $(DIST_ARCH_1)/test-package-stage/reftest/automation.py   \
              $(DIST_ARCH_2)/test-package-stage/reftest/;                \
            if test -e $(DIST_ARCH_1)/test-package-stage/mozmill/automation.py; then \
