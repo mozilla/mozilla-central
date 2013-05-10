@@ -7,6 +7,7 @@ package org.mozilla.gecko;
 
 import org.mozilla.gecko.background.announcements.AnnouncementsConstants;
 import org.mozilla.gecko.util.GeckoEventListener;
+import org.mozilla.gecko.GeckoPreferenceFragment;
 import org.mozilla.gecko.util.ThreadUtils;
 
 import org.json.JSONArray;
@@ -29,6 +30,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.preference.TwoStatePreference;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -49,38 +51,73 @@ public class GeckoPreferences
 {
     private static final String LOGTAG = "GeckoPreferences";
 
-    private ArrayList<String> mPreferencesList;
-    private PreferenceScreen mPreferenceScreen;
+    public static final String INTENT_EXTRA_RESOURCES = "resource";
+
     private static boolean sIsCharEncodingEnabled = false;
-    private static final String NON_PREF_PREFIX = "android.not_a_preference.";
     private boolean mInitialized = false;
 
+    private static final String NON_PREF_PREFIX = "android.not_a_preference.";
     // These match keys in resources/xml/preferences.xml.in.
     private static String PREFS_ANNOUNCEMENTS_ENABLED = NON_PREF_PREFIX + "privacy.announcements.enabled";
-    private static String PREFS_CATEGORY_GENERAL = "category_general";
-    private static String PREFS_CATEGORY_PRIVACY = "category_privacy";
+    private static String PREFS_TELEMETRY_ENABLED = "datareporting.telemetry.enabled";
+    private static String PREFS_CRASHREPORTER_ENABLED = "datareporting.crashreporter.submitEnabled";
+    private static String PREFS_HEALTHREPORT_UPLOAD_ENABLED = NON_PREF_PREFIX + "healthreport.uploadEnabled";
     private static String PREFS_MENU_CHAR_ENCODING = "browser.menu.showCharacterEncoding";
     private static String PREFS_MP_ENABLED = "privacy.masterpassword.enabled";
-    private static String PREFS_TELEMETRY_ENABLED = "toolkit.telemetry.enabled";
-    private static String PREFS_TELEMETRY_ENABLED_PRERELEASE = "toolkit.telemetry.enabledPreRelease";
     private static String PREFS_UPDATER_AUTODOWNLOAD = "app.update.autodownload";
     private static String PREFS_TITLEBAR_MODE = "android.not_a_preference.privacy.titlebar";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // For fragment-capable devices, display the default fragment if no explicit fragment to show.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB &&
+            !getIntent().hasExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT)) {
+            setupTopLevelFragmentIntent();
+        }
+
         super.onCreate(savedInstanceState);
 
-        // If this is a smaller screen
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB || !onIsMultiPane()) {
-            addPreferencesFromResource(R.xml.preferences_general);
-            addPreferencesFromResource(R.xml.preferences_content);
-            addPreferencesFromResource(R.xml.preferences_privacy);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            Bundle intentExtras = getIntent().getExtras();
+            if (intentExtras != null && intentExtras.containsKey(INTENT_EXTRA_RESOURCES)) {
+                String resourceName = intentExtras.getString(INTENT_EXTRA_RESOURCES);
+                int resource = getResources().getIdentifier(resourceName, "xml", getPackageName());
+                addPreferencesFromResource(resource);
+            } else {
+                addPreferencesFromResource(R.xml.preferences_nonfragment);
+            }
         }
 
         registerEventListener("Sanitize:Finished");
 
         if (Build.VERSION.SDK_INT >= 14)
             getActionBar().setHomeButtonEnabled(true);
+    }
+
+    /**
+     * Set intent to display top-level settings fragment.
+     */
+    private void setupTopLevelFragmentIntent() {
+        Intent intent = getIntent();
+        // Check intent to determine settings screen to display.
+        Bundle intentExtras = intent.getExtras();
+        Bundle fragmentArgs = new Bundle();
+        // Add resource argument to fragment if it exists.
+        if (intentExtras != null && intentExtras.containsKey(INTENT_EXTRA_RESOURCES)) {
+            String resource = intentExtras.getString(INTENT_EXTRA_RESOURCES);
+            fragmentArgs.putString(INTENT_EXTRA_RESOURCES, resource);
+        } else {
+            // Use top-level settings screen.
+            if (!onIsMultiPane()) {
+                fragmentArgs.putString(INTENT_EXTRA_RESOURCES, "preferences_main");
+            } else {
+                fragmentArgs.putString(INTENT_EXTRA_RESOURCES, "preferences_general");
+            }
+        }
+
+        // Build fragment intent.
+        intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, GeckoPreferenceFragment.class.getName());
+        intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT_ARGUMENTS, fragmentArgs);
     }
 
     @Override
@@ -95,7 +132,7 @@ public class GeckoPreferences
             return;
 
         mInitialized = true;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB || !onIsMultiPane()) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             PreferenceScreen screen = getPreferenceScreen();
             setupPreferences(screen);
         }
@@ -163,17 +200,14 @@ public class GeckoPreferences
                     preferences.removePreference(pref);
                     i--;
                     continue;
-                } else if (PREFS_TELEMETRY_ENABLED.equals(key)) {
-                    if (AppConstants.MOZ_TELEMETRY_REPORTING) {
-                        if (AppConstants.MOZ_TELEMETRY_ON_BY_DEFAULT) {
-                            pref.setKey(PREFS_TELEMETRY_ENABLED_PRERELEASE);
-                            key = PREFS_TELEMETRY_ENABLED_PRERELEASE;
-                        }
-                    } else {
-                        preferences.removePreference(pref);
-                        i--;
-                        continue;
-                    }
+                } else if (PREFS_TELEMETRY_ENABLED.equals(key) && !AppConstants.MOZ_TELEMETRY_REPORTING) {
+                    preferences.removePreference(pref);
+                    i--;
+                    continue;
+                } else if (PREFS_HEALTHREPORT_UPLOAD_ENABLED.equals(key) && !AppConstants.MOZ_SERVICES_HEALTHREPORT) {
+                    preferences.removePreference(pref);
+                    i--;
+                    continue;
                 } else if (PREFS_TITLEBAR_MODE.equals(key)) {
                     setupTitlebarPref((ListPreference)pref);
                 }
@@ -282,6 +316,9 @@ public class GeckoPreferences
             broadcastAnnouncementsPref(GeckoApp.mAppContext, ((Boolean) newValue).booleanValue());
         } else if (PREFS_UPDATER_AUTODOWNLOAD.equals(prefName)) {
             org.mozilla.gecko.updater.UpdateServiceHelper.registerForUpdates(GeckoApp.mAppContext, (String)newValue);
+        } else if (PREFS_HEALTHREPORT_UPLOAD_ENABLED.equals(prefName)) {
+            // Healthreport pref only lives in Android. Do not persist to Gecko.
+            return true;
         }
 
         if (!TextUtils.isEmpty(prefName)) {
@@ -467,18 +504,40 @@ public class GeckoPreferences
                 return screen.findPreference(prefName);
             }
 
+            // Handle v14 TwoStatePreference with backwards compatibility.
+            class CheckBoxPrefSetter {
+                public void setBooleanPref(Preference preference, boolean value) {
+                    if ((preference instanceof CheckBoxPreference) &&
+                       ((CheckBoxPreference) preference).isChecked() != value) {
+                        ((CheckBoxPreference) preference).setChecked(value);
+                    }
+                }
+            }
+
+            class TwoStatePrefSetter extends CheckBoxPrefSetter {
+                @Override
+                public void setBooleanPref(Preference preference, boolean value) {
+                    if ((preference instanceof TwoStatePreference) &&
+                       ((TwoStatePreference) preference).isChecked() != value) {
+                        ((TwoStatePreference) preference).setChecked(value);
+                    }
+                }
+            }
+
             @Override
             public void prefValue(String prefName, final boolean value) {
                 final Preference pref = getField(prefName);
-                if (pref instanceof CheckBoxPreference) {
-                    ThreadUtils.postToUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (((CheckBoxPreference)pref).isChecked() != value)
-                                ((CheckBoxPreference)pref).setChecked(value);
-                        }
-                    });
+                final CheckBoxPrefSetter prefSetter;
+                if (Build.VERSION.SDK_INT < 14) {
+                    prefSetter = new CheckBoxPrefSetter();
+                } else {
+                    prefSetter = new TwoStatePrefSetter();
                 }
+                ThreadUtils.postToUiThread(new Runnable() {
+                    public void run() {
+                        prefSetter.setBooleanPref(pref, value);
+                    }
+                });
             }
 
             @Override
@@ -555,10 +614,15 @@ public class GeckoPreferences
 
         pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                settings.edit()
-                        .putBoolean(BrowserToolbar.PREFS_SHOW_URL, newValue.toString().equals(entries[0]))
-                        .commit();
+            public boolean onPreferenceChange(Preference preference, final Object newValue) {
+                ThreadUtils.postToBackgroundThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        settings.edit()
+                                .putBoolean(BrowserToolbar.PREFS_SHOW_URL, newValue.toString().equals(entries[0]))
+                                .commit();
+                    }
+                });
                 pref.setSummary(newValue.toString());
                 return true;
             }

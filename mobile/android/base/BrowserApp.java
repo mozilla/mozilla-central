@@ -824,6 +824,10 @@ abstract public class BrowserApp extends GeckoApp
                             menu.findItem(R.id.settings).setEnabled(true);
                     }
                 });
+
+                // Display notification for Mozilla data reporting.
+                DataReportingNotification.checkAndNotifyPolicy(BrowserApp.mAppContext);
+
             } else if (event.equals("Telemetry:Gather")) {
                 Telemetry.HistogramAdd("PLACES_PAGES_COUNT", BrowserDB.getCount(getContentResolver(), "history"));
                 Telemetry.HistogramAdd("PLACES_BOOKMARKS_COUNT", BrowserDB.getCount(getContentResolver(), "bookmarks"));
