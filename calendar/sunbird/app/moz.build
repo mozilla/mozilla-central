@@ -5,3 +5,8 @@
 
 DIRS += ['profile/extensions']
 
+if not CONFIG['LIBXUL_SDK']:
+    if CONFIG['OS_ARCH'] == "OS2" or CONFIG['OS_ARCH'] == "WINNT":
+        PROGRAM = CONFIG['MOZ_APP_NAME']
+    else
+        PROGRAM = CONFIG['MOZ_APP_NAME'] + '-bin'

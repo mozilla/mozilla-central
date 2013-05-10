@@ -44,13 +44,6 @@ endif
 ifndef LIBXUL_SDK
 # Build a binary bootstrapping with XRE_main
 
-ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
-PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
-else
-PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)
-endif
-
-
 CPPSRCS = nsCalendarApp.cpp
 
 LOCAL_INCLUDES += \

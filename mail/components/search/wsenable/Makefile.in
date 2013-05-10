@@ -13,7 +13,6 @@ CPPSRCS = \
   WSEnable.cpp \
   $(NULL)
 
-PROGRAM = WSEnable$(BIN_SUFFIX)
 RCINCLUDE = WSEnable.rc
 OS_LIBS += ole32.lib shell32.lib
 
