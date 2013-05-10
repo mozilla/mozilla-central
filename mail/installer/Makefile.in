@@ -59,7 +59,6 @@ ifdef MOZ_UPDATER
 DEFINES += -DMOZ_UPDATER=1
 endif
 
-include $(MOZILLA_SRCDIR)/ipc/app/defs.mk
 DEFINES += -DMOZ_CHILD_PROCESS_NAME=$(MOZ_CHILD_PROCESS_NAME)
 
 ifneq (,$(filter WINNT Darwin Android,$(OS_TARGET)))
