@@ -107,9 +107,9 @@
 <h2 id="message_display">Mail &amp; Newsgroups Preferences - Message
   Display</h2>
 
-<p>Message Display preferences allow you to choose how messages are
-  displayed (for example, font style and color) in all accounts. If you are not
-  already viewing the Message Display settings, follow these steps:</p>
+<p>Message Display preferences allow you to choose how messages are displayed
+  in all accounts. If you are not already viewing the Message Display settings,
+  follow these steps:</p>
 
 <ol>
   <li>Open the <span class="mac">&brandShortName;</span>
@@ -121,28 +121,47 @@
 </ol>
 
 <ul>
-  <li><strong>When opening messages, display them in</strong>: Here you can
-    choose if you want to reuse a message window for the next mail or if you
-    want to open a new one for each.</li>
+  <li><strong>When opening messages, display them in</strong>: These options
+    control the behavior when opening messages in a separate window, e.g., by
+    double-clicking on it in the message list of a folder:
+    <ul>
+      <li><strong>A new message window</strong>: Choose this if you want to
+        open each message in a new window.</li>
+      <li><strong>An existing message window</strong>: Choose this if you want
+        to reuse an already opened message window for the next mail.</li>
+      <li><strong>Close message window when deleting a message</strong>: Check
+        this if you want the message window to be closed automatically when
+        the message you are viewing in it is deleted.</li>
+    </ul>
+  </li>
   <li><strong>Block images and other content from remote sources</strong>:
     Select this checkbox if you do not want to display remote images and other
     content in received messages, except from senders in your address books
     whom you have allowed. (This checkbox is selected by default.)</li>
-  <li><strong>Wait [__] seconds before marking a message as read</strong>:
-    Choose this option if you do not want a message to be marked as read when
-    you are only taking a brief look at it. Enter the number of seconds you
-    want a message to be displayed before it gets marked as read automatically.
-
-    <p><strong>Tip</strong>: If you do not want Mail &amp; Newsgroups to mark
-      your messages as read automatically at all, you can select this option
-      and enter a very large number of seconds.</p>
-  </li>
-  <li><strong>Plain Text Messages</strong>: Select the font you prefer for
-    viewing plain-text messages: fixed width or variable width. Choosing a font
-    style, size, and color for quoted plain-text messages can help you more
-    easily distinguish quoted text (usually a message that&apos;s been
-    forwarded to you or by you).
+  <li><strong>Show only display name for people in my address book</strong>:
+    Check this if you want to save some space in the message headers where
+    email addresses are shown. If selected, known senders and recipients are
+    only listed with their display names, their email addresses are hidden.
+    You can see the full email addresses when hovering over such entries with
+    the mouse.</li>
+  <li><strong>Automatically mark messages as read</strong>: Check this option
+    to mark messages as read once they are opened. (This checkbox is selected
+    by default.)
     <ul>
+      <li><strong>Only after displaying for [__] seconds</strong>: Check this
+        option if you do not want a message to be marked as read when you are
+        only taking a brief look at it. Enter the number of seconds you want a
+        message to be displayed before it gets marked as read automatically.
+        If this box is not checked, messages are marked as read as soon as
+        they are opened.</li>
+    </ul>
+  </li>
+  <li><strong>Plain Text Messages</strong>: These settings control how
+    plain-text messages are displayed. These options do not have any effect
+    when viewing HTML (rich-text) messages, or when writing new messages.
+    <ul>
+      <li><strong>Font</strong>: Select the font you prefer for viewing
+        plain-text messages: fixed width or variable width.</li>
       <li><strong>Wrap text to fit window width</strong>: Select this so that
         incoming messages are word-wrapped to fit the width of your Mail
         window.</li>
@@ -179,7 +198,27 @@
             <td><span class="smiley moz-smiley-s4"/></td>
           </tr>
         </table>
+        This option also controls some common plain-text formatting conventions:
+        <table border="1">
+          <tr align="center">
+            <td><strong>This</strong>:</td>
+            <td><strong>Displays as</strong>:</td>
+          </tr>
+          <tr align="center">
+            <td>mm^2</td>
+            <td>mm<sup>2</sup></td>
+          </tr>
+          <tr align="center">
+            <td>+/-1</td>
+            <td>±1</td>
+          </tr>
+        </table>
       </li>
+      <li><strong>Settings for quoted messages</strong>: Choose a different
+        font style, size, and/or color for quoted plain-text messages to more
+        easily distinguish quoted text (usually the content of a message for
+        which the sender replied to you, or quoted parts of a message you
+        replied to).</li>
     </ul>
   </li>
 </ul>
