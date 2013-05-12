@@ -202,6 +202,10 @@ agenda-allday-richlist-item {
   background-color: -moz-dialog;
 }
 
+.agenda-allday-container-box .item-classification-box {
+  display: none;
+}
+
 .agenda-event-title {
   margin-top: 0px;
 }
