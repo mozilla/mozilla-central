@@ -39,8 +39,5 @@ postflight_all:
 	cp $(DIST_ARCH_2)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
 	$(foreach dylib,$(wildcard $(DIST_ARCH_2)/xpi-stage/lightning/components/*.dylib),echo binary-component $$platform/$(notdir $(dylib)) ABI=$$platform >> $(DIST_UNI)/xpi-stage/lightning/components/components.manifest)
-	$(PYTHON) $(TOPSRCDIR)/build/merge-installrdf.py \
-		$(DIST_ARCH_1)/xpi-stage/lightning \
-		$(DIST_ARCH_2)/xpi-stage/lightning \
-		> $(DIST_UNI)/xpi-stage/lightning/install.rdf
+	grep -v em:realTargetPlatform $(DIST_ARCH_1)/xpi-stage/lightning/install.rdf > $(DIST_UNI)/xpi-stage/lightning/install.rdf
 	cd $(DIST_UNI)/xpi-stage/lightning && $(ZIP) -qr ../$(XPI_PKGNAME).xpi *

@@ -46,6 +46,7 @@
 #endif
     <em:iconURL>chrome://calendar/skin/cal-icon32.png</em:iconURL>
     <em:optionsURL>chrome://messenger/content/preferences/preferences.xul</em:optionsURL>
+    <em:realTargetPlatform>@TARGET_PLATFORM@</em:realTargetPlatform>
 #ifdef LIGHTNING_UPDATE_LOCATION
     <em:updateURL>@LIGHTNING_UPDATE_LOCATION@?buildID=@GRE_BUILDID@&amp;appABI=%APP_ABI%&amp;appOS=%APP_OS%&amp;locale=%APP_LOCALE%&amp;appVersion=%APP_VERSION%&amp;appID=%APP_ID%</em:updateURL>
 #endif
