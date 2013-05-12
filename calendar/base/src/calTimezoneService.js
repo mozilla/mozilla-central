@@ -79,11 +79,11 @@ calTimezoneService.prototype = {
 
     get UTC() {
         if (!this.mUTC) {
-            if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
+            if (cal.getPrefSafe("calendar.icaljs", false)) {
+                this.mUTC = new calICALJSTimezone(ICAL.Timezone.utcTimezone);
+            } else {
                 this.mUTC = new calLibicalTimezone("UTC", null, "", "");
                 this.mUTC.mUTC = true;
-            } else {
-                this.mUTC = new calICALJSTimezone(ICAL.Timezone.utcTimezone);
             }
             this.mTimezoneCache.UTC = this.mUTC;
             this.mTimezoneCache.utc = this.mUTC;
@@ -94,11 +94,11 @@ calTimezoneService.prototype = {
 
     get floating() {
         if (!this.mFloating) {
-            if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
+            if (cal.getPrefSafe("calendar.icaljs", false)) {
+                this.mFloating = new calICALJSTimezone(ICAL.Timezone.localTimezone);
+            } else {
                 this.mFloating = new calLibicalTimezone("floating", null, "", "");
                 this.mFloating.isFloating = true;
-            } else {
-                this.mFloating = new calICALJSTimezone(ICAL.Timezone.localTimezone);
             }
             this.mTimezoneCache.floating = this.mFloating;
         }
@@ -228,9 +228,7 @@ calTimezoneService.prototype = {
                 var alias = row.alias;
                 if (alias && alias.length > 0) {
                     tz = alias; // resolve later
-                } else if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
-                    tz = new calLibicalTimezone(row.tzid, row.component, row.latitude, row.longitude);
-                } else {
+                } else if (cal.getPrefSafe("calendar.icaljs", false)) {
                     let parsedComp = ICAL.parse("BEGIN:VCALENDAR\r\n" + row.component + "\r\nEND:VCALENDAR");
 
                     let icalComp = new ICAL.Component(parsedComp[1]);
@@ -241,6 +239,8 @@ calTimezoneService.prototype = {
                         latitude: row.latitude,
                         longitude: row.longitude
                     }));
+                } else {
+                    tz = new calLibicalTimezone(row.tzid, row.component, row.latitude, row.longitude);
                 }
             }
             this.mSelectByTzid.reset();

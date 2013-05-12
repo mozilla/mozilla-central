@@ -10,7 +10,7 @@ function run_test() {
     test_param();
 
     // Only supported with ical.js
-    if (cal.getPrefSafe("calendar.backend") == "icaljs") test_icalproperty();
+    if (cal.getPrefSafe("calendar.icaljs", false)) test_icalproperty();
 }
 
 function test_icalstring() {
@@ -59,7 +59,7 @@ function test_icalstring() {
                           { count: 5, isByCount: true, type: "WEEKLY", interval: 2 });
     do_check_eq(rrule.getComponent("BYDAY", {}).toString(), [2].toString());
 
-    if (cal.getPrefSafe("calendar.backend") == "icaljs") {
+    if (cal.getPrefSafe("calendar.icaljs", false)) {
         let rdate = checkComp(cal.createRecurrenceDate.bind(cal),
                               "RDATE:20120101T000000",
                               { isNegative: false });

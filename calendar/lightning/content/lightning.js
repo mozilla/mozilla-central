@@ -128,5 +128,5 @@ pref("calendar.view.useSystemColors", false);
 // occurrence of a repeating item in calFilter
 pref("calendar.filter.maxiterations", 50);
 
-// Backend to use, default to libical for now.
-pref("calendar.backend", "libical");
+// Backend to use. false: libical, true: ical.js
+pref("calendar.icaljs", false);

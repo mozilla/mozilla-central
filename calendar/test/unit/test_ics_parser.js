@@ -5,7 +5,7 @@
 function run_test() {
     test_roundtrip();
     test_async();
-    if (cal.getPrefSafe("calendar.backend") == "icaljs") test_failures();
+    if (cal.getPrefSafe("calendar.icaljs", false)) test_failures();
     test_fake_parent();
     test_props_comps();
     test_timezone();

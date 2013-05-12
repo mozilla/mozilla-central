@@ -291,7 +291,7 @@ function test_interface() {
     let RRULE = "RRULE:FREQ=WEEKLY;COUNT=6;BYDAY=TU,WE\r\n";
     let EXDATE = "EXDATE:20020403T114500Z\r\n"
     let RDATE;
-    if (cal.getPrefSafe("calendar.backend") == "icaljs") {
+    if (cal.getPrefSafe("calendar.icaljs", false)) {
         RDATE = "RDATE:20020401T114500Z\r\n";
     } else {
         RDATE = "RDATE;VALUE=DATE-TIME:20020401T114500Z\r\n";
