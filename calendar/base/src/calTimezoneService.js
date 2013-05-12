@@ -7,50 +7,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://calendar/modules/calIteratorUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
-var g_stringBundle = null;
-
-function calIntrinsicTimezone(tzid, component, latitude, longitude) {
-    this.wrappedJSObject = this;
-    this.tzid = tzid;
-    this.mComponent = component;
-    this.isUTC = false;
-    this.isFloating = false;
-    this.latitude = latitude;
-    this.longitude = longitude;
-}
-calIntrinsicTimezone.prototype = {
-    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calITimezone]),
-    toString: function calIntrinsicTimezone_toString() {
-        return (this.component ? this.component.toString() : this.tzid);
-    },
-
-    get icalComponent() {
-        var comp = this.mComponent;
-        if (comp && (typeof(comp) == "string")) {
-            this.mComponent = cal.getIcsService().parseICS("BEGIN:VCALENDAR\r\n" + comp + "END:VCALENDAR\r\n", null)
-                                                 .getFirstSubcomponent("VTIMEZONE");
-        }
-        return this.mComponent;
-    },
-
-    get displayName() {
-        if (this.mDisplayName === undefined) {
-            try {
-                this.mDisplayName = g_stringBundle.GetStringFromName("pref.timezone." + this.tzid.replace(/\//g, "."));
-            } catch (exc) {
-                // don't assert here, but gracefully fall back to TZID:
-                cal.LOG("Timezone property lookup failed! Falling back to " + this.tzid + "\n" + exc);
-                this.mDisplayName = this.tzid;
-            }
-        }
-        return this.mDisplayName;
-    },
-
-    get provider() {
-        return cal.getTimezoneService();
-    }
-};
+Components.utils.import("resource://calendar/modules/ical.js");
 
 function calStringEnumerator(stringArray) {
     this.mIndex = 0;
@@ -68,6 +25,8 @@ calStringEnumerator.prototype = {
         return this.mStringArray[this.mIndex++];
     }
 };
+
+var g_stringBundle = null;
 
 function calTimezoneService() {
     this.wrappedJSObject = this;
@@ -120,8 +79,12 @@ calTimezoneService.prototype = {
 
     get UTC() {
         if (!this.mUTC) {
-            this.mUTC = new calIntrinsicTimezone("UTC", null, "", "");
-            this.mUTC.isUTC = true;
+            if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
+                this.mUTC = new calLibicalTimezone("UTC", null, "", "");
+                this.mUTC.mUTC = true;
+            } else {
+                this.mUTC = new calICALJSTimezone(ICAL.Timezone.utcTimezone);
+            }
             this.mTimezoneCache.UTC = this.mUTC;
             this.mTimezoneCache.utc = this.mUTC;
         }
@@ -131,8 +94,12 @@ calTimezoneService.prototype = {
 
     get floating() {
         if (!this.mFloating) {
-            this.mFloating = new calIntrinsicTimezone("floating", null, "", "");
-            this.mFloating.isFloating = true;
+            if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
+                this.mFloating = new calLibicalTimezone("floating", null, "", "");
+                this.mFloating.isFloating = true;
+            } else {
+                this.mFloating = new calICALJSTimezone(ICAL.Timezone.localTimezone);
+            }
             this.mTimezoneCache.floating = this.mFloating;
         }
 
@@ -221,7 +188,7 @@ calTimezoneService.prototype = {
 
         if (canInit) {
             // Seems like a success, make the bundle url global
-            g_stringBundle = Services.strings.createBundle(bundleURL);
+            g_stringBundle = ICAL.Timezone.cal_tz_bundle = Services.strings.createBundle(bundleURL);
         } else {
             // Otherwise, we have to give up. Show an error and fail hard!
             let msg = cal.calGetString("calendar", "missingCalendarTimezonesError");
@@ -261,8 +228,19 @@ calTimezoneService.prototype = {
                 var alias = row.alias;
                 if (alias && alias.length > 0) {
                     tz = alias; // resolve later
+                } else if (cal.getPrefSafe("calendar.backend", "libical") == "libical") {
+                    tz = new calLibicalTimezone(row.tzid, row.component, row.latitude, row.longitude);
                 } else {
-                    tz = new calIntrinsicTimezone(row.tzid, row.component, row.latitude, row.longitude);
+                    let parsedComp = ICAL.parse("BEGIN:VCALENDAR\r\n" + row.component + "\r\nEND:VCALENDAR");
+
+                    let icalComp = new ICAL.Component(parsedComp[1]);
+                    let tzComp = icalComp.getFirstSubcomponent("vtimezone");
+                    tz = new calICALJSTimezone(ICAL.Timezone.fromData({
+                        tzid: row.tzid,
+                        component: tzComp,
+                        latitude: row.latitude,
+                        longitude: row.longitude
+                    }));
                 }
             }
             this.mSelectByTzid.reset();
@@ -877,4 +855,4 @@ function guessSystemTimezone() {
     return probableTZId;
 }
 
-var NSGetFactory = XPCOMUtils.generateNSGetFactory([calTimezoneService]);
+var NSGetFactory = cal.loadingNSGetFactory(["calTimezone.js"], [calTimezoneService], this);

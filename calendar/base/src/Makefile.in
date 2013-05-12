@@ -40,6 +40,7 @@ EXTRA_SCRIPTS = \
     calRecurrenceInfo.js \
     calRelation.js \
     calStartupService.js \
+    calTimezone.js \
     calTodo.js \
     calUtils.js \
     calWeekInfoService.js \
