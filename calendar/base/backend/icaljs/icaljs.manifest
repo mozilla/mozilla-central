@@ -1,0 +1,19 @@
+component {36783242-ec94-4d8a-9248-d2679edd55b9} calICALJSComponents.js
+contract @mozilla.org/calendar/datetime;1 {36783242-ec94-4d8a-9248-d2679edd55b9}
+
+component {7436f480-c6fc-4085-9655-330b1ee22288} calICALJSComponents.js
+contract @mozilla.org/calendar/duration;1 {7436f480-c6fc-4085-9655-330b1ee22288}
+
+component {c61cb903-4408-41b3-bc22-da0b27efdfe1} calICALJSComponents.js
+contract @mozilla.org/calendar/ics-service;1 {c61cb903-4408-41b3-bc22-da0b27efdfe1}
+
+component {394a281f-7299-45f7-8b1f-cce21258972f} calICALJSComponents.js
+contract @mozilla.org/calendar/period;1 {394a281f-7299-45f7-8b1f-cce21258972f}
+
+component {df19281a-5389-4146-b941-798cb93a7f0d} calICALJSComponents.js
+contract @mozilla.org/calendar/recurrence-rule;1 {df19281a-5389-4146-b941-798cb93a7f0d}
+
+component {6702eb17-a968-4b43-b562-0d0c5f8e9eb5} calICALJSComponents.js
+contract @mozilla.org/calendar/timezone;1 {6702eb17-a968-4b43-b562-0d0c5f8e9eb5}
+
+#expand interfaces __XPIDL_MODULE__.xpt

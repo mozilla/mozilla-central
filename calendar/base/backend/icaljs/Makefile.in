@@ -1,0 +1,47 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+DEPTH = @DEPTH@
+topsrcdir = @top_srcdir@
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+NO_COMPONENTS_MANIFEST = 1
+EXTRA_COMPONENTS = calICALJSComponents.js
+BACKEND_MANIFESTS = icaljs.manifest
+DEFINES += -DXPIDL_MODULE=$(XPIDL_MODULE)
+NO_JS_MANIFEST = 1
+NO_INTERFACES_MANIFEST = 1
+
+EXTRA_SCRIPTS = \
+	calDateTime.js \
+	calDuration.js \
+	calICSService-worker.js \
+	calICSService.js \
+	calPeriod.js \
+	calRecurrenceRule.js \
+	$(NULL)
+
+# Use NSINSTALL to make the directory, as there's no mtime to preserve.
+libs:: $(EXTRA_SCRIPTS)
+	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
+	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
+
+libs:: $(BACKEND_MANIFESTS)
+	$(EXIT_ON_ERROR) \
+	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
+	for i in $^; do \
+	  fname=`basename $$i`; \
+	  dest=$(FINAL_TARGET)/components/$${fname}; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
+	done
+
+# The install target must use SYSINSTALL, which is NSINSTALL in copy mode.
+install:: $(EXTRA_SCRIPTS)
+	$(call install_cmd,$(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/calendar-js)
+
+include $(topsrcdir)/config/rules.mk
