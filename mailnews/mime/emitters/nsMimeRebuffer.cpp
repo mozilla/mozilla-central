@@ -35,7 +35,7 @@ MimeRebuffer::ReduceBuffer(uint32_t numBytes)
 
   if (numBytes >= mBuf.Length())
   {
-    mBuf.Truncate(0);
+    mBuf.Truncate();
     return 0;
   }
 
