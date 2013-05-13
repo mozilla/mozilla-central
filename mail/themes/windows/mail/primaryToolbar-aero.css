@@ -560,7 +560,9 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
   display: -moz-box;
 }
 
-#palette-box .toolbarbutton-1 {
+#palette-box .toolbarbutton-1,
+#palette-box .toolbarbutton-menubutton-button,
+#palette-box .toolbarbutton-menubutton-dropmarker {
   border: none;
   background: none;
   box-shadow: none;

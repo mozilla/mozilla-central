@@ -3006,11 +3006,23 @@
                    observes="button_replylist"
                    command="cmd_replylist"/>
     <toolbarbutton id="button-forward"
+                   type="menu-button"
                    class="toolbarbutton-1"
                    label="&forwardButton.label;"
                    tooltiptext="&forwardButton.tooltip;"
                    observes="button_forward"
-                   command="cmd_forward"/>
+                   command="cmd_forward">
+      <menupopup id="button-ForwardPopup">
+        <menuitem id="button-ForwardAsInlineMenu"
+                  label="&buttonMenuForwardAsInline.label;"
+                  tooltiptext="&forwardAsInline.tooltip;"
+                  command="cmd_forwardInline"/>
+        <menuitem id="button-ForwardAsAttachmentMenu"
+                  label="&buttonMenuForwardAsAttachment.label;"
+                  tooltiptext="&forwardAsAttachment.tooltip;"
+                  command="cmd_forwardAttachment"/>
+      </menupopup>
+    </toolbarbutton>
     <toolbarbutton id="button-file"
                    type="menu"
                    class="toolbarbutton-1"

@@ -197,6 +197,29 @@
                              oncommand="MsgForwardMessage(event);RestoreFocusAfterHdrButton();"
                              observes="button_forward"
                              class="toolbarbutton-1 msgHeaderView-button hdrForwardButton"/>
+              <toolbaritem id="hdrMenuForwardButton" label="&hdrMenuForwardButton.label;">
+              <!-- This toolbaritem is a dummy and should only be shown when
+                   customizing the toolbar to distinguish the forward button
+                   from the forward dual-button. -->
+                <toolbarbutton id="hdrDualForwardButton"
+                               label="&hdrForwardButton1.label;"
+                               tooltiptext="&hdrForwardButton1.tooltip;"
+                               oncommand="MsgForwardMessage(event);RestoreFocusAfterHdrButton();"
+                               observes="button_forward"
+                               class="toolbarbutton-1 msgHeaderView-button hdrForwardButton"
+                               type="menu-button">
+                  <menupopup id="hdrForwardDropdown">
+                    <menuitem id="hdrForwardAsInlineMenu"
+                              label="&buttonMenuForwardAsInline.label;"
+                              tooltiptext="&forwardAsInline.tooltip;"
+                              command="cmd_forwardInline"/>
+                    <menuitem id="hdrForwardAsAttachmentMenu"
+                              label="&buttonMenuForwardAsAttachment.label;"
+                              tooltiptext="&forwardAsAttachment.tooltip;"
+                              command="cmd_forwardAttachment"/>
+                  </menupopup>
+                </toolbarbutton>
+              </toolbaritem>
               <toolbarbutton id="hdrArchiveButton"
                              label="&hdrArchiveButton1.label;"
                              tooltiptext="&hdrArchiveButton1.tooltip;"

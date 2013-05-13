@@ -34,6 +34,7 @@
 <!ENTITY hdrReplyListButton1.tooltip "Reply to mailing list">
 <!ENTITY hdrFollowupButton1.label "Followup">
 <!ENTITY hdrFollowupButton1.tooltip "Post a followup to this newsgroup">
+<!ENTITY hdrMenuForwardButton.label "Forward As">
 <!ENTITY hdrForwardButton1.label "Forward">
 <!ENTITY hdrForwardButton1.tooltip "Forward this message">
 <!ENTITY hdrJunkButton1.label "Junk">

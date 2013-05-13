@@ -535,6 +535,8 @@
 <!ENTITY replyAllButton.tooltip "Reply to sender and all recipients">
 <!ENTITY replyListButton.tooltip "Reply to mailing list">
 <!ENTITY forwardButton.tooltip "Forward selected message">
+<!ENTITY forwardAsInline.tooltip "Forward selected message as inline text">
+<!ENTITY forwardAsAttachment.tooltip "Forward selected message as an attachment">
 <!ENTITY fileButton.tooltip "File selected message">
 <!ENTITY archiveButton.tooltip "Archive selected messages">
 <!ENTITY nextButton.tooltip "Move to the next unread message">
@@ -555,6 +557,10 @@
 <!ENTITY tagButton.tooltip "Tag messages">
 <!ENTITY compactButton.tooltip "Remove deleted messages from selected folder">
 <!ENTITY appmenuButton1.tooltip "Display the &brandShortName; Menu">
+
+<!-- Toolbar Button Popup -->
+<!ENTITY buttonMenuForwardAsInline.label "Forward Inline">
+<!ENTITY buttonMenuForwardAsAttachment.label "Forward As Attachment">
 
 <!-- AppMenu Popup -->
 <!ENTITY appmenuNewMsgCmd.label "New Message">
