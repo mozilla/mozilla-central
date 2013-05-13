@@ -715,7 +715,7 @@ MessageGenerator.prototype = {
                 LAST_NAMES.length;
 
     return FIRST_NAMES[iFirst].toLowerCase() + "@" +
-           LAST_NAMES[iLast].toLowerCase() + ".nul";
+           LAST_NAMES[iLast].toLowerCase() + ".invalid";
   },
 
   /**
@@ -789,7 +789,7 @@ MessageGenerator.prototype = {
    * @returns a Message-id suitable for the given message.
    */
   makeMessageId: function(aSynthMessage) {
-    let msgId = this._nextMessageIdNum + "@made.up";
+    let msgId = this._nextMessageIdNum + "@made.up.invalid";
     this._nextMessageIdNum++;
     return msgId;
   },

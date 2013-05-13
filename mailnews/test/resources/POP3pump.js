@@ -50,7 +50,7 @@ function POP3Pump()
   this._firstFile = true;
   this._tests = [];
   this._finalCleanup = false;
-
+  this._expectedResult = 0;
 }
 
 POP3Pump.prototype._urlListener =
@@ -58,20 +58,16 @@ POP3Pump.prototype._urlListener =
   OnStartRunningUrl: function OnStartRunningUrl(url) {},
   OnStopRunningUrl: function OnStopRunningUrl(aUrl, aResult)
   {
-    try
+    if (aResult != 0)
     {
-      do_check_eq(aResult, 0);
-    }
-    catch (e)
-    {
-      // If we have an error, clean up nicely before we throw it.
-      this._server.stop();
+      // If we have an error, clean up nicely.
+      gPOP3Pump._server.stop();
 
       var thread = gThreadManager.currentThread;
       while (thread.hasPendingEvents())
         thread.processNextEvent(true);
-      do_throw(e);
     }
+    do_check_eq(aResult, gPOP3Pump._expectedResult);
 
     // Let OnStopRunningUrl return cleanly before doing anything else.
     do_timeout(0, _checkPumpBusy);
@@ -186,7 +182,7 @@ POP3Pump.prototype._testNext = function _testNext()
   }
 };
 
-POP3Pump.prototype.run = function run()
+POP3Pump.prototype.run = function run(aExpectedResult)
 {
   do_test_pending();
   // Disable new mail notifications
@@ -201,6 +197,9 @@ POP3Pump.prototype.run = function run()
 
   this._firstFile = true;
   this._finalCleanup = false;
+
+  if (aExpectedResult)
+    this._expectedResult = aExpectedResult;
 
   // In the default configuration, only a single test is accepted
   // by this routine. But the infrastructure exists to support

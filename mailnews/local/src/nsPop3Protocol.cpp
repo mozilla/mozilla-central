@@ -30,6 +30,7 @@
 #include "nsStringGlue.h"
 #include "nsIPrompt.h"
 #include "nsIMsgIncomingServer.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsTextFormatter.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
@@ -44,8 +45,6 @@
 #include "nsMsgMessageFlags.h"
 #include "nsMsgBaseCID.h"
 #include "mozilla/Services.h"
-
-#define EXTRA_SAFETY_SPACE 3096
 
 PRLogModuleInfo *POP3LOGMODULE = nullptr;
 
@@ -2931,60 +2930,28 @@ int32_t nsPop3Protocol::GetMsg()
      */
     if (m_totalDownloadSize > 0) // skip all this if there aren't any messages
     {
-      nsresult rv;
-      int64_t mailboxSpaceLeft = 0;
-      nsCOMPtr <nsIMsgFolder> folder;
-      nsCOMPtr <nsIFile> path;
+      nsCOMPtr<nsIMsgFolder> folder;
 
-      // Get the path to the current mailbox
-      //
+      // Get the current mailbox folder
       NS_ENSURE_TRUE(m_nsIPop3Sink, -1);
-      rv = m_nsIPop3Sink->GetFolder(getter_AddRefs(folder));
-      if (NS_FAILED(rv))
-        return -1;
-      rv = folder->GetFilePath(getter_AddRefs(path));
+      nsresult rv = m_nsIPop3Sink->GetFolder(getter_AddRefs(folder));
       if (NS_FAILED(rv))
         return -1;
 
-      // call GetDiskSpaceAvailable on the directory
-      nsCOMPtr <nsIFile> parent;
-      path->GetParent(getter_AddRefs(parent));
-      rv = parent->GetDiskSpaceAvailable(&mailboxSpaceLeft);
-      if (NS_FAILED(rv))
-      {
-        // The call to GetDiskSpaceAvailable FAILED!
-        // This will happen on certain platforms where GetDiskSpaceAvailable
-        // is not implemented. Since people on those platforms still need
-        // to check mail, we will simply bypass the disk-space check.
-        //
-        // We'll leave a debug message to warn people.
+      nsCOMPtr<nsIMsgPluggableStore> msgStore;
+      rv = folder->GetMsgStore(getter_AddRefs(msgStore));
+      NS_ENSURE_SUCCESS(rv, -1);
 
+      bool spaceAvailable;
+      // check if we have a reasonable amount of space left
+      rv = msgStore->HasSpaceAvailable(folder, m_totalDownloadSize, &spaceAvailable);
+      if (NS_FAILED(rv) || !spaceAvailable) {
 #ifdef DEBUG
-        printf("Call to GetDiskSpaceAvailable FAILED! \n");
+        printf("Not enough disk space! Raising error!\n");
 #endif
+        return (Error(MK_POP3_OUT_OF_DISK_SPACE));
       }
-      else
-      {
-#ifdef DEBUG
-        printf("GetDiskSpaceAvailable returned: %lld bytes\n", mailboxSpaceLeft);
-#endif
 
-        /* When checking for disk space available, take into consideration
-        * possible database
-        * changes, therefore ask for a little more than what the message
-        * size is. Also, due to disk sector sizes, allocation blocks,
-        * etc. The space "available" may be greater than the actual space
-        * usable. */
-
-        if (m_totalDownloadSize + int64_t(EXTRA_SAFETY_SPACE) > mailboxSpaceLeft)
-        {
-          // Not enough disk space!
-#ifdef DEBUG
-          printf("Not enough disk space! Raising error! \n");
-#endif
-          return (Error(MK_POP3_OUT_OF_DISK_SPACE));
-        }
-      }
       // Here we know how many messages we're going to download, so let
       // the pop3 sink know.
       rv = m_nsIPop3Sink->SetMsgsToDownload(m_pop3ConData->really_new_messages);
