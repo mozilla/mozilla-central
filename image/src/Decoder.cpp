@@ -93,7 +93,7 @@ Decoder::Write(const char* aBuffer, uint32_t aCount)
   NS_ABORT_IF_FALSE(!HasDecoderError(),
                     "Not allowed to make more decoder calls after error!");
 
-  // If a data error occured, just ignore future data
+  // If a data error occurred, just ignore future data
   if (HasDataError())
     return;
 

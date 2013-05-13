@@ -121,7 +121,7 @@ var PermissionsHelper = {
    */
   getPermission: function getPermission(aURI, aType) {
     // Password saving isn't a nsIPermissionManager permission type, so handle
-    // it seperately.
+    // it separately.
     if (aType == "password") {
       // By default, login saving is enabled, so if it is disabled, the
       // user selected the never remember option
@@ -151,7 +151,7 @@ var PermissionsHelper = {
    */
   clearPermission: function clearPermission(aURI, aType, aContext) {
     // Password saving isn't a nsIPermissionManager permission type, so handle
-    // it seperately.
+    // it separately.
     if (aType == "password") {
       // Get rid of exisiting stored logings
       let logins = Services.logins.findLogins({}, aURI.prePath, "", "");

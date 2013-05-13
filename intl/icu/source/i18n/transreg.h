@@ -168,7 +168,7 @@ class TransliteratorRegistry : public UMemory {
      * @param ID          the given ID
      * @param aliasReturn output param to receive TransliteratorAlias;
      *                    should be NULL on entry
-     * @param parseError  Struct to recieve information on position
+     * @param parseError  Struct to receive information on position
      *                    of error if an error is encountered
      * @param status      Output param set to success/failure code.
      */

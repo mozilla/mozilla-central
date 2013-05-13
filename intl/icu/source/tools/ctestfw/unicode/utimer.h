@@ -212,7 +212,7 @@ static    UBool uprv_compareFrequency(UTimer* /*timer1*/, UTimer* /*timer2*/){
 /**
  * Intializes the timer with the current time
  *
- * @param timer A pointer to UTimer struct to recieve the current time
+ * @param timer A pointer to UTimer struct to receive the current time
  */
 static inline void U_EXPORT2
 utimer_getTime(UTimer* timer){
@@ -254,7 +254,7 @@ utimer_getElapsedSeconds(UTimer* timer){
  * Executes the function pointed to for a given time and returns exact time
  * taken and number of iterations of the loop
  * @param thresholTimeVal 
- * @param loopCount output param to recieve the number of iterations
+ * @param loopCount output param to receive the number of iterations
  * @param fn    The funtion to be executed
  * @param param Parameters to be passed to the fn
  * @return the time elapsed in seconds

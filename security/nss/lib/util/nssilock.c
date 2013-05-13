@@ -32,7 +32,7 @@
 */
 struct pzlock_s {
     PRLock *lock;  /* the PZLock to be instrumented */
-    PRIntervalTime time; /* timestamp when the lock was aquired */
+    PRIntervalTime time; /* timestamp when the lock was acquired */
     nssILockType ltype;
 };
 
@@ -41,7 +41,7 @@ struct pzlock_s {
 */
 struct pzmonitor_s {
     PRMonitor *mon;   /* the PZMonitor to be instrumented */
-    PRIntervalTime time; /* timestamp when the monitor was aquired */
+    PRIntervalTime time; /* timestamp when the monitor was acquired */
     nssILockType ltype;
 };
 

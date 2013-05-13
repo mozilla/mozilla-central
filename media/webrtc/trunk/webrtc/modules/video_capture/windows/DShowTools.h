@@ -85,7 +85,7 @@ class CriticalSectionAutoEnter
 public:
     /**
      * Constructor
-     * The constructor aquires the given lock.  The destructor
+     * The constructor acquires the given lock.  The destructor
      * releases the lock.
      * 
      * @param aCriticalSection A valid mozilla::CriticalSection*. 

@@ -1123,7 +1123,7 @@ nsExternalAppHandler::nsExternalAppHandler(nsIMIMEInfo * aMIMEInfo,
 , mExtProtSvc(aExtProtSvc)
 {
 
-  // make sure the extention includes the '.'
+  // make sure the extension includes the '.'
   if (!aTempFileExtension.IsEmpty() && aTempFileExtension.First() != '.')
     mTempFileExtension = PRUnichar('.');
   AppendUTF8toUTF16(aTempFileExtension, mTempFileExtension);

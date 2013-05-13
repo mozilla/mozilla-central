@@ -199,7 +199,7 @@ class Builder:
         if o.name == 'False':
             return False
         
-        # An undefinted Name
+        # An undefined Name
         raise UnknownType('Undefined Name')
     
     def build_Add(self, o):

@@ -71,7 +71,7 @@ SVGFETileElement::ComputeChangeBBox(const nsTArray<nsIntRect>& aSourceChangeBoxe
  * This function computes the size of partial match on either side of the tile.
  * eg: If we are talking about the X-axis direction, then it computes, the 
  * size of the tile that would be copied to the lesser X-axis side (usually
- * left), the higher X-axis side (usualy right) and the centre.
+ * left), the higher X-axis side (usually right) and the centre.
  * This is needed because often, the tile doesn't exactly align to the target
  * region and is partially copied on the edges. This function computes the
  * dimensions of the partially copied regions in one axis.

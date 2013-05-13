@@ -820,7 +820,7 @@ _PR_MD_WAKEUP_WAITER(PRThread *thread)
          * the completion port because all user threads might be idle, and
          * thus the CPUs are just waiting for a completion.  
          *
-         * XXXMB - can we know when we are truely idle (and not checking 
+         * XXXMB - can we know when we are truly idle (and not checking 
          *         the runq)?
          */
         if ((_PR_IS_NATIVE_THREAD(me) || (thread->cpu != me->cpu)) &&

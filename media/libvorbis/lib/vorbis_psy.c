@@ -30,8 +30,8 @@
 #include "misc.h"
 
 #define NEGINF -9999.f
-static const double stereo_threshholds[]={0.0, .5, 1.0, 1.5, 2.5, 4.5, 8.5, 16.5, 9e10};
-static const double stereo_threshholds_limited[]={0.0, .5, 1.0, 1.5, 2.0, 2.5, 4.5, 8.5, 9e10};
+static const double stereo_thresholds[]={0.0, .5, 1.0, 1.5, 2.5, 4.5, 8.5, 16.5, 9e10};
+static const double stereo_thresholds_limited[]={0.0, .5, 1.0, 1.5, 2.0, 2.5, 4.5, 8.5, 9e10};
 
 vorbis_look_psy_global *_vp_global_look(vorbis_info *vi){
   codec_setup_info *ci=vi->codec_setup;
@@ -1018,8 +1018,8 @@ void _vp_couple_quantize_normalize(int blobno,
   int n = p->n;
   int partition=(p->vi->normal_p ? p->vi->normal_partition : 16);
   int limit = g->coupling_pointlimit[p->vi->blockflag][blobno];
-  float prepoint=stereo_threshholds[g->coupling_prepointamp[blobno]];
-  float postpoint=stereo_threshholds[g->coupling_postpointamp[blobno]];
+  float prepoint=stereo_thresholds[g->coupling_prepointamp[blobno]];
+  float postpoint=stereo_thresholds[g->coupling_postpointamp[blobno]];
 #if 0
   float de=0.1*p->m_val; /* a blend of the AoTuV M2 and M3 code here and below */
 #endif
@@ -1047,7 +1047,7 @@ void _vp_couple_quantize_normalize(int blobno,
 
   /* The threshold of a stereo is changed with the size of n */
   if(n > 1000)
-    postpoint=stereo_threshholds_limited[g->coupling_postpointamp[blobno]];
+    postpoint=stereo_thresholds_limited[g->coupling_postpointamp[blobno]];
 
   raw[0]   = alloca(ch*partition*sizeof(**raw));
   quant[0] = alloca(ch*partition*sizeof(**quant));

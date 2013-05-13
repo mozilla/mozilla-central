@@ -239,7 +239,7 @@ TabItem.prototype = Utils.extend(new Item(), new Subscribable(), {
 
   // ----------
   // Function: _reconnect
-  // Load the reciever's persistent data from storage. If there is none, 
+  // Load the receiver's persistent data from storage. If there is none, 
   // treats it as a new tab. 
   //
   // Parameters:

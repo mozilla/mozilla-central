@@ -69,7 +69,7 @@ interface nsIDOMFMRadio : nsISupports {
      *
      * Note that the FM radio may not tuned to the exact frequency given. To get
      * the frequency the radio is actually tuned to, wait for the request to fire
-     * onsucess (or wait for the frequencychange event to fire), and then read the
+     * onsuccess (or wait for the frequencychange event to fire), and then read the
      * frequency attribute.
      */
     nsIDOMDOMRequest setFrequency(in double frequency);

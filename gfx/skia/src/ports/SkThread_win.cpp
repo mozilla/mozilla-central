@@ -32,7 +32,7 @@ int32_t sk_atomic_add(int32_t* addr, int32_t inc) {
 int32_t sk_atomic_dec(int32_t* addr) {
     return _InterlockedDecrement(reinterpret_cast<LONG*>(addr)) + 1;
 }
-void sk_membar_aquire__after_atomic_dec() { }
+void sk_membar_acquire__after_atomic_dec() { }
 
 int32_t sk_atomic_conditional_inc(int32_t* addr) {
     while (true) {
@@ -47,7 +47,7 @@ int32_t sk_atomic_conditional_inc(int32_t* addr) {
         }
     }
 }
-void sk_membar_aquire__after_atomic_conditional_inc() { }
+void sk_membar_acquire__after_atomic_conditional_inc() { }
 
 SkMutex::SkMutex() {
     SK_COMPILE_ASSERT(sizeof(fStorage) > sizeof(CRITICAL_SECTION),

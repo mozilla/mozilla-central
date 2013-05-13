@@ -838,7 +838,7 @@ cairo_os2_surface_create (HPS hps_client_window,
 
  error_exit:
 
-    /* This point will only be reached if an error occured */
+    /* This point will only be reached if an error occurred */
 
     if (local_os2_surface) {
         if (local_os2_surface->pixels)

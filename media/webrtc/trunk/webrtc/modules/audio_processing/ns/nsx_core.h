@@ -180,7 +180,7 @@ typedef void (*PrepareSpectrum)(NsxInst_t* inst,
                                 int16_t* freq_buff);
 extern PrepareSpectrum WebRtcNsx_PrepareSpectrum;
 
-// For the noise supression process, synthesis, read out fully processed
+// For the noise suppression process, synthesis, read out fully processed
 // segment, and update synthesis buffer.
 typedef void (*SynthesisUpdate)(NsxInst_t* inst,
                                 int16_t* out_frame,

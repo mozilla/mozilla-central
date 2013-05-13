@@ -227,7 +227,7 @@ webvtt_create_node_from_token( webvtt_cuetext_token *token, webvtt_node **node, 
   }
 
   /** 
-   * We've recieved a node that is not null.
+   * We've received a node that is not null.
    * In order to prevent memory leaks caused by overwriting a node which the 
    * caller has not released return unsuccessful.
    */

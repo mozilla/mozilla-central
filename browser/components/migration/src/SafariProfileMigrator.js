@@ -420,7 +420,7 @@ Preferences.prototype = {
   //     really tell you anything about a font: no matter what language or type
   //     you try to enumerate with EnumerateFonts, you get an array of all
   //     fonts in the systems (This also breaks our fonts dialog).
-  // (c) In Gecko, each langauge has a distinct serif and sans-serif font
+  // (c) In Gecko, each language has a distinct serif and sans-serif font
   //     preference.  Safari has only one default font setting.  It seems that
   //     it checks if it's a serif or sans serif font, and when a site
   //     explicitly asks to use serif/sans-serif font, it uses the default font
@@ -465,7 +465,7 @@ Preferences.prototype = {
     anySet |= this._set("WebKitDefaultFontSize", "font.size.variable." + lang);
 
     // If we set font settings for a particular language, we'll also set the
-    // fonts dialog to open with the fonts settings for that langauge.
+    // fonts dialog to open with the fonts settings for that language.
     if (anySet)
       Services.prefs.setCharPref("font.language.group", lang);
   },

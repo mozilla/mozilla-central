@@ -33,7 +33,7 @@ enum GrGLSLGeneration {
 /**
  * Types of shader-language-specific boxed variables we can create.
  * (Currently only GrGLShaderVars, but should be applicable to other shader
- * langauges.)
+ * languages.)
  */
 enum GrSLType {
     kVoid_GrSLType,
@@ -90,7 +90,7 @@ GrGLSLGeneration GrGetGLSLGeneration(GrGLBinding binding,
                                      const GrGLInterface* gl);
 
 /**
- * Returns a string to include at the begining of a shader to declare the GLSL
+ * Returns a string to include at the beginning of a shader to declare the GLSL
  * version.
  */
 const char* GrGetGLSLVersionDecl(GrGLBinding binding,

@@ -66,7 +66,7 @@ some **realy** fancy things. Like `code`, or even
 @param [options] An object-bag of goodies.
   @prop callback {function} The callback
   @prop [random] {bool} Do something random?
-@param [onemore] {bool} One more paramater
+@param [onemore] {bool} One more parameter
 @param [options2]
        This is a full description of something
        that really sucks. Because I now have a multiline

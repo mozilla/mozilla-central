@@ -454,7 +454,7 @@ static void append_bfrange_section(const SkTDArray<BFRange>& bfrange,
 // endbfchar              endbfrange
 //
 // Adobe Technote 5014 said: "Code mappings (unlike codespace ranges) may
-// overlap, but succeeding maps superceded preceding maps."
+// overlap, but succeeding maps superseded preceding maps."
 //
 // In case of searching text in PDF, bfrange will have higher precedence so
 // typing char id 0x0014 in search box will get glyph id 0x0004 first.  However,

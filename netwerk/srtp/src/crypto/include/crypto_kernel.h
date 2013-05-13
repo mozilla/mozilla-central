@@ -214,7 +214,7 @@ crypto_kernel_load_debug_module(debug_module_t *new_dm);
  * key_len octets.  Return values are:
  * 
  *    err_status_ok           no problems
- *    err_status_alloc_fail   an allocation failure occured
+ *    err_status_alloc_fail   an allocation failure occurred
  *    err_status_fail         couldn't find cipher with identifier 'id'
  */
 
@@ -231,7 +231,7 @@ crypto_kernel_alloc_cipher(cipher_type_id_t id,
  * values are:
  * 
  *    err_status_ok           no problems
- *    err_status_alloc_fail   an allocation failure occured
+ *    err_status_alloc_fail   an allocation failure occurred
  *    err_status_fail         couldn't find auth with identifier 'id'
  */
 
@@ -267,8 +267,8 @@ crypto_kernel_set_debug_module(char *mod_name, int v);
  *          unless it is called after crypto_kernel_init().
  *
  * @return
- *     - err_status_ok    if no problems occured.
- *     - [other]          a problem occured, and no assumptions should
+ *     - err_status_ok    if no problems occurred.
+ *     - [other]          a problem occurred, and no assumptions should
  *                        be made about the contents of the destination
  *                        buffer.
  *

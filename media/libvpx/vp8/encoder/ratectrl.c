@@ -656,7 +656,7 @@ static void calc_pframe_target_size(VP8_COMP *cpi)
             alt_boost += (cpi->frames_till_gf_update_due * 50);
 
             // If alt ref is not currently active then we have a pottential double hit with GF and ARF so reduce the boost a bit.
-            // A similar thing is done on GFs that preceed a arf update.
+            // A similar thing is done on GFs that precede a arf update.
             if ( !cpi->source_alt_ref_active )
                 alt_boost = alt_boost * 3 / 4;
 

@@ -53,7 +53,7 @@
  * <p>
  * This search has APIs similar to that of other text iteration mechanisms 
  * such as the break iterators in <tt>ubrk.h</tt>. Using these 
- * APIs, it is easy to scan through text looking for all occurances of 
+ * APIs, it is easy to scan through text looking for all occurrences of 
  * a given pattern. This search iterator allows changing of direction by 
  * calling a <tt>reset</tt> followed by a <tt>next</tt> or <tt>previous</tt>. 
  * Though a direction change can occur without calling <tt>reset</tt> first,  
@@ -738,7 +738,7 @@ U_STABLE void U_EXPORT2 usearch_reset(UStringSearch *strsrch);
   *      When beginning a search, the initial starting position, startIdx,
   *      is assumed to be an acceptable match boundary with respect to
   *      combining characters.  A combining sequence that spans across the
-  *      starting point will not supress a match beginning at startIdx.
+  *      starting point will not suppress a match beginning at startIdx.
   *
   *      Characters that expand to multiple collation elements
   *      (German sharp-S becoming 'ss', or the composed forms of accented
@@ -798,7 +798,7 @@ U_INTERNAL UBool U_EXPORT2 usearch_search(UStringSearch *strsrch,
   *      When beginning a search, the initial starting position, startIdx,
   *      is assumed to be an acceptable match boundary with respect to
   *      combining characters.  A combining sequence that spans across the
-  *      starting point will not supress a match beginning at startIdx.
+  *      starting point will not suppress a match beginning at startIdx.
   *
   *      Characters that expand to multiple collation elements
   *      (German sharp-S becoming 'ss', or the composed forms of accented

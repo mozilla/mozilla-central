@@ -8,7 +8,7 @@
  * |origin|, |appID|, |browserFlag| -> used for getting the principal and
  * |type| and |access| to call testExactPermissionFromPrincipal.
  * Note that |access| isn't currently used.
- * Other arugments are:
+ * Other arguments are:
  * requestID: ID that gets returned with the result message.
  *
  * Once the permission is checked, it returns with the message

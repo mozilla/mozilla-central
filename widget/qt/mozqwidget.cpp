@@ -281,7 +281,7 @@ void MozQWidget::inputMethodEvent(QInputMethodEvent* aEvent)
             }
         }
     } else if (gLastPreeditString != currentCommitString) {
-        //User commited something
+        //User committed something
         if (currentCommitString.length() == 1 && gLastPreeditString.isEmpty()) {
             //if commit string ist one and there is no Preedit String
             //case i.e. when no error correction is enabled in the system (default meego.com)
@@ -291,7 +291,7 @@ void MozQWidget::inputMethodEvent(QInputMethodEvent* aEvent)
             for (int i = 0; i < gLastPreeditString.length(); i++) {
                 sendPressReleaseKeyEvent(Qt::Key_Backspace);
             }
-            //Now push commited String into
+            //Now push committed String into
             const QChar * text = currentCommitString.unicode();
             for (int i = 0; i < currentCommitString.length(); i++) {
                 sendPressReleaseKeyEvent(0, &text[i]);

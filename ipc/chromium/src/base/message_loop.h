@@ -367,7 +367,7 @@ public:
   // true if some work was done.
   bool DeletePendingTasks();
 
-  // Post a task to our incomming queue.
+  // Post a task to our incoming queue.
   void PostTask_Helper(const tracked_objects::Location& from_here, Task* task,
                        int delay_ms, bool nestable);
 
@@ -404,7 +404,7 @@ public:
   std::string thread_name_;
 
   // A null terminated list which creates an incoming_queue of tasks that are
-  // aquired under a mutex for processing on this instance's thread. These tasks
+  // acquired under a mutex for processing on this instance's thread. These tasks
   // have not yet been sorted out into items for our work_queue_ vs items that
   // will be handled by the TimerManager.
   TaskQueue incoming_queue_;

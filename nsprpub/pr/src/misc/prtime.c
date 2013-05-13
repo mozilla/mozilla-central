@@ -1943,7 +1943,7 @@ PR_FormatTimeUSEnglish( char* buf, PRUint32 bufSize,
         
          case 'Z':
             /* Time zone name or no characters if  no  time  zone exists.
-             * Since time zone name is supposed to be independant of locale, we
+             * Since time zone name is supposed to be independent of locale, we
              * defer to PR_FormatTime() for this option.
              */
             PR_FormatTime( tmpBuf, tmpBufSize, "%Z", time );

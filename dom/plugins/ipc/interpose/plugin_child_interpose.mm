@@ -18,7 +18,7 @@
 // information from the child process to the parent process, so that the same
 // (or equivalent) calls can be made from the parent process.
 
-// This file lives in a seperate module (libplugin_child_interpose.dylib),
+// This file lives in a separate module (libplugin_child_interpose.dylib),
 // which will get loaded by the OS before any other modules when the plugin
 // child process is launched (from GeckoChildProcessHost::
 // PerformAsyncLaunchInternal()).  For this reason it shouldn't link in other

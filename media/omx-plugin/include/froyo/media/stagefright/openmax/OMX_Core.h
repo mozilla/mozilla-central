@@ -246,7 +246,7 @@ typedef enum OMX_ERRORTYPE
   OMX_ErrorContentPipeCreationFailed = (OMX_S32) 0x80001022,
 
   /** Separate table information is being used */
-  OMX_ErrorSeperateTablesUsed = (OMX_S32) 0x80001023,
+  OMX_ErrorSeparateTablesUsed = (OMX_S32) 0x80001023,
 
   /** Tunneling is unsupported by the component*/
   OMX_ErrorTunnelingUnsupported = (OMX_S32) 0x80001024,
@@ -478,7 +478,7 @@ typedef struct OMX_PORT_PARAM_TYPE {
 /** @ingroup comp */
 typedef enum OMX_EVENTTYPE
 {
-    OMX_EventCmdComplete,         /**< component has sucessfully completed a command */
+    OMX_EventCmdComplete,         /**< component has successfully completed a command */
     OMX_EventError,               /**< component has detected an error condition */
     OMX_EventMark,                /**< component has detected a buffer mark */
     OMX_EventPortSettingsChanged, /**< component is reported a port settings change */

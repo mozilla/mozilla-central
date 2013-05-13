@@ -1008,7 +1008,7 @@ struct PRDirEntryUTF16 {
  * OUTPUTS:
  *     None
  * RETURN: PRDir *
- *     If the directory is sucessfully opened, a PRDir object is
+ *     If the directory is successfully opened, a PRDir object is
  *     dynamically allocated and a pointer to it is returned.
  *     If the directory cannot be opened, a NULL pointer is returned.
  * MEMORY:

@@ -41,7 +41,7 @@ struct OMXCodec : public MediaSource,
         kClientNeedsFramebuffer  = 4,
 
         // Request for software or hardware codecs. If request
-        // can not be fullfilled, Create() returns NULL.
+        // can not be fulfilled, Create() returns NULL.
         kSoftwareCodecsOnly      = 8,
         kHardwareCodecsOnly      = 16,
 

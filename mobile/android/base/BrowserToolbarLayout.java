@@ -19,7 +19,7 @@ public class BrowserToolbarLayout extends GeckoRelativeLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // If the motion event has occured below the toolbar (due to the scroll
+        // If the motion event has occurred below the toolbar (due to the scroll
         // offset), let it pass through to the page.
         if (event != null && event.getY() > getHeight() - getScrollY()) {
             return false;

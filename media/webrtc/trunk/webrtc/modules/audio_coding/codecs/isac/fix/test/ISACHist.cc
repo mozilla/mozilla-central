@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
     
     short topTenCntr = 0;
     printf("\nTotal number of Frames %lu\n\n", totalFrames);
-    printf("Payload Len    # occurences\n");
+    printf("Payload Len    # occurrences\n");
     printf("===========    ============\n");
 
     for(short n = 600; (n >= 0) && (topTenCntr < 10); n--)

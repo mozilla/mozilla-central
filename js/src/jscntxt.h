@@ -1535,7 +1535,7 @@ struct JSContext : js::ContextFriendFields,
   private:
     /* See JSContext::findVersion. */
     JSVersion           defaultVersion;      /* script compilation version */
-    JSVersion           versionOverride;     /* supercedes defaultVersion when valid */
+    JSVersion           versionOverride;     /* supersedes defaultVersion when valid */
     bool                hasVersionOverride;
 
     /* Exception state -- the exception member is a GC root by definition. */

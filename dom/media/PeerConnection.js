@@ -217,7 +217,7 @@ function PeerConnection() {
    * there are no pending operations though, we will execute it immediately.
    * In PeerConnectionObserver, whenever we are notified that an operation
    * has finished, we will check the queue for the next operation and execute
-   * if neccesary. The _pending flag indicates whether an operation is currently
+   * if necessary. The _pending flag indicates whether an operation is currently
    * in progress.
    */
   this._pending = false;

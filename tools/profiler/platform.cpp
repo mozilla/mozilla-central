@@ -274,7 +274,7 @@ void mozilla_sampler_init()
   Sampler::RegisterCurrentThread("Gecko", stack, true);
 
   // Read mode settings from MOZ_PROFILER_MODE and interval
-  // settings from MOZ_PROFILER_INTERVAL and stack-scan threshhold
+  // settings from MOZ_PROFILER_INTERVAL and stack-scan threshold
   // from MOZ_PROFILER_STACK_SCAN.
   read_profiler_env_vars();
 
@@ -380,7 +380,7 @@ const char** mozilla_sampler_get_features()
     "leaf",
 #endif
 #if !defined(SPS_OS_windows)
-    // Use a seperate thread of walking the stack.
+    // Use a separate thread of walking the stack.
     "unwinder",
 #endif
     "java",

@@ -180,7 +180,7 @@ static uint32_t sip_get_sock_dir_tmpl(char *out, uint32_t outlen,
  *                  IPC socket is successfully created.
  *
  *  @return cpr_socket_t - Returns a valid CPR's socket if
- *                   the socket is created sucessafully otherwise
+ *                   the socket is created successfully otherwise
  *                   returns INVALID_SOCKET.
  *  @pre    (name != NULL)
  */

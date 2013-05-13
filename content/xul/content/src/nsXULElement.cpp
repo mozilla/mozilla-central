@@ -2462,7 +2462,7 @@ nsXULPrototypeScript::Deserialize(nsIObjectInputStream* aStream,
     JS::Rooted<JSScript*> newScriptObject(context->GetNativeContext());
     rv = context->Deserialize(aStream, &newScriptObject);
     if (NS_FAILED(rv)) {
-        NS_WARNING("Language deseralization failed");
+        NS_WARNING("Language deserialization failed");
         return rv;
     }
     Set(newScriptObject);

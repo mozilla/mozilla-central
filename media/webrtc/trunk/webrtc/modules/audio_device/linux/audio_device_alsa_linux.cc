@@ -2139,7 +2139,7 @@ bool AudioDeviceLinuxALSA::PlayThreadProcess()
         //maximum tixe in milliseconds to wait, a negative value means infinity
         err = LATE(snd_pcm_wait)(_handlePlayout, 2);
         if (err == 0)
-        { //timeout occured
+        { //timeout occurred
             WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id,
                          "playout snd_pcm_wait timeout");
         }
@@ -2216,7 +2216,7 @@ bool AudioDeviceLinuxALSA::RecThreadProcess()
         //maximum time in milliseconds to wait, a negative value means infinity
         err = LATE(snd_pcm_wait)(_handleRecord,
             ALSA_CAPTURE_WAIT_TIMEOUT);
-        if (err == 0) //timeout occured
+        if (err == 0) //timeout occurred
             WEBRTC_TRACE(kTraceStream, kTraceAudioDevice, _id,
                          "capture snd_pcm_wait timeout");
 

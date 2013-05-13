@@ -141,7 +141,7 @@ interface nsIUDPServerSocketListener : nsISupports
 /**
  * nsIUDPMessage
  *
- * This interface is used to encapsulate an incomming UDP message
+ * This interface is used to encapsulate an incoming UDP message
  */
 [scriptable, uuid(1587698a-60b6-4a8d-9df9-708cd793e24b)]
 interface nsIUDPMessage : nsISupports

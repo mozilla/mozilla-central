@@ -981,7 +981,7 @@ pkix_pl_Pk11CertStore_GetCRL(
                         &registeredHttpClient->fcnTable.ftable1,
                         plContext);
         if (pkixErrorResult || !crl) {
-            /* continue to next dp in case of unsuccesfull
+            /* continue to next dp in case of unsuccessfull
              * download attempt. */
             PKIX_DECREF(pkixErrorResult);
             continue;

@@ -46,7 +46,7 @@ public:
 
     static HwcComposer2D* GetInstance();
 
-    // Returns TRUE if the container has been succesfully rendered
+    // Returns TRUE if the container has been successfully rendered
     // Returns FALSE if the container cannot be fully rendered
     // by this composer so nothing was rendered at all
     bool TryRender(layers::Layer* aRoot, const gfxMatrix& aGLWorldTransform) MOZ_OVERRIDE;

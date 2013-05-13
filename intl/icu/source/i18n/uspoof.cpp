@@ -245,7 +245,7 @@ uspoof_check(const USpoofChecker *sc,
 
         if (This->fChecks & USPOOF_INVISIBLE) {
            
-            // scan for more than one occurence of the same non-spacing mark
+            // scan for more than one occurrence of the same non-spacing mark
             // in a sequence of non-spacing marks.
             int32_t     i;
             UChar32     c;

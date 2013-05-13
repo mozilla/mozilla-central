@@ -67,7 +67,7 @@ signCert() {
     extList=`echo $extList | sed 's/;/ /g'`
     for ext in $extList; do
         setExtData $ext
-        [ -z "$extType" ] && echo "incorrect extention format" && return 1
+        [ -z "$extType" ] && echo "incorrect extension format" && return 1
         case $extType in
         ocspDR)
                 extCmdLine="$extCmdLine -6"

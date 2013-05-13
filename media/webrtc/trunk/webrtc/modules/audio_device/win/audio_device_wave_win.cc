@@ -1801,7 +1801,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::InitPlayout()
         return -1;
     }
 
-    // Log information about the aquired output device
+    // Log information about the acquired output device
     //
     WAVEOUTCAPS caps;
 
@@ -2000,7 +2000,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::InitRecording()
         return -1;
     }
 
-    // Log information about the aquired input device
+    // Log information about the acquired input device
     //
     WAVEINCAPS caps;
 
@@ -2820,7 +2820,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetPlayoutBufferDelay(WebRtc_UWord32& writ
         // sound cards that uses less than 32 bits to keep track of number of played out
         // sampels. To avoid being fooled by sound cards that sometimes produces false
         // output we compare old value minus the new value with a large value. This is
-        // neccessary because some SC:s produce an output like 153, 198, 175, 230 which
+        // necessary because some SC:s produce an output like 153, 198, 175, 230 which
         // would trigger the wrap-around function if we didn't compare with a large value.
         // The value 64000 is chosen because 2^16=65536 so we allow wrap around at 16 bits.
 
@@ -2831,9 +2831,9 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetPlayoutBufferDelay(WebRtc_UWord32& writ
 
         if((i < 31) && (i > 14)) {
             // Avoid adjusting when there is 32-bit wrap-around since that is
-            // something neccessary.
+            // something necessary.
             //
-            WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "msecleft() => wrap around occured: %d bits used by sound card)", (i+1));
+            WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "msecleft() => wrap around occurred: %d bits used by sound card)", (i+1));
 
             _writtenSamples = _writtenSamples - POW2(i + 1);
             writtenSamples = _writtenSamples;
@@ -2850,7 +2850,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetPlayoutBufferDelay(WebRtc_UWord32& writ
             i--;
         }
 
-        WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "  msecleft() (wrap around occured after having used all 32 bits)");
+        WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "  msecleft() (wrap around occurred after having used all 32 bits)");
 
         _writtenSamplesOld = writtenSamples;
         _playedSamplesOld = playedSamples;
@@ -2863,7 +2863,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetPlayoutBufferDelay(WebRtc_UWord32& writ
         // playedSampels so we have to adjust for this until also playedSampels
         // has had wrap around.
 
-        WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "  msecleft() (wrap around occured: correction of output is done)");
+        WEBRTC_TRACE(kTraceDebug, kTraceUtility, _id, "  msecleft() (wrap around occurred: correction of output is done)");
 
         _writtenSamplesOld = writtenSamples;
         _playedSamplesOld = playedSamples;
@@ -3033,7 +3033,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetRecordingBufferDelay(WebRtc_UWord32& re
         // sound cards that uses less than 32 bits to keep track of number of played out
         // sampels. To avoid being fooled by sound cards that sometimes produces false
         // output we compare old value minus the new value with a large value. This is
-        // neccessary because some SC:s produce an output like 153, 198, 175, 230 which
+        // necessary because some SC:s produce an output like 153, 198, 175, 230 which
         // would trigger the wrap-around function if we didn't compare with a large value.
         // The value 64000 is chosen because 2^16=65536 so we allow wrap around at 16 bits.
         //
@@ -3043,7 +3043,7 @@ WebRtc_Word32 AudioDeviceWindowsWave::GetRecordingBufferDelay(WebRtc_UWord32& re
 
         if((i < 31) && (i > 14)) {
             // Avoid adjusting when there is 32-bit wrap-around since that is
-            // somethying neccessary.
+            // somethying necessary.
             //
             _read_samples = _read_samples - POW2(i + 1);
             readSamples = _read_samples;

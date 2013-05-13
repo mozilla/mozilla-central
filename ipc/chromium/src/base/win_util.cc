@@ -250,7 +250,7 @@ bool GetLogonSessionOnlyDACL(SECURITY_DESCRIPTOR** security_descriptor) {
 #pragma warning(disable:4312 4244)
 WNDPROC SetWindowProc(HWND hwnd, WNDPROC proc) {
   // The reason we don't return the SetwindowLongPtr() value is that it returns
-  // the orignal window procedure and not the current one. I don't know if it is
+  // the original window procedure and not the current one. I don't know if it is
   // a bug or an intended feature.
   WNDPROC oldwindow_proc =
       reinterpret_cast<WNDPROC>(GetWindowLongPtr(hwnd, GWLP_WNDPROC));

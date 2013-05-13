@@ -153,7 +153,7 @@ ckcapi_GetRawHash
   }
 
   /* parse the input block to get 1) the hash oid, and 2) the raw hash value.
-   * unfortunatly CAPI doesn't have a builtin function to do this work, so
+   * unfortunately CAPI doesn't have a builtin function to do this work, so
    * we go ahead and do it by hand here.
    *
    * format is:

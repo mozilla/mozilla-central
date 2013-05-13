@@ -68,7 +68,7 @@ function run_test() {
     search.moveEngine(engine1, 0);
     search.moveEngine(engine2, 1);
 
-    // Changes should be commited immediately
+    // Changes should be committed immediately
     afterCommit(function() {
       do_print("Commit complete after moveEngine");
 

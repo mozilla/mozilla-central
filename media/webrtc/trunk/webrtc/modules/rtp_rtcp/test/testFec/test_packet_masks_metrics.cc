@@ -250,7 +250,7 @@ class FecPacketMaskMetricsTest : public ::testing::Test {
     return num_recovered_packets;
   }
 
-  // Compute the probability of occurence of the loss state/configuration,
+  // Compute the probability of occurrence of the loss state/configuration,
   // given by |state|, for all the loss models considered in this test.
   void ComputeProbabilityWeight(double* prob_weight,
                                 uint8_t* state,

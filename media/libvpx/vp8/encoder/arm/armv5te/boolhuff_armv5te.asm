@@ -237,7 +237,7 @@ encode_value_loop
 
     ; Decisions are made based on the bit value shifted
     ; off of v, so set a flag here based on this.
-    ; This value is refered to as "bb"
+    ; This value is referred to as "bb"
     lsls    r1, r1, #1                  ; bit = v >> n
     mov     r4, r7, lsl #7              ; ((range-1) * 128)
 

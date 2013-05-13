@@ -377,7 +377,7 @@ protected:
 
   /**
    * Set 'misspelled' text attribute and return range offsets where the
-   * attibute is stretched. If the text is not misspelled at the given offset
+   * attribute is stretched. If the text is not misspelled at the given offset
    * then we expose only range offsets where text is not misspelled. The method
    * is used by GetTextAttributes() method.
    *

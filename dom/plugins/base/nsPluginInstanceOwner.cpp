@@ -1729,7 +1729,7 @@ nsresult nsPluginInstanceOwner::DispatchFocusToPlugin(nsIDOMEvent* aFocusEvent)
       event.data.lifecycle.action = kLoseFocus_ANPLifecycleAction;
     }
     else {
-      NS_ASSERTION(false, "nsPluginInstanceOwner::DispatchFocusToPlugin, wierd eventType");   
+      NS_ASSERTION(false, "nsPluginInstanceOwner::DispatchFocusToPlugin, weird eventType");   
     }
     mInstance->HandleEvent(&event, nullptr);
   }

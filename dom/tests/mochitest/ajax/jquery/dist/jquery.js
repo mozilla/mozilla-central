@@ -278,7 +278,7 @@ jQuery.fn = jQuery.prototype = {
 			if ( jQuery.browser.msie && !jQuery.isXMLDoc(this) ) {
 				// IE copies events bound via attachEvent when
 				// using cloneNode. Calling detachEvent on the
-				// clone will also remove the events from the orignal
+				// clone will also remove the events from the original
 				// In order to get around this, we use innerHTML.
 				// Unfortunately, this means some modifications to
 				// attributes in IE that are actually only stored
@@ -1923,7 +1923,7 @@ jQuery.event = {
 					types = types.type;
 				}
 
-				// Handle multiple events seperated by a space
+				// Handle multiple events separated by a space
 				// jQuery(...).unbind("mouseover mouseout", fn);
 				jQuery.each(types.split(/\s+/), function(index, type){
 					// Namespaced event handlers

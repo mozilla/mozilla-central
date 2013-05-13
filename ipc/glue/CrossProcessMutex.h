@@ -67,7 +67,7 @@ public:
   /**
    * Unlock
    * This will unlock the mutex. A single thread currently waiting on a lock
-   * call will resume execution and aquire ownership of the lock. No
+   * call will resume execution and acquire ownership of the lock. No
    * guarantees are made as to the order in which waiting threads will resume
    * execution.
    **/

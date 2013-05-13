@@ -112,7 +112,7 @@ static int PrintRegister64(const char *name, uint64_t value, int start_col) {
 }
 
 // StripSeparator takes a string |original| and returns a copy
-// of the string with all occurences of |kOutputSeparator| removed.
+// of the string with all occurrences of |kOutputSeparator| removed.
 static string StripSeparator(const string &original) {
   string result = original;
   string::size_type position = 0;

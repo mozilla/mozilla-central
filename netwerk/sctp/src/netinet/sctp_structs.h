@@ -968,7 +968,7 @@ struct sctp_association {
 	uint32_t cumulative_tsn;
 	/*
 	 * Used to track the mapping array and its offset bits. This MAY be
-	 * lower then cumulative_tsn.
+	 * lower than cumulative_tsn.
 	 */
 	uint32_t mapping_array_base_tsn;
 	/*

@@ -412,7 +412,7 @@ public:
 
     trackunion->CombineWithPrincipal(window->GetExtantDoc()->NodePrincipal());
 
-    // The listener was added at the begining in an inactive state.
+    // The listener was added at the beginning in an inactive state.
     // Activate our listener. We'll call Start() on the source when get a callback
     // that the MediaStream has started consuming. The listener is freed
     // when the page is invalidated (on navigation or close).
@@ -475,7 +475,7 @@ private:
 };
 
 /**
- * Runs on a seperate thread and is responsible for enumerating devices.
+ * Runs on a separate thread and is responsible for enumerating devices.
  * Depending on whether a picture or stream was asked for, either
  * ProcessGetUserMedia or ProcessGetUserMediaSnapshot is called, and the results
  * are sent back to the DOM.

@@ -490,16 +490,16 @@ function test_input_copypaste_dataTransfer_multiple() {
 
     var exh = false;
     try { cd.mozSetDataAt("text/plain", "Text", 1); } catch (ex) { exh = true; }
-    ok(exh, "exception occured mozSetDataAt 1");
+    ok(exh, "exception occurred mozSetDataAt 1");
     exh = false;
     try { cd.mozTypesAt(1); } catch (ex) { exh = true; }
-    ok(exh, "exception occured mozTypesAt 1");
+    ok(exh, "exception occurred mozTypesAt 1");
     exh = false;
     try { cd.mozGetDataAt("text/plain", 1); } catch (ex) { exh = true; }
-    ok(exh, "exception occured mozGetDataAt 1");
+    ok(exh, "exception occurred mozGetDataAt 1");
     exh = false;
     try { cd.mozClearDataAt("text/plain", 1); } catch (ex) { exh = true; }
-    ok(exh, "exception occured mozClearDataAt 1");
+    ok(exh, "exception occurred mozClearDataAt 1");
 
     cd.setData("text/x-moz-url", "http://www.mozilla.org");
     cd.mozSetDataAt("text/x-custom", "Custom Text", 0);
@@ -534,7 +534,7 @@ function test_input_copypaste_dataTransfer_multiple() {
 
     exh = false;
     try { cd.setData("text/plain", "Text on Paste"); } catch (ex) { exh = true; }
-    ok(exh, "exception occured setData on paste");
+    ok(exh, "exception occurred setData on paste");
 
     is(cd.getData("text/plain"), "would be a phrase", "text/plain data unchanged");
   };
@@ -698,7 +698,7 @@ function checkCachedDataTransfer(cd, eventtype)
 
   var exh = false;
   try { cd.mozSetDataAt("text/plain", "Test Cache Data", 0); } catch (ex) { exh = true; }
-  ok(eventtype == "paste" ? exh : !exh, "exception occured setting " + testprefix);
+  ok(eventtype == "paste" ? exh : !exh, "exception occurred setting " + testprefix);
 
   var newtext = (eventtype == "paste") ? cd.getData("text/plain") :
                                          cd.mozGetDataAt("text/plain", 0);
@@ -709,7 +709,7 @@ function checkCachedDataTransfer(cd, eventtype)
 
   var exh = false;
   try { cd.mozClearDataAt("text/plain", 0); } catch (ex) { exh = true; }
-  ok(eventtype == "paste" ? exh : !exh, "exception occured clearing " + testprefix);
+  ok(eventtype == "paste" ? exh : !exh, "exception occurred clearing " + testprefix);
 
   is(getClipboardText(), "Some Clipboard Text", "clipboard not changed using " + testprefix);
 }

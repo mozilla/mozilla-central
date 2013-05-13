@@ -12,7 +12,7 @@
 **	I must release each lock type as many times as I acquired it.
 **	Otherwise, these are normal reader/writer locks.
 **
-** For deadlock detection, locks should be ranked, and no lock may be aquired
+** For deadlock detection, locks should be ranked, and no lock may be acquired
 ** while I hold a lock of higher rank number.
 ** If you don't want that feature, always use NSS_RWLOCK_RANK_NONE.
 ** Lock name is for debugging, and is optional (may be NULL)

@@ -333,7 +333,7 @@ public class ProfileMigrator {
     }
 
     public void launchSyncPrefs() {
-        // Sync settings will post a runnable, no need for a seperate thread.
+        // Sync settings will post a runnable, no need for a separate thread.
         new SyncTask().run();
     }
 

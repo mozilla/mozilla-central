@@ -25,7 +25,7 @@
       var pc2 = new mozRTCPeerConnection();
 
       // The whole point of this test is not to wait for the
-      // setRemoteDescription call to succesfully complete, so we
+      // setRemoteDescription call to successfully complete, so we
       // don't do anything in its callbacks.
       pc2.setRemoteDescription(d, function (x) {}, function (x) {});
       pc2.createAnswer(function (d) {

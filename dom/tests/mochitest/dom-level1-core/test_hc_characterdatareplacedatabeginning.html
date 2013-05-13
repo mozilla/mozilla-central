@@ -3,7 +3,7 @@
 <head>
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>http://www.w3.org/2001/DOM-Test-Suite/level1/core/characterdatareplacedatabegining</title>
+<title>http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatareplacedatabeginning</title>
 <link href="activity-home.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css">
 <script type="text/javascript" src="/tests/SimpleTest/SimpleTest.js"></script>
@@ -13,7 +13,7 @@
 // expose test function names
 function exposeTestFunctionNames()
 {
-return ['characterdatareplacedatabegining'];
+return ['hc_characterdatareplacedatabeginning'];
 }
 
 var docsLoaded = -1000000;
@@ -42,7 +42,7 @@ function setUpPage() {
       if (typeof(this.doc) != 'undefined') {
         docRef = this.doc;
       }
-      docsLoaded += preload(docRef, "doc", "staff");
+      docsLoaded += preload(docRef, "doc", "hc_staff");
         
        if (docsLoaded == 1) {
           setUpPage = 'complete';
@@ -69,7 +69,7 @@ function loadComplete() {
   }
 }
 
-var docName = 'characterdatareplacedatabegining';
+var docName = 'hc_characterdatareplacedatabeginning';
 
 
 
@@ -91,13 +91,12 @@ method is then called with offset=5 and count=5 and
 arg="South".  The method should replace characters five
 thru 9 of the character data with "South".
 
-* @author NIST
-* @author Mary Brady
+* @author Curt Arnold
 * @see http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/level-one-core#ID-E5CBA7FB
 */
-function characterdatareplacedatabegining() {
+function hc_characterdatareplacedatabeginning() {
    var success;
-    if(checkInitialization(builder, "characterdatareplacedatabegining") != null) return;
+    if(checkInitialization(builder, "hc_characterdatareplacedatabeginning") != null) return;
     var doc;
       var elementList;
       var nameNode;
@@ -108,8 +107,8 @@ function characterdatareplacedatabegining() {
       if (typeof(this.doc) != 'undefined') {
         docRef = this.doc;
       }
-      doc = load(docRef, "doc", "staff");
-      elementList = doc.getElementsByTagName("address");
+      doc = load(docRef, "doc", "hc_staff");
+      elementList = doc.getElementsByTagName("acronym");
       nameNode = elementList.item(0);
       child = nameNode.firstChild;
 
@@ -123,7 +122,7 @@ function characterdatareplacedatabegining() {
 </script>
 </head>
 <body>
-<h2>Test http://www.w3.org/2001/DOM-Test-Suite/level1/core/characterdatareplacedatabegining</h2>
+<h2>Test http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatareplacedatabeginning</h2>
 <p></p>
 <p>
 Copyright (c) 2001-2004 World Wide Web Consortium, 
@@ -133,5 +132,7 @@ Rights Reserved. This work is distributed under the <a href="http://www.w3.org/C
 hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
 the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 </p>
+<iframe name="doc" src="files/hc_staff.html"></iframe>
+<br>
 </body>
 </html>

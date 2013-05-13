@@ -246,7 +246,7 @@ nsresult OggCodecState::PacketOutUntilGranulepos(bool& aFoundGranulepos) {
       } else {
         // We buffer data packets until we encounter a granulepos. We'll
         // then use the granulepos to figure out the granulepos of the
-        // preceeding packets.
+        // preceding packets.
         mUnstamped.AppendElement(clone);
         aFoundGranulepos = packet.granulepos > 0;
       }

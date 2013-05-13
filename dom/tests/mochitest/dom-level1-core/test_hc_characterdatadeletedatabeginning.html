@@ -3,7 +3,7 @@
 <head>
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatareplacedatabegining</title>
+<title>http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatadeletedatabeginning</title>
 <link href="activity-home.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css">
 <script type="text/javascript" src="/tests/SimpleTest/SimpleTest.js"></script>
@@ -13,7 +13,7 @@
 // expose test function names
 function exposeTestFunctionNames()
 {
-return ['hc_characterdatareplacedatabegining'];
+return ['hc_characterdatadeletedatabeginning'];
 }
 
 var docsLoaded = -1000000;
@@ -69,7 +69,7 @@ function loadComplete() {
   }
 }
 
-var docName = 'hc_characterdatareplacedatabegining';
+var docName = 'hc_characterdatadeletedatabeginning';
 
 
 
@@ -80,23 +80,23 @@ addLoadEvent(setUpPage);
 
 /**
 * 
-The "replaceData(offset,count,arg)" method replaces the
-characters starting at the specified offset with the
-specified string.  Test for replacement in the
-middle of the data.
+The "deleteData(offset,count)" method removes a range of
+characters from the node.  Delete data at the beginning
+of the character data.
 
 Retrieve the character data from the last child of the
-first employee.  The "replaceData(offset,count,arg)"
-method is then called with offset=5 and count=5 and
-arg="South".  The method should replace characters five
-thru 9 of the character data with "South".
+first employee.  The "deleteData(offset,count)"
+method is then called with offset=0 and count=16.
+The method should delete the characters from position
+0 thru position 16.  The new value of the character data
+should be "Dallas, Texas 98551".
 
 * @author Curt Arnold
-* @see http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/level-one-core#ID-E5CBA7FB
+* @see http://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/level-one-core#ID-7C603781
 */
-function hc_characterdatareplacedatabegining() {
+function hc_characterdatadeletedatabeginning() {
    var success;
-    if(checkInitialization(builder, "hc_characterdatareplacedatabegining") != null) return;
+    if(checkInitialization(builder, "hc_characterdatadeletedatabeginning") != null) return;
     var doc;
       var elementList;
       var nameNode;
@@ -112,17 +112,17 @@ function hc_characterdatareplacedatabegining() {
       nameNode = elementList.item(0);
       child = nameNode.firstChild;
 
-      child.replaceData(0,4,"2500");
+      child.deleteData(0,16);
       childData = child.data;
 
-      assertEquals("characterdataReplaceDataBeginingAssert","2500 North Ave. Dallas, Texas 98551",childData);
+      assertEquals("data","Dallas, Texas 98551",childData);
        
 }
 
 </script>
 </head>
 <body>
-<h2>Test http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatareplacedatabegining</h2>
+<h2>Test http://www.w3.org/2001/DOM-Test-Suite/level1/core/hc_characterdatadeletedatabeginning</h2>
 <p></p>
 <p>
 Copyright (c) 2001-2004 World Wide Web Consortium, 

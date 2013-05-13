@@ -319,7 +319,7 @@ class PrettifyTreeprocessor(Treeprocessor):
         """ Add linebreaks to ElementTree root object. """
 
         self._prettifyETree(root)
-        # Do <br />'s seperately as they are often in the middle of
+        # Do <br />'s separately as they are often in the middle of
         # inline content and missed by _prettifyETree.
         brs = root.getiterator('br')
         for br in brs:

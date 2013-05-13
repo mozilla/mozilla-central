@@ -31,7 +31,7 @@ const STYLE_EDITOR_TEMPLATE = "stylesheet";
  *
  * Emits events:
  *   'editor-added': A new editor was added to the UI
- *   'error': An error occured
+ *   'error': An error occurred
  *
  * @param {StyleEditorDebuggee} debuggee
  *        Debuggee of whose stylesheets should be shown in the UI

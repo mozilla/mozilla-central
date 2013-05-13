@@ -60,7 +60,7 @@ public:
    * to draw to the window. If this method fails the device cannot be used.
    * This function is not threadsafe.
    *
-   * return True is initialization was succesful, false when it was not.
+   * return True is initialization was successful, false when it was not.
    */
   bool Initialize(bool force = false, HRESULT* aHresultPtr = nullptr);
 

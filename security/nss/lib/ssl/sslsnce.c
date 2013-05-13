@@ -1770,7 +1770,7 @@ StopLockPoller(cacheDesc *cache)
  ************************************************************************/
 
 /* If now is zero, it implies that the lock is not held, and must be 
-** aquired here.  
+** acquired here.  
 */
 static PRBool
 getSvrWrappingKey(PRInt32                symWrapMechIndex,

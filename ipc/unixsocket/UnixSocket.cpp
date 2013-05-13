@@ -176,7 +176,7 @@ public:
 private:
   /**
    * libevent triggered functions that reads data from socket when available and
-   * guarenteed non-blocking. Only to be called on IO thread.
+   * guaranteed non-blocking. Only to be called on IO thread.
    *
    * @param aFd File descriptor to read from
    */
@@ -184,7 +184,7 @@ private:
 
   /**
    * libevent or developer triggered functions that writes data to socket when
-   * available and guarenteed non-blocking. Only to be called on IO thread.
+   * available and guaranteed non-blocking. Only to be called on IO thread.
    *
    * @param aFd File descriptor to read from
    */

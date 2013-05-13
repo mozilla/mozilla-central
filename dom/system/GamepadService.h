@@ -81,7 +81,7 @@ class GamepadService : public nsIObserver
   // explicitly interacted with a gamepad while this window
   // was focused, by pressing buttons or similar actions.
   bool WindowHasSeenGamepad(nsGlobalWindow* aWindow, uint32_t aIndex);
-  // Indicate that a window has recieved data from a gamepad.
+  // Indicate that a window has received data from a gamepad.
   void SetWindowHasSeenGamepad(nsGlobalWindow* aWindow, uint32_t aIndex,
                                bool aHasSeen = true);
 

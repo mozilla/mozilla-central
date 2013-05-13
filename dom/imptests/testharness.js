@@ -212,8 +212,8 @@ policies and contribution forms [3].
  * The framework provides callbacks corresponding to 3 events:
  *
  * start - happens when the first Test is created
- * result - happens when a test result is recieved
- * complete - happens when all results are recieved
+ * result - happens when a test result is received
+ * complete - happens when all results are received
  *
  * The page defining the tests may add callbacks for these events by calling
  * the following methods:
@@ -1935,7 +1935,7 @@ policies and contribution forms [3].
     }
 
     /*
-     * Utility funcions
+     * Utility functions
      */
     function assert(expected_true, function_name, description, error, substitutions)
     {

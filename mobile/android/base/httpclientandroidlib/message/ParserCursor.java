@@ -50,7 +50,7 @@ public class ParserCursor {
             throw new IndexOutOfBoundsException("Lower bound cannot be negative");
         }
         if (lowerBound > upperBound) {
-            throw new IndexOutOfBoundsException("Lower bound cannot be greater then upper bound");
+            throw new IndexOutOfBoundsException("Lower bound cannot be greater than upper bound");
         }
         this.lowerBound = lowerBound;
         this.upperBound = upperBound;

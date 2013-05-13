@@ -243,7 +243,7 @@ uint16_fract_t lut_inverse_interp16(uint16_t Value, uint16_t LutTable[], int len
         double a, b, f;
 
         // July/27 2001 - Expanded to handle degenerated curves with an arbitrary
-        // number of elements containing 0 at the begining of the table (Zeroes)
+        // number of elements containing 0 at the beginning of the table (Zeroes)
         // and another arbitrary number of poles (FFFFh) at the end.
         // First the zero and pole extents are computed, then value is compared.
 

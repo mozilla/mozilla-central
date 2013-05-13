@@ -177,7 +177,7 @@ function popupshown_step2(oldrect, panel, anchored)
 {
   var newrect = panel.getBoundingClientRect();
 
-  // The window movement that occured long ago at the beginning of the test
+  // The window movement that occurred long ago at the beginning of the test
   // on Linux is delayed and there isn't any way to tell when the move
   // actually happened. This causes the checks here to fail. Instead, just
   // wait a bit for the test to be ready.

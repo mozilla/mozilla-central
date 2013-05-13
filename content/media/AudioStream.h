@@ -54,9 +54,9 @@ class AudioClock
     // the moment resampled buffers are pushed to the hardware and the moment the
     // clock should take the new rate into account for A/V sync.
     int mOldOutRate;
-    // Position at which the last playback rate change occured
+    // Position at which the last playback rate change occurred
     int64_t mBasePosition;
-    // Offset, in frames, at which the last playback rate change occured
+    // Offset, in frames, at which the last playback rate change occurred
     int64_t mBaseOffset;
     // Old base offset (number of samples), used when changing rate to compute the
     // position in the stream.
@@ -64,10 +64,10 @@ class AudioClock
     // Old base position (number of microseconds), when changing rate. This is the
     // time in the media, not wall clock position.
     int64_t mOldBasePosition;
-    // Write position at which the playbackRate change occured.
+    // Write position at which the playbackRate change occurred.
     int64_t mPlaybackRateChangeOffset;
     // The previous position reached in the media, used when compensating
-    // latency, to have the position at which the playbackRate change occured.
+    // latency, to have the position at which the playbackRate change occurred.
     int64_t mPreviousPosition;
     // Number of samples effectivelly written in backend, i.e. write position.
     int64_t mWritten;

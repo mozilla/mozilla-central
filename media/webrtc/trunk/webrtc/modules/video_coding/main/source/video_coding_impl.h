@@ -114,7 +114,7 @@ public:
         WebRtc_UWord8 lossRate,
         WebRtc_UWord32 rtt);
 
-    // Set recieve channel parameters
+    // Set receive channel parameters
     virtual WebRtc_Word32 SetReceiveChannelParameters(WebRtc_UWord32 rtt);
 
     // Register a transport callback which will be called to deliver the

@@ -701,7 +701,7 @@ MediaStreamGraphImpl::CreateOrDestroyAudioStreams(GraphTime aAudioOutputStartTim
           StreamTimeToGraphTime(aStream, tracks->GetStartTimeRoundDown(),
                                 INCLUDE_TRAILING_BLOCKED_INTERVAL);
         if (startTime >= mStateComputedTime) {
-          // The stream wants to play audio, but nothing will play for the forseeable
+          // The stream wants to play audio, but nothing will play for the foreseeable
           // future, so don't create the stream.
           continue;
         }

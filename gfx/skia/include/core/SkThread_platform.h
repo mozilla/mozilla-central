@@ -30,7 +30,7 @@ static inline __attribute__((always_inline)) int32_t sk_atomic_add(int32_t *addr
 static inline __attribute__((always_inline)) int32_t sk_atomic_dec(int32_t *addr) {
     return __sync_fetch_and_add(addr, -1);
 }
-static inline __attribute__((always_inline)) void sk_membar_aquire__after_atomic_dec() { }
+static inline __attribute__((always_inline)) void sk_membar_acquire__after_atomic_dec() { }
 
 static inline __attribute__((always_inline)) int32_t sk_atomic_conditional_inc(int32_t* addr) {
     int32_t value = *addr;
@@ -49,7 +49,7 @@ static inline __attribute__((always_inline)) int32_t sk_atomic_conditional_inc(i
         }
     }
 }
-static inline __attribute__((always_inline)) void sk_membar_aquire__after_atomic_conditional_inc() { }
+static inline __attribute__((always_inline)) void sk_membar_acquire__after_atomic_conditional_inc() { }
 
 #else // !SK_BUILD_FOR_ANDROID_NDK
 
@@ -61,11 +61,11 @@ static inline __attribute__((always_inline)) void sk_membar_aquire__after_atomic
 #define sk_atomic_inc(addr)         android_atomic_inc(addr)
 #define sk_atomic_add(addr, inc)    android_atomic_add(inc, addr)
 #define sk_atomic_dec(addr)         android_atomic_dec(addr)
-void sk_membar_aquire__after_atomic_dec() {
+void sk_membar_acquire__after_atomic_dec() {
     //HACK: Android is actually using full memory barriers.
     //      Should this change, uncomment below.
     //int dummy;
-    //android_atomic_aquire_store(0, &dummy);
+    //android_atomic_acquire_store(0, &dummy);
 }
 int32_t sk_atomic_conditional_inc(int32_t* addr) {
     while (true) {
@@ -78,11 +78,11 @@ int32_t sk_atomic_conditional_inc(int32_t* addr) {
         }
     }
 }
-void sk_membar_aquire__after_atomic_conditional_inc() {
+void sk_membar_acquire__after_atomic_conditional_inc() {
     //HACK: Android is actually using full memory barriers.
     //      Should this change, uncomment below.
     //int dummy;
-    //android_atomic_aquire_store(0, &dummy);
+    //android_atomic_acquire_store(0, &dummy);
 }
 
 #endif // !SK_BUILD_FOR_ANDROID_NDK
@@ -111,10 +111,10 @@ SK_API int32_t sk_atomic_add(int32_t* addr, int32_t inc);
     Expected to act as a release (SL/S) memory barrier and a compiler barrier.
 */
 SK_API int32_t sk_atomic_dec(int32_t* addr);
-/** If sk_atomic_dec does not act as an aquire (L/SL) barrier, this is expected
-    to act as an aquire (L/SL) memory barrier and as a compiler barrier.
+/** If sk_atomic_dec does not act as an acquire (L/SL) barrier, this is expected
+    to act as an acquire (L/SL) memory barrier and as a compiler barrier.
 */
-SK_API void sk_membar_aquire__after_atomic_dec();
+SK_API void sk_membar_acquire__after_atomic_dec();
 
 /** Implemented by the porting layer, this function adds one to the int
     specified by the address iff the int specified by the address is not zero
@@ -123,11 +123,11 @@ SK_API void sk_membar_aquire__after_atomic_dec();
     This must act as a compiler barrier.
 */
 SK_API int32_t sk_atomic_conditional_inc(int32_t*);
-/** If sk_atomic_conditional_inc does not act as an aquire (L/SL) barrier, this
-    is expected to act as an aquire (L/SL) memory barrier and as a compiler
+/** If sk_atomic_conditional_inc does not act as an acquire (L/SL) barrier, this
+    is expected to act as an acquire (L/SL) memory barrier and as a compiler
     barrier.
 */
-SK_API void sk_membar_aquire__after_atomic_conditional_inc();
+SK_API void sk_membar_acquire__after_atomic_conditional_inc();
 
 #endif // !SK_BUILD_FOR_ANDROID
 

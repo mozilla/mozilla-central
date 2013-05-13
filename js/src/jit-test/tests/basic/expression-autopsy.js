@@ -31,7 +31,7 @@ function check(expr, expected=expr) {
             Function("o", "undef", statement),
             // Function scope with variables
             Function("var o, undef;\n" + statement),
-            // Function scope with some different arugments
+            // Function scope with some different arguments
             Function("arg1", "arg2", "var o, undef;\n" + statement),
             // Deoptimized function scope
             Function("o", "undef", "with (Object) {}\n" + statement),

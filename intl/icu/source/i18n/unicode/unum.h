@@ -673,7 +673,7 @@ unum_parseDoubleCurrency(const UNumberFormat* fmt,
  * @param localized TRUE if the pattern is localized, FALSE otherwise.
  * @param pattern The new pattern
  * @param patternLength The length of pattern, or -1 if null-terminated.
- * @param parseError A pointer to UParseError to recieve information
+ * @param parseError A pointer to UParseError to receive information
  * about errors occurred during parsing, or NULL if no parse error
  * information is desired.
  * @param status A pointer to an input-output UErrorCode.

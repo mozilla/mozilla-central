@@ -799,7 +799,7 @@ void HandleConnection(void* data)
               LOG_DEBUG((" error=%d", PR_GetError()));
               client_error = true;
               socketErrorState[s] = true;
-              // We got a fatal error while writting the buffer. Clear it to break
+              // We got a fatal error while writing the buffer. Clear it to break
               // the main loop, we will never more be able to send it.
               buffers[s2].bufferhead = buffers[s2].buffertail = buffers[s2].buffer;
             }

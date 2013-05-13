@@ -675,7 +675,7 @@ AccessibleEnumerator::Skip(unsigned long celt)
   *  are selected. Note that this method can only find selected children for
   *  nsIAccessible object which implement SelectAccessible.
   *
-  * The VARIANT return value arguement is expected to either contain a single IAccessible
+  * The VARIANT return value argument is expected to either contain a single IAccessible
   *  or an IEnumVARIANT of IAccessibles. We return the IEnumVARIANT regardless of the number
   *  of children selected, unless there are none selected in which case we return an empty
   *  VARIANT.

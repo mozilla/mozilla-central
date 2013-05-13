@@ -578,14 +578,14 @@
                 this.showMessage("installDownloaded");
                 break;
               case AddonManager.STATE_DOWNLOAD_FAILED:
-                // XXXunf expose what error occured (bug 553487)
+                // XXXunf expose what error occurred (bug 553487)
                 this.showMessage("installDownloadFailed", true);
                 break;
               case AddonManager.STATE_INSTALLING:
                 this.showMessage("installInstalling");
                 break;
               case AddonManager.STATE_INSTALL_FAILED:
-                // XXXunf expose what error occured (bug 553487)
+                // XXXunf expose what error occurred (bug 553487)
                 this.showMessage("installFailed", true);
                 break;
               case AddonManager.STATE_CANCELLED:

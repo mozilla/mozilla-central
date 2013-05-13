@@ -1274,7 +1274,7 @@ sctp_handle_error(struct sctp_chunkhdr *ch,
 			 * (or IPv4 for that matter) it does not matter. If
 			 * they don't support that type of address, they can
 			 * NOT possibly get that packet type... i.e. with no
-			 * IPv6 you can't recieve a IPv6 packet. so we can
+			 * IPv6 you can't receive a IPv6 packet. so we can
 			 * safely ignore this one. If we ever added support
 			 * for HOSTNAME Addresses, then we would need to do
 			 * something here.

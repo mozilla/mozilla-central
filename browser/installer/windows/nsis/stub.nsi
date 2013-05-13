@@ -343,7 +343,7 @@ Function .onInit
   ; it does handle the important case which is a user launching the same stub
   ; multiple times.
   StrCpy $1 "$EXEPATH"
-  ; Backslashes are illegal in a mutex name so replace all occurences of a
+  ; Backslashes are illegal in a mutex name so replace all occurrences of a
   ; backslash with a forward slash.
   ${WordReplace} "$1" "\" "/" "+" $1
   StrLen $2 "$1"

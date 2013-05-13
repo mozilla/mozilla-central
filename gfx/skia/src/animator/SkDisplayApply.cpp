@@ -31,7 +31,7 @@ enum SkApply_Properties {
 
 #if SK_USE_CONDENSED_INFO == 0
 
-// if no attibutes, enclosed displayable is both scope & target
+// if no attributes, enclosed displayable is both scope & target
 // only if both scope & target are specified, or if target and enclosed displayable, are scope and target different
 const SkMemberInfo SkApply::fInfo[] = {
     SK_MEMBER_PROPERTY(animator, Animate),

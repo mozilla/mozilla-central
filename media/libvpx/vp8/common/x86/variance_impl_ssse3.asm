@@ -28,7 +28,7 @@
 ;
 ;)
 ;Note: The filter coefficient at offset=0 is 128. Since the second register
-;for Pmaddubsw is signed bytes, we must calculate zero offset seperately.
+;for Pmaddubsw is signed bytes, we must calculate zero offset separately.
 global sym(vp8_filter_block2d_bil_var_ssse3)
 sym(vp8_filter_block2d_bil_var_ssse3):
     push        rbp

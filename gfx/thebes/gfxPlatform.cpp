@@ -455,7 +455,7 @@ gfxPlatform::Shutdown()
     mozilla::gl::GLContextProviderEGL::Shutdown();
 #endif
 
-    // This will block this thread untill the ImageBridge protocol is completely
+    // This will block this thread until the ImageBridge protocol is completely
     // deleted.
     ImageBridgeChild::ShutDown();
 

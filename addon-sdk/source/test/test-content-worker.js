@@ -28,7 +28,7 @@ function makeWindow(contentURL) {
          openWindow(null, url, null, features.join(","), null);
 }
 
-// Listen for only first one occurence of DOM event
+// Listen for only first one occurrence of DOM event
 function listenOnce(node, eventName, callback) {
   node.addEventListener(eventName, function onevent(event) {
     node.removeEventListener(eventName, onevent, true);

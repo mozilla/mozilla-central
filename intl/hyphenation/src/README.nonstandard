@@ -6,7 +6,7 @@ character changes at hyphenation points. For example,
 Catalan: paral·lel -> paral-lel,
 Dutch: omaatje -> oma-tje,
 German (before the new orthography): Schiffahrt -> Schiff-fahrt,
-Hungarian: asszonnyal -> asz-szony-nyal (multiple occurance!)
+Hungarian: asszonnyal -> asz-szony-nyal (multiple occurrence!)
 Swedish: tillata -> till-lata.
 
 Using this extended library, you can define 

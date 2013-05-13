@@ -157,7 +157,7 @@ static unsigned CGRGBPixel_getAlpha(CGRGBPixel pixel) {
 // The calls to support subpixel are present in 10.5, but are not included in
 // the 10.5 SDK. The needed calls have been extracted from the 10.6 SDK and are
 // included below. To verify that CGContextSetShouldSubpixelQuantizeFonts, for
-// instance, is present in the 10.5 CoreGraphics libary, use:
+// instance, is present in the 10.5 CoreGraphics library, use:
 //   cd /Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/
 //   cd ApplicationServices.framework/Frameworks/CoreGraphics.framework/
 //   nm CoreGraphics | grep CGContextSetShouldSubpixelQuantizeFonts
@@ -1778,7 +1778,7 @@ void SkFontHost::Serialize(const SkTypeface* face, SkWStream* stream) {
 
     desc.serialize(stream);
 
-    // by convention, we also write out the actual sfnt data, preceeded by
+    // by convention, we also write out the actual sfnt data, preceded by
     // a packed-length. For now we skip that, so we just write the zero.
     stream->writePackedUInt(0);
 }

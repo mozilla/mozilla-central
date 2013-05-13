@@ -52,7 +52,7 @@ exports.getPreferedLocales = function getPreferedLocales() {
   // Third priority is the list of locales used for web content
   let contentLocales = prefs.get(PREF_ACCEPT_LANGUAGES, "");
   if (contentLocales) {
-    // This list is a string of locales seperated by commas.
+    // This list is a string of locales separated by commas.
     // There is spaces after commas, so strip each item
     for each(let locale in contentLocales.split(","))
       addLocale(locale.replace(/(^\s+)|(\s+$)/g, ""));

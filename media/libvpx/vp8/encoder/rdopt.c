@@ -1863,7 +1863,7 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset,
         // We have now reached the point where we are going to test the current mode so increment the counter for the number of times it has been tested
         cpi->mode_test_hit_counts[mode_index] ++;
 
-        // Experimental code. Special case for gf and arf zeromv modes. Increase zbin size to supress noise
+        // Experimental code. Special case for gf and arf zeromv modes. Increase zbin size to suppress noise
         if (cpi->zbin_mode_boost_enabled)
         {
             if ( this_ref_frame == INTRA_FRAME )

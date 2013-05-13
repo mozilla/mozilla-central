@@ -672,7 +672,7 @@ crypto_policy_set_aes_cm_256_hmac_sha1_32(crypto_policy_t *p);
  *
  * @return
  *    - err_status_ok             if there no problems.
- *    - err_status_dealloc_fail   a memory deallocation failure occured.
+ *    - err_status_dealloc_fail   a memory deallocation failure occurred.
  */
 
 err_status_t
@@ -934,7 +934,7 @@ srtp_unprotect_rtcp(srtp_t ctx, void *srtcp_hdr, int *pkt_octet_len);
 
 typedef enum { 
   event_ssrc_collision,    /**<
-			    * An SSRC collision occured.             
+			    * An SSRC collision occurred.             
 			    */
   event_key_soft_limit,    /**< An SRTP stream reached the soft key
 			    *   usage limit and will expire soon.	   

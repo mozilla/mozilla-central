@@ -310,7 +310,7 @@ mozTXTToHTMLConv::FindURLEnd(const PRUnichar * aInString, int32_t aInStringLengt
           aInString[i] == '|' ||
           (aInString[i] == ')' && !seenOpeningParenthesis) ||
           (aInString[i] == ']' && !seenOpeningSquareBracket) ||
-          // Allow IPv6 adresses like http://[1080::8:800:200C:417A]/foo.
+          // Allow IPv6 addresses like http://[1080::8:800:200C:417A]/foo.
           (aInString[i] == '[' && i > 2 &&
            (aInString[i - 1] != '/' || aInString[i - 2] != '/')) ||
           IsSpace(aInString[i]))

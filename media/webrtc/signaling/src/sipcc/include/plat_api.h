@@ -296,7 +296,7 @@ void platRemoveCallControlClassifiers();
 /**
  * Tell whether wifi is supported and active
  *
- * @return boolean wether WLAN is active or not
+ * @return boolean whether WLAN is active or not
  */
 cc_boolean	platWlanISActive();
 

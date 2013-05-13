@@ -5,7 +5,7 @@
 //------------------------------------------------------------------------------
 // Tracked is the base class for all tracked objects.  During construction, it
 // registers the fact that an instance was created, and at destruction time, it
-// records that event.  The instance may be tagged with a name, which is refered
+// records that event.  The instance may be tagged with a name, which is referred
 // to as its Location.  The Location is a file and line number, most
 // typically indicated where the object was constructed.  In some cases, as the
 // object's significance is refined (for example, a Task object is augmented to

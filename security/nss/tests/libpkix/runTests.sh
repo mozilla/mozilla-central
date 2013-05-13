@@ -11,7 +11,7 @@
 #
 # This test is the original of libpkix.sh. While libpkix.sh is invoked by
 # all.sh as a /bin/sh script, runTests.sh is a /bin/ksh and provides the
-# options of checking memory and using different memory allcation schemes.
+# options of checking memory and using different memory allocation schemes.
 #
 
 errors=0

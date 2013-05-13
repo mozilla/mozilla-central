@@ -490,7 +490,7 @@ NSPR_API(PRCounterHandle)
 ** 
 ** INPUTS:
 **  handle: PRCounterHandle or NULL.
-**  qhandle: PRCounterHandle of a previously aquired via
+**  qhandle: PRCounterHandle of a previously acquired via
 ** PR_FIND_NEXT_QNAME_HANDLE()
 ** 
 ** OUTPUTS: returned

@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-// System independant wrapper for polling elapsed time in ms and us.
+// System independent wrapper for polling elapsed time in ms and us.
 // The implementation works in the tick domain which can be mapped over to the
 // time domain.
 #ifndef WEBRTC_SYSTEM_WRAPPERS_INTERFACE_TICK_UTIL_H_

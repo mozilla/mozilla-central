@@ -75,7 +75,7 @@ nsDiskCacheBinding *   GetCacheEntryBinding(nsCacheEntry * entry);
  *
  *  Not all nsDiskCacheBinding have a generation number.
  *
- *  Generation numbers may be aquired late, or lost (when data fits in block file)
+ *  Generation numbers may be acquired late, or lost (when data fits in block file)
  *
  *  Collisions can occur:
  *      BindEntry()       - hashnumbers collide (possibly different keys)

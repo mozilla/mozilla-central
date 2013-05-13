@@ -630,7 +630,7 @@ do_accepts(
 	}
 	myLink = PR_LIST_HEAD(&freeJobs);
 	PR_REMOVE_AND_INIT_LINK(myLink);
-	/* could release qLock here and reaquire it 7 lines below, but 
+	/* could release qLock here and reacquire it 7 lines below, but 
 	** why bother for 4 assignment statements? 
 	*/
 	{

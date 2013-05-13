@@ -27,14 +27,14 @@ int32_t sk_atomic_dec(int32_t* addr) {
     *addr = value - 1;
     return value;
 }
-void sk_membar_aquire__after_atomic_dec() { }
+void sk_membar_acquire__after_atomic_dec() { }
 
 int32_t sk_atomic_conditional_inc(int32_t* addr) {
     int32_t value = *addr;
     if (value != 0) ++*addr;
     return value;
 }
-void sk_membar_aquire__after_atomic_conditional_inc() { }
+void sk_membar_acquire__after_atomic_conditional_inc() { }
 
 SkMutex::SkMutex() {}
 

@@ -527,7 +527,7 @@ nssutil_DeleteSecmodDB(const char *appName,
 	if (!skip) {
 	    fputs(line,fd2);
 	}
-	/* we are definately not in a deleted block anymore */
+	/* we are definitely not in a deleted block anymore */
 	skip = PR_FALSE;
     } 
     fclose(fd);

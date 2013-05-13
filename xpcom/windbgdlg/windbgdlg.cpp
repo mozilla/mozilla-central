@@ -72,7 +72,7 @@ wWinMain(HINSTANCE  hInstance, HINSTANCE  hPrevInstance,
          LPWSTR  lpszCmdLine, int  nCmdShow)
 {
     /* support for auto answering based on words in the assertion.
-     * the assertion message is sent as a series of arguements (words) to the commandline.
+     * the assertion message is sent as a series of arguments (words) to the commandline.
      * set a "word" to 0xffffffff to let the word not affect this code.
      * set a "word" to 0xfffffffe to show the dialog.
      * set a "word" to 0x5 to ignore (program should continue).

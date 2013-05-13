@@ -1719,7 +1719,7 @@ void do_breakpad_unwind_Buffer(/*OUT*/PCandSP** pairs,
         n_frames_good++;
       }
 
-      /* Once we've seen more than some threshhold number of dubious
+      /* Once we've seen more than some threshold number of dubious
          frames, give up.  Doing that gives better results than
          polluting the profiling results with junk frames.  Because
          the entries are put into the pairs array starting at the end,

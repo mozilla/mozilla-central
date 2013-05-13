@@ -52,6 +52,6 @@ else:
 
     print("Expected: {0}; found: {1}".format(expected_count, count))
     for k in sorted(details):
-        print("Found {0} occurences in {1}".format(details[k],k))
+        print("Found {0} occurrences in {1}".format(details[k],k))
     sys.exit(-1)
 

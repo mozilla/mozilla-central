@@ -483,7 +483,7 @@ StartupCache::WriteToDisk()
   mArchive = NULL;
   zipW->Close();
 
-  // We succesfully wrote the archive to disk; mark the disk file as trusted
+  // We successfully wrote the archive to disk; mark the disk file as trusted
   gIgnoreDiskCache = false;
 
   // Our reader's view of the archive is outdated now, reload it.

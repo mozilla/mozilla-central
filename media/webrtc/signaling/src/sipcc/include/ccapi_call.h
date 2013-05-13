@@ -17,7 +17,7 @@ cc_callinfo_ref_t CCAPI_Call_getCallInfo(cc_call_handle_t handle);
 
 /**
  * Release the resources held by this call info snapshot
- * @param [in] ref - refrence to the call info to be freed
+ * @param [in] ref - reference to the call info to be freed
  * @return void
  */
 void CCAPI_Call_releaseCallInfo(cc_callinfo_ref_t ref);

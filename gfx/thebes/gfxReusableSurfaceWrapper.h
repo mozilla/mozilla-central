@@ -15,7 +15,7 @@ class gfxImageSurface;
  * Provides a cross thread wrapper for a gfxImageSurface
  * that has copy-on-write schemantics.
  *
- * Only the owner thread can write to the surface and aquire
+ * Only the owner thread can write to the surface and acquire
  * read locks.
  *
  * OMTC Usage:

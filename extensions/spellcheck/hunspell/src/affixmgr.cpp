@@ -1359,7 +1359,7 @@ int AffixMgr::cpdrep_check(const char * word, int wl)
       r = word;
       lenr = strlen(reptable[i].pattern2);
       lenp = strlen(reptable[i].pattern);
-      // search every occurence of the pattern in the word
+      // search every occurrence of the pattern in the word
       while ((r=strstr(r, reptable[i].pattern)) != NULL) {
           strcpy(candidate, word);
           if (r-word + lenr + strlen(r+lenp) >= MAXLNLEN) break;

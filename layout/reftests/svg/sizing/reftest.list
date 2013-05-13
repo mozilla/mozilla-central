@@ -17,7 +17,7 @@ skip-if(B2G) != scrollbars-02.svg scrollbars-01-anti-ref.svg
 # Standalone tests
 #
 # To get reasonable test coverage of the implementation of the replaced element
-# algorythm we test all permutations of the CSS 'width' and 'height' properties
+# algorithm we test all permutations of the CSS 'width' and 'height' properties
 # having the values zero, auto, a px value or a percentage value, and of the
 # intrinsic width and height (the 'width' and 'height' attributes) having the
 # values zero, a px value or a percentage value. This gives us 4*4*3*3 == 144

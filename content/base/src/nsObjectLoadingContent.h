@@ -293,7 +293,7 @@ class nsObjectLoadingContent : public nsImageLoadingContent
       // Parameters that affect displayed content changed
       // - mURI, mContentType, mType, mBaseURI
       eParamStateChanged       = 1u << 1,
-      // The effective content type changed, independant of object type. This
+      // The effective content type changed, independent of object type. This
       // can happen when changing from Loading -> Final type, but doesn't
       // necessarily happen when changing between object types. E.g., if a PDF
       // handler was installed between the last load of this object and now, we

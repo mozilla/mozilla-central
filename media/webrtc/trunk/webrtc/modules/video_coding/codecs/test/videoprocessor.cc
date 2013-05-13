@@ -235,7 +235,7 @@ void VideoProcessorImpl::FrameEncoded(EncodedImage* encoded_image) {
   stat.total_packets = encoded_image->_length /
       config_.networking_config.packet_size_in_bytes + 1;
 
-  // Perform packet loss if criteria is fullfilled:
+  // Perform packet loss if criteria is fulfilled:
   bool exclude_this_frame = false;
   // Only keyframes can be excluded
   if (encoded_image->_frameType == kKeyFrame) {

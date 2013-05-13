@@ -8,7 +8,7 @@
 **
 ** Name: accept.c
 **
-** Description: Run accept() sucessful connection tests.
+** Description: Run accept() successful connection tests.
 **
 ** Modification History:
 ** 04-Jun-97 AGarcia - Reconvert test file to return a 0 for PASS and a 1 for FAIL
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
 
     timeoutTime = PR_SecondsToInterval(TIMEOUTSECS);
     if (debug_mode)
-        PR_fprintf(output, "\nRun accept() sucessful connection tests\n");
+        PR_fprintf(output, "\nRun accept() successful connection tests\n");
 
     Measure(AcceptUpdatedTest, "PR_Accept()");
     Measure(AcceptReadTest, "PR_AcceptRead()");

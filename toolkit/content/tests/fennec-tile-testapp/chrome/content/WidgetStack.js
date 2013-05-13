@@ -669,7 +669,7 @@ WidgetStack.prototype = {
   // setPanHandler
   // uh: A function object
   //
-  // The given functin object is called whenever elements pan; it provides
+  // The given function object is called whenever elements pan; it provides
   // the new area of the pannable bounds that's visible in the stack.
   setPanHandler: function (uh) {
     this._panHandler = uh;

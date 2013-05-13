@@ -2162,7 +2162,7 @@ sftk_HashNumber(const void *key)
 }
 
 /*
- * eventually I'd like to expunge all occurances of XXX_SLOT_ID and
+ * eventually I'd like to expunge all occurrences of XXX_SLOT_ID and
  * just go with the info in the slot. This is one place, however,
  * where it might be a little difficult.
  */
@@ -2991,7 +2991,7 @@ CK_RV nsc_CommonFinalize (CK_VOID_PTR pReserved, PRBool isFIPS)
     sftk_CleanupFreeLists();
     sftkdb_Shutdown();
 
-    /* This function does not discard all our previously aquired entropy. */
+    /* This function does not discard all our previously acquired entropy. */
     RNG_RNGShutdown();
 
     /* tell freeBL to clean up after itself */

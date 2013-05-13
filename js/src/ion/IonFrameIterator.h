@@ -20,7 +20,7 @@ namespace ion {
 enum FrameType
 {
     // A JS frame is analagous to a js::StackFrame, representing one scripted
-    // functon activation. OptimizedJS frames are used by the optimizing compiler.
+    // function activation. OptimizedJS frames are used by the optimizing compiler.
     IonFrame_OptimizedJS,
 
     // JS frame used by the baseline JIT.

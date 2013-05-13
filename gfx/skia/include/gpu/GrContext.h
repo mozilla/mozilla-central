@@ -408,7 +408,7 @@ public:
      * @param   positions       array of vertex positions, required.
      * @param   texCoords       optional array of texture coordinates used
      *                          to access the paint.
-     * @param   colors          optional array of per-vertex colors, supercedes
+     * @param   colors          optional array of per-vertex colors, supersedes
      *                          the paint's color field.
      * @param   indices         optional array of indices. If NULL vertices
      *                          are drawn non-indexed.

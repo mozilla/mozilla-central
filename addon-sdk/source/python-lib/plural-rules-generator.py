@@ -49,7 +49,7 @@ def parseCondition(g):
     if operator == "not in":
         notPrefix = "!"
 
-    # `rvalue` is a comma seperated list of either:
+    # `rvalue` is a comma separated list of either:
     #  - numbers: 42
     #  - ranges: 42..72
     sections = rvalue.split(',')

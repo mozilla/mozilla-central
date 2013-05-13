@@ -115,7 +115,7 @@ function parseCacheLine(app, urls, line) {
 function parseFallbackLine(app, namespaces, fallbacks, line) {
   let split = line.split(/[ \t]+/);
   if (split.length != 2) {
-    throw new Error('Should be made of two URLs seperated with spaces')
+    throw new Error('Should be made of two URLs separated with spaces')
   }
   let type = Ci.nsIApplicationCacheNamespace.NAMESPACE_FALLBACK;
   let [ namespace, fallback ] = split;

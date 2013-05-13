@@ -1486,7 +1486,7 @@ UBool RegexCompile::doParseActions(int32_t action)
 
             // On the Parentheses stack, start a new frame and add the postions
             //   of the two NOPs (a normal non-capturing () frame, except for the
-            //   saving of the orignal mode flags.)
+            //   saving of the original mode flags.)
             fParenStack.push(fModeFlags, *fStatus);
             fParenStack.push(flags, *fStatus);                            // Frame Marker
             fParenStack.push(fRXPat->fCompiledPat->size()-2, *fStatus);   // The first NOP

@@ -128,7 +128,7 @@ nsAsyncInstantiateEvent::Run()
     static_cast<nsObjectLoadingContent *>(mContent.get());
 
   // If objLC is no longer tracking this event, we've been canceled or
-  // superceded
+  // superseded
   if (objLC->mPendingInstantiateEvent != this) {
     return NS_OK;
   }
@@ -161,7 +161,7 @@ CheckPluginStopEvent::Run()
     static_cast<nsObjectLoadingContent *>(mContent.get());
 
   // If objLC is no longer tracking this event, we've been canceled or
-  // superceded
+  // superseded
   if (objLC->mPendingCheckPluginStopEvent != this) {
     return NS_OK;
   }

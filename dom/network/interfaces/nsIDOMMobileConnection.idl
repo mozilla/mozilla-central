@@ -72,7 +72,7 @@ interface nsIDOMMozMobileConnection : nsIDOMEventTarget
   readonly attribute DOMString networkSelectionMode;
 
   /**
-   * IccManager provides access to ICC related funcionality.
+   * IccManager provides access to ICC related functionality.
    */
   readonly attribute nsIDOMMozIccManager icc;
 

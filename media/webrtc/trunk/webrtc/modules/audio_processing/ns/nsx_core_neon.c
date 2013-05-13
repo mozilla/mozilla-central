@@ -492,7 +492,7 @@ void WebRtcNsx_DenormalizeNeon(NsxInst_t* inst, int16_t* in, int factor) {
   }
 }
 
-// For the noise supress process, synthesis, read out fully processed segment,
+// For the noise suppress process, synthesis, read out fully processed segment,
 // and update synthesis buffer.
 void WebRtcNsx_SynthesisUpdateNeon(NsxInst_t* inst,
                                    int16_t* out_frame,

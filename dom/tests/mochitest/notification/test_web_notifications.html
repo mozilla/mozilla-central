@@ -33,9 +33,9 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=782211
 
       try {
         Notification.requestPermission({});
-        ok(false, "Non callable arugment to request permission should throw exception.");
+        ok(false, "Non callable argument to request permission should throw exception.");
       } catch (ex) {
-        ok(true, "Non callable arugment to request permission should throw exception.");
+        ok(true, "Non callable argument to request permission should throw exception.");
       }
 
       var notification = new Notification("This is a title", {

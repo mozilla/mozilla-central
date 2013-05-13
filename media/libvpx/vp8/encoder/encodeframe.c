@@ -1223,7 +1223,7 @@ int vp8cx_encode_inter_macroblock
 
     {
         // Experimental code. Special case for gf and arf zeromv modes.
-        // Increase zbin size to supress noise
+        // Increase zbin size to suppress noise
         cpi->zbin_mode_boost = 0;
         if (cpi->zbin_mode_boost_enabled)
         {

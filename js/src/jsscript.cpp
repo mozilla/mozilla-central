@@ -1923,7 +1923,7 @@ bool
 JSScript::enclosingScriptsCompiledSuccessfully() const
 {
     /*
-     * When a nested script is succesfully compiled, it is eagerly given the
+     * When a nested script is successfully compiled, it is eagerly given the
      * static JSFunction of its enclosing script. The enclosing function's
      * 'script' field will be NULL until the enclosing script successfully
      * compiles. Thus, we can detect failed compilation by looking for

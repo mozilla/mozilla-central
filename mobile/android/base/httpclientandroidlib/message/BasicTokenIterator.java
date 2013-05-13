@@ -354,7 +354,7 @@ public class BasicTokenIterator implements TokenIterator {
     /**
      * Checks whether a character is a whitespace character.
      * RFC 2616, section 2.2 defines space and horizontal tab as whitespace.
-     * The optional preceeding line break is irrelevant, since header
+     * The optional preceding line break is irrelevant, since header
      * continuation is handled transparently when parsing messages.
      *
      * @param ch        the character to check

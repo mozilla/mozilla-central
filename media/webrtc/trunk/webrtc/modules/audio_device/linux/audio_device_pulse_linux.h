@@ -67,7 +67,7 @@ const WebRtc_UWord32 WEBRTC_PA_PLAYBACK_REQUEST_FACTOR = 2;
 // For capture, low latency is not a buffer overflow risk, but it makes us burn
 // CPU from the overhead of transfering small amounts of data at once, so we set
 // a recommended value that we use for the kLowLatency constant (but if the user
-// explicitly requests something lower then we will honour it).
+// explicitly requests something lower than we will honour it).
 // 1ms takes about 6-7% CPU. 5ms takes about 5%. 10ms takes about 4.x%.
 const WebRtc_UWord32 WEBRTC_PA_LOW_CAPTURE_LATENCY_MSECS = 10;
 

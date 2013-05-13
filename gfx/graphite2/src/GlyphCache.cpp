@@ -121,7 +121,7 @@ GlyphCache::GlyphCache(const Face & face, const uint32 face_options)
         if (!glyphs)
             return;
 
-        // The 0 glyph is definately required.
+        // The 0 glyph is definitely required.
         _glyphs[0] = _glyph_loader->read_glyph(0, glyphs[0]);
 
         // glyphs[0] has the same address as the glyphs array just allocated,

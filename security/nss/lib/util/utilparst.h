@@ -13,7 +13,7 @@
  *
  *  param is the input parameters. On exit param will point to the next parameter to parse. If the
  *      last paramter has been returned, param points to a null byte (*param = '0');
- *  target is the location to store any data aquired from the parameter. Caller is responsible to free this data.
+ *  target is the location to store any data acquired from the parameter. Caller is responsible to free this data.
  *  value is the string value of the parameter.
  *  command is any commands you need to run to help process the parameter's data.
  */

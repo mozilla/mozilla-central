@@ -627,7 +627,7 @@ template class U_I18N_API    EnumSet<UNumberFormatAttribute,
  * increment in the pattern itself.  "#,#50" specifies a rounding increment of
  * 50.  "#,##0.05" specifies a rounding increment of 0.05.
  *
- * <p>In the absense of an explicit rounding increment numbers are
+ * <p>In the absence of an explicit rounding increment numbers are
  * rounded to their formatted width.
  *
  * <ul>
@@ -814,7 +814,7 @@ public:
      * @param pattern           a non-localized pattern string
      * @param symbolsToAdopt    the set of symbols to be used.  The caller should not
      *                          delete this object after making this call.
-     * @param parseError        Output param to receive errors occured during parsing
+     * @param parseError        Output param to receive errors occurred during parsing
      * @param status            Output param set to success/failure code. If the
      *                          pattern is invalid this will be set to a failure code.
      * @stable ICU 2.0
@@ -1728,7 +1728,7 @@ public:
      * these are presumed to be set in the positive pattern.
      *
      * @param pattern    The pattern to be applied.
-     * @param parseError Struct to recieve information on position
+     * @param parseError Struct to receive information on position
      *                   of error if an error is encountered
      * @param status     Output param set to success/failure code on
      *                   exit. If the pattern is invalid, this will be
@@ -1772,7 +1772,7 @@ public:
      * these are presumed to be set in the positive pattern.
      *
      * @param pattern   The localized pattern to be applied.
-     * @param parseError Struct to recieve information on position
+     * @param parseError Struct to receive information on position
      *                   of error if an error is encountered
      * @param status    Output param set to success/failure code on
      *                  exit. If the pattern is invalid, this will be
@@ -1990,7 +1990,7 @@ private:
      * Does the real work of applying a pattern.
      * @param pattern    The pattern to be applied.
      * @param localized  If true, the pattern is localized; else false.
-     * @param parseError Struct to recieve information on position
+     * @param parseError Struct to receive information on position
      *                   of error if an error is encountered
      * @param status     Output param set to success/failure code on
      *                   exit. If the pattern is invalid, this will be

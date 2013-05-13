@@ -583,7 +583,7 @@
         <richlistbox id="context-commands" bindingType="contextmenu" flex="1">
           <!-- priority="low" items are hidden by default when a context is being displayed
                for two or more media types. (e.g. a linked image) -->
-          <!-- content types preceeded by '!' act as exclusion rules, the menu item will not
+          <!-- content types preceded by '!' act as exclusion rules, the menu item will not
                be displayed if the content type is present. -->
           <!-- Note the order of richlistitem here is important as it is reflected in the
                menu itself. -->

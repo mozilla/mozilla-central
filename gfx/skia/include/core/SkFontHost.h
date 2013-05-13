@@ -29,7 +29,7 @@ class SkWStream;
     underlying font file/data, not unique per typeface instance. Thus it is
     possible/common to request a typeface for the same font more than once
     (e.g. asking for the same font by name several times). The FontHost may
-    return seperate typeface instances in that case, or it may choose to use a
+    return separate typeface instances in that case, or it may choose to use a
     cache and return the same instance (but calling typeface->ref(), since the
     caller is always responsible for calling unref() on each instance that is
     returned). Either way, the fontID for those instance(s) will be the same.
@@ -195,7 +195,7 @@ public:
 
     /** Copy into tags[] (allocated by the caller) the list of table tags in
         the font, and return the number. This will be the same as CountTables()
-        or 0 if an error occured.
+        or 0 if an error occurred.
      */
     static int GetTableTags(SkFontID, SkFontTableTag[]);
 
@@ -208,7 +208,7 @@ public:
         (which for most truetype tables is big endian). If the table tag is
         not found, or there is an error copying the data, then 0 is returned.
         If this happens, it is possible that some or all of the memory pointed
-        to by data may have been written to, even though an error has occured.
+        to by data may have been written to, even though an error has occurred.
 
         @param fontID the font to copy the table from
         @param tag  The table tag whose contents are to be copied

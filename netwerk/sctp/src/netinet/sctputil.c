@@ -1618,7 +1618,7 @@ sctp_timeout_handler(void *t)
 			return;
 		}
 	}
-	/* record in stopped what t-o occured */
+	/* record in stopped what t-o occurred */
 	tmr->stopped_from = tmr->type;
 
 	/* mark as being serviced now */
@@ -7744,7 +7744,7 @@ void
 sctp_over_udp_stop(void)
 {
 	/*
-	 * This function assumes sysctl caller holds sctp_sysctl_info_lock() for writting!
+	 * This function assumes sysctl caller holds sctp_sysctl_info_lock() for writing!
 	 */
 #ifdef INET
 	if (SCTP_BASE_INFO(udp4_tun_socket) != NULL) {
@@ -7773,7 +7773,7 @@ sctp_over_udp_start(void)
 	struct sockaddr_in6 sin6;
 #endif
 	/*
-	 * This function assumes sysctl caller holds sctp_sysctl_info_lock() for writting!
+	 * This function assumes sysctl caller holds sctp_sysctl_info_lock() for writing!
 	 */
 	port = SCTP_BASE_SYSCTL(sctp_udp_tunneling_port);
 	if (ntohs(port) == 0) {

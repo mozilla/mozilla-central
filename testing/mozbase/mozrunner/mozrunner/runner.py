@@ -187,7 +187,7 @@ class Runner(object):
         Wait for the app to exit.
 
         If timeout is not None, will return after timeout seconds.
-        Use is_running() to determine whether or not a timeout occured.
+        Use is_running() to determine whether or not a timeout occurred.
         Timeout is ignored if interactive was set to True.
         """
         if self.process_handler is None:

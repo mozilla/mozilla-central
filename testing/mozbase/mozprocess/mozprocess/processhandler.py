@@ -447,7 +447,7 @@ falling back to not using job objects for managing child processes"""
                         print "Single process terminated successfully"
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
                     else:
-                        # An error occured we should probably throw
+                        # An error occurred we should probably throw
                         rc = winprocess.GetLastError()
                         if rc:
                             raise WinError(rc)

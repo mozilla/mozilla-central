@@ -118,7 +118,7 @@ function nodeSearch(doc, func, string) {
  */
 function Selector(_document, selector, index) {
   if (selector == undefined) {
-    throw new Error('Selector constructor did not recieve enough arguments.');
+    throw new Error('Selector constructor did not receive enough arguments.');
   }
   this.selector = selector;
   this.getNodeForDocument = function (s) {
@@ -135,7 +135,7 @@ function Selector(_document, selector, index) {
  */
 function ID(_document, nodeID) {
   if (nodeID == undefined) {
-    throw new Error('ID constructor did not recieve enough arguments.');
+    throw new Error('ID constructor did not receive enough arguments.');
   }
   this.getNodeForDocument = function (nodeID) {
     return this.document.getElementById(nodeID);
@@ -150,7 +150,7 @@ function ID(_document, nodeID) {
  */
 function Link(_document, linkName) {
   if (linkName == undefined) {
-    throw new Error('Link constructor did not recieve enough arguments.');
+    throw new Error('Link constructor did not receive enough arguments.');
   }
 
   this.getNodeForDocument = function (linkName) {
@@ -201,7 +201,7 @@ function Link(_document, linkName) {
  */
 function XPath(_document, expr) {
   if (expr == undefined) {
-    throw new Error('XPath constructor did not recieve enough arguments.');
+    throw new Error('XPath constructor did not receive enough arguments.');
   }
 
   this.getNodeForDocument = function (s) {
@@ -232,7 +232,7 @@ function XPath(_document, expr) {
  */
 function Name(_document, nName) {
   if (nName == undefined) {
-    throw new Error('Name constructor did not recieve enough arguments.');
+    throw new Error('Name constructor did not receive enough arguments.');
   }
   this.getNodeForDocument = function (s) {
     try{
@@ -364,7 +364,7 @@ var _anonByIndex = function (_document, parent, i) {
  */
 function Lookup (_document, expression) {
   if (expression == undefined) {
-    throw new Error('Lookup constructor did not recieve enough arguments.');
+    throw new Error('Lookup constructor did not receive enough arguments.');
   }
 
   var expSplit = [e for each (e in smartSplit(expression) ) if (e != '')];

@@ -42,7 +42,7 @@ function runTest() {
     if (numIconChanges == 1) {
       is(e.detail, 'http://example.com/myicon.png');
 
-      // We should recieve iconchange events when the user creates new links
+      // We should receive iconchange events when the user creates new links
       // to a favicon, but only when we listen for them
       SpecialPowers.getBrowserFrameMessageManager(iframe1)
                    .loadFrameScript("data:,content.document.title='New title';",
@@ -65,7 +65,7 @@ function runTest() {
     else if (numIconChanges == 3) {
       is(e.detail, 'http://example.com/3rdicon.png');
 
-      // the rel attribute can have various space seperated values, make
+      // the rel attribute can have various space separated values, make
       // sure we only pick up correct values for 'icon'
       SpecialPowers.getBrowserFrameMessageManager(iframe1)
                    .loadFrameScript("data:,content.document.head.insertAdjacentHTML('beforeend', '<link rel=shortcuticon href=http://example.com/newicon.png>')",
@@ -99,7 +99,7 @@ function runTest() {
 
 
   iframe1.src = createHtml(createLink('myicon'));
-  // We should not recieve icon change events for either of the below iframes
+  // We should not receive icon change events for either of the below iframes
   iframe2.src = createHtml(createLink('myicon'));
   iframe3.src = createHtml(createLink('myicon'));
 

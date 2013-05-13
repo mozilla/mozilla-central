@@ -231,11 +231,11 @@ typedef unsigned __int64 uint64;
 //         "program with --v=1 or more";
 //   VLOG_EVERY_N(1, 10)
 //      << "I'm printed every 10th occurrence, and when you run the program "
-//         "with --v=1 or more. Present occurence is " << COUNTER;
+//         "with --v=1 or more. Present occurrence is " << COUNTER;
 //   VLOG_IF_EVERY_N(1, (size > 1024), 10)
-//      << "I'm printed on every 10th occurence of case when size is more "
+//      << "I'm printed on every 10th occurrence of case when size is more "
 //         " than 1024, when you run the program with --v=1 or more. ";
-//         "Present occurence is " << COUNTER;
+//         "Present occurrence is " << COUNTER;
 //
 // The supported severity levels for macros that allow you to specify one
 // are (in increasing order of severity) INFO, WARNING, ERROR, and FATAL.

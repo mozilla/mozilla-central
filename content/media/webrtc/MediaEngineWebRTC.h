@@ -378,7 +378,7 @@ private:
   webrtc::VideoEngine* mVideoEngine;
   webrtc::VoiceEngine* mVoiceEngine;
 
-  // Need this to avoid unneccesary WebRTC calls while enumerating.
+  // Need this to avoid unnecessary WebRTC calls while enumerating.
   bool mVideoEngineInit;
   bool mAudioEngineInit;
 

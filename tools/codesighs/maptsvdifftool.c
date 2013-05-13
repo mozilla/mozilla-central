@@ -646,7 +646,7 @@ int difftool(Options* inOptions)
     **      is even, as if it is odd, then any one of the many could be
     **      at fault for the actual change.
     **
-    **  This orginally exists to make the win32 codesighs reports more
+    **  This originally exists to make the win32 codesighs reports more
     **      readable/meaningful.
     */
     if(0 == retval && 0 != inOptions->mNegation)
@@ -1100,7 +1100,7 @@ int initOptions(Options* outOptions, int inArgc, char** inArgv)
                 if(gSwitches[switchLoop]->mHasValue)
                 {
                     /*
-                    **  Attempt to absorb next option to fullfill value.
+                    **  Attempt to absorb next option to fulfill value.
                     */
                     if(loop + 1 < inArgc)
                     {

@@ -34,7 +34,7 @@ void CCAPI_Device_configUpdate(cc_device_handle_t handle, file_path_t file_path)
 /**
  * Retain the deviceInfo snapshot - this info shall not be freed until a
  * CCAPI_Device_releaseDeviceInfo() API releases this resource.
- * @param [in] ref - refrence to the block to be freed
+ * @param [in] ref - reference to the block to be freed
  * @return void
  * NOTE: Application may use this API to retain the device info using this API inside
  * CCAPI_DeviceListener_onDeviceEvent() App must release the Info using

@@ -2160,7 +2160,7 @@ RadioInterfaceLayer.prototype = {
     // Some MMI codes trigger radio operations, but unfortunately the RIL only
     // supports cancelling USSD requests so far. Despite that, in order to keep
     // the API uniformity, we are wrapping the cancelUSSD function within the
-    // cancelMMI funcion.
+    // cancelMMI function.
     debug("Cancel pending USSD");
     message.rilMessageType = "cancelUSSD";
     this.worker.postMessage(message);
@@ -2950,7 +2950,7 @@ RILNetworkInterface.prototype = {
 
   /**
    * Standard values for the APN connection retry process
-   * Retry funcion: time(secs) = A * numer_of_retries^2 + B
+   * Retry function: time(secs) = A * numer_of_retries^2 + B
    */
   NETWORK_APNRETRY_FACTOR: 8,
   NETWORK_APNRETRY_ORIGIN: 3,

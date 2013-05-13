@@ -335,7 +335,7 @@ public:
                               bool aNoEmptyNodes);
 
   // Use this to assure that selection is set after attribute nodes when 
-  //  trying to collapse selection at begining of a block node
+  //  trying to collapse selection at beginning of a block node
   //  e.g., when setting at beginning of a table cell
   // This will stop at a table, however, since we don't want to
   //  "drill down" into nested tables.

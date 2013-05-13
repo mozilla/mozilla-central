@@ -34,7 +34,7 @@ new TestCase( SECTION,  "-(String.fromCharCode(0x000B)",   -0,  -(String.fromCha
 new TestCase( SECTION,  "-(String.fromCharCode(0x000D)",   -0,  -(String.fromCharCode(0x000D)) );
 new TestCase( SECTION,  "-(String.fromCharCode(0x000A)",   -0,  -(String.fromCharCode(0x000A)) );
 
-//  a StringNumericLiteral may be preceeded or followed by whitespace and/or
+//  a StringNumericLiteral may be preceded or followed by whitespace and/or
 //  line terminators
 
 new TestCase( SECTION,  "-( '   ' +  999 )",        -999,    -( '   '+999) );

@@ -5,7 +5,7 @@
 // This executes a very simple search for all functions that call a
 // given set of functions. It's intended to be the simplest possible
 // way of refactoring a common pattern of function calls. Of course,
-// it's still up to a human to decide if the replacement is truely
+// it's still up to a human to decide if the replacement is truly
 // suitable, but this gets the low-hanging fruit.
 
 // Expects the variable 'patterns' to hold an object with replacement

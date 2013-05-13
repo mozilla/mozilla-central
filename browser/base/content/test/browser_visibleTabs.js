@@ -27,7 +27,7 @@ function test() {
   gBrowser.selectedTab = testTab;
   gBrowser.showOnlyTheseTabs([testTab]);
 
-  // if the tabview frame is initialized, we need to move the orignal tab to
+  // if the tabview frame is initialized, we need to move the original tab to
   // another group; otherwise, selecting a tab would make all three tabs in 
   // the same group to display.
   let tabViewWindow = TabView.getContentWindow();

@@ -1744,7 +1744,7 @@ nsLocalFile::SetShortcut(nsIFile* targetFile,
  * @param remote Out parameter, on function success holds true if the specified
  *               file path is remote, or false if the file path is local.
  * @return true  on success. The return value implies absolutely nothing about
- *               wether the file is local or remote.
+ *               whether the file is local or remote.
 */
 static bool
 IsRemoteFilePath(LPCWSTR path, bool &remote)

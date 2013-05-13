@@ -215,7 +215,7 @@ public:
 
     // when download has been completed, pass back data here
     // aDownloadStatus == NS_OK ==> download succeeded, error otherwise
-    // returns true if platform font creation sucessful (or local()
+    // returns true if platform font creation successful (or local()
     // reference was next in line)
     // Ownership of aFontData is passed in here; the font set must
     // ensure that it is eventually deleted with NS_Free().

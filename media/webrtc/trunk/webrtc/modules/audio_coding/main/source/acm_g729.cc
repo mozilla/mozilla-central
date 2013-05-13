@@ -271,7 +271,7 @@ WebRtc_Word32 ACMG729::ReplaceInternalDTXSafe(const bool replace_internal_dtx) {
 }
 
 WebRtc_Word32 ACMG729::IsInternalDTXReplacedSafe(bool* internal_dtx_replaced) {
-  // Get status of wether DTX is replaced or not
+  // Get status of whether DTX is replaced or not
   *internal_dtx_replaced = !has_internal_dtx_;
   return 0;
 }

@@ -712,7 +712,7 @@ GhostURLsReporter::CollectReports(
   nsIMemoryMultiReporterCallback* aCb,
   nsISupports* aClosure)
 {
-  // Get the IDs of all the ghost windows in existance.
+  // Get the IDs of all the ghost windows in existence.
   nsTHashtable<nsUint64HashKey> ghostWindows;
   ghostWindows.Init();
   mWindowReporter->CheckForGhostWindows(&ghostWindows);

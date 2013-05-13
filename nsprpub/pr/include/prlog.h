@@ -146,7 +146,7 @@ NSPR_API(void) PR_SetLogBuffering(PRIntn buffer_size);
 
 /*
 ** Print a string to the log. "fmt" is a PR_snprintf format type. All
-** messages printed to the log are preceeded by the name of the thread
+** messages printed to the log are preceded by the name of the thread
 ** and a time stamp. Also, the routine provides a missing newline if one
 ** is not provided.
 */

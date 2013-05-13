@@ -35,8 +35,8 @@ function test() {
     _browser_tabfocus_test_lastfocus = gURLBar;
     _browser_tabfocus_test_lastfocuswindow = window;
 
-    window.addEventListener("focus", _browser_tabfocus_test_eventOccured, true);
-    window.addEventListener("blur", _browser_tabfocus_test_eventOccured, true);
+    window.addEventListener("focus", _browser_tabfocus_test_eventOccurred, true);
+    window.addEventListener("blur", _browser_tabfocus_test_eventOccurred, true);
 
     // make sure that the focus initially starts out blank
     var fm = Cc["@mozilla.org/focus-manager;1"].getService(Ci.nsIFocusManager);
@@ -159,12 +159,12 @@ function test() {
     EventUtils.synthesizeKey("VK_F6", { });
     is(fm.focusedWindow, window, "switch document forward again with f6 when browser non-focusable");
 
-    window.removeEventListener("focus", _browser_tabfocus_test_eventOccured, true);
-    window.removeEventListener("blur", _browser_tabfocus_test_eventOccured, true);
+    window.removeEventListener("focus", _browser_tabfocus_test_eventOccurred, true);
+    window.removeEventListener("blur", _browser_tabfocus_test_eventOccurred, true);
 
     // next, check whether navigating forward, focusing the urlbar and then
     // navigating back maintains the focus in the urlbar.
-    browser1.addEventListener("pageshow", _browser_tabfocus_navigation_test_eventOccured, true);
+    browser1.addEventListener("pageshow", _browser_tabfocus_navigation_test_eventOccurred, true);
     button1.focus();
     browser1.contentWindow.location = testPage3;
   }
@@ -179,7 +179,7 @@ var _browser_tabfocus_test_lastfocus;
 var _browser_tabfocus_test_lastfocuswindow = null;
 var _browser_tabfocus_test_events = "";
 
-function _browser_tabfocus_test_eventOccured(event)
+function _browser_tabfocus_test_eventOccurred(event)
 {
   var id;
   if (event.target instanceof Window)
@@ -196,7 +196,7 @@ function _browser_tabfocus_test_eventOccured(event)
   _browser_tabfocus_test_events += event.type + ": " + id;
 }
 
-function _browser_tabfocus_navigation_test_eventOccured(event)
+function _browser_tabfocus_navigation_test_eventOccurred(event)
 {
   if (event.target instanceof Document) {
     var contentwin = event.target.defaultView;
@@ -206,7 +206,7 @@ function _browser_tabfocus_navigation_test_eventOccured(event)
       setTimeout(function () contentwin.history.back(), 0);
     }
     else if (contentwin.location.toString().indexOf("2") > 0) {
-      event.currentTarget.removeEventListener("pageshow", _browser_tabfocus_navigation_test_eventOccured, true);
+      event.currentTarget.removeEventListener("pageshow", _browser_tabfocus_navigation_test_eventOccurred, true);
       is(window.document.activeElement, gURLBar.inputField, "urlbar still focused after navigating back");
       gBrowser.removeCurrentTab();
       gBrowser.removeCurrentTab();

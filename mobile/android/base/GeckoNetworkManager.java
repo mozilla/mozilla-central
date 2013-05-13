@@ -24,7 +24,7 @@ import android.util.Log;
  * Precision isn't important, we mostly need an order of magnitude.
  *
  * Each group is composed with networks represented by the constant from
- * Android's ConnectivityManager and the description comming from the same
+ * Android's ConnectivityManager and the description coming from the same
  * class.
  *
  * 2G (15 bk/s):

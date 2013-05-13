@@ -728,7 +728,7 @@ public:
     static bool isInputDevice(audio_devices device);
     static bool isA2dpDevice(audio_devices device);
     static bool isBluetoothScoDevice(audio_devices device);
-    static bool isSeperatedStream(stream_type stream);
+    static bool isSeparatedStream(stream_type stream);
     static bool isLowVisibility(stream_type stream);
     static bool isOutputChannel(uint32_t channel);
     static bool isInputChannel(uint32_t channel);

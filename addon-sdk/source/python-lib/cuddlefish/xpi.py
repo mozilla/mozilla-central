@@ -146,7 +146,7 @@ def build_xpi(template_root_dir, manifest, xpi_path,
     for language in sorted(harness_options['locale']):
         locales_json_data["locales"].append(language)
         locale = harness_options['locale'][language]
-        # Be carefull about strings, we need to always ensure working with UTF-8
+        # Be careful about strings, we need to always ensure working with UTF-8
         jsonStr = json.dumps(locale, indent=1, sort_keys=True, ensure_ascii=False)
         info = zipfile.ZipInfo('locale/' + language + '.json')
         info.external_attr = 0644 << 16L

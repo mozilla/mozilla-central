@@ -16,14 +16,14 @@
  * Samples are collected to form a timeline with optional timeline event (markers)
  * used for filtering.
  *
- * SPS collects samples in a platform independant way by using a speudo stack abstraction
+ * SPS collects samples in a platform independent way by using a speudo stack abstraction
  * of the real program stack by using 'sample stack frames'. When a sample is collected
  * all active sample stack frames and the program counter are recorded.
  */
 
 /* *************** SPS Sampler File Format ****************
  *
- * Simple new line seperated tag format:
+ * Simple new line separated tag format:
  * S      -> BOF tags EOF
  * tags   -> tag tags
  * tag    -> CHAR - STRING

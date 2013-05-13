@@ -1634,7 +1634,7 @@ sippmh_parse_contact_params (char *params, sipContactParams_t *contact_params)
                 }
             }
 
-            /* Parse action paramater */
+            /* Parse action parameter */
         } else if (cpr_strncasecmp(params, "action", 6) == 0) {
             params += 6;
             SKIP_LWS(params);
@@ -1652,7 +1652,7 @@ sippmh_parse_contact_params (char *params, sipContactParams_t *contact_params)
                 }
             }
 
-            /* Parse expires paramater */
+            /* Parse expires parameter */
         } else if (cpr_strncasecmp(params, "expires", 7) == 0) {
             params += 7;
             SKIP_LWS(params);
@@ -1717,7 +1717,7 @@ sippmh_parse_contact_params (char *params, sipContactParams_t *contact_params)
             good_params = TRUE;
             contact_params->flags |= SIP_CONTACT_PARM_X_CISCO_NEWREG;
 
-            /* Parse contact-extension paramater */
+            /* Parse contact-extension parameter */
         } else {
             if (params) {
                 params = parse_other_param(params, &contact_other_param);

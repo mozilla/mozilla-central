@@ -1890,7 +1890,7 @@ CK_RV PKM_HybridMode(CK_UTF8CHAR_PTR pwd, CK_ULONG pwdLen,
     CK_ULONG slotID_FC = 0;
     CK_RV crv = CKR_OK;
     CK_SESSION_HANDLE hSession;
-    int origMode = MODE; /* remember the orginal MODE value */ 
+    int origMode = MODE; /* remember the original MODE value */ 
 
     NUMTESTS++; /* increment NUMTESTS */
     MODE = NONFIPSMODE;
@@ -2049,7 +2049,7 @@ CK_RV PKM_HybridMode(CK_UTF8CHAR_PTR pwd, CK_ULONG pwdLen,
     if (pC_SlotList) free(pC_SlotList);
     if (pFC_SlotList) free(pFC_SlotList);
 
-    MODE = origMode; /* set the mode back to the orginal Mode value */
+    MODE = origMode; /* set the mode back to the original Mode value */
     PKM_LogIt("PKM_HybridMode test Completed\n\n");
     return crv;
 }
@@ -3928,7 +3928,7 @@ CK_RV PKM_MultiObjectManagement (CK_FUNCTION_LIST_PTR pFunctionList,
     }
 
     if (hThreeLen == hDeltaLen) {
-        PKM_LogIt("Copied object size same as orginal\n");
+        PKM_LogIt("Copied object size same as original\n");
     } else {
         PKM_Error("Copied object different from original\n");
         return CKR_DEVICE_ERROR;

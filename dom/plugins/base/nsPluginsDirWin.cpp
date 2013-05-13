@@ -95,7 +95,7 @@ static char** MakeStringArray(uint32_t variants, char* data)
 {
   // The number of variants has been calculated based on the mime
   // type array. Plugins are not explicitely required to match
-  // this number in two other arrays: file extention array and mime
+  // this number in two other arrays: file extension array and mime
   // description array, and some of them actually don't. 
   // We should handle such situations gracefully
 

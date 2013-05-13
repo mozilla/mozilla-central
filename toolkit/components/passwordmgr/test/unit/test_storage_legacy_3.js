@@ -529,7 +529,7 @@ dummyuser2.init("http://dummyhost.mozilla.org", "", null,
     "testuser1", "testpass1", "put_user_here", "put_pw_here");
 
 
-// Add a login, modify it, make sure orginal values are still stored.
+// Add a login, modify it, make sure original values are still stored.
 storage.addLogin(dummyuser1);
 LoginTest.checkStorageData(storage, [], [dummyuser2]);
 dummyuser1.usernameField = "ohnoes";

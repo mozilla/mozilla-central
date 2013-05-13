@@ -31,7 +31,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=682592
    enable bidi by itself, but it will not be detected. So, we need to have new
    document for each test.
 
-   So, instead of many diferent reftests, this mochitest implements a
+   So, instead of many different reftests, this mochitest implements a
    reftest-like. It creates reference text fragments in reference iframe, test
    text fragments in test iframe, and compare the documents. Then, it reloads
    test iframe. Reference iframe does not need to be reloaded between tests.

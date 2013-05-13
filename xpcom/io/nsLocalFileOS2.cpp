@@ -145,7 +145,7 @@ _mbsstr(const unsigned char* stringToSearch, const unsigned char* subString)
     return *pSub ? NULL : (unsigned char*)pStr;
 }
 
-// Locates last occurence of charToSearchFor in the stringToSearch
+// Locates last occurrence of charToSearchFor in the stringToSearch
 NS_EXPORT unsigned char*
 _mbsrchr(const unsigned char* stringToSearch, int charToSearchFor)
 {

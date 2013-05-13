@@ -2164,7 +2164,7 @@ ia64*-hpux*)
         # it off on MSVC, too.
         # MSVC warning C4345 warns of newly conformant behavior as of VS2003.
         # MSVC warning C4351 warns of newly conformant behavior as of VS2005.
-        # MSVC warning C4482 warns when an enum value is refered specifing the
+        # MSVC warning C4482 warns when an enum value is referred specifing the
         # name of the enum itself.  This behavior is allowed in C++11, and the
         # warning has been removed in VS2012.
         # MSVC warning C4800 warns when a value is implicitly cast to bool,

@@ -159,7 +159,7 @@ public:
   NS_HIDDEN_(void) Truncate() { SetLength(0); }
 
   /**
-   * Remove all occurences of characters in aSet from the string.
+   * Remove all occurrences of characters in aSet from the string.
    */
   NS_HIDDEN_(void) StripChars(const char *aSet);
 
@@ -510,7 +510,7 @@ public:
   NS_HIDDEN_(void) Truncate() { SetLength(0); }
 
   /**
-   * Remove all occurences of characters in aSet from the string.
+   * Remove all occurrences of characters in aSet from the string.
    */
   NS_HIDDEN_(void) StripChars(const char *aSet);
 

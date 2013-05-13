@@ -212,8 +212,8 @@ ulocdata_getMeasurementSystem(const char *localeID, UErrorCode *status);
  * Please note that this API will change in ICU 3.6 and will use an ulocdata object.
  *
  * @param localeID      The id of the locale for which the paper size information to be retrieved.
- * @param height        A pointer to int to recieve the height information.
- * @param width         A pointer to int to recieve the width information.
+ * @param height        A pointer to int to receive the height information.
+ * @param width         A pointer to int to receive the width information.
  * @param status        Must be a valid pointer to an error code value,
  *                      which must not indicate a failure before the function call.
  * @stable ICU 2.8
@@ -223,7 +223,7 @@ ulocdata_getPaperSize(const char *localeID, int32_t *height, int32_t *width, UEr
 
 /**
  * Return the current CLDR version used by the library.
- * @param versionArray fillin that will recieve the version number
+ * @param versionArray fillin that will receive the version number
  * @param status error code - could be U_MISSING_RESOURCE_ERROR if the version was not found.
  * @stable ICU 4.2
  */

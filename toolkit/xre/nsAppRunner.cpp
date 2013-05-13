@@ -4120,7 +4120,7 @@ XRE_mainMetro(int argc, char* argv[], const nsXREAppData* aAppData)
   // XRE_metroShutdown should have already been called on the worker
   // thread that called XRE_metroStartup.
   NS_ASSERTION(!xreMainPtr->mScopedXPCom,
-               "XPCOM Shutdown hasn't occured, and we are exiting.");
+               "XPCOM Shutdown hasn't occurred, and we are exiting.");
   return 0;
 }
 

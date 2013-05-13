@@ -156,7 +156,7 @@ sftk_SDBULong2ULong(unsigned char *data)
 /*
  * fix up the input templates. Our fixed up ints are stored in data and must
  * be freed by the caller. The new template must also be freed. If there are no
- * CK_ULONG attributes, the orignal template is passed in as is.
+ * CK_ULONG attributes, the original template is passed in as is.
  */
 static CK_ATTRIBUTE *
 sftkdb_fixupTemplateIn(const CK_ATTRIBUTE *template, int count, 

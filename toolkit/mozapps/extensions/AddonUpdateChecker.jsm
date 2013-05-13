@@ -531,7 +531,7 @@ UpdateParser.prototype = {
   },
 
   /**
-   * Helper method to notify the observer that an error occured.
+   * Helper method to notify the observer that an error occurred.
    */
   notifyError: function UP_notifyError(aStatus) {
     if ("onUpdateCheckError" in this.observer)

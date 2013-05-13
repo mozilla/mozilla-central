@@ -2064,7 +2064,7 @@ int32_t  RegexMatcher::split(UText *input,
         UErrorCode      &status)
 {
     //
-    // Check arguements for validity
+    // Check arguments for validity
     //
     if (U_FAILURE(status)) {
         return 0;
@@ -3933,7 +3933,7 @@ GC_Done:
                     break;
                 }
 
-                // Look-behind match is good.  Restore the orignal input string length,
+                // Look-behind match is good.  Restore the original input string length,
                 //   which had been truncated to pin the end of the lookbehind match to the 
                 //   position being looked-behind.
                 int64_t originalInputLen = fData[opValue+3];
@@ -4012,7 +4012,7 @@ GC_Done:
                 // Look-behind expression matched, which means look-behind test as
                 //   a whole Fails
                 
-                //   Restore the orignal input string length, which had been truncated 
+                //   Restore the original input string length, which had been truncated 
                 //   inorder to pin the end of the lookbehind match  
                 //   to the position being looked-behind.
                 int64_t originalInputLen = fData[opValue+3];
@@ -5359,7 +5359,7 @@ GC_Done:
                     break;
                 }
                 
-                // Look-behind match is good.  Restore the orignal input string length,
+                // Look-behind match is good.  Restore the original input string length,
                 //   which had been truncated to pin the end of the lookbehind match to the 
                 //   position being looked-behind.
                 int64_t originalInputLen = fData[opValue+3];
@@ -5436,7 +5436,7 @@ GC_Done:
                 // Look-behind expression matched, which means look-behind test as
                 //   a whole Fails
                 
-                //   Restore the orignal input string length, which had been truncated 
+                //   Restore the original input string length, which had been truncated 
                 //   inorder to pin the end of the lookbehind match  
                 //   to the position being looked-behind.
                 int64_t originalInputLen = fData[opValue+3];

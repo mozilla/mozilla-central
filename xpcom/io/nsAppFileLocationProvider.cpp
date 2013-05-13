@@ -478,7 +478,7 @@ class nsPathsDirectoryEnumerator : public nsAppDirectoryEnumerator
             {
                 const char *pathVar = mEndPath;
            
-                // skip PATH_SEPARATORs at the begining of the mEndPath
+                // skip PATH_SEPARATORs at the beginning of the mEndPath
                 while (*pathVar == PATH_SEPARATOR) pathVar++;
 
                 do { ++mEndPath; } while (*mEndPath && *mEndPath != PATH_SEPARATOR);

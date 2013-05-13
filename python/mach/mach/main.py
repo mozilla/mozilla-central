@@ -132,7 +132,7 @@ class ArgumentParser(argparse.ArgumentParser):
     def format_help(self):
         text = argparse.ArgumentParser.format_help(self)
 
-        # Strip out the silly command list that would preceed the pretty list.
+        # Strip out the silly command list that would precede the pretty list.
         #
         # Commands:
         #   {foo,bar}

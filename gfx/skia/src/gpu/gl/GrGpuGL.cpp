@@ -1604,7 +1604,7 @@ void GrGpuGL::onGpuDrawIndexed(GrPrimitiveType type,
     GrAssert(NULL != fHWGeometryState.fVertexBuffer);
 
     // our setupGeometry better have adjusted this to zero since
-    // DrawElements always draws from the begining of the arrays for idx 0.
+    // DrawElements always draws from the beginning of the arrays for idx 0.
     GrAssert(0 == startVertex);
 
     GL_CALL(DrawElements(gPrimitiveType2GLMode[type], indexCount,

@@ -429,7 +429,7 @@ extern "C" {
    *
    * This function can be used to check the error code of an iSAC instance. When
    * a function returns -1 a error code will be set for that instance. The
-   * function below extract the code of the last error that occured in the
+   * function below extract the code of the last error that occurred in the
    * specified instance.
    *
    * Input:
@@ -470,7 +470,7 @@ extern "C" {
    *                            valid values are between 100 and 400 bytes
    *
    *
-   * Return value             : 0 if sucessful
+   * Return value             : 0 if successful
    *                           -1 if error happens
    */
 
@@ -497,7 +497,7 @@ extern "C" {
    *      - maxRateInBytes    : maximum rate in bits per second,
    *                            valid values are 32000 to 53400 bits
    *
-   * Return value             : 0 if sucessful
+   * Return value             : 0 if successful
    *                           -1 if error happens
    */
 
@@ -537,7 +537,7 @@ extern "C" {
   /****************************************************************************
    * WebRtcIsacfix_GetNewBitStream(...)
    *
-   * This function returns encoded data, with the recieved bwe-index in the
+   * This function returns encoded data, with the received bwe-index in the
    * stream. It should always return a complete packet, i.e. only called once
    * even for 60 msec frames
    *

@@ -101,7 +101,7 @@ def enumeratelines(s, filename):
 
     yield Data(s, off, len(s), parserdata.Location(filename, lineno, 0))
 
-_alltokens = re.compile(r'''\\*\# | # hash mark preceeded by any number of backslashes
+_alltokens = re.compile(r'''\\*\# | # hash mark preceded by any number of backslashes
                             := |
                             \+= |
                             \?= |

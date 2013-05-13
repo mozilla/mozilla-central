@@ -565,7 +565,7 @@ function open_properties_dialog() {
           try {
             gCurrentTest.run();
           } catch (ex) {
-            ok(false, "An error occured during test run: " + ex.message);
+            ok(false, "An error occurred during test run: " + ex.message);
           }
         });
       }, false);

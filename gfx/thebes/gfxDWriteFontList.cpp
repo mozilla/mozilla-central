@@ -635,7 +635,7 @@ gfxDWriteFontList::MakePlatformFont(const gfxProxyFontEntry *aProxyEntry,
      * containing the font data and a unique identifier. DWrite will
      * internally copy what is at that pointer, and pass that to
      * CreateStreamFromKey. The array will be empty when the function 
-     * succesfully returns since it swaps out the data.
+     * successfully returns since it swaps out the data.
      */
     ffReferenceKey key;
     key.mArray = &newFontData;

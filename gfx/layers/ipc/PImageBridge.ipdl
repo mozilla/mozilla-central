@@ -41,7 +41,7 @@ parent:
 
   // First step of the destruction sequence. This puts all the ImageContainerParents
   // in a state in which they can't send asynchronous messages to their child
-  // counterpart so as to not race with the upcomming __delete__ message.
+  // counterpart so as to not race with the upcoming __delete__ message.
   // In the child side, the __delete__ messages are not sent right after Stop,
   // they are scheduled in the ImageBridgeChild's message queue in order to ensure
   // that all the messages from the parent side have been received and processed

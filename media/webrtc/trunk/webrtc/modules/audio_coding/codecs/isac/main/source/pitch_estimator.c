@@ -134,7 +134,7 @@ void WebRtcIsac_InitializePitch(const double *in,
   double corrvec1[PITCH_LAG_SPAN2];
   double corrvec2[PITCH_LAG_SPAN2];
   int m, k;
-  // Allocating 10 extra entries at the begining of the CorrSurf
+  // Allocating 10 extra entries at the beginning of the CorrSurf
   double corrSurfBuff[10 + (2*PITCH_BW+3)*(PITCH_LAG_SPAN2+4)];
   double* CorrSurf[2*PITCH_BW+3];
   double *CorrSurfPtr1, *CorrSurfPtr2;
@@ -568,8 +568,8 @@ void WebRtcIsac_PitchAnalysis(const double *in,               /* PITCH_FRAME_LEN
 
 
     /* compute Cholesky factorization of Hessian
-     * by overwritting the upper triangle; scale factors on diagonal
-     * (for non pc-platforms store the inverse of the diagonals seperately to minimize divisions) */
+     * by overwriting the upper triangle; scale factors on diagonal
+     * (for non pc-platforms store the inverse of the diagonals separately to minimize divisions) */
     H[0][1] = H[1][0] / H[0][0];
     H[0][2] = H[2][0] / H[0][0];
     H[0][3] = H[3][0] / H[0][0];

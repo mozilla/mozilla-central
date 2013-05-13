@@ -4064,7 +4064,7 @@ js::LookupPropertyPure(JSObject *obj, jsid id, JSObject **objp, Shape **propp)
 /*
  * A pure version of GetPropertyHelper that can be called from parallel code
  * without locking. This code path cannot GC. This variant returns false
- * whenever a side-effect might have occured in the effectful version. This
+ * whenever a side-effect might have occurred in the effectful version. This
  * includes, but is not limited to:
  *
  *  - Any object in the lookup chain has a non-stub resolve hook.

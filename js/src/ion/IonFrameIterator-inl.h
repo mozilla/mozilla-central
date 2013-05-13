@@ -117,7 +117,7 @@ InlineFrameIteratorMaybeGC<allowGC>::forEachCanonicalActualArg(
         unsigned argsObjAdj = it.script()->argumentsHasVarBinding() ? 1 : 0;
         SnapshotIterator parent_s(it.snapshotIterator());
 
-        // Skip over all slots untill we get to the last slots (= arguments slots of callee)
+        // Skip over all slots until we get to the last slots (= arguments slots of callee)
         // the +2 is for [this] and [scopechain], and maybe +1 for [argsObj]
         JS_ASSERT(parent_s.slots() >= nactual + 2 + argsObjAdj);
         unsigned skip = parent_s.slots() - nactual - 2 - argsObjAdj;

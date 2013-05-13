@@ -2493,7 +2493,7 @@
 
 	* src/autofit/afglobal.c when FT_CONFIG_OPTION_PIC is defined
 	af_script_classes array initialization was moved to afpic.c and
-	is later refered using macros defeined in afpic.h.
+	is later referred using macros defeined in afpic.h.
 
 	New Files:
 	* src/autofit/afpic.h declare struct to hold PIC globals for autofit

@@ -208,7 +208,7 @@ bool SkPNGImageDecoder::onDecode(SkStream* sk_stream, SkBitmap* decodedBitmap,
     SkPMColor           theTranspColor = 0; // 0 tells us not to try to match
 
     // check for sBIT chunk data, in case we should disable dithering because
-    // our data is not truely 8bits per component
+    // our data is not truly 8bits per component
     if (doDither) {
         png_color_8p sig_bit = NULL;
         bool has_sbit = PNG_INFO_sBIT == png_get_sBIT(png_ptr, info_ptr,

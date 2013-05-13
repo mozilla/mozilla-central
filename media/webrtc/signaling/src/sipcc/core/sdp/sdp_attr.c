@@ -496,7 +496,7 @@ sdp_result_e sdp_parse_attr_fmtp (sdp_t *sdp_p, sdp_attr_t *attr_p,
 
     /* BEGIN - a typical macro fn to replace '/' with ';' from fmtp line*/
     /* This ugly replacement of '/' with ';' is only done because
-    *  econf/MS client sends in this wierd /illegal format.
+    *  econf/MS client sends in this weird /illegal format.
     * fmtp parameters MUST be  separated by ';'
     */
     temp_ptr = cpr_strdup(ptr);
@@ -3745,7 +3745,7 @@ tinybool sdp_parse_context_crypto_suite(char * str,  sdp_attr_t *attr_p, sdp_t *
 	       sdp_srtp_crypto_suite_array[i].key_size_bytes;
 	   attr_p->attr.srtp_context.master_salt_size_bytes =
 	       sdp_srtp_crypto_suite_array[i].salt_size_bytes;
-	   return TRUE; /* There is a succesful match so exit */
+	   return TRUE; /* There is a successful match so exit */
 	 }
        }
        /* couldn't find a matching crypto suite */

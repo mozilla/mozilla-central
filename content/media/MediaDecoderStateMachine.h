@@ -678,7 +678,7 @@ private:
   // Pitch preservation for the playback rate. Synchronized via decoder monitor.
   bool mPreservesPitch;
 
-  // Position at which the last playback rate change occured, used to compute
+  // Position at which the last playback rate change occurred, used to compute
   // the actual position in the stream when the playback rate changes and there
   // is no audio to be sync-ed to. Synchronized via decoder monitor.
   int64_t mBasePosition;

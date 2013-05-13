@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # version controll for DLLs
-# ToDo: make version parameter or find version from first occurance of 3.x
+# ToDo: make version parameter or find version from first occurrence of 3.x
 # make the 3 a variable..., include the header
 
 #OS=`uname -s`

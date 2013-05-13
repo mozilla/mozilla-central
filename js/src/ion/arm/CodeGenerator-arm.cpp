@@ -1256,7 +1256,7 @@ CodeGeneratorARM::visitTestDAndBranch(LTestDAndBranch *test)
     LBlock *ifTrue = test->ifTrue()->lir();
     LBlock *ifFalse = test->ifFalse()->lir();
     // If the compare set the  0 bit, then the result
-    // is definately false.
+    // is definitely false.
     masm.ma_b(ifFalse->label(), Assembler::Zero);
     // it is also false if one of the operands is NAN, which is
     // shown as Overflow.

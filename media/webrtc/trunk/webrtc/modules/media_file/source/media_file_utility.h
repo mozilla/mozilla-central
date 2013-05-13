@@ -63,7 +63,7 @@ public:
 
     // Write one audio frame, i.e. the bufferLengthinBytes first bytes of
     // audioBuffer, to file. The audio frame size is determined by the
-    // codecInst.pacsize parameter of the last sucessfull
+    // codecInst.pacsize parameter of the last successfull
     // InitAviWriting(..) call.
     // Note: bufferLength must be exactly one frame.
     WebRtc_Word32 WriteAviAudioData(const WebRtc_Word8* audioBuffer,
@@ -122,7 +122,7 @@ public:
 
     // Write one audio frame, i.e. the bufferLength first bytes of audioBuffer,
     // to file. The audio frame size is determined by the codecInst.pacsize
-    // parameter of the last sucessfull StartRecordingAudioFile(..) call.
+    // parameter of the last successfull StartRecordingAudioFile(..) call.
     // The return value is the number of bytes written to audioBuffer.
     WebRtc_Word32 WriteWavData(OutStream& stream,
                                const WebRtc_Word8* audioBuffer,
@@ -159,7 +159,7 @@ public:
 
     // Write one 10ms audio frame, i.e. the bufferLength first bytes of
     // audioBuffer, to file. The audio frame size is determined by the freqInHz
-    // parameter of the last sucessfull InitPCMWriting(..) call.
+    // parameter of the last successfull InitPCMWriting(..) call.
     // The return value is the number of bytes written to audioBuffer.
     WebRtc_Word32 WritePCMData(OutStream& stream,
                                const WebRtc_Word8* audioBuffer,
@@ -186,7 +186,7 @@ public:
 
     // Write one audio frame, i.e. the bufferLength first bytes of audioBuffer,
     // to file. The audio frame size is determined by the codecInst.pacsize
-    // parameter of the last sucessfull InitCompressedWriting(..) call.
+    // parameter of the last successfull InitCompressedWriting(..) call.
     // The return value is the number of bytes written to stream.
     // Note: bufferLength must be exactly one frame.
     WebRtc_Word32 WriteCompressedData(OutStream& stream,
@@ -212,7 +212,7 @@ public:
 
     // Write one audio frame, i.e. the bufferLength first bytes of audioBuffer,
     // to stream. The audio frame size is determined by the codecInst.pacsize
-    // parameter of the last sucessfull InitPreEncodedWriting(..) call.
+    // parameter of the last successfull InitPreEncodedWriting(..) call.
    // The return value is the number of bytes written to stream.
     // Note: bufferLength must be exactly one frame.
     WebRtc_Word32 WritePreEncodedData(OutStream& stream,

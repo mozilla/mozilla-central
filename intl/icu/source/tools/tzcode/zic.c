@@ -2362,7 +2362,7 @@ wp = ecpyalloc(_("no POSIX environment variable for zone"));
 					 * because the previous type is valid until the first
 					 * transition defined by the final rule.  Otherwise
 					 * we may see unexpected offset shift at the
-					 * begining of the year when the final rule takes
+					 * beginning of the year when the final rule takes
 					 * effect. */
 
 					/* ICU currently can support signed int32 transition

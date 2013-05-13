@@ -46,7 +46,7 @@ function run_test() {
   do_check_false(TelemetryStopwatch.start("mark1"));
   do_check_false(TelemetryStopwatch.start("mark1", refObj));
 
-  // Can't stop a timer that was accidentaly started twice
+  // Can't stop a timer that was accidentally started twice
   do_check_false(TelemetryStopwatch.finish("mark1"));
   do_check_false(TelemetryStopwatch.finish("mark1", refObj));
 

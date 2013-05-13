@@ -1031,7 +1031,7 @@ nsContextMenu.prototype = {
 
         timer.cancel();
 
-        // some other error occured; notify the user...
+        // some other error occurred; notify the user...
         if (!Components.isSuccessCode(aRequest.status)) {
           try {
             const sbs = Cc["@mozilla.org/intl/stringbundle;1"].

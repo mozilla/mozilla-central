@@ -639,7 +639,7 @@ static __inline void DenormalizeC(NsxInst_t* inst, int16_t* in, int factor) {
   }
 }
 
-// For the noise supression process, synthesis, read out fully processed
+// For the noise suppression process, synthesis, read out fully processed
 // segment, and update synthesis buffer.
 static void SynthesisUpdateC(NsxInst_t* inst,
                              int16_t* out_frame,

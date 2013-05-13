@@ -520,7 +520,7 @@ There are well-known parser generators such as
 usually used in combination with lexical scanners such as
 <a href="http://en.wikipedia.org/wiki/Flex_lexical_analyser">flex</a> so that
 you can write your grammar in terms of tokens not characters.
-Also, they handle LALR langauges, so the parsing technique is quite a bit
+Also, they handle LALR languages, so the parsing technique is quite a bit
 richer than a pure state machine.</p>
 <p>I thought I had a better idea.  The grammar of XML is simple
 enough, and the syntax characters few enough, that I thought I could just

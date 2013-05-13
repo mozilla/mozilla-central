@@ -1688,7 +1688,7 @@ sftk_FreeSearch(SFTKSearchResults *search)
  * ******************** Session Utilities *******************************
  */
 
-/* update the sessions state based in it's flags and wether or not it's
+/* update the sessions state based in it's flags and whether or not it's
  * logged in */
 void
 sftk_update_state(SFTKSlot *slot,SFTKSession *session)

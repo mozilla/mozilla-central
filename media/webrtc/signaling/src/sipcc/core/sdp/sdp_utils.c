@@ -53,7 +53,7 @@ sdp_mca_t *sdp_alloc_mca () {
  *
  * copy token param with chars from str until null, cr, lf, or one of the delimiters is found.
  * delimiters at the beginning will be skipped.
- * The pointer *string_of_tokens is moved forward to the next token on sucess.
+ * The pointer *string_of_tokens is moved forward to the next token on success.
  *
  */
 static sdp_result_e next_token(const char **string_of_tokens, char *token, unsigned token_max_len, const char *delim)

@@ -68,7 +68,7 @@ class LazyInstanceHelper {
   // static initializer to register the empty destructor with atexit().
 
   // Make sure that instance is created, creating or waiting for it to be
-  // created if neccessary.  Constructs with |ctor| in the space provided by
+  // created if necessary.  Constructs with |ctor| in the space provided by
   // |instance| and registers dtor for destruction at program exit.
   void EnsureInstance(void* instance, void (*ctor)(void*), void (*dtor)(void*));
 

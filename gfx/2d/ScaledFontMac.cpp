@@ -72,7 +72,7 @@ SkTypeface* ScaledFontMac::GetSkTypeface()
 // private API here are the public options on OS X
 // CTFontCreatePathForGlyph
 // ATSUGlyphGetCubicPaths
-// we've used this in cairo sucessfully for some time.
+// we've used this in cairo successfully for some time.
 // Note: cairo dlsyms it. We could do that but maybe it's
 // safe just to use?
 

@@ -62,7 +62,7 @@ public:
         if (sk_atomic_dec(&fRefCnt) == 1) {
             // Aquire barrier (L/SL), if not provided above.
             // Prevents code in dispose from happening before the decrement.
-            sk_membar_aquire__after_atomic_dec();
+            sk_membar_acquire__after_atomic_dec();
             internal_dispose();
         }
     }

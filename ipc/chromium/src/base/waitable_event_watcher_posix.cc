@@ -105,7 +105,7 @@ class AsyncCallbackTask : public Task {
   void Run() {
     // Runs in MessageLoop thread.
     if (!flag_->value()) {
-      // This is to let the WaitableEventWatcher know that the event has occured
+      // This is to let the WaitableEventWatcher know that the event has occurred
       // because it needs to be able to return NULL from GetWatchedObject
       flag_->Set();
       delegate_->OnWaitableEventSignaled(event_);

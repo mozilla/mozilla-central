@@ -251,7 +251,7 @@ IPC_BEGIN_MESSAGES(View)
 
   // RenderViewHostDelegate::RenderViewCreated method sends this message to a
   // new renderer to notify it that it will host developer tools UI and should
-  // set up all neccessary bindings and create DevToolsClient instance that
+  // set up all necessary bindings and create DevToolsClient instance that
   // will handle communication with inspected page DevToolsAgent.
   IPC_MESSAGE_ROUTED0(ViewMsg_SetupDevToolsClient)
 
@@ -1224,7 +1224,7 @@ IPC_BEGIN_MESSAGES(ViewHost)
   // 'context_id' indentifies a specific frame or worker
   // 'select_request_id' indentifies this particular invocation the algorithm
   //    and will be returned to the caller with the response
-  // 'document_url' the url of the main resource commited to the frame
+  // 'document_url' the url of the main resource committed to the frame
   // 'cache_document_was_loaded_frame' the id of the appcache the main resource
   //    was loaded from or kNoAppCacheId
   // 'opt_manifest_url' the manifest url specified in the <html> tag if any

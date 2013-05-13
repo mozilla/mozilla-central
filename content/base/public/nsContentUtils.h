@@ -1803,7 +1803,7 @@ public:
    * layer manager. In addition to the normal layer manager lookup this will
    * specifically request a persistent layer manager. This means that the layer
    * manager is expected to remain the layer manager for the document in the
-   * forseeable future. This function should be used carefully as it may change
+   * foreseeable future. This function should be used carefully as it may change
    * the document's layer manager.
    *
    * @param aDoc the document for which to return a layer manager.

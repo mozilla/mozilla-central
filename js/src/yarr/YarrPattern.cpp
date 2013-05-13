@@ -237,7 +237,7 @@ private:
                 ranges.insert(i, CharacterRange(lo, hi));
                 return;
             }
-            // Okay, since we didn't hit the last case, the end of the new range is definitely at or after the begining
+            // Okay, since we didn't hit the last case, the end of the new range is definitely at or after the beginning
             // If the new range start at or before the end of the last range, then the overlap (if it starts one after the
             // end of the last range they concatenate, which is just as good.
             if (lo <= (ranges[i].end + 1)) {

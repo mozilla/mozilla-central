@@ -44,8 +44,8 @@ int ItemValue(MapItem* item) {
   return *value_ptr;
 }
 
-void PrintToConsole(const char* message, bool supress) {
-  if (supress) {
+void PrintToConsole(const char* message, bool suppress) {
+  if (suppress) {
     return;
   }
   printf("%s", message);
@@ -85,41 +85,41 @@ bool ClearMap(MapWrapper* clear_map) {
   return success;
 }
 
-void PrintMapItem(MapItem* item, bool supress) {
+void PrintMapItem(MapItem* item, bool suppress) {
   const int id = item->GetId();
   const int value = ItemValue(item);
   char print_buffer[16];
   sprintf(print_buffer, "(%3i,%3i) ", id, value);
-  PrintToConsole(print_buffer, supress);
+  PrintToConsole(print_buffer, suppress);
 }
 
 // Succeeds only if all the items were printed.
-bool PrintMap(const MapWrapper& print_map, bool supress) {
+bool PrintMap(const MapWrapper& print_map, bool suppress) {
   const int elements_to_print = print_map.Size();
   int elements_printed = 0;
   MapItem* item = print_map.First();
-  PrintToConsole("[", supress);
+  PrintToConsole("[", suppress);
   while (item != NULL) {
-    PrintMapItem(item, supress);
+    PrintMapItem(item, suppress);
     ++elements_printed;
     item = print_map.Next(item);
   }
-  PrintToConsole("]\n", supress);
+  PrintToConsole("]\n", suppress);
   return elements_printed == elements_to_print;
 }
 
 // Succeeds only if all the items were printed.
-bool ReversePrintMap(const MapWrapper& print_map, bool supress) {
+bool ReversePrintMap(const MapWrapper& print_map, bool suppress) {
   const int elements_to_print = print_map.Size();
   int elements_printed = 0;
   MapItem* item = print_map.Last();
-  PrintToConsole("[", supress);
+  PrintToConsole("[", suppress);
   while (item != NULL) {
-    PrintMapItem(item, supress);
+    PrintMapItem(item, suppress);
     ++elements_printed;
     item = print_map.Previous(item);
   }
-  PrintToConsole("]\n", supress);
+  PrintToConsole("]\n", suppress);
   return elements_printed == elements_to_print;
 }
 
@@ -200,10 +200,10 @@ TEST_F(MapWrapperTest, RemoveTest) {
 }
 
 TEST_F(MapWrapperTest, PrintTest) {
-  const bool supress = true; // Don't spam the console
+  const bool suppress = true; // Don't spam the console
 
-  EXPECT_TRUE(PrintMap(ascending_map_, supress));
-  EXPECT_TRUE(ReversePrintMap(ascending_map_, supress));
+  EXPECT_TRUE(PrintMap(ascending_map_, suppress));
+  EXPECT_TRUE(ReversePrintMap(ascending_map_, suppress));
 }
 
 TEST_F(MapWrapperTest, CopyTest) {

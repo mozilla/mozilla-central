@@ -488,14 +488,14 @@ int
 categorizeAllocation(STOptions * inOptions, STContext * inContext,
                      STAllocation * aAllocation, STGlobals * g)
 {
-    /* Run through the rules in order to see if this allcation matches
+    /* Run through the rules in order to see if this allocation matches
      ** any of them.
      */
     STCategoryNode *node;
 
     node = matchAllocation(g, aAllocation);
     if (!node) {
-        /* ugh! it should atleast go into the "uncategorized" node. wierd!
+        /* ugh! it should atleast go into the "uncategorized" node. weird!
          */
         REPORT_ERROR(__LINE__, categorizeAllocation);
         return -1;

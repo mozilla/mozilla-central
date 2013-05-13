@@ -69,7 +69,7 @@ let UI = {
   _storageBusy: false,
 
   // Variable: isDOMWindowClosing
-  // Tells wether the parent window is about to close
+  // Tells whether the parent window is about to close
   isDOMWindowClosing: false,
 
   // Variable: _browserKeys

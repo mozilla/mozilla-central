@@ -1129,7 +1129,7 @@ FramePointerStackWalk(NS_WalkStackCallback aCallback, uint32_t aSkipFrames,
     // -fomit-frame-pointer, so do some sanity checks.
     // (bp should be a frame pointer on ppc(64) but checking anyway may help
     // a little if the stack has been corrupted.)
-    // We don't need to check against the begining of the stack because
+    // We don't need to check against the beginning of the stack because
     // we can assume that bp > sp
     if (next <= bp ||
         next > aStackEnd ||

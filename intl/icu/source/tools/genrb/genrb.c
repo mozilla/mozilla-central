@@ -549,7 +549,7 @@ processFile(
         goto finish;
     }
     if (ucbuf == NULL || U_FAILURE(*status)) {
-        fprintf(stderr, "An error occured processing file %s. Error: %s\n", openFileName == NULL ? filename : openFileName,u_errorName(*status));
+        fprintf(stderr, "An error occurred processing file %s. Error: %s\n", openFileName == NULL ? filename : openFileName,u_errorName(*status));
         goto finish;
     }
     /* auto detected popular encodings? */

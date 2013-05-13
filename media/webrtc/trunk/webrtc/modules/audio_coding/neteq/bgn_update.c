@@ -225,7 +225,7 @@ void WebRtcNetEQ_BGNUpdate(
             BGN_Inst->w32_energyMax = w32_en;
         }
 
-        /* Set update level to at the minimum 60.21dB lower then the maximum energy */
+        /* Set update level to at the minimum 60.21dB lower than the maximum energy */
         w32_enUpdateThreashold = (BGN_Inst->w32_energyMax + 524288) >> 20;
         if (w32_enUpdateThreashold > BGN_Inst->w32_energyUpdate)
         {

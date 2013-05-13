@@ -1681,7 +1681,7 @@ Camellia_CreateContext(const unsigned char *key, const unsigned char *iv,
 	return NULL;
     }
 
-    /* copy in the iv, if neccessary */
+    /* copy in the iv, if necessary */
     if (mode == NSS_CAMELLIA_CBC) {
 	memcpy(cx->iv, iv, CAMELLIA_BLOCK_SIZE);
 	cx->worker = (encrypt) ? &camellia_encryptCBC : &camellia_decryptCBC;

@@ -91,7 +91,7 @@ class ParseMapPool
         return all.empty();
     }
 
-    /* Fallibly aquire one of the supported map types from the pool. */
+    /* Fallibly acquire one of the supported map types from the pool. */
     template <typename T>
     T *acquire();
 

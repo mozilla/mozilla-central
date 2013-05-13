@@ -1178,7 +1178,7 @@ sctp_cwnd_update_after_ecn_echo_common(struct sctp_tcb *stcb, struct sctp_nets *
 				sctp_log_cwnd(stcb, net, (net->cwnd - old_cwnd), SCTP_CWND_LOG_FROM_SAT);
 			}
 		} else {
-			/* Further tuning down required over the drastic orginal cut */
+			/* Further tuning down required over the drastic original cut */
 			net->ssthresh -= (net->mtu * num_pkt_lost);
 			net->cwnd -= (net->mtu * num_pkt_lost);
 			if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_CWND_MONITOR_ENABLE) {

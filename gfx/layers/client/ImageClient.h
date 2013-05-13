@@ -84,7 +84,7 @@ public:
 
   /**
    * Creates a texture client of the requested type.
-   * Returns true if the texture client was created succesfully,
+   * Returns true if the texture client was created successfully,
    * false otherwise.
    */
   bool EnsureTextureClient(TextureClientType aType);

@@ -34,7 +34,7 @@ these simple steps:
 NOTE: The client library requires a C++ STL implementation,
       which you can select with APP_STL in your Application.mk
 
-      It has been tested succesfully with both STLport and GNU libstdc++
+      It has been tested successfully with both STLport and GNU libstdc++
 
 
 II.1. Building with a standalone Android toolchain:

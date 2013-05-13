@@ -468,7 +468,7 @@ int SuggestMgr::replchars(char** wlst, const char * word, int ns, int cpdsuggest
       r = word;
       lenr = strlen(reptable[i].pattern2);
       lenp = strlen(reptable[i].pattern);
-      // search every occurence of the pattern in the word
+      // search every occurrence of the pattern in the word
       while ((r=strstr(r, reptable[i].pattern)) != NULL && (!reptable[i].end || strlen(r) == strlen(reptable[i].pattern)) &&
         (!reptable[i].start || r == word)) {
           strcpy(candidate, word);

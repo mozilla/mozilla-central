@@ -99,7 +99,7 @@ public:
   gfxIntSize GetCbCrSize();
 
   /**
-   * Return a pointer to the begining of the data buffer.
+   * Return a pointer to the beginning of the data buffer.
    */
   uint8_t* GetData();
 

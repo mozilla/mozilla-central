@@ -52,7 +52,7 @@ public:
      */
     enum event_type {
         EVENT_MORE_DATA = 0,        // Request to write more data to PCM buffer.
-        EVENT_UNDERRUN = 1,         // PCM buffer underrun occured.
+        EVENT_UNDERRUN = 1,         // PCM buffer underrun occurred.
         EVENT_LOOP_END = 2,         // Sample loop end was reached; playback restarted from loop start if loop count was not 0.
         EVENT_MARKER = 3,           // Playback head is at the specified marker position (See setMarkerPosition()).
         EVENT_NEW_POS = 4,          // Playback head is at a new position (See setPositionUpdatePeriod()).

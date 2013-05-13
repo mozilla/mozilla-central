@@ -233,7 +233,7 @@ GetDefaultOIDFormat(SECItem *oid,
       }
 
       if (++invalidCount > 3) {
-        // Allow only 3 occurences of Unknown in OID display string to
+        // Allow only 3 occurrences of Unknown in OID display string to
         // prevent bloat.
         break;
       }

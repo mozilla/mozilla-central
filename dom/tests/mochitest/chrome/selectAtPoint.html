@@ -198,7 +198,7 @@
 
   function onFrameLoad() {
     // Exit the onload handler before trying the test, because we need
-    // to ensure that paint unsupression has happened.
+    // to ensure that paint unsuppression has happened.
     setTimeout(function() {
       frameLoad = true;
       testReady();
@@ -207,7 +207,7 @@
 
   function onPageLoad() {
     // Exit the onload handler before trying the test, because we need
-    // to ensure that paint unsupression has happened
+    // to ensure that paint unsuppression has happened
     // XXXroc why do we need to separately test for the loading of the frame
     // and a paint? That should not be necessary for this test.
     setTimeout(function() {

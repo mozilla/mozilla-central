@@ -794,7 +794,7 @@ nsEditorEventListener::CanDrop(nsIDOMDragEvent* aEvent)
         bool inRange = true;
         (void)range->IsPointInRange(parent, offset, &inRange);
         if (inRange)
-          return false;  //okay, now you can bail, we are over the orginal selection
+          return false;  //okay, now you can bail, we are over the original selection
       }
     }
   }

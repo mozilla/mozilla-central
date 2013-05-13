@@ -41,7 +41,7 @@ function test_asyncFetchBadCert() {
 
   Services.wm.addListener(listener);
 
-  // Try a load from an untrusted cert, with errors supressed
+  // Try a load from an untrusted cert, with errors suppressed
   NetUtil.asyncFetch("https://untrusted.example.com", function (aInputStream, aStatusCode, aRequest) {
     ok(!Components.isSuccessCode(aStatusCode), "request failed");
     ok(aRequest instanceof Ci.nsIHttpChannel, "request is an nsIHttpChannel");

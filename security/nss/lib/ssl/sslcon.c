@@ -775,7 +775,7 @@ done:
 }
 
 /********************************************************************
-**  Send functions above this line must aquire & release the socket's   
+**  Send functions above this line must acquire & release the socket's   
 **	xmitBufLock.  
 ** All the ssl2_Send functions below this line are called vis ss->sec.send
 **	and require that the caller hold the xmitBufLock.
@@ -1020,7 +1020,7 @@ loser:
 static PRInt32
 ssl2_SendBlock(sslSocket *ss, const PRUint8 *in, PRInt32 len, PRInt32 flags)
 {
-    PRUint8       *  out;  		    /* begining of output buffer.    */
+    PRUint8       *  out;  		    /* beginning of output buffer.    */
     PRUint8       *  op;		    /* next output byte goes here.   */
     int              rv;		    /* value from funcs we called.   */
     int              count	= 0;        /* this function's return value. */

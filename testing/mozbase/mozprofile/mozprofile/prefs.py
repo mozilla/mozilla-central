@@ -20,7 +20,7 @@ except ImportError:
     import simplejson as json
 
 class PreferencesReadError(Exception):
-    """read error for prefrences files"""
+    """read error for preferences files"""
 
 
 class Preferences(object):

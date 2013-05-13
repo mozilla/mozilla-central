@@ -152,7 +152,7 @@ typedef struct {
   WebRtc_Word32 prevHP[PITCH_MAX_LAG + 10];                     // [FRAMESAMPLES/2]; save 90
 
 
-  WebRtc_Word16 decayCoeffPriodic; /* how much to supress a sample */
+  WebRtc_Word16 decayCoeffPriodic; /* how much to suppress a sample */
   WebRtc_Word16 decayCoeffNoise;
   WebRtc_Word16 used;       /* if PLC is used */
 

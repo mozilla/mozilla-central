@@ -1701,11 +1701,11 @@ nsNSSComponent::InitializeNSS(bool showWarningBox)
       globalConstFlagUsePKIXVerification = USE_NSS_LIBPKIX_DEFAULT;
 #endif
 
-    bool supress_warning_preference = false;
-    rv = mPrefBranch->GetBoolPref("security.suppress_nss_rw_impossible_warning", &supress_warning_preference);
+    bool suppress_warning_preference = false;
+    rv = mPrefBranch->GetBoolPref("security.suppress_nss_rw_impossible_warning", &suppress_warning_preference);
 
     if (NS_FAILED(rv)) {
-      supress_warning_preference = false;
+      suppress_warning_preference = false;
     }
 
     // init phase 2, init calls to NSS library
@@ -1732,7 +1732,7 @@ nsNSSComponent::InitializeNSS(bool showWarningBox)
     if (init_rv != SECSuccess) {
       PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("can not init NSS r/w in %s\n", profileStr.get()));
 
-      if (supress_warning_preference) {
+      if (suppress_warning_preference) {
         which_nss_problem = problem_none;
       }
       else {

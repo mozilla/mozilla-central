@@ -257,7 +257,7 @@ void EnergyEndpointer::ProcessAudioFrame(int64_t time_us,
 
   // Check that this is user input audio vs. pre-input adaptation audio.
   // Input audio starts when the user indicates start of input, by e.g.
-  // pressing push-to-talk. Audio recieved prior to that is used to update
+  // pressing push-to-talk. Audio received prior to that is used to update
   // noise and speech level estimates.
   if (!estimating_environment_) {
     bool decision = false;

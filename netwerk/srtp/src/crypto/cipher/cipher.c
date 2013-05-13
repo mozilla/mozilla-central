@@ -259,7 +259,7 @@ cipher_type_test(const cipher_type_t *ct, const cipher_test_case_t *test_data) {
   
   /* now run some random invertibility tests */
 
-  /* allocate cipher, using paramaters from the first test case */
+  /* allocate cipher, using parameters from the first test case */
   test_case = test_data;
   status = cipher_type_alloc(ct, &c, test_case->key_length_octets);
   if (status)

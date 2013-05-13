@@ -87,7 +87,7 @@ private:
     return mSkeletonState != 0 && mSkeletonState->mActive;
   }
 
-  // Seeks to the keyframe preceeding the target time using available
+  // Seeks to the keyframe preceding the target time using available
   // keyframe indexes.
   enum IndexedSeekResult {
     SEEK_OK,          // Success.

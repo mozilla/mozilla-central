@@ -51,7 +51,7 @@ public:
      * Construct an image surface, with a specified stride and allowing the
      * allocation of more memory than required for the storage of the surface
      * itself.  When aStride and aMinimalAllocation are <=0, this constructor
-     * is the equivalent of the preceeding one.
+     * is the equivalent of the preceding one.
      *
      * @param format Format of the data
      * @param aSize The size of the buffer

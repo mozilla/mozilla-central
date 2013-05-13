@@ -42,7 +42,7 @@ NSPR_API(char*) PR_GetLibraryPath(void);
 /*
 ** Given a directory name "dir" and a library name "lib" construct a full
 ** path name that will refer to the actual dynamically loaded
-** library. This does not test for existance of said file, it just
+** library. This does not test for existence of said file, it just
 ** constructs the full filename. The name constructed is system dependent
 ** and prepared for PR_LoadLibrary. The result must be free'd when the
 ** caller is done with it.

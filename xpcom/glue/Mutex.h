@@ -139,7 +139,7 @@ class NS_COM_GLUE MOZ_STACK_CLASS BaseAutoLock
 public:
     /**
      * Constructor
-     * The constructor aquires the given lock.  The destructor
+     * The constructor acquires the given lock.  The destructor
      * releases the lock.
      * 
      * @param aLock A valid mozilla::Mutex* returned by 

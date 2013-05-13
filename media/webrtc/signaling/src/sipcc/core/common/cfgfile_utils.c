@@ -361,7 +361,7 @@ cfgfile_print_mac (const var_t *entry, char *buf, int len)
  * @param[in] value - pointer to const. string of configuration value.
  *
  * @return 1 - failed to parsed the configuration.
- *         0 - succesfull parsed the configuration value.
+ *         0 - successfull parsed the configuration value.
  *
  * @pre    (entry != NULL)
  * @pre    (value != NULL)

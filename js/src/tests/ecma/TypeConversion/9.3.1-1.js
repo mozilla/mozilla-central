@@ -57,7 +57,7 @@ new TestCase( SECTION,  "Number(String.fromCharCode(0x000B)",   0,  Number(Strin
 new TestCase( SECTION,  "Number(String.fromCharCode(0x000D)",   0,  Number(String.fromCharCode(0x000D)) );
 new TestCase( SECTION,  "Number(String.fromCharCode(0x000A)",   0,  Number(String.fromCharCode(0x000A)) );
 
-//  a StringNumericLiteral may be preceeded or followed by whitespace and/or
+//  a StringNumericLiteral may be preceded or followed by whitespace and/or
 //  line terminators
 
 new TestCase( SECTION,  "Number( '   ' +  999 )",        999,    Number( '   '+999) );

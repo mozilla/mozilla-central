@@ -145,7 +145,7 @@ if [ "$os_name" = "CYGWIN_NT-4.0" -o \
     "$os_name" = "CYGWIN_95-4.0" -o \
     "$os_name" = "CYGWIN_98-4.10" ]
 then
-    #FIXME net use, mount the neccessary pnetwork drives and partitiones first
+    #FIXME net use, mount the necessary pnetwork drives and partitiones first
     #FIXME - take MKS out of the PATH
     os_full=$os_name
     os_name="Windows"
@@ -162,7 +162,7 @@ elif [ "$os_name" = "Windows_95" -o \
     "$os_name" = "Windows" -o \
     "$os_name" = "Windows_98" ]
 then
-    #FIXME net use, mount the neccessary pnetwork drives and partitiones first
+    #FIXME net use, mount the necessary pnetwork drives and partitiones first
     PATH=`echo $SHELL | sed -e "s/.[kK][sS][Hh].[Ee][Xx][Ee]//g"  \
 				-e "s/.[sS][Hh].[Ee][Xx][Ee]//g"`
     MOZTOOLS_IN_PATH=NO

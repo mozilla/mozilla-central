@@ -102,7 +102,7 @@ this.TelemetryStopwatch = {
    * @param aObj Optional parameter which associates the histogram timer with
    *             the given object.
    *
-   * @return true if the timer was succesfully stopped and the data was
+   * @return true if the timer was successfully stopped and the data was
    *         added to the histogram, false otherwise.
    */
   finish: function(aHistogram, aObj) {

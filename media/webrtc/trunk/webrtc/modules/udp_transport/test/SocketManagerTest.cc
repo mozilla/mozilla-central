@@ -37,7 +37,7 @@ public:
         _counterRTCP(0)
     {
     };
-    virtual void IncomingRTPPacket(const WebRtc_Word8* incommingRtpPacket,
+    virtual void IncomingRTPPacket(const WebRtc_Word8* incomingRtpPacket,
                                    const WebRtc_Word32 rtpPacketLength,
                                    const char* fromIP,
                                    const WebRtc_UWord16 fromPort)
@@ -45,7 +45,7 @@ public:
         _counterRTP++;
     };
 
-    virtual void IncomingRTCPPacket(const WebRtc_Word8* incommingRtcpPacket,
+    virtual void IncomingRTCPPacket(const WebRtc_Word8* incomingRtcpPacket,
                                     const WebRtc_Word32 rtcpPacketLength,
                                     const char* fromIP,
                                     const WebRtc_UWord16 fromPort)
@@ -64,7 +64,7 @@ public:
         _counterRTCP(0)
     {
     };
-    virtual void IncomingRTPPacket(const WebRtc_Word8* incommingRtpPacket,
+    virtual void IncomingRTPPacket(const WebRtc_Word8* incomingRtpPacket,
                                    const WebRtc_Word32 rtpPacketLength,
                                    const char* fromIP,
                                    const WebRtc_UWord16 fromPort)
@@ -72,7 +72,7 @@ public:
         _counterRTP++;
     };
 
-    virtual void IncomingRTCPPacket(const WebRtc_Word8* incommingRtcpPacket,
+    virtual void IncomingRTCPPacket(const WebRtc_Word8* incomingRtcpPacket,
                                     const WebRtc_Word32 rtcpPacketLength,
                                     const char* fromIP,
                                     const WebRtc_UWord16 fromPort)

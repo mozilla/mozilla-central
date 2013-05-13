@@ -89,7 +89,7 @@ public:
         if (sk_atomic_conditional_inc(&fRefCnt) != 0) {
             // Aquire barrier (L/SL), if not provided above.
             // Prevents subsequent code from happening before the increment.
-            sk_membar_aquire__after_atomic_conditional_inc();
+            sk_membar_acquire__after_atomic_conditional_inc();
             return true;
         }
         return false;
@@ -115,7 +115,7 @@ public:
         if (sk_atomic_dec(&fWeakCnt) == 1) {
             // Aquire barrier (L/SL), if not provided above.
             // Prevents code in destructor from happening before the decrement.
-            sk_membar_aquire__after_atomic_dec();
+            sk_membar_acquire__after_atomic_dec();
 #ifdef SK_DEBUG
             // so our destructor won't complain
             fWeakCnt = 1;

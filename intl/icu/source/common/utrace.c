@@ -89,7 +89,7 @@ static void outputChar(char c, char *outBuf, int32_t *outIx, int32_t capacity, i
     int32_t i;
     /* Check whether a start of line indenting is needed.  Three cases:
      *   1.  At the start of the first line  (output index == 0).
-     *   2.  At the start of subsequent lines  (preceeding char in buffer == '\n')
+     *   2.  At the start of subsequent lines  (preceding char in buffer == '\n')
      *   3.  When preflighting buffer len (buffer capacity is exceeded), when
      *       a \n is output.  Ideally we wouldn't do the indent until the following char
      *       is received, but that won't work because there's no place to remember that

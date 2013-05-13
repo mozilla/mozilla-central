@@ -3867,7 +3867,7 @@ EndSweepPhase(JSRuntime *rt, JSGCInvocationKind gckind, bool lastGC)
 
     /*
      * If we found any black->gray edges during marking, we completely clear the
-     * mark bits of all uncollected zones, or if a reset has occured, zones that
+     * mark bits of all uncollected zones, or if a reset has occurred, zones that
      * will no longer be collected. This is safe, although it may
      * prevent the cycle collector from collecting some dead objects.
      */

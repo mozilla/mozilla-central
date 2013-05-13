@@ -473,7 +473,7 @@ slim_hidden_def (cairo_region_get_extents);
  * cairo_region_status:
  * @region: a #cairo_region_t
  *
- * Checks whether an error has previous occured for this
+ * Checks whether an error has previous occurred for this
  * region object.
  *
  * Return value: %CAIRO_STATUS_SUCCESS or %CAIRO_STATUS_NO_MEMORY

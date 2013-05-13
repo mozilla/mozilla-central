@@ -27,7 +27,7 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=789773
    * See comment 50 for the situation we're testing against here.
    *
    * Note that the failure mode of this test is to hang, and hang the browser on quit.
-   * This is an unfortunate occurance, but that's why we're testing it.
+   * This is an unfortunate occurrence, but that's why we're testing it.
    */
   SimpleTest.waitForExplicitFinish();
 

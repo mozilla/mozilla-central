@@ -50,7 +50,7 @@ public:
   virtual void Destroy() MOZ_OVERRIDE;
 
   /**
-   * return True if initialization was succesful, false when it was not.
+   * return True if initialization was successful, false when it was not.
    */
   bool Initialize();
 

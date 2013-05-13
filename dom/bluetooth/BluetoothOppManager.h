@@ -184,7 +184,7 @@ private:
   nsCOMArray<nsIDOMBlob> mBlobs;
 
   /**
-   * A seperate member thread is required because our read calls can block
+   * A separate member thread is required because our read calls can block
    * execution, which is not allowed to happen on the IOThread.
    * 
    */

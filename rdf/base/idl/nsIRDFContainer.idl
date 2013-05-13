@@ -40,7 +40,7 @@ interface nsIRDFContainer : nsISupports {
     void AppendElement(in nsIRDFNode aElement);
 
     /**
-     * Remove the first occurence of the specified element from the
+     * Remove the first occurrence of the specified element from the
      * container. If aRenumber is 'true', then the underlying RDF graph
      * will be 're-numbered' to account for the removal.
      */

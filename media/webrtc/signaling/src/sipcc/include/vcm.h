@@ -844,7 +844,7 @@ int vcmGetVideoMaxSupportedPacketizationMode();
 
 /**
  * Get the rx/tx stream statistics associated with the call.
- * The rx/tx stats are defined as comma seperated string as follows.
+ * The rx/tx stats are defined as comma separated string as follows.
  * Rx_stats:
  *   snprintf(rx_stats, CC_KFACTOR_STAT_LEN,
  *               "Dur=%d,Pkt=%d,Oct=%d,LatePkt=%d,LostPkt=%d,AvgJit=%d,VQMetrics=\"%s\"",

@@ -43,7 +43,7 @@ interface nsIWebContentConverterService : nsIWebContentHandlerRegistrar
    * @param   handler
    *          A web service handler. If this is null, no automatic action is
    *          performed and the user must choose.
-   * @throws  NS_ERROR_NOT_AVAILABLE if the service refered to by |handler| is 
+   * @throws  NS_ERROR_NOT_AVAILABLE if the service referred to by |handler| is 
    *          not already registered.
    */
   void setAutoHandler(in AString contentType, in nsIWebContentHandlerInfo handler);

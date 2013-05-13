@@ -40,7 +40,7 @@ public:
     virtual ~D3D9Channel();
 
     // Inherited from VideoRencerCallback, called from VideoAPI class.
-    // Called when the incomming frame size and/or number of streams in mix changes
+    // Called when the incoming frame size and/or number of streams in mix changes
     virtual int FrameSizeChange(int width, int height, int numberOfStreams);
 
     // A new frame is delivered.

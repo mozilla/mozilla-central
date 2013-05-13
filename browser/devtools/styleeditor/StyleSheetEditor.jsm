@@ -34,7 +34,7 @@ const UPDATE_STYLESHEET_THROTTLE_DELAY = 500;
  *   'source-load': The source of the stylesheet has been fetched
  *   'property-change': A property on the underlying stylesheet has changed
  *   'source-editor-load': The source editor for this editor has been loaded
- *   'error': An error has occured
+ *   'error': An error has occurred
  *
  * @param {StyleSheet}  styleSheet
  * @param {DOMWindow}  win

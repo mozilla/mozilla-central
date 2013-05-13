@@ -56,7 +56,7 @@ enum {
 
 enum {
     /*
-     * Unicode code points from 3400 to E000 are not adressible by
+     * Unicode code points from 3400 to E000 are not addressable by
      * dynamic window, since in these areas no short run alphabets are
      * found. Therefore add gapOffset to all values from gapThreshold.
      */

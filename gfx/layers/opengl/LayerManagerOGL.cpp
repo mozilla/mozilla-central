@@ -359,7 +359,7 @@ LayerManagerOGL::Initialize(bool force)
         break;
       }
 
-      // We weren't succesful with this texture, so we don't need it
+      // We weren't successful with this texture, so we don't need it
       // any more.
       mGLContext->fDeleteTextures(1, &mBackBufferTexture);
     }

@@ -811,7 +811,7 @@ xmlns:Sk="urn:screenplay" targetNamespace="urn:screenplay">
 	<!-- /** add
 		Add references a drawable element, and adds it to the display list. 
 		If where and offset are omitted, the element is appended to the end of the display list.
-		If where is specified, the element is inserted at the first occurance of where in the display list.
+		If where is specified, the element is inserted at the first occurrence of where in the display list.
 		If offset and where are specified, the element is inserted at where plus offset.
 		A positive offset without where inserts the element at the start of the list plus offset.
 		A negative offset without where inserts the element at the end of the list minus offset.
@@ -1291,7 +1291,7 @@ xmlns:Sk="urn:screenplay" targetNamespace="urn:screenplay">
 			dashes and gaps. Intervals must contain an even number of entries. -->
 			<xs:attribute name="intervals" type="Sk:FloatArray"/>
 			<!-- @attribute phase Phase advances the placement of the first dash. A positive phase 
-			preceeds the first dash with a gap. A negative phase shortens the length of the first dash. -->
+			preceds the first dash with a gap. A negative phase shortens the length of the first dash. -->
 			<xs:attribute name="phase" type="Sk:Float"/>
 			<xs:attribute name="id" type="xs:ID"/>
 		</xs:complexType>
@@ -1846,7 +1846,7 @@ xmlns:Sk="urn:screenplay" targetNamespace="urn:screenplay">
 	<!-- /** move
 		Move an element in the display list in front or behind other elements.  
 		If where and offset are omitted, the element is moved to the end of the display list.
-		If where is specified, the element is moved before the first occurance of where in the display list.
+		If where is specified, the element is moved before the first occurrence of where in the display list.
 		If offset and where are specified, the element is moved before where plus offset.
 		A positive offset without where moves the element to the start of the list plus offset.
 		A negative offset without where moves the element to the end of the list minus offset.
@@ -2350,7 +2350,7 @@ xmlns:Sk="urn:screenplay" targetNamespace="urn:screenplay">
 	
 	<!-- /** remove
 		Remove an item from the display list.
-		If where is specified, the first occurance of where in the display list is removed.
+		If where is specified, the first occurrence of where in the display list is removed.
 		If offset and where are specified, the element at where plus offset is removed.
 		A positive offset without where removes the element at the start of the list plus offset.
 		A negative offset without where removes the element at the end of the list minus offset.
@@ -2370,7 +2370,7 @@ xmlns:Sk="urn:screenplay" targetNamespace="urn:screenplay">
 	
 	<!-- /** replace
 		Replace an item in the display list.
-		If where is specified, the first occurance of where in the display list is replaced by use.
+		If where is specified, the first occurrence of where in the display list is replaced by use.
 		If offset and where are specified, the element at where plus offset is replaced by use.
 		A positive offset without where replaces  the element at the start of the list plus offset.
 		A negative offset without where replaces the element at the end of the list minus offset.

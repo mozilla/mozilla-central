@@ -142,7 +142,7 @@ BackendType
 DrawTargetCG::GetType() const
 {
   // It may be worth spliting Bitmap and IOSurface DrawTarget
-  // into seperate classes.
+  // into separate classes.
   if (GetContextType(mCg) == CG_CONTEXT_TYPE_IOSURFACE) {
     return BACKEND_COREGRAPHICS_ACCELERATED;
   } else {

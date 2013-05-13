@@ -39,7 +39,7 @@ MOCHITEST_FILES_A	= \
 		test_characterdataappenddatagetdata.html \
 		test_characterdataappenddatanomodificationallowederr.html \
 		test_characterdataappenddatanomodificationallowederrEE.html \
-		test_characterdatadeletedatabegining.html \
+		test_characterdatadeletedatabeginning.html \
 		test_characterdatadeletedataend.html \
 		test_characterdatadeletedataexceedslength.html \
 		test_characterdatadeletedatagetlengthanddata.html \
@@ -64,7 +64,7 @@ MOCHITEST_FILES_A	= \
 		test_characterdatainsertdatamiddle.html \
 		test_characterdatainsertdatanomodificationallowederr.html \
 		test_characterdatainsertdatanomodificationallowederrEE.html \
-		test_characterdatareplacedatabegining.html \
+		test_characterdatareplacedatabeginning.html \
 		test_characterdatareplacedataend.html \
 		test_characterdatareplacedataexceedslengthofarg.html \
 		test_characterdatareplacedataexceedslengthofdata.html \
@@ -198,7 +198,7 @@ MOCHITEST_FILES_C	= \
 MOCHITEST_FILES_D	= \
 		test_hc_characterdataappenddata.html \
 		test_hc_characterdataappenddatagetdata.html \
-		test_hc_characterdatadeletedatabegining.html \
+		test_hc_characterdatadeletedatabeginning.html \
 		test_hc_characterdatadeletedataend.html \
 		test_hc_characterdatadeletedataexceedslength.html \
 		test_hc_characterdatadeletedatagetlengthanddata.html \
@@ -219,7 +219,7 @@ MOCHITEST_FILES_D	= \
 		test_hc_characterdatainsertdatabeginning.html \
 		test_hc_characterdatainsertdataend.html \
 		test_hc_characterdatainsertdatamiddle.html \
-		test_hc_characterdatareplacedatabegining.html \
+		test_hc_characterdatareplacedatabeginning.html \
 		test_hc_characterdatareplacedataend.html \
 		test_hc_characterdatareplacedataexceedslengthofarg.html \
 		test_hc_characterdatareplacedataexceedslengthofdata.html \

@@ -993,7 +993,7 @@ static UDataMemory *doLoadFromIndividualFiles(const char *pkgName,
                 return pEntryData;
             }
 
-            /* the data is not acceptable, or some error occured.  Either way, unmap the memory */
+            /* the data is not acceptable, or some error occurred.  Either way, unmap the memory */
             udata_close(&dataMemory);
 
             /* If we had a nasty error, bail out completely.  */

@@ -234,7 +234,7 @@ interface nsISHEntry : nsIHistoryEntry
      * Does this SHEntry correspond to the same document as aEntry?  This is
      * true iff the two SHEntries have the same BFCacheEntry.  So in
      * particular, sharesDocumentWith(aEntry) is guaranteed to return true if
-     * it's preceeded by a call to adoptBFCacheEntry(aEntry).
+     * it's preceded by a call to adoptBFCacheEntry(aEntry).
      */
     boolean sharesDocumentWith(in nsISHEntry aEntry);
 };

@@ -1025,7 +1025,7 @@ nsFilePicker::ShowW(int16_t *aReturnVal)
 
   *aReturnVal = returnCancel;
 
-  AutoSuppressEvents supress(mParentWidget);
+  AutoSuppressEvents suppress(mParentWidget);
 
   nsAutoString initialDir;
   if (mDisplayDirectory)

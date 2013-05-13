@@ -87,7 +87,7 @@ public:
      */     
                     int32_t                 release(uint32_t flags = 0) const;
     
-    //! returns wether or not we're the only owner
+    //! returns whether or not we're the only owner
     inline          bool                    onlyOwner() const;
     
 

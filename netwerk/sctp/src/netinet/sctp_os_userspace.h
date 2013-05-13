@@ -809,7 +809,7 @@ sctp_hashfreedestroy(void *vhashtbl, struct malloc_type *type, u_long hashmask);
                                   }
 
 /* We make it so if you have up to 4 threads
- * writting based on the default size of
+ * writing based on the default size of
  * the packet log 65 k, that would be
  * 4 16k packets before we would hit
  * a problem.
@@ -906,7 +906,7 @@ int sctp_userspace_get_mtu_from_ifn(uint32_t if_index, int af);
 
 /* For BSD this just accesses the M_PKTHDR length
  * so it operates on an mbuf with hdr flag. Other
- * O/S's may have seperate packet header and mbuf
+ * O/S's may have separate packet header and mbuf
  * chain pointers.. thus the macro.
  */
 #define SCTP_HEADER_TO_CHAIN(m) (m)
@@ -1014,7 +1014,7 @@ int sctp_userspace_get_mtu_from_ifn(uint32_t if_index, int af);
 #if 1 /* openssl header files on FreeBSD 6.3 on Emulab and libssl-dev for Ubuntu */
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-/* libssl-dev calls this SHA_CTX, but it's refered to as SHA1_CTX within the
+/* libssl-dev calls this SHA_CTX, but it's referred to as SHA1_CTX within the
  *  SCTP stack code so here we typedef (or macro?) to equate the two.
  */
 typedef SHA_CTX SHA1_CTX;

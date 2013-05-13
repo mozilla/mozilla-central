@@ -66,7 +66,7 @@ trim(UChar *src, int32_t srcLen, UErrorCode *status){
 U_CFUNC int32_t 
 removeCmtText(UChar* source, int32_t srcLen, UErrorCode* status){
     srcLen = trim(source, srcLen, status);
-    UnicodeString     patString = "^\\s*?\\*\\s*?";     // remove pattern like " * " at the begining of the line
+    UnicodeString     patString = "^\\s*?\\*\\s*?";     // remove pattern like " * " at the beginning of the line
     srcLen = removeText(source, srcLen, patString, UREGEX_MULTILINE, "", status);
     return removeText(source, srcLen, "[ \\r\\n]+", 0, " ", status);// remove new lines;
 }

@@ -307,7 +307,7 @@ iQClass.prototype = {
 
   // ----------
   // Function: empty
-  // Removes all of the reciever's children and HTML content from the DOM.
+  // Removes all of the receiver's children and HTML content from the DOM.
   empty: function iQClass_empty() {
     for (let i = 0; this[i] != null; i++) {
       let elem = this[i];

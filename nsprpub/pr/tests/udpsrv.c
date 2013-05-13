@@ -24,7 +24,7 @@
 ** expected content, then sends the packet back to UDP_Client().
 ** 
 ** UDP_Client() sends packets to UDP_Server() using sendto()
-** he recieves packets back from the server via recvfrom().
+** he receives packets back from the server via recvfrom().
 ** After he sends enough packets containing UDP_AMOUNT_TO_WRITE
 ** bytes of data, he sends an EOF message.
 ** 

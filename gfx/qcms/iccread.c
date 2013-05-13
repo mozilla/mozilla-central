@@ -545,7 +545,7 @@ static struct lutmABType *read_tag_lutmABType(struct mem_source *src, struct tag
 		return NULL;
 
 	// some of this data is optional and is denoted by a zero offset
-	// we also use this to track their existance
+	// we also use this to track their existence
 	a_curve_offset = read_u32(src, offset + 28);
 	clut_offset = read_u32(src, offset + 24);
 	m_curve_offset = read_u32(src, offset + 20);

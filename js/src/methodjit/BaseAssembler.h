@@ -393,7 +393,7 @@ static const JSC::MacroAssembler::RegisterID JSParamReg_Argc  = JSC::MIPSRegiste
 
     // Some platforms require stack manipulation before making stub calls.
     // When using THROW/V, the return address is replaced, meaning the
-    // stack de-adjustment will not have occured. JaegerThrowpoline accounts
+    // stack de-adjustment will not have occurred. JaegerThrowpoline accounts
     // for this. For stub calls, which are always invoked as if they use
     // two parameters, the stack adjustment is constant.
     //
@@ -433,7 +433,7 @@ static const JSC::MacroAssembler::RegisterID JSParamReg_Argc  = JSC::MIPSRegiste
 
     // Prepare the stack for a call sequence. This must be called AFTER all
     // volatile regs have been saved, and BEFORE pushArg() is used. The stack
-    // is assumed to be aligned to 16-bytes plus any pushes that occured via
+    // is assumed to be aligned to 16-bytes plus any pushes that occurred via
     // saveRegs().
     //
     // During a call sequence all registers are "owned" by the Assembler.

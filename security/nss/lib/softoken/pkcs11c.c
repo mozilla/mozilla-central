@@ -325,7 +325,7 @@ sftk_SetContextByType(SFTKSession *session, SFTKContextType type,
 /*
  * code to grab the context. Needed by every C_XXXUpdate, C_XXXFinal,
  * and C_XXX function. The function takes a session handle, the context type,
- * and wether or not the session needs to be multipart. It returns the context,
+ * and whether or not the session needs to be multipart. It returns the context,
  * and optionally returns the session pointer (if sessionPtr != NULL) if session
  * pointer is returned, the caller is responsible for freeing it.
  */

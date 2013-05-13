@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-// System independant wrapper for spawning threads
+// System independent wrapper for spawning threads
 // Note: the spawned thread will loop over the callback function until stopped.
 // Note: The callback function is expected to return every 2 seconds or more
 // often.

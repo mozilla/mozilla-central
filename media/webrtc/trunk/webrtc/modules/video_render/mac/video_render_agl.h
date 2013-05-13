@@ -75,7 +75,7 @@ private:
 	int				_oldStretchedWidth;
 	unsigned char*  _buffer;
     int             _bufferSize;
-    int             _incommingBufferSize;
+    int             _incomingBufferSize;
     bool            _bufferIsUpdated;
 	bool			_sizeInitialized;
     int             _numberOfStreams;

@@ -771,7 +771,7 @@ var SelectionHelperUI = {
    * _onTap
    *
    * Handles taps that move the current caret around in text edits,
-   * clear active selection and focus when neccessary, or change
+   * clear active selection and focus when necessary, or change
    * modes.
    * Future: changing selection modes by tapping on a monocle.
    */

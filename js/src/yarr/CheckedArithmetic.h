@@ -50,7 +50,7 @@
  *    and overflow has occurred.
  *  - The alternative is Checked<T, RecordOverflow>, which uses an additional
  *    byte of storage to track whether an overflow has occurred, subsequent
- *    unchecked operations will crash if an overflow has occured
+ *    unchecked operations will crash if an overflow has occurred
  *
  * It is possible to provide a custom overflow handler, in which case you need
  * to support these functions:

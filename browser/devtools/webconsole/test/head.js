@@ -1185,7 +1185,7 @@ function waitForMessages(aOptions)
 
   function displayErrorContext(aRule, aElement)
   {
-    console.log("error occured during rule " + displayRule(aRule));
+    console.log("error occurred during rule " + displayRule(aRule));
     console.log("while checking the following message");
     dumpMessageElement(aElement);
   }

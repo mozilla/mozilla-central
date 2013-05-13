@@ -46,17 +46,17 @@ function ok(v, n) { window.opener.wrappedJSObject.SimpleTest.ok(v,n); }
 
 function initEvents(target)
 {
-  target.addEventListener("focus", eventOccured, true);
-  target.addEventListener("blur", eventOccured, true);
-  getTopWindow(target).addEventListener("activate", eventOccured, true);
-  getTopWindow(target).addEventListener("deactivate", eventOccured, true);
+  target.addEventListener("focus", eventOccurred, true);
+  target.addEventListener("blur", eventOccurred, true);
+  getTopWindow(target).addEventListener("activate", eventOccurred, true);
+  getTopWindow(target).addEventListener("deactivate", eventOccurred, true);
 }
 
-function eventOccured(event)
+function eventOccurred(event)
 {
   // iframes should never receive focus or blur events directly
   if (event.target instanceof Element && event.target.localName == "iframe")
-    ok(false, "iframe " + event.type + "occured");
+    ok(false, "iframe " + event.type + "occurred");
 
   var id;
   if (gOldExpectedWindow && event.type == "blur") {
@@ -1384,8 +1384,8 @@ function doFrameSwitchingTests()
   framea.style.MozUserFocus = "";
   frameb.style.MozUserFocus = "";
 
-  window.removeEventListener("focus", eventOccured, true);
-  window.removeEventListener("blur", eventOccured, true);
+  window.removeEventListener("focus", eventOccurred, true);
+  window.removeEventListener("blur", eventOccurred, true);
 
   var inputa = framea.contentDocument.body.firstChild;
   inputa.focus();
@@ -1563,17 +1563,17 @@ function doFrameHistoryTests()
 
 function addFrameSwitchingListeners(frame)
 {
-  frame.contentWindow.addEventListener("focus", frameSwitchingEventOccured, false);
-  frame.contentWindow.addEventListener("blur", frameSwitchingEventOccured, false);
-  frame.contentDocument.addEventListener("focus", frameSwitchingEventOccured, false);
-  frame.contentDocument.addEventListener("blur", frameSwitchingEventOccured, false);
+  frame.contentWindow.addEventListener("focus", frameSwitchingEventOccurred, false);
+  frame.contentWindow.addEventListener("blur", frameSwitchingEventOccurred, false);
+  frame.contentDocument.addEventListener("focus", frameSwitchingEventOccurred, false);
+  frame.contentDocument.addEventListener("blur", frameSwitchingEventOccurred, false);
 
   var node = frame.contentDocument.body.firstChild;
-  node.addEventListener("focus", frameSwitchingEventOccured, false);
-  node.addEventListener("blur", frameSwitchingEventOccured, false);
+  node.addEventListener("focus", frameSwitchingEventOccurred, false);
+  node.addEventListener("blur", frameSwitchingEventOccurred, false);
 }
 
-function frameSwitchingEventOccured(event)
+function frameSwitchingEventOccurred(event)
 {
   if (!gExpectedEvents.length) {
     gEventMatched = false;
@@ -1608,7 +1608,7 @@ SimpleTest.waitForFocus(startTest);
 <commandset id="cu"
             commandupdater="true"
             events="focus"
-            oncommandupdate="eventOccured(event)"/>
+            oncommandupdate="eventOccurred(event)"/>
 
 <!--
  The elements with ids starting with t are focusable and in the taborder.

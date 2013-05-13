@@ -969,12 +969,12 @@ class NestedTask : public Task {
   Worker* server_;
 };
 
-static bool timeout_occured = false;
+static bool timeout_occurred = false;
 
 class TimeoutTask : public Task {
  public:
   void Run() {
-    timeout_occured = true;
+    timeout_occurred = true;
   }
 };
 
@@ -991,7 +991,7 @@ class DoneEventRaceServer : public Worker {
     // event wasn't set.  So we indirectly use the timeout task to notice if a
     // timeout occurred.
     SendAnswerToLife(true, 10000, true);
-    DCHECK(!timeout_occured);
+    DCHECK(!timeout_occurred);
     Done();
   }
 };

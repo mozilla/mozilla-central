@@ -58,7 +58,7 @@ static gfxFloat RecoverZDepth(const gfx3DMatrix& aTransform, const gfxPoint& aPo
  * For layers that are intersecting in 3d space, this essentially guesses an 
  * order. In a lot of cases we only intersect right at the edge point (3d cubes
  * in particular) and this generates the 'correct' looking ordering. For planes
- * that truely intersect, then there is no correct ordering and this remains
+ * that truly intersect, then there is no correct ordering and this remains
  * unsolved without changing our rendering code.
  */
 static LayerSortOrder CompareDepth(Layer* aOne, Layer* aTwo) {

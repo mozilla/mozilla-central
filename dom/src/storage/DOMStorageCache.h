@@ -103,7 +103,7 @@ public:
   static DOMStorageDBBridge* StartDatabase();
   static DOMStorageDBBridge* GetDatabase();
 
-  // Stops the thread and flushes all uncommited data
+  // Stops the thread and flushes all uncommitted data
   static nsresult StopDatabase();
 
   // DOMStorageCacheBridge

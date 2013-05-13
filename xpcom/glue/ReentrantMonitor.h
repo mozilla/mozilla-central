@@ -170,7 +170,7 @@ class NS_COM_GLUE MOZ_STACK_CLASS ReentrantMonitorAutoEnter
 public:
     /**
      * Constructor
-     * The constructor aquires the given lock.  The destructor
+     * The constructor acquires the given lock.  The destructor
      * releases the lock.
      * 
      * @param aReentrantMonitor A valid mozilla::ReentrantMonitor*. 

@@ -60,7 +60,7 @@ cc_deviceinfo_ref_t CCAPI_Device_getDeviceInfo(cc_device_handle_t handle)
 /**
  * Retain the deviceInfo snapshot
  * @param handle - device handle
- * @param cc_deviceinfo_ref_t - refrence to the block to be retained
+ * @param cc_deviceinfo_ref_t - reference to the block to be retained
  * @return void
  */
 void CCAPI_Device_retainDeviceInfo(cc_deviceinfo_ref_t ref){
@@ -72,7 +72,7 @@ void CCAPI_Device_retainDeviceInfo(cc_deviceinfo_ref_t ref){
 
 /**
  * Set device configuration file location
- * @param [in] ref - refrence to the block to be freed
+ * @param [in] ref - reference to the block to be freed
  * @param [in] file_path - device config file full path
  * @return void
  */
@@ -83,7 +83,7 @@ void CCAPI_Device_configUpdate(cc_device_handle_t handle, file_path_t file_path)
 /**
  * Release the deviceInfo snapshot
  * @param handle - device handle
- * @param cc_deviceinfo_ref_t - refrence to the block to be released
+ * @param cc_deviceinfo_ref_t - reference to the block to be released
  * @return void
  */
 void CCAPI_Device_releaseDeviceInfo(cc_deviceinfo_ref_t ref){

@@ -345,7 +345,7 @@ WebRtc_Word16 TestVADDTX::RegisterSendCodec(char side,
     myCodecParam.channels = 1;
     CHECK_ERROR(myACM->RegisterSendCodec(myCodecParam));
 
-    // initialization was succesful
+    // initialization was successful
     return 0;
 }
 

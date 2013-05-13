@@ -860,7 +860,7 @@ MixerWrapper::Process()
          // Normal operation, ~10 ms has passed
         break;
     case kEventError:
-        // Error occured end the thread and throw an assertion
+        // Error occurred end the thread and throw an assertion
         assert(false);
         return false;
     case kEventTimeout:

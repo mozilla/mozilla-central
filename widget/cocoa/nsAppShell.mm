@@ -364,7 +364,7 @@ nsAppShell::ProcessGeckoEvents(void* aInfo)
     // presentable.
     //
     // But _don't_ set windowNumber to '-1' -- that can lead to nasty
-    // wierdness like bmo bug 397039 (a crash in [NSApp sendEvent:] on one of
+    // weirdness like bmo bug 397039 (a crash in [NSApp sendEvent:] on one of
     // these fake events, because the -1 has gotten changed into the number
     // of an actual NSWindow object, and that NSWindow object has just been
     // destroyed).  Setting windowNumber to '0' seems to work fine -- this
@@ -1005,7 +1005,7 @@ nsAppShell::AfterProcessNextEvent(nsIThreadInternal *aThread,
 
 // Called by the OS after [MacApplicationDelegate applicationShouldTerminate:]
 // has returned NSTerminateNow.  This method "subclasses" and replaces the
-// OS's original implementation.  The only thing the orginal method does which
+// OS's original implementation.  The only thing the original method does which
 // we need is that it posts NSApplicationWillTerminateNotification.  Everything
 // else is unneeded (because it's handled elsewhere), or actively interferes
 // with Gecko's shutdown sequence.  For example the original terminate: method

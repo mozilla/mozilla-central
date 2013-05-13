@@ -116,7 +116,7 @@ interface nsIContentPrefService : nsISupports
   boolean hasPref(in nsIVariant aGroup, in AString aName, in nsILoadContext aContext);
 
   /**
-   * Check whether or not the value of a pref (or its non-existance) is cached.
+   * Check whether or not the value of a pref (or its non-existence) is cached.
    *
    * @param    aGroup      the group for which to check for the pref, as an nsIURI
    *                       from which the hostname will be used, a string

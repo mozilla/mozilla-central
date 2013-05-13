@@ -5752,7 +5752,7 @@ sctp_send_initiate_ack(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 	stc.peerport = sh->src_port;
 
 	/*
-	 * If we wanted to honor cookie life extentions, we would add to
+	 * If we wanted to honor cookie life extensions, we would add to
 	 * stc.cookie_life. For now we should NOT honor any extension
 	 */
 	stc.site_scope = stc.local_scope = stc.loopback_scope = 0;

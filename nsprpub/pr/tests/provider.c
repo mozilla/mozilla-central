@@ -804,7 +804,7 @@ static void PR_CALLBACK Worker(void *arg)
 
     PR_Lock(server->ml);
     PR_APPEND_LINK(&worker->element, &server->list);
-    pool->workers += 1;  /* define our existance */
+    pool->workers += 1;  /* define our existence */
 
     while (cs_run == server->state)
     {
@@ -893,7 +893,7 @@ exit:
         ("\t\tWorker(0x%p): exiting [%u]\n", PR_GetCurrentThread(), pool->workers));
 
     PR_Lock(server->ml);
-    pool->workers -= 1;  /* undefine our existance */
+    pool->workers -= 1;  /* undefine our existence */
     PR_REMOVE_AND_INIT_LINK(&worker->element);
     PR_NotifyCondVar(pool->exiting);
     PR_Unlock(server->ml);

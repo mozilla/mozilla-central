@@ -40,7 +40,7 @@ int WebRtcIlbcfix_LsfCheck(
       for (k=0;k<(dim-1);k++) {
         pos=m*dim+k;
 
-        /* Seperate coefficients with a safety margin of 50 Hz */
+        /* Separate coefficients with a safety margin of 50 Hz */
         if ((lsf[pos+1]-lsf[pos])<eps) {
 
           if (lsf[pos+1]<lsf[pos]) {

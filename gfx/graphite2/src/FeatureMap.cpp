@@ -206,7 +206,7 @@ bool SillMap::readSill(const Face & face)
         Features* feats = new Features(*m_FeatureMap.m_defaultFeatures);
         const byte *pLSet = sill + offset;
 
-        // Apply langauge specific settings
+        // Apply language specific settings
         for (int j = 0; j < numSettings; j++)
         {
             uint32 name = be::read<uint32>(pLSet);

@@ -67,7 +67,7 @@ BaselineCompiler::compile()
     IonSpew(IonSpew_BaselineScripts, "Baseline compiling script %s:%d (%p)",
             script->filename(), script->lineno, script.get());
 
-    // Only need to analyze scripts which are marked |argumensHasVarBinding|, to
+    // Only need to analyze scripts which are marked |argumentsHasVarBinding|, to
     // compute |needsArgsObj| flag.
     if (script->argumentsHasVarBinding()) {
         if (!script->ensureRanAnalysis(cx))

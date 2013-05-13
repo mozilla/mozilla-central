@@ -506,7 +506,7 @@ class NotificationType {
     // only the number of pages in the document has been updated.
     PRINTED_DOCUMENT_UPDATED,
 
-    // Notification from PrintJob that an event occured. It can be that a page
+    // Notification from PrintJob that an event occurred. It can be that a page
     // finished printing or that the print job failed. Details is
     // PrintJob::EventDetails.
     PRINT_JOB_EVENT,

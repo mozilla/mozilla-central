@@ -127,7 +127,7 @@ public:
 
     // Write one audio frame, i.e. the bufferLength first bytes of audioBuffer,
     // to file. The audio frame size is determined by the codecInst.pacsize
-    // parameter of the last sucessfull StartRecordingAudioFile(..) call.
+    // parameter of the last successfull StartRecordingAudioFile(..) call.
     // Note: bufferLength must be exactly one frame.
     virtual WebRtc_Word32 IncomingAudioData(
         const WebRtc_Word8*  audioBuffer,

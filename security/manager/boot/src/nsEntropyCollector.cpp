@@ -70,7 +70,7 @@ nsEntropyCollector::RandomUpdate(void *new_entropy, int32_t bufLen)
 
         // have we arrived at the end of the buffer?
         if (PastEndPointer == mWritePointer) {
-          // reset write pointer back to begining of our buffer
+          // reset write pointer back to beginning of our buffer
           mWritePointer = mEntropyCache;
         }
 

@@ -262,11 +262,11 @@ EventQueue::CoalesceSelChangeEvents(AccSelChangeEvent* aTailEvent,
                                     AccSelChangeEvent* aThisEvent,
                                     uint32_t aThisIndex)
 {
-  aTailEvent->mPreceedingCount = aThisEvent->mPreceedingCount + 1;
+  aTailEvent->mPrecedingCount = aThisEvent->mPrecedingCount + 1;
 
   // Pack all preceding events into single selection within event
   // when we receive too much selection add/remove events.
-  if (aTailEvent->mPreceedingCount >= kSelChangeCountToPack) {
+  if (aTailEvent->mPrecedingCount >= kSelChangeCountToPack) {
     aTailEvent->mEventType = nsIAccessibleEvent::EVENT_SELECTION_WITHIN;
     aTailEvent->mAccessible = aTailEvent->mWidget;
     aThisEvent->mEventRule = AccEvent::eDoNotEmit;
@@ -289,7 +289,7 @@ EventQueue::CoalesceSelChangeEvents(AccSelChangeEvent* aTailEvent,
 
   // Pack sequential selection remove and selection add events into
   // single selection change event.
-  if (aTailEvent->mPreceedingCount == 1 &&
+  if (aTailEvent->mPrecedingCount == 1 &&
       aTailEvent->mItem != aThisEvent->mItem) {
     if (aTailEvent->mSelChangeType == AccSelChangeEvent::eSelectionAdd &&
         aThisEvent->mSelChangeType == AccSelChangeEvent::eSelectionRemove) {

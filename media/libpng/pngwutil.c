@@ -34,7 +34,7 @@ png_save_uint_32(png_bytep buf, png_uint_32 i)
  * complement format.  If this isn't the case, then this routine needs to
  * be modified to write data in two's complement format.  Note that,
  * the following works correctly even if png_int_32 has more than 32 bits
- * (compare the more complex code required on read for sign extention.)
+ * (compare the more complex code required on read for sign extension.)
  */
 void PNGAPI
 png_save_int_32(png_bytep buf, png_int_32 i)

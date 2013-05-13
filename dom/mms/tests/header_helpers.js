@@ -43,7 +43,7 @@ function do_check_throws(func, result, stack)
  * Internal test function for comparing results.
  *
  * @param func
- *        A function under test. It should accept an arguement and return the
+ *        A function under test. It should accept an argument and return the
  *        result.
  * @param data
  *        Input data for `func`.

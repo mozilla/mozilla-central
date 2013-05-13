@@ -37,7 +37,7 @@ cc_callinfo_ref_t CCAPI_Call_getCallInfo(cc_call_handle_t handle) {
 }
 /**
  * Retain the snapshot
- * @param cc_callinfo_ref_t - refrence to the block to be retained
+ * @param cc_callinfo_ref_t - reference to the block to be retained
  * @return void
  */
 void CCAPI_Call_retainCallInfo(cc_callinfo_ref_t ref) {
@@ -47,7 +47,7 @@ void CCAPI_Call_retainCallInfo(cc_callinfo_ref_t ref) {
 }
 /**
  * Free the snapshot
- * @param cc_callinfo_ref_t - refrence to the block to be freed
+ * @param cc_callinfo_ref_t - reference to the block to be freed
  * @return void
  */
 void CCAPI_Call_releaseCallInfo(cc_callinfo_ref_t ref) {

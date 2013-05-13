@@ -10000,7 +10000,7 @@ ssl_CBCExtractMAC(sslBuffer *plaintext,
  *
  * Caller must hold the RecvBufLock.
  *
- * This function aquires and releases the SSL3Handshake Lock, holding the
+ * This function acquires and releases the SSL3Handshake Lock, holding the
  * lock around any calls to functions that handle records other than
  * Application Data records.
  */

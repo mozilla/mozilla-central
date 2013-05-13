@@ -31,7 +31,7 @@
 // var G_GDEBUG = true                           // Enable this module
 // var G_debugService = new G_DebugService();    // in global context
 //
-// // You can use it with arbitrary primitive first arguement
+// // You can use it with arbitrary primitive first argument
 // G_Debug("myzone", "Yo yo yo");   // outputs: [myzone] Yo yo yo\n
 //
 // // But it's nice to use it with an object; it will probe for the zone name

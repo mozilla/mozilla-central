@@ -90,9 +90,9 @@ struct AddCacheState
 // IonCache is the base structure of an inline cache, which generates code stubs
 // dynamically and attaches them to an IonScript.
 //
-// A cache must at least provide a static update function which will usualy have
+// A cache must at least provide a static update function which will usually have
 // a JSContext*, followed by the cache index. The rest of the arguments of the
-// update function are usualy corresponding to the register inputs of the cache,
+// update function are usually corresponding to the register inputs of the cache,
 // as it must perform the same operation as any of the stubs that it might
 // produce. The update function call is handled by the visit function of
 // CodeGenerator corresponding to this IC.

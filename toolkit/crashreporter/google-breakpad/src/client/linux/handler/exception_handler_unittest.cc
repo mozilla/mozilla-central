@@ -206,7 +206,7 @@ void ChildCrash(bool use_fd) {
     }
   }
   if (!use_fd)
-    close(fds[1]);  // Close the writting end.
+    close(fds[1]);  // Close the writing end.
 
   ASSERT_NO_FATAL_FAILURE(WaitForProcessToTerminate(child, SIGSEGV));
 

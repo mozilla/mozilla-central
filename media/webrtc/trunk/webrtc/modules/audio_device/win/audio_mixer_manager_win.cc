@@ -638,7 +638,7 @@ WebRtc_Word32 AudioMixerManager::OpenSpeaker(AudioDeviceModule::WindowsDeviceTyp
     HMIXER hMixer(NULL);
 
     // Retrieve the device identifier for a mixer device associated with the
-    // aquired waveform-audio output handle.
+    // acquired waveform-audio output handle.
     //
     res = mixerGetID((HMIXEROBJ)hWaveOut, &mixerId, MIXER_OBJECTF_HWAVEOUT);
     if (MMSYSERR_NOERROR != res)
@@ -734,7 +734,7 @@ WebRtc_Word32 AudioMixerManager::OpenSpeaker(WebRtc_UWord16 index)
     HMIXER hMixer(NULL);
 
     // Retrieve the device identifier for a mixer device associated with the
-    // aquired waveform-audio output handle.
+    // acquired waveform-audio output handle.
     //
     res = mixerGetID((HMIXEROBJ)hWaveOut, &mixerId, MIXER_OBJECTF_HWAVEOUT);
     if (MMSYSERR_NOERROR != res)
@@ -860,7 +860,7 @@ WebRtc_Word32 AudioMixerManager::OpenMicrophone(AudioDeviceModule::WindowsDevice
     HMIXER hMixer(NULL);
 
     // Retrieve the device identifier for a mixer device associated with the
-    // aquired waveform-audio input handle.
+    // acquired waveform-audio input handle.
     //
     res = mixerGetID((HMIXEROBJ)hWaveIn, &mixerId, MIXER_OBJECTF_HWAVEIN);
     if (MMSYSERR_NOERROR != res)
@@ -956,7 +956,7 @@ WebRtc_Word32 AudioMixerManager::OpenMicrophone(WebRtc_UWord16 index)
     HMIXER hMixer(NULL);
 
     // Retrieve the device identifier for a mixer device associated with the
-    // aquired waveform-audio input handle.
+    // acquired waveform-audio input handle.
     //
     res = mixerGetID((HMIXEROBJ)hWaveIn, &mixerId, MIXER_OBJECTF_HWAVEIN);
     if (MMSYSERR_NOERROR != res)
@@ -1831,7 +1831,7 @@ bool AudioMixerManager::GetSourceLineInfo(UINT mixId, DWORD destId, DWORD srcId,
 
 bool AudioMixerManager::GetAllLineControls(UINT mixId, const MIXERLINE& line, MIXERCONTROL* controlArray, bool trace) const
 {
-    // Ensure that we don't try to aquire information if there are no controls for this line
+    // Ensure that we don't try to acquire information if there are no controls for this line
     //
     if (line.cControls == 0)
         return false;

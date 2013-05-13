@@ -3903,7 +3903,7 @@ nsFrame::ComputeSize(nsRenderingContext *aRenderingContext,
   result.width = std::max(minWidth, result.width);
 
   // Compute height
-  // (but not if we're auto-height or if we recieved the "eUseAutoHeight"
+  // (but not if we're auto-height or if we received the "eUseAutoHeight"
   // flag -- then, we'll just stick with the height that we already calculated
   // in the initial ComputeAutoSize() call.)
   if (!nsLayoutUtils::IsAutoHeight(*heightStyleCoord, aCBSize.height) &&

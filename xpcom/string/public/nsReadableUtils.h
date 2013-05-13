@@ -342,7 +342,7 @@ bool FindCharInReadable( PRUnichar aChar, nsAString::const_iterator& aSearchStar
 bool FindCharInReadable( char aChar, nsACString::const_iterator& aSearchStart, const nsACString::const_iterator& aSearchEnd );
 
     /**
-    * Finds the number of occurences of |aChar| in the string |aStr|
+    * Finds the number of occurrences of |aChar| in the string |aStr|
     */
 uint32_t CountCharInReadable( const nsAString& aStr,
                                      PRUnichar aChar );

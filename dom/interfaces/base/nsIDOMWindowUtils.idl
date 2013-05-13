@@ -975,7 +975,7 @@ interface nsIDOMWindowUtils : nsISupports {
    *
    * @param aX, aY The selection point in client coordinates.
    * @param aSelectType The selection behavior requested.
-   * @return True if a selection occured, false otherwise.
+   * @return True if a selection occurred, false otherwise.
    * @throw NS_ERROR_DOM_SECURITY_ERR, NS_ERROR_UNEXPECTED for utils
    * issues, and NS_ERROR_INVALID_ARG for coordinates that are outside
    * this window.
@@ -1099,7 +1099,7 @@ interface nsIDOMWindowUtils : nsISupports {
                               [retval, array, size_is(frameCount)] out float frameIntervals);
 
   /**
-   * Signals that we're begining to tab switch. This is used by painting code to
+   * Signals that we're beginning to tab switch. This is used by painting code to
    * determine total tab switch time.
    */
   void beginTabSwitch();

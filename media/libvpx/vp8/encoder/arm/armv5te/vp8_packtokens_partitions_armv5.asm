@@ -137,7 +137,7 @@ token_loop
 
     ; Decisions are made based on the bit value shifted
     ; off of v, so set a flag here based on this.
-    ; This value is refered to as "bb"
+    ; This value is referred to as "bb"
     lsls    r12, r12, #1                ; bb = v >> n
     mul     r6, r4, r7                  ; ((range-1) * pp[i>>1]))
 

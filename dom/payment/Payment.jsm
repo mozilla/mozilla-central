@@ -209,7 +209,7 @@ let PaymentManager =  {
         debug("Registered Payment Providers: " +
               JSON.stringify(this.registeredProviders[type]));
       } catch (ex) {
-        debug("An error ocurred registering a payment provider. " + ex);
+        debug("An error occurred registering a payment provider. " + ex);
       }
     }
   },

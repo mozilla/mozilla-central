@@ -50,7 +50,7 @@ cc_call_handle_t CCAPI_Line_CreateCall(cc_lineid_t line)
 
 /**
  * Reatin the lineInfo snapshot
- * @param cc_callinfo_ref_t - refrence to the block to be retained
+ * @param cc_callinfo_ref_t - reference to the block to be retained
  * @return void
  */
 void CCAPI_Line_retainLineInfo(cc_lineinfo_ref_t ref){
@@ -60,7 +60,7 @@ void CCAPI_Line_retainLineInfo(cc_lineinfo_ref_t ref){
 }
 /**
  * Free the lineInfo snapshot
- * @param cc_callinfo_ref_t - refrence to the block to be freed
+ * @param cc_callinfo_ref_t - reference to the block to be freed
  * @return void
  */
 void CCAPI_Line_releaseLineInfo(cc_lineinfo_ref_t ref){

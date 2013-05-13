@@ -36,7 +36,7 @@ _oldStretchedHeight( 0),
 _oldStretchedWidth( 0),
 _buffer( 0),
 _bufferSize( 0),
-_incommingBufferSize( 0),
+_incomingBufferSize( 0),
 _bufferIsUpdated( false),
 _numberOfStreams( 0),
 _pixelFormat( GL_RGBA),
@@ -152,7 +152,7 @@ int VideoChannelNSOpenGL::FrameSizeChange(int width, int height, int numberOfStr
         _bufferSize = 0;
     }
 
-    _incommingBufferSize = CalcBufferSize(kI420, _width, _height);
+    _incomingBufferSize = CalcBufferSize(kI420, _width, _height);
     _bufferSize = CalcBufferSize(kARGB, _width, _height);
     _buffer = new unsigned char [_bufferSize];
     memset(_buffer, 0, _bufferSize * sizeof(unsigned char));
@@ -218,7 +218,7 @@ int VideoChannelNSOpenGL::DeliverFrame(const I420VideoFrame& videoFrame) {
   }
 
   int length = CalcBufferSize(kI420, videoFrame.width(), videoFrame.height());
-  if (length != _incommingBufferSize) {
+  if (length != _incomingBufferSize) {
     _owner->UnlockAGLCntx();
     return -1;
   }

@@ -362,7 +362,7 @@ public:
   }
 
   /**
-   * Notify the compositor that a layers transaction has occured. This is only
+   * Notify the compositor that a layers transaction has occurred. This is only
    * used for FPS information at the moment.
    * XXX: surely there is a better way to do this?
    */

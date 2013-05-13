@@ -307,7 +307,7 @@ DownloadElementShell.prototype = {
    *   set.  If available, it's set to the downloaded file name.  If not,
    *   the places title for the download uri is used it's set.  As a last
    *   resort, we fallback to the download uri.
-   * - fileSize (only set for downloads which completed succesfully):
+   * - fileSize (only set for downloads which completed successfully):
    *   the downloaded file size.  For downloads done after the landing of
    *   bug 826991, this value is "static" - that is, it does not necessarily
    *   mean that the file is in place and has this size.

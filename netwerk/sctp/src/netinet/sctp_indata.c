@@ -2586,7 +2586,7 @@ sctp_process_data(struct mbuf **mm, int iphlen, int *offset, int length,
 			/* copy the length and free up the old */
 			SCTP_BUF_LEN(m) = SCTP_BUF_LEN((*mm));
 			sctp_m_freem(*mm);
-			/* sucess, back copy */
+			/* success, back copy */
 			*mm = m;
 		} else {
 			/* We are in trouble in the mbuf world .. yikes */

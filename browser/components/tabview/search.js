@@ -191,7 +191,7 @@ TabMatcher.prototype = {
   // tabs in the window, and the third on all matched tabs in other windows.
   // The first two functions take two parameters: A <TabItem> and its integer index
   // indicating the absolute rank of the <TabItem> in terms of match to
-  // the search term. The last function also takes two paramaters, but can be
+  // the search term. The last function also takes two parameters, but can be
   // passed both <TabItem>s and <xul:tab>s and the index is offset by the
   // number of matched tabs inside the window.
   doSearch: function TabMatcher_doSearch(matchFunc, unmatchFunc, otherFunc) {

@@ -4523,7 +4523,7 @@ dsa_siggen_test(char *reqfn)
             }
             len = len/2;
 
-            /* output the orginal Msg, and generated Y, R, and S */
+            /* output the original Msg, and generated Y, R, and S */
             fputs(buf, dsaresp);
             to_hex_str(buf, dsakey->publicValue.data,
                        dsakey->publicValue.len);

@@ -194,7 +194,7 @@ PL_strcmp(const char *a, const char *b);
  * reflects the lexical sorting order of the two strings indicated, up to
  * the maximum specified.  The result is positive if the first string comes 
  * after the second.  The NSPR implementation is not i18n.  If the maximum
- * is zero, only the existance or non-existance (pointer is null) of the
+ * is zero, only the existence or non-existence (pointer is null) of the
  * strings is compared.
  */
 

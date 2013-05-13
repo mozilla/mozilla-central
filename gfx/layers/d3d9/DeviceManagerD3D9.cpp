@@ -693,7 +693,7 @@ DeviceManagerD3D9::VerifyReadyForRendering()
     hMonitorWindow = MonitorFromWindow(mFocusWnd, MONITOR_DEFAULTTOPRIMARY);
     if (hMonitorWindow == mDeviceMonitor) {
       /* The monitor has not changed. So, let's assume that the
-       * DEVICENOTRESET will be comming. */
+       * DEVICENOTRESET will be coming. */
 
       /* jrmuizel: I'm not sure how to trigger this case. Usually, we get
        * DEVICENOTRESET right away and Reset() succeeds without going through a

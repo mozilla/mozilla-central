@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-; The registration ID of the COM server which is used for choosing wether
+; The registration ID of the COM server which is used for choosing whether
 ; to launch the Win8 metro browser or desktop browser.
 !define DELEGATE_EXECUTE_HANDLER_ID {5100FEC1-212B-4BF5-9BF8-3E650FD794A3}
 

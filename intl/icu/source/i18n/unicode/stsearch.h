@@ -59,7 +59,7 @@ U_NAMESPACE_BEGIN
  * <p>
  * This search has APIs similar to that of other text iteration mechanisms 
  * such as the break iterators in <tt>BreakIterator</tt>. Using these 
- * APIs, it is easy to scan through text looking for all occurances of 
+ * APIs, it is easy to scan through text looking for all occurrences of 
  * a given pattern. This search iterator allows changing of direction by 
  * calling a <tt>reset</tt> followed by a <tt>next</tt> or <tt>previous</tt>. 
  * Though a direction change can occur without calling <tt>reset</tt> first,  

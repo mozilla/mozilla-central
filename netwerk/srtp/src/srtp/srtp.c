@@ -1691,7 +1691,7 @@ srtp_protect_rtcp(srtp_t ctx, void *rtcp_hdr, int *pkt_octet_len) {
   } else {
     enc_start = NULL;
     enc_octet_len = 0;
-	/* 0 is network-order independant */
+	/* 0 is network-order independent */
     *trailer = 0x00000000;     /* set encrypt bit */    
   }
 

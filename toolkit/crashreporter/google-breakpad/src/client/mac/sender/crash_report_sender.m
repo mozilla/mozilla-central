@@ -374,7 +374,7 @@ const int kEmailMaxLength = 64;
 
 - (IBAction)sendReport:(id)sender {
   // Force the text fields to end editing so text for the currently focused
-  // field will be commited.
+  // field will be committed.
   [alertWindow_ makeFirstResponder:alertWindow_];
 
   [alertWindow_ orderOut:self];

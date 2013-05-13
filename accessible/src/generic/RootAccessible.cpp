@@ -160,7 +160,7 @@ const char* const kEventTypes[] = {
 #endif
   // Fired when list or tree selection changes.
   "select",
-  // Fired when value changes immediately, wether or not focused changed.
+  // Fired when value changes immediately, whether or not focused changed.
   "ValueChange",
   "AlertActive",
   "TreeRowCountChanged",

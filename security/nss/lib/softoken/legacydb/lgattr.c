@@ -364,7 +364,7 @@ lg_GetPublicKey(LGObjectCache *obj)
  * we need two versions of lg_GetPrivateKey. One version that takes the 
  * DB handle so we can pass the handle we have already acquired in,
  *  rather than going through the 'getKeyDB' code again, 
- *  which may fail the second time and another which just aquires
+ *  which may fail the second time and another which just acquires
  *  the key handle from the sdb (where we don't already have a key handle.
  * This version does the former.
  */

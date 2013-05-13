@@ -120,7 +120,7 @@ WebGLContext::ValidateBuffers(uint32_t *maxAllowedCount, const char *info)
         if (!checked_byteLength.isValid() ||
             !checked_sizeOfLastElement.isValid())
         {
-            ErrorInvalidOperation("%s: integer overflow occured while checking vertex attrib %d", info, i);
+            ErrorInvalidOperation("%s: integer overflow occurred while checking vertex attrib %d", info, i);
             return false;
         }
 
@@ -132,7 +132,7 @@ WebGLContext::ValidateBuffers(uint32_t *maxAllowedCount, const char *info)
                 = ((checked_byteLength - checked_sizeOfLastElement) / vd.actualStride()) + 1;
 
             if (!checked_maxAllowedCount.isValid()) {
-                ErrorInvalidOperation("%s: integer overflow occured while checking vertex attrib %d", info, i);
+                ErrorInvalidOperation("%s: integer overflow occurred while checking vertex attrib %d", info, i);
                 return false;
             }
 

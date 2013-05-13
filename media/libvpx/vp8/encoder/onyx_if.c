@@ -2727,7 +2727,7 @@ static void update_golden_frame_stats(VP8_COMP *cpi)
         //}
         //else
         //{
-        //  // Carry a potrtion of count over to begining of next gf sequence
+        //  // Carry a potrtion of count over to beginning of next gf sequence
         //  cpi->recent_ref_frame_usage[INTRA_FRAME] >>= 5;
         //  cpi->recent_ref_frame_usage[LAST_FRAME] >>= 5;
         //  cpi->recent_ref_frame_usage[GOLDEN_FRAME] >>= 5;

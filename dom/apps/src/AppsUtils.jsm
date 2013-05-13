@@ -417,7 +417,7 @@ this.AppsUtils = {
   },
 
   /**
-   * Determines if an update or a factory reset occured.
+   * Determines if an update or a factory reset occurred.
    */
   isFirstRun: function isFirstRun(aPrefBranch) {
     let savedmstone = null;

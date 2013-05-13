@@ -182,7 +182,7 @@ public:
     *  cloneBinary. Binary image used in instantiation of the 
     *  collator remains owned by the user and should stay around for 
     *  the lifetime of the collator. The API also takes a base collator
-    *  which usualy should be UCA.
+    *  which usually should be UCA.
     *  @param bin binary image owned by the user and required through the
     *             lifetime of the collator
     *  @param length size of the image. If negative, the API will try to

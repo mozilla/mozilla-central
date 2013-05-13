@@ -2039,7 +2039,7 @@ function_definition
         //
         // Note:  'prevDec' could be 'function' if this is the first time we've seen function
         // as it would have just been put in the symbol table.  Otherwise, we're looking up
-        // an earlier occurance.
+        // an earlier occurrence.
         //
         if (prevDec->isDefined()) {
             //

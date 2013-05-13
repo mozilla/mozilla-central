@@ -1128,7 +1128,7 @@ function calculateHistogramData(requestID, profileID) {
   maxHeight += 1;
   var nextX = 0;
   // The number of data items per histogramData rects.
-  // Except when seperated by a marker.
+  // Except when separated by a marker.
   // This is used to cut down the number of rects, since
   // there's no point in having more rects then pixels
   var samplesPerStep = Math.max(1, Math.floor(data.length / 2000));

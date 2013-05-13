@@ -190,7 +190,7 @@ public:
 
   // The table row is the equivalent to a line in block layout. 
   // The nsILineIterator assumes that a line resides in a block, this role is
-  // fullfilled by the row group. Rows in table are counted relative to the
+  // fulfilled by the row group. Rows in table are counted relative to the
   // table. The row index of row corresponds to the cellmap coordinates. The
   // line index with respect to a row group can be computed by substracting the
   // row index of the first row in the row group.

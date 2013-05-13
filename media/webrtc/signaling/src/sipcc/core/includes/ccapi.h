@@ -1349,7 +1349,7 @@ typedef struct cc_state_data_offhook_t_ {
 
 /*
  * This structure is passed in CC_STATE_DIALING to lsm to indicate
- * wether a dialtone needs to be played or not
+ * whether a dialtone needs to be played or not
  * should the stutter dial tone be suppressed or not
  */
 typedef struct cc_state_data_dialing_t_ {

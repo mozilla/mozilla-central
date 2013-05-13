@@ -328,7 +328,7 @@ this.AlarmService = {
     // to the user's timezone.  Supposing an alarm was set at 7:00pm at Tokyo,
     // it must be gone off at 7:00pm respect to Paris' local time when the user
     // is located at Paris.  We can adjust the alarm UTC time by calculating
-    // the difference of the orginal timezone and the current timezone.
+    // the difference of the original timezone and the current timezone.
     if (aAlarm.ignoreTimezone)
        alarmTime += (this._currentTimezoneOffset - aAlarm.timezoneOffset) * 60000;
 

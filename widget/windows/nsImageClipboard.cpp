@@ -51,7 +51,7 @@ nsImageToClipboard::~nsImageToClipboard()
 // GetPicture
 //
 // Call to get the actual bits that go on the clipboard. If an error 
-// ocurred during conversion, |outBits| will be null.
+// occurred during conversion, |outBits| will be null.
 //
 // NOTE: The caller owns the handle and must delete it with ::GlobalRelease()
 //

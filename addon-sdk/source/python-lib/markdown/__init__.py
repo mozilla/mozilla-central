@@ -516,7 +516,7 @@ def load_extension(ext_name, configs = []):
     module_name_new_style = '.'.join([ext_module, ext_name])
     module_name_old_style = '_'.join(['mdx', ext_name])
 
-    # Try loading the extention first from one place, then another
+    # Try loading the extension first from one place, then another
     try: # New style (markdown.extensons.<extension>)
         module = __import__(module_name_new_style, {}, {}, [ext_module])
     except ImportError:

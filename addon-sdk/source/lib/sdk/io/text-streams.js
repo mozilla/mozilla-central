@@ -173,7 +173,7 @@ function TextWriter(outputStream, charset) {
     let istream = uconv.convertToInputStream(str);
     NetUtil.asyncCopy(istream, stream, function (result) {
         let err = components.isSuccessCode(result) ? undefined :
-        new Error("An error occured while writing to the stream: " + result);
+        new Error("An error occurred while writing to the stream: " + result);
       if (err)
         console.error(err);
 

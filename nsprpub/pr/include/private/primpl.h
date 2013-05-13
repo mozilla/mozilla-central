@@ -708,7 +708,7 @@ extern void _PR_SetThreadPriority(
 **   not NULL then PR tries to allocate the segment at the desired virtual
 **   address.
 ** INPUTS:	size:  size of the desired memory segment
-**          vaddr:  address at which the newly aquired segment is to be
+**          vaddr:  address at which the newly acquired segment is to be
 **                  mapped into memory.
 ** OUTPUTS:	a memory segment is allocated, a PRSegment is allocated
 ** RETURN:	pointer to PRSegment

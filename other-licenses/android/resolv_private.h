@@ -191,7 +191,7 @@ struct __res_state {
 			uint16_t		nscount;
 			uint16_t		nstimes[MAXNS];	/* ms. */
 			int			nssocks[MAXNS];
-			struct __res_state_ext *ext;	/* extention for IPv6 */
+			struct __res_state_ext *ext;	/* extension for IPv6 */
 		} _ext;
 	} _u;
 #endif

@@ -420,7 +420,7 @@ nsSOCKSSocketInfo::ContinueConnectingToProxy(PRFileDesc *fd, int16_t oflags)
     if (status != PR_SUCCESS) {
         PRErrorCode c = PR_GetError();
         if (c != PR_WOULD_BLOCK_ERROR && c != PR_IN_PROGRESS_ERROR) {
-            // A connection failure occured, try another address
+            // A connection failure occurred, try another address
             mState = SOCKS_DNS_COMPLETE;
             return ConnectToProxy(fd);
         }

@@ -45,7 +45,7 @@ interface nsIAppStartup : nsISupports
     /**
      * Startup Crash Detection
      *
-     * Keeps track of application startup begining and success using flags to
+     * Keeps track of application startup beginning and success using flags to
      * determine whether the application is crashing on startup.
      * When the number of crashes crosses the acceptable threshold, safe mode
      * or other repair procedures are performed.
@@ -76,7 +76,7 @@ interface nsIAppStartup : nsISupports
     bool trackStartupCrashBegin();
 
     /**
-     * We have succesfully started without crashing. Clear flags that were
+     * We have successfully started without crashing. Clear flags that were
      * tracking past crashes.
      */
     void trackStartupCrashEnd();

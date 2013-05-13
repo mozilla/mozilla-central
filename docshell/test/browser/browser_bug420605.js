@@ -30,7 +30,7 @@ function test() {
         return result.root.getChild(0);
     }
 
-    // We'll save the favicon URL of the orignal page here and check that the
+    // We'll save the favicon URL of the original page here and check that the
     // page with a hash has the same favicon.
     var originalFavicon;
 

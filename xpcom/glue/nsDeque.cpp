@@ -324,7 +324,7 @@ void* nsDeque::RemoveObjectAt(int32_t aIndex) {
   }
   void* result=mData[modulus(mOrigin + aIndex, mCapacity)];
 
-  // "Shuffle down" all elements in the array by 1, overwritting the element
+  // "Shuffle down" all elements in the array by 1, overwriting the element
   // being removed.
   for (int32_t i=aIndex; i<mSize; i++) {
     mData[modulus(mOrigin + i, mCapacity)] = mData[modulus(mOrigin + i + 1, mCapacity)];

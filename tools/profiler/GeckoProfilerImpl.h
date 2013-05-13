@@ -246,7 +246,7 @@ public:
       va_start(args, aFormat);
       char buff[SAMPLER_MAX_STRING];
 
-      // We have to use seperate printf's because we're using
+      // We have to use separate printf's because we're using
       // the vargs.
 #if _MSC_VER
       _vsnprintf(buff, SAMPLER_MAX_STRING, aFormat, args);

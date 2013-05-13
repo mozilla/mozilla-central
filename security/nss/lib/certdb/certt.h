@@ -1283,7 +1283,7 @@ typedef enum CertStrictnessLevels {
 #define CERT_ENABLE_LDAP_FETCH          1
 #define CERT_ENABLE_HTTP_FETCH          2
 
-/* This functin pointer type may be used for any function that takes
+/* This function pointer type may be used for any function that takes
  * a CERTCertificate * and returns an allocated string, which must be
  * freed by a call to PORT_Free.
  */

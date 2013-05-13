@@ -215,7 +215,7 @@ p12u_ucs2_ascii_conversion_function(PRBool	   toUnicode,
     it.len = inBufLen;
     dup = SECITEM_DupItem(&it);
     /* If converting Unicode to ASCII, swap bytes before conversion
-     * as neccessary.
+     * as necessary.
      */
     if (!toUnicode && swapBytes) {
 	if (p12u_SwapUnicodeBytes(dup) != SECSuccess) {

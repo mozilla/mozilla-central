@@ -360,7 +360,7 @@ static inline void silk_PLC_conceal(
     }
 }
 
-/* Glues concealed frames with new good recieved frames */
+/* Glues concealed frames with new good received frames */
 void silk_PLC_glue_frames(
     silk_decoder_state                  *psDec,             /* I/O decoder state        */
     opus_int16                          frame[],            /* I/O signal               */

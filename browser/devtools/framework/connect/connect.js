@@ -136,7 +136,7 @@ function buildLink(tab, parent, selected) {
 }
 
 /**
- * An error occured. Let's show it and return to the first screen.
+ * An error occurred. Let's show it and return to the first screen.
  */
 function showError(type) {
   document.body.className = "error";

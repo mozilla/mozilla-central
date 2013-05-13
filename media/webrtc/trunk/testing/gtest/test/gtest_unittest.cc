@@ -3685,7 +3685,7 @@ TEST(AssertionTest, AssertFalseWithAssertionResult) {
 }
 
 #ifdef __BORLANDC__
-// Restores warnings after previous "#pragma option push" supressed them
+// Restores warnings after previous "#pragma option push" suppressed them
 # pragma option pop
 #endif
 
@@ -4408,7 +4408,7 @@ TEST(ExpectTest, ExpectFalseWithAssertionResult) {
 }
 
 #ifdef __BORLANDC__
-// Restores warnings after previous "#pragma option push" supressed them
+// Restores warnings after previous "#pragma option push" suppressed them
 # pragma option pop
 #endif
 
@@ -6485,7 +6485,7 @@ TEST(StreamingAssertionsTest, Truth2) {
 }
 
 #ifdef __BORLANDC__
-// Restores warnings after previous "#pragma option push" supressed them
+// Restores warnings after previous "#pragma option push" suppressed them
 # pragma option pop
 #endif
 

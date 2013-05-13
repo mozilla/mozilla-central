@@ -58,7 +58,7 @@ typedef PRBool (*PRVersionCheck)(const char*);
 /*
 ** PR_VersionCheck
 **
-** NSPR's existance proof of the version check function.
+** NSPR's existence proof of the version check function.
 **
 ** Note that NSPR has no cooperating dependencies.
 */

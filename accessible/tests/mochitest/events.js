@@ -1438,7 +1438,7 @@ function moveToLineEnd(aID, aCaretOffset)
 }
 
 /**
- * Move the caret to begining of the line.
+ * Move the caret to beginning of the line.
  */
 function moveToLineStart(aID, aCaretOffset)
 {
@@ -1457,7 +1457,7 @@ function moveToLineStart(aID, aCaretOffset)
 }
 
 /**
- * Move the caret to begining of the text.
+ * Move the caret to beginning of the text.
  */
 function moveToTextStart(aID)
 {

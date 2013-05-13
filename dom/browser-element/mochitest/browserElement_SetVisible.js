@@ -29,7 +29,7 @@ function runTest() {
     msg = SpecialPowers.wrap(msg);
     numEvents++;
     if (numEvents === 1) {
-      ok(true, 'iframe recieved visibility changed');
+      ok(true, 'iframe received visibility changed');
       ok(msg.json.hidden === true, 'hidden attribute correctly set');
       iframe1.setVisible(false);
       iframe1.setVisible(true);

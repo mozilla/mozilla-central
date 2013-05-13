@@ -49,7 +49,7 @@ CacheListener.prototype = {
 };
 
 
-function asyncCheckCacheEntryExistance(entryName, shouldExist)
+function asyncCheckCacheEntryExistence(entryName, shouldExist)
 {
   var listener = new CacheListener();
   listener.onCacheEntryAvailable = function(descriptor, accessGranted, status) {
@@ -83,7 +83,7 @@ function normalHandler(metadata, response)
 function checkNormal(request, buffer)
 {
   do_check_eq(buffer, responseBody);
-  asyncCheckCacheEntryExistance(normalEntry, true);
+  asyncCheckCacheEntryExistence(normalEntry, true);
 }
 add_test(function test_normal() {
   var chan = make_channel_for_offline_use(baseURI + normalEntry);
@@ -102,7 +102,7 @@ function noStoreHandler(metadata, response)
 function checkNoStore(request, buffer)
 {
   do_check_eq(buffer, "");
-  asyncCheckCacheEntryExistance(noStoreEntry, false);
+  asyncCheckCacheEntryExistence(noStoreEntry, false);
   run_next_test();
 }
 add_test(function test_noStore() {

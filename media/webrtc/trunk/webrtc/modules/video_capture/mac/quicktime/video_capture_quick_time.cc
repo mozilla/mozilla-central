@@ -1032,7 +1032,7 @@ int VideoCaptureMacQuickTime::SendFrame(SGChannel /*sgChannel*/, char* data,
         }
 
         // Convert the camera video type to something VideoEngine can work with
-        // Check if we need to downsample the incomming frame.
+        // Check if we need to downsample the incoming frame.
         switch (_captureVideoType)
         {
             case kVideoUYVY:

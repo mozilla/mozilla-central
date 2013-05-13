@@ -621,7 +621,7 @@ WebRtc_Word32 UdpSocket2Windows::PostRecv(PerIoContext* pIoContext)
                     kTraceTransport,
                     _id,
                     "UdpSocket2Windows(%d)::PostRecv(?), WSAerror:%d when\
- posting new recieve,trie:%d",
+ posting new receive,trie:%d",
                     (WebRtc_Word32)this,
                     rxError,
                     tries);

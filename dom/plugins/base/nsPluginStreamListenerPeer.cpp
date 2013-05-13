@@ -925,7 +925,7 @@ NS_IMETHODIMP nsPluginStreamListenerPeer::OnStopRequest(nsIRequest *request,
                 absoluteOffset));
   } else {
     // if this is not byte range request and
-    // if we are writting the stream to disk ourselves,
+    // if we are writing the stream to disk ourselves,
     // close & tear it down here
     mFileCacheOutputStream = nullptr;
   }

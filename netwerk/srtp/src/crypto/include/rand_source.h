@@ -65,8 +65,8 @@ rand_source_init(void);
  *          data may inadvertently be used.
  *
  * returns:
- *     - err_status_ok    if no problems occured.
- *     - [other]          a problem occured, and no assumptions should
+ *     - err_status_ok    if no problems occurred.
+ *     - [other]          a problem occurred, and no assumptions should
  *                        be made about the contents of the destination
  *                        buffer.
  */

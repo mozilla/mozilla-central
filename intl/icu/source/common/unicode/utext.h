@@ -609,7 +609,7 @@ U_STABLE UBool U_EXPORT2
 utext_moveIndex32(UText *ut, int32_t delta);
 
 /**
- * Get the native index of the character preceeding the current position.
+ * Get the native index of the character preceding the current position.
  * If the iteration position is already at the start of the text, zero
  * is returned.
  * The value returned is the same as that obtained from the following sequence,
@@ -626,7 +626,7 @@ utext_moveIndex32(UText *ut, int32_t delta);
  *   native index of the character most recently returned from utext_next().
  *
  * @param ut the text to be accessed
- * @return the native index of the character preceeding the current index position,
+ * @return the native index of the character preceding the current index position,
  *         or zero if the current position is at the start of the text.
  * @stable ICU 3.6
  */

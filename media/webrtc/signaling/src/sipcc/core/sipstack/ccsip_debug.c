@@ -249,7 +249,7 @@ platform_print_sip_msg (const char *msg)
 
     /* replace digits for security reasons */
     if (strstr(msg, "kpml-response")) {
-        /* This is kpml response. so supress printing digits. */
+        /* This is kpml response. so suppress printing digits. */
         c_line_begin = strstr(msg, digits_tag);
         if (c_line_begin == NULL) {
             /* No digits, print everything */

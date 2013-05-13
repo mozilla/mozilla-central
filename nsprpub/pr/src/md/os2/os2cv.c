@@ -14,7 +14,7 @@
  *  or PR_NotifyAllCondVar is called, the condition notifies are simply
  *  recorded in the _MDLock structure.  We defer the condition notifies
  *  until right after we unlock the lock.  This way the awakened threads
- *  have a better chance to reaquire the lock.
+ *  have a better chance to reacquire the lock.
  */
  
 #include "primpl.h"

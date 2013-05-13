@@ -842,7 +842,7 @@ nsPlaintextEditor::UpdateIMEComposition(const nsAString& aCompositionString,
   nsRefPtr<nsCaret> caretP = ps->GetCaret();
 
   // Update information of clauses in the new composition string.
-  // This will be refered by followed methods.
+  // This will be referred by followed methods.
   mIMETextRangeList = aTextRangeList;
 
   // We set mIsIMEComposing properly.

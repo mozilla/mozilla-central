@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /* Copyright(c) 2013, Intel Corp. */
 
-/* Wrapper funcions for Intel optimized implementation of AES-GCM */
+/* Wrapper functions for Intel optimized implementation of AES-GCM */
 
 #ifdef USE_HW_AES
 
@@ -115,7 +115,7 @@ intel_AES_GCMContext *intel_AES_GCM_CreateContext(void *context,
     /* Promote the counter by 1 */
     _mm_storeu_si128((__m128i*)gcm->CTR, _mm_shuffle_epi8(_mm_add_epi32(ONE, _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)gcm->CTR), BSWAP_MASK)), BSWAP_MASK));
 
-/*     Now hash AAD - it would actually make sense to seperate the context creation from the AAD, 
+/*     Now hash AAD - it would actually make sense to separate the context creation from the AAD, 
  *     because that would allow to reuse the H, which only changes when the AES key changes, 
  *     and not every package, like the IV and AAD */
     intel_aes_gcmAAD(gcm->Htbl, gcmParams->pAAD, AAD_whole_len, gcm->T);

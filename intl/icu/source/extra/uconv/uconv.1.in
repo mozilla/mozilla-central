@@ -107,7 +107,7 @@ When calling
 it is possible to specify callbacks that are used to handle invalid
 characters in the input, or characters that cannot be transcoded to
 the destination encoding. Some encodings, for example, offer a default
-substitution character that can be used to represent the occurence of
+substitution character that can be used to represent the occurrence of
 such characters in the input. Other callbacks offer a useful visual
 representation of the invalid data.
 .PP
@@ -430,7 +430,7 @@ The reporting of error positions when a transliterator is used may be
 inaccurate or unavailable, in which case
 .BR uconv
 will report the offset in the output stream at which the error
-occured.
+occurred.
 .SH AUTHORS
 Jonas Utterstroem
 .br

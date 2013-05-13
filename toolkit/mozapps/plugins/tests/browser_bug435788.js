@@ -23,7 +23,7 @@ function getListCount() {
   return list.childNodes.length;
 }
 
-// Gets wether the list contains a particular plugin name
+// Gets whether the list contains a particular plugin name
 function hasListItem(name, version) {
   var label = name + " " + (version ? version : "");
   var list = gPFS.document.getElementById("pluginList");

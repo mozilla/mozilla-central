@@ -4475,7 +4475,7 @@ sipSPICheckResponse (ccsipCCB_t *ccb, sipMessage_t *response)
                             sipGetMethodString(ccb->sent_request[trx_index].cseq_method));
         /*
          * What happened here is that a timing
-         * issue occured between the proxy and phone where we
+         * issue occurred between the proxy and phone where we
          * timed out at almost the same time and we have already
          * sent another request(probably a cancel) when the proxy
          * sends this response back to us. So that we just Ack this

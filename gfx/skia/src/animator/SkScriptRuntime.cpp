@@ -24,7 +24,7 @@
 
 // consider: const evaluation?
 
-// replace script string with script tokens preceeded by special value
+// replace script string with script tokens preceded by special value
 
 // need second version of script plugins that return private index of found value?
     // then would need in script index of plugin, private index

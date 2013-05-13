@@ -8,7 +8,7 @@
 
   <!-- From https://bugzilla.mozilla.org/show_bug.cgi?id=369402
 
-       The presense of the viewBox attribute below should not be stopping the
+       The presence of the viewBox attribute below should not be stopping the
        lime rect from rendering. (The preserveAspectRatio is only there to make
        the lime rect fully cover the red rect on success. It is not the problem.)
   -->

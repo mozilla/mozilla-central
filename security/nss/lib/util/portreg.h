@@ -13,7 +13,7 @@
  * o \ will escape a special character
  * o $ matches the end of the string
  * Bracketed expressions:
- * o [abc] matches one occurence of a, b, or c.  
+ * o [abc] matches one occurrence of a, b, or c.  
  * o [^abc] matches any character except a, b, or c.
  *     To be matched between [ and ], these characters must be escaped: \ ]
  *     No other characters need be escaped between brackets. 

@@ -1216,7 +1216,7 @@ mjit::Compiler::generatePrologue()
          * If the stack check fails then we need to either commit more of the
          * reserved stack space or throw an error. Specify that the number of
          * local slots is 0 (instead of the default script->nfixed) since the
-         * range [fp->slots(), fp->base()) may not be commited. (The calling
+         * range [fp->slots(), fp->base()) may not be committed. (The calling
          * contract requires only that the caller has reserved space for fp.)
          */
         {

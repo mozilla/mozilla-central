@@ -53,7 +53,7 @@ function test() {
     });
   }
 
-  // currentURI is set before SSTabRestoring is fired, so we can sucessfully check
+  // currentURI is set before SSTabRestoring is fired, so we can successfully check
   // after that has fired for all tabs. Since 1 tab will be restored though, we
   // also need to wait for 1 SSTabRestored since currentURI will be set, unset, then set.
   gBrowser.tabContainer.addEventListener("SSTabRestoring", handleEvent, true);

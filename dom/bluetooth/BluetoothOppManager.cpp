@@ -663,7 +663,7 @@ BluetoothOppManager::RetrieveSentFileName()
   }
 
   /**
-   * We try our best to get the file extention to avoid interoperability issues.
+   * We try our best to get the file extension to avoid interoperability issues.
    * However, once we found that we are unable to get suitable extension or
    * information about the content type, sending a pre-defined file name without
    * extension would be fine.

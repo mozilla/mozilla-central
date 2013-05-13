@@ -20,7 +20,7 @@ geolocation.getCurrentPosition(done, error);
 
 function error(error)
 {
-  ok(0, "error occured trying to get geolocation from chrome");
+  ok(0, "error occurred trying to get geolocation from chrome");
   SimpleTest.finish();
 }
 function done(position)

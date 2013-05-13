@@ -206,7 +206,7 @@ StyleEditorDebuggee.prototype = {
  *   'source-load' - The full text source of the stylesheet has been fetched
  *   'property-change' - Any property (e.g 'disabled') has changed
  *   'style-applied' - A change has been applied to the live stylesheet on the server
- *   'error' - An error occured when loading or saving stylesheet
+ *   'error' - An error occurred when loading or saving stylesheet
  *
  * @param {object} form
  *        Initial properties of the stylesheet

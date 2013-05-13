@@ -363,7 +363,7 @@ exports.testImmediateClosing = function (test) {
   concurrentTabs.on("open", function (tab) {
     // On Firefox, It shouldn't receive such event as the other loader will just
     // open and destroy the tab without giving a chance to other loader to even
-    // know about the existance of this tab.
+    // know about the existence of this tab.
     if (app.is("Firefox")) {
       test.fail("Concurrent loader received a tabs `open` event");
     }
@@ -383,7 +383,7 @@ exports.testImmediateClosing = function (test) {
     url: tabURL,
     onOpen: function(tab) {
       tab.close(function () {
-        test.pass("Tab succesfully removed");
+        test.pass("Tab successfully removed");
         // Let a chance to the concurrent loader to receive a TabOpen event
         // on the next event loop turn
         setTimeout(function () {

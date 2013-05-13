@@ -353,7 +353,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
   bool          mAddSpace;
 
   // says that if the next string to add contains a newline character at the
-  // begining, then this newline character should be ignored, because a
+  // beginning, then this newline character should be ignored, because a
   // such character has already been added into the output string
   bool          mMayIgnoreLineBreakSequence;
 

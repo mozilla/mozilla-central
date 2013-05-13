@@ -124,7 +124,7 @@ Site.prototype = {
    */
   getPermission: function Site_getPermission(aType, aResultObj) {
     // Password saving isn't a nsIPermissionManager permission type, so handle
-    // it seperately.
+    // it separately.
     if (aType == "password") {
       aResultObj.value =  this.loginSavingEnabled ?
                           Ci.nsIPermissionManager.ALLOW_ACTION :
@@ -155,7 +155,7 @@ Site.prototype = {
    */
   setPermission: function Site_setPermission(aType, aPerm) {
     // Password saving isn't a nsIPermissionManager permission type, so handle
-    // it seperately.
+    // it separately.
     if (aType == "password") {
       this.loginSavingEnabled = aPerm == Ci.nsIPermissionManager.ALLOW_ACTION;
       return;

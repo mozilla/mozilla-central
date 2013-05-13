@@ -24,7 +24,7 @@
    uniquely determined by these criteria.
    6.  If k <= n <= 21, return the string consisting of the
    k digits of the decimal representation of s (in order,
-   with no leading zeroes), followed by n-k occurences
+   with no leading zeroes), followed by n-k occurrences
    of the character '0'.
    7.  If 0 < n <= 21, return the string consisting of the
    most significant n digits of the decimal
@@ -33,7 +33,7 @@
    decimal representation of s.
    8.  If 6 < n <= 0, return the string consisting of the
    character '0', followed by a decimal point '.',
-   followed by n occurences of the character '0',
+   followed by n occurrences of the character '0',
    followed by the k digits of the decimal
    representation of s.
    9.  Otherwise, if k = 1, return the string consisting

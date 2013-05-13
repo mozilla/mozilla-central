@@ -222,7 +222,7 @@ extern "C" {
   /****************************************************************************
    * WebRtcIlbcfix_NetEqPlc(...)
    *
-   * This function updates the decoder when a packet loss has occured, but it
+   * This function updates the decoder when a packet loss has occurred, but it
    * does not produce any PLC data. Function can be used if another PLC method
    * is used (i.e NetEq).
    *

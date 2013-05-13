@@ -39,7 +39,7 @@ namespace IPC {
 //   test_sink.ClearMessages();
 //
 // To hook up the sink, all you need to do is call OnMessageReceived when a
-// message is recieved.
+// message is received.
 class TestSink {
  public:
   TestSink();

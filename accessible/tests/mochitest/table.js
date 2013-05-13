@@ -33,7 +33,7 @@ const kTreeColumnHeader = 2;
  * @param  aIdentifier     [in] table accessible identifier
  * @param  aCellsArray     [in] two dimensional array (row X columns) of
  *                          cell types (see constants defined above).
- * @param  aColHeaderType  [in] specifies wether column header cells are
+ * @param  aColHeaderType  [in] specifies whether column header cells are
  *                          arranged into the list.
  * @param  aCaption        [in] caption text if any
  * @param  aSummary        [in] summary text if any

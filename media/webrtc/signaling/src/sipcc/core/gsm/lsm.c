@@ -3610,7 +3610,7 @@ lsm_far_end_alerting (lsm_lcb_t *lcb, cc_state_data_far_end_alerting_t *data)
     }
     /* For roundtable phones, UI will be in dial state, which is different from TNP UI,
      * TNP UI does not have different dialing layer. In this case offhook dialing screen
-     * does not vanish untill GSM provides procced call status, hence all the softkeys are
+     * does not vanish until GSM provides procced call status, hence all the softkeys are
      * available during CFWD, which is not correct
      */
     if (dcb->active_feature == CC_FEATURE_CFWD_ALL) {

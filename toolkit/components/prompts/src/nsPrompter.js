@@ -365,7 +365,7 @@ XPCOMUtils.defineLazyGetter(PromptUtils, "ellipsis", function () {
 
 
 function openModalWindow(domWin, uri, args) {
-    // XXX Investigate supressing modal state when we're called without a
+    // XXX Investigate suppressing modal state when we're called without a
     // window? Seems odd to affect whatever window happens to be active.
     if (!domWin)
         domWin = Services.ww.activeWindow;

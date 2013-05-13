@@ -301,7 +301,7 @@ Requests)
 
 Dependencies on OES_texture_3D
 
-    On an OpenGL ES implementation, in the absense of OES_texture_3D,
+    On an OpenGL ES implementation, in the absence of OES_texture_3D,
     omit references to FramebufferTexture3DOES and CopyTexSubImage3DOES.
 
 Errors
@@ -376,7 +376,7 @@ Issues
        TransGaming for the open-source ANGLE project. Typically one would
        label a multi-vendor extension as EXT, but EXT_framebuffer_blit 
        is already the name for this on Desktop GL.  Additionally this
-       isn't truely a multi-vendor extension because there is only one
+       isn't truly a multi-vendor extension because there is only one
        implementation of this.  We'll follow the example of the open-source
        MESA project which uses the project name for the vendor suffix.
 

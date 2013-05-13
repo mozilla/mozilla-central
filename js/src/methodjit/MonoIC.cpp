@@ -718,7 +718,7 @@ class CallCompiler : public BaseCompiler
         masm.callAddress(JS_FUNC_TO_DATA_PTR(void *, IonVeneer));
 #endif
 
-        /* Pop arugments off the stack. */
+        /* Pop arguments off the stack. */
         masm.pop(Registers::ReturnReg);
         masm.rshift32(Imm32(ion::FRAMESIZE_SHIFT), Registers::ReturnReg);
         masm.addPtr(Registers::ReturnReg, Registers::StackPointer);

@@ -373,7 +373,7 @@ kpml_restart_timers (kpml_data_t * kpml_data)
  *            clear the data or else maintain it for the duration of the
  *            subscription.
  *
- *  Returns: kpml_data next in the list if succesful
+ *  Returns: kpml_data next in the list if successful
  *            NULL - if not
  */
 static boolean
@@ -425,7 +425,7 @@ kpml_clear_data (kpml_data_t *kpml_data, kpml_sub_type_e sub_type)
         /*
          * if the persistent request is singly-notify
          * do not terminate the subscription, but do
-         * not notify any more digits untill application
+         * not notify any more digits until application
          * sends out new kpml document. At this time persistent
          * subsciption is not supported.
          */
@@ -1727,7 +1727,7 @@ kpml_receive_notify_response (ccsip_sub_not_data_t *msg)
  *              resp_code - response code for the NOTIFY
  *              resp_text - response text
  *
- *  Description: Notify KPML response data. This can be sucessful or error.
+ *  Description: Notify KPML response data. This can be successful or error.
  *
  *  Returns: None
  */

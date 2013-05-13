@@ -1861,7 +1861,7 @@ CNavDTD::HandleDocTypeDeclToken(CToken* aToken)
     docTypeStr.Cut(pos, len - pos);
   }
 
-  // Now remove "<!" from the begining
+  // Now remove "<!" from the beginning
   docTypeStr.Cut(0, 2);
   theToken->SetStringValue(docTypeStr);
   return NS_OK;

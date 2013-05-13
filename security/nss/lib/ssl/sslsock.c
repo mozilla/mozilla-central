@@ -844,7 +844,7 @@ SSL_OptionSet(PRFileDesc *fd, PRInt32 which, PRBool on)
 
     /* We can't use the macros for releasing the locks here,
      * because ss->opt.noLocks might have changed just above.
-     * We must release these locks (monitors) here, if we aquired them above,
+     * We must release these locks (monitors) here, if we acquired them above,
      * regardless of the current value of ss->opt.noLocks.
      */
     if (holdingLocks) {

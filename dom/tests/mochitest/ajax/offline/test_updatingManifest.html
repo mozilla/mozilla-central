@@ -129,11 +129,11 @@ function dynamicLoaded()
   // window.onload invokes implicitLoaded()
 }
 
-function implicitLoaded(aWindow, errorOccured)
+function implicitLoaded(aWindow, errorOccurred)
 {
   aWindow.close();
 
-  OfflineTest.ok(!errorOccured, "No error on new implicit page manifest update");
+  OfflineTest.ok(!errorOccurred, "No error on new implicit page manifest update");
 
   OfflineTest.waitForAdd("http://mochi.test:8888/tests/dom/tests/mochitest/ajax/offline/updatingImplicit.html",
       implicitCached);

@@ -1136,7 +1136,7 @@ ID3D10Blob *ProgramBinary::compileToBinary(InfoLog &infoLog, const char *hlsl, c
 }
 
 // Packs varyings into generic varying registers, using the algorithm from [OpenGL ES Shading Language 1.00 rev. 17] appendix A section 7 page 111
-// Returns the number of used varying registers, or -1 if unsuccesful
+// Returns the number of used varying registers, or -1 if unsuccessful
 int ProgramBinary::packVaryings(InfoLog &infoLog, const Varying *packing[][4], FragmentShader *fragmentShader)
 {
     Context *context = getContext();
@@ -2083,7 +2083,7 @@ bool ProgramBinary::linkUniforms(InfoLog &infoLog, GLenum shader, D3DConstantTab
 }
 
 // Adds the description of a constant found in the binary shader to the list of uniforms
-// Returns true if succesful (uniform not already defined)
+// Returns true if successful (uniform not already defined)
 bool ProgramBinary::defineUniform(InfoLog &infoLog, GLenum shader, const D3DConstant *constant, std::string name)
 {
     if (constant->registerSet == D3DConstant::RS_SAMPLER)

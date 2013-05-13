@@ -852,7 +852,7 @@ static int32_t initializePkgDataFlags(UPKGOptions *o) {
 
 
 /*
- * Given the base libName and version numbers, generate the libary file names and store it in libFileNames.
+ * Given the base libName and version numbers, generate the library file names and store it in libFileNames.
  * Depending on the configuration, the library name may either end with version number or shared object suffix.
  */
 static void createFileNames(UPKGOptions *o, const char mode, const char *version_major, const char *version, const char *libName, UBool reverseExt, UBool noVersion) {

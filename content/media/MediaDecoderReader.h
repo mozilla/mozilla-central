@@ -413,7 +413,7 @@ public:
   // Decodes an unspecified amount of audio data, enqueuing the audio data
   // in mAudioQueue. Returns true when there's more audio to decode,
   // false if the audio is finished, end of file has been reached,
-  // or an un-recoverable read error has occured.
+  // or an un-recoverable read error has occurred.
   virtual bool DecodeAudioData() = 0;
 
 #ifdef MOZ_DASH

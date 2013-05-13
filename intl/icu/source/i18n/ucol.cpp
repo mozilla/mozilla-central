@@ -62,7 +62,7 @@ static const Normalizer2 *g_nfd = NULL;
 static const Normalizer2Impl *g_nfcImpl = NULL;
 
 // These are values from UCA required for
-// implicit generation and supressing sort key compression
+// implicit generation and suppressing sort key compression
 // they should regularly be in the UCA, but if one
 // is running without UCA, it could be a problem
 static const int32_t maxRegularPrimary  = 0x7A;
@@ -1503,7 +1503,7 @@ static uint32_t getPrevImplicit(UChar32 cp, collIterate *collationSource);
 
 /* there should be a macro version of this function in the header file */
 /* This is the first function that tries to fetch a collation element  */
-/* If it's not succesfull or it encounters a more difficult situation  */
+/* If it's not successfull or it encounters a more difficult situation  */
 /* some more sofisticated and slower functions are invoked             */
 static
 inline uint32_t ucol_IGetNextCE(const UCollator *coll, collIterate *collationSource, UErrorCode *status) {
@@ -2787,7 +2787,7 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
                     // This loop will run once per source string character, for as long as we
                     //  are matching a potential contraction sequence
 
-                    // First we position ourselves at the begining of contraction sequence
+                    // First we position ourselves at the beginning of contraction sequence
                     const UChar *ContractionStart = UCharOffset = (UChar *)coll->image+getContractOffset(CE);
                     if (collIter_bos(source)) {
                         CE = *(coll->contractionCEs + (UCharOffset - coll->contractionIndex));
@@ -2846,7 +2846,7 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
                     /* This loop will run once per source string character, for as long as we     */
                     /*  are matching a potential contraction sequence                  */
 
-                    /* First we position ourselves at the begining of contraction sequence */
+                    /* First we position ourselves at the beginning of contraction sequence */
                     const UChar *ContractionStart = UCharOffset = (UChar *)coll->image+getContractOffset(CE);
 
                     if (collIter_eos(source)) {
@@ -3438,7 +3438,7 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
                     // This loop will run once per source string character, for as long as we
                     //  are matching a potential contraction sequence
 
-                    // First we position ourselves at the begining of contraction sequence
+                    // First we position ourselves at the beginning of contraction sequence
                     const UChar *ContractionStart = UCharOffset = (UChar *)coll->image+getContractOffset(CE);
 
                     if (collIter_bos(source)) {

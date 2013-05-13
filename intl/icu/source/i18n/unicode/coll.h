@@ -689,7 +689,7 @@ public:
                                 UErrorCode& status);
 
     /**
-     * Get name of the object for the desired Locale, in the desired langauge
+     * Get name of the object for the desired Locale, in the desired language
      * @param objectLocale must be from getAvailableLocales
      * @param displayLocale specifies the desired locale for output
      * @param name the fill-in parameter of the return value
@@ -702,7 +702,7 @@ public:
                                          UnicodeString& name);
 
     /**
-    * Get name of the object for the desired Locale, in the langauge of the
+    * Get name of the object for the desired Locale, in the language of the
     * default locale.
     * @param objectLocale must be from getAvailableLocales
     * @param name the fill-in parameter of the return value

@@ -400,7 +400,7 @@ enum neutral_state
         rn, // N preceded by right
         ln, // N preceded by left
         a,  // AN preceded by left (the abbrev 'la' is used up above)
-        na, // N preceeded by a
+        na, // N preceded by a
 } ;
 
 const uint8 neutral_class_map[] = { 0, 1, 2, 0, 4, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0 };

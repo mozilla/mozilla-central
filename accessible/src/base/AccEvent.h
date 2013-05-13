@@ -382,7 +382,7 @@ private:
   nsRefPtr<Accessible> mWidget;
   nsRefPtr<Accessible> mItem;
   SelChangeType mSelChangeType;
-  uint32_t mPreceedingCount;
+  uint32_t mPrecedingCount;
   AccSelChangeEvent* mPackedEvent;
 
   friend class EventQueue;

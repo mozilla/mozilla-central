@@ -465,7 +465,7 @@ ModuleVideoRenderImpl::AddIncomingRenderStream(const WebRtc_UWord32 streamId,
         return NULL;
     }
 
-    // Create platform independant code
+    // Create platform independent code
     IncomingVideoStream* ptrIncomingStream = new IncomingVideoStream(_id,
                                                                      streamId);
     if (ptrIncomingStream == NULL)

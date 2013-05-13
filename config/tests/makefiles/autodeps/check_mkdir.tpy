@@ -36,7 +36,7 @@ def myopts(vals):
 
     if not hasattr(myopts, 'vals'):
         if 'argparse' in sys.modules:
-            tmp = { } # key existance enables unittest module debug
+            tmp = { } # key existence enables unittest module debug
         else:
             tmp = { 'debug': False, 'verbose': False }
 

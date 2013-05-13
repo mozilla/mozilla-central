@@ -13,7 +13,7 @@ public:
      *      r' = table[r];
      *      g' = table[g];
      *      b' = table[b];
-     *  Compoents are operated on in unpremultiplied space. If the incomming
+     *  Components are operated on in unpremultiplied space. If the incoming
      *  colors are premultiplied, they are temporarily unpremultiplied, then
      *  the table is applied, and then the result is remultiplied.
      */

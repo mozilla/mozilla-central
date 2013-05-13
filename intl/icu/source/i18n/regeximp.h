@@ -377,7 +377,7 @@ class CaseFoldingUTextIterator: public UMemory {
 
         UBool   inExpansion();    // True if last char returned from next() and the 
                                   //  next to be returned both originated from a string
-                                  //  folding of the same code point from the orignal UText.
+                                  //  folding of the same code point from the original UText.
       private:
         UText             &fUText;
         const  UCaseProps *fcsp;
@@ -402,7 +402,7 @@ class CaseFoldingUCharIterator: public UMemory {
 
         UBool   inExpansion();    // True if last char returned from next() and the 
                                   //  next to be returned both originated from a string
-                                  //  folding of the same code point from the orignal UText.
+                                  //  folding of the same code point from the original UText.
 
         int64_t  getIndex();      // Return the current input buffer index.
 

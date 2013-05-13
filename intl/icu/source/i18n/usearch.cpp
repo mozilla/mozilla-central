@@ -1569,7 +1569,7 @@ inline void cleanUpSafeText(const UStringSearch *strsrch, UChar *safetext,
 
 /**
 * Take the rearranged end accents and tries matching. If match failed at
-* a seperate preceding set of accents (seperated from the rearranged on by
+* a separate preceding set of accents (separated from the rearranged on by
 * at least a base character) then we rearrange the preceding accents and
 * tries matching again.
 * We allow skipping of the ends of the accent set if the ces do not match.
@@ -2229,7 +2229,7 @@ int32_t doPreviousCanonicalSuffixMatch(UStringSearch *strsrch,
 
 /**
 * Take the rearranged start accents and tries matching. If match failed at
-* a seperate following set of accents (seperated from the rearranged on by
+* a separate following set of accents (separated from the rearranged on by
 * at least a base character) then we rearrange the preceding accents and
 * tries matching again.
 * We allow skipping of the ends of the accent set if the ces do not match.
@@ -3250,7 +3250,7 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch *strsrch,
                 }
                 else {
                     // for boundary check purposes. this will ensure that the
-                    // next match will not preceed the current offset
+                    // next match will not precede the current offset
                     // note search->matchedIndex will always be set to something
                     // in the code
                     search->matchedIndex = offset - 1;

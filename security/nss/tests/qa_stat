@@ -346,7 +346,7 @@ html_line()
   #echo '<td>'$SYSNAME $TESTNUMBER $TESTDATE'</td>'
   echo ''
   # hopefully we never run more different tests on a tinderbox build...
-  # on win some shells can not handle exit codes greater then 52 (64???)
+  # on win some shells can not handle exit codes greater than 52 (64???)
   # so for very early exits the codes are set 50-45, for failures later
   # in the process the higher the number, the more failures
   if [ "$O_TBX" = "ON" -a "$TBX_EXIT" -gt 45 ] ; then

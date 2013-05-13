@@ -1506,7 +1506,7 @@ nsPermissionManager::Read()
   }
 
   if (readError) {
-    NS_ERROR("Error occured while reading the permissions database!");
+    NS_ERROR("Error occurred while reading the permissions database!");
     return NS_ERROR_FAILURE;
   }
 

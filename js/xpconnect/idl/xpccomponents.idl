@@ -252,7 +252,7 @@ interface nsIXPCComponents_Utils : nsISupports
     
     /*
      * Schedule a shrinking garbage collection cycle for a point in the future
-     * when no JS is running. Call the provided function once this has occured.
+     * when no JS is running. Call the provided function once this has occurred.
      */
     void schedulePreciseShrinkingGC(in ScheduledGCCallback callback);
 

@@ -4113,7 +4113,7 @@ define("orion/textview/textView", ['orion/textview/textModel', 'orion/textview/k
 		 * Executes the action handler associated with the given name.
 		 * <p>
 		 * The application defined action takes precedence over predefined actions unless
-		 * the <code>defaultAction</code> paramater is <code>true</code>.
+		 * the <code>defaultAction</code> parameter is <code>true</code>.
 		 * </p>
 		 * <p>
 		 * If the application defined action returns <code>false</code>, the text view predefined

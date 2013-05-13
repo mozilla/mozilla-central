@@ -581,7 +581,7 @@ int16_t WebRtcCng_Generate(CNG_dec_inst* cng_inst, int16_t* outData,
  *
  * This functions can be used to check the error code of a CNG instance. When
  * a function returns -1 a error code will be set for that instance. The 
- * function below extract the code of the last error that occured in the 
+ * function below extract the code of the last error that occurred in the 
  * specified instance.
  *
  * Input:

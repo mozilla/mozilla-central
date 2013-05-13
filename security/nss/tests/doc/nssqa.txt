@@ -69,7 +69,7 @@ not quite up to date
 			no-lockfile)
 		set HOST and DOMSUF variables if running interavtively
 		set flag to kill remaining selfserv processes during cleanup
-		if QA platform different from build platform create neccessary 
+		if QA platform different from build platform create necessary 
 			symbolic links
 		wait for the build to finish (max of 5h)
 

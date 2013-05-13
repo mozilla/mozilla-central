@@ -552,7 +552,7 @@ private:
     nsresult InvalidateCache();
     // Determines if the cache is in a safe state
     bool IsCacheInSafeState();
-    // Revalidates the cache by writting out the header, records, and finally
+    // Revalidates the cache by writing out the header, records, and finally
     // by calling WriteCacheClean(true).
     nsresult RevalidateCache();
     // Timer which revalidates the cache

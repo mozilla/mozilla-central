@@ -60,7 +60,7 @@ function test() {
   });
 
   function afterFirstVisit() {
-    is(PlacesUtils.history.getPageTitle(TEST_URI), TITLE_1, "The title matches the orignal title after first visit");
+    is(PlacesUtils.history.getPageTitle(TEST_URI), TITLE_1, "The title matches the original title after first visit");
 
     let place = {
       uri: TEST_URI,

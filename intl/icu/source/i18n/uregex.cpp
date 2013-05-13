@@ -1173,7 +1173,7 @@ uregex_replaceAll(URegularExpression    *regexp2,
 
     uregex_reset(regexp2, 0, status);
 
-    // Note: Seperate error code variables for findNext() and appendReplacement()
+    // Note: Separate error code variables for findNext() and appendReplacement()
     //       are used so that destination buffer overflow errors
     //       in appendReplacement won't stop findNext() from working.
     //       appendReplacement() and appendTail() special case incoming buffer

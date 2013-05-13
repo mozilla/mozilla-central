@@ -40,7 +40,7 @@
   PR_END_MACRO
 
 /*
- * UDPListener: listens for incomming UDP packets
+ * UDPListener: listens for incoming UDP packets
  */
 class UDPListener : public nsIUDPServerSocketListener
 {

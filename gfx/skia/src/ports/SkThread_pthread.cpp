@@ -44,7 +44,7 @@ int32_t sk_atomic_dec(int32_t* addr)
 {
     return __sync_fetch_and_add(addr, -1);
 }
-void sk_membar_aquire__after_atomic_dec() { }
+void sk_membar_acquire__after_atomic_dec() { }
 
 int32_t sk_atomic_conditional_inc(int32_t* addr)
 {
@@ -64,7 +64,7 @@ int32_t sk_atomic_conditional_inc(int32_t* addr)
         }
     }
 }
-void sk_membar_aquire__after_atomic_conditional_inc() { }
+void sk_membar_acquire__after_atomic_conditional_inc() { }
 
 #else
 
@@ -96,7 +96,7 @@ int32_t sk_atomic_dec(int32_t* addr)
     *addr = value - 1;
     return value;
 }
-void sk_membar_aquire__after_atomic_dec() { }
+void sk_membar_acquire__after_atomic_dec() { }
 
 int32_t sk_atomic_conditional_inc(int32_t* addr)
 {
@@ -106,7 +106,7 @@ int32_t sk_atomic_conditional_inc(int32_t* addr)
     if (value != 0) ++*addr;
     return value;
 }
-void sk_membar_aquire__after_atomic_conditional_inc() { }
+void sk_membar_acquire__after_atomic_conditional_inc() { }
 
 #endif
 

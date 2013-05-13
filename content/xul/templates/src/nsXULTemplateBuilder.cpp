@@ -626,7 +626,7 @@ nsXULTemplateBuilder::UpdateResultInContainer(nsIXULTemplateResult* aOldResult,
     // are stored in the same linked list as other matches of the same id, the
     // matches for different containers are treated separately. They are only
     // stored in the same hashtable to avoid a more complex data structure, as
-    // the use of the same id in multiple containers isn't a common occurance.
+    // the use of the same id in multiple containers isn't a common occurrence.
     //
     // Only one match with a given id per container is active at a time. When
     // a match is active, content is generated for it. When a match is

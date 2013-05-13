@@ -508,7 +508,7 @@ function check_startup_changes(aType, aIds) {
 }
 
 /**
- * Escapes any occurances of &, ", < or > with XML entities.
+ * Escapes any occurrences of &, ", < or > with XML entities.
  *
  * @param   str
  *          The string to escape

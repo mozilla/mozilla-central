@@ -1739,7 +1739,7 @@ _cairo_d2d_create_linear_gradient_brush(cairo_d2d_surface_t *d2dsurf,
  * \param pattern The pattern to create a brush for
  * \param unique We cache the bitmap/color brush for speed. If this
  * needs a brush that is unique (i.e. when more than one is needed),
- * this will make the function return a seperate brush.
+ * this will make the function return a separate brush.
  * \return A brush object
  */
 static RefPtr<ID2D1Brush>

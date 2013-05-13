@@ -421,8 +421,8 @@ nsMIMEHeaderParamImpl::DoParameterInternal(const char *aHeaderValue,
 
   // RFC2231 - The legitimate parm format can be:
   // A. title=ThisIsTitle 
-  // B. title*=us-ascii'en-us'This%20is%20wierd.
-  // C. title*0*=us-ascii'en'This%20is%20wierd.%20We
+  // B. title*=us-ascii'en-us'This%20is%20weird.
+  // C. title*0*=us-ascii'en'This%20is%20weird.%20We
   //    title*1*=have%20to%20support%20this.
   //    title*2="Else..."
   // D. title*0="Hey, what you think you are doing?"

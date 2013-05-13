@@ -15,7 +15,7 @@
  * built-in nop space, if it exists, or we can create a detour.
  *
  * Using the built-in nop space works as follows: On x86-32, DLL functions
- * begin with a two-byte nop (mov edi, edi) and are preceeded by five bytes of
+ * begin with a two-byte nop (mov edi, edi) and are preceded by five bytes of
  * NOP instructions.
  *
  * When we detect a function with this prelude, we do the following:

@@ -109,7 +109,7 @@ __RCSID("$NetBSD: res_comp.c,v 1.6 2004/05/22 23:47:09 christos Exp $");
 
 /*
  * Expand compressed domain name 'src' to full domain name.
- * 'msg' is a pointer to the begining of the message,
+ * 'msg' is a pointer to the beginning of the message,
  * 'eom' points to the first location after the message,
  * 'dst' is a pointer to a buffer of size 'dstsiz' for the result.
  * Return size of compressed name or -1 if there was an error.

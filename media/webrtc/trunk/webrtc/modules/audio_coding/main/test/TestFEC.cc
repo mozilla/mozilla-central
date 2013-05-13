@@ -558,7 +558,7 @@ WebRtc_Word16 TestFEC::RegisterSendCodec(char side, char* codecName, WebRtc_Word
 
     CHECK_ERROR(myACM->RegisterSendCodec(myCodecParam));
 
-    // initialization was succesful
+    // initialization was successful
     return 0;
 }
 

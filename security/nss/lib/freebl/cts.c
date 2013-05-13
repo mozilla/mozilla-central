@@ -129,7 +129,7 @@ CTS_EncryptUpdate(CTSContext *cts, unsigned char *outbuf,
      * here's the CTS magic, we pad our final block with zeros,
      * then do a CBC encrypt. CBC will xor our plain text with
      * the previous block (Cn-1), capturing part of that block (Cn-1**) as it
-     * xors with the zero pad. We then write this full block, overwritting
+     * xors with the zero pad. We then write this full block, overwriting
      * (Cn-1**) in our buffer. This allows us to have input data == output
      * data since Cn contains enough information to reconver Cn-1** when
      * we decrypt (at the cost of some complexity as you can see in decrypt

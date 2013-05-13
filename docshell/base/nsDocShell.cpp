@@ -10106,7 +10106,7 @@ nsDocShell::AddState(nsIVariant *aData, const nsAString& aTitle,
     //     a. Resolve the url, relative to the first script's base URL
     //     b. If (a) fails, raise a SECURITY_ERR
     //     c. Compare the resulting absolute URL to the document's address.  If
-    //        any part of the URLs difer other than the <path>, <query>, and
+    //        any part of the URLs differ other than the <path>, <query>, and
     //        <fragment> components, raise a SECURITY_ERR and abort.
     // 3. If !aReplace:
     //     Remove from the session history all entries after the current entry,

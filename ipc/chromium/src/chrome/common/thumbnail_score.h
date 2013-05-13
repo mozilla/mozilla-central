@@ -31,7 +31,7 @@ struct ThumbnailScore {
   // same brightness (most likely the same color).
   double boring_score;
 
-  // Whether the thumbnail was taken with height greater then
+  // Whether the thumbnail was taken with height greater than
   // width. In cases where we don't have |good_clipping|, the
   // thumbnails are either clipped from the horizontal center of the
   // window, or are otherwise weirdly stretched.

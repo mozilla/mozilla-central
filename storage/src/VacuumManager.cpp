@@ -71,7 +71,7 @@ BaseCallback::HandleError(mozIStorageError *aError)
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsAutoCString warnMsg;
-  warnMsg.AppendLiteral("An error occured during async execution: ");
+  warnMsg.AppendLiteral("An error occurred during async execution: ");
   warnMsg.AppendInt(result);
   warnMsg.AppendLiteral(" ");
   warnMsg.Append(message);

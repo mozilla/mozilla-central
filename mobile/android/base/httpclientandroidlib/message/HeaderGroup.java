@@ -91,7 +91,7 @@ public class HeaderGroup implements Cloneable, Serializable {
     }
 
     /**
-     * Replaces the first occurence of the header with the same name. If no header with
+     * Replaces the first occurrence of the header with the same name. If no header with
      * the same name is found the given header is added to the end of the list.
      *
      * @param header the new header that should replace the first header with the same

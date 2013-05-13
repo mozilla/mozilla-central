@@ -67,7 +67,7 @@ function test_message_class_0() {
       let message = event.message;
       checkMessage(message, -1, 0, "class-0");
       ok(event.message.timestamp.getTime() >= timeBeforeSend,
-         "Message's timestamp should be greater then the timetamp of sending");
+         "Message's timestamp should be greater than the timetamp of sending");
       ok(event.message.timestamp.getTime() <= Date.now(),
          "Message's timestamp should be lesser than the timestamp of now");
 
@@ -115,7 +115,7 @@ function doTestMessageClassGeneric(allDCSs, messageClass, next) {
       // Make sure we can correctly receive the message
       checkMessage(event.message, null, null, messageClass);
       ok(event.message.timestamp.getTime() >= timeBeforeSend,
-         "Message's timestamp should be greater then the timetamp of sending");
+         "Message's timestamp should be greater than the timetamp of sending");
       ok(event.message.timestamp.getTime() <= Date.now(),
          "Message's timestamp should be lesser than the timestamp of now");
 
@@ -170,7 +170,7 @@ function test_message_class_2() {
           // Make sure we can correctly receive the message
           checkMessage(event.message, null, null, "class-2");
           ok(event.message.timestamp.getTime() >= timeBeforeSend,
-             "Message's timestamp should be greater then the timetamp of sending");
+             "Message's timestamp should be greater than the timetamp of sending");
           ok(event.message.timestamp.getTime() <= Date.now(),
              "Message's timestamp should be lesser than the timestamp of now");
 

@@ -65,7 +65,7 @@ public:
      * Updates the buffer data.
      *
      * The size of the buffer will be preserved. The src data will be
-     * placed at the begining of the buffer and any remaining contents will
+     * placed at the beginning of the buffer and any remaining contents will
      * be undefined.
      *
      * @return returns true if the update succeeds, false otherwise.

@@ -789,7 +789,7 @@ extern "C" {
      * implicit that limiting the available time to encode will degrade the
      * output quality. The encoder can be given an unlimited time to produce the
      * best possible frame by specifying a deadline of '0'. This deadline
-     * supercedes the VPx notion of "best quality, good quality, realtime".
+     * supersedes the VPx notion of "best quality, good quality, realtime".
      * Applications that wish to map these former settings to the new deadline
      * based system can use the symbols #VPX_DL_REALTIME, #VPX_DL_GOOD_QUALITY,
      * and #VPX_DL_BEST_QUALITY.

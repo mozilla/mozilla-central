@@ -80,7 +80,7 @@ function runSelectionTests() {
   testExpected(true, "Link options should not show for mailto: links");
   setSelection(p1.firstChild, p1.firstChild, 16, 31);
   testExpected(false, "Link options should show for ftp.example.com");
-  testLinkExpected("ftp://ftp.example.com/", "ftp.example.com should be preceeded with ftp://");
+  testLinkExpected("ftp://ftp.example.com/", "ftp.example.com should be preceded with ftp://");
   setSelection(p2.firstChild, p2.firstChild, 0, 14);
   testExpected(false, "Link options should show for www.example.com  ");
   selection.selectAllChildren(div2);

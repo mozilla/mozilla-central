@@ -254,7 +254,7 @@
         # TODO(andrew): enable all warnings when possible.
         # 4389: Signed/unsigned mismatch.
         # 4373: MSVC legacy warning for ignoring const / volatile in
-        # signatures. TODO(phoglund): get rid of 4373 supression when
+        # signatures. TODO(phoglund): get rid of 4373 suppression when
         # http://code.google.com/p/webrtc/issues/detail?id=261 is solved.
         'msvs_disabled_warnings': [4389, 4373],
 

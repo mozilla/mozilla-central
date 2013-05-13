@@ -127,7 +127,7 @@ protected:
      * from it, performing any substitutions.
      *
      * @param aTemplateNode node within template
-     * @param aRealNode generated node to set attibutes upon
+     * @param aRealNode generated node to set attributes upon
      * @param aResult result to look up variable->value bindings in
      * @param aNotify true to notify of DOM changes
      */
@@ -142,7 +142,7 @@ protected:
      * local store to a generated node.
      *
      * @param aTemplateNode node within template
-     * @param aRealNode generated node to set persisted attibutes upon
+     * @param aRealNode generated node to set persisted attributes upon
      * @param aResult result to look up variable->value bindings in
      */
     nsresult
@@ -158,7 +158,7 @@ protected:
      * aResult. This method will operate recursively.
      *
      * @param aTemplateNode node within template
-     * @param aRealNode generated node to set attibutes upon
+     * @param aRealNode generated node to set attributes upon
      * @param aResult result to look up variable->value bindings in
      */
     nsresult

@@ -12,7 +12,7 @@
 
 /*
  * This code maps PKCS #11 Finds to legacy database searches. This code
- * was orginally in pkcs11.c in previous versions of NSS.
+ * was originally in pkcs11.c in previous versions of NSS.
  */
 
 struct SDBFindStr {

@@ -384,7 +384,7 @@ ucol_open(const char *loc, UErrorCode *status);
  *             UCOL_DEFAULT (set the mode according to the rules)
  * @param strength The default collation strength; one of UCOL_PRIMARY, UCOL_SECONDARY,
  * UCOL_TERTIARY, UCOL_IDENTICAL,UCOL_DEFAULT_STRENGTH - can be also set in the rules.
- * @param parseError  A pointer to UParseError to recieve information about errors
+ * @param parseError  A pointer to UParseError to receive information about errors
  *                    occurred during parsing. This argument can currently be set
  *                    to NULL, but at users own risk. Please provide a real structure.
  * @param status A pointer to an UErrorCode to receive any errors
@@ -427,7 +427,7 @@ ucol_openRules( const UChar        *rules,
  *                   instantiating collators (like out of memory or similar), this
  *                   API will return an error if an invalid attribute or attribute/value
  *                   combination is specified.
- * @return           A pointer to a UCollator or 0 if an error occured (including an 
+ * @return           A pointer to a UCollator or 0 if an error occurred (including an 
  *                   invalid attribute).
  * @see ucol_open
  * @see ucol_setAttribute
@@ -1388,7 +1388,7 @@ ucol_cloneBinary(const UCollator *coll,
  *  ucol_cloneBinary. Binary image used in instantiation of the 
  *  collator remains owned by the user and should stay around for 
  *  the lifetime of the collator. The API also takes a base collator
- *  which usualy should be UCA.
+ *  which usually should be UCA.
  *  @param bin binary image owned by the user and required through the
  *             lifetime of the collator
  *  @param length size of the image. If negative, the API will try to

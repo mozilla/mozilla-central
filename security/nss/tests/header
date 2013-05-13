@@ -354,7 +354,7 @@ copy_to_local()
         mkdir -p ${LOCAL_MOZROOT}/security/nss || C2L_ERROR=2
     fi
     if [ $C2L_ERROR != 0 ] ; then
-        Exit "copy_to_local: Can t make necesssary directories ($C2L_ERROR ) "
+        Exit "copy_to_local: Can t make necessary directories ($C2L_ERROR ) "
     fi
     if [ ! -d ${LOCAL_MOZROOT}/security/nss/tests ] ; then
         cp -r ${TESTSCRIPTDIR} ${LOCAL_MOZROOT}/security/nss || C2L_ERROR=1
@@ -398,7 +398,7 @@ copy_to_local()
             
     done
     if [ $C2L_ERROR != 0 ] ; then
-        Exit "copy_to_local: Can t copy necesssary directories ($C2L_ERROR ) "
+        Exit "copy_to_local: Can t copy necessary directories ($C2L_ERROR ) "
     fi
     unset TESTSCRIPTDIR
     unset TESTDIR
@@ -1471,7 +1471,7 @@ Echo ()
 #    $3 2nd choice
 #
 # MODIFIERS:
-#    -y O_ALWAYS_YES will assume a first choice always (not neccessaryly "y")
+#    -y O_ALWAYS_YES will assume a first choice always (not necessarily "y")
 #
 # RETURN:
 #    0 - User picked 1st choice

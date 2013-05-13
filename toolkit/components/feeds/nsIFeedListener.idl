@@ -60,7 +60,7 @@ interface nsIFeedProgressListener : nsIFeedResultListener {
 
    /**
    * Called when the first entry/item is encountered. In Atom, all
-   * feed data is required to preceed the entries. In RSS, the data
+   * feed data is required to precede the entries. In RSS, the data
    * usually does. If the type is one of the entry/item-only types,
    * this event will not be called.
    *

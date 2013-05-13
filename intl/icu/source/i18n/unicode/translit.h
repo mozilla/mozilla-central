@@ -814,7 +814,7 @@ public:
      *
      * @param ID a valid ID, as enumerated by <code>getAvailableIDs()</code>
      * @param dir        either FORWARD or REVERSE.
-     * @param parseError Struct to recieve information on position
+     * @param parseError Struct to receive information on position
      *                   of error if an error is encountered
      * @param status     Output param to filled in with a success or an error.
      * @return A <code>Transliterator</code> object with the given ID
@@ -852,7 +852,7 @@ public:
      * @param ID            the id for the transliterator.
      * @param rules         rules, separated by ';'
      * @param dir           either FORWARD or REVERSE.
-     * @param parseError    Struct to recieve information on position
+     * @param parseError    Struct to receive information on position
      *                      of error if an error is encountered
      * @param status        Output param set to success/failure code.
      * @stable ICU 2.0

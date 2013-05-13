@@ -1327,7 +1327,7 @@ PNG_FIXED_EXPORT(228, void, png_set_alpha_mode_fixed, (png_structp png_ptr,
  *
  * png_set_alpha_mode(pp, PNG_ALPHA_PNG, PNG_GAMMA_MAC);
  *    In this case the output is assumed to be something like an sRGB conformant
- *    display preceeded by a power-law lookup table of power 1.45.  This is how
+ *    display preceded by a power-law lookup table of power 1.45.  This is how
  *    early Mac systems behaved.
  *
  * png_set_alpha_mode(pp, PNG_ALPHA_STANDARD, PNG_GAMMA_LINEAR);

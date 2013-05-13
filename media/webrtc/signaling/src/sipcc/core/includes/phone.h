@@ -198,7 +198,7 @@ typedef struct {
     uint16_t port;
     uint16_t uiset[SIZEOF_UISET];
     uint16_t vvlanAdmin;
-    uint16_t vvlanIP;     //vvlan that our IP address was aquired on
+    uint16_t vvlanIP;     //vvlan that our IP address was acquired on
     uint8_t unused[2001]; //struct must remain 2046 in size
 } DeviceCfgBlk;
 

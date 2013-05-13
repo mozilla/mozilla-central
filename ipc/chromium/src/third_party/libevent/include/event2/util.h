@@ -484,7 +484,7 @@ struct sockaddr;
 int evutil_parse_sockaddr_port(const char *str, struct sockaddr *out, int *outlen);
 
 /** Compare two sockaddrs; return 0 if they are equal, or less than 0 if sa1
- * preceeds sa2, or greater than 0 if sa1 follows sa2.  If include_port is
+ * preceds sa2, or greater than 0 if sa1 follows sa2.  If include_port is
  * true, consider the port as well as the address.  Only implemented for
  * AF_INET and AF_INET6 addresses. The ordering is not guaranteed to remain
  * the same between Libevent versions. */

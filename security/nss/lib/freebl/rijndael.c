@@ -1031,7 +1031,7 @@ aes_InitContext(AESContext *cx, const unsigned char *key, unsigned int keysize,
     Nk = keysize / 4;
     /* Obtain number of rounds from "table" */
     cx->Nr = RIJNDAEL_NUM_ROUNDS(Nk, cx->Nb);
-    /* copy in the iv, if neccessary */
+    /* copy in the iv, if necessary */
     if (mode == NSS_AES_CBC) {
 	memcpy(cx->iv, iv, blocksize);
 #if USE_HW_AES

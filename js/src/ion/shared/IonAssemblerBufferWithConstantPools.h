@@ -594,7 +594,7 @@ struct AssemblerBufferWithConstantPool : public AssemblerBuffer<SliceSize, Inst>
     // Mark the current section as an area where we can
     // later go to dump a pool
     void perforate() {
-        // If we're filling the backrefrences, we don't want to start looking for a new dumpsite.
+        // If we're filling the backreferences, we don't want to start looking for a new dumpsite.
         if (inBackref)
             return;
         if (canNotPlacePool)
@@ -883,7 +883,7 @@ struct AssemblerBufferWithConstantPool : public AssemblerBuffer<SliceSize, Inst>
             bool beforePool = true;
             Pool *p = &pools[poolIdx];
             // Any entries that happened to be after the place we put our pool will need to be
-            // switched from the forward-referenced pool to the backward-refrenced pool.
+            // switched from the forward-referenced pool to the backward-referenced pool.
             int idx = 0;
             for (BufferOffset *iter = p->loadOffsets.begin();
                  iter != p->loadOffsets.end(); ++iter, ++idx)

@@ -826,7 +826,7 @@ unsolicited_notify_ind_cb (ccsip_sub_not_data_t *msg_data)
  * This function will find the matching feature keys.
  *
  * @param[in] presentity - pointer to presentity
- * @param[in] event_body_p - pointer to presense body
+ * @param[in] event_body_p - pointer to presence body
  *
  * @return TRUE/FALSE
  *

@@ -1277,7 +1277,7 @@ var WifiManager = (function() {
               ++errors;
             if (++done == lines.length - 1) {
               if (errors) {
-                // If an error occured, delete the new netId
+                // If an error occurred, delete the new netId
                 removeNetworkCommand(netId, function() {
                   callback(null);
                 });

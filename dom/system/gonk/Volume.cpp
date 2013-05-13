@@ -43,7 +43,7 @@ Volume::EventObserverList Volume::mEventObserverList;
 // nsVolumeService looks for WakeLock status changes, and forwards
 // the results to the IOThread.
 //
-// If the Volume (IOThread) recieves a volume update where the generation
+// If the Volume (IOThread) receives a volume update where the generation
 // number mismatches, then the update is simply ignored.
 //
 // When a Volume (IOThread) initially becomes mounted, we assume it to

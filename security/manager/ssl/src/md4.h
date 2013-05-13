@@ -22,7 +22,7 @@ extern "C" {
  * @param result
  *        16-byte buffer that will contain the MD4 sum upon return
  *
- * NOTE: MD4 is superceded by MD5.  do not use MD4 unless required by the
+ * NOTE: MD4 is superseded by MD5.  do not use MD4 unless required by the
  * protocol you are implementing (e.g., NTLM requires MD4).
  *
  * NOTE: this interface is designed for relatively small buffers.  A streaming

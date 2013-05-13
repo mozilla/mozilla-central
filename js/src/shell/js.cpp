@@ -3677,7 +3677,7 @@ static JSFunctionSpecWithHelp shell_functions[] = {
     JS_FN_HELP("disfile", DisassFile, 1, 0,
 "disfile('foo.js')",
 "  Disassemble script file into bytecodes.\n"
-"  dis and disfile take these options as preceeding string arguments:\n"
+"  dis and disfile take these options as preceding string arguments:\n"
 "    \"-r\" (disassemble recursively)\n"
 "    \"-l\" (show line numbers)"),
 

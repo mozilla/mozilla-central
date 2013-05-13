@@ -649,7 +649,7 @@ void ev_token_bucket_cfg_free(struct ev_token_bucket_cfg *cfg);
    They are: socket-based bufferevents (normal and IOCP-based), and SSL-based
    bufferevents.
 
-   Return 0 on sucess, -1 on failure.
+   Return 0 on success, -1 on failure.
  */
 int bufferevent_set_rate_limit(struct bufferevent *bev,
     struct ev_token_bucket_cfg *cfg);

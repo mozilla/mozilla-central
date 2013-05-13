@@ -530,14 +530,14 @@ ucbuf_open(const char* fileName,const char** cp,UBool showWarning, UBool buffere
 
 
 /* TODO: this method will fail if at the
- * begining of buffer and the uchar to unget
+ * beginning of buffer and the uchar to unget
  * is from the previous buffer. Need to implement
  * system to take care of that situation.
  */
 U_CAPI void U_EXPORT2
 ucbuf_ungetc(int32_t c,UCHARBUF* buf){
     /* decrement currentPos pointer
-     * if not at the begining of buffer
+     * if not at the beginning of buffer
      */
     if(buf->currentPos!=buf->buffer){
         if(*(buf->currentPos-1)==c){
@@ -695,7 +695,7 @@ ucbuf_resolveFileName(const char* inputDir, const char* fileName, char* target, 
  * Unicode TR 13 says any of the below chars is
  * a new line char in a readline function in addition
  * to CR+LF combination which needs to be 
- * handled seperately
+ * handled separately
  */
 static UBool ucbuf_isCharNewLine(UChar c){
     switch(c){

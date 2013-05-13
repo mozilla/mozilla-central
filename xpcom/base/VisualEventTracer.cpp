@@ -537,7 +537,7 @@ VisualEventTracerLog::GetJSONString(nsACString & _retval)
   RecordBatch * batch = mBatch;
   while (batch) {
     if (batch != mBatch) {
-      // This is not the first batch we are writting, add comma
+      // This is not the first batch we are writing, add comma
       buffer.Append(NS_LITERAL_CSTRING(",\n"));
     }
 

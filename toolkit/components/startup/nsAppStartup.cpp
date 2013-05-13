@@ -872,7 +872,7 @@ nsAppStartup::TrackStartupCrashEnd()
     rv = Preferences::SetInt(kPrefRecentCrashes, maxResumedCrashes);
     NS_ENSURE_SUCCESS(rv, rv);
   } else if (!inSafeMode) {
-    // clear the count of recent crashes after a succesful startup when not in safe mode
+    // clear the count of recent crashes after a successful startup when not in safe mode
     rv = Preferences::ClearUser(kPrefRecentCrashes);
     if (NS_FAILED(rv)) NS_WARNING("Could not clear startup crash count.");
   }

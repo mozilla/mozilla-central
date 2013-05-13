@@ -46,7 +46,7 @@ LOCAL_SRC_FILES := \
     transform.c
 
 ifeq ($(ARCH_ARM_HAVE_ARMV7A),true)
-# Using .S (instead of .s) extention is to include a C header file in assembly.
+# Using .S (instead of .s) extension is to include a C header file in assembly.
 LOCAL_SRC_FILES += \
     lattice_armv7.S \
     pitch_filter_armv6.S

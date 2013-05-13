@@ -1858,7 +1858,7 @@ pixman_region_subtract_o (region_type_t * region,
         else if (r2->x1 <= x1)
         {
             /*
-	     * Subtrahend preceeds minuend: nuke left edge of minuend.
+	     * Subtrahend preceds minuend: nuke left edge of minuend.
 	     */
             x1 = r2->x2;
             if (x1 >= r1->x2)

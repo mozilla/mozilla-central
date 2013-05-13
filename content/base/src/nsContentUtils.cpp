@@ -887,7 +887,7 @@ nsContentUtils::GetParserService()
 {
   // XXX: This isn't accessed from several threads, is it?
   if (!sParserService) {
-    // Lock, recheck sCachedParserService and aquire if this should be
+    // Lock, recheck sCachedParserService and acquire if this should be
     // safe for multiple threads.
     nsresult rv = CallGetService(kParserServiceCID, &sParserService);
     if (NS_FAILED(rv)) {

@@ -377,7 +377,7 @@ bool WriteOSInformation(MinidumpFileWriter *minidump_writer,
   return true;
 }
 
-// Callback context for get writting lwp information.
+// Callback context for get writing lwp information.
 struct LwpInfoCallbackCtx {
   MinidumpFileWriter *minidump_writer;
   const WriterArgument *writer_args;
