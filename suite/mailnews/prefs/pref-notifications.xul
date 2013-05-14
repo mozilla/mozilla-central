@@ -17,7 +17,7 @@
       <preference id="mail.biff.show_alert"
                   name="mail.biff.show_alert"
                   type="bool"
-                  onchange="EnableAlert(this.value);"/>
+                  onchange="EnableAlert(this.value, this.value);"/>
       <preference id="alerts.totalOpenTime"
                   name="alerts.totalOpenTime"
                   type="int"/>
@@ -72,11 +72,12 @@
                    preference="alerts.totalOpenTime"
                    onsyncfrompreference="return document.getElementById(this.getAttribute('preference')).value / 1000;"
                    onsynctopreference="return this.value * 1000;"
-                   aria-labelledby="showAlertTime showAlertTimeEnd"/>
+                   aria-labelledby="newMailNotificationAlert showAlertTime showAlertTimeEnd"/>
           <label id="showAlertTimeEnd"
-                 control="showAlertTime"
-                 value="&showAlertTimeEnd.label;"
-                 accesskey="&showAlertTimeEnd.accesskey;"/>
+                 value="&showAlertTimeEnd.label;">
+            <observes element="newMailNotificationAlert"
+                      attribute="disabled"/>
+          </label>
         </hbox>
         <checkbox id="showAlertPreviewText"
                   class="indent"

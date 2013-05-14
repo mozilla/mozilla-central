@@ -22,7 +22,7 @@ function Startup()
   var newMailNotificationTrayIconPref = document.getElementById("newMailNotificationTrayIconBox");
   newMailNotificationTrayIconPref.hidden = !navigator.platform.startsWith("Win");
 
-  EnableAlert(document.getElementById("mail.biff.show_alert").value);
+  EnableAlert(document.getElementById("mail.biff.show_alert").value, false);
   EnableTrayIcon(document.getElementById("mail.biff.show_tray_icon").value);
 
   gSoundUrlPref = document.getElementById("mail.biff.play_sound.url");
@@ -30,7 +30,7 @@ function Startup()
   PlaySoundCheck(document.getElementById("mail.biff.play_sound").value);
 }
 
-function EnableAlert(aEnable)
+function EnableAlert(aEnable, aFocus)
 {
   // switch off the balloon if the user wants regular alerts
   if (aEnable)
@@ -40,7 +40,7 @@ function EnableAlert(aEnable)
       balloonAlert.value = false;
   }
 
-  EnableElementById("showAlertTime", aEnable, false);
+  EnableElementById("showAlertTime", aEnable, aFocus);
   EnableElementById("showAlertPreviewText", aEnable, false);
   EnableElementById("showAlertSubject", aEnable, false);
   EnableElementById("showAlertSender", aEnable, false);
