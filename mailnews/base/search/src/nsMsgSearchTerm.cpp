@@ -1647,6 +1647,10 @@ nsMsgSearchTerm::MatchPriority (nsMsgPriorityValue priorityToMatch,
     if (p1 == p2)
       result = true;
     break;
+  case nsMsgSearchOp::Isnt:
+    if (p1 != p2)
+      result = true;
+    break;
   default:
     result = false;
     err = NS_ERROR_FAILURE;

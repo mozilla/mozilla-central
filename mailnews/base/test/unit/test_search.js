@@ -25,6 +25,8 @@ const DoesntContain = nsMsgSearchOp.DoesntContain;
 const BeginsWith = nsMsgSearchOp.BeginsWith;
 const EndsWith = nsMsgSearchOp.EndsWith;
 const IsBefore = nsMsgSearchOp.IsBefore; // control entry not enabled
+const IsHigherThan = nsMsgSearchOp.IsHigherThan;
+const IsLowerThan = nsMsgSearchOp.IsLowerThan;
 
 const offlineMail = nsMsgSearchScope.offlineMail;
 const onlineMail = nsMsgSearchScope.onlineMail;
@@ -35,6 +37,7 @@ const news = nsMsgSearchScope.news; // control entry not enabled
 const OtherHeader = nsMsgSearchAttrib.OtherHeader;
 const From = nsMsgSearchAttrib.Sender;
 const Subject = nsMsgSearchAttrib.Subject;
+const Priority = nsMsgSearchAttrib.Priority;
 
 var Tests =
 [
@@ -203,6 +206,28 @@ var Tests =
       op: Contains,
       customHeader: "withspace",
       count: 1},
+    
+    //test for priority
+    { testString: Ci.nsMsgPriority.lowest,
+      testAttribute: Priority,
+      op: IsHigherThan,
+      count: 1},
+    { testString: Ci.nsMsgPriority.low,
+      testAttribute: Priority,
+      op: Is,
+      count: 1},
+    { testString: Ci.nsMsgPriority.normal,
+      testAttribute: Priority,
+      op: IsLowerThan,
+      count: 1},
+    { testString: Ci.nsMsgPriority.lowest,
+      testAttribute: Priority,
+      op: Isnt,
+      count: 1},
+    { testString: Ci.nsMsgPriority.low,
+      testAttribute: Priority,
+      op: Isnt,
+      count: 0},
 ];
 
 function run_test()

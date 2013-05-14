@@ -262,7 +262,9 @@ nsMsgSearchValidityManager::InitOfflineMailTable()
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
-  
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
@@ -539,7 +541,9 @@ nsMsgSearchValidityManager::InitOnlineMailFilterTable()
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
   m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
-  
+  m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+  m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+
   m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_onlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_onlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
@@ -708,7 +712,9 @@ nsMsgSearchValidityManager::InitOfflineMailFilterTable()
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
-  
+  m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+  m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailFilterTable->SetEnabled   (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailFilterTable->SetAvailable (nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Isnt, 1);
@@ -876,6 +882,8 @@ nsMsgSearchValidityManager::InitOnlineManualFilterTable()
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::IsLowerThan, 1);
   m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Is, 1);
+  m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
+  m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::Priority, nsMsgSearchOp::Isnt, 1);
 
   m_onlineManualFilterTable->SetAvailable(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
   m_onlineManualFilterTable->SetEnabled(nsMsgSearchAttrib::MsgStatus, nsMsgSearchOp::Is, 1);
