@@ -38,9 +38,9 @@ calBackendLoader.prototype = {
             return;
         }
 
-        let useICALJS = false;
+        let backend = "libical";
         if (Services.prefs.prefHasUserValue("calendar.icaljs")) {
-            useICALJS = Services.prefs.getBoolPref("calendar.icaljs");
+            backend = Services.prefs.getBoolPref("calendar.icaljs") ? "icaljs" : "libical";
         }
         let uri = Services.io.getProtocolHandler("resource")
                           .QueryInterface(Components.interfaces.nsIResProtocolHandler)
@@ -51,11 +51,7 @@ calBackendLoader.prototype = {
                            .getFileFromURLSpec(uri.spec);
 
         file.append("components");
-        if (useICALJS) {
-            file.append("icaljs.manifest");
-        } else { 
-            file.append("libical.manifest");
-        }
+        file.append(backend + ".manifest");
 
         Components.manager.QueryInterface(Components.interfaces.nsIComponentRegistrar)
                   .autoRegister(file);
