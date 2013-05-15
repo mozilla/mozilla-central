@@ -45,7 +45,6 @@ and change the POP3_QUIT_RESPONSE state to flush the newly committed deletes. */
  */
 
 #define MK_OUT_OF_MEMORY -207
-#define MK_POP3_OUT_OF_DISK_SPACE -321
 #define MK_POP3_PASSWORD_UNDEFINED -313
 #define XP_NO_ANSWER 14401
 #define XP_THE_PREVIOUSLY_ENTERED_PASSWORD_IS_INVALID_ETC 14405
@@ -355,7 +354,7 @@ private:
                                            uint32_t length);
   int32_t WaitForResponse(nsIInputStream* inputStream,
                           uint32_t length);
-  int32_t Error(int32_t err_code);
+  int32_t Error(const char* err_code);
   int32_t SendAuth();
   int32_t AuthResponse(nsIInputStream* inputStream, uint32_t length);
   int32_t SendCapa();

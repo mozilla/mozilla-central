@@ -51,7 +51,6 @@
 #include "nsIMsgCopyService.h"
 #include "nsICryptoHash.h"
 #include "nsIStringBundle.h"
-#include "nsLocalStrings.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
@@ -118,8 +117,7 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStartRequest(nsIRequest *request, nsISupport
           path->GetFileSize(&fileSize);
             // the size of the mailbox file is our total base line for measuring progress
             m_graph_progress_total = (uint32_t) fileSize;
-            UpdateStatusText(LOCAL_STATUS_SELECTING_MAILBOX);
-
+            UpdateStatusText("buildingSummary");
             nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
             if (msgDBService)
             {
@@ -176,7 +174,7 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStopRequest(nsIRequest *request, nsISupports
     // be sure to clear any status text and progress info..
     m_graph_progress_received = 0;
     UpdateProgressPercent();
-    UpdateStatusText(LOCAL_STATUS_DOCUMENT_DONE);
+    UpdateStatusText("localStatusDocumentDone");
 
     return NS_OK;
 }
@@ -279,7 +277,7 @@ nsresult nsMsgMailboxParser::Init()
   return AcquireFolderLock();
 }
 
-void nsMsgMailboxParser::UpdateStatusText (uint32_t stringID)
+void nsMsgMailboxParser::UpdateStatusText (const char* stringName)
 {
   if (m_statusFeedback)
   {
@@ -293,14 +291,9 @@ void nsMsgMailboxParser::UpdateStatusText (uint32_t stringID)
     if (NS_FAILED(rv))
       return;
     nsString finalString;
-    if (stringID == LOCAL_STATUS_SELECTING_MAILBOX)
-    {
-      const PRUnichar * stringArray[] = { m_folderName.get() };
-      rv = bundle->FormatStringFromID(stringID, stringArray, 1,
-                                      getter_Copies(finalString));
-    }
-    else
-      bundle->GetStringFromID(stringID, getter_Copies(finalString));
+    const PRUnichar * stringArray[] = { m_folderName.get() };
+    rv = bundle->FormatStringFromName(NS_ConvertASCIItoUTF16(stringName).get(),
+                                      stringArray, 1, getter_Copies(finalString));
     m_statusFeedback->ShowStatusString(finalString);
   }
 }

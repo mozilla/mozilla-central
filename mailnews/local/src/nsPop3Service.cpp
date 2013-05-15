@@ -29,7 +29,6 @@
 #include "nsLocalMailFolder.h"
 #include "nsIMailboxUrl.h"
 #include "nsIPrompt.h"
-#include "nsLocalStrings.h"
 #include "nsINetUtil.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
@@ -455,7 +454,9 @@ void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
   NS_ENSURE_SUCCESS(rv, void(0));
 
   nsString alertString;
-  bundle->GetStringFromID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
+  bundle->GetStringFromName(
+    NS_LITERAL_STRING("pop3MessageFolderBusy").get(),
+    getter_Copies(alertString));
   if (!alertString.IsEmpty())
     dialog->Alert(nullptr, alertString.get());
 }

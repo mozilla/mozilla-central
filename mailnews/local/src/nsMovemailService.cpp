@@ -38,7 +38,6 @@
 #include "nsNetUtil.h"
 #include "nsAutoPtr.h"
 #include "nsIStringBundle.h"
-#include "nsLocalStrings.h"
 #include "nsIMsgPluggableStore.h"
 #include "mozilla/Services.h"
 
@@ -94,7 +93,7 @@ nsMovemailService::CheckForNewMail(nsIUrlListener * aUrlListener,
 }
 
 void
-nsMovemailService::Error(int32_t errorCode,
+nsMovemailService::Error(const char* errorCode,
                          const PRUnichar **params,
                          uint32_t length)
 {
@@ -117,9 +116,11 @@ nsMovemailService::Error(int32_t errorCode,
   nsString errStr;
   // Format the error string if necessary
   if (params)
-    bundle->FormatStringFromID(errorCode, params, length, getter_Copies(errStr));
+    bundle->FormatStringFromName(NS_ConvertASCIItoUTF16(errorCode).get(),
+                                 params, length, getter_Copies(errStr));
   else
-    bundle->GetStringFromID(errorCode, getter_Copies(errStr));
+    bundle->GetStringFromName(NS_ConvertASCIItoUTF16(errorCode).get(),
+                              getter_Copies(errStr));
 
   if (!errStr.IsEmpty()) {
     dialog->Alert(nullptr, errStr.get());
@@ -365,7 +366,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   if (spoolPath.IsEmpty())
     rv = LocateSpoolFile(spoolPath);
   if (NS_FAILED(rv) || spoolPath.IsEmpty()) {
-    Error(MOVEMAIL_SPOOL_FILE_NOT_FOUND, nullptr, 0);
+    Error("movemailSpoolFileNotFound", nullptr, 0);
     return NS_ERROR_FAILURE;
   }
 
@@ -379,7 +380,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     const PRUnichar *params[] = {
       NS_ConvertUTF8toUTF16(spoolPath).get()
     };
-    Error(MOVEMAIL_CANT_OPEN_SPOOL_FILE, params, 1);
+    Error("movemailCantOpenSpoolFile", params, 1);
     return rv;
   }
 
@@ -423,7 +424,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     const PRUnichar *params[] = {
       lockFile.get()
     };
-    Error(MOVEMAIL_CANT_CREATE_LOCK, params, 1);
+    Error("movemailCantCreateLock", params, 1);
     return NS_ERROR_FAILURE;
   }
 
@@ -488,7 +489,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     const PRUnichar *params[] = {
       NS_ConvertUTF8toUTF16(spoolPath).get()
     };
-    Error(MOVEMAIL_CANT_TRUNCATE_SPOOL_FILE, params, 1);
+    Error("movemailCantTruncateSpoolFile", params, 1);
   }
 
   if (!YieldSpoolLock(spoolPath.get(), usingLockFile)) {
@@ -497,7 +498,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     const PRUnichar *params[] = {
       spoolLock.get()
     };
-    Error(MOVEMAIL_CANT_DELETE_LOCK, params, 1);
+    Error("movemailCantDeleteLock", params, 1);
   }
 
   in_server->SetServerBusy(false);

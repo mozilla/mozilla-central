@@ -62,7 +62,6 @@
 #include "nsNetUtil.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsReadLine.h"
-#include "nsLocalStrings.h"
 #include "nsArrayUtils.h"
 #include "nsIMsgTraitService.h"
 #include "nsIStringEnumerator.h"
@@ -841,18 +840,21 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow,
       const PRUnichar *formatStrings[1] = { folderName.get() };
 
       nsAutoString deleteFolderDialogTitle;
-      rv = bundle->GetStringFromID(POP3_DELETE_FOLDER_DIALOG_TITLE,
-                                   getter_Copies(deleteFolderDialogTitle));
+      rv = bundle->GetStringFromName(
+        NS_LITERAL_STRING("pop3DeleteFolderDialogTitle").get(),
+        getter_Copies(deleteFolderDialogTitle));
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsAutoString deleteFolderButtonLabel;
-      rv = bundle->GetStringFromID(POP3_DELETE_FOLDER_BUTTON_LABEL,
-                                   getter_Copies(deleteFolderButtonLabel));
+      rv = bundle->GetStringFromName(
+        NS_LITERAL_STRING("pop3DeleteFolderButtonLabel").get(),
+        getter_Copies(deleteFolderButtonLabel));
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsAutoString confirmationStr;
-      rv = bundle->FormatStringFromID(POP3_MOVE_FOLDER_TO_TRASH, formatStrings, 1,
-                                      getter_Copies(confirmationStr));
+      rv = bundle->FormatStringFromName(
+        NS_LITERAL_STRING("pop3MoveFolderToTrash").get(), formatStrings, 1,
+        getter_Copies(confirmationStr));
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
@@ -3152,7 +3154,6 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
     {
       nsString folderName;
       GetName(folderName);
-      int32_t statusMsgId = (mCopyState->m_isMove) ? MOVING_MSGS_STATUS : COPYING_MSGS_STATUS;
       nsAutoString numMsgSoFarString;
       numMsgSoFarString.AppendInt((mCopyState->m_copyingMultipleMessages) ? mCopyState->m_curCopyIndex : 1);
 
@@ -3160,8 +3161,11 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
       totalMessagesString.AppendInt(mCopyState->m_totalMsgCount);
       nsString finalString;
       const PRUnichar * stringArray[] = { numMsgSoFarString.get(), totalMessagesString.get(), folderName.get() };
-      rv = mCopyState->m_stringBundle->FormatStringFromID(statusMsgId, stringArray, 3,
-                                               getter_Copies(finalString));
+      rv = mCopyState->m_stringBundle->FormatStringFromName(
+        (mCopyState->m_isMove) ?
+        NS_LITERAL_STRING("movingMessagesStatus").get() :
+        NS_LITERAL_STRING("copyingMessagesStatus").get(),
+        stringArray, 3, getter_Copies(finalString));
       int64_t nowMS = PR_IntervalToMilliseconds(PR_IntervalNow());
 
       // only update status/progress every half second

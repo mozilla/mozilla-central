@@ -168,7 +168,7 @@ public:
 
   void  UpdateDBFolderInfo();
   void  UpdateDBFolderInfo(nsIMsgDatabase *mailDB);
-  void  UpdateStatusText (uint32_t stringID);
+  void  UpdateStatusText(const char* stringName);
 
   // Update the progress bar based on what we know.
   virtual void    UpdateProgressPercent ();

@@ -37,7 +37,6 @@
 #include "nsEmbedCID.h"
 #include "nsMsgUtils.h"
 #include "nsMsgBaseCID.h"
-#include "nsLocalStrings.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIPop3Service.h"
 #include "nsMsgLocalCID.h"
@@ -744,7 +743,9 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
   m_newMailParser->m_newMsgHdr->GetMime2DecodedSubject(subjectStr);
   m_newMailParser->m_newMsgHdr->GetMime2DecodedAuthor(fromStr);
   const PRUnichar *params[] = { fromStr.get(), subjectStr.get() };
-  bundle->FormatStringFromID(POP3_TMP_DOWNLOAD_FAILED, params, 2, getter_Copies(confirmString));
+  bundle->FormatStringFromName(
+    NS_LITERAL_STRING("pop3TmpDownloadError").get(),
+    params, 2, getter_Copies(confirmString));
   nsCOMPtr<nsIDOMWindow> parentWindow;
   nsCOMPtr<nsIPromptService> promptService = do_GetService(NS_PROMPTSERVICE_CONTRACTID);
   nsCOMPtr<nsIDocShell> docShell;

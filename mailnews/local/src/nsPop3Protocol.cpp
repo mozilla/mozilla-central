@@ -40,7 +40,6 @@
 #include "nsISocketTransport.h"
 #include "nsISSLSocketControl.h"
 #include "nsILineInputStream.h"
-#include "nsLocalStrings.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsMsgMessageFlags.h"
 #include "nsMsgBaseCID.h"
@@ -1247,16 +1246,17 @@ nsPop3Protocol::WaitForResponse(nsIInputStream* inputStream, uint32_t length)
 }
 
 int32_t
-nsPop3Protocol::Error(int32_t err_code)
+nsPop3Protocol::Error(const char* err_code)
 {
-    PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("ERROR: %d", err_code));
+    
+    PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("ERROR: %s", err_code));
 
-    // the error code is just the resource id for the error string...
+    // the error code is just the resource name for the error string...
     // so print out that error message!
     nsresult rv = NS_OK;
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_url, &rv);
-    // we handle POP3_TMP_DOWNLOAD_FAILED earlier...
-    if (err_code != POP3_TMP_DOWNLOAD_FAILED && NS_SUCCEEDED(rv))
+    // we handle "pop3TmpDownloadError" earlier...
+    if (strcmp(err_code, "pop3TmpDownloadError") && NS_SUCCEEDED(rv))
     {
         nsCOMPtr<nsIMsgWindow> msgWindow;
         nsCOMPtr<nsIPrompt> dialog;
@@ -1267,7 +1267,8 @@ nsPop3Protocol::Error(int32_t err_code)
             if (NS_SUCCEEDED(rv))
             {
               nsString alertString;
-              mLocalBundle->GetStringFromID(err_code, getter_Copies(alertString));
+              mLocalBundle->GetStringFromName(NS_ConvertASCIItoUTF16(err_code).get(),
+                                              getter_Copies(alertString));
               if (m_pop3ConData->command_succeeded)  //not a server error message
                 dialog->Alert(nullptr, alertString.get());
               else
@@ -1283,7 +1284,9 @@ nsPop3Protocol::Error(int32_t err_code)
                   nsAutoString hostStr;
                   CopyASCIItoUTF16(hostName, hostStr);
                   const PRUnichar *params[] = { hostStr.get() };
-                  mLocalBundle->FormatStringFromID(POP3_SERVER_SAID, params, 1, getter_Copies(serverSaidPrefix));
+                  mLocalBundle->FormatStringFromName(
+                    NS_LITERAL_STRING("pop3ServerSaid").get(),
+                    params, 1, getter_Copies(serverSaidPrefix));
                 }
 
                 nsAutoString message(alertString);
@@ -1334,7 +1337,7 @@ int32_t nsPop3Protocol::Pop3SendData(const char * dataBuffer, bool aSuppressLogg
 int32_t nsPop3Protocol::SendAuth()
 {
   if(!m_pop3ConData->command_succeeded)
-    return(Error(POP3_SERVER_ERROR));
+    return Error("pop3ServerError");
 
   nsAutoCString command("AUTH" CRLF);
 
@@ -1413,7 +1416,7 @@ int32_t nsPop3Protocol::SendCapa()
 {
     PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("SendCapa()"));
     if(!m_pop3ConData->command_succeeded)
-        return(Error(POP3_SERVER_ERROR));
+        return Error("pop3ServerError");
 
     nsAutoCString command("CAPA" CRLF);
 
@@ -1705,7 +1708,7 @@ int32_t nsPop3Protocol::ProcessAuth()
       else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
       {
           m_pop3ConData->next_state = POP3_ERROR_DONE;
-          return(Error(NS_ERROR_COULD_NOT_CONNECT_VIA_TLS));
+          return Error("nsErrorCouldNotConnectViaTls");
       }
     }
 
@@ -1723,14 +1726,14 @@ int32_t nsPop3Protocol::ProcessAuth()
       // the user is just not logged in yet, and show an appropriate error.
       if (m_prefAuthMethods == POP3_HAS_AUTH_GSSAPI &&
           m_failedAuthMethods == POP3_HAS_AUTH_GSSAPI)
-        return Error(POP3_GSSAPI_FAILURE);
+        return Error("pop3GssapiFailure");
 
       // pref has plaintext pw & server claims to support encrypted pw
       if (m_prefAuthMethods == (POP3_HAS_AUTH_USER | POP3_HAS_AUTH_LOGIN |
               POP3_HAS_AUTH_PLAIN) &&
           GetCapFlags() & (POP3_HAS_AUTH_CRAM_MD5 | POP3_HAS_AUTH_APOP))
         // tell user to change to encrypted pw
-        return Error(POP3_AUTH_CHANGE_PLAIN_TO_ENCRYPT);
+        return Error("pop3AuthChangePlainToEncrypt");
       // pref has encrypted pw & server claims to support plaintext pw
       else if (m_prefAuthMethods == (POP3_HAS_AUTH_CRAM_MD5 |
                     POP3_HAS_AUTH_APOP) &&
@@ -1741,14 +1744,14 @@ int32_t nsPop3Protocol::ProcessAuth()
         if (m_socketType == nsMsgSocketType::SSL ||
             m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           // tell user to change to plaintext pw
-          return Error(POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL);
+          return Error("pop3AuthChangeEncryptToPlainSSL");
         else
           // tell user to change to plaintext pw, with big warning
-          return Error(POP3_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL);
+          return Error("pop3AuthChangeEncryptToPlainNoSSL");
       }
       else
         // just "change auth method"
-        return Error(POP3_AUTH_MECH_NOT_SUPPORTED);
+        return Error("pop3AuthMechNotSupported");
     }
 
     switch (m_currentAuthMethod)
@@ -1784,7 +1787,7 @@ int32_t nsPop3Protocol::ProcessAuth()
       default:
         PR_LOG(POP3LOGMODULE, PR_LOG_ERROR,
              ("POP: m_currentAuthMethod has unknown value"));
-        return Error(POP3_AUTH_MECH_NOT_SUPPORTED);
+        return Error("pop3AuthMechNotSupported");
     }
 
     m_pop3ConData->pause_for_read = false;
@@ -1824,8 +1827,8 @@ int32_t nsPop3Protocol::NextAuthStep()
         // response code received shows that login failed not because of
         // wrong credential -> stop login without retry or pw dialog, only alert
         if (TestFlag(POP3_STOPLOGIN))
-            return(Error((m_password_already_sent)
-                         ? POP3_PASSWORD_FAILURE : POP3_USERNAME_FAILURE));
+            return Error((m_password_already_sent) ? "pop3PasswordFailure" :
+                                                     "pop3UsernameFailure");
 
         // response code received shows that server is certain about the
         // credential was wrong -> no fallback, show alert and pw dialog
@@ -1833,8 +1836,8 @@ int32_t nsPop3Protocol::NextAuthStep()
         {
             PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG,
                ("auth failure, setting password failed"));
-            Error((m_password_already_sent)
-                         ? POP3_PASSWORD_FAILURE : POP3_USERNAME_FAILURE);
+            Error((m_password_already_sent) ? "pop3PasswordFailure" :
+                                              "pop3UsernameFailure");
             SetFlag(POP3_PASSWORD_FAILED);
             ClearFlag(POP3_AUTH_FAILURE);
             return 0;
@@ -1851,7 +1854,7 @@ int32_t nsPop3Protocol::NextAuthStep()
             // if USER auth method failed before sending the password,
             // the username was wrong.
             // no fallback but return error
-            return Error(POP3_USERNAME_FAILURE);
+            return Error("pop3UsernameFailure");
         }
 
         // If we have no auth method left, ask user to try with new password
@@ -1869,7 +1872,7 @@ int32_t nsPop3Protocol::NextAuthStep()
                prompting the user for a password: just fail silently.
             */
             SetFlag(POP3_PASSWORD_FAILED);
-            Error(POP3_PASSWORD_FAILURE);
+            Error("pop3PasswordFailure");
 
             if (m_nsIPop3Sink)
                 m_nsIPop3Sink->SetMailAccountURL(NULL);
@@ -2030,7 +2033,7 @@ int32_t nsPop3Protocol::SendUsername()
 {
     PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("SendUsername()"));
     if(m_username.IsEmpty())
-      return(Error(POP3_USERNAME_UNDEFINED));
+      return Error("pop3UsernameUndefined");
 
     // <copied from="SendPassword()">
     // Needed for NTLM
@@ -2041,7 +2044,7 @@ int32_t nsPop3Protocol::SendUsername()
     if (m_passwordResult.IsEmpty())
     {
       m_pop3ConData->next_state = POP3_ERROR_DONE;
-      return Error(POP3_PASSWORD_UNDEFINED);
+      return Error("pop3PasswordUndefined");
     }
     // </copied>
 
@@ -2070,7 +2073,7 @@ int32_t nsPop3Protocol::SendUsername()
       PR_LOG(POP3LOGMODULE, PR_LOG_ERROR,
           ("In nsPop3Protocol::SendUsername(), m_currentAuthMethod is 0x%X, "
           "but that is unexpected", m_currentAuthMethod));
-      return Error(POP3_AUTH_INTERNAL_ERROR);
+      return Error("pop3AuthInternalError");
     }
 
     cmd += CRLF;
@@ -2086,7 +2089,7 @@ int32_t nsPop3Protocol::SendPassword()
 {
   PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("SendPassword()"));
   if (m_username.IsEmpty())
-    return(Error(POP3_USERNAME_UNDEFINED));
+    return Error("pop3UsernameUndefined");
 
   // <copied to="SendUsername()">
   // Needed here, too, because APOP skips SendUsername()
@@ -2096,7 +2099,7 @@ int32_t nsPop3Protocol::SendPassword()
   if (m_passwordResult.IsEmpty())
   {
     m_pop3ConData->next_state = POP3_ERROR_DONE;
-    return Error(POP3_PASSWORD_UNDEFINED);
+    return Error("pop3PasswordUndefined");
   }
   // </copied>
 
@@ -2221,7 +2224,7 @@ int32_t nsPop3Protocol::SendPassword()
     PR_LOG(POP3LOGMODULE, PR_LOG_ERROR,
         ("In nsPop3Protocol::SendPassword(), m_currentAuthMethod is %X, "
         "but that is unexpected", m_currentAuthMethod));
-    return Error(POP3_AUTH_INTERNAL_ERROR);
+    return Error("pop3AuthInternalError");
   }
 
   cmd += CRLF;
@@ -2267,7 +2270,7 @@ nsPop3Protocol::GetStat()
 {
   // check stat response
   if (!m_pop3ConData->command_succeeded)
-    return(Error(POP3_STAT_FAILURE));
+    return Error("pop3StatFail");
 
     /* stat response looks like:  %d %d
      * The first number is the number of articles
@@ -2339,14 +2342,12 @@ nsPop3Protocol::GetStat()
       if (NS_FAILED(rv))
       {
         m_nsIPop3Sink->AbortMailDelivery(this);
-        if (rv == NS_MSG_FOLDER_BUSY)
-          return(Error(POP3_MESSAGE_FOLDER_BUSY));
-        else
-          return(Error(POP3_MESSAGE_WRITE_ERROR));
+        return Error(rv == NS_MSG_FOLDER_BUSY ? "pop3MessageFolderBusy" :
+                                                "pop3MessageWriteError");
       }
 
       if(!m_pop3ConData->msg_del_started)
-        return(Error(POP3_MESSAGE_WRITE_ERROR));
+        return Error("pop3MessageWriteError");
   }
 
   m_pop3ConData->next_state = POP3_SEND_LIST;
@@ -2421,7 +2422,7 @@ nsPop3Protocol::GetList(nsIInputStream* inputStream,
   * will remain constant
   */
   if(!m_pop3ConData->command_succeeded)
-    return(Error(POP3_LIST_FAILURE));
+    return Error("pop3ListFailure");
 
   uint32_t ln = 0;
   bool pauseForMoreData = false;
@@ -2536,7 +2537,8 @@ int32_t nsPop3Protocol::HandleNoUidListAvailable()
             CopyASCIItoUTF16(hostName, hostNameUnicode);
             const PRUnichar *formatStrings[] = { hostNameUnicode.get() };
             nsString alertString;
-            rv = mLocalBundle->FormatStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_UIDL_ETC,
+            rv = mLocalBundle->FormatStringFromName(
+              NS_LITERAL_STRING("pop3ServerDoesNotSupportUidlEtc").get(),
               formatStrings, 1, getter_Copies(alertString));
             NS_ENSURE_SUCCESS(rv, -1);
 
@@ -2949,7 +2951,7 @@ int32_t nsPop3Protocol::GetMsg()
 #ifdef DEBUG
         printf("Not enough disk space! Raising error!\n");
 #endif
-        return (Error(MK_POP3_OUT_OF_DISK_SPACE));
+        return Error("pop3OutOfDiskSpace");
       }
 
       // Here we know how many messages we're going to download, so let
@@ -3195,7 +3197,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
          * get the response code and byte size
          */
         if(!m_pop3ConData->command_succeeded)
-            return Error(POP3_RETR_FAILURE);
+            return Error("pop3RetrFailure");
 
         /* a successful RETR response looks like: #num_bytes Junk
            from TOP we only get the +OK and data
@@ -3250,7 +3252,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
         PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("Done opening message stream!"));
 
         if(!m_pop3ConData->msg_closure || NS_FAILED(rv))
-            return(Error(POP3_MESSAGE_WRITE_ERROR));
+            return Error("pop3MessageWriteError");
     }
 
     m_pop3ConData->pause_for_read = true;
@@ -3276,7 +3278,7 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
         {
           rv = HandleLine(line, buffer_size);
           if (NS_FAILED(rv))
-            return (Error(POP3_MESSAGE_WRITE_ERROR));
+            return Error("pop3MessageWriteError");
 
           // buffer_size already includes MSG_LINEBREAK_LEN so
           // subtract and add CRLF
@@ -3329,9 +3331,9 @@ nsPop3Protocol::RetrResponse(nsIInputStream* inputStream,
         // fixed to return errors)
 
         if (NS_FAILED(rv))
-            return (Error((rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD)
-                           ? POP3_TMP_DOWNLOAD_FAILED
-                           : POP3_MESSAGE_WRITE_ERROR));
+            return Error((rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD) ?
+                         "pop3TmpDownloadError" :
+                         "pop3MessageWriteError");
 
         m_pop3ConData->msg_closure = nullptr;
     }
@@ -3430,7 +3432,9 @@ nsPop3Protocol::TopResponse(nsIInputStream* inputStream, uint32_t length)
     m_pop3ConData->truncating_cur_msg = false;
 
     nsString statusTemplate;
-    mLocalBundle->GetStringFromID(POP3_SERVER_DOES_NOT_SUPPORT_THE_TOP_COMMAND, getter_Copies(statusTemplate));
+    mLocalBundle->GetStringFromName(
+      NS_LITERAL_STRING("pop3ServerDoesNotSupportTopCommand").get(),
+      getter_Copies(statusTemplate));
     if (!statusTemplate.IsEmpty())
     {
       nsAutoCString hostName;
@@ -3496,12 +3500,12 @@ nsPop3Protocol::HandleLine(char *line, uint32_t line_length)
             // (Note: This is only a temp hack until the underlying XPCOM is
             // fixed to return errors)
 
-            if (NS_FAILED(rv))
-              // XXX Error() returns -1, which is not a valid nsresult
-              return static_cast<nsresult>(Error(
-                             (rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD)
-                             ? POP3_TMP_DOWNLOAD_FAILED
-                             : POP3_MESSAGE_WRITE_ERROR));
+            if (NS_FAILED(rv)) {
+              Error((rv == NS_MSG_ERROR_COPYING_FROM_TMP_DOWNLOAD) ?
+                    "pop3TmpDownloadError" :
+                    "pop3MessageWriteError");
+              return rv;
+            }
 
             m_pop3ConData->msg_closure = nullptr;
             return rv;
@@ -3544,7 +3548,7 @@ int32_t nsPop3Protocol::DeleResponse()
   /* the return from the delete will come here
   */
   if(!m_pop3ConData->command_succeeded)
-    return(Error(POP3_DELE_FAILURE));
+    return Error("pop3DeleFailure");
 
 
   /*  ###chrisf
@@ -3665,8 +3669,8 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
   if(m_username.IsEmpty())
   {
     // net_pop3_block = false;
-    // XXX Error() returns -1, which is not a valid nsresult
-    return static_cast<nsresult>(Error(POP3_USERNAME_UNDEFINED));
+    Error("pop3UsernameUndefined");
+    return NS_MSG_SERVER_USERNAME_MISSING;
   }
 
   while(!m_pop3ConData->pause_for_read)
