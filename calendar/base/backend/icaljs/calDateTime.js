@@ -86,7 +86,7 @@ calDateTime.prototype = {
     }),
 
     subtractDate: unwrap(ICAL.Time, function(val) {
-        return new calDuration(this.innerObject.subtractDate(val));
+        return new calDuration(this.innerObject.subtractDateTz(val));
     }),
 
     compare: unwrap(ICAL.Time, function(val) {
