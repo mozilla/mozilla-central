@@ -479,8 +479,6 @@
 @BINPATH@/components/BrowserElementParent.manifest
 @BINPATH@/components/ColorAnalyzer.js
 @BINPATH@/components/Identity.manifest
-@BINPATH@/components/NavigatorPropertyHelper.js
-@BINPATH@/components/NavigatorPropertyHelper.manifest
 @BINPATH@/components/PageThumbsProtocol.js
 @BINPATH@/components/PermissionSettings.js
 @BINPATH@/components/SettingsManager.js
