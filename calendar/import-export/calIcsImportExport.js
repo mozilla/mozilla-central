@@ -56,7 +56,7 @@ const calIcsExporterClassID = Components.ID("{a6a524ce-adff-4a0f-bb7d-d1aaad4adc
 const calIcsExporterInterfaces = [Components.interfaces.calIExporter];
 calIcsExporter.prototype = {
     classID: calIcsExporterClassID,
-    QueryInterface: XPCOMUtils.generateQI(calIcsExporterInterfaces);
+    QueryInterface: XPCOMUtils.generateQI(calIcsExporterInterfaces),
 
     classInfo: XPCOMUtils.generateCI({
         classID: calIcsExporterClassID,
