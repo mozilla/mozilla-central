@@ -2094,6 +2094,22 @@ ICAL.Property = (function() {
     },
 
     /**
+     * Get the default type based on this property's name.
+     *
+     * @return {String} the default type for this property.
+     */
+    getDefaultType: function() {
+      var name = this.name
+      if (name in design.property) {
+        var details = design.property[name];
+        if ('defaultType' in details) {
+          return details.defaultType;
+        }
+      }
+      return null;
+    },
+
+    /**
      * Sets type of property and clears out any
      * existing values of the current type.
      *
@@ -2164,6 +2180,12 @@ ICAL.Property = (function() {
       var i = 0;
       this.removeAllValues();
 
+      if (len > 0 &&
+          typeof(values[0]) === 'object' &&
+          'icaltype' in values[0]) {
+        this.resetType(values[0].icaltype);
+      }
+
       if (this.isDecorated) {
         for (; i < len; i++) {
           this._setDecoratedValue(values[i], i);
@@ -2181,6 +2203,11 @@ ICAL.Property = (function() {
      * @param {String|Object} value new prop value.
      */
     setValue: function(value) {
+      this.removeAllValues();
+      if (typeof(value) === 'object' && 'icaltype' in value) {
+        this.resetType(value.icaltype);
+      }
+
       if (this.isDecorated) {
         this._setDecoratedValue(value, 0);
       } else {
@@ -3303,6 +3330,8 @@ ICAL.TimezoneService = (function() {
       } else if (aData && ("isDate" in aData)) {
         this.isDate = aData.isDate;
       }
+
+      this.icaltype = (this.isDate ? "date" : "date-time");
 
       if (aData && "timezone" in aData) {
         var zone = ICAL.TimezoneService.get(
