@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -28,8 +28,6 @@
 #include "nsMailDirServiceDefs.h"
 #include "nsMsgUtils.h"
 
-#include "nsMsgLocalCID.h"
-#include "nsMsgBaseCID.h"
 #include "nsCOMPtr.h"
 #include "nsMsgFolderFlags.h"
 
@@ -55,6 +53,9 @@ static PRLogModuleInfo *gMovemailLog = nullptr;
 #define PREF_MAIL_ROOT_MOVEMAIL "mail.root.movemail"            // old - for backward compatibility only
 #define PREF_MAIL_ROOT_MOVEMAIL_REL "mail.root.movemail-rel"
 
+#define LOCK_SUFFIX ".lock"
+#define MOZLOCK_SUFFIX ".mozlock"
+
 const char * gDefaultSpoolPaths[] = {
   "/var/spool/mail/",
   "/usr/spool/mail/",
@@ -62,6 +63,38 @@ const char * gDefaultSpoolPaths[] = {
   "/usr/mail/"
 };
 #define NUM_DEFAULT_SPOOL_PATHS (sizeof(gDefaultSpoolPaths)/sizeof(gDefaultSpoolPaths[0]))
+
+namespace {
+class MOZ_STACK_CLASS SpoolLock
+{
+public:
+  /**
+   * Try to create a lock for the spool file while we operate on it.
+   *
+   * @param aSpoolName  The path to the spool file.
+   * @param aSeconds    The number of seconds to retry the locking.
+   * @param aMovemail   The movemail service requesting the lock.
+   * @param aServer     The nsIMsgIncomingServer requesting the lock.
+   */
+  SpoolLock(nsACString *aSpoolPath, int aSeconds, nsMovemailService &aMovemail,
+            nsIMsgIncomingServer *aServer);
+
+  ~SpoolLock();
+
+  bool isLocked();
+
+private:
+  bool mLocked;
+  nsCString mSpoolName;
+  bool mUsingLockFile;
+  nsRefPtr<nsMovemailService> mOwningService;
+  nsCOMPtr<nsIMsgIncomingServer> mServer;
+
+  bool ObtainSpoolLock(unsigned int aSeconds);
+  bool YieldSpoolLock();
+};
+
+}
 
 nsMovemailService::nsMovemailService()
 {
@@ -127,13 +160,43 @@ nsMovemailService::Error(const char* errorCode,
   }
 }
 
-
-bool ObtainSpoolLock(const char *aSpoolName,
-                       int aSeconds /* number of seconds to retry */,
-                       bool *aUsingLockFile)
+SpoolLock::SpoolLock(nsACString *aSpoolName, int aSeconds,
+                     nsMovemailService &aMovemail,
+                     nsIMsgIncomingServer *aServer)
+: mLocked(false),
+  mSpoolName(*aSpoolName),
+  mOwningService(&aMovemail),
+  mServer(aServer)
 {
-  NS_ENSURE_TRUE(aUsingLockFile, false);
+  if (!ObtainSpoolLock(aSeconds)) {
+    NS_ConvertUTF8toUTF16 lockFile(mSpoolName);
+    lockFile.AppendLiteral(LOCK_SUFFIX);
+    const PRUnichar* params[] = { lockFile.get() };
+    mOwningService->Error("movemailCantCreateLock", params, 1);
+    return;
+  }
+  mServer->SetServerBusy(true);
+  mLocked = true;
+}
 
+SpoolLock::~SpoolLock() {
+  if (mLocked && !YieldSpoolLock()) {
+    NS_ConvertUTF8toUTF16 lockFile(mSpoolName);
+    lockFile.AppendLiteral(LOCK_SUFFIX);
+    const PRUnichar* params[] = { lockFile.get() };
+    mOwningService->Error("movemailCantDeleteLock", params, 1);
+  }
+  mServer->SetServerBusy(false);
+}
+
+bool
+SpoolLock::isLocked() {
+  return mLocked;
+}
+
+bool
+SpoolLock::ObtainSpoolLock(unsigned int aSeconds /* number of seconds to retry */)
+{
   /*
    * Locking procedures:
    * If the directory is not writable, we want to use the appropriate system
@@ -144,7 +207,7 @@ bool ObtainSpoolLock(const char *aSpoolName,
    * the customary .lock file.
    */
   nsCOMPtr<nsIFile> spoolFile;
-  nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
+  nsresult rv = NS_NewNativeLocalFile(mSpoolName,
                                       true,
                                       getter_AddRefs(spoolFile));
   NS_ENSURE_SUCCESS(rv, false);
@@ -153,16 +216,16 @@ bool ObtainSpoolLock(const char *aSpoolName,
   rv = spoolFile->GetParent(getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, false);
 
-  rv = directory->IsWritable(aUsingLockFile);
+  rv = directory->IsWritable(&mUsingLockFile);
   NS_ENSURE_SUCCESS(rv, false);
 
-  if (!*aUsingLockFile) {
+  if (!mUsingLockFile) {
     LOG(("Attempting to use kernel file lock"));
     PRFileDesc *fd;
     rv = spoolFile->OpenNSPRFileDesc(PR_RDWR, 0, &fd);
     NS_ENSURE_SUCCESS(rv, false);
     PRStatus lock_result;
-    int retry_count = 0;
+    unsigned int retry_count = 0;
 
     do {
       lock_result = PR_TLockFile(fd);
@@ -191,17 +254,16 @@ bool ObtainSpoolLock(const char *aSpoolName,
   //
   // (step 2a not yet implemented)
 
-
-  nsAutoCString mozlockstr(aSpoolName);
-  mozlockstr.Append(".mozlock");
-  nsAutoCString lockstr(aSpoolName);
-  lockstr.Append(".lock");
+  nsAutoCString mozlockstr(mSpoolName);
+  mozlockstr.AppendLiteral(MOZLOCK_SUFFIX);
+  nsAutoCString lockstr(mSpoolName);
+  lockstr.AppendLiteral(LOCK_SUFFIX);
 
   // Create nsIFile for the spool.mozlock file
   nsCOMPtr<nsIFile> tmplocfile;
   rv = NS_NewNativeLocalFile(mozlockstr, true, getter_AddRefs(tmplocfile));
-  if (NS_FAILED(rv))
-    return false;
+  NS_ENSURE_SUCCESS(rv, false);
+
   // THOUGHT: hmm, perhaps use MakeUnique to generate us a unique mozlock?
   // ... perhaps not, MakeUnique implementation looks racey -- use mktemp()?
 
@@ -218,10 +280,10 @@ bool ObtainSpoolLock(const char *aSpoolName,
   // n.b. XPCOM utilities don't support hard-linking yet, so we
   // skip out to <unistd.h> and the POSIX interface for link()
   int link_result = 0;
-  int retry_count = 0;
+  unsigned int retry_count = 0;
 
   do {
-    link_result = link(mozlockstr.get(),lockstr.get());
+    link_result = link(mozlockstr.get(), lockstr.get());
 
     retry_count++;
     LOG(("Attempt %d of %d to create lock file", retry_count, aSeconds));
@@ -247,15 +309,18 @@ bool ObtainSpoolLock(const char *aSpoolName,
 }
 
 
-// Remove our mail-spool-file lock (n.b. we should only try this if
-// we're the ones who made the lock in the first place!)
-bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
+/**
+ * Remove our mail-spool-file lock (n.b. we should only try this if
+ * we're the ones who made the lock in the first place! I.e. if mLocked is true.)
+ */
+bool
+SpoolLock::YieldSpoolLock()
 {
-  LOG(("YieldSpoolLock(%s)", aSpoolName));
+  LOG(("YieldSpoolLock(%s)", mSpoolName.get()));
 
-  if (!aUsingLockFile) {
+  if (!mUsingLockFile) {
     nsCOMPtr<nsIFile> spoolFile;
-    nsresult rv = NS_NewNativeLocalFile(nsDependentCString(aSpoolName),
+    nsresult rv = NS_NewNativeLocalFile(mSpoolName,
                                         true,
                                         getter_AddRefs(spoolFile));
     NS_ENSURE_SUCCESS(rv, false);
@@ -271,28 +336,25 @@ bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
     return unlockSucceeded;
   }
 
-  nsAutoCString lockstr(aSpoolName);
-  lockstr.Append(".lock");
+  nsAutoCString lockstr(mSpoolName);
+  lockstr.AppendLiteral(LOCK_SUFFIX);
 
   nsresult rv;
 
   // Create nsIFile for the spool.lock file
   nsCOMPtr<nsIFile> locklocfile;
   rv = NS_NewNativeLocalFile(lockstr, true, getter_AddRefs(locklocfile));
-  if (NS_FAILED(rv))
-    return false;
+  NS_ENSURE_SUCCESS(rv, false);
 
   // Check if the lock file exists
   bool exists;
   rv = locklocfile->Exists(&exists);
-  if (NS_FAILED(rv))
-    return false;
+  NS_ENSURE_SUCCESS(rv, false);
 
   // Delete the file if it exists
   if (exists) {
     rv = locklocfile->Remove(false /* non-recursive */);
-    if (NS_FAILED(rv))
-      return false;
+    NS_ENSURE_SUCCESS(rv, false);
   }
 
   LOG(("YieldSpoolLock was successful."));
@@ -346,29 +408,36 @@ LocateSpoolFile(nsACString & spoolPath)
 
 nsresult
 nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
-                              nsIUrlListener *aUrlListener,
-                              nsIMsgFolder *aMsgFolder,
-                              nsIMovemailIncomingServer *movemailServer,
-                              nsIURI ** aURL)
+                              nsIUrlListener* /* aUrlListener */,
+                              nsIMsgFolder* /* aMsgFolder */,
+                              nsIMovemailIncomingServer *aMovemailServer,
+                              nsIURI ** /* aURL */)
 {
   LOG(("nsMovemailService::GetNewMail"));
-  nsresult rv = NS_OK;
+
+  NS_ENSURE_ARG_POINTER(aMovemailServer);
+  // It is OK if aMsgWindow is null.
+  mMsgWindow = aMsgWindow;
+
+  nsresult rv;
 
   nsCOMPtr<nsIMsgIncomingServer> in_server =
-      do_QueryInterface(movemailServer);
-  if (!in_server)
-      return NS_MSG_INVALID_OR_MISSING_SERVER;
-  mMsgWindow = aMsgWindow;
+      do_QueryInterface(aMovemailServer, &rv);
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && in_server,
+    NS_MSG_INVALID_OR_MISSING_SERVER);
 
   // Attempt to locate the mail spool file
   nsAutoCString spoolPath;
   rv = in_server->GetCharValue("spoolDir", spoolPath);
-  if (spoolPath.IsEmpty())
+  if (NS_FAILED(rv) || spoolPath.IsEmpty())
     rv = LocateSpoolFile(spoolPath);
   if (NS_FAILED(rv) || spoolPath.IsEmpty()) {
     Error("movemailSpoolFileNotFound", nullptr, 0);
     return NS_ERROR_FAILURE;
   }
+
+  NS_ConvertUTF8toUTF16 wideSpoolPath(spoolPath);
+  const PRUnichar* spoolPathString[] = { wideSpoolPath.get() };
 
   // Create an input stream for the spool file
   nsCOMPtr<nsIFile> spoolFile;
@@ -377,131 +446,117 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   nsCOMPtr<nsIInputStream> spoolInputStream;
   rv = NS_NewLocalFileInputStream(getter_AddRefs(spoolInputStream), spoolFile);
   if (NS_FAILED(rv)) {
-    const PRUnichar *params[] = {
-      NS_ConvertUTF8toUTF16(spoolPath).get()
-    };
-    Error("movemailCantOpenSpoolFile", params, 1);
+    Error("movemailCantOpenSpoolFile", spoolPathString, 1);
     return rv;
   }
 
   // Get a line input interface for the spool file
   nsCOMPtr<nsILineInputStream> lineInputStream =
     do_QueryInterface(spoolInputStream, &rv);
-  if (!lineInputStream)
-    return rv;
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && lineInputStream, rv);
 
   nsCOMPtr<nsIMsgFolder> serverFolder;
   nsCOMPtr<nsIMsgFolder> inbox;
-  nsCOMPtr<nsIMsgFolder> rootMsgFolder;
 
   rv = in_server->GetRootFolder(getter_AddRefs(serverFolder));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rootMsgFolder = do_QueryInterface(serverFolder, &rv);
-  if (!rootMsgFolder)
-    return rv;
-  rv = rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
-                                         getter_AddRefs(inbox));
+  rv = serverFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                        getter_AddRefs(inbox));
+  NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && inbox, rv);
 
-  NS_ENSURE_TRUE(inbox, NS_ERROR_FAILURE);
-  nsCOMPtr <nsIOutputStream> outputStream;
   nsCOMPtr<nsIMsgPluggableStore> msgStore;
-  nsCOMPtr<nsIMsgDBHdr> newHdr;
   rv = in_server->GetMsgStore(getter_AddRefs(msgStore));
   NS_ENSURE_SUCCESS(rv, rv);
-  bool reusable;
+
   // create a new mail parser
   nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
-  NS_ENSURE_TRUE(newMailParser, NS_ERROR_OUT_OF_MEMORY);
 
-  in_server->SetServerBusy(true);
-
-  // Try and obtain the lock for the spool file
-  bool usingLockFile;
-  if (!ObtainSpoolLock(spoolPath.get(), 5, &usingLockFile)) {
-    nsAutoString lockFile = NS_ConvertUTF8toUTF16(spoolPath);
-    lockFile.AppendLiteral(".lock");
-    const PRUnichar *params[] = {
-      lockFile.get()
-    };
-    Error("movemailCantCreateLock", params, 1);
+  // Try and obtain the lock for the spool file.
+  SpoolLock lock(&spoolPath, 5, *this, in_server);
+  if (!lock.isLocked())
     return NS_ERROR_FAILURE;
-  }
+
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
+  nsCOMPtr<nsIOutputStream> outputStream;
 
   // MIDDLE of the FUN : consume the mailbox data.
   bool isMore = true;
   nsAutoCString buffer;
-  uint32_t bytesWritten;
-
+  uint32_t bytesWritten = 0;
   while (isMore &&
          NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)))
   {
-
     // If first string is empty and we're now at EOF then abort parsing.
-    if (buffer.IsEmpty() && !isMore) {
+    if (buffer.IsEmpty() && !isMore && !bytesWritten) {
       LOG(("Empty spool file"));
       break;
     }
 
-    buffer += MSG_LINEBREAK;
+    buffer.AppendLiteral(MSG_LINEBREAK);
 
-    if (isMore && !strncmp(buffer.get(), "From ", 5)) {
-      // finish prev header, if any.
+    if (isMore && StringBeginsWith(buffer, NS_LITERAL_CSTRING("From "))) {
+      // Finish previous header and message, if any.
       if (newHdr) {
         outputStream->Flush();
         newMailParser->PublishMsgHeader(nullptr);
-        msgStore->FinishNewMessage(outputStream, newHdr);
+        rv = msgStore->FinishNewMessage(outputStream, newHdr);
+        NS_ENSURE_SUCCESS(rv, rv);
         newMailParser->Clear();
       }
-      msgStore->GetNewMsgOutputStream(inbox, getter_AddRefs(newHdr),
-                                      &reusable, getter_AddRefs(outputStream));
+      bool reusable;
+      rv = msgStore->GetNewMsgOutputStream(inbox, getter_AddRefs(newHdr),
+                                           &reusable, getter_AddRefs(outputStream));
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
+
+      nsCOMPtr<nsIInputStream> inputStream = do_QueryInterface(outputStream, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
       rv = newMailParser->Init(serverFolder, inbox,
                                nullptr, newHdr, outputStream);
       NS_ENSURE_SUCCESS(rv, rv);
-      
     }
-    newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-    outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+    if (!outputStream) {
+      // If we do not have outputStream here, something bad happened.
+      // We probably didn't find the proper message start delimiter "From "
+      // and are now reading in the middle of a message. Bail out.
+      Error("movemailCantParseSpool", spoolPathString, 1);
+      return NS_ERROR_UNEXPECTED;
+    }
 
-    // 'From' lines delimit messages
-    if (isMore && !strncmp(buffer.get(), "From ", 5)) {
+    newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
+    rv = outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+    NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && (bytesWritten == buffer.Length()),
+                   NS_ERROR_FAILURE);
+
+    // "From " lines delimit messages, start a new one here.
+    if (isMore && StringBeginsWith(buffer, NS_LITERAL_CSTRING("From "))) {
       buffer.AssignLiteral("X-Mozilla-Status: 8000" MSG_LINEBREAK);
       newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-      outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+      rv = outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+      NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && (bytesWritten == buffer.Length()),
+                     NS_ERROR_FAILURE);
+
       buffer.AssignLiteral("X-Mozilla-Status2: 00000000" MSG_LINEBREAK);
       newMailParser->HandleLine(buffer.BeginWriting(), buffer.Length());
-      outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+      rv = outputStream->Write(buffer.get(), buffer.Length(), &bytesWritten);
+      NS_ENSURE_TRUE(NS_SUCCEEDED(rv) && (bytesWritten == buffer.Length()),
+                     NS_ERROR_FAILURE);
     }
   }
   if (outputStream) {
     outputStream->Flush();
     newMailParser->PublishMsgHeader(nullptr);
     newMailParser->OnStopRequest(nullptr, nullptr, NS_OK);
-    msgStore->FinishNewMessage(outputStream, newHdr);
+    rv = msgStore->FinishNewMessage(outputStream, newHdr);
+    NS_ENSURE_SUCCESS(rv, rv);
     outputStream->Close();
   }
-
-  // Truncate the spool file
+  // Truncate the spool file as we parsed it successfully.
   rv = spoolFile->SetFileSize(0);
   if (NS_FAILED(rv)) {
-    const PRUnichar *params[] = {
-      NS_ConvertUTF8toUTF16(spoolPath).get()
-    };
-    Error("movemailCantTruncateSpoolFile", params, 1);
+    Error("movemailCantTruncateSpoolFile", spoolPathString, 1);
   }
-
-  if (!YieldSpoolLock(spoolPath.get(), usingLockFile)) {
-    nsAutoString spoolLock = NS_ConvertUTF8toUTF16(spoolPath);
-    spoolLock.AppendLiteral(".lock");
-    const PRUnichar *params[] = {
-      spoolLock.get()
-    };
-    Error("movemailCantDeleteLock", params, 1);
-  }
-
-  in_server->SetServerBusy(false);
 
   LOG(("GetNewMail returning rv=%d", rv));
   return rv;
