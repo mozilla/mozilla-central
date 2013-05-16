@@ -155,7 +155,7 @@ var FeedSubscriptions = {
       let item = this.getItemAtIndex(aRow);
       let folder = item && item.folder ? item.folder : null;
       return !folder ? "serverType-rss" :
-             folder.isServer ? "serverType=rss isServer-true" : "livemark";
+             folder.isServer ? "serverType-rss isServer-true" : "livemark";
     },
 
     isContainer: function (aRow)
