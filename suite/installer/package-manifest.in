@@ -376,8 +376,6 @@
 @BINPATH@/components/jsconsole-clhandler.manifest
 @BINPATH@/components/messageWakeupService.js
 @BINPATH@/components/messageWakeupService.manifest
-@BINPATH@/components/NavigatorPropertyHelper.js
-@BINPATH@/components/NavigatorPropertyHelper.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
