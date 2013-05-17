@@ -65,12 +65,21 @@ spacer {
 
 /* ::::: links ::::: */
 
-.acctCentralLinkText {
-  cursor: pointer;
+.acctCentralText {
   -moz-padding-start: 50px;
   font-size: 11px;
   padding-top: 7px;
   min-height: 32px;
+}
+
+.acctCentralNewAcctText {
+  -moz-padding-start: 20px;
+  -moz-padding-end: 10px;
+  min-height: 20px;
+}
+
+.acctCentralLinkText {
+  cursor: pointer;
 }
 
 .acctCentralLinkText:hover {
@@ -78,8 +87,15 @@ spacer {
   text-decoration: underline;
 }
 
-.acctCentralLinkText:active {
+.acctCentralLinkText:hover,
+.acctCentralLinkText:focus {
   color: -moz-activehyperlinktext;
+}
+
+#CreateAccountsList {
+  display: block;
+  -moz-padding-start: 50px;
+  height: 50px;
 }
 
 #ReadMessages label {
@@ -124,6 +140,26 @@ spacer {
 
 #OfflineSettings label {
   background: url("chrome://messenger/skin/accountcentral/offline.png")  no-repeat !important;
+}
+
+#CreateAccountMail,
+#CreateAccountMovemail {
+  background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server.png"), 0, 16, 16, 0);
+  background-repeat: no-repeat;
+}
+
+#CreateAccountChat {
+  background: url("chrome://chat/skin/chat-16.png") no-repeat;
+}
+
+#CreateAccountNewsgroups {
+  background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server.png"), 0, 64, 16, 48);
+  background-repeat: no-repeat;
+}
+
+#CreateAccountRSS {
+  background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server.png"), 0, 96, 316, 80);
+  background-repeat: no-repeat;
 }
 
 @media (min-resolution: 2dppx) {
@@ -180,5 +216,33 @@ spacer {
   #OfflineSettings label {
     background: url("chrome://messenger/skin/accountcentral/offline@2x.png")  no-repeat !important;
     background-size: 32px 32px !important;
+  }
+
+  .acctCentralNewAcctText {
+    min-height: 32px;
+  }
+
+  #CreateAccountMail,
+  #CreateAccountMovemail {
+    background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 32, 32, 0);
+    background-repeat: no-repeat;
+    background-size: 32px 32px;
+  }
+
+  #CreateAccountChat {
+    background: url("chrome://chat/skin/chat-16.png") no-repeat;
+    background-size: 32px 32px;
+  }
+
+  #CreateAccountNewsgroups {
+    background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 160, 32, 128);
+    background-repeat: no-repeat;
+    background-size: 32px 32px;
+  }
+
+  #CreateAccountRSS {
+    background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 192, 32, 160);
+    background-repeat: no-repeat;
+    background-size: 32px 32px;
   }
 }

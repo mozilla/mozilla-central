@@ -11,5 +11,7 @@ newsblog.jar:
    content/messenger-newsblog/utils.js                          (content/utils.js)
 *  content/messenger-newsblog/feed-subscriptions.js             (content/feed-subscriptions.js)
    content/messenger-newsblog/feed-subscriptions.xul            (content/feed-subscriptions.xul)
-   content/messenger-newsblog/am-newsblog.xul                   (content/am-newsblog.xul)
    content/messenger-newsblog/am-newsblog.js                    (content/am-newsblog.js)
+   content/messenger-newsblog/am-newsblog.xul                   (content/am-newsblog.xul)
+   content/messenger-newsblog/feedAccountWizard.js              (content/feedAccountWizard.js)
+   content/messenger-newsblog/feedAccountWizard.xul             (content/feedAccountWizard.xul)

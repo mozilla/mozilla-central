@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<?xml-stylesheet href="chrome://messenger/skin/accountWizard.css" type="text/css"?>
+
+<!DOCTYPE wizard [
+  <!ENTITY %  accountDTD SYSTEM "chrome://messenger/locale/AccountWizard.dtd">
+  %accountDTD;
+  <!ENTITY % newsblogDTD SYSTEM "chrome://messenger-newsblog/locale/am-newsblog.dtd" >
+  %newsblogDTD;
+  <!ENTITY %       imDTD SYSTEM "chrome://messenger/locale/imAccountWizard.dtd" >
+  %imDTD;
+]>
+
+<wizard id="FeedAccountWizard"
+        title="&feedWindowTitle.label;"
+        onwizardcancel="return FeedAccountWizard.onCancel();"
+        onwizardfinish="return FeedAccountWizard.onFinish();"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/feedAccountWizard.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger-newsblog/content/utils.js"/>
+
+  <!-- Account setup page : User gets a choice to enter a name for the account -->
+  <!-- Defaults : Feed account name -> default string -->
+  <wizardpage id="accountsetuppage"
+              pageid="accountsetuppage"
+              label="&accnameTitle.label;"
+              onpageshow="return FeedAccountWizard.accountSetupPageInit();"
+              onpageadvanced="return FeedAccountWizard.accountSetupPageUnload();">
+    <vbox flex="1">
+      <description>&accnameDesc.label;</description>
+      <separator class="thin"/>
+      <hbox align="center">
+        <label class="label"
+               value="&accnameLabel.label;"
+               accesskey="&accnameLabel.accesskey;"
+               control="prettyName"/>
+        <textbox id="prettyName"
+                 flex="1"
+                 value="&feeds.accountName;"
+                 oninput="FeedAccountWizard.accountSetupPageValidate();"/>
+      </hbox>
+    </vbox>
+  </wizardpage>
+
+  <!-- Done page : Summarizes information collected to create a feed account -->
+  <wizardpage id="done"
+              pageid="done"
+              label="&accountSummaryTitle.label;"
+              onpageshow="return FeedAccountWizard.donePageInit();">
+    <vbox flex="1">
+      <description>&accountSummaryInfo.label;</description>
+      <separator class="thin"/>
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row id="account.name"
+               align="center">
+            <label id="account.name.label"
+                   class="label"
+                   flex="1"
+                   value="&accnameLabel.label;"/>
+            <label id="account.name.text"
+                   class="label"/>
+          </row>
+        </rows>
+      </grid>
+      <separator/>
+      <spacer flex="1"/>
+    </vbox>
+  </wizardpage>
+
+</wizard>

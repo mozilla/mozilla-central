@@ -10,7 +10,11 @@
 <wizard id="AccountWizard" title="&windowTitle.label;"
         onwizardcancel="return onCancel();"
         onwizardfinish="return FinishAccount();"
+#ifdef MOZ_THUNDERBIRD
+        onload="onAccountWizardLoad(); initAccountWizardTB(window.arguments);"
+#else
         onload="onAccountWizardLoad();"
+#endif
         style="&accountWizard.size;"
         xmlns:nc="http://home.netscape.com/NC-rdf#"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">

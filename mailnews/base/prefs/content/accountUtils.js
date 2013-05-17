@@ -179,14 +179,16 @@ function MsgAccountWizard(wizardCallback)
  * Open the Old Mail Account Wizard, or focus it if it's already open.
  *
  * @param wizardCallback if the wizard is run, callback when it is done.
+ * @param type - optional account type token, for Tb.
  * @see msgNewMailAccount below for the new implementation.
  */
-function msgOpenAccountWizard(wizardCallback)
+function msgOpenAccountWizard(wizardCallback, type)
 {
   gNewAccountToLoad = null;
 
   window.openDialog("chrome://messenger/content/AccountWizard.xul", "AccountWizard",
-                    "chrome,modal,titlebar,centerscreen", {okCallback: wizardCallback});
+                    "chrome,modal,titlebar,centerscreen",
+                    {okCallback: wizardCallback, acctType: type});
 
   loadInboxForNewAccount();
 
@@ -196,6 +198,28 @@ function msgOpenAccountWizard(wizardCallback)
   if (typeof(getCurrentAccount) == "function" && // in AccountManager, not menu
       !getCurrentAccount())
     selectServer(null, null);
+}
+
+function initAccountWizardTB(args) {
+  let type = args[0] && args[0].acctType;
+  let selType = type == "newsgroups" ? "newsaccount" :
+                type == "movemail" ? "Movemail" : null;
+  let accountwizard = document.getElementById("AccountWizard");
+  let acctyperadio = document.getElementById("acctyperadio");
+  let feedRadio = acctyperadio.querySelector("radio[value='Feeds']");
+  if (feedRadio)
+    feedRadio.parentNode.removeChild(feedRadio);
+  if (selType) {
+    acctyperadio.selectedItem = acctyperadio.querySelector("radio[value='"+selType+"']");
+    accountwizard.advance("identitypage");
+  }
+  else
+    acctyperadio.selectedItem = acctyperadio.getItemAtIndex(0);
+}
+
+function AddFeedAccount() {
+  window.openDialog("chrome://messenger-newsblog/content/feedAccountWizard.xul",
+                    "", "chrome,modal,titlebar,centerscreen");
 }
 
 // selectPage: the xul file name for the viewing page,

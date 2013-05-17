@@ -61,8 +61,7 @@ spacer.big {
 
 /* ::::: links ::::: */
 
-.acctCentralLinkText {
-  cursor: pointer;
+.acctCentralText {
   color: WindowText;
   -moz-padding-start: 45px;
   margin-top: .55em;
@@ -70,12 +69,29 @@ spacer.big {
   min-height: 24px; /* icon height */
 }
 
-.acctCentralLinkText:hover {
+.acctCentralNewAcctText {
+  color: WindowText;
+  -moz-padding-start: 20px;
+  -moz-padding-end: 10px;
+}
+
+.acctCentralLinkText {
+  cursor: pointer;
+}
+
+.acctCentralLinkText:hover,
+.acctCentralLinkText:focus {
   color: -moz-NativehyperlinkText;
 }
 
 .acctCentralLinkText:hover:active {
   color: -moz-html-CellHighlight;
+}
+
+#CreateAccountsList {
+  display: block;
+  -moz-padding-start: 45px;
+  height: 50px;
 }
 
 #ReadMessages label {
@@ -104,10 +120,12 @@ spacer.big {
 
 #CreateAccount label {
   background: url("chrome://messenger/skin/accountcentral/create-account.png") no-repeat !important;
+  background-position: 0% -4px !important;
 }
 
 #CreateAccount label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/create-account.png") right no-repeat !important;
+  background-position: 0% -4px !important;
 }
 
 #SearchMessages label {
@@ -132,6 +150,34 @@ spacer.big {
 
 #OfflineSettings label:-moz-locale-dir(rtl) {
   background: url("chrome://messenger/skin/accountcentral/offline-settings.png") right no-repeat !important;
+}
+
+#CreateAccountMail,
+#CreateAccountMovemail {
+  background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server.png"), 0, 16, 16, 0);
+  background-repeat: no-repeat;
+}
+
+#CreateAccountChat {
+  background: url("chrome://chat/skin/chat-16.png") no-repeat;
+}
+
+#CreateAccountNewsgroups {
+  background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server.png"), 0, 64, 16, 48);
+  background-repeat: no-repeat;
+}
+
+#CreateAccountRSS {
+  background-image: -moz-image-rect(url("chrome://messenger-newsblog/skin/icons/rss-feed.png"), 0, 16, 16, 0);
+  background-repeat: no-repeat;
+}
+
+#CreateAccountMail:-moz-locale-dir(rtl),
+#CreateAccountMovemail:-moz-locale-dir(rtl),
+#CreateAccountChat:-moz-locale-dir(rtl),
+#CreateAccountNewsgroups:-moz-locale-dir(rtl),
+#CreateAccountRSS:-moz-locale-dir(rtl) {
+  background-position: right center;
 }
 
 #SubscribeImapFolders label {

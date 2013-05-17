@@ -277,12 +277,30 @@ function CreateNewAccount()
     window.parent.msgOpenAccountWizard();
 }
 
-function CreateNewAccountTB()
+function CreateNewAccountTB(type)
 {
+  if (type == "mail") {
     if (Services.prefs.getBoolPref("mail.provider.enabled"))
         NewMailAccountProvisioner(null);
     else
         AddMailAccount();
+    return;
+  }
+
+  if (type == "feeds") {
+    AddFeedAccount();
+    return;
+  }
+
+  window.parent.msgOpenAccountWizard(
+      function(state) {
+        let win = getMostRecentMailWindow();
+        if (state && win && win.gFolderTreeView && this.gCurrentAccount) {
+          win.gFolderTreeView.selectFolder(
+              this.gCurrentAccount.incomingServer.rootMsgFolder);
+        }
+      },
+      type);
 }
 
 // Bring up search interface for selected account

@@ -41,6 +41,8 @@
           src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/msgAccountCentral.js"/>
+  <script type="application/javascript"
+          src="chrome://messenger/content/mailCore.js"/>
 
   <grid id="acctCentralGrid" flex="1" style="overflow: auto;">
     <columns id="acctCentralColumns">
@@ -154,10 +156,9 @@
       <row id="CreateAccount" class="acctCentralRow" collapsed="true">
         <hbox>
 #ifdef MOZ_THUNDERBIRD
-          <label class="acctCentralText acctCentralLinkText"
-                 value="&newAcctLink.label;"
-                 chromedir="&locale.dir;"
-                 onclick="CreateNewAccountTB();"/>
+          <label class="acctCentralText"
+                 value="&newAcct.label;"
+                 chromedir="&locale.dir;"/>
 #else
           <label class="acctCentralText acctCentralLinkText"
                  value="&newAcctLink.label;"
@@ -166,6 +167,39 @@
 #endif
         </hbox>
       </row>
+#ifdef MOZ_THUNDERBIRD
+      <row id="CreateAccounts" class="acctCentralRow" collapsed="false">
+        <vbox id="CreateAccountsList">
+          <label id="CreateAccountMail"
+                 class="acctCentralNewAcctText acctCentralLinkText"
+                 value="&emailSectionHdr.label;"
+                 chromedir="&locale.dir;"
+                 onclick="CreateNewAccountTB('mail');"/>
+          <label id="CreateAccountChat"
+                 class="acctCentralNewAcctText acctCentralLinkText"
+                 value="&chat.label;"
+                 chromedir="&locale.dir;"
+                 onclick="openIMAccountWizard();"/>
+          <label id="CreateAccountNewsgroups"
+                 class="acctCentralNewAcctText acctCentralLinkText"
+                 value="&newsSectionHdr.label;"
+                 chromedir="&locale.dir;"
+                 onclick="CreateNewAccountTB('newsgroups');"/>
+          <label id="CreateAccountRSS"
+                 class="acctCentralNewAcctText acctCentralLinkText"
+                 value="&feedsSectionHdr.label;"
+                 chromedir="&locale.dir;"
+                 onclick="CreateNewAccountTB('feeds');"/>
+#ifdef MOZ_MOVEMAIL
+          <label id="CreateAccountMovemail"
+                 class="acctCentralNewAcctText acctCentralLinkText"
+                 value="&movemail.label;"
+                 chromedir="&locale.dir;"
+                 onclick="CreateNewAccountTB('movemail');"/>
+#endif
+        </vbox>
+      </row>
+#endif
 
       <spacer id="AccountsSection.spacer" class="big" flex="5" collapsed="true"/>
 

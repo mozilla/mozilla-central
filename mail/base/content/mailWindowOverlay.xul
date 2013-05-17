@@ -989,6 +989,10 @@
               <menuitem id="appmenu_newIMAccountMenuItem"
                         label="&newIMAccountCmd.label;"
                         oncommand="openIMAccountWizard();"/>
+              <menuitem id="appmenu_newFeedAccountMenuItem"
+                        label="&newFeedAccountCmd.label;"
+                        accesskey="&newFeedAccountCmd.accesskey;"
+                        oncommand="AddFeedAccount();"/>
               <menuitem id="appmenu_newAccountMenuItem"
                         label="&newOtherAccountsCmd.label;"
                         oncommand="MsgAccountWizard();"/>
@@ -2203,6 +2207,10 @@
                         label="&newIMAccountCmd.label;"
                         accesskey="&newIMAccountCmd.accesskey;"
                         oncommand="openIMAccountWizard();"/>
+              <menuitem id="newFeedAccountMenuItem"
+                        label="&newFeedAccountCmd.label;"
+                        accesskey="&newFeedAccountCmd.accesskey;"
+                        oncommand="AddFeedAccount();"/>
               <menuitem id="newAccountMenuItem"
                         label="&newOtherAccountsCmd.label;"
                         accesskey="&newOtherAccountsCmd.accesskey;"
