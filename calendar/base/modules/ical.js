@@ -2981,7 +2981,7 @@ ICAL.Binary = (function() {
         }
 
         this.changes.sort(ICAL.Timezone._compare_change_fn);
-        this.expandedUntilYear = aYear;
+        this.expandedUntilYear = changesEndYear;
       }
     },
 
