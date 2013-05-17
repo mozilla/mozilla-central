@@ -4402,6 +4402,11 @@ ICAL.TimezoneService = (function() {
 
     INTERVAL: function(value, dict) {
       dict.interval = ICAL.helpers.strictParseInt(value);
+      if (dict.interval < 1) {
+        // 0 or negative values are not allowed, some engines seem to generate
+        // it though. Assume 1 instead.
+        dict.interval = 1;
+      }
     },
 
     UNTIL: function(value, dict) {
@@ -4622,7 +4627,7 @@ ICAL.RecurIterator = (function() {
           if (this.days.length > 0) {
             break;
           }
-          this.increment_year(this.rule.interval || 1);
+          this.increment_year(this.rule.interval);
         }
 
         var next = ICAL.Time.fromDayOfYear(this.days[0], this.last.year);
@@ -4784,7 +4789,7 @@ ICAL.RecurIterator = (function() {
       }
 
       if (this_freq) {
-        this.increment_monthday(this.rule.interval || 1);
+        this.increment_monthday(this.rule.interval);
       } else {
         this.increment_monthday(1);
       }
@@ -4820,7 +4825,7 @@ ICAL.RecurIterator = (function() {
         }
       } else {
         // Jump to the next week
-        this.increment_monthday(7 * (this.rule.interval || 1));
+        this.increment_monthday(7 * this.rule.interval);
       }
 
       return end_of_data;
@@ -5149,7 +5154,7 @@ ICAL.RecurIterator = (function() {
       if (++this.days_index == this.days.length) {
         this.days_index = 0;
         do {
-          this.increment_year(this.rule.interval || 1);
+          this.increment_year(this.rule.interval);
           this.expand_year_days(this.last.year);
         } while (this.days.length == 0);
       }
@@ -5195,7 +5200,7 @@ ICAL.RecurIterator = (function() {
         }
         this.last[aDateAttr] = dta[this.by_indices[aRuleType]];
       } else if (this_freq) {
-        this["increment_" + aDateAttr](this.rule.interval || 1);
+        this["increment_" + aDateAttr](this.rule.interval);
       }
 
       if (has_by_rule && end_of_data && this_freq) {
@@ -5230,7 +5235,7 @@ ICAL.RecurIterator = (function() {
       } else {
         var inc;
         if (this.rule.freq == "MONTHLY") {
-          this.last.month += this.rule.interval || 1;
+          this.last.month += this.rule.interval;
         } else {
           this.last.month++;
         }
