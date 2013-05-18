@@ -221,45 +221,25 @@ treechildren::-moz-tree-image(junkStatusCol) {
   -moz-appearance: none;
 }
 
-#viewPickerPopup menuitem[_moz-menuactive="true"],
-#viewPickerPopup menu[_moz-menuactive="true"] {
-  border: 1px solid highlight;
-  background-color: highlight;
-  color: highlighttext;
-}
-
-#folderLocationPopup {
+#viewPickerPopup > menu > .menu-text {
   -moz-appearance: none;
-  color: -moz-FieldText;
-  margin: 0;
-  border-width: 1px;
-  -moz-border-top-colors: -moz-FieldText;
-  -moz-border-right-colors: -moz-FieldText;
-  -moz-border-bottom-colors: -moz-FieldText;
-  -moz-border-left-colors: -moz-FieldText;
-  background-color: -moz-Field;
+  -moz-margin-start: 0 !important;
+  -moz-padding-start: 0 !important;
 }
 
 #folderLocationPopup menu,
 #folderLocationPopup menuitem {
-  -moz-appearance: none;
-  color: -moz-FieldText;
-  background-color: -moz-Field;
-}
-
-#folderLocationPopup menu[_moz-menuactive="true"],
-#folderLocationPopup menuitem[_moz-menuactive="true"] {
-  color: HighlightText;
-  background-color: Highlight;
-}
-
-#folderLocationPopup menu,
-#folderLocationPopup menuitem {
-  padding: 1px 2px;
+  -moz-padding-start: 2px;
 }
 
 #folderLocationPopup menuitem:first-child {
-padding: 4px 0px;
+  padding-top: 3px;
+  padding-bottom: 4px;
+}
+
+#viewPickerPopup .menu-iconic-text {
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 #threadTree treechildren::-moz-tree-row(odd) {
@@ -310,11 +290,21 @@ padding: 4px 0px;
   menulist[disabled="true"] {
     opacity: .6;
   }
+
+  #viewPicker > .menulist-label-box > .menulist-label,
+  #locationFolders > .menulist-label-box > .menulist-label {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  #locationFolders > .menulist-label-box > .menulist-label {
+    -moz-margin-start: 2px !important;
+  }
 }
 
-menulist > .menulist-label-box {
-  background-color: transparent !important;
-  color: inherit !important;
+#viewPicker > .menulist-label-box > .menulist-icon,
+#locationFolders > .menulist-label-box > .menulist-icon {
+  min-height: 16px;
 }
 
 @media (-moz-windows-default-theme) {
