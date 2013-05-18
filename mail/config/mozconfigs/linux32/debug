@@ -4,7 +4,11 @@ ac_add_options --enable-trace-malloc
 ac_add_options --enable-signmar
 ac_add_options --enable-calendar
 
-. $topsrcdir/build/unix/mozconfig.linux32
+# Temporarily for gcc 4.5, whilst releng upgrade our builders
+#. $topsrcdir/build/unix/mozconfig.linux32
+CC=/tools/gcc-4.5-0moz3/bin/gcc
+CXX=/tools/gcc-4.5-0moz3/bin/g++
+. $topsrcdir/build/mozconfig.common
 
 # Avoid dependency on libstdc++ 4.5
 ac_add_options --enable-stdcxx-compat
