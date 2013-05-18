@@ -143,12 +143,12 @@ Feed.prototype =
     this.request.onprogress = this.onProgress;
     this.request.open("GET", this.url, true);
 
-    let lastModified = this.lastModified;
     // Some servers, if sent If-Modified-Since, will send 304 if subsequently
     // not sent If-Modified-Since, as in the case of an unsubscribe and new
-    // subscribe.  Send start of epoch date to force a download.
-    this.request.setRequestHeader("If-Modified-Since",
-                                  lastModified ? lastModified : FeedUtils.EPOCHDATE);
+    // subscribe.  Send start of century date to force a download; some servers
+    // will 304 on older dates (such as epoch 1970).
+    let lastModified = this.lastModified || "Sat, 01 Jan 2000 00:00:00 GMT";
+    this.request.setRequestHeader("If-Modified-Since", lastModified);
 
     // Only order what you're going to eat...
     this.request.responseType = "document";
