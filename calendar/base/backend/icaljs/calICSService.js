@@ -434,20 +434,33 @@ calICSService.prototype = {
         // TODO ical.js doesn't support tz providers, but this is usually null
         // or our timezone service anyway.
         let comp = ICAL.parse(serialized);
-        return new calIcalComponent(new ICAL.Component(comp[1]));
+        return this._setupParseResult(comp);
+    },
+
+    _setupParseResult: function(comp) {
+        if (comp.length == 2) {
+            comp = comp[1];
+        } else if (comp.length > 2) {
+            comp.shift();
+            comp = ["xroot", [], comp];
+        } else {
+            throw Components.results.NS_ERROR_FAILURE;
+        }
+        return new calIcalComponent(new ICAL.Component(comp));
     },
 
     parseICSAsync: function parseICSAsync(serialized, tzProvider, listener) {
         // There are way too many error checking messages here, but I had so
         // much pain with this method that I don't want it to break again.
         try {
+            let self = this;
             let worker = new ChromeWorker("resource://calendar/calendar-js/calICSService-worker.js");
             worker.onmessage = function(event) {
                 let rc = Components.results.NS_ERROR_FAILURE;
                 let icalComp = null;
                 try {
                     rc = event.data.rc;
-                    icalComp = new calIcalComponent(new ICAL.Component(event.data.data[1]));
+                    icalComp = self._setupParseResult(event.data.data);
                     if (!Components.isSuccessCode(rc)) {
                         cal.ERROR("[calICSService] Error in parser worker: " + data);
                     }
