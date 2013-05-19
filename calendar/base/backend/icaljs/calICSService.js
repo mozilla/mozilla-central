@@ -372,12 +372,10 @@ calIcalComponent.prototype = {
     },
 
     serializeToICSStream: function() {
-        let sstream = Components.classes["@mozilla.org/io/string-input-stream;1"]
-                                .createInstance(Components.interfaces.nsIStringInputStream);
-        let data = this.innerObject.toString();
-        sstream.setData(data, data.length);
-        return sstream;
-
+        let unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                         .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        unicodeConverter.charset = "UTF-8";
+        return unicodeConverter.convertToInputStream(this.innerObject.toString());
     }
 };
 
