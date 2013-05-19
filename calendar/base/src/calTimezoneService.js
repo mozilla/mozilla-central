@@ -33,6 +33,8 @@ function calTimezoneService() {
 
     this.mTimezoneCache = {};
     this.mBlacklist = {};
+
+    ICAL.TimezoneService = this.wrappedJSObject;
 }
 const calTimezoneServiceClassID = Components.ID("{e736f2bd-7640-4715-ab35-887dc866c587}");
 const calTimezoneServiceInterfaces = [
@@ -58,6 +60,14 @@ calTimezoneService.prototype = {
         interfaces: calTimezoneServiceInterfaces,
         flags: Components.interfaces.nsIClassInfo.SINGLETON
     }),
+
+    // ical.js TimezoneService methods
+    has: function(id) this.getTimezone(id) != null,
+    get: function(id) {
+        return id ? unwrapSingle(ICAL.Timezone, this.getTimezone(id)) : null;
+    },
+    remove: function() {},
+    register: function() {},
 
     // calIStartupService:
     startup: function startup(aCompleteListener) {
@@ -87,6 +97,7 @@ calTimezoneService.prototype = {
             }
             this.mTimezoneCache.UTC = this.mUTC;
             this.mTimezoneCache.utc = this.mUTC;
+            this.mTimezoneCache.Z = this.mUTC;
         }
 
         return this.mUTC;

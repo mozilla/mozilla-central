@@ -27,8 +27,12 @@ calICALJSTimezone.prototype = {
 
     get provider() cal.getTimezoneService(),
     get icalComponent() {
-        let comp = cal.getIcsService().createIcalComponent("VTIMEZONE");
-        comp.icalComponent = this.innerObject.component;
+        let innerComp = this.innerObject.component;
+        let comp = null;
+        if (innerComp) {
+            comp = cal.getIcsService().createIcalComponent("VTIMEZONE");
+            comp.icalComponent = innerComp;
+        }
         return comp;
     },
     get tzid() this.innerObject.tzid,

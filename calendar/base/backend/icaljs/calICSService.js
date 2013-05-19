@@ -49,6 +49,14 @@ calIcalProperty.prototype = {
         return (val && val.icalclass == "icaltime" ? new calDateTime(val) : null);
     },
     set valueAsDatetime(val) unwrapSetter(ICAL.Time, val, function(val) {
+        if (val && val.zone &&
+            val.zone != ICAL.Timezone.utcTimezone &&
+            val.zone != ICAL.Timezone.localTimezone) {
+            this.innerObject.setParameter("TZID", val.zone.tzid);
+            this.addTimezoneReference(wrapGetter(calICALJSTimezone, val.zone));
+        } else {
+            this.innerObject.removeParameter("TZID");
+        }
         this.innerObject.setValue(val);
     }, this),
 
@@ -173,6 +181,7 @@ calIcalProperty.prototype = {
 function calIcalComponent(innerObject) {
     this.innerObject = innerObject || new ICAL.Component();
     this.wrappedJSObject = this;
+    this.mReferencedZones = {};
 }
 
 const calIcalComponentInterfaces = [Components.interfaces.calIIcalComponent];
@@ -266,54 +275,52 @@ calIcalComponent.prototype = {
     },
     set priority(val) this.innerObject.updatePropertyWithValue("priority", val),
 
+    _setTimeAttr: function(propName, val) {
+        let prop = this.innerObject.updatePropertyWithValue(propName, val);
+        if (val && val.zone &&
+            val.zone != ICAL.Timezone.utcTimezone &&
+            val.zone != ICAL.Timezone.localTimezone) {
+            prop.setParameter("TZID", val.zone.tzid);
+            this.addTimezoneReference(wrapGetter(calICALJSTimezone, val.zone));
+        } else {
+            prop.removeParameter("TZID");
+        }
+    },
+
     get startTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("dtstart")),
-    set startTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("dtstart", val);
-    }, this),
+    set startTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "dtstart"), this),
 
     get endTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("dtend")),
-    set endTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("dtend", val);
-    }, this),
+    set endTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "dtend"), this),
 
     get duration() wrapGetter(calDuration, this.innerObject.getFirstPropertyValue("duration")),
 
     get dueTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("due")),
-    set dueTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("due", val);
-    }, this),
+    set dueTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "due"), this),
 
     get stampTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("dtstamp")),
-    set stampTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("dtstamp", val);
-    }, this),
+    set stampTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "dtstamp"), this),
 
     get createdTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("created")),
-    set createdTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("created", val);
-    }, this),
+    set createdTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "created"), this),
 
     get completedTime() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("completed")),
-    set completedTime(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("completed", val);
-    }, this),
+    set completedTime(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "completed"), this),
 
     get lastModified() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("last-modified")),
-    set lastModified(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("last-modified", val);
-    }, this),
+    set lastModified(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "last-modified"), this),
 
     get recurrenceId() wrapGetter(calDateTime, this.innerObject.getFirstPropertyValue("recurrence-id")),
-    set recurrenceId(val) unwrapSetter(ICAL.Time, val, function(val) {
-        this.innerObject.updatePropertyWithValue("recurrence-id", val);
-    }, this),
+    set recurrenceId(val) unwrapSetter(ICAL.Time, val, this._setTimeAttr.bind(this, "recurrence-id"), this),
 
     serializeToICS: function() this.innerObject.toString() + ICAL.newLineChar,
     toString: function() this.innerObject.toString(),
 
-    addSubcomponent: unwrap(ICAL.Component, function(comp) {
-        this.innerObject.addSubcomponent(comp);
-    }),
+    addSubcomponent: function(comp) {
+        comp.getReferencedTimezones({}).forEach(this.addTimezoneReference, this);
+        let jscomp = unwrapSingle(ICAL.Component, comp);
+        this.innerObject.addSubcomponent(jscomp);
+    },
 
     propertyIterator: null,
     getFirstProperty: function getFirstProperty(kind) {
@@ -359,16 +366,44 @@ calIcalComponent.prototype = {
         }
     },
 
-    addProperty: unwrap(ICAL.Property, function(prop) this.innerObject.addProperty(prop)),
+    _getNextParentVCalendar: function() {
+        let that = this;
+        while (that && that.componentType != "VCALENDAR") {
+            that = that.parent;
+        }
+        return that || this;
+    },
+
+    addProperty: function(prop) {
+        try {
+            let dt = prop.valueAsDatetime;
+            if (dt && dt.timezone) {
+                this._getNextParentVCalendar().addTimezoneReference(dt.timezone);
+            }
+        } catch (e) {}
+
+        let jsprop = unwrapSingle(ICAL.Property, prop);
+        this.innerObject.addProperty(jsprop);
+    },
 
     addTimezoneReference: function(tz) {
-        // This doesn't quite fit in with ical.js at the moment. ical.js should
-        // be able to figure this out internally.
+        if (tz) {
+            if (!(tz.tzid in this.mReferencedZones) &&
+                this.componentType == "VCALENDAR") {
+                let comp = tz.icalComponent;
+                if (comp) {
+                    this.addSubcomponent(comp);
+                }
+            }
+
+            this.mReferencedZones[tz.tzid] = tz;
+        }
     },
 
     getReferencedTimezones: function(aCount) {
-        // This doesn't quite fit in with ical.js at the moment. ical.js should
-        // be able to figure this out internally.
+        let vals = [ tz for each (tz in this.mReferencedZones) ];
+        aCount.value = vals.length;
+        return vals;
     },
 
     serializeToICSStream: function() {
