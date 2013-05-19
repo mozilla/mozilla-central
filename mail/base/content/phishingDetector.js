@@ -270,9 +270,10 @@ var gPhishingDetector = {
                         [brandShortName, unobscuredHostNameValue], 2);
 
       const nsIPS = Components.interfaces.nsIPromptService;
-      var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(nsIPS);
-      return !promptService.confirmEx(window, titleMsg, dialogMsg, nsIPS.STD_YES_NO_BUTTONS + nsIPS.BUTTON_POS_1_DEFAULT, 
-                                     "", "", "", "", {}); /* the yes button is in position 0 */
+      return !Services.prompt.confirmEx(window, titleMsg, dialogMsg,
+                                        nsIPS.STD_YES_NO_BUTTONS +
+                                        nsIPS.BUTTON_POS_1_DEFAULT,
+                                        "", "", "", "", {}); /* the yes button is in position 0 */
     }
 
     return true; // allow the link to load

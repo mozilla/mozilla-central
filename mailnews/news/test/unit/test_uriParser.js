@@ -1,5 +1,6 @@
 // Tests nsINntpUrl parsing.
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var localserver;
 let tests = [
@@ -166,8 +167,7 @@ function run_test() {
 
   // The password migration is async, so trigger an event to prevent the logon
   // manager from trying to migrate after shutdown has started.
-  var gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
-  var thread = gThreadManager.currentThread;
+  let thread = Services.tm.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
 }

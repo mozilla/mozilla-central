@@ -6,6 +6,8 @@
 /* This file implements test POP3 servers
  */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Since we don't really need to worry about peristence, we can just
 // use a UIDL counter.
 var gUIDLCount = 1;
@@ -20,12 +22,9 @@ function readFile(fileName) {
   do_check_neq(file, null);
   do_check_true(file.exists());
 
-  var ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
+  let fileURI = Services.io.newFileURI(file);
 
-  var fileURI = ioService.newFileURI(file);
-
-  var fileStream = ioService.newChannelFromURI(fileURI).open();
+  let fileStream = Services.io.newChannelFromURI(fileURI).open();
 
   var inputStream = Cc["@mozilla.org/scriptableinputstream;1"]
                       .createInstance(Ci.nsIScriptableInputStream);

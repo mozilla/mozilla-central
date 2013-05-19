@@ -91,9 +91,6 @@ function run_test() {
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);
 
-  var smtpService = Cc["@mozilla.org/messengercompose/smtp;1"]
-                      .getService(Ci.nsISmtpService);
-
   // Start the fake SMTP server
   server.start(SMTP_PORT);
 

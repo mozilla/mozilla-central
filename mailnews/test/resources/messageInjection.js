@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gMessageGenerator, gMessageScenarioFactory;
 
@@ -625,7 +626,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
   let mis = _messageInjectionSetup;
 
   let iterFolders, folderList;
-  let ioService, popMessages, msgHdrs;
+  let popMessages, msgHdrs;
 
   _messageInjectionSetup.notifyListeners("onInjectingMessages", []);
 
@@ -641,9 +642,6 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     // no protection is possible because of our dependency on promises,
     //  although we could check that the fake URL is one we handed out.
     folderList = aMsgFolders;
-
-    ioService = Cc["@mozilla.org/network/io-service;1"]
-                  .getService(Ci.nsIIOService);
   }
   else if (mis.injectionConfig.mode == "pop") {
     for each (let [, folder] in Iterator(aMsgFolders)) {
@@ -756,9 +754,9 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
             let fakeFolder = mis.handleUriToFakeFolder[folder];
             let synMsg = messageSet._trackMessageAddition(realFolder, iPerSet);
             let msgURI =
-              ioService.newURI("data:text/plain;base64," +
-                               btoa(synMsg.toMessageString()),
-                               null, null);
+              Services.io.newURI("data:text/plain;base64," +
+                                 btoa(synMsg.toMessageString()),
+                                 null, null);
             let imapMsg = new imapMessage(msgURI.spec, fakeFolder.uidnext++, []);
             // If the message's meta-state indicates it is junk, set that flag.
             // There is also a NotJunk flag, but we're not playing with that

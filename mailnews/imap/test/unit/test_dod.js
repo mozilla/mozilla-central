@@ -12,8 +12,9 @@ load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gServer, gIMAPIncomingServer, gIMAPDaemon;
-var gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
 
 var tests = [
   streamMessages,
@@ -122,7 +123,7 @@ gStreamListener = {
 function endTest() {
   gIMAPIncomingServer.closeCachedConnections();
   gServer.stop();
-  let thread = gThreadManager.currentThread;
+  let thread = Services.tm.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
   yield true;

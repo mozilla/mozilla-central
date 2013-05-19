@@ -6,6 +6,8 @@
 
 // Much of the original code is taken from netwerk's httpserver implementation
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Make sure we execute this file exactly once
 var gMaild_js__;
 if (!gMaild_js__) {
@@ -84,7 +86,7 @@ const TIMEOUT = 3*60*1000;
  *****************************************************************************/
 function nsMailServer(handlerCreator, daemon) {
   if (!gThreadManager)
-    gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
+    gThreadManager = Services.tm;
 
   this._debug = fsDebugNone;
 
@@ -190,7 +192,7 @@ nsMailServer.prototype = {
       return;
 
     // spin an event loop and wait for the socket-close notification
-    var thr = gThreadManager.currentThread;
+    let thr = gThreadManager.currentThread;
     while (!this._socketClosed)
       // Don't wait for the next event, just in case there isn't one.
       thr.processNextEvent(false);
@@ -230,7 +232,7 @@ nsMailServer.prototype = {
   performTest : function (watchWord) {
     this._watchWord = watchWord;
 
-    var thread = gThreadManager.currentThread;
+    let thread = gThreadManager.currentThread;
     while (!this.isTestFinished())
       thread.processNextEvent(false);
   },

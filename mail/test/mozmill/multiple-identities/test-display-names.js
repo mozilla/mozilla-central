@@ -11,6 +11,7 @@ var MODULE_NAME = "test-display-names";
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "address-book-helpers"];
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var folder;
@@ -57,10 +58,9 @@ function setupModule(module) {
   add_message_to_folder(folder, create_message({from: ["", friendEmail] }));
   add_message_to_folder(folder, create_message({from: [friendName, friendEmail] }));
 
-  let abManager = Cc["@mozilla.org/abmanager;1"].getService(Ci.nsIAbManager);
   // Ensure all the directories are initialised.
-  abManager.directories;
-  collectedAddresses = abManager.getDirectory("moz-abmdbdirectory://history.mab");
+  MailServices.ab.directories;
+  collectedAddresses = MailServices.ab.getDirectory("moz-abmdbdirectory://history.mab");
 
   let bundle = Services.strings.createBundle(
                    "chrome://messenger/locale/messenger.properties");
