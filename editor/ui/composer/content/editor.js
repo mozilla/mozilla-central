@@ -110,7 +110,7 @@ nsPrefListener.prototype =
   {
     this.domain = prefName;
     try {
-      pref.addObserver(this.domain, this, false);
+      Services.prefs.addObserver(this.domain, this, false);
     } catch(ex) {
       dump("Failed to observe prefs: " + ex + "\n");
     }
@@ -118,7 +118,7 @@ nsPrefListener.prototype =
   shutdown: function()
   {
     try {
-      pref.removeObserver(this.domain, this);
+      Services.prefs.removeObserver(this.domain, this);
     } catch(ex) {
       dump("Failed to remove pref observers: " + ex + "\n");
     }
