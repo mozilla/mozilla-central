@@ -1299,25 +1299,34 @@ function ThreadPaneOnDragStart(aEvent) {
     return;
 
   gFolderDisplay.hintAboutToDeleteMessages();
-  let fileNames = [];
+  let fileNames = new Set();
   let msgUrls = {};
 
-  // dragging multiple messages to desktop does not
-  // currently work, pending core fixes for
-  // multiple-drop-on-desktop support. (bug 513464)
+  // Dragging multiple messages to desktop does not currently work.
+  // When core fixes for multiple-drop-on-desktop support
+  // (e.g. bug 513464, bug 270292) are landed, generating of
+  // "application/x-moz-file-promise" values for i > 0 can be enabled.
+  // But first ensure suggestUniqueFileName is efficient enough on 10000+ dragged
+  // messages.
   for (let i in messages) {
     messenger.messageServiceFromURI(messages[i])
              .GetUrlForUri(messages[i], msgUrls, null);
-    var subject = messenger.messageServiceFromURI(messages[i])
-                           .messageURIToMsgHdr(messages[i]).mime2DecodedSubject;
-    var uniqueFileName = suggestUniqueFileName(subject.substr(0,124), ".eml",
-                                               fileNames);
-    fileNames[i] = uniqueFileName;
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-message", messages[i], i);
     aEvent.dataTransfer.mozSetDataAt("text/x-moz-url",msgUrls.value.spec, i);
+
+    if (i > 0)
+      continue;
+
+    // Generate file name in case the object is dropped onto the desktop.
+    let subject = messenger.messageServiceFromURI(messages[i])
+                           .messageURIToMsgHdr(messages[i]).mime2DecodedSubject;
+    let uniqueFileName = suggestUniqueFileName(subject.substr(0, 124), ".eml",
+                                               fileNames);
+    fileNames.add(uniqueFileName);
+
     aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise-url",
-                                     msgUrls.value.spec + "?fileName=" + uniqueFileName,
-                                     i);
+                                     msgUrls.value.spec + "?fileName=" +
+                                     uniqueFileName, i);
     aEvent.dataTransfer.mozSetDataAt("application/x-moz-file-promise", null, i);
   }
   aEvent.dataTransfer.effectAllowed = "copyMove";
@@ -1325,29 +1334,30 @@ function ThreadPaneOnDragStart(aEvent) {
 }
 
 /**
- * example use:
- *   suggestUniqueFileName("testname",".txt",["testname", "testname1"])
- *   returns "testname2"
- * does not check file system for existing files
- * @param existingNames array of names in use
+ * Returns a new filename that is guaranteed to not be in the Set
+ * of existing names.
+ *
+ * Example use:
+ *   suggestUniqueFileName("testname", ".txt", Set("testname", "testname1"))
+ *   returns "testname2.txt"
+ * Does not check file system for existing files.
+ *
+ * @param aIdentifier     proposed filename
+ * @param aType           extension
+ * @param aExistingNames  a Set of names already in use
  */
-function suggestUniqueFileName(identifier, type, existingNames) {
+function suggestUniqueFileName(aIdentifier, aType, aExistingNames) {
   let suffix = 1;
-  let suggestion;
-  let base = identifier;
-  let exists;
-  do {
-    exists = false;
-    suggestion = GenerateValidFilename(base, type);
-    for (let i = 0; i < existingNames.length; i++) {
-      if (existingNames[i] == suggestion) {
-        base = identifier + suffix;
-        suffix++;
-        exists = true;
-        break;
-      }
-    }
-  } while (exists);
+  let base = validateFileName(aIdentifier);
+  let suggestion = base + aType;
+  while(true) {
+    if (!aExistingNames.has(suggestion))
+      break;
+
+    suggestion = base + suffix + aType;
+    suffix++;
+  }
+
   return suggestion;
 }
 
