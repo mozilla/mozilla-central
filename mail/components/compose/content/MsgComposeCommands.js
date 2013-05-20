@@ -2685,6 +2685,7 @@ function GenericSendMessage(msgType)
       msgType == nsIMsgCompDeliverMode.Background;
   if (sending)
   {
+    expandRecipients();
     // Check if e-mail addresses are complete, in case user turned off
     // autocomplete to local domain.
     if (!CheckValidEmailAddress(msgCompFields))
@@ -4027,35 +4028,26 @@ nsAttachmentOpener.prototype =
   parentContentListener: null
 }
 
+/**
+ * Check what to do with HTML message according to what preference we have
+ * stored for the recipients.
+ *
+ * @param convertible  An nsIMsgCompConvertible constant describing
+ *                     message convertibility to plain text.
+ */
 function DetermineHTMLAction(convertible)
 {
-    var obj;
-    if (! gMsgCompose.composeHTML)
-    {
-        try {
-          obj = new Object;
-          gMsgCompose.checkAndPopulateRecipients(true, false, obj);
-        } catch(ex) {
-          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
-        }
+    if (!gMsgCompose.composeHTML)
         return nsIMsgCompSendFormat.PlainText;
-    }
 
     if (gSendFormat == nsIMsgCompSendFormat.AskUser)
     {
         //Well, before we ask, see if we can figure out what to do for ourselves
-
-        var noHtmlRecipients;
-        var noHtmlnewsgroups;
         var preferFormat;
 
         //Check the address book for the HTML property for each recipient
-        try {
-          obj = new Object;
-          preferFormat = gMsgCompose.checkAndPopulateRecipients(true, true, obj);
-          noHtmlRecipients = obj.value;
-        } catch(ex) {
-          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
+        let noHtmlRecipients = getNonHtmlRecipients();
+        if (!noHtmlRecipients) {
           var msgCompFields = gMsgCompose.compFields;
           noHtmlRecipients = msgCompFields.to + "," + msgCompFields.cc + "," + msgCompFields.bcc;
           preferFormat = nsIAbPreferMailFormat.unknown;
@@ -4063,14 +4055,14 @@ function DetermineHTMLAction(convertible)
         // dump("DetermineHTMLAction: preferFormat = " + preferFormat + ", noHtmlRecipients are " + noHtmlRecipients + "\n");
 
         //Check newsgroups now...
-        noHtmlnewsgroups = gMsgCompose.compFields.newsgroups;
+        let noHtmlnewsgroups = gMsgCompose.compFields.newsgroups;
 
-        if (noHtmlRecipients != "" || noHtmlnewsgroups != "")
+        if (noHtmlRecipients || noHtmlnewsgroups)
         {
             if (convertible == nsIMsgCompConvertible.Plain)
               return nsIMsgCompSendFormat.PlainText;
 
-            if (noHtmlnewsgroups == "")
+            if (!noHtmlnewsgroups)
             {
                 switch (preferFormat)
                 {
@@ -4092,20 +4084,30 @@ function DetermineHTMLAction(convertible)
             }
             return nsIMsgCompSendFormat.AskUser;
         }
-        else
-            return nsIMsgCompSendFormat.HTML;
-    }
-    else
-    {
-      try {
-        obj = new Object;
-        gMsgCompose.checkAndPopulateRecipients(true, false, obj);
-      } catch(ex) {
-          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
-      }
+
+        return nsIMsgCompSendFormat.HTML;
     }
 
     return gSendFormat;
+}
+
+/**
+ * Expands mailinglists found in the recipient fields.
+ */
+function expandRecipients()
+{
+  let dummyObj = new Object();
+  gMsgCompose.checkAndPopulateRecipients(true, false, dummyObj);
+}
+
+/**
+ * Returns recipients that prefer to get messages in plain text.
+ */
+function getNonHtmlRecipients()
+{
+  let recipients = new Object();
+  gMsgCompose.checkAndPopulateRecipients(true, true, recipients);
+  return recipients.value;
 }
 
 function DetermineConvertibility()
