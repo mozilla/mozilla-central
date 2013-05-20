@@ -95,7 +95,7 @@ function BuildHTMLAttributeTable()
     var added = false;
     for(i = 0; i < nodeMap.length; i++)
     {
-      let name = nodeMap[i].name.toLowerCase();
+      let name = nodeMap[i].name.trim().toLowerCase();
       if ( CheckAttributeNameSimilarity( nodeMap[i].nodeName, HTMLAttrs ) ||
            name.startsWith("on") || name == "style" ) {
         continue;   // repeated or non-HTML attribute, ignore this one and go to next
