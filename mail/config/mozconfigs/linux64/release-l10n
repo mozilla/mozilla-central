@@ -1,0 +1,17 @@
+ac_add_options --with-l10n-base=`pwd`/../../mozilla-central
+ac_add_options --enable-application=mail
+ac_add_options --enable-official-branding
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
+ac_add_options --enable-update-packaging
+ac_add_options --enable-stdcxx-compat
+
+# Temporarily for gcc 4.5, whilst releng upgrade our builders
+#. $topsrcdir/build/unix/mozconfig.linux
+CC=/tools/gcc-4.5-0moz3/bin/gcc
+CXX=/tools/gcc-4.5-0moz3/bin/g++
+. $topsrcdir/build/mozconfig.common
+
+# Run client.py
+mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
+mk_add_options ALWAYS_RUN_CLIENT_PY=1
+
