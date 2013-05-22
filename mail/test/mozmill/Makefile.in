@@ -52,6 +52,7 @@ VIRTUALENV_DIR = $(_DEST_DIR)/../mozmill-virtualenv
 mozmill-virtualenv: NSDISTMODE=copy
 mozmill-virtualenv:
 	$(INSTALL) $(topsrcdir)/mail/test/resources $(_DEST_DIR)
+	$(INSTALL) $(topsrcdir)/mozilla/python/virtualenv $(_DEST_DIR)/resources/
 	rm -rf $(VIRTUALENV_DIR) && \
 	mkdir $(VIRTUALENV_DIR) && \
 	unset MACOSX_DEPLOYMENT_TARGET && \
