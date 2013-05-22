@@ -19,9 +19,5 @@
 }
 
 #statusContainerBox {
-  height: 24px;
-}
-
-#selectFolder {
-  margin-top: 1px !important;
+  height: 2.3em;
 }

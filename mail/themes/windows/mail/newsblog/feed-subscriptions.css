@@ -22,10 +22,7 @@
   background-color: #EAE8E4;
 }
 
+#rssFeedInfoBox row,
 #statusContainerBox {
-  height: 24px;
-}
-
-#selectFolder {
-  margin-bottom: 3px !important;
+  height: 2.3em;
 }
