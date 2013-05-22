@@ -14,6 +14,13 @@ function Startup()
   var newMailNotificationAlertUI = document.getElementById("newMailNotificationAlertBox");
   newMailNotificationAlertUI.hidden = !("@mozilla.org/alerts-service;1" in Components.classes);
 
+  // as long as the old notification code is still around, the new options
+  // won't apply if mail.biff.show_new_alert is false and should be hidden
+  document.getElementById("showAlertPreviewText").hidden =
+  document.getElementById("showAlertSubject").hidden =
+  document.getElementById("showAlertSender").hidden =
+    !Services.prefs.getBoolPref("mail.biff.show_new_alert");
+
   // animate dock icon option currently available for Mac OSX only
   var newMailNotificationBouncePref = document.getElementById("newMailNotificationBounceBox");
   newMailNotificationBouncePref.hidden = !navigator.platform.startsWith("Mac");
