@@ -683,6 +683,41 @@ var messageHeaderSink = {
       }
       if (!currentAttachments.length && this.mSaveHdr)
         this.mSaveHdr.markHasAttachments(false);
+
+      let browser = getBrowser();
+      if (currentAttachments.length &&
+          Services.prefs.getBoolPref("mail.inline_attachments") &&
+          this.mSaveHdr && gFolderDisplay.selectedMessageIsFeed &&
+          browser && browser.contentDocument && browser.contentDocument.body) {
+        for (let img of browser.contentDocument.body.getElementsByClassName("moz-attached-image")) {
+          for each (let [, attachment] in Iterator(currentAttachments)) {
+            let partID = img.src.split("&part=")[1];
+            partID = partID ? partID.split("&")[0] : null;
+            if (attachment.partID && partID == attachment.partID) {
+              img.src = attachment.url;
+              break;
+            }
+            else {
+              // GlodaUtils.PART_RE fails to extract a partID for urls with
+              // an embedded ?, at least. So, check the filename too. Frontend
+              // feed parsing ensures no duplicate urls in enclosures.
+              let name = decodeURI(img.src.split("&filename=")[1]);
+              name = name ? name.split("&")[0] : null;
+              if (name == attachment.name) {
+                img.src = attachment.url;
+                break;
+              }
+            }
+          }
+
+          img.addEventListener("load", function(event) {
+            if (this.clientWidth > this.parentNode.clientWidth &&
+                this.hasAttribute("shrinktofit"))
+              this.setAttribute("isshrunk", true);
+          });
+        }
+      }
+
       OnMsgParsed(url);
     },
 
