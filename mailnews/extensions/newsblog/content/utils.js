@@ -267,18 +267,21 @@ var FeedUtils = {
 
     let feedurls = aFolder.getStringProperty("feedUrl");
     if (feedurls)
-      return feedurls.split(this.kFeedUrlDelimiter);
+      return this.splitFeedUrls(feedurls);
 
     // Go to msgDatabase for the property, make sure to handle errors.
+    // NOTE: the rest of the following code is a migration of the feedUrl
+    // property for pre Tb15 subscriptions.  At some point it can/should be
+    // removed.
     let msgDb;
     try {
       msgDb = aFolder.msgDatabase;
     }
     catch (ex) {}
     if (msgDb && msgDb.dBFolderInfo) {
-      feedurls = msgDb.dBFolderInfo.getCharProperty("feedUrl");
       // Clean up the feedUrl string.
-      feedurls.split(this.kFeedUrlDelimiter).forEach(
+      feedurls = this.splitFeedUrls(msgDb.dBFolderInfo.getCharProperty("feedUrl"));
+      feedurls.forEach(
         function(url) {
           if (url && feedUrlArray.indexOf(url) == -1)
             feedUrlArray.push(url);
@@ -376,8 +379,7 @@ var FeedUtils = {
     if (!aFeedUrl)
       return;
 
-    let curFeedUrls = aFolder.getStringProperty("feedUrl");
-    curFeedUrls = curFeedUrls ? curFeedUrls.split(this.kFeedUrlDelimiter) : [];
+    let curFeedUrls = this.splitFeedUrls(aFolder.getStringProperty("feedUrl"));
     let index = curFeedUrls.indexOf(aFeedUrl);
 
     if (aRemoveUrl)
@@ -394,6 +396,22 @@ var FeedUtils = {
 
     let newFeedUrls = curFeedUrls.join(this.kFeedUrlDelimiter);
     aFolder.setStringProperty("feedUrl", newFeedUrls);
+  },
+
+/**
+ * Return array of folder's feed urls.  Handle bad delimiter choice.
+ *
+ * @param  string aUrlString - the folder's feedUrl string property.
+ * @return array             - array of urls or empty array if no property.
+ */
+  splitFeedUrls: function(aUrlString) {
+    let urlStr = aUrlString.replace(this.kFeedUrlDelimiter + "http://",
+                                    "\x01http://", "g")
+                           .replace(this.kFeedUrlDelimiter + "https://",
+                                    "\x01https://", "g")
+                           .replace(this.kFeedUrlDelimiter + "file://",
+                                    "\x01file://", "g");
+    return urlStr.split("\x01");
   },
 
   getSubscriptionsDS: function(aServer) {
