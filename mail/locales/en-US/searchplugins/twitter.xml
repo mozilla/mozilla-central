@@ -7,8 +7,9 @@
 <Description>Realtime Twitter Search</Description>
 <InputEncoding>UTF-8</InputEncoding>
 <Image width="16" height="16">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAiklEQVR42mNgGDxgzTsBnOJr3hUAcQMQJyCJCaArXA9XgCp+Hoj/I+H9QHwfUy1EAqRgPtz0Ne8M0DTD8HuwHJoBCWgKQAb14zAgAJtf9+NQjIlxBJYB1GZCBpzHFxMNRBiSgM8AByyhTqTtqF5Zj1UzrrQCTRjz8Th/Pm7NmLY3IGFQ1CowDG8AAK5P9364gzTrAAAAAElFTkSuQmCC</Image>
-<Url type="text/html" method="get"
-     template="http://search.twitter.com/search?q={searchTerms}"/>
-<SearchForm>http://search.twitter.com/</SearchForm>
+<Url type="text/html" method="GET" template="https://twitter.com/search">
+  <Param name="q" value="{searchTerms}"/>
+</Url>
+<SearchForm>https://twitter.com/search/</SearchForm>
 </SearchPlugin>
 
