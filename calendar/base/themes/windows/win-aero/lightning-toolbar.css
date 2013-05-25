@@ -59,12 +59,19 @@
 }
 
 @media (-moz-windows-compositor) {
-    #tabbar-toolbar #lightning-button-calendar,
-    #tabbar-toolbar #lightning-button-tasks {
-      list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png) !important;
-  }
-
   #calendar-toolbox {
     border-bottom-color: #AABCCF;
   }
+
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) #lightning-button-calendar,
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) #lightning-button-tasks {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
+  }
+}
+
+#mail-bar3:-moz-lwtheme-brighttext #lightning-button-calendar,
+#mail-bar3:-moz-lwtheme-brighttext #lightning-button-tasks,
+#tabbar-toolbar:-moz-lwtheme-brighttext #lightning-button-calendar,
+#tabbar-toolbar:-moz-lwtheme-brighttext #lightning-button-tasks {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
 }

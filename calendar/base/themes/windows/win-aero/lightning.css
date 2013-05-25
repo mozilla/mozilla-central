@@ -35,9 +35,14 @@
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
-@media (-moz-windows-glass) {
-    #tabbar-toolbar #calendar-tab-button,
-    #tabbar-toolbar #task-tab-button {
-      list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
+@media (-moz-windows-compositor) {
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) #calendar-tab-button,
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) #task-tab-button {
+    list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
   }
+}
+
+#tabbar-toolbar:-moz-lwtheme-brighttext #calendar-tab-button,
+#tabbar-toolbar:-moz-lwtheme-brighttext #task-tab-button {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
 }
