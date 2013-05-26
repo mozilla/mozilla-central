@@ -20,6 +20,10 @@
   list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
 }
 
+.calbar-toolbarbutton-1:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://calendar/skin/toolbar-aero-inverted.png);
+}
+
 #calendar-synchronize-button,
 #task-synchronize-button {
   -moz-image-region: rect(1px 17px 17px 1px);
@@ -56,6 +60,10 @@
 
 #calendar-unifinder-button {
   -moz-image-region: rect(1px 143px 17px 127px);
+}
+
+.button-appmenu:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar-inverted.png);
 }
 
 @media (-moz-windows-compositor) {

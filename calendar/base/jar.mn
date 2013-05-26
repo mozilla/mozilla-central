@@ -202,6 +202,7 @@ calendar.jar:
     skin/calendar/calendar-occurrence-prompt-aero.png      (themes/@THEME@/images/calendar-occurrence-prompt-aero.png)
     skin/calendar/tasks-actions-aero.png                   (themes/@THEME@/images/tasks-actions-aero.png)
     skin/calendar/toolbar-aero.png                         (themes/@THEME@/images/toolbar-aero.png)
+    skin/calendar/toolbar-aero-inverted.png                (themes/@THEME@/images/toolbar-aero-inverted.png)
     skin/calendar/toolbar-large-aero.png                   (themes/@THEME@/images/toolbar-large-aero.png)
     skin/calendar/toolbar-small-aero.png                   (themes/@THEME@/images/toolbar-small-aero.png)
 #endif
