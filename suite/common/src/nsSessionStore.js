@@ -3059,9 +3059,11 @@ SessionStoreService.prototype = {
 
     var _this = this;
     aWindow.setTimeout(function() {
-      _this.restoreDimensions.apply(_this, [aWindow, aWinData.width || 0,
-        aWinData.height || 0, "screenX" in aWinData ? aWinData.screenX : NaN,
-        "screenY" in aWinData ? aWinData.screenY : NaN,
+      _this.restoreDimensions.apply(_this, [aWindow,
+        +aWinData.width || 0,
+        +aWinData.height || 0,
+        "screenX" in aWinData ? +aWinData.screenX : NaN,
+        "screenY" in aWinData ? +aWinData.screenY : NaN,
         aWinData.sizemode || "", aWinData.sidebar || ""]);
     }, 0);
   },
