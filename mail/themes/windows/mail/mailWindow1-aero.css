@@ -247,6 +247,15 @@ treechildren::-moz-tree-image(junkStatusCol) {
 }
 
 @media (-moz-windows-default-theme) {
+  #afterViewPickerUnreadSeparator,
+  #afterViewPickerCustomViewsSeparator {
+    -moz-appearance: none;
+    margin: 3px 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top-color: ThreeDLightShadow;
+  }
+
   menulist {
     -moz-appearance: none;
     margin: 1px 4px;
