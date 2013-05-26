@@ -504,9 +504,9 @@ already_AddRefed<nsIAddrDatabase> GetAddressBookFromUri(const char *pUri)
   if (!mdbDirectory)
     return nullptr;
 
-  nsIAddrDatabase *pDatabase = nullptr;
-  mdbDirectory->GetDatabase(&pDatabase);
-  return pDatabase;
+  nsCOMPtr<nsIAddrDatabase> pDatabase;
+  mdbDirectory->GetDatabase(getter_AddRefs(pDatabase));
+  return pDatabase.forget();
 }
 
 already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
@@ -521,7 +521,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
   IMPORT_LOG0("In GetAddressBook\n");
 
   nsresult rv;
-  nsIAddrDatabase *pDatabase = nullptr;
+  nsCOMPtr<nsIAddrDatabase> pDatabase;
   nsCOMPtr<nsIFile> dbPath;
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
@@ -548,7 +548,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
 
           IMPORT_LOG0("Opening the new address book\n");
           rv = addrDBFactory->Open(dbPath, true, true,
-                                   &pDatabase);
+                                   getter_AddRefs(pDatabase));
         }
       }
     }
@@ -589,7 +589,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
       IMPORT_LOG0("*** Error: An error occurred while adding the address book to the UI\n");
   }
 
-  return pDatabase;
+  return pDatabase.forget();
 }
 
 NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, bool *_retval)

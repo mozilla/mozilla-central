@@ -629,11 +629,12 @@ already_AddRefed<nsIMsgCompose> nsMsgContentPolicy::GetMsgComposeForContext(nsIS
   nsCOMPtr<nsIMsgComposeService> composeService(do_GetService(NS_MSGCOMPOSESERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, nullptr);
 
-  nsIMsgCompose* msgCompose = nullptr;
+  nsCOMPtr<nsIMsgCompose> msgCompose;
   // Don't bother checking rv, as GetMsgComposeForDocShell returns NS_ERROR_FAILURE
-  // for not found. We default to nullptr, so we're still returning a valid value.
-  composeService->GetMsgComposeForDocShell(docShell, &msgCompose);
-  return msgCompose;
+  // for not found.
+  composeService->GetMsgComposeForDocShell(docShell,
+                                           getter_AddRefs(msgCompose));
+  return msgCompose.forget();
 }
 
 nsresult nsMsgContentPolicy::SetDisableItemsOnMailNewsUrlDocshells(

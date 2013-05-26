@@ -54,7 +54,7 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
   bool hasMore;
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIAbDirectory> directory;
-  nsIAbCard *result = nullptr;
+  nsCOMPtr<nsIAbCard> result;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = enumerator->GetNext(getter_AddRefs(supports));
@@ -67,14 +67,14 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
     // Some implementations may return NS_ERROR_NOT_IMPLEMENTED here,
     // so just catch the value and continue.
     if (NS_FAILED(directory->GetCardFromProperty(aName, aValue, true,
-                                                 &result)))
+                                                 getter_AddRefs(result))))
       continue;
 
     if (result)
     {
       if (aDirectory)
-        directory.swap(*aDirectory);
-      return result;
+        directory.forget(aDirectory);
+      return result.forget();
     }
   }
   return nullptr;

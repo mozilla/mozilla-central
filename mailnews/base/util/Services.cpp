@@ -60,8 +60,8 @@ ShutdownObserver *ShutdownObserver::sShutdownObserver = nullptr;
       os.forget(&g##NAME); \
       MOZ_ASSERT(g##NAME, "This service is unexpectedly missing."); \
     } \
-    NS_IF_ADDREF(g##NAME); \
-    return g##NAME; \
+    nsCOMPtr<TYPE> ret = g##NAME; \
+    return ret.forget(); \
   }
 #include "mozilla/mailnews/ServiceList.h"
 #undef MOZ_SERVICE
