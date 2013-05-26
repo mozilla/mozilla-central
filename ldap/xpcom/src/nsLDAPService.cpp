@@ -83,10 +83,8 @@ uint32_t nsLDAPServiceEntry::GetLeases()
 //
 already_AddRefed<nsILDAPServer> nsLDAPServiceEntry::GetServer()
 {
-    nsILDAPServer *server;
-
-    NS_IF_ADDREF(server = mServer);
-    return server;
+    nsCOMPtr<nsILDAPServer> server = mServer;
+    return server.forget();
 }
 bool nsLDAPServiceEntry::SetServer(nsILDAPServer *aServer)
 {
@@ -102,10 +100,8 @@ bool nsLDAPServiceEntry::SetServer(nsILDAPServer *aServer)
 //
 already_AddRefed<nsILDAPConnection> nsLDAPServiceEntry::GetConnection()
 {
-    nsILDAPConnection *conn;
-
-    NS_IF_ADDREF(conn = mConnection);
-    return conn;
+    nsCOMPtr<nsILDAPConnection> conn = mConnection;
+    return conn.forget();
 }
 void nsLDAPServiceEntry::SetConnection(nsILDAPConnection *aConnection)
 {
@@ -116,10 +112,8 @@ void nsLDAPServiceEntry::SetConnection(nsILDAPConnection *aConnection)
 //
 already_AddRefed<nsILDAPMessage> nsLDAPServiceEntry::GetMessage()
 {
-    nsILDAPMessage *message;
-
-    NS_IF_ADDREF(message = mMessage);
-    return message;
+    nsCOMPtr<nsILDAPMessage> message = mMessage;
+    return message.forget();
 }
 void nsLDAPServiceEntry::SetMessage(nsILDAPMessage *aMessage)
 {
@@ -127,30 +121,23 @@ void nsLDAPServiceEntry::SetMessage(nsILDAPMessage *aMessage)
 }
 
 // Push/Pop pending listeners/callback for this server entry. This is
-// implemented as a "stack" on top of the nsVoidArrays, since we can
+// implemented as a "stack" on top of the nsCOMArray, since we can
 // potentially have more than one listener waiting for the connection
 // to be available for consumption.
 //
 already_AddRefed<nsILDAPMessageListener> nsLDAPServiceEntry::PopListener()
 {
-    nsILDAPMessageListener *listener;
-    int32_t count = mListeners.Count();
-    if (!count) {
+    if (mListeners.IsEmpty()) {
         return 0;
     }
 
-    listener = mListeners[0];
-    NS_ADDREF(listener); // keep it alive
+    nsCOMPtr<nsILDAPMessageListener> listener = mListeners[0];
     mListeners.RemoveObjectAt(0);
-
-    return listener;
+    return listener.forget();
 }
 bool nsLDAPServiceEntry::PushListener(nsILDAPMessageListener *listener)
 {
-    bool ret;
-    ret = mListeners.InsertObjectAt(listener, mListeners.Count());
-
-    return ret;
+    return mListeners.AppendObject(listener);
 }
 
 // Mark this server to currently be rebinding. This is to avoid a
