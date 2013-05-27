@@ -63,6 +63,9 @@
       <checkbox id="newMailNotificationBounce" label="&bounceSystemDockIcon.label;"
                 preference="mail.biff.animate_dock_icon"
                 accesskey="&bounceSystemDockIcon.accesskey;"/>
+      <checkbox id="newMailNotificationAlert" label="&showAnimatedAlert.label;"
+                preference="mail.biff.show_alert"
+                accesskey="&showAnimatedAlert.accesskey;"/>
 #else
       <hbox align="center" flex="1">
         <checkbox id="newMailNotificationAlert"
