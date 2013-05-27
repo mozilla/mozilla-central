@@ -1127,7 +1127,7 @@
 
       <handler event="keypress" keycode="VK_F7" group="system">
         <![CDATA[
-          if (event.getPreventDefault() || !event.isTrusted)
+          if (event.defaultPrevented || !event.isTrusted)
             return;
 
           var isEnabled = Services.prefs.getBoolPref("accessibility.browsewithcaret_shortcut.enabled");
