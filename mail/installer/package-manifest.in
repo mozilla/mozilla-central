@@ -564,7 +564,6 @@
 @BINPATH@/components/dom_indexeddb.xpt
 @BINPATH@/components/dom_json.xpt
 @BINPATH@/components/dom_media.xpt
-@BINPATH@/components/dom_mms.xpt
 @BINPATH@/components/dom_mobilemessage.xpt
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
