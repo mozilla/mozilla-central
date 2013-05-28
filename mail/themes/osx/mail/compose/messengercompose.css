@@ -15,6 +15,10 @@
   background-position: top right;
 }
 
+#composeToolbar2:-moz-lwtheme {
+  padding-top: 22px;
+}
+
 #attachmentBucket {
   width: 15em;
   min-width: 15em;

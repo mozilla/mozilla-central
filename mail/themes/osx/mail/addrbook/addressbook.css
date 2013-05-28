@@ -20,6 +20,10 @@
   padding: 0 4px;
 }
 
+#ab-bar2:-moz-lwtheme {
+  padding-top: 22px;
+}
+
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1:not([type="menu-button"]),
