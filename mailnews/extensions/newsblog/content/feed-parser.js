@@ -166,7 +166,7 @@ FeedParser.prototype =
                     item.author;
 
       tags = this.childrenByTagNameNS(itemNode, nsURI, "pubDate");
-      if (!tags)
+      if (!tags || !this.getNodeValue(tags[0]))
         tags = this.childrenByTagNameNS(itemNode, FeedUtils.DC_NS, "date");
       item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
@@ -377,9 +377,9 @@ FeedParser.prototype =
       item.author = author || item.author || aFeed.title;
 
       tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "modified");
-      if (!tags)
+      if (!tags || !this.getNodeValue(tags[0]))
         tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_03_NS, "issued");
-      if (!tags)
+      if (!tags || !this.getNodeValue(tags[0]))
         tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_03_NS, "created");
 
       item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
@@ -483,7 +483,7 @@ FeedParser.prototype =
       let source = tags ? tags[0] : null;
 
       tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "author");
-      if (!tags && source)
+      if (!tags)
         tags = this.childrenByTagNameNS(source, FeedUtils.ATOM_IETF_NS, "author");
       if (!tags)
         tags = this.childrenByTagNameNS(channel, FeedUtils.ATOM_IETF_NS, "author");
@@ -506,7 +506,9 @@ FeedParser.prototype =
       item.author = author || item.author || aFeed.title;
 
       tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "updated");
-      if (!tags && source)
+      if (!tags || !this.getNodeValue(tags[0]))
+        tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "published");
+      if (!tags || !this.getNodeValue(tags[0]))
         tags = this.childrenByTagNameNS(source, FeedUtils.ATOM_IETF_NS, "published");
       item.date = this.getNodeValue(tags ? tags[0] : null) || item.date;
 
@@ -621,6 +623,8 @@ FeedParser.prototype =
   // Finds elements that are direct children of the first arg.
   childrenByTagNameNS: function(aElement, aNamespace, aTagName)
   {
+    if (!aElement)
+      return null;
     let matches = aElement.getElementsByTagNameNS(aNamespace, aTagName);
     let matchingChildren = new Array();
     for (let i = 0; i < matches.length; i++)
