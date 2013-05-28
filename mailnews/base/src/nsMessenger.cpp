@@ -305,7 +305,7 @@ NS_IMETHODIMP nsMessenger::SetDisplayCharset(const nsACString& aCharset)
       if (muDV)
       {
         muDV->SetHintCharacterSet(aCharset);
-        muDV->SetHintCharacterSetSource(kCharsetFromMetaTag);
+        muDV->SetHintCharacterSetSource(kCharsetFromChannel);
       }
 
       mCurrentDisplayCharset = aCharset;
