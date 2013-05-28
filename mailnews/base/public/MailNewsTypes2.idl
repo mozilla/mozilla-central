@@ -25,7 +25,7 @@ interface nsMsgPriority {
     const nsMsgPriorityValue normal = 4;
     const nsMsgPriorityValue high = 5;
     const nsMsgPriorityValue highest = 6;
-    // the default for a priority picker
+    //the default priority (if none) is set in the message
     const nsMsgPriorityValue Default = 4;
 };
 

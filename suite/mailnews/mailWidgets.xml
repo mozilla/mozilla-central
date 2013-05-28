@@ -1152,11 +1152,11 @@
       <xul:textbox flex="1" class="search-value-textbox" xbl:inherits="disabled"/>
       <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
         <xul:menupopup class="search-value-popup">
-          <xul:menuitem value="2" stringTag="priorityLowest" class="search-value-menuitem"/>
-          <xul:menuitem value="3" stringTag="priorityLow" class="search-value-menuitem"/>
-          <xul:menuitem value="4" stringTag="priorityNormal" class="search-value-menuitem"/>
-          <xul:menuitem value="5" stringTag="priorityHigh" class="search-value-menuitem"/>
           <xul:menuitem value="6" stringTag="priorityHighest" class="search-value-menuitem"/>
+          <xul:menuitem value="5" stringTag="priorityHigh" class="search-value-menuitem"/>
+          <xul:menuitem value="4" stringTag="priorityNormal" class="search-value-menuitem"/>
+          <xul:menuitem value="3" stringTag="priorityLow" class="search-value-menuitem"/>
+          <xul:menuitem value="2" stringTag="priorityLowest" class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
       <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
