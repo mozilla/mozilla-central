@@ -8,7 +8,6 @@
 #include "calIICSService.h"
 #include "calITimezoneProvider.h"
 #include "nsInterfaceHashtable.h"
-#include "nsProxyRelease.h"
 #include "nsThreadUtils.h"
 #include "calUtils.h"
 
@@ -28,10 +27,9 @@ protected:
                    const nsACString &icsString,
                    calITimezoneProvider *tzProvider,
                    calIIcsComponentParsingListener *listener) :
-        mString(icsString), mProvider(tzProvider),
+        mString(icsString), mProvider(tzProvider), mListener(listener),
         mMainThread(mainThread), mWorkerThread(workerThread)
       {
-        mListener = new nsMainThreadPtrHolder(listener);
       }
 
       NS_DECL_NSIRUNNABLE
@@ -39,7 +37,7 @@ protected:
     protected:
       nsCString mString;
       nsCOMPtr<calITimezoneProvider> mProvider;
-      nsMainThreadPtrHandle<calIIcsComponentParsingListener> mListener;
+      nsCOMPtr<calIIcsComponentParsingListener> mListener;
       nsCOMPtr<nsIThread> mMainThread;
       nsCOMPtr<nsIThread> mWorkerThread;
 
@@ -48,7 +46,7 @@ protected:
         ParserWorkerCompleter(nsIThread *workerThread,
                               nsresult status,
                               calIIcalComponent *component,
-                              const nsMainThreadPtrHandle<calIIcsComponentParsingListener> &listener) :
+                              calIIcsComponentParsingListener *listener) :
           mListener(listener), mComp(component),
           mStatus(status), mWorkerThread(workerThread)
         {
@@ -57,7 +55,7 @@ protected:
         NS_DECL_NSIRUNNABLE
       protected:
         nsCOMPtr<nsIThread> mWorkerThread;
-        nsMainThreadPtrHandle<calIIcsComponentParsingListener> mListener;
+        nsCOMPtr<calIIcsComponentParsingListener> mListener;
         nsCOMPtr<calIIcalComponent> mComp;
         nsresult mStatus;
       };
