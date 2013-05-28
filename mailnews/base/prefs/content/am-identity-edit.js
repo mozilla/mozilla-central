@@ -207,6 +207,7 @@ function saveCopiesAndFolderSettings(identity)
   identity.doFcc = document.getElementById('identity.doFcc').checked;
   identity.fccReplyFollowsParent = document.getElementById('identity.fccReplyFollowsParent').checked;
   identity.showSaveMsgDlg = document.getElementById('identity.showSaveMsgDlg').checked;
+  identity.archiveEnabled = document.getElementById('identity.archiveEnabled').checked;
 }
 
 function saveAddressingAndCompositionSettings(identity)
