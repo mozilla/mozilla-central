@@ -1,0 +1,22 @@
+X-Identity-Key: id1
+X-Account-Key: account2
+Date: Tue, 18 Dec 2012 13:42:01 +0100
+X-Mozilla-Draft-Info: internal/draft; vcard=0; receipt=0; DSN=0; uuencode=0
+User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20121217 Thunderbird/19.0a2
+MIME-Version: 1.0
+Subject: html test
+X-Enigmail-Version: 1.5a1pre
+Content-Type: text/html; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=ISO-8859-2" http-equiv="content-type">
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    <tt>árvíztűrő tükörfúrógép<br>
+      ÁRVÍZTŰRŐ TÜKÖRFÚRÓGÉP<br>
+      <br>
+    </tt>
+  </body>
+</html>
