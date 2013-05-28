@@ -1885,7 +1885,7 @@ ftvItem.prototype = {
         text += " - " + this._folder.server.prettyName;
     }
     // Yeah, we hard-code this, but so did the old code...
-    let unread = this._folder.getNumUnread(false);
+    let unread = this._folder.getNumUnread(!this.open);
     if (unread > 0)
       text += " (" + unread + ")";
     return text;
