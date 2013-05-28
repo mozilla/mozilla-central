@@ -667,7 +667,7 @@ nsNntpService::FindServerWithNewsgroup(nsCString &host, nsCString &groupName)
       return server->GetHostName(host);
     }
   }
-  return rv;
+  return NS_OK;
 }
 
 nsresult nsNntpService::FindHostFromGroup(nsCString &host, nsCString &groupName)
