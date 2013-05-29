@@ -135,18 +135,10 @@ function incomingPageInit() {
       incomingServerTextBox.value = pageData.server.hostname.value;
   }
 
-  var type = parent.getCurrentServerType(pageData);
-  gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
-                            .getService(Components.interfaces.nsIMsgProtocolInfo);
+  gProtocolInfo = pageData.server.protocolInfo;
   var loginNameInput = document.getElementById("username");
 
   if (loginNameInput.value == "") {
-    // retrieve data from previously entered pages
-    var type = parent.getCurrentServerType(pageData);
-
-    gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
-                              .getService(Components.interfaces.nsIMsgProtocolInfo);
-
     if (gProtocolInfo.requiresUsername) {
       // since we require a username, use the uid from the email address
       loginNameInput.value = parent.getUsernameFromEmail(pageData.identity.email.value, gCurrentAccountData &&

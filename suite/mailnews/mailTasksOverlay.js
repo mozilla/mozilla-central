@@ -72,11 +72,10 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
       let currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
       if (currentServer)
       {
-        let protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
-                                     .getService(Components.interfaces.nsIMsgProtocolInfo);
         if (aBiff)
         {
-          if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
+          if (currentServer.protocolInfo.canLoginAtStartUp &&
+              currentServer.loginAtStartUp)
           {
             if (aDefaultServer &&
                 aDefaultServer.equals(currentServer) &&
@@ -101,7 +100,8 @@ function MailTasksGetMessagesForAllServers(aBiff, aMsgWindow, aDefaultServer)
         }
         else
         {
-          if (protocolinfo.canGetMessages && !currentServer.passwordPromptRequired)
+          if (currentServer.protocolInfo.canGetMessages &&
+              !currentServer.passwordPromptRequired)
           {
             if (currentServer.type == "pop3")
             {

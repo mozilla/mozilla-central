@@ -196,11 +196,8 @@ function secureSelect(aLoading)
 {
     var socketType = document.getElementById("server.socketType").value;
     var serverType = document.getElementById("server.type").value;
-    var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
-                                 .getService(Components.interfaces.nsIMsgProtocolInfo);
-
-    var defaultPort = protocolInfo.getDefaultServerPort(false);
-    var defaultPortSecure = protocolInfo.getDefaultServerPort(true);
+    var defaultPort = gServer.protocolInfo.getDefaultServerPort(false);
+    var defaultPortSecure = gServer.protocolInfo.getDefaultServerPort(true);
     var port = document.getElementById("server.port");
     var portDefault = document.getElementById("defaultPort");
     var prevDefaultPort = portDefault.value;

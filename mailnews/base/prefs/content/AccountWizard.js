@@ -446,7 +446,13 @@ function finishAccount(account, accountData)
          srcServer["ServerType-" + srcServer.type] + "\n");
     if (srcServer["ServerType-" + srcServer.type]) {
       // handle server-specific stuff
-      var IID = getInterfaceForType(srcServer.type);
+      var IID;
+      try {
+        IID = srcServer.protocolInfo.serverIID;
+      } catch (ex) {
+        Components.utils.reportError("Could not get IID for " + srcServer.type + ": " + ex);
+      }
+
       if (IID) {
         destProtocolServer = destServer.QueryInterface(IID);
         srcProtocolServer = srcServer["ServerType-" + srcServer.type];
@@ -948,19 +954,6 @@ function SetCurrentAccountData(accountData)
 {
   //    dump("Setting current account data (" + gCurrentAccountData + ") to " + accountData + "\n");
   gCurrentAccountData = accountData;
-}
-
-function getInterfaceForType(type) {
-  try {
-    var protocolInfoContractIDPrefix = "@mozilla.org/messenger/protocol/info;1?type=";
-    var thisContractID = protocolInfoContractIDPrefix + type;
-    var protoInfo = Components.classes[thisContractID].getService(Components.interfaces.nsIMsgProtocolInfo);
-
-    return protoInfo.serverIID;
-  } catch (ex) {
-    dump("could not get IID for " + type + ": " + ex + "\n");
-    return undefined;
-  }
 }
 
 // flush the XUL cache - just for debugging purposes - not called

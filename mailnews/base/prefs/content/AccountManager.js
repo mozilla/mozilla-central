@@ -380,11 +380,7 @@ function checkDirectoryIsAllowed(aLocalPath) {
   // allow that directory.
   if (currentAccount.incomingServer) {
     try {
-      let defaultPath = Components
-        .classes["@mozilla.org/messenger/protocol/info;1?type=" +
-                 currentAccount.incomingServer.type]
-        .getService(Components.interfaces.nsIMsgProtocolInfo)
-        .defaultLocalPath;
+      let defaultPath = currentAccount.incomingServer.protocolInfo.defaultLocalPath;
       if (defaultPath) {
         defaultPath.normalize();
         if (defaultPath.contains(aLocalPath, true))
@@ -704,15 +700,9 @@ function onRemoveAccount(event) {
     return;
 
   let server = currentAccount.incomingServer;
-  let type = server.type;
   let prettyName = server.prettyName;
 
-  let canDelete = false;
-  if (Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
-                .getService(Components.interfaces.nsIMsgProtocolInfo).canDelete)
-    canDelete = true;
-  else
-    canDelete = server.canDelete;
+  let canDelete = server.protocolInfo.canDelete || server.canDelete;
 
   if (!canDelete)
     return;
@@ -925,17 +915,12 @@ function updateItems(tree, account, addAccountItem, setDefaultItem, removeItem) 
     // Otherwise we have either selected a SMTP server, or there is some
     // problem. Either way, we don't want the user to act on it.
     let server = account.incomingServer;
-    let type = server.type;
 
     if (account != MailServices.accounts.defaultAccount &&
         server.canBeDefaultServer && account.identities.length > 0)
       canSetDefault = true;
 
-    if (Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
-                  .getService(Components.interfaces.nsIMsgProtocolInfo).canDelete)
-      canDelete = true;
-    else
-      canDelete = server.canDelete;
+    canDelete = server.protocolInfo.canDelete || server.canDelete;
   }
 
   setEnabled(addAccountItem, true);

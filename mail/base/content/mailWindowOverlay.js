@@ -1368,9 +1368,8 @@ function MsgGetMessagesForAllServers(defaultServer)
     for (var i = 0; i < allServers.length; ++i)
     {
       var currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
-      var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
-                                   .getService(Components.interfaces.nsIMsgProtocolInfo);
-      if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
+      if (currentServer.protocolInfo.canLoginAtStartUp &&
+          currentServer.loginAtStartUp)
       {
         if (defaultServer && defaultServer.equals(currentServer) &&
             !defaultServer.isDeferredTo &&
@@ -2669,9 +2668,8 @@ function GetMessagesForAllAuthenticatedAccounts()
     for (var i = 0; i < allServers.length; ++i)
     {
       var currentServer = allServers.queryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
-      var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type]
-                                   .getService(Components.interfaces.nsIMsgProtocolInfo);
-      if (protocolinfo.canGetMessages && !currentServer.passwordPromptRequired)
+      if (currentServer.protocolInfo.canGetMessages &&
+          !currentServer.passwordPromptRequired)
       {
         if (currentServer.type == "pop3")
         {

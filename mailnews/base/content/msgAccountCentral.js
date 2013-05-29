@@ -13,7 +13,6 @@ function OnInit()
     // Title containts the brand name of the application and the account
     // type (mail/news) and the name of the account
     try {
-        let protocolInfo = null;
         let msgFolder    = null;
         let title;
 
@@ -38,9 +37,6 @@ function OnInit()
             msgFolder = GetSelectedMsgFolder();
             let acctName = msgFolder.prettyName;
             // Display and collapse items presented to the user based on account type
-            protocolInfo = Components
-              .classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType]
-              .getService(Components.interfaces.nsIMsgProtocolInfo);
             title = messengerBundle.getFormattedString("acctCentralTitleFormat",
                                                        [brandName, acctType, acctName]);
         } else {
@@ -50,7 +46,7 @@ function OnInit()
         // Set the title for the document
         document.getElementById("AccountCentralTitle").setAttribute("value", title);
 
-        ArrangeAccountCentralItems(selectedServer, protocolInfo, msgFolder);
+        ArrangeAccountCentralItems(selectedServer, msgFolder);
     }
     catch(ex) {
         Components.utils.reportError("Error getting selected account: " + ex + "\n");
@@ -59,9 +55,15 @@ function OnInit()
 
 // Show items in the AccountCentral page depending on the capabilities
 // of the given account
-function ArrangeAccountCentralItems(server, protocolInfo, msgFolder)
+function ArrangeAccountCentralItems(server, msgFolder)
 {
     let exceptions = [];
+    let protocolInfo = null;
+    try {
+      protocolInfo = server.protocolInfo;
+    } catch (e) {
+      exceptions.push(e);
+    }
 
     // Is this a RSS account?
     let displayRssHeader = server && server.type == 'rss';
