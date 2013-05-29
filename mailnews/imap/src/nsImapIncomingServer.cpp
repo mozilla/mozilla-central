@@ -2835,7 +2835,8 @@ nsImapIncomingServer::GeneratePrettyNameForMigration(nsAString& aPrettyName)
   int32_t defaultServerPort;
   int32_t defaultSecureServerPort;
 
-  nsCOMPtr <nsIMsgProtocolInfo> protocolInfo = do_GetService("@mozilla.org/messenger/protocol/info;1?type=imap", &rv);
+  // Here, the final contract ID is already known, so use it directly for efficiency.
+  nsCOMPtr <nsIMsgProtocolInfo> protocolInfo = do_GetService(NS_IMAPPROTOCOLINFO_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // Get the default port

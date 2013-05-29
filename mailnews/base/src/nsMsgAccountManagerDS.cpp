@@ -964,18 +964,13 @@ nsMsgAccountManagerDataSource::supportsFilters(nsIMsgIncomingServer *aServer)
 bool
 nsMsgAccountManagerDataSource::canGetMessages(nsIMsgIncomingServer *aServer)
 {
-  nsCString type;
-  nsresult rv = aServer->GetType(type);
+  nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
+  nsresult rv = aServer->GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, false);
 
-  nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
-  contractid.Append(type);
-
-  nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);
+  bool canGetMessages;
+  rv = protocolInfo->GetCanGetMessages(&canGetMessages);
   NS_ENSURE_SUCCESS(rv, false);
-
-  bool canGetMessages = false;
-  protocolInfo->GetCanGetMessages(&canGetMessages);
 
   return canGetMessages;
 }
@@ -983,18 +978,13 @@ nsMsgAccountManagerDataSource::canGetMessages(nsIMsgIncomingServer *aServer)
 bool
 nsMsgAccountManagerDataSource::canGetIncomingMessages(nsIMsgIncomingServer *aServer)
 {
-  nsCString type;
-  nsresult rv = aServer->GetType(type);
+  nsCOMPtr<nsIMsgProtocolInfo> protocolInfo;
+  nsresult rv = aServer->GetProtocolInfo(getter_AddRefs(protocolInfo));
   NS_ENSURE_SUCCESS(rv, false);
 
-  nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
-  contractid.Append(type);
-
-  nsCOMPtr<nsIMsgProtocolInfo> protocolInfo = do_GetService(contractid.get(), &rv);
+  bool canGetIncomingMessages;
+  rv = protocolInfo->GetCanGetIncomingMessages(&canGetIncomingMessages);
   NS_ENSURE_SUCCESS(rv, false);
-
-  bool canGetIncomingMessages = false;
-  protocolInfo->GetCanGetIncomingMessages(&canGetIncomingMessages);
 
   return canGetIncomingMessages;
 }

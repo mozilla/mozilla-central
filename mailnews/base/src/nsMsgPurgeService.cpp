@@ -229,13 +229,6 @@ nsresult nsMsgPurgeService::PerformPurge()
         nsresult rv = server->GetType(type);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        nsAutoCString contractid(NS_MSGPROTOCOLINFO_CONTRACTID_PREFIX);
-        contractid.Append(type);
-
-        nsCOMPtr<nsIMsgProtocolInfo> protocolInfo =
-          do_GetService(contractid.get(), &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-
         nsCString realHostName;
         server->GetRealHostName(realHostName);
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] %s (%s)", serverIndex, realHostName.get(), type.get()));
