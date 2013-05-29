@@ -251,6 +251,11 @@ imIncomingServer.prototype = {
 
   get sortOrder() 300000000,
 
+  get protocolInfo() {
+    return Components.classes["@mozilla.org/messenger/protocol/info;1?type=im"]
+                     .getService(Components.interfaces.nsIMsgProtocolInfo);
+  },
+
   classDescription: "IM Msg Incoming Server implementation",
   classID: Components.ID("{9dd7f36b-5960-4f0a-8789-f5f516bd083d}"),
   contractID: "@mozilla.org/messenger/server;1?type=im",
