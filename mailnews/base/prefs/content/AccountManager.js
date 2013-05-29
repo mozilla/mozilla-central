@@ -487,6 +487,8 @@ function checkUserServerChanges(showAlert) {
   if (!pageElements)
     return true;
 
+  let currentServer = currentAccount ? currentAccount.incomingServer : null;
+
   // Get the new username, hostname and type from the page
   var newUser, newHost, newType, oldUser, oldHost;
   var uIndx, hIndx;
@@ -517,8 +519,8 @@ function checkUserServerChanges(showAlert) {
   }
 
   var checkUser = true;
-  // There is no username defined for news so reset it.
-  if (newType == "nntp") {
+  // There is no username needed for e.g. news so reset it.
+  if (currentServer && !currentServer.protocolInfo.requiresUsername) {
     oldUser = newUser = "";
     checkUser = false;
   }
@@ -536,7 +538,7 @@ function checkUserServerChanges(showAlert) {
     else {
       let sameServer = MailServices.accounts
                                    .findRealServer(newUser, newHost, newType, 0);
-      if (sameServer && (sameServer != currentAccount.incomingServer)) {
+      if (sameServer && (sameServer != currentServer)) {
         alertText = prefBundle.getString("modifiedAccountExists");
       } else {
         // New hostname passed all checks. We may have cleaned it up so set
@@ -562,8 +564,8 @@ function checkUserServerChanges(showAlert) {
     // to edit rules.
     if (showAlert) {
       let filterList;
-      if (currentAccount && checkUser) {
-        filterList = currentAccount.incomingServer.getEditableFilterList(null);
+      if (currentServer && checkUser) {
+        filterList = currentServer.getEditableFilterList(null);
       }
       let changeText = "";
       if ((oldHost != newHost) &&
