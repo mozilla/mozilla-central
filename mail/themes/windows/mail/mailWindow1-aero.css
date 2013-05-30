@@ -221,12 +221,6 @@ treechildren::-moz-tree-image(junkStatusCol) {
   -moz-appearance: none;
 }
 
-#viewPickerPopup > menu > .menu-text {
-  -moz-appearance: none;
-  -moz-margin-start: 0 !important;
-  -moz-padding-start: 0 !important;
-}
-
 #folderLocationPopup menu,
 #folderLocationPopup menuitem {
   -moz-padding-start: 2px;
@@ -235,11 +229,6 @@ treechildren::-moz-tree-image(junkStatusCol) {
 #folderLocationPopup menuitem:first-child {
   padding-top: 3px;
   padding-bottom: 4px;
-}
-
-#viewPickerPopup .menu-iconic-text {
-  padding-top: 1px;
-  padding-bottom: 1px;
 }
 
 #threadTree treechildren::-moz-tree-row(odd) {

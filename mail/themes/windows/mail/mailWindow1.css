@@ -578,3 +578,27 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 #messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
   margin-top: -12px;
 }
+
+#viewPicker > .menulist-label-box > .menulist-icon,
+#locationFolders > .menulist-label-box > .menulist-icon {
+  min-height: 16px;
+}
+
+#viewPickerPopup > menuitem[type="radio"] {
+  -moz-appearance: none;
+}
+
+#viewPickerPopup > menu > .menu-text {
+  -moz-appearance: none;
+  -moz-margin-start: 0 !important;
+  -moz-padding-start: 0 !important;
+}
+
+#viewPickerTagsPopup > menuitem > .menu-iconic-text,
+#viewPickerCustomViewsPopup > menuitem > .menu-iconic-text {
+  padding: 1px 3px;
+}
+
+#locationFolders > .menulist-label-box > .menulist-label {
+  -moz-margin-start: 2px !important;
+}
