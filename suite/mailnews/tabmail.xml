@@ -1535,7 +1535,7 @@
                 var target = event.originalTarget;
                 if (target.className == "tab-close-button")
                   target._ignoredClick = true;
-                if (!clickedOnce) {
+                if (!clickedOnce)
                 {
                   clickedOnce = true;
                   return;
