@@ -141,6 +141,10 @@ treecols:-moz-lwtheme {
   list-style-image: url("chrome://communicator/skin/icons/geo.png");
 }
 
+.messageImage[value="webNotifications"] {
+  list-style-image: url("chrome://communicator/skin/icons/notification-16.png");
+}
+
 .messageImage[value="indexedDB-permissions-prompt"],
 .messageImage[value="indexedDB-quota-prompt"] {
   list-style-image: url("chrome://global/skin/icons/question-16.png");

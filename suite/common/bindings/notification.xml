@@ -1437,6 +1437,62 @@
         </body>
       </method>
 
+      <method name="showWebNotificationPrompt">
+        <parameter name="site"/>
+        <parameter name="allowCallback"/>
+        <parameter name="cancelCallback"/>
+        <body>
+          <![CDATA[
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var type = "webNotifications";
+            if (this.getNotificationWithValue(type))
+              return;
+
+            var buttons = [{
+              label: this._stringBundle.GetStringFromName(type + ".showForSession"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".showForSession.accesskey"),
+              popup: null,
+              callback: function (aNotificationBox, aButton) {
+                var expireType = aNotificationBox.checkbox.checked ?
+                                 nsIPermissionManager.EXPIRE_NEVER :
+                                 nsIPermissionManager.EXPIRE_SESSION;
+                allowCallback(true, expireType);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName(type + ".dontShowForSession"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".dontShowForSession.accesskey"),
+              popup: null,
+              callback: function (aNotificationBox, aButton) {
+                var expireType = aNotificationBox.checkbox.checked ?
+                                 nsIPermissionManager.EXPIRE_NEVER :
+                                 nsIPermissionManager.EXPIRE_SESSION;
+                cancelCallback(true, expireType);
+              }
+            }];
+            var message = this._stringBundle
+                              .formatStringFromName(type + ".showFromSite",
+                                                    [site], 1);
+
+            var box = this.appendNotification(message, type, null,
+                                              this.PRIORITY_INFO_HIGH, buttons);
+            // Force a style flush, so that we ensure the binding is attached.
+            box.clientTop;
+
+            // Create a dummy checkbox so private requests don't try to remember.
+            box.checkbox = { checked: false };
+
+            // Don't offer action in Private Browsing mode if the action
+            // remembers permission for more than a session.
+            if (!this.usePrivateBrowsing) {
+              box.checkbox = document.createElement("checkbox");
+              box.checkbox.className = "rememberChoice";
+              box.checkbox.setAttribute("label", this._stringBundle.GetStringFromName(type + ".remember"));
+              box.appendChild(box.checkbox);
+            }
+          ]]>
+        </body>
+      </method>
+
       <method name="promptIndexedDB">
         <parameter name="aRequestor"/>
         <parameter name="aWindow"/>
@@ -2513,6 +2569,59 @@
                                     "geolocation", message,
                                     "geo-notification-icon", mainAction,
                                     secondaryActions, options);
+          ]]>
+        </body>
+      </method>
+
+      <method name="showWebNotificationPrompt">
+        <parameter name="site"/>
+        <parameter name="allowCallback"/>
+        <parameter name="cancelCallback"/>
+        <body>
+          <![CDATA[
+            const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
+            var type = "webNotifications";
+            var mainAction = {
+              label: this._stringBundle.GetStringFromName(type + ".showForSession"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".showForSession.accesskey"),
+              callback: function(aNotification) {
+                allowCallback(true, nsIPermissionManager.EXPIRE_SESSION);
+              }
+            };
+
+            var secondaryActions = [{
+              label: this._stringBundle.GetStringFromName(type + ".dontShowForSession"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".dontShowForSession.accesskey"),
+              callback: function (aNotification) {
+                cancelCallback(true, nsIPermissionManager.EXPIRE_SESSION);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName(type + ".alwaysShow"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".alwaysShow.accesskey"),
+              callback: function (aNotification) {
+                allowCallback(true, nsIPermissionManager.EXPIRE_NEVER);
+              }
+            }, {
+              label: this._stringBundle.GetStringFromName(type + ".neverShow"),
+              accessKey: this._stringBundle.GetStringFromName(type + ".neverShow.accesskey"),
+              callback: function (aNotification) {
+                cancelCallback(true, nsIPermissionManager.EXPIRE_NEVER);
+              }
+            }];
+
+            // Don't offer action in Private Browsing mode if the action
+            // remembers permission for more than a session.
+            if (this.usePrivateBrowsing)
+              secondaryActions.length = 1;
+
+            var message = this._stringBundle
+                              .formatStringFromName(type + ".showFromSite",
+                                                    [site], 1);
+
+            PopupNotifications.show(this.activeBrowser,
+                                    "web-notifications", message,
+                                    "web-notifications-notification-icon",
+                                    mainAction, secondaryActions);
           ]]>
         </body>
       </method>

@@ -279,6 +279,7 @@
             <image id="indexedDB-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="password-notification-icon" class="notification-anchor-icon" role="button"/>
             <image id="plugins-notification-icon" class="notification-anchor-icon" role="button"/>
+            <image id="web-notifications-notification-icon" class="notification-anchor-icon" role="button"/>
           </box>
           <deck id="page-proxy-deck"
                 class="urlbar-icons"

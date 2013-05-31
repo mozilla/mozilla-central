@@ -27,6 +27,10 @@ var gPermObj = {
       return SESSION;
     return ALLOW;
   },
+  "desktop-notification": function getNotificationDefaultPermission()
+  {
+    return BLOCK;
+  },
   popup: function getPopupDefaultPermission()
   {
     if (Services.prefs.getBoolPref("dom.disable_open_during_load"))
@@ -134,7 +138,7 @@ function onRadioClick(aPartId)
 {
   var radioGroup = document.getElementById(aPartId + "RadioGroup");
   var id = radioGroup.selectedItem.id;
-  var permission = id.split('-')[1];
+  var permission = id.replace(/.*-/, "");
   Services.perms.add(gPermURI, aPartId, permission);
 }
 

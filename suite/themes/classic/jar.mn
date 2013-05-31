@@ -142,6 +142,8 @@ classic.jar:
   skin/classic/communicator/icons/application.png                       (communicator/icons/application.png)
   skin/classic/communicator/icons/feedIcon.png                          (communicator/icons/feedIcon.png)
   skin/classic/communicator/icons/feedIcon16.png                        (communicator/icons/feedIcon16.png)
+  skin/classic/communicator/icons/notification-16.png                   (communicator/icons/notification-16.png)
+  skin/classic/communicator/icons/notification-64.png                   (communicator/icons/notification-64.png)
   skin/classic/communicator/icons/geo.png                               (communicator/icons/geo.png)
   skin/classic/communicator/icons/plugin.png                            (communicator/icons/plugin.png)
   skin/classic/communicator/icons/save.png                              (communicator/icons/save.png)

@@ -1081,7 +1081,12 @@ ContentPermissionPrompt.prototype = {
 
   prompt: function(aRequest)
   {
-    if (aRequest.type != "geolocation")
+    const kFeatureKeys = { "geolocation" : "geo",
+                           "desktop-notification" : "desktop-notification",
+                         };
+
+    // Make sure that we support the request.
+    if (!(aRequest.type in kFeatureKeys))
       return;
 
     var path, host;
@@ -1096,7 +1101,8 @@ ContentPermissionPrompt.prototype = {
     else
       return;
 
-    switch (Services.perms.testExactPermissionFromPrincipal(requestingPrincipal, "geo")) {
+    var perm = kFeatureKeys[aRequest.type];
+    switch (Services.perms.testExactPermissionFromPrincipal(requestingPrincipal, perm)) {
       case Services.perms.ALLOW_ACTION:
         aRequest.allow();
         return;
@@ -1105,26 +1111,38 @@ ContentPermissionPrompt.prototype = {
         return;
     }
 
-    function allowCallback(remember) {
+    function allowCallback(remember, expireType) {
       if (remember)
-        Services.perms.addFromPrincipal(requestingPrincipal, "geo", Services.perms.ALLOW_ACTION);
+        Services.perms.addFromPrincipal(requestingPrincipal, perm,
+                                        Services.perms.ALLOW_ACTION,
+                                        expireType);
       aRequest.allow();
     }
 
-    function cancelCallback(remember) {
+    function cancelCallback(remember, expireType) {
       if (remember)
-        Services.perms.addFromPrincipal(requestingPrincipal, "geo", Services.perms.DENY_ACTION);
+        Services.perms.addFromPrincipal(requestingPrincipal, perm,
+                                        Services.perms.DENY_ACTION,
+                                        expireType);
       aRequest.cancel();
     }
 
-    aRequest.window
-            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-            .getInterface(Components.interfaces.nsIWebNavigation)
-            .QueryInterface(Components.interfaces.nsIDocShell)
-            .chromeEventHandler.parentNode.wrappedJSObject
-            .showGeolocationPrompt(path, host,
-                                   allowCallback,
-                                   cancelCallback);
+    var nb = aRequest.window
+                     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                     .getInterface(Components.interfaces.nsIWebNavigation)
+                     .QueryInterface(Components.interfaces.nsIDocShell)
+                     .chromeEventHandler.parentNode;
+
+    // Show the prompt.
+    switch (aRequest.type) {
+      case "geolocation":
+        nb.showGeolocationPrompt(path, host, allowCallback, cancelCallback);
+        break;
+      case "desktop-notification":
+        if (host)
+          nb.showWebNotificationPrompt(host, allowCallback, cancelCallback);
+        break;
+    }
   },
 };
 

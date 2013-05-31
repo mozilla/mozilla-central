@@ -491,6 +491,10 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-64.png");
 }
 
+.popup-notification-icon[popupid="web-notifications"] {
+  list-style-image: url("chrome://communicator/skin/icons/notification-64.png");
+}
+
 .popup-notification-icon[popupid="addon-install-disabled"],
 .popup-notification-icon[popupid="addon-install-blocked"],
 .popup-notification-icon[popupid="addon-install-started"],
@@ -544,6 +548,12 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://communicator/skin/icons/geolocation-16.png");
   width: 16px;
   height: 16px;
+}
+
+#web-notifications-notification-icon {
+  width: 16px;
+  height: 16px;
+  list-style-image: url("chrome://communicator/skin/icons/notification-16.png");
 }
 
 #addons-notification-icon {

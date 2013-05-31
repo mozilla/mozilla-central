@@ -34,6 +34,11 @@
 #alertImage {
   max-width: 48px;
   max-height: 48px;
+  list-style-image: url("chrome://global/skin/alerts/notification-48.png");
+}
+
+#alertNotification {
+  border: ridge #5486DA 4px;
 }
 
 #alertNotification[clickable="true"] {
@@ -66,4 +71,11 @@ label {
   to {
     opacity: 0;
   }
+}
+
+.alertCloseButton {
+  list-style-image: url("chrome://global/skin/icons/closebox.gif");
+  -moz-appearance: none;
+  padding: 2px 0px 0px;
+  border: none;
 }
