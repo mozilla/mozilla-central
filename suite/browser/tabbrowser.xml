@@ -716,7 +716,11 @@
                                                              faviconFlags);
             }
 
-            this.updateIcon(aTab);
+            if (!aTab.hasAttribute("busy") && browser.mIconURL)
+              aTab.setAttribute("image", browser.mIconURL);
+            else
+              aTab.removeAttribute("image");
+            this._tabAttrModified(aTab);
 
             this._callProgressListeners(browser, "onLinkIconAvailable",
                                         [browser.mIconURL]);
@@ -730,20 +734,6 @@
           <![CDATA[
             let browser = aTab ? aTab.linkedBrowser : this.selectedBrowser;
             return browser.mIconURL;
-          ]]>
-        </body>
-      </method>
-
-      <method name="updateIcon">
-        <parameter name="aTab"/>
-        <body>
-          <![CDATA[
-            var browser = this.getBrowserForTab(aTab);
-            if (!aTab.hasAttribute("busy") && browser.mIconURL)
-              aTab.setAttribute("image", browser.mIconURL);
-            else
-              aTab.removeAttribute("image");
-            this._tabAttrModified(aTab);
           ]]>
         </body>
       </method>
