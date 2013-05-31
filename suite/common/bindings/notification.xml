@@ -80,6 +80,13 @@
         </getter>
       </property>
 
+      <field name="usePrivateBrowsing" readonly="true">
+        window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+              .getInterface(Components.interfaces.nsIWebNavigation)
+              .QueryInterface(Components.interfaces.nsILoadContext)
+              .usePrivateBrowsing
+      </field>
+
       <method name="onDocumentChange">
         <body>
           <![CDATA[
@@ -1411,7 +1418,10 @@
 
             // Create a dummy checkbox so file requests don't try to remember.
             box.checkbox = { checked: false };
-            if (site) {
+
+            // Don't offer action in Private Browsing mode if the action
+            // remembers permission for more than a session.
+            if (site && !this.usePrivateBrowsing) {
               box.checkbox = document.createElement("checkbox");
               box.checkbox.className = "rememberChoice";
               box.checkbox.setAttribute("label", this._stringBundle.GetStringFromName(type + ".remember"));
@@ -2478,6 +2488,11 @@
               }
             }];
 
+            // Don't offer action in Private Browsing mode if the action
+            // remembers permission for more than a session.
+            if (file || this.usePrivateBrowsing)
+              secondaryActions.length = 1;
+
             var message;
             if (site) {
               message = this._stringBundle
@@ -2487,7 +2502,6 @@
               message = this._stringBundle
                             .formatStringFromName(type + ".fileWantsToKnow",
                                                   [file], 1);
-              secondaryActions.length = 1;
             }
 
             var options = {
