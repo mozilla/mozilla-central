@@ -793,6 +793,8 @@ pref("security.warn_mixed_active_content", true);
 pref("security.warn_mixed_display_content", false);
 // Block insecure active content on https pages
 pref("security.mixed_content.block_active_content", true);
+// Turn on the CSP 1.0 parser for Content Security Policy headers
+pref("security.csp.speccompliant", true);
 
 // FAQ URLs
 pref("browser.geolocation.warning.infoURL", "http://www.seamonkey-project.org/doc/2.0/geolocation");
