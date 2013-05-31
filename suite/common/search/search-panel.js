@@ -3,17 +3,22 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://gre/modules/FormHistory.jsm");
 
 const kXULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const SEARCH_ENGINE_TOPIC = "browser-search-engine-modified";
-var menulist, textbox;
+var isPB, menulist, textbox;
 
 function Startup() {
   menulist = document.getElementById("sidebar-search-engines");
   textbox = document.getElementById("sidebar-search-text");
+  isPB = top.gPrivate;
+  if (isPB)
+    textbox.searchParam += "|private";
 
   LoadEngineList();
-  Services.obs.addObserver(engineObserver, SEARCH_ENGINE_TOPIC, false);
+  Services.obs.addObserver(engineObserver, SEARCH_ENGINE_TOPIC, true);
 }
 
 function LoadEngineList() {
@@ -33,10 +38,6 @@ function LoadEngineList() {
   menulist.value = Services.search.currentEngine.name;
 }
 
-function Shutdown() {
-  Services.obs.removeObserver(engineObserver, SEARCH_ENGINE_TOPIC, false);
-}
-
 function SelectEngine() {
   if (menulist.selectedItem)
     Services.search.currentEngine = menulist.selectedItem.engine;
@@ -45,13 +46,30 @@ function SelectEngine() {
 function doSearch() {
   var textValue = textbox.value;
 
-  var where = Services.prefs.getBoolPref("browser.search.openintab") ? "tab" : "current";
+  // Save the current value in the form history (shared with the search bar)
+  // except when in Private Browsing mode.
 
+  if (textValue && !isPB) {
+    FormHistory.update({
+      op: "bump",
+      fieldname: "searchbar-history",
+      value: textValue
+    }, {
+      handleError: function(aError) {
+        Components.utils.reportError("Saving search to form history failed: " + aError.message);
+      }
+    });
+  }
+
+  var where = Services.prefs.getBoolPref("browser.search.openintab") ? "tab" : "current";
   var submission = Services.search.currentEngine.getSubmission(textValue);
   openUILinkIn(submission.uri.spec, where, null, submission.postData);
 }
 
 var engineObserver = {
+  QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver,
+                                         Components.interfaces.nsISupportsWeakReference]),
+
   observe: function(aEngine, aTopic, aVerb) {
     if (aTopic == SEARCH_ENGINE_TOPIC) {
       if (aVerb == "engine-current")

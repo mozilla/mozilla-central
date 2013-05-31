@@ -10,7 +10,6 @@
 <page id="searchPanel"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       onload="Startup();"
-      onunload="Shutdown();"
       elementtofocus="sidebar-search-text">
 
   <script type="application/javascript" src="chrome://communicator/content/search/search-panel.js"/>
@@ -20,9 +19,16 @@
               oncommand="SelectEngine(this);"/>
 
     <hbox align="center">
-      <textbox id="sidebar-search-text" flex="1"
-               onkeypress="if (event.keyCode == event.DOM_VK_RETURN) doSearch();"
-               placeholder="&search.placeholder;"/>
+      <textbox id="sidebar-search-text" flex="1" class="padded"
+               ontextentered="doSearch();"
+               placeholder="&search.placeholder;"
+               type="autocomplete"
+               autocompletesearch="search-autocomplete"
+               autocompletesearchparam="searchbar-history"
+               timeout="250"
+               maxrows="10"
+               completeselectedindex="true"
+               tabscrolling="true"/>
       <button id="searchButton" label="&search.button.label;"
               oncommand="doSearch();"/>
     </hbox>

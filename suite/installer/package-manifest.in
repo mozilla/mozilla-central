@@ -396,6 +396,7 @@
 #endif
 @BINPATH@/components/nsFormAutoComplete.js
 @BINPATH@/components/nsFormHistory.js
+@BINPATH@/components/FormHistoryStartup.js
 @BINPATH@/components/nsHandlerService.js
 @BINPATH@/components/nsHandlerService.manifest
 @BINPATH@/components/nsHelperAppDlg.js
