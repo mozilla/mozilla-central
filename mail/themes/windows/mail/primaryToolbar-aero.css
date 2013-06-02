@@ -385,24 +385,21 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
 @media (-moz-windows-glass) {
   #tabs-toolbar:not(:-moz-lwtheme) {
-    margin-left: 1px;
-    margin-right: 1px;
-    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 0),
-                      -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14),
-                      -moz-image-rect(url(icons/tabbar-background.png), 0, 29, 30, 14) !important;
-    background-position: left 0,
-                         15px 0,
-                         right 0 !important;
-    background-size: 15px 100%,
-                     calc(100% - 30px) 100%,
-                     15px 100% !important;
-    background-repeat: no-repeat !important;
+    position: relative;
   }
 
-  #messengerWindow[sizemode="maximized"] #tabs-toolbar:not(:-moz-lwtheme) {
-    background-image: -moz-image-rect(url(icons/tabbar-background.png), 0, 15, 30, 14) !important;
-    background-position: left 0 !important;
-    background-size: 100% 100% !important;
+  #tabs-toolbar:not(:-moz-lwtheme)::before {
+    box-shadow: 0 0 30px 30px rgb(174, 189, 204);
+    content: "";
+    display: -moz-box;
+    height: 0;
+    margin: 0 60px; /* (30px + 30px) from box-shadow */
+    opacity: 0.85;
+    position: absolute;
+    pointer-events: none;
+    top: 50%;
+    width: -moz-available;
+    z-index: -1;
   }
 }
 

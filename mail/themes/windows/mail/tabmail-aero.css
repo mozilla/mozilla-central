@@ -88,12 +88,9 @@
   }
 }
 
-/* Apply only on Win8 */
 @media (-moz-windows-compositor) {
-  @media not all and (-moz-windows-glass) {
-    .tabmail-tab {
-      text-shadow: none;
-    }
+  .tabmail-tab:not(:-moz-lwtheme) {
+    text-shadow: none;
   }
 }
 
