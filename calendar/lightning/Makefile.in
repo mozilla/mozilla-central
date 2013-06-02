@@ -87,10 +87,8 @@ include $(topsrcdir)/config/config.mk
 # (see bug 406441 and bug 440017), so we need to provide a hook for the
 # tinderboxen to disable that.
 ifndef DISABLE_LIGHTNING_INSTALL
-ifndef MOZ_SUNBIRD
 # install Lightning as a global extension in dist/bin/extensions/
 INSTALL_EXTENSION_ID = $(XPI_EM_ID)
-endif
 endif
 
 ifneq (,$(filter gtk2 qt,$(MOZ_WIDGET_TOOLKIT)))

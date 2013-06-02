@@ -105,8 +105,7 @@ MOZ_ARG_ENABLE_STRING(application,
 [  --enable-application=APP
                           Options include:
                             suite (SeaMonkey)
-                            mail (Thunderbird)
-                            calendar (Sunbird)],
+                            mail (Thunderbird)],
 [ MOZ_BUILD_APP=$enableval ] )
 
 AC_MSG_CHECKING([for application to build])
