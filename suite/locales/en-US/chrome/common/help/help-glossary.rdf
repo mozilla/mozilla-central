@@ -92,6 +92,7 @@
         <rdf:li> <rdf:Description nc:name="PKI" nc:link="glossary.xhtml#pki"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="plugin" nc:link="glossary.xhtml#plugin"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="POP" nc:link="glossary.xhtml#pop"/> </rdf:li>
+        <rdf:li> <rdf:Description nc:name="private browsing" nc:link="glossary.xhtml#private_browsing"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="private key" nc:link="glossary.xhtml#private_key"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="proxy" nc:link="glossary.xhtml#proxy"/> </rdf:li>
         <rdf:li> <rdf:Description nc:name="public key" nc:link="glossary.xhtml#public_key"/> </rdf:li>

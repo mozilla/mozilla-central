@@ -42,7 +42,6 @@
       </vbox>
       <button label="&privatebrowsingpage.learnmore.label;"
               accesskey="&privatebrowsingpage.learnmore.accesskey;"
-              disabled="true"
               oncommand="openHelp('private-browsing', 'chrome://communicator/locale/help/suitehelp.rdf');"/>
       <vbox id="private" align="start">
         <description>&privatebrowsingpage.private;</description>

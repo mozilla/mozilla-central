@@ -618,6 +618,9 @@
   website to track a user directly across visits (e.g., for statistical
   purposes or for targeted advertisements).</p>
 
+<p>In <a href="#browsing_in_a_private_window">private browsing mode</a>, no
+  private data will be retained beyond the duration of the private session.</p>
+
 <p>The following private information may be stored locally by
   &brandShortName;:</p>
 
@@ -793,8 +796,173 @@
     without the dialog box being shown.</li>
 </ul>
 
-
 <p>[<a href="#clearing_private_data">Return to beginning of section</a>]</p>
+
+<h1 id="browsing_in_a_private_window">Browsing in a Private Window</h1>
+
+<p>There may be occasions where you don&apos;t want &brandShortName; to keep
+  track of your browsing activities. For example, when someone else quickly
+  wants to use your computer and you don&apos;t want your current browsing
+  context disturbed; or, for confidential tasks such as online banking.</p>
+
+<p>Opening a private window starts a
+  <a href="glossary.xhtml#private_browsing">private browsing</a> session
+  in which no <a href="#types_of_private_data">private data</a> on the sites
+  and pages you visit are made available beyond the scope and duration of that
+  session. Each subsequently opened private window becomes part of the same
+  private session. It ends when the last private window is closed.</p>
+
+<p>Private windows are not entirely isolated from non-private windows; private
+  browsing just implies that &brandShortName; will not keep any local record
+  of your activities in such a window. Some private data may be shared between
+  private but not non-private windows and vice versa, others accessed in a
+  read-only mode from a private window.</p>
+
+<p>Note that <a href="customize_help.xhtml#add-ons">Add-ons</a> like plugins
+  and extensions may not be subjected to these policies and may change their
+  settings or modify their locally kept data even in a private window.</p>
+
+<div class="contentsBox">In this section:
+  <ul>
+    <li><a href="#opening_a_private_window">Opening a Private Window</a></li>
+    <li><a href="#behavior_of_a_private_window">Behavior of a Private
+      Window</a></li>
+    <li><a href="#leaving_the_private_browsing_mode">Leaving the Private
+      Browsing Mode</a></li>
+  </ul>
+</div>
+
+<h2 id="opening_a_private_window">Opening a Private Window</h2>
+
+<p>A browser window can be either in regular (non-private) or in private
+  browsing mode. It is not possible to switch a non-private browser window
+  into private mode, but you can open a new private window in two ways:</p>
+
+<ul>
+  <li>From a browser window, open the File menu, choose New, then Private
+    Window. The new window opens with a page explaining that you are now in
+    private browsing mode.</li>
+  <li>Right-click on a link in a web page you are viewing, then select <q>Open
+    Link in Private Window</q> from the menu. The new private window will open,
+    showing the page referred to by the selected link.</li>
+</ul>
+
+<p>Any number of private and non-private windows can be open at the same time,
+  but be aware in this case for which windows history information is kept.</p>
+
+<p>[<a href="#browsing_in_a_private_window">Return to beginning of
+  section</a>]</p>
+
+<h2 id="behavior_of_a_private_window">Behavior of a Private Window</h2>
+
+<p>A private window behaves differently than a non-private window in the way
+  it handles private data (see <a href="#types_of_private_data">Types of
+  Private Data</a> for detailed information of the individual categories).
+  Specifically, after closing a private session when closing the last private
+  window, no information related to that session will be retained in
+  &brandShortName;. Private data gathered in one private session won&apos;t
+  be available to any future private session either.</p>
+
+<h3>Recognizing a Private Window</h3>
+
+<p>To determine whether or not a window is in private browsing mode, have a
+  look at its title bar. Private windows show
+  <q>-&nbsp;<span class="noMac">&brandShortName; </span>Private Browsing</q>
+  <span class="noMac">rather than just <q>-&nbsp;&brandShortName;</q></span>
+  at the end of the window&apos;s title.</p>
+
+<h3>Navigation and Bookmarks</h3>
+
+<ul>
+  <li>Navigating within a private window is identical to a non-private
+    window. You can use the Back and Forward buttons as well as the Go
+    menu as usual.</li>
+  <li>Links will not be marked as visited when browsing in a private
+    window.</li>
+  <li>Bookmarks can be added in a private window in the same way as for a
+    non-private window. They will not be cleared once the private session
+    has ended.</li>
+</ul>
+
+<h3>Browsing and other Histories</h3>
+
+<ul>
+  <li>Previously established Browsing History and Location Bar History will
+    be available to a private window, but new sites visited and locations
+    entered into the location bar will not be recorded and saved.</li>
+  <li>Files can be downloaded as usual, but no entries will be added to the
+    Download Manager. The downloaded files themselves will not be removed.</li>
+  <li>Saved Form and Search History will be available to a private window,
+    thus providing suggestions for from fields or searches. However, any
+    new items or search terms entered will not be recorded and saved.</li>
+</ul>
+
+<h3>Cookies</h3>
+
+<ul>
+  <li>A private window can collect cookies from the sites it visits, but a
+    private window does not share cookies with a non-private window and vice
+    versa. For example, if you log into a website in a regular window, then
+    open a private window to continue, you likely will be asked to enter your
+    credentials again.</li>
+  <li>Cookies in a private session are accepted according to the settings,
+    but only retained for the duration of that session regardless of the
+    lifetime allowed in a non-private window.</li>
+  <li>Existing exceptions to the cookie policy will be honored in private
+    windows, and any new exceptions you create will be retained after the
+    private session has ended.</li>
+</ul>
+
+<h3>Cached and Offline Content</h3>
+
+<ul>
+  <li>While a private window can use the memory cache for performance, it is
+    not permitted to access the disk cache regardless of the settings for a
+    non-private window. Thus, no cached content will be available after
+    restarting &brandShortName;.</li>
+  <li>A private window cannot use any stored offline content deposited by
+    websites. Thus, you will not be able to use web applications while being
+    offline, even if they have already stored offline content locally.</li>
+</ul>
+
+<h3>Passwords and Authenticated Sessions</h3>
+
+<ul>
+  <li>No new passwords will be stored in the Password Manager when entered
+    in a private window.</li>
+  <li>Authenticated sessions do not carry over from a non-private to a private
+    window. Thus, you cannot continue a session started in a non-private window
+    in a private window or vice versa.</li>
+</ul>
+
+<h3>Preferences and Permissions</h3>
+
+<ul>
+  <li>Any changes to settings and permissions made from a private window are
+    handled in the same way as from a non-private window and retained after
+    the private session has ended.</li>
+  <li>Per-site preferences such as zoom levels or download locations are
+    observed in a private window. However, any changes you make will not be
+    retained, e.g., zoom levels revert to the initial value when navigating
+    or switching tabs.</li>
+</ul>
+
+<p>[<a href="#browsing_in_a_private_window">Return to beginning of
+  section</a>]</p>
+
+<h2 id="leaving_the_private_browsing_mode">Leaving the Private Browsing
+  Mode</h2>
+
+<p>There is no special function or command to leave the private mode,
+  and it is not possible to continue working in non-private mode with
+  a private window.</p>
+
+<p>To end a private browsing session, just close all private windows.
+  There will be no record on &brandShortName;&apos;s side on any browsing
+  activities performed in any of the associated private windows.</p>
+
+<p>[<a href="#browsing_in_a_private_window">Return to beginning of
+  section</a>]</p>
 
 <h1 id="encrypting_stored_sensitive_information">Encrypting Stored Sensitive
   Information</h1>
