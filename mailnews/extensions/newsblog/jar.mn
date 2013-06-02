@@ -9,7 +9,7 @@ newsblog.jar:
    content/messenger-newsblog/FeedItem.js                       (content/FeedItem.js)
    content/messenger-newsblog/feed-parser.js                    (content/feed-parser.js)
    content/messenger-newsblog/utils.js                          (content/utils.js)
-   content/messenger-newsblog/feed-subscriptions.js             (content/feed-subscriptions.js)
+*  content/messenger-newsblog/feed-subscriptions.js             (content/feed-subscriptions.js)
    content/messenger-newsblog/feed-subscriptions.xul            (content/feed-subscriptions.xul)
    content/messenger-newsblog/am-newsblog.xul                   (content/am-newsblog.xul)
    content/messenger-newsblog/am-newsblog.js                    (content/am-newsblog.js)

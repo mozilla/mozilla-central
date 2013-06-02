@@ -26,3 +26,8 @@
 #statusContainerBox {
   height: 2.3em;
 }
+
+treechildren::-moz-tree-image(folderNameCol, isFeed-true) {
+  list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
+  -moz-image-region: rect(32px 16px 48px 0);
+}

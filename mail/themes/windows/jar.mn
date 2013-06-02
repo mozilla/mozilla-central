@@ -527,7 +527,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/status-small.png               (mail/icons/status-small-aero.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/aero/messenger-newsblog/ os=WINNT osversion>=6
   skin/classic/aero/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
-  skin/classic/aero/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed-aero.png)
+  skin/classic/aero/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed.png)
   skin/classic/aero/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss-aero.png)
   skin/classic/aero/messenger/newmailaccount/accountProvisioner.css          (mail/newmailaccount/accountProvisioner-aero.css)
   skin/classic/aero/messenger/newmailaccount/search.gif                      (mail/newmailaccount/search.gif)

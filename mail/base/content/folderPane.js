@@ -1909,6 +1909,10 @@ ftvItem.prototype = {
       properties += " specialFolder-" + smartFolderName.replace(' ','');
     }
 
+    if (this._folder.server.type == "rss" && !this._folder.isServer &&
+        FeedUtils.getFeedUrlsInFolder(this._folder))
+      properties += " isFeedFolder-true";
+
     return properties;
   },
 

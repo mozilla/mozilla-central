@@ -243,7 +243,8 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
 }
 
 treechildren::-moz-tree-image(subjectCol, news) {
-  list-style-image: url("chrome://messenger/skin/icons/message-news.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 224px 16px 208px);
 }
 
 treechildren::-moz-tree-image(subjectCol, news, attach) {

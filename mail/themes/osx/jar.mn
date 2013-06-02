@@ -117,6 +117,8 @@ classic.jar:
   skin/classic/messenger/messengercompose/insert-menu@2x.png      (mail/compose/insert-menu@2x.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/messenger-newsblog/
   skin/classic/messenger-newsblog/feed-subscriptions.css         (mail/newsblog/feed-subscriptions.css)
+  skin/classic/messenger-newsblog/rss-feed.png                   (mail/newsblog/rss-feed.png)
+  skin/classic/messenger-newsblog/rss-feed@2x.png                (mail/newsblog/rss-feed@2x.png)
   skin/classic/messenger/preferences/alwaysAsk.png               (mail/preferences/alwaysAsk.png)
   skin/classic/messenger/preferences/application.png             (mail/preferences/application.png)
   skin/classic/messenger/preferences/saveFile.png                (mail/preferences/saveFile.png)
@@ -179,7 +181,6 @@ classic.jar:
   skin/classic/messenger/icons/message-news-attach.png           (mail/icons/message-news-attach.png)
   skin/classic/messenger/icons/message-news-new-attach.png       (mail/icons/message-news-new-attach.png)
   skin/classic/messenger/icons/message-news-new.png              (mail/icons/message-news-new.png)
-  skin/classic/messenger/icons/message-news.png                  (mail/icons/message-news.png)
   skin/classic/messenger/icons/toolbarbutton-dropmarker.png      (mail/icons/toolbarbutton-dropmarker.png)
   skin/classic/messenger/icons/toolbarbutton-dropmarker-lion.png (mail/icons/toolbarbutton-dropmarker-lion.png)
   skin/classic/messenger/icons/toolbarbutton-dropmarker-lion@2x.png (mail/icons/toolbarbutton-dropmarker-lion@2x.png)

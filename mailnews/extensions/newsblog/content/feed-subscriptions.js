@@ -155,8 +155,19 @@ var FeedSubscriptions = {
     getCellProperties: function (aRow, aColumn) {
       let item = this.getItemAtIndex(aRow);
       let folder = item && item.folder ? item.folder : null;
+#ifdef MOZ_THUNDERBIRD
+      let properties = ["folderNameCol"];
+      let hasFeeds = folder ? FeedUtils.getFeedUrlsInFolder(folder) : false;
+      let prop = !folder ? "isFeed-true" :
+                 hasFeeds ? "isFeedFolder-true" :
+                 folder.isServer ? "serverType-rss isServer-true" : null;
+      if (prop)
+        properties.push(prop);
+      return properties.join(" ");
+#else
       return !folder ? "serverType-rss" :
              folder.isServer ? "serverType-rss isServer-true" : "livemark";
+#endif
     },
 
     isContainer: function (aRow)

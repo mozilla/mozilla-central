@@ -45,12 +45,12 @@ treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
 /* ..... Feed ..... */
 
 .tabmail-tab[type="folder"][ServerType="rss"],
-treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
+treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true) {
   list-style-image: url("chrome://messenger-newsblog/skin/icons/rss-feed.png");
   -moz-image-region: rect(0 16px 16px 0);
 }
 
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, newMessages-true) {
+treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true, newMessages-true) {
   -moz-image-region: rect(16px 16px 32px 0);
 }
 
@@ -58,8 +58,8 @@ treechildren::-moz-tree-image(folderNameCol, serverType-rss, newMessages-true) {
 
 .tabmail-tab[type="folder"][SpecialFolder="Trash"][ServerType="rss"],
 .tabmail-tab[type="folder"][SpecialFolder="Virtual"][ServerType="rss"],
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Trash),
-treechildren::-moz-tree-image(folderNameCol, serverType-rss, specialFolder-Virtual) {
+treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true, specialFolder-Trash),
+treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true, specialFolder-Virtual) {
   list-style-image: url("chrome://messenger/skin/icons/folder.png");
 }
 

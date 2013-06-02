@@ -33,8 +33,9 @@ treechildren::-moz-tree-image(folderNameCol, serverType-nntp) {
 
 /* ..... Feed Folders ..... */
 .tabmail-tab[type="folder"][ServerType="rss"],
-treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
-  list-style-image: url("chrome://messenger/skin/icons/message-news.png");
+treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true) {
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 224px 16px 208px);
 }
 
 /* ..... Inbox ..... */
@@ -126,7 +127,7 @@ treechildren::-moz-tree-image(folderNameCol, specialFolder-Archive) {
 
   /* ..... Feed Folders ..... */
   .tabmail-tab[type="folder"][ServerType="rss"],
-  treechildren::-moz-tree-image(folderNameCol, serverType-rss) {
+  treechildren::-moz-tree-image(folderNameCol, isFeedFolder-true) {
     list-style-image: url("chrome://messenger/skin/icons/folder-pane@2x.png");
     -moz-image-region: rect(0 448px 32px 416px);
   }

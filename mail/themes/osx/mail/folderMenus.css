@@ -23,7 +23,8 @@
 
 /* Feed folders */
 .folderMenuItem[ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/message-news.png");
+  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
+  -moz-image-region: rect(0 224px 16px 208px);
 }
 
 /* ..... special folders ..... */
