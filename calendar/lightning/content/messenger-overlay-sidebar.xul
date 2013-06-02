@@ -57,6 +57,11 @@
                oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('title') }); goToDate(now())"/>
     </commandset>
 
+    <commandset id="mailCommands">
+      <command id="cmd_CustomizeMailToolbar"
+               oncommand="CustomizeMailToolbar(document.getElementById('modeBroadcaster').getAttribute('mode') + '-toolbox', 'CustomizeMailToolbar')"/>
+    </commandset>
+
     <keyset id="calendar-keys">
       <key id="openLightningKey"
            key="&lightning.keys.event.showCalendar.key;"
@@ -96,13 +101,16 @@
       <!-- Unfortunately we use the same panel for task and calendar tabs, so
            we need to differ which toolbar is being shown. The actual toolbar
            content will be added via a further overlay -->
-      <deck id="calendar-toolbar-deck">
-        <toolbox id="calendar-toolbox"/>
-        <toolbox id="task-toolbox"/>
+      <toolbox id="calendar-toolbox">
         <observes element="modeBroadcaster"
                   attribute="mode"
-                  onbroadcast="this.parentNode.selectedPanel = document.getElementById(document.getElementById('modeBroadcaster').getAttribute('mode') + '-toolbox');"/>
-      </deck>
+                  onbroadcast="this.parentNode.setAttribute('collapsed', '' + document.getElementById('modeBroadcaster').getAttribute('mode') != 'calendar')"/>
+      </toolbox>
+      <toolbox id="task-toolbox">
+        <observes element="modeBroadcaster"
+                  attribute="mode"
+                  onbroadcast="this.parentNode.setAttribute('collapsed', '' + document.getElementById('modeBroadcaster').getAttribute('mode') != 'task')"/>
+      </toolbox>
       <hbox id="calendarContent" flex="1">
         <vbox id="ltnSidebar"
               width="200"

@@ -445,3 +445,14 @@ calInitMessageMenu.origFunc = InitMessageMenu;
 InitMessageMenu = calInitMessageMenu;
 
 window.addEventListener("load", ltnOnLoad, false);
+
+/**
+ * Make the toolbars' context menu dependent on the current mode.
+ */
+function onToolbarsPopupShowingWithMode(aEvent, aInsertPoint) {
+    let toolbox = [gCurrentMode + "-toolbox"];
+    if (gCurrentMode != "mail") {
+        toolbox.push("navigation-toolbox");
+    }
+    onViewToolbarsPopupShowing(aEvent, toolbox, aInsertPoint);
+}

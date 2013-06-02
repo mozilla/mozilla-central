@@ -18,13 +18,17 @@
 
 <overlay id="ltnToolbarOverlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <popupset id="calendar-popupset">
-    <menupopup id="calendar-toolbar-context">
+    <menupopup id="calendar-toolbar-context"
+               onpopupshowing="onViewToolbarsPopupShowing(event, ['calendar-toolbox', 'navigation-toolbox']);">
+      <menuseparator id="customizeCalendarToolbarMenuSeparator"/>
       <menuitem id="CustomizeCalendarToolbar"
                 label="&calendar.menu.customize.label;"
                 accesskey="&calendar.menu.customize.accesskey;"
                 oncommand="CustomizeMailToolbar('calendar-toolbox', 'CustomizeCalendarToolbar')"/>
     </menupopup>
-    <menupopup id="task-toolbar-context">
+    <menupopup id="task-toolbar-context"
+               onpopupshowing="onViewToolbarsPopupShowing(event, ['task-toolbox', 'navigation-toolbox']);">
+      <menuseparator id="customizeTaskToolbarMenuSeparator"/>
       <menuitem id="CustomizeTaskToolbar"
                 label="&calendar.menu.customize.label;"
                 accesskey="&calendar.menu.customize.accesskey;"

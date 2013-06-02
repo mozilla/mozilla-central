@@ -66,6 +66,8 @@
   </menupopup>
 
   <menupopup id="menu_View_Popup">
+    <menu id="menu_Toolbars"
+          onpopupshowing="onToolbarsPopupShowingWithMode(event);"/>
     <menuseparator id="ltnViewMenuSeparator"
                    insertbefore="viewSortMenuSeparator"/>
     <menu id="ltnTodayPaneMenu"
@@ -280,6 +282,7 @@
               accesskey-month="&lightning.toolbar.month.accesskey;"
               observes="calendar_view_next_command"/>
   </menupopup>
+
   <menupopup id="menu_GoPreviousPopup">
     <menuseparator id="ltnGoPreviousSeparator"/>
     <!-- Label is set up automatically using the view id. When writing a
@@ -432,6 +435,9 @@
     </menu>
   </menupopup>
 
+  <menupopup id="toolbar-context-menu"
+             onpopupshowing="onToolbarsPopupShowingWithMode(event);"/>
+
 <!-- AppMenu integration -->
   <menupopup id="appmenu_newMenupopup">
     <menuitem id="appmenu_ltnNewEvent"
@@ -452,6 +458,10 @@
                observes="calendar_new_calendar_command"
                insertafter="appmenu_newAccountMenuItem"/>
   </menupopup>
+  <splitmenu id="appmenu_customize">
+    <menupopup id="appmenu_customizeMenu"
+               onpopupshowing="onToolbarsPopupShowingWithMode(event, document.getElementById('appmenu_quickFilterBar'));"/>
+  </splitmenu>
   <menupopup id="appmenu_FilePopup">
     <menu id="appmenu_Open"
           mode="calendar"
