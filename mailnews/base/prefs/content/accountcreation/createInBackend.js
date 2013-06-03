@@ -125,6 +125,15 @@ function createAccountInBackend(config)
   let identity = MailServices.accounts.createIdentity();
   identity.fullName = config.identity.realname;
   identity.email = config.identity.emailAddress;
+
+  // for new accounts, default to replies being positioned above the quote
+  if (config.incoming.type == "imap" || config.incoming.type == "pop3")
+  {
+    identity.replyOnTop = 1;
+    // identity.sigBottom = false; // don't set this until Bug 218346 is fixed
+  }
+
+  // due to accepted conventions, news accounts should default to plain text
   if (config.incoming.type == "nntp")
     identity.composeHtml = false;
 
