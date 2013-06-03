@@ -13,7 +13,12 @@ const EXPORTED_SYMBOLS = [ "isLegalHostNameOrIP",
                            "isLegalIPv6Address",
                            "isLegalIPAddress",
                            "isLegalLocalIPAddress",
-                           "cleanUpHostName" ];
+                           "cleanUpHostName",
+                           "kMinPort",
+                           "kMaxPort" ];
+
+const kMinPort = 1;
+const kMaxPort = 65535;
 
 /**
  * Check if aHostName is an IP address or a valid hostname.

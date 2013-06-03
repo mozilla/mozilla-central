@@ -5,6 +5,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 /**
  * This is the dialog opened by menu File | New account | Mail... .
@@ -32,7 +33,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 // from http://xyfer.blogspot.com/2005/01/javascript-regexp-email-validator.html
 var emailRE = /^[-_a-z0-9\'+*$^&%=~!?{}]+(?:\.[-_a-z0-9\'+*$^&%=~!?{}]+)*@(?:[-a-z0-9.]+\.[a-z]{2,6}|\d{1,3}(?:\.\d{1,3}){3})(?::\d+)?$/i;
-const kHighestPort = 65535;
 
 Cu.import("resource:///modules/gloda/log4moz.js");
 let gEmailWizardLogger = Log4Moz.getConfiguredLogger("mail.wizard");
@@ -904,7 +904,7 @@ EmailConfigWizard.prototype =
     } catch (e) { gEmailWizardLogger.warn(e); }
     try {
       config.incoming.port = sanitize.integerRange(e("incoming_port").value,
-                                                   1, kHighestPort);
+                                                   kMinPort, kMaxPort);
     } catch (e) {
       config.incoming.port = undefined; // incl. default "Auto"
     }
@@ -937,7 +937,7 @@ EmailConfigWizard.prototype =
       } catch (e) { gEmailWizardLogger.warn(e); }
       try {
         config.outgoing.port = sanitize.integerRange(e("outgoing_port").value,
-              1, kHighestPort);
+              kMinPort, kMaxPort);
       } catch (e) {
         config.outgoing.port = undefined; // incl. default "Auto"
       }

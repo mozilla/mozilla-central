@@ -50,7 +50,8 @@
           <label control="maximumConnectionsNumber"
                  value="&maximumConnectionsNumber.label;"
                  accesskey="&maximumConnectionsNumber.accesskey;"/>
-          <textbox amsa_persist="true" size="3" id="maximumConnectionsNumber"/>
+          <textbox amsa_persist="true" size="3" type="number"
+                   min="1" max="1000" id="maximumConnectionsNumber"/>
         </hbox>
       </row>
 

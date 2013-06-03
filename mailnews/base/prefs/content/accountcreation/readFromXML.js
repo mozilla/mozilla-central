@@ -17,6 +17,8 @@
  * @param clientConfigXML {JXON}  The <clientConfig> node.
  * @return AccountConfig   object filled with the data from XML
  */
+Components.utils.import("resource:///modules/hostnameUtils.jsm");
+
 function readFromXML(clientConfigXML)
 {
   function array_or_undef(value) {
@@ -60,7 +62,7 @@ function readFromXML(clientConfigXML)
       // throws if not supported
       iO.type = sanitize.enum(iX["@type"], ["pop3", "imap", "nntp"]);
       iO.hostname = sanitize.hostname(iX.hostname);
-      iO.port = sanitize.integerRange(iX.port, 1, 65535);
+      iO.port = sanitize.integerRange(iX.port, kMinPort, kMaxPort);
       // We need a username even for Kerberos, need it even internally.
       iO.username = sanitize.string(iX.username); // may be a %VARIABLE%
 
@@ -141,7 +143,7 @@ function readFromXML(clientConfigXML)
         throw stringBundle.GetStringFromName("outgoing_not_smtp.error");
       }
       oO.hostname = sanitize.hostname(oX.hostname);
-      oO.port = sanitize.integerRange(oX.port, 1, 65535);
+      oO.port = sanitize.integerRange(oX.port, kMinPort, kMaxPort);
 
       for (let oXsocketType of array_or_undef(oX.$socketType))
       {
