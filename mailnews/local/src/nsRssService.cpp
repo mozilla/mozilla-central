@@ -56,7 +56,9 @@ NS_IMETHODIMP nsRssService::GetServerIID(nsIID * *aServerIID)
 
 NS_IMETHODIMP nsRssService::GetRequiresUsername(bool *aRequiresUsername)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    NS_ENSURE_ARG_POINTER(aRequiresUsername);
+    *aRequiresUsername = false;
+    return NS_OK;
 }
 
 NS_IMETHODIMP nsRssService::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
