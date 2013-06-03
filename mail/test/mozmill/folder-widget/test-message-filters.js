@@ -88,6 +88,7 @@ function test_message_filter_shows_newsgroup_server()
   nntp.node.menupopup._ensureInitialized();
   assert_equals(nntp.node.itemCount, 5,
                 "Incorrect number of children for the NNTP server");
+  close_window(filterc);
 }
 
 /*
@@ -152,7 +153,6 @@ function create_simple_filter() {
   plan_for_modal_dialog("mailnews:filtereditor", fill_in_filter_fields);
   filterc.click(filterc.eid("newButton"));
   wait_for_modal_dialog("mailnews:filtereditor");
-
 }
 
 /*
@@ -252,15 +252,18 @@ function test_can_quit_on_filter_changes() {
   // Register the Mock Prompt Service
   gMockPromptService.register();
 
-  create_simple_filter();
-
   let filterc = wait_for_existing_window("mailnews:filterlist");
+
+  // There should already be 1 filter defined from previous test.
+  let filterCount = filterc.e("filterList").itemCount;
+  assert_equals(filterCount, 1);
+
   let runButton = filterc.e("runFiltersButton");
   runButton.setAttribute("label",
                          runButton.getAttribute("stoplabel"));
 
   let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
-                 .createInstance(Components.interfaces.nsISupportsPRBool);
+                     .createInstance(Components.interfaces.nsISupportsPRBool);
 
   // Set the Mock Prompt Service to return true, so that we
   // allow the quit.
@@ -280,5 +283,3 @@ function test_can_quit_on_filter_changes() {
   // Unregister the Mock Prompt Service
   gMockPromptService.unregister();
 }
-
-
