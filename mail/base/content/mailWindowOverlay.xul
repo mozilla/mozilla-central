@@ -1851,7 +1851,8 @@
             </menu>
             <menuseparator id="appmenu_goFolderSeparator"/>
             <menu id="appmenu_goRecentlyClosedTabs"
-                  label="&goRecentlyClosedTabs.label;">
+                  label="&goRecentlyClosedTabs.label;"
+                  observes="cmd_undoCloseTab">
               <menupopup id="appmenu_GoRecentlyClosedTabsPopup"
                          onpopupshowing="return InitRecentlyClosedTabsPopup(this)" />
             </menu>
@@ -2641,7 +2642,8 @@
           
           <menu id="goRecentlyClosedTabs"
                 label="&goRecentlyClosedTabs.label;"
-                accesskey="&goRecentlyClosedTabs.accesskey;">
+                accesskey="&goRecentlyClosedTabs.accesskey;"
+                observes="cmd_undoCloseTab">
             <menupopup id="menu_GoRecentlyClosedTabsPopup"
                        onpopupshowing="return InitRecentlyClosedTabsPopup(this)" />
           </menu>
