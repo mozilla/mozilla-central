@@ -33,10 +33,6 @@ treechildren::-moz-tree-cell-text {
   padding-bottom: 1px;
 }
 
-.foldersTree {
-  -moz-appearance: none;
-}
-
 #tabmail-buttons > toolbarbutton {
   margin-top: 3px;
   margin-bottom: 0;

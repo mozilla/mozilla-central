@@ -137,6 +137,14 @@
                  !aFolder.supportsOffline;
         },
 
+        // Folders that can be searched.
+        search: function filter_search(aFolder) {
+          if (!aFolder.server.canSearchMessages ||
+              aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Virtual))
+            return false;
+          return true;
+        },
+
         // Folders that can subscribe feeds.
         feeds: function filter_feeds(aFolder) {
           if (aFolder.server.type != "rss" ||
@@ -636,6 +644,9 @@
           aMenuNode.setAttribute("IsServer", aFolder.isServer);
           aMenuNode.setAttribute("IsSecure", aFolder.server.isSecure);
           aMenuNode.setAttribute("ServerType", aFolder.server.type);
+          aMenuNode.setAttribute("IsFeedFolder",
+            (aFolder.server.type == "rss" && !aFolder.isServer &&
+             aFolder.getStringProperty("feedUrl") ? true : false));
         ]]></body>
       </method>
 

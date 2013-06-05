@@ -249,7 +249,7 @@ function searchOnLoad()
   });
 
   if (window.arguments && window.arguments[0])
-      selectFolder(window.arguments[0].folder);
+      updateSearchFolderPicker(window.arguments[0].folder);
 
   // trigger searchTermOverlay.js to create the first criterion
   onMore(null);
@@ -297,27 +297,12 @@ function onResetSearch(event) {
   gStatusFeedback.showStatusString("");
 }
 
-function selectFolder(folder)
+function updateSearchFolderPicker(folder)
 {
-    var folderURI;
+  SetFolderPicker(folder.URI, gFolderPicker.id);
 
-    // if we can't search messages on this folder, just select the first one
-    if (!folder || !folder.server.canSearchMessages ||
-        (folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)) {
-        // find first item in our folder picker menu list
-        folderURI = gFolderPicker.firstChild.tree.builderView.getResourceAtIndex(0).Value;
-    } else {
-        folderURI = folder.URI;
-    }
-    updateSearchFolderPicker(folderURI);
-}
-
-function updateSearchFolderPicker(folderURI)
-{
-  SetFolderPicker(folderURI, gFolderPicker.id);
-
-  // use the URI to get the real folder
-  gCurrentFolder = GetMsgFolderFromUri(folderURI);
+  gCurrentFolder = folder;
+  gFolderPicker.firstChild._setCssSelectors(folder, gFolderPicker);
 
   var searchOnline = document.getElementById("checkSearchOnline");
   // We will hide and disable the search online checkbox if we are offline, or
@@ -346,13 +331,6 @@ function updateSearchLocalSystem()
 function UpdateAfterCustomHeaderChange()
 {
   updateSearchAttributes();
-}
-
-function onChooseFolder(event) {
-    var folderURI = event.id;
-    if (folderURI) {
-        updateSearchFolderPicker(folderURI);
-    }
 }
 
 function onEnterInSearchTerm()
