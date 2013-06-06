@@ -348,7 +348,11 @@ function onViewToolbarsPopupShowing(aEvent, aInsertPoint)
   for (let i = deadItems.length - 1; i >= 0; --i)
     popup.removeChild(deadItems[i]);
 
-  var firstMenuItem = aInsertPoint || popup.firstChild;
+  // Thunderbird/Lightning function signature is:
+  // onViewToolbarsPopupShowing(aEvent, toolboxIds, aInsertPoint)
+  // where toolboxIds is either a string or an array of strings.
+  var firstMenuItem = aInsertPoint instanceof XULElement ? aInsertPoint
+                                                         : popup.firstChild;
 
   var toolbar = document.popupNode || popup;
   while (toolbar.localName != "toolbar")
