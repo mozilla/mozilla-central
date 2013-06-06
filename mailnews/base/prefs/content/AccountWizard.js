@@ -186,7 +186,7 @@ function FinishAccount()
     
     setupCopiesAndFoldersServer(gCurrentAccount, getCurrentServerIsDeferred(pageData), accountData);
 
-    if (!serverIsNntp(pageData))
+    if (gCurrentAccount.incomingServer.canBeDefaultServer)
       EnableCheckMailAtStartUpIfNeeded(gCurrentAccount);
 
     if (!document.getElementById("downloadMsgs").hidden) {

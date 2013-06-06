@@ -166,7 +166,9 @@ function createAccountInBackend(config)
   let account = MailServices.accounts.createAccount();
   account.addIdentity(identity);
   account.incomingServer = inServer;
-  if (!MailServices.accounts.defaultAccount)
+  if (inServer.canBeDefaultServer && (!MailServices.accounts.defaultAccount ||
+                                      !MailServices.accounts.defaultAccount
+                                       .incomingServer.canBeDefaultServer))
     MailServices.accounts.defaultAccount = account;
 
   verifyLocalFoldersAccount(MailServices.accounts);
