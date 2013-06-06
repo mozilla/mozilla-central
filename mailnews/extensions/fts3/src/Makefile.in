@@ -22,11 +22,6 @@ CPPSRCS		= \
 		nsGlodaRankerFunction.cpp \
 		$(NULL)
 
-CSRCS		= \
-		fts3_porter.c \
-		Normalize.c \
-		$(NULL)
-
 LOCAL_INCLUDES = \
 		$(SQLITE_CFLAGS)
 

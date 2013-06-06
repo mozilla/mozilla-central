@@ -16,12 +16,6 @@ ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 endif
 
-CSRCS		= \
-		dlldata.c \
-		msgMapi_p.c \
-		msgMapi_i.c \
-		$(NULL)
-
 OS_LIBS		+= rpcrt4.lib
 
 MIDL_GENERATED_FILES = msgMapi.h msgMapi_p.c msgMapi_i.c dlldata.c

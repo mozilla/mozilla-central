@@ -9,3 +9,32 @@ EXPORTS += [
     'ical.h',
 ]
 
+CSRCS += [
+    'caldate.c',
+    'icalarray.c',
+    'icalattach.c',
+    'icalcomponent.c',
+    'icalderivedparameter.c',
+    'icalderivedproperty.c',
+    'icalderivedvalue.c',
+    'icalduration.c',
+    'icalenums.c',
+    'icalerror.c',
+    'icallangbind.c',
+    'icalmemory.c',
+    'icalmime.c',
+    'icalparameter.c',
+    'icalparser.c',
+    'icalperiod.c',
+    'icalproperty.c',
+    'icalrecur.c',
+    'icalrestriction.c',
+    'icaltime.c',
+    'icaltimezone.c',
+    'icaltypes.c',
+    'icalvalue.c',
+    'pvl.c',
+    'sspm.c',
+    'vsnprintf.c',
+]
+

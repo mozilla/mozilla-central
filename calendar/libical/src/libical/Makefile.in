@@ -49,36 +49,6 @@ FORCE_STATIC_LIB = 1
 FORCE_USE_PIC    = 1 # Force use of PIC
 USE_STATIC_LIBS  = 1
 
-CSRCS =				\
-	icalderivedparameter.c	\
-	icalderivedproperty.c	\
-	icalrestriction.c	\
-	icalderivedvalue.c	\
-	\
-	icalarray.c		\
-	icalattach.c		\
-	icalcomponent.c		\
-	icalenums.c		\
-	icalerror.c		\
-	icalmemory.c		\
-	icalmime.c		\
-	icalparameter.c		\
-	icalparser.c		\
-	icalproperty.c		\
-	icalrecur.c		\
-	icaltime.c		\
-	icaltimezone.c		\
-	icalduration.c		\
-	icalperiod.c		\
-	icaltypes.c		\
-	icalvalue.c		\
-	pvl.c			\
-	sspm.c			\
-	vsnprintf.c		\
-	icallangbind.c 		\
-	caldate.c 		\
-        $(NULL)
-
 DEFINES += -DHAVE_CONFIG_H
 
 ifneq (,$(filter BeOS Darwin OpenVMS NetBSD FreeBSD,$(OS_ARCH)))

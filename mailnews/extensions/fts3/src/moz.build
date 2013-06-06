@@ -5,3 +5,8 @@
 
 MODULE = 'fts3tok'
 
+CSRCS += [
+    'Normalize.c',
+    'fts3_porter.c',
+]
+

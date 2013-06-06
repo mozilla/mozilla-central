@@ -9,3 +9,9 @@ EXPORTS += [
     'msgMapi.h',
 ]
 
+CSRCS += [
+    'dlldata.c',
+    'msgMapi_i.c',
+    'msgMapi_p.c',
+]
+
