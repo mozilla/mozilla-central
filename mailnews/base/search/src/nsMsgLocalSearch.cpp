@@ -690,8 +690,7 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
   return NS_OK;
 }
 
-
-nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
+nsresult nsMsgSearchOfflineMail::Search(bool *aDone)
 {
   nsresult err = NS_OK;
 
@@ -713,7 +712,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
   if (NS_SUCCEEDED(err))
   {
     if (!m_listContext)
-      dbErr = m_db->EnumerateMessages (getter_AddRefs(m_listContext));
+      dbErr = m_db->ReverseEnumerateMessages(getter_AddRefs(m_listContext));
     if (NS_SUCCEEDED(dbErr) && m_listContext)
     {
       PRIntervalTime startTime = PR_IntervalNow();

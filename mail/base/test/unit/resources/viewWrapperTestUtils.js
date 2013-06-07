@@ -90,7 +90,6 @@ var gMockViewWrapperListener = {
   // event handlers
   allMessagesLoadedEventCount: 0,
   onMessagesLoaded: function(aAll) {
-    dump(aAll ? "ALL LOADED\n" : "SOME LOADED\n");
     if (!aAll)
       return;
     this.allMessagesLoadedEventCount++;

@@ -5847,8 +5847,8 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, uint32_t
       tableRowKey = oid.mOid_Id;  // ### TODO need the real key for the 0th key problem.
     }
 
-   if (newHitIndex < aNumKeys && aNewHits[newHitIndex] == tableRowKey)
-   {
+    if (newHitIndex < aNumKeys && aNewHits[newHitIndex] == tableRowKey)
+    {
       newHitIndex++;
       tableRowIndex++;
       continue;

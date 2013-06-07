@@ -309,12 +309,12 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
     nsCString searchUri;
     m_viewFolder->GetURI(searchUri);
     uint32_t count = m_hdrHits.Count();
-    // build up message keys.
-    uint32_t i;
-    for (i = 0; i < count; i++)
+    // Build up message keys. The hits are in descending order but the cache
+    // expects them to be in ascending key order.
+    for (uint32_t i = count; i > 0; i--)
     {
       nsMsgKey key;
-      m_hdrHits[i]->GetMessageKey(&key);
+      m_hdrHits[i-1]->GetMessageKey(&key);
       keyArray.AppendElement(key);
     }
     nsMsgKey *staleHits;
@@ -326,7 +326,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<nsIMsgDBHdr> hdrDeleted;
 
-      for (i = 0; i < numBadHits; i++)
+      for (uint32_t i = 0; i < numBadHits; i++)
       {
         m_db->GetMsgHdrForKey(staleHits[i], getter_AddRefs(hdrDeleted));
         if (hdrDeleted)
@@ -341,7 +341,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
     uint32_t numUnread = 0;
     uint32_t numTotal = m_origKeys.Length();
 
-    for (i = 0; i < m_origKeys.Length(); i++)
+    for (uint32_t i = 0; i < m_origKeys.Length(); i++)
     {
       bool isRead;
       m_db->IsRead(m_origKeys[i], &isRead);
