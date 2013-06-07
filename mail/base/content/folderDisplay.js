@@ -66,8 +66,9 @@ let FolderDisplayListenerManager = {
         try {
           listener[aEventName].apply(listener, aArgs);
         }
-        catch(ex) {
-          Components.utils.reportError(ex);
+        catch(e) {
+          Components.utils.reportError(aEventName + " event listener FAILED; " +
+                                       e + " at: " + e.stack);
         }
       }
     }

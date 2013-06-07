@@ -181,6 +181,31 @@
 <!ENTITY quickFilterBar.textbox.emptyText.keyLabel2.mac
          "&lt;&#x21E7;&#x2318;K&gt;">
 
+<!-- LOCALIZATION NOTE (quickFilterBar.booleanMode.tooltip):
+     Tooltip of the Any of / All of tagging mode selector.
+     -->
+<!ENTITY quickFilterBar.booleanMode.tooltip "Tag filtering mode">
+
+<!-- LOCALIZATION NOTE (quickFilterBar.booleanModeAny.label):
+     Tooltip of the Any of / All of tagging mode selector.
+     -->
+<!ENTITY quickFilterBar.booleanModeAny.label "Any of">
+
+<!-- LOCALIZATION NOTE (quickFilterBar.booleanModeAny.tooltip):
+     Tooltip of the Any of / All of tagging mode selector.
+     -->
+<!ENTITY quickFilterBar.booleanModeAny.tooltip "At least one of the selected tag criteria should match">
+
+<!-- LOCALIZATION NOTE (quickFilterBar.booleanModeAll.label):
+     Tooltip of the Any of / All of tagging mode selector.
+     -->
+<!ENTITY quickFilterBar.booleanModeAll.label "All of">
+
+<!-- LOCALIZATION NOTE (quickFilterBar.booleanModeAll.tooltip):
+     Tooltip of the Any of / All of tagging mode selector.
+     -->
+<!ENTITY quickFilterBar.booleanModeAll.tooltip "All of the selected tag criteria must match">
+
 <!-- LOCALIZATION NOTE (quickFilterBar.textbox.idealWidth):
      The number of pixels for the ideal width of the quick filter box textbox.
      Choose this value so that the emptyText fits nicely with a little bit of
