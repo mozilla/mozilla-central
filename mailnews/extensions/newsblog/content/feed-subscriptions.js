@@ -44,7 +44,7 @@ var FeedSubscriptions = {
     }
   },
 
-  onUnload: function ()
+  onClose: function ()
   {
     let dismissDialog = true;
 
@@ -64,6 +64,7 @@ var FeedSubscriptions = {
 
     if (dismissDialog)
     {
+      FeedUtils.CANCEL_REQUESTED = true;
       let win = Services.wm.getMostRecentWindow("mail:3pane");
       if (win)
         delete win.FeedFolderNotificationService;
@@ -434,6 +435,18 @@ var FeedSubscriptions = {
       let rowCount = 0;
       let multiplier;
 
+      function addDescendants(aItem)
+      {
+        for (let i = 0; i < aItem.children.length; i++)
+        {
+          rowCount++;
+          let child = aItem.children[i];
+          rows.splice(aRow + rowCount, 0, child);
+          if (child.open)
+            addDescendants(child);
+        }
+      }
+
       if (item.open)
       {
         // Close the container.  Add up all subfolders and their descendants
@@ -454,18 +467,6 @@ var FeedSubscriptions = {
         // Open the container.  Restore the open state of all subfolder and
         // their descendants.
         multiplier = 1;
-        function addDescendants(aItem)
-        {
-          for (let i = 0; i < aItem.children.length; i++)
-          {
-            rowCount++;
-            let child = aItem.children[i];
-            rows.splice(aRow + rowCount, 0, child);
-            if (child.open)
-              addDescendants(child);
-          }
-        }
-
         addDescendants(item);
       }
 
@@ -1398,6 +1399,7 @@ var FeedSubscriptions = {
 
   mFeedDownloadCallback:
   {
+    mSubscribeMode: true,
     downloaded: function(feed, aErrorCode)
     {
       // Feed is null if our attempt to parse the feed failed.
@@ -1504,7 +1506,8 @@ var FeedSubscriptions = {
 
       win.mActionMode = null;
       win.clearStatusInfo();
-      win.updateStatusItem("statusText", message, aErrorCode);
+      let code = feed.url.startsWith("http") ? aErrorCode : null;
+      win.updateStatusItem("statusText", message, code);
     },
 
     // This gets called after the RSS parser finishes storing a feed item to

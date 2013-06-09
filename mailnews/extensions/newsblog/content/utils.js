@@ -83,6 +83,9 @@ var FeedUtils = {
   kNewsBlogFeedIsBusy: 3,
   // There are no new articles for this feed
   kNewsBlogNoNewItems: 4,
+  kNewsBlogCancel: 5,
+
+  CANCEL_REQUESTED: false,
 
 /**
  * Get all rss account servers rootFolders.

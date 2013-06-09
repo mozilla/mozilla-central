@@ -63,6 +63,7 @@ Feed.prototype =
   mFolder: null,
   mInvalidFeed: false,
   mFeedType: null,
+  mLastModified: null,
 
   get folder()
   {
@@ -122,7 +123,7 @@ Feed.prototype =
     if (!FeedUtils.isValidScheme(uri))
     {
        // Simulate an invalid feed error.
-      FeedUtils.log.debug("Feed.download: invalid protocol for - " + uri.spec);
+      FeedUtils.log.info("Feed.download: invalid protocol for - " + uri.spec);
       this.onParseError(this);
       return;
     }
@@ -180,9 +181,11 @@ Feed.prototype =
     // feed so we can use it when making future requests, to avoid downloading
     // and parsing feeds that have not changed.  Don't update if merely checking
     // the url, as for subscribe move/copy, as a subsequent refresh may get a 304.
+    // Save the response and persist it only upon successful completion of the
+    // refresh cycle (i.e. not if the request is cancelled).
     let lastModifiedHeader = request.getResponseHeader("Last-Modified");
-    if (lastModifiedHeader && feed.parseItems)
-      feed.lastModified = lastModifiedHeader;
+    feed.mLastModified = (lastModifiedHeader && feed.parseItems) ?
+                           lastModifiedHeader : null;
 
     // The download callback is called asynchronously when parse() is done.
     feed.parse();
@@ -228,8 +231,6 @@ Feed.prototype =
       return;
 
     aFeed.mInvalidFeed = true;
-    aFeed.lastModified = "";
-
     if (aFeed.downloadCallback)
       aFeed.downloadCallback.downloaded(aFeed, FeedUtils.kNewsBlogInvalidFeed);
 
@@ -450,10 +451,17 @@ Feed.prototype =
   // the next one, otherwise triggers a download done notification to the UI.
   storeNextItem: function()
   {
+    if (FeedUtils.CANCEL_REQUESTED)
+    {
+      FeedUtils.CANCEL_REQUESTED = false;
+      this.cleanupParsingState(this, FeedUtils.kNewsBlogCancel);
+      return;
+    }
+
     if (!this.itemsToStore || !this.itemsToStore.length)
     {
       this.createFolder();
-      this.cleanupParsingState(this);
+      this.cleanupParsingState(this, FeedUtils.kNewsBlogSuccess);
       return;
     }
 
@@ -491,22 +499,25 @@ Feed.prototype =
         item.feed.folder.callFilterPlugins(null);
       }
 
-      this.cleanupParsingState(item.feed);
+      this.cleanupParsingState(item.feed, FeedUtils.kNewsBlogSuccess);
     }
   },
 
-  cleanupParsingState: function(aFeed)
+  cleanupParsingState: function(aFeed, aCode)
   {
     // Now that we are done parsing the feed, remove the feed from the cache.
     FeedCache.removeFeed(aFeed.url);
     aFeed.removeInvalidItems(false);
+
+    if (aCode == FeedUtils.kNewsBlogSuccess && aFeed.mLastModified)
+      aFeed.lastModified = aFeed.mLastModified;
 
     // Flush any feed item changes to disk.
     let ds = FeedUtils.getItemsDS(aFeed.server);
     ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
 
     if (aFeed.downloadCallback)
-      aFeed.downloadCallback.downloaded(aFeed, FeedUtils.kNewsBlogSuccess);
+      aFeed.downloadCallback.downloaded(aFeed, aCode);
 
     // Force the xml http request to go away.  This helps reduce some nasty
     // assertions on shut down.

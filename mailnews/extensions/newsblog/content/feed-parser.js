@@ -16,11 +16,20 @@ FeedParser.prototype =
   // parseFeed returns an empty feed in addition to calling aFeed.onParseError.
   parseFeed: function (aFeed, aDOM, aBaseURI)
   {
-    let doc = aDOM.documentElement;
-    if (!(aDOM instanceof Ci.nsIDOMXMLDocument) ||
-        doc.getElementsByTagNameNS(FeedUtils.MOZ_PARSERERROR_NS, "parsererror")[0])
+    if (!(aDOM instanceof Ci.nsIDOMXMLDocument))
     {
-      // No xml doc or gecko caught a basic parsing error.
+      // No xml doc.
+      aFeed.onParseError(aFeed);
+      return new Array();
+    }
+
+    let doc = aDOM.documentElement;
+    if (doc.namespaceURI == FeedUtils.MOZ_PARSERERROR_NS)
+    {
+      // Gecko caught a basic parsing error.
+      let errStr = doc.firstChild.textContent + "\n" +
+                   doc.firstElementChild.textContent;
+      FeedUtils.log.info("FeedParser.parseFeed: - " + errStr);
       aFeed.onParseError(aFeed);
       return new Array();
     }
