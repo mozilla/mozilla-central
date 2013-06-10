@@ -6,34 +6,28 @@
 app_libxul_dirs = []
 app_libxul_static_dirs = []
 
-# /mozilla build system.
-if not CONFIG['COMM_BUILD']:
-    if CONFIG['MOZ_APP_COMPONENT_LIBS']:
-        bridge_reldir = '../'
-        include('../bridge/bridge.mozbuild')
+include('../bridge/bridge.mozbuild')
 
-    if not CONFIG['LIBXUL_SDK']:
-        include('/toolkit/toolkit.mozbuild')
+if not CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
+    app_libxul_dirs = mailnews_dirs
+    app_libxul_static_dirs = mailnews_static_dirs
 
-    if CONFIG['MOZ_EXTENSIONS']:
-        add_tier_dir('app', 'extensions')
+if not CONFIG['LIBXUL_SDK']:
+    include('/toolkit/toolkit.mozbuild')
 
-# Our build system.
-else:
-    bridge_reldir = ''
-    include('/bridge/bridge.mozbuild')
+if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
+    add_tier_dir('app', mailnews_static_dirs, static=True)
+    add_tier_dir('app', mailnews_dirs)
 
-    if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
-        add_tier_dir('app', app_libxul_static_dirs, static=True)
-        add_tier_dir('app', app_libxul_dirs)
+if CONFIG['MOZ_EXTENSIONS']:
+    add_tier_dir('app', 'extensions')
 
-    if CONFIG['MOZ_COMPOSER']:
-        add_tier_dir('app', 'editor/ui')
+if CONFIG['MOZ_COMPOSER']:
+    add_tier_dir('app', '../editor/ui')
 
-    add_tier_dir('app', CONFIG['MOZ_BRANDING_DIRECTORY'])
+add_tier_dir('app', CONFIG['MOZ_BRANDING_DIRECTORY'])
 
-    if CONFIG['MOZ_CALENDAR']:
-        add_tier_dir('app', 'calendar/lightning')
+if CONFIG['MOZ_CALENDAR']:
+    add_tier_dir('app', '../calendar/lightning')
 
-    add_tier_dir('app', 'suite')
-
+add_tier_dir('app', '../suite')

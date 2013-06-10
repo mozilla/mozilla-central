@@ -3,16 +3,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-app_libxul_dirs += [bridge_reldir + 'mozilla/xpfe/components/autocomplete']
+mailnews_dirs = []
+mailnews_static_dirs = []
 
-component_libs = CONFIG.get('MOZ_APP_COMPONENT_LIBS', '').split()
+mailnews_dirs += ['../mozilla/xpfe/components/autocomplete']
 
-if 'mozldap' in component_libs or CONFIG['MOZ_LDAP_XPCOM']:
-    app_libxul_static_dirs += [bridge_reldir + 'ldap/sdks/c-sdk']
-    app_libxul_dirs += [bridge_reldir + 'ldap/xpcom']
+if CONFIG['MOZ_LDAP_XPCOM']:
+    mailnews_static_dirs += ['../ldap/sdks/c-sdk']
+    mailnews_dirs += ['../ldap/xpcom']
 
-if 'mork' in component_libs or CONFIG['MOZ_MORK']:
-    app_libxul_dirs += [bridge_reldir + 'db']
+if CONFIG['MOZ_MORK']:
+    mailnews_dirs += ['../db']
 
-app_libxul_dirs += [bridge_reldir + 'mailnews']
+mailnews_dirs += ['../mailnews']
 
