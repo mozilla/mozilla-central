@@ -4121,6 +4121,30 @@ function DetermineConvertibility()
     return nsIMsgCompConvertible.No;
 }
 
+/**
+ * Hides addressing options (To, CC, Bcc, Newsgroup, Followup-To, etc.)
+ * that are not relevant for the account type used for sending.
+ *
+ * @param aAccountKey  Key of the account that is currently selected
+ *                     as the sending account.
+ */
+function hideIrrelevantAddressingOptions(aAccountKey)
+{
+  let hideNews = MailServices.accounts.getAccount(aAccountKey)
+                                      .incomingServer.type != "nntp";
+  // If we are not posting from a News (NNTP) account
+  // hide the Newsgroup recipient type in all the menulists.
+  let addrWidget = document.getElementById("addressingWidget");
+  // Only really touch the News related items we know about.
+  let newsTypes = addrWidget
+    .querySelectorAll('menuitem[value="addr_newsgroups"], menuitem[value="addr_followup"]');
+  // Collapsing the menuitem only prevents it getting chosen, it does not
+  // affect the menulist widget display when Newsgroup is already selected.
+  for (let item of newsTypes) {
+    item.collapsed = hideNews;
+  }
+}
+
 function LoadIdentity(startup)
 {
     var identityElement = document.getElementById("msgIdentity");
@@ -4130,9 +4154,12 @@ function LoadIdentity(startup)
         var idKey = identityElement.value;
         gCurrentIdentity = MailServices.accounts.getIdentity(idKey);
 
-        // set the  account name on the menu list value.
-        if (identityElement.selectedItem)
-          identityElement.setAttribute('accountname', identityElement.selectedItem.getAttribute('accountname'));
+        // Set the account key value on the menu list.
+        if (identityElement.selectedItem) {
+          let accountKey = identityElement.selectedItem.getAttribute("accountkey");
+          identityElement.setAttribute("accountkey", accountKey);
+          hideIrrelevantAddressingOptions(accountKey);
+        }
 
         let maxRecipients = awGetMaxRecipients();
         for (let i = 1; i <= maxRecipients; i++)
