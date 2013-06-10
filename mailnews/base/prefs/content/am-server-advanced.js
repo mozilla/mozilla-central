@@ -9,8 +9,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 // pull stuff out of window.arguments
 var gServerSettings = window.arguments[0];
 
-var serverList;
-
 var gFirstDeferredAccount;
 // initialize the controls with the "gServerSettings" argument
 
@@ -43,42 +41,41 @@ function onLoad()
   }
   else if (gServerSettings.serverType == "pop3")
   {
-    var radioGroup = document.getElementById("folderStorage");
     document.getElementById("imapPanel").hidden = true;
+    let radioGroup = document.getElementById("folderStorage");
+
     gFirstDeferredAccount = gServerSettings.deferredToAccount;
-    var localFoldersAccount = getLocalFoldersAccount();
-    var folderPopup = document.getElementById("deferedServerPopup");
-    if (gFirstDeferredAccount.length)
+    let folderPopup = document.getElementById("deferredServerPopup");
+
+    // The current account should not be shown in the folder picker
+    // of the "other account" option.
+    folderPopup._teardown();
+    folderPopup.setAttribute("excludeServers",
+                             gServerSettings.account.incomingServer.key);
+    folderPopup._ensureInitialized();
+
+    if (gServerSettings.account.incomingServer.isDeferredTo) {
+      // Some other account already defers to this account
+      // therefore this one can't be deferred further.
+      radioGroup.value = "currentAccount";
+      folderPopup.selectFolder();
+      radioGroup.disabled = true;
+    }
+    else if (gFirstDeferredAccount.length)
     {
+      // The current account is already deferred...
       let account = MailServices.accounts.getAccount(gFirstDeferredAccount);
-      if (account)
-      {
-        folderPopup.selectFolder(account.incomingServer.rootFolder);
-      }
-      if (gFirstDeferredAccount == localFoldersAccount.key)
-      {
-        radioGroup.selectedItem = document.getElementById("globalInbox");
-        folderPopup.selectFolder(localFoldersAccount.incomingServer.rootFolder);
-        updateInboxAccount(false, true);
-      }
-      else
-      {
-        radioGroup.selectedItem = document.getElementById("deferToServer");
-        folderPopup.selectFolder(account.incomingServer.rootFolder);
-        updateInboxAccount(true, true);
-      }
+      radioGroup.value = "otherAccount";
+      folderPopup.selectFolder(account.incomingServer.rootFolder);
     }
     else
     {
-      radioGroup.selectedItem = document.getElementById("accountDirectory");
-
-      // we should find out if there's another pop3/movemail server to defer to,
-      // perhaps by checking the number of elements in the picker. For now, 
-      // just use the local folders account
-      folderPopup.selectFolder(localFoldersAccount.incomingServer.rootFolder);
-
-      updateInboxAccount(false, false);
-
+      // Current account is not deferred.
+      radioGroup.value = "currentAccount";
+      // If there are no other suitable accounts to defer to,
+      // then disable the option.
+      if (!folderPopup.selectFolder())
+        document.getElementById("deferToOtherAccount").disabled = true;
     }
   }
 
@@ -106,7 +103,7 @@ function onOk()
     var gPrefsBundle = document.getElementById("bundle_prefs");
 
     // if this account wasn't deferred, and is now...
-    if (radioGroup.value != 1 && !gFirstDeferredAccount.length)
+    if (radioGroup.value != "currentAccount" && !gFirstDeferredAccount.length)
     {
       var confirmDeferAccount =
         gPrefsBundle.getString("confirmDeferAccountWarning");
@@ -118,14 +115,11 @@ function onOk()
     }
     switch (radioGroup.value)
     {
-      case "0":
-        gServerSettings['deferredToAccount'] = getLocalFoldersAccount().key;
-        break;
-      case "1":
+      case "currentAccount":
         gServerSettings['deferredToAccount'] = "";
         break;
-      case "2":
-        var server = document.getElementById("deferedServerFolderPicker")
+      case "otherAccount":
+        let server = document.getElementById("deferredServerFolderPicker")
                              .selectedItem._folder.server;
         let account = MailServices.accounts.FindAccountForServer(server);
         gServerSettings['deferredToAccount'] = account.key;
@@ -152,11 +146,8 @@ function onOk()
 
 
 // Set radio element choices and picker states
-function updateInboxAccount(enablePicker, enableDeferGetNewMail, event)
+function updateInboxAccount(enablePicker)
 {
-    var picker = document.getElementById('deferedServerFolderPicker');
-    picker.disabled = !enablePicker;
-
-    var deferCheckbox = document.getElementById('deferGetNewMail');
-    deferCheckbox.disabled = !enableDeferGetNewMail
+  document.getElementById("deferredServerFolderPicker").disabled = !enablePicker;
+  document.getElementById("deferGetNewMail").disabled = !enablePicker;
 }

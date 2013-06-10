@@ -53,10 +53,10 @@ function onInit(aPageId, aServerId)
   try {
     folder = GetMsgFolderFromUri(spamActionTargetFolder, true);
     document.getElementById("actionFolderPopup").selectFolder(folder);
-  } catch (e) {
-    // OK for folder to not exist.
+  } catch (e) { } // OK for the folder to not exist.
+  if (!folder)
     folder = GetMsgFolderFromUri(spamActionTargetFolder, false);
-  }
+
   document.getElementById("actionTargetFolder")
           .setAttribute("label", prettyFolderName(folder));
 

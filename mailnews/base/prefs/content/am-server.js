@@ -99,6 +99,7 @@ function onAdvanced()
   serverSettings.serverType = serverType;
 
   serverSettings.serverPrettyName = gServer.prettyName;
+  serverSettings.account = top.getCurrentAccount();
 
   if (serverType == "imap")
   {
@@ -297,7 +298,9 @@ function setupImapDeleteUI(aServerId)
   trashPopup._parentFolder = GetMsgFolderFromUri(aServerId);
   trashPopup._ensureInitialized();
 
-  var trashFolder = GetMsgFolderFromUri(aServerId+"/"+trashFolderName);
+  // TODO: There is something wrong here, selectFolder() fails even if the
+  // folder does exist. Try to fix in bug 802609.
+  let trashFolder = GetMsgFolderFromUri(aServerId + "/" + trashFolderName, false);
   try {
     trashPopup.selectFolder(trashFolder);
   } catch(ex) {

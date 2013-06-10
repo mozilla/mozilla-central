@@ -473,6 +473,7 @@ interface nsIMsgIncomingServer : nsISupports {
 
   nsIMsgFolder getMsgFolderFromURI(in nsIMsgFolder aFolderResource, in ACString aURI);
 
+  /// Indicates if any other server has deferred storage to this account.
   readonly attribute boolean isDeferredTo;
 
   const long keepDups = 0;

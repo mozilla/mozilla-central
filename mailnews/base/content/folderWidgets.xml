@@ -18,6 +18,9 @@
         Components.utils.import("resource:///modules/MailUtils.js", this);
         Components.utils.import("resource:///modules/folderUtils.jsm", this);
         Components.utils.import("resource:///modules/iteratorUtils.jsm", this);
+        Components.utils.import("resource:///modules/StringBundle.js", this);
+        this._stringBundle = new this
+            .StringBundle("chrome://messenger/locale/folderWidgets.properties");
 
         // Find out if we are in a wrapper (customize toolbars mode is active).
         let inWrapper = false;
@@ -77,6 +80,8 @@
         ]]></body>
       </method>
 
+      <field name="_stringBundle">null</field>
+
       <!--
          - If non-null, the subFolders of this nsIMsgFolder will be used to
          - populate this menu.  If this is null, the menu will be populated
@@ -132,7 +137,7 @@
                  aFolder.server.canCreateFoldersOnServer;
         },
 
-        defered: function filter_defered(aFolder) {
+        deferred: function filter_defered(aFolder) {
           return aFolder.server.canCreateFoldersOnServer &&
                  !aFolder.supportsOffline;
         },
@@ -319,14 +324,25 @@
       </method>
 
       <!--
-         - Actually constructs the menu-items based on the folders given
+         - Actually constructs the menu-items based on the folders given.
          -
-         - @param aFolders  an array of nsIMsgFolders to use for building
+         - @param aFolders  An array of nsIMsgFolders to use for building.
         -->
       <method name="_build">
         <parameter name="aFolders"/>
         <body><![CDATA[
-          var folders;
+          let folders;
+          let excludeServers = [];
+          let disableServers = [];
+
+          // excludeServers attribute is a comma separated list of server keys.
+          if (this.hasAttribute("excludeServers"))
+            excludeServers = this.getAttribute("excludeServers").split(",");
+
+          // disableServers attribute is a comma separated list of server keys.
+          if (this.hasAttribute("disableServers"))
+            disableServers = this.getAttribute("disableServers").split(",");
+
           // Extensions and other consumers can add to these modes too, see the
           // above note on the _filters field.
           var mode = this.getAttribute("mode");
@@ -336,6 +352,11 @@
             this._listener._filterFunction = filterFunction;
           } else {
             folders = aFolders;
+          }
+
+          if (excludeServers.length > 0) {
+            folders = folders.filter(function(aFolder) {
+              return !(excludeServers.indexOf(aFolder.server.key) != -1); });
           }
 
           /* This code block will do the following: Add a menu item that refers
@@ -379,30 +400,37 @@
             sep.setAttribute("generated", "true");
             this.appendChild(sep);
           }
-          // Some menus want a "Recent" option, but that should only be on our
-          // top-level menu
-          if (!this._parentFolder && this.getAttribute("showRecent") == "true")
-            this._buildRecentMenu();
 
-          /**
-           * Sorts the list of folders. We give first priority to the sortKey
-           * property, and then via a case-insensitive comparison of names
-           */
-          function nameCompare(a, b) {
-            var sortKey = a.compareSortKeys(b);
-            if (sortKey)
-              return sortKey;
-            return a.prettyName.toLowerCase() > b.prettyName.toLowerCase();
+          let globalInboxFolder = null;
+          // See if this is the toplevel menu (usually with accounts).
+          if (!this._parentFolder) {
+            // Some menus want a "Recent" option, but that should only be on our
+            // top-level menu
+            if (this.getAttribute("showRecent") == "true")
+              this._buildRecentMenu();
+            // If we are showing the accounts for deferring, move Local Folders to the top.
+            if (mode == "deferred") {
+              globalInboxFolder = this.MailServices.accounts.localFoldersServer
+                                                            .rootFolder;
+              let localFoldersIndex = folders.indexOf(globalInboxFolder);
+              if (localFoldersIndex != -1) {
+                folders.splice(localFoldersIndex, 1);
+                folders.unshift(globalInboxFolder);
+              }
+            }
+            // If we're the root of the folder hierarchy, then we actually don't
+            // want to sort the folders, but rather the accounts to which the
+            // folders belong.  Since that sorting was already done, we don't need
+            // to do anything for that case here.
+          } else {
+            // Sorts the list of folders. We give first priority to the sortKey
+            // property if it is available, otherwise a case-insensitive
+            // comparison of names.
+            folders = folders.sort(function nameCompare(a, b) {
+              return a.compareSortKeys(b) ||
+                     a.prettyName.localeCompare(b.prettyName);
+            });
           }
-
-          /**
-           * If we're the root of the folder hierarchy, then we actually don't
-           * want to sort the folders, but rather the accounts to which the
-           * folders belong.  Since that sorting was already done, we don't need
-           * to do anything for that case here
-           */
-          if (this._parentFolder)
-            folders = folders.sort(nameCompare);
 
           /* In some cases, the user wants to have a list of subfolders for only
            * some account types (or maybe all of them). So we use this to
@@ -440,8 +468,9 @@
           // Remove this workaround when Bug 502900 is fixed.
           this.MailUtils.discoverFolders();
 
-          for each (var folder in folders) {
-            var node;
+          for (let folder of folders) {
+            let node;
+
             // If we're going to add subFolders, we need to make menus, not
             // menuitems.
             if (!folder.hasSubFolders || !shouldExpand(folder.server.type)) {
@@ -477,6 +506,9 @@
                                  this.getAttribute("oncommand"));
               popup.setAttribute("mode",
                                  this.getAttribute("mode"));
+              if (this.hasAttribute("disableServers"))
+                popup.setAttribute("disableServers",
+                                   this.getAttribute("disableServers"));
               if (this.hasAttribute("position"))
                 popup.setAttribute("position",
                                    this.getAttribute("position"));
@@ -496,13 +528,20 @@
               popup.setAttribute("generated", "true");
               node.appendChild(popup);
             }
+
+            if (disableServers.indexOf(folder.server.key) != -1)
+              node.setAttribute("disabled", "true");
+
             node._folder = folder;
-            node.setAttribute("label", folder.prettyName);
-
+            let label = "";
+            if (mode == "deferred" && folder.isServer &&
+                folder.server.rootFolder == globalInboxFolder) {
+              label = this._stringBundle.get("globalInbox", [folder.prettyName]);
+            } else {
+              label = folder.prettyName;
+            }
+            node.setAttribute("label", label);
             this._setCssSelectors(folder, node);
-
-            //xxx for later optimization
-            //builtFolders.push(folder);
           }
         ]]></body>
       </method>
@@ -653,35 +692,56 @@
       <!--
          - Makes a given folder selected.
          -
-         - @param aFolder  the folder to select
-         - @note If aFolder is not in this popup, but is instead a descendant of
-         -       a member of the popup, that ancestor will be selected.
+         - @param aFolder  the folder to select (if unset, then choose first folder)
+         - @note  If aFolder is not in this popup, but is instead a descendant of
+         -        a member of the popup, that ancestor will be selected.
+         - @return  true if any usable folder was found, otherwise false.
         -->
       <method name="selectFolder">
         <parameter name="aFolder"/>
         <body><![CDATA[
-          for (var i in this.childNodes) {
-            var child = this.childNodes[i];
-            if (!child || !child._folder)
+          // Set the label of the aParent element as if aFolder had been selected.
+          function setupParent(aFolder, aParent) {
+            aParent.setAttribute("label", aFolder.name);
+            aParent.setAttribute("IsServer", aFolder.isServer);
+            aParent.setAttribute("IsSecure", aFolder.server.isSecure);
+            aParent.setAttribute("ServerType", aFolder.server.type);
+          }
+          for (let child of this.childNodes) {
+            if (!child || !child._folder || child.disabled)
               continue;
             // Is this the folder in question or subfolder of the folder?
-            if ((child._folder.URI == aFolder.URI) ||
+            if (!aFolder || (child._folder.URI == aFolder.URI) ||
                 (child.tagName == "menu" &&
                  child._folder.isAncestorOf(aFolder))) {
-              if (child._folder.URI == aFolder.URI) {
-                // Making an assumption about our DOM positioning here.
-                this.parentNode.selectedIndex = i;
+              if (!aFolder || (child._folder.URI == aFolder.URI))
+                this.parentNode.selectedItem = child;
+
+              if (aFolder) {
+                // If this is a subfolder of what's in question, we merely appear
+                // to select this node.
+                setupParent(aFolder || child._folder, this.parentNode);
               }
-              // If this is a subfolder of what's in question, we merely appear
-              // to select this node.
-              this.parentNode.setAttribute("label", aFolder.name);
-              this.parentNode.setAttribute("IsServer", aFolder.isServer);
-              this.parentNode.setAttribute("IsSecure", aFolder.server.isSecure);
-              this.parentNode.setAttribute("ServerType", aFolder.server.type);
-              return;
+              return true;
             }
           }
-          throw "unable to find folder to select!";
+
+          if (aFolder) {
+            // If the caller specified a folder to select and it was not
+            // found, blow up.
+            throw new Error("Unable to select folder " + aFolder.prettyName +
+                            " in the picker!");
+          } else {
+            // If the caller didn't care much but nothing got selected,
+            // this means there are at most some disabled items in the menulist.
+            // Pretend to select the first one so that the widget is not shown
+            // empty.
+            if (this.childNodes.length > 0)
+              setupParent(this.getItemAtIndex(0)._folder, this.parentNode);
+            else
+              Components.utils.reportError("Unable to find any folder in the picker!");
+          }
+          return false;
         ]]></body>
       </method>
 
@@ -703,7 +763,6 @@
 
           this._removeListener();
 
-          this._folders = null;
           this._initialized = false;
         ]]></body>
       </method>

@@ -105,25 +105,28 @@
     <vbox id="pop3Panel">
       <label flex="1" control="folderStorage">&pop3Desc.label;</label>
       <hbox align="center">
-        <radiogroup id="folderStorage" orient="horizontal" amsa_persist="true">
+        <radiogroup id="folderStorage"
+                    orient="horizontal"
+                    amsa_persist="true"
+                    onselect="updateInboxAccount(this.selectedIndex == 1);">
           <rows>
             <row>
-              <radio value="1" id = "accountDirectory" label="&accountDirectory.label;"
-                     accesskey="&accountDirectory.accesskey;"
-                     oncommand="updateInboxAccount(false, false)" />
-            </row>
-            <row align = "center">
-              <radio value="0" id = "globalInbox" label="&globalInbox.label;"
-                      oncommand="updateInboxAccount(false, true)" 
-                      accesskey="&globalInbox.accesskey;"/>
+              <radio id="deferToCurrentAccount"
+                     value="currentAccount"
+                     label="&accountDirectory.label;"
+                     accesskey="&accountDirectory.accesskey;"/>
             </row>
             <row>
-              <radio value="2" id="deferToServer" label="&deferToServer.label;"
-                     accesskey="&deferToServer.accesskey;"
-                     oncommand="updateInboxAccount(true, true)"/>
-  	        <menulist id="deferedServerFolderPicker" aria-labelledby="deferToServer">
-                  <menupopup type="folder" id="deferedServerPopup"
-                             expandFolders="false" mode="defered"/>
+              <radio id="deferToOtherAccount"
+                     value="otherAccount"
+                     label="&deferToServer.label;"
+                     accesskey="&deferToServer.accesskey;"/>
+                <menulist id="deferredServerFolderPicker"
+                          aria-labelledby="deferToServer">
+                  <menupopup id="deferredServerPopup"
+                             type="folder"
+                             expandFolders="false"
+                             mode="deferred"/>
                 </menulist>
             </row>
           </rows>
