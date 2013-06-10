@@ -1253,7 +1253,7 @@ ifdef MOZBUILD_DERIVED
 # files is handled by SUBSTITUTE_FILES. This includes Makefile.in.
 ifneq ($(SUBSTITUTE_FILES),,)
 $(SUBSTITUTE_FILES): % : $(srcdir)/%.in $(DEPTH)/config/autoconf.mk
-	@$(PYTHON) $(DEPTH)/config.status -n --file=$@
+	@$(PYTHON) $(MOZDEPTH)/config.status -n --file=$@
 	@$(TOUCH) $@
 endif
 
@@ -1261,7 +1261,7 @@ endif
 # rebuild. While relatively expensive, it should only occur once per recursion.
 ifneq ($(BACKEND_INPUT_FILES),,)
 backend.mk: $(BACKEND_INPUT_FILES)
-	@$(PYTHON) $(DEPTH)/config.status -n
+	@$(PYTHON) $(MOZDEPTH)/config.status -n
 	@$(TOUCH) $@
 endif
 
@@ -1269,7 +1269,7 @@ endif # MOZBUILD_DERIVED
 
 ifndef NO_MAKEFILE_RULE
 Makefile: Makefile.in
-	@$(PYTHON) $(DEPTH)/config.status -n --file=Makefile
+	@$(PYTHON) $(MOZDEPTH)/config.status -n --file=Makefile
 	@$(TOUCH) $@
 endif
 
@@ -1277,14 +1277,14 @@ ifndef NO_SUBMAKEFILES_RULE
 ifdef SUBMAKEFILES
 # VPATH does not work on some machines in this case, so add $(srcdir)
 $(SUBMAKEFILES): % : $(srcdir)/%.in
-	$(PYTHON) $(DEPTH)/config.status -n --file="$@"
+	$(PYTHON) $(MOZDEPTH)/config.status -n --file="$@"
 	@$(TOUCH) $@
 endif
 endif
 
 ifdef AUTOUPDATE_CONFIGURE
 $(topsrcdir)/configure: $(topsrcdir)/configure.in
-	(cd $(topsrcdir) && $(AUTOCONF)) && $(PYTHON) $(DEPTH)/config.status -n --recheck
+	(cd $(topsrcdir) && $(AUTOCONF)) && $(PYTHON) $(MOZDEPTH)/config.status -n --recheck
 endif
 
 ###############################################################################
