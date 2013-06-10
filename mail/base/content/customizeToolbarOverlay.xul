@@ -19,6 +19,7 @@
             oncommand="overlayUpdateToolbarMode(this.value, 'mail-toolbox');"/>
 
   <window id="CustomizeToolbarWindow"
+          windowtype="mailnews:customizeToolbar"
           onload="overlayOnLoad();">
     <data id="iconsBesideText.label"
           value="&iconsBesideText.label;"/>

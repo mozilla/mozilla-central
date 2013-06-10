@@ -216,13 +216,28 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
     // The GetMail button is stuck in a strange state right now, since the
     // customization wrapping preserves its children, but not its initialized
     // state. Fix that here.
+    // That is also true for the File -> "Get new messages for" menuitems in both
+    // menus (old and new App menu).
+    // TODO: try to fix folderWidgets.xml to not do this.
+    // See Bug 520457 and Bug 534448.
     // Fix Bug 565045: Only treat "Get Message Button" if it is in our toolbox
-    let popup = toolbox.querySelector("#button-getMsgPopup");
-    if (popup) {
-      // We can't use _teardown here, because it'll remove the Get All menuitem
-      let sep = toolbox.querySelector("#button-getAllNewMsgSeparator");
-      while (popup.lastChild != sep)
-        popup.removeChild(popup.lastChild);
+    for (let popup of [ toolbox.querySelector("#button-getMsgPopup"),
+                        document.getElementById("menu_getAllNewMsgPopup"),
+                        document.getElementById("appmenu_getAllNewMsgPopup") ])
+    {
+      if (!popup)
+        continue;
+
+      // .teardown() is only available here if the menu has its frame
+      // otherwise the folderWidgets.xml::folder-menupopup binding is not
+      // attached to the popup. So if it is not available, remove the items
+      // explicitly, starting the the menuseparator element.
+      if ("_teardown" in popup) {
+        popup._teardown();
+      } else {
+        while (popup.lastChild.tagName != "menuseparator")
+          popup.removeChild(popup.lastChild);
+      }
     }
   }
 }

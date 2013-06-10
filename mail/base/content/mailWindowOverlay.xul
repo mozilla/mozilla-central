@@ -2233,6 +2233,7 @@
           </menu>
           <menuseparator id="fileMenuAfterSaveSeparator"/>
           <menu label="&getNewMsgForCmd.label;" accesskey="&getNewMsgForCmd.accesskey;"
+                id="menu_getAllNewMsg"
                 oncommand="MsgGetMessagesForAccount(event.target._folder)">
             <menupopup type="folder" mode="getMail" id="menu_getAllNewMsgPopup"
                        expandFolders="false">
