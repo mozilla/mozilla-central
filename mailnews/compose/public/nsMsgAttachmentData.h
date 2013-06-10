@@ -18,7 +18,7 @@ public:
   NS_DECL_ISUPPORTS
 
   nsMsgAttachmentData();
-  ~nsMsgAttachmentData();
+  virtual ~nsMsgAttachmentData();
 
   nsCOMPtr<nsIURI> m_url;   // The URL to attach.
 
@@ -66,7 +66,7 @@ public:
   NS_DECL_ISUPPORTS
 
   nsMsgAttachedFile();
-  ~nsMsgAttachedFile();
+  virtual ~nsMsgAttachedFile();
 
   nsCOMPtr<nsIURI> m_origUrl; // Where it came from on the network (or even elsewhere on the local disk.)
 

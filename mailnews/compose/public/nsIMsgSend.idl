@@ -297,8 +297,17 @@ interface nsIMsgSend : nsISupports
     /* Abort current send/save operation */
     void abort();
 
-    /* Report a send failure */
-    nsresult fail(in nsresult failure_code, in wstring error_msg);
+    /**
+     * Report a send failure.
+     *
+     * @param aFailureCode     The failure code of the send operation. See
+     *                         nsComposeStrings.h for possible values. NS_OK is a possible
+     *                         value as well; if passed, the function won't prompt the user     *                         but will still about the session.
+     * @param aErrorMsg        The appropriate error string for the failure.
+     * @result                 A modified result value in the case a user action results in
+     *                         a different way to handle the failure.
+     */
+    nsresult fail(in nsresult aFailureCode, in wstring aErrorMsg);
 
     /* Disable UI notification (alert message) */
     void setGUINotificationState(in boolean aEnableFlag);

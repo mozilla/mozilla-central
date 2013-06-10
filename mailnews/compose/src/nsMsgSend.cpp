@@ -1015,7 +1015,7 @@ FAIL:
     {
       m_status = status;
       nsresult ignoreMe;
-      Fail (status, nullptr, &ignoreMe);
+      Fail(status, nullptr, &ignoreMe);
     }
   }
 
@@ -3662,25 +3662,26 @@ nsMsgComposeAndSend::DeliverFileAsNews()
 }
 
 NS_IMETHODIMP
-nsMsgComposeAndSend::Fail(nsresult failure_code, const PRUnichar * error_msg, nsresult *_retval)
+nsMsgComposeAndSend::Fail(nsresult aFailureCode, const PRUnichar *aErrorMsg,
+                          nsresult *aResult)
 {
-  NS_ENSURE_ARG_POINTER(_retval);
-  *_retval = failure_code;
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = aFailureCode;
 
-  if (NS_FAILED(failure_code))
+  if (NS_FAILED(aFailureCode))
   {
     nsCOMPtr<nsIPrompt> prompt;
     GetDefaultPrompt(getter_AddRefs(prompt));
 
     if (mSendReport)
     {
-      mSendReport->SetError(nsIMsgSendReport::process_Current, failure_code, false);
-      mSendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg, false);
-      mSendReport->DisplayReport(prompt, true, true, _retval);
+      mSendReport->SetError(nsIMsgSendReport::process_Current, aFailureCode, false);
+      mSendReport->SetMessage(nsIMsgSendReport::process_Current, aErrorMsg, false);
+      mSendReport->DisplayReport(prompt, true, true, aResult);
     }
     else
     {
-      if (failure_code != NS_ERROR_BUT_DONT_SHOW_ALERT)
+      if (aFailureCode != NS_ERROR_BUT_DONT_SHOW_ALERT)
         nsMsgDisplayMessageByID(prompt, NS_ERROR_SEND_FAILED);
     }
   }
@@ -3982,8 +3983,6 @@ nsMsgComposeAndSend::GetMessageId(nsACString& aMessageId)
 NS_IMETHODIMP
 nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
 {
-  nsCOMPtr<nsIMsgCopyServiceListener> copyListener;
-
   // This is one per copy so make sure we clean this up first.
   mCopyObj = nullptr;
 
@@ -4000,7 +3999,6 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
 
   if (NS_FAILED(aStatus))
   {
-    bool retry = false;
     nsresult rv;
     nsCOMPtr<nsIStringBundleService> bundleService =
       mozilla::services::GetStringBundleService();
@@ -4017,6 +4015,7 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
                                       getter_Copies(msg));
     if (NS_SUCCEEDED(rv))
     {
+      bool retry = false;
       nsMsgAskBooleanQuestionByString(prompt, msg.get(), &retry, nullptr);
       if (retry)
       {
@@ -4024,6 +4023,11 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
         return SendToMagicFolder(m_deliver_mode);
       }
     }
+
+    // We failed, and the user decided not to retry. So we're just going to
+    // fail out. However, give Fail a success code so that it doesn't prompt
+    // the user a second time as they already know about the failure.
+    Fail(NS_OK, nullptr, &aStatus);
   }
   // Ok, now to support a second copy operation, we need to figure
   // out which copy request just finished. If the user has requested
@@ -4052,20 +4056,12 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
         return NS_OK;
     }
   }
-  else if (NS_FAILED(aStatus))
-  {
-    //
-    // If we hit here, the ASYNC copy operation FAILED and we should at least tell the
-    // user that it did fail but the send operation has already succeeded. This only if
-    // we are sending the message and not just saving it!
-
-    Fail(aStatus, nullptr, &aStatus);
-  }
 
   // If we are here, its real cleanup time!
   if (mListener)
   {
-    copyListener = do_QueryInterface(mListener);
+    nsCOMPtr<nsIMsgCopyServiceListener> copyListener =
+      do_QueryInterface(mListener);
     if (copyListener)
       copyListener->OnStopCopy(aStatus);
   }
