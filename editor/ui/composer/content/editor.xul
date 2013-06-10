@@ -337,7 +337,7 @@
     </deck>
 
     <!-- Edit Mode toolbar -->
-    <hbox id="EditModeToolbar"
+    <tabbox id="EditModeToolbar"
           persist="collapsed">
       <tabs id="EditModeTabs"
             class="tabs-bottom"
@@ -365,7 +365,7 @@
              tooltiptext="&PreviewMode.tooltip;"
              command="cmd_PreviewMode"/>
       </tabs>
-    </hbox>
+    </tabbox>
 
   </vbox> <!-- appcontent -->
 </hbox><!-- sidebar-parent -->
