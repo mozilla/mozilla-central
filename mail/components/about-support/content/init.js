@@ -70,11 +70,6 @@ window.onload = function () {
   populateLibVersionsSection();  
 }
 
-function userDataHandler(aOp, aKey, aData, aSrc, aDest) {
-  if (aOp == UserDataHandler.NODE_CLONED || aOp == UserDataHandler.NODE_IMPORTED)
-    aDest.setUserData(aKey, aData, userDataHandler);
-}
-
 function onShowPrivateDataChange(aCheckbox) {
   document.getElementById("about-support-private").disabled = aCheckbox.checked;
 }
@@ -94,13 +89,7 @@ function createElement(tagName, textContent, opt_attributes, opt_copyData) {
     elem.setAttribute(key, "" + value);
 
   if (opt_copyData != null) {
-    // Look for the (only) text node.
-    let textNode = elem.firstChild;
-    while (textNode && textNode.nodeType != Node.TEXT_NODE)
-      textNode = textNode.nextSibling;
-    // XXX warn here if textNode not found
-    if (textNode)
-      textNode.setUserData("copyData", opt_copyData, userDataHandler);
+    elem.dataset.copyData = opt_copyData;
   }
 
   return elem;

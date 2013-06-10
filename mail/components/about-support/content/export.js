@@ -105,6 +105,8 @@ function createCleanedUpContents(aHidePrivateData) {
 
 function cleanUpText(aElem, aHidePrivateData) {
   let node = aElem.firstChild;
+  let copyData = aElem.dataset.copyData;
+  delete aElem.dataset.copyData;
   while (node) {
     let classList = "classList" in node && node.classList;
     // Delete uionly nodes.
@@ -126,9 +128,10 @@ function cleanUpText(aElem, aHidePrivateData) {
     }
     else {
       // Replace localized text with non-localized text
-      let copyData = node.getUserData("copyData");
-      if (copyData != null)
+      if (copyData != null) {
         node.textContent = copyData;
+        copyData = null;
+      }
     }
 
     if (node.nodeType == Node.ELEMENT_NODE)
