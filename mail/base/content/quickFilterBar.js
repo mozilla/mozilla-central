@@ -515,15 +515,13 @@ let QuickFilterBarMuxer = {
   },
 
   get maybeActiveFilterer() {
-    if (this.tabmail.currentTabInfo &&
-       "quickFilter" in this.tabmail.currentTabInfo._ext)
+    if ("quickFilter" in this.tabmail.currentTabInfo._ext)
       return this.tabmail.currentTabInfo._ext.quickFilter;
     return null;
   },
 
   get activeFilterer() {
-    if (this.tabmail.currentTabInfo &&
-        "quickFilter" in this.tabmail.currentTabInfo._ext)
+    if ("quickFilter" in this.tabmail.currentTabInfo._ext)
       return this.tabmail.currentTabInfo._ext.quickFilter;
     throw errorWithDebug("There is no active filterer but we want one.");
   },

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/**
+/*
  * Tests keyboard stuff that doesn't fall under some other test's heading.
  * Namely, control-shift-k toggling the bar into existence happens in
  * test-toggle-bar.js, but we test that repeatedly hitting control-shift-k
@@ -118,6 +118,7 @@ function test_escape_does_not_reach_us_from_gloda_search() {
   finally {
     glodaSearchWidget.collapsed = true;
   }
+
 }
 
 /**

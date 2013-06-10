@@ -150,18 +150,6 @@
                         orient="horizontal"
                         collapsed="true"
                         flex="2">
-        <menulist id="qfb-boolean-mode"
-                  tooltiptext="&quickFilterBar.booleanMode.tooltip;"
-                  persist="value">
-          <menupopup id="qfb-boolean-mode-popup">
-            <menuitem id="qfb-boolean-mode-or" value="OR"
-                      label="&quickFilterBar.booleanModeAny.label;"
-                      tooltiptext="&quickFilterBar.booleanModeAny.tooltip;"/>
-            <menuitem id="qfb-boolean-mode-and" value="AND"
-                      label="&quickFilterBar.booleanModeAll.label;"
-                      tooltiptext="&quickFilterBar.booleanModeAll.tooltip;"/>
-          </menupopup>
-        </menulist>
         </arrowscrollbox>
         <hbox id="quick-filter-bar-filter-text-bar"
               collapsed="true"

@@ -2,12 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/**
+/*
  * Verify that we are constructing the filters that we expect and that they
  * are hooked up to the right buttons.
  */
-
-// make SOLO_TEST=quick-filter-bar/test-filter-logic.js mozmill-one
 
 var MODULE_NAME = 'test-filter-logic';
 
@@ -17,9 +15,12 @@ var MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers',
                        'quick-filter-bar-helper'];
 
 function setupModule(module) {
-  collector.getModule("folder-display-helpers").installInto(module);
-  collector.getModule("window-helpers").installInto(module);
-  collector.getModule("quick-filter-bar-helper").installInto(module);
+  let fdh = collector.getModule('folder-display-helpers');
+  fdh.installInto(module);
+  let wh = collector.getModule('window-helpers');
+  wh.installInto(module);
+  let qfb = collector.getModule('quick-filter-bar-helper');
+  qfb.installInto(module);
 }
 
 function test_filter_unread() {
@@ -138,13 +139,8 @@ function test_filter_tags() {
   toggle_tag_constraints(tagA); // must have tag A
   assert_messages_in_view([setTagA, setTagAB]);
 
-  toggle_tag_constraints(tagB);
-  // mode is OR by default -> must have tag A or tag B
+  toggle_tag_constraints(tagB); // must have tag A OR tag B
   assert_messages_in_view([setTagA, setTagB, setTagAB]);
-
-  toggle_tag_mode();
-  // mode is now AND -> must have tag A and tag B
-  assert_messages_in_view([setTagAB]);
 
   toggle_tag_constraints(tagA); // must have tag B
   assert_messages_in_view([setTagB, setTagAB]);

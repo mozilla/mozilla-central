@@ -26,7 +26,6 @@ var EXPORT = [
   'assert_constraints_expressed',
   'toggle_boolean_constraints',
   'toggle_tag_constraints',
-  'toggle_tag_mode',
   'assert_tag_constraints_visible',
   'assert_tag_constraints_checked',
   'toggle_text_constraints',
@@ -131,22 +130,6 @@ function toggle_tag_constraints() {
 }
 
 /**
- * Set the tag filtering mode. Wait for messages after.
- */
-function toggle_tag_mode() {
-  if (mc.e("qfb-boolean-mode").value === "AND")
-    mc.keypress(mc.eid("qfb-boolean-mode"), "VK_DOWN", {}); // = move to "OR";
-  else if (mc.e("qfb-boolean-mode").value === "OR")
-    mc.keypress(mc.eid("qfb-boolean-mode"), "VK_UP", {}); // = move to "AND";
-  else
-    throw new Error("Unexpected qfb-boolean-mode value:" +
-                    mc.e("qfb-boolean-mode").value);
-
-  mc.keypress(mc.eid("qfb-boolean-mode"), "VK_RETURN", {});
-  wait_for_all_messages_to_load(mc);
-}
-
-/**
  * Verify that tag buttons exist for exactly the given set of tag keys in the
  *  provided variable argument list.  Ordering is significant.
  */
@@ -156,17 +139,16 @@ function assert_tag_constraints_visible() {
     throw new Error("The tag bar should not be collapsed!");
 
   let kids = mc.e("quick-filter-bar-tab-bar").childNodes;
-  let tagLength = kids.length - 1; // -1 for the qfb-boolean-mode widget
   // this is bad error reporting in here for now.
-  if (tagLength != arguments.length)
+  if (kids.length != arguments.length)
     throw new Error("Mismatch in expected tag count and actual. " +
                     "Expected " + arguments.length +
-                    " actual " + tagLength);
+                    " actual " + kids.length);
   for (let iArg = 0; iArg < arguments.length; iArg++) {
     let nodeId = "qfb-tag-" + arguments[iArg];
-    if (nodeId != kids[iArg+1].id)
+    if (nodeId != kids[iArg].id)
       throw new Error("Mismatch at tag " + iArg + " expected " + nodeId +
-                      " but got " + kids[iArg+1].id);
+                      " but got " + kids[iArg].id);
   }
 }
 
