@@ -24,7 +24,7 @@ function setupModule(module) {
   let cu = collector.getModule('customization-helpers');
   cu.installInto(module);
   gCDHelper = new CustomizeDialogHelper('mail-toolbar-menubar2',
-    'CustomizeMailToolbar', 'CustomizeToolbarWindow');
+    'CustomizeMailToolbar', "mailnews:customizeToolbar");
 }
 
 function teardownModule(module) {
@@ -43,8 +43,9 @@ function test_open_context_menu() {
 
   // Right click on the tab bar
   mc.rightClick(mc.eid("tabcontainer"));
+
   // Ensure that the popup opened
-  assert_equals(contextPopup.state, "open");
+  wait_for_popup_to_open(contextPopup);
 }
 
 /**

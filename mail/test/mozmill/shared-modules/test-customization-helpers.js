@@ -36,13 +36,14 @@ function installInto(module) {
  *   the ID of the toolbar to be customized
  * @param {} aOpenElementId
  *   the ID of the element to be clicked on to open the dialog
- * @param {} aDialogId
- *   the ID of the window containing the dialog to be opened
+ * @param {} aWindowType
+ *   the windowType of the window containing the dialog to be opened
  */
-function CustomizeDialogHelper(aToolbarId, aOpenElementId, aDialogId) {
+function CustomizeDialogHelper(aToolbarId, aOpenElementId, aWindowType) {
   this._toolbarId = aToolbarId;
   this._openElementId = aOpenElementId;
-  this._dialogId = aDialogId;
+  this._windowType = aWindowType;
+  this._openInWindow = !Services.prefs.getBoolPref(USE_SHEET_PREF);
 }
 
 
@@ -59,12 +60,12 @@ CustomizeDialogHelper.prototype = {
     aController.click(aController.eid(this._openElementId));
     // Depending on preferences the customization dialog is
     // either a normal window or embedded into a sheet.
-    if (Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
+    if (!this._openInWindow) {
       ctc = wh.wait_for_frame_load(aController.e("customizeToolbarSheetIFrame"),
         "chrome://global/content/customizeToolbar.xul");
     }
     else {
-      ctc = wh.wait_for_existing_window(this._dialogId);
+      ctc = wh.wait_for_existing_window(this._windowType);
     }
     return ctc;
   },
@@ -75,10 +76,14 @@ CustomizeDialogHelper.prototype = {
    *   the controller object of the customization dialog which should be closed
    */
   close: function CustomizeDialogHelper_close(aCtc) {
+    if (this._openInWindow)
+      wh.plan_for_window_close(aCtc);
+
     aCtc.click(aCtc.eid("donebutton"));
     // XXX There should be an equivalent for testing the closure of
     // XXX the dialog embedded in a sheet, but I do not know how.
-    if (!Services.prefs.getBoolPref(USE_SHEET_PREF, true)) {
+    if (this._openInWindow) {
+      wh.wait_for_window_close();
       fdh.assert_true(aCtc.window.closed, "The customization dialog is not closed.");
     }
   },
@@ -97,8 +102,9 @@ CustomizeDialogHelper.prototype = {
                            .document
                            .getElementById("main-box")
                            .querySelector("[oncommand*='overlayRestoreDefaultSet();']");
-    
+
     ctc.click(new elib.Elem(restoreButton));
+
     this.close(ctc);
 
     let toolbar = aController.e(this._toolbarId);

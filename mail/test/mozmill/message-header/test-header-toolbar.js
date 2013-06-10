@@ -31,7 +31,7 @@ function setupModule(module) {
   let cu = collector.getModule('customization-helpers');
   cu.installInto(module);
   gCDHelper = new CustomizeDialogHelper('header-view-toolbar',
-    'CustomizeHeaderToolbar', 'CustomizeToolbarWindow');
+    'CustomizeHeaderToolbar', "mailnews:customizeToolbar");
 
   folder = create_folder("HeaderToolbar");
 
