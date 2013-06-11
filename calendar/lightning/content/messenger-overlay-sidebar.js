@@ -450,6 +450,12 @@ window.addEventListener("load", ltnOnLoad, false);
  * Make the toolbars' context menu dependent on the current mode.
  */
 function onToolbarsPopupShowingWithMode(aEvent, aInsertPoint) {
+    if (onViewToolbarsPopupShowing.length < 3) {
+        // SeaMonkey
+        onViewToolbarsPopupShowing(aEvent);
+        return;
+    }
+
     let toolbox = [gCurrentMode + "-toolbox"];
     if (gCurrentMode != "mail") {
         toolbox.push("navigation-toolbox");
