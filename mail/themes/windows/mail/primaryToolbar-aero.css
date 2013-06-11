@@ -280,7 +280,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
 /* ::::: toolbar buttons on tabbar toolbar ::::: */
 
-#tabbar-toolbar .toolbarbutton-1:not([type="menu-button"]),
+#tabbar-toolbar .toolbarbutton-1,
 #tabbar-toolbar .toolbarbutton-menubutton-button,
 #tabbar-toolbar .toolbarbutton-menubutton-dropmarker {
   margin: 0 0 -1px;
