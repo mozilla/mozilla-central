@@ -240,7 +240,10 @@ const DOMLinkHandler = {
 
 const kTelemetryPrompted    = "toolkit.telemetry.prompted";
 const kTelemetryEnabled     = "toolkit.telemetry.enabled";
+const kTelemetryRejected    = "toolkit.telemetry.rejected";
 const kTelemetryServerOwner = "toolkit.telemetry.server_owner";
+// This is used to reprompt/renotify users when privacy message changes
+const kTelemetryPromptRev   = 2;
 
 var contentTabBaseType = {
   inContentWhitelist: ['about:addons'],
@@ -736,26 +739,26 @@ var specialTabs = {
    * This is controlled by the pref toolkit.telemetry.prompted
    */
   shouldShowTelemetryNotification: function() {
-    // For a transitional period (expected end in mid-2013) we allow the pref
-    // kTelemetryPrompted to be bool or int and reset it to bool.
-    // See bug 807848 for more details.
+    // Toolkit has decided that the pref should have no default value, so this
+    // throws if not yet initialized.
+    let telemetryPrompted = false;
     try {
-      if (Services.prefs.getIntPref(kTelemetryPrompted) > 0) {
-        Services.prefs.clearUserPref(kTelemetryPrompted);
-        Services.prefs.setBoolPref(kTelemetryPrompted, true);
-        return false;
-      }
-    } catch (e) {
-      try {
-        if (Services.prefs.getBoolPref(kTelemetryPrompted))
-          return false;
-      } catch (e) { }
-    }
-    try {
-      // toolkit has decided that the pref should have no default value
-      if (Services.prefs.getBoolPref(kTelemetryEnabled))
-        return false;
+      telemetryPrompted = (Services.prefs.getIntPref(kTelemetryPrompted) >= kTelemetryPromptRev);
     } catch (e) { }
+    let telemetryEnabled = false;
+    try {
+      telemetryEnabled = (Services.prefs.getBoolPref(kTelemetryEnabled));
+    } catch (e) { }
+    // In case user already allowed telemetry, do not bother him with any updated
+    // prompt. Clear the pref first, in case it was not Int (from older versions).
+    if (telemetryEnabled && !telemetryPrompted) {
+      Services.prefs.clearUserPref(kTelemetryPrompted);
+      Services.prefs.setIntPref(kTelemetryPrompted, kTelemetryPromptRev);
+    }
+
+    if (telemetryEnabled || telemetryPrompted)
+      return false;
+
     return true;
   },
 
@@ -771,6 +774,11 @@ var specialTabs = {
     var serverOwner = Services.prefs.getCharPref(kTelemetryServerOwner);
     var telemetryText = telemetryBundle.get("telemetryText", [productName, serverOwner]);
 
+    // Clear all the prefs as we will set them as needed after answering the prompt.
+    Services.prefs.clearUserPref(kTelemetryPrompted);
+    Services.prefs.clearUserPref(kTelemetryEnabled);
+    Services.prefs.clearUserPref(kTelemetryRejected);
+
     var buttons = [
       {
         label:     telemetryBundle.get("telemetryYesButtonLabel"),
@@ -784,12 +792,14 @@ var specialTabs = {
         label:     telemetryBundle.get("telemetryNoButtonLabel"),
         accessKey: telemetryBundle.get("telemetryNoButtonAccessKey"),
         popup:     null,
-        callback:  function(aNotificationBar, aButton) {}
+        callback:  function(aNotificationBar, aButton) {
+          Services.prefs.setBoolPref(kTelemetryRejected, true);
+        }
       }
     ];
 
     // Set pref to indicate we've shown the notification.
-    Services.prefs.setBoolPref(kTelemetryPrompted, true);
+    Services.prefs.setIntPref(kTelemetryPrompted, kTelemetryPromptRev);
 
     var notification = notifyBox.appendNotification(telemetryText, "telemetry", null, notifyBox.PRIORITY_INFO_LOW, buttons);
     notification.persistence = 3; // arbitrary number, just so bar sticks around for a bit

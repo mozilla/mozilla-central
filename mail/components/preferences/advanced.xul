@@ -45,9 +45,18 @@
       <preference id="mailnews.database.global.indexer.enabled" 
                   name="mailnews.database.global.indexer.enabled" 
                   type="bool"/>
-      <preference id="toolkit.telemetry.enabled" 
-                  name="toolkit.telemetry.enabled" 
+
+      <preference id="toolkit.telemetry.enabled"
+                  name="toolkit.telemetry.enabled"
+                  onchange="gAdvancedPane.telemetryEnabledChanged(event);"
                   type="bool"/>
+      <preference id="toolkit.telemetry.prompted"
+                  name="toolkit.telemetry.prompted"
+                  type="int"/>
+      <preference id="toolkit.telemetry.rejected"
+                  name="toolkit.telemetry.rejected"
+                  type="bool"/>
+
 #ifdef HAVE_SHELL_SERVICE
       <preference id="mail.shell.checkDefaultClient"
                   name="mail.shell.checkDefaultClient"

@@ -108,6 +108,18 @@ var gAdvancedPane = {
                                         "", null);
   },
 
+  /**
+   * When the user toggles telemetry, update the rejected value as well, so we
+   * know he expressed a choice, and don't re-prompt inadvertently.
+   */
+  telemetryEnabledChanged: function (event)
+  {
+    let rejected = document.getElementById("toolkit.telemetry.rejected");
+    rejected.value = !event.target.value;
+    let displayed = document.getElementById("toolkit.telemetry.prompted");
+    displayed.value = 2;
+  },
+
   // NETWORK TAB
 
   /*
