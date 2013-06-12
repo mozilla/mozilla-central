@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/messenger.dtd">
+
+<overlay id="debugger-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/javascript" src="chrome://messenger/content/debugger/dbg-messenger-overlay.js"/>
+
+  <menupopup id="taskPopup">
+    <menuitem id="devtoolsDebugger"
+              type="checkbox"
+              insertafter="menu_inspector,javascriptConsole,javaScriptConsole"
+              label="&allowRemoteDebugging.label;"
+              accesskey="&allowRemoteDebugging.accesskey;"
+              oncommand="toggleDebugger()"/>
+  </menupopup>
+</overlay>

@@ -487,6 +487,8 @@
 <!-- LOCALIZATION NOTE (accountManagerCmdUnix.accesskey): belongs to accountManagerCmd.label,
         which is placed under the Edit menu on Unix systems -->
 <!ENTITY accountManagerCmdUnix.accesskey "A">
+<!ENTITY allowRemoteDebugging.label "Allow Remote Debugging">
+<!ENTITY allowRemoteDebugging.accesskey "g">
 
 <!-- Mail Toolbar -->
 <!ENTITY getMsgButton.label "Get Mail">
