@@ -1599,22 +1599,6 @@
                   label="&bodyMenuFeed.label;">
               <menupopup id="appmenu_viewFeedSummaryPopupMenu"
                          onpopupshowing="InitAppmenuViewBodyMenu()">
-                <menuitem id="appmenu_bodyFeedSummaryAllowHTML"
-                          type="radio"
-                          name="viewFeedBodyHTMLGroup"
-                          label="&bodyAllowHTML.label;"
-                          oncommand="MsgFeedBodyRenderPrefs(false, 0, 0)"/>
-                <menuitem id="appmenu_bodyFeedSummarySanitized"
-                          type="radio"
-                          name="viewFeedBodyHTMLGroup"
-                          label="&bodySanitized.label;"
-                          oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
-                <menuitem id="appmenu_bodyFeedSummaryAsPlaintext"
-                          type="radio"
-                          name="viewFeedBodyHTMLGroup"
-                          label="&bodyAsPlaintext.label;"
-                          oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
-                <menuseparator id="appmenu_viewFeedSummarySeparator"/>
                 <menuitem id="appmenu_bodyFeedGlobalWebPage"
                           type="radio"
                           name="viewFeedSummaryGroup"
@@ -1633,6 +1617,22 @@
                           label="&viewFeedSummaryFeedPropsPref.label;"
                           observes="bodyFeedPerFolderPref"
                           oncommand="FeedMessageHandler.onSelectPref = 2"/>
+                <menuseparator id="appmenu_viewFeedSummarySeparator"/>
+                <menuitem id="appmenu_bodyFeedSummaryAllowHTML"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodyAllowHTML.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(false, 0, 0)"/>
+                <menuitem id="appmenu_bodyFeedSummarySanitized"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodySanitized.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(false, 3, gDisallow_classes_no_html)"/>
+                <menuitem id="appmenu_bodyFeedSummaryAsPlaintext"
+                          type="radio"
+                          name="viewFeedBodyHTMLGroup"
+                          label="&bodyAsPlaintext.label;"
+                          oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
               </menupopup>
             </menu>
             <menuitem id="appmenu_viewAttachmentsInlineMenuitem"
@@ -2517,6 +2517,25 @@
                 accesskey="&bodyMenuFeed.accesskey;">
             <menupopup id="viewFeedSummaryPopupMenu" 
                        onpopupshowing="InitViewBodyMenu()">
+              <menuitem id="bodyFeedGlobalWebPage"
+                        type="radio"
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedWebPage.label;"
+                        accesskey="&viewFeedWebPage.accesskey;"
+                        oncommand="FeedMessageHandler.onSelectPref = 0"/>
+              <menuitem id="bodyFeedGlobalSummary"
+                        type="radio"
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedSummary.label;"
+                        accesskey="&viewFeedSummary.accesskey;"
+                        oncommand="FeedMessageHandler.onSelectPref = 1"/>
+              <menuitem id="bodyFeedPerFolderPref"
+                        type="radio"
+                        name="viewFeedSummaryGroup"
+                        label="&viewFeedSummaryFeedPropsPref.label;"
+                        accesskey="&viewFeedSummaryFeedPropsPref.accesskey;"
+                        oncommand="FeedMessageHandler.onSelectPref = 2"/>
+              <menuseparator id="viewFeedSummarySeparator"/>
               <menuitem id="bodyFeedSummaryAllowHTML" 
                         type="radio" 
                         name="viewFeedBodyHTMLGroup"
@@ -2535,25 +2554,6 @@
                         label="&bodyAsPlaintext.label;" 
                         accesskey="&bodyAsPlaintext.accesskey;"
                         oncommand="MsgFeedBodyRenderPrefs(true, 1, gDisallow_classes_no_html)"/>
-              <menuseparator id="viewFeedSummarySeparator"/>
-              <menuitem id="bodyFeedGlobalWebPage" 
-                        type="radio" 
-                        name="viewFeedSummaryGroup"
-                        label="&viewFeedWebPage.label;" 
-                        accesskey="&viewFeedWebPage.accesskey;"
-                        oncommand="FeedMessageHandler.onSelectPref = 0"/>
-              <menuitem id="bodyFeedGlobalSummary" 
-                        type="radio" 
-                        name="viewFeedSummaryGroup"
-                        label="&viewFeedSummary.label;" 
-                        accesskey="&viewFeedSummary.accesskey;"
-                        oncommand="FeedMessageHandler.onSelectPref = 1"/>
-              <menuitem id="bodyFeedPerFolderPref" 
-                        type="radio" 
-                        name="viewFeedSummaryGroup"
-                        label="&viewFeedSummaryFeedPropsPref.label;" 
-                        accesskey="&viewFeedSummaryFeedPropsPref.accesskey;"
-                        oncommand="FeedMessageHandler.onSelectPref = 2"/>
             </menupopup>
           </menu>
           <menuitem id="viewAttachmentsInlineMenuitem" label="&viewAttachmentsInlineCmd.label;" accesskey="&viewAttachmentsInlineCmd.accesskey;"
