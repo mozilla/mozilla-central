@@ -314,13 +314,6 @@ function get_file_system(aFile) {
       ctypes.uint32_t    // in: cchBufferLength
     );
 
-    // Returns the last error.
-    let GetLastError = kernel32.declare(
-      "GetLastError",
-      ctypes.winapi_abi,
-      ctypes.uint32_t // return type: the last error
-    );
-
     let filePath = aFile.path;
     // The volume path should be at most 1 greater than than the length of the
     // path -- add 1 for a trailing backslash if necessary, and 1 for the
@@ -330,7 +323,7 @@ function get_file_system(aFile) {
 
     if (!GetVolumePathName(filePath, volumePath, volumePath.length)) {
       throw new Error("Unable to get volume path for " + filePath + ", error " +
-                      GetLastError());
+                      ctypes.winLastError);
     }
 
     // Returns information about the file system for the given volume path. We just need
@@ -355,7 +348,7 @@ function get_file_system(aFile) {
     if (!GetVolumeInformation(volumePath, null, 0, null, null, null, fsName,
                               fsName.length)) {
       throw new Error("Unable to get volume information for " +
-                      volumePath.readString() + ", error " + GetLastError());
+                      volumePath.readString() + ", error " + ctypes.winLastError);
     }
 
     return fsName.readString();
@@ -442,20 +435,13 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
         HANDLE             // in, optional: hTemplateFile
       );
 
-      // Returns the last error.
-      let GetLastError = kernel32.declare(
-        "GetLastError",
-        ctypes.winapi_abi,
-        ctypes.uint32_t // return type: the last error
-      );
-
       let filePath = aFile.path;
       let hFile = CreateFile(filePath, GENERIC_WRITE, 0, null, OPEN_ALWAYS,
                              FILE_ATTRIBUTE_NORMAL, null);
       let hFileInt = ctypes.cast(hFile, ctypes.intptr_t);
       if (ctypes.Int64.compare(hFileInt.value, INVALID_HANDLE_VALUE) == 0) {
         throw new Error("CreateFile failed for " + filePath + ", error " +
-                        GetLastError());
+                        ctypes.winLastError);
       }
 
       try {
@@ -484,7 +470,7 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
                              FILE_SET_SPARSE_BUFFER.size, null, 0,
                              bytesReturned.address(), null)) {
           throw new Error("Unable to mark file as sparse, error " +
-                          GetLastError());
+                          ctypes.winLastError);
         }
         
         let zdInfo = new FILE_ZERO_DATA_INFORMATION();
@@ -496,7 +482,7 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
                              FILE_ZERO_DATA_INFORMATION.size, null, 0,
                              bytesReturned.address(), null)) {
           throw new Error("Unable to mark region as zero, error " +
-                          GetLastError());
+                          ctypes.winLastError);
         }
 
         // Move to past the sparse region and mark it as the end of the file. The
@@ -512,7 +498,7 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
         );
         if (!SetFilePointerEx(hFile, regionEnd, null, FILE_BEGIN)) {
           throw new Error("Unable to set file pointer to end, error " +
-                          GetLastError());
+                          ctypes.winLastError);
         }
 
         let SetEndOfFile = kernel32.declare(
@@ -522,7 +508,7 @@ function mark_file_region_sparse(aFile, aRegionStart, aRegionBytes) {
           HANDLE // in: hFile
         );
         if (!SetEndOfFile(hFile))
-          throw new Error("Unable to set end of file, error " + GetLastError());
+          throw new Error("Unable to set end of file, error " + ctypes.winLastError);
 
         return true;
       }
