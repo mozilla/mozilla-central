@@ -432,5 +432,5 @@ nsMsgAccount::ClearAllValues()
   nsresult rv = getPrefService();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return m_prefs->DeleteBranch(nullptr);
+  return m_prefs->DeleteBranch("");
 }
