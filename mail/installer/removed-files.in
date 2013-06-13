@@ -268,23 +268,23 @@ modules/JSON.jsm
 modules/quickSearchManager.js
 mozilla-runtime@BIN_SUFFIX@
 #ifdef XP_WIN
-  #if _MSC_VER != 1400
+  #if MOZ_MSVC_REDIST != 1400
     Microsoft.VC80.CRT.manifest
     msvcm80.dll
     msvcp80.dll
     msvcr80.dll
   #endif
-  #if _MSC_VER != 1500
+  #if MOZ_MSVC_REDIST != 1500
     Microsoft.VC90.CRT.manifest
     msvcm90.dll
     msvcp90.dll
     msvcr90.dll
   #endif
-  #if _MSC_VER != 1600
+  #if MOZ_MSVC_REDIST != 1600
     msvcp100.dll
     msvcr100.dll
   #endif
-  #if _MSC_VER != 1700
+  #if MOZ_MSVC_REDIST != 1700
     msvcp110.dll
     msvcr110.dll
   #endif

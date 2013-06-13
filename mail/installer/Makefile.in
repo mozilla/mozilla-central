@@ -61,6 +61,11 @@ endif
 
 DEFINES += -DMOZ_CHILD_PROCESS_NAME=$(MOZ_CHILD_PROCESS_NAME)
 
+# Set MSVC dlls version to package, if any.
+ifdef WIN32_REDIST_DIR
+DEFINES += -DMOZ_MSVC_REDIST=$(_MSC_VER)
+endif
+
 ifneq (,$(filter WINNT Darwin Android,$(OS_TARGET)))
 DEFINES += -DMOZ_SHARED_MOZGLUE=1
 endif
