@@ -1409,8 +1409,18 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
   if (m_flags[aRow] & nsMsgMessageFlags::Marked)
     properties.AppendLiteral(" flagged");
 
-  if (flags & nsMsgMessageFlags::Ignored)
+  // For threaded display add the ignoreSubthread property to the
+  // subthread top row (this row). For non-threaded add it to all rows.
+  if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) &&
+      (flags & nsMsgMessageFlags::Ignored)) {
     properties.AppendLiteral(" ignoreSubthread");
+  }
+  else {
+    bool ignored;
+    msgHdr->GetIsKilled(&ignored);
+    if (ignored)
+      properties.AppendLiteral(" ignoreSubthread");
+  }
 
   nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
 
@@ -1488,27 +1498,28 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(int32_t aRow, nsITreeColumn *col, n
   }
 #endif
 
-  if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+
+  nsCOMPtr <nsIMsgThread> thread;
+  rv = GetThreadContainingIndex(aRow, getter_AddRefs(thread));
+  if (NS_SUCCEEDED(rv) && thread)
   {
-    if (m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD)
-    {
-      nsCOMPtr <nsIMsgThread> thread;
-      rv = GetThreadContainingIndex(aRow, getter_AddRefs(thread));
-      if (NS_SUCCEEDED(rv) && thread)
-      {
-        uint32_t numUnreadChildren;
-        thread->GetNumUnreadChildren(&numUnreadChildren);
-        if (numUnreadChildren > 0)
-          properties.AppendLiteral(" hasUnread");
-        thread->GetFlags(&flags);
-        if (flags & nsMsgMessageFlags::Watched)
-          properties.AppendLiteral(" watch");
-        if (flags & nsMsgMessageFlags::Ignored)
-          properties.AppendLiteral(" ignore");
-      }
+    uint32_t numUnreadChildren;
+    thread->GetNumUnreadChildren(&numUnreadChildren);
+    if (numUnreadChildren > 0)
+      properties.AppendLiteral(" hasUnread");
+
+    // For threaded display add the ignore/watch properties to the
+    // thread top row. For non-threaded add it to all rows.
+    if (!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) ||
+         ((m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) &&
+        (m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD))) {
+      thread->GetFlags(&flags);
+      if (flags & nsMsgMessageFlags::Watched)
+        properties.AppendLiteral(" watch");
+      if (flags & nsMsgMessageFlags::Ignored)
+        properties.AppendLiteral(" ignore");
     }
   }
-
   return NS_OK;
 }
 

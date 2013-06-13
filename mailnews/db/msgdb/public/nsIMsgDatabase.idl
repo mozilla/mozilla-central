@@ -238,7 +238,7 @@ interface nsIMsgDBService : nsISupports
   readonly attribute nsIArray openDBs;
 };
 
-[scriptable, uuid(21122b78-12ed-4657-aa07-29e109667825)]
+[scriptable, uuid(09839bbb-d55c-4d38-a006-8f9eb4894774)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   void forceFolderDBClosed(in nsIMsgFolder aFolder);
   void Close(in boolean aForceCommit);
@@ -254,6 +254,7 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   /// Folder this db was opened on.
   readonly attribute nsIMsgFolder folder;
+
   /**
    * This is used when deciding which db's to close to free up memory
    * and other resources in an LRU manner. It doesn't track every operation
@@ -384,16 +385,29 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
                       out unsigned long aCount,
                       [array, size_is(aCount)] out nsMsgKey aKeys);
 
-  void MarkThreadIgnored(in nsIMsgThread thread, in nsMsgKey threadKey, in boolean bIgnored,
-                               in nsIDBChangeListener instigator);
-  void MarkThreadWatched(in nsIMsgThread thread, in nsMsgKey threadKey, in boolean bWatched,
-                               in nsIDBChangeListener instigator);
+  /// Mark the specified thread ignored.
+  void MarkThreadIgnored(in nsIMsgThread thread, in nsMsgKey threadKey,
+                         in boolean bIgnored,
+                         in nsIDBChangeListener instigator);
+
+  /// Mark the specified thread watched.
+  void MarkThreadWatched(in nsIMsgThread thread, in nsMsgKey threadKey,
+                         in boolean bWatched,
+                         in nsIDBChangeListener instigator);
+
+  /// Mark the specified subthread ignored.
   void MarkHeaderKilled(in nsIMsgDBHdr msg, in boolean bIgnored,
                         in nsIDBChangeListener instigator);
 
+  /// Is the message read.
   boolean IsRead(in nsMsgKey key);
+  /// Is the message part of an ignored thread.
   boolean IsIgnored(in nsMsgKey key);
+  /// Is the message part of a watched thread.
+  boolean IsWatched(in nsMsgKey key);
+  /// Is the message flagged/starred.
   boolean IsMarked(in nsMsgKey key);
+  /// Does the message have attachments.
   boolean HasAttachments(in nsMsgKey key);
 
   void MarkAllRead(out unsigned long aCount,

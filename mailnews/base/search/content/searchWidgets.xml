@@ -48,10 +48,10 @@
             <xul:menuitem label="&deleteMessage.label;" value="deletemessage"/>
             <xul:menuitem label="&deleteFromPOP.label;" value="deletefrompopserver" enableforpop3="true"/>
             <xul:menuitem label="&fetchFromPOP.label;"  value="fetchfrompopserver" enableforpop3="true"/>
-            <xul:menuseparator enablefornews="true"/>
-            <xul:menuitem label="&ignoreThread.label;" value="ignorethread" enablefornews="true"/>
-            <xul:menuitem label="&ignoreSubthread.label;"  value="ignoresubthread" enablefornews="true"/>
-            <xul:menuitem label="&watchThread.label;"  value="watchthread" enablefornews="true"/>
+            <xul:menuseparator/>
+            <xul:menuitem label="&ignoreThread.label;" value="ignorethread"/>
+            <xul:menuitem label="&ignoreSubthread.label;" value="ignoresubthread"/>
+            <xul:menuitem label="&watchThread.label;" value="watchthread"/>
             <xul:menuseparator/>
             <xul:menuitem label="&stopExecution.label;" value="stopexecution"/>
           </xul:menupopup>

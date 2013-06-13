@@ -2179,9 +2179,8 @@ NS_IMETHODIMP nsMsgDatabase::IsMarked(nsMsgKey key, bool *pMarked)
 
 NS_IMETHODIMP nsMsgDatabase::IsIgnored(nsMsgKey key, bool *pIgnored)
 {
-  PR_ASSERT(pIgnored != NULL);
-  if (!pIgnored)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(pIgnored);
+
   nsCOMPtr <nsIMsgThread> threadHdr;
 
   nsresult rv = GetThreadForMsgKey(key, getter_AddRefs(threadHdr));
@@ -2193,6 +2192,24 @@ NS_IMETHODIMP nsMsgDatabase::IsIgnored(nsMsgKey key, bool *pIgnored)
   uint32_t threadFlags;
   threadHdr->GetFlags(&threadFlags);
   *pIgnored = !!(threadFlags & nsMsgMessageFlags::Ignored);
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgDatabase::IsWatched(nsMsgKey key, bool *pWatched)
+{
+  NS_ENSURE_ARG_POINTER(pWatched);
+
+  nsCOMPtr <nsIMsgThread> threadHdr;
+
+  nsresult rv = GetThreadForMsgKey(key, getter_AddRefs(threadHdr));
+  // This should be very surprising, but we leave that up to the caller
+  // to determine for now.
+  if (!threadHdr)
+    return NS_MSG_MESSAGE_NOT_FOUND;
+
+  uint32_t threadFlags;
+  threadHdr->GetFlags(&threadFlags);
+  *pWatched = !!(threadFlags & nsMsgMessageFlags::Watched);
   return rv;
 }
 

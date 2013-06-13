@@ -811,6 +811,19 @@
               label="&moveToFolderAgain.label;"
               accesskey="&moveToFolderAgain.accesskey;"/>
     <menuseparator id="paneContext-afterMove"/>
+    <menuitem id="mailContext-ignoreThread"
+              label="&contextKillThreadMenu.label;"
+              accesskey="&contextKillThreadMenu.accesskey;"
+              command="cmd_killThread"/>
+    <menuitem id="mailContext-ignoreSubthread"
+              label="&contextKillSubthreadMenu.label;"
+              accesskey="&contextKillSubthreadMenu.accesskey;"
+              command="cmd_killSubthread"/>
+    <menuitem id="mailContext-watchThread"
+              label="&contextWatchThreadMenu.label;"
+              accesskey="&contextWatchThreadMenu.accesskey;"
+              command="cmd_watchThread"/>
+    <menuseparator id="mailContext-afterWatchThread"/>
     <menuitem id="mailContext-saveAs"
               label="&contextSaveAs.label;"
               accesskey="&contextSaveAs.accesskey;"
@@ -2043,14 +2056,17 @@
             <menuitem label="&killThreadMenu.label;"
                       id="appmenu_killThread"
                       key="key_killThread"
+                      type="checkbox"
                       command="cmd_killThread"/>
             <menuitem label="&killSubthreadMenu.label;"
                       id="appmenu_killSubthread"
                       key="key_killSubthread"
+                      type="checkbox"
                       command="cmd_killSubthread"/>
             <menuitem label="&watchThreadMenu.label;"
                       id="appmenu_watchThread"
                       key="key_watchThread"
+                      type="checkbox"
                       command="cmd_watchThread"/>
           </menupopup>
         </menu>
@@ -2840,21 +2856,24 @@
                       accesskey="&createFilter.accesskey;"
                       command="cmd_createFilterFromMenu"/>
         <menuseparator id="threadItemsSeparator"/>
-        <menuitem label="&killThreadMenu.label;"
-            accesskey="&killThreadMenu.accesskey;"
-            id="killThread"
-            command="cmd_killThread"
-            key="key_killThread"/>
-        <menuitem label="&killSubthreadMenu.label;"
-            accesskey="&killSubthreadMenu.accesskey;"
-            id="killSubthread"
-            command="cmd_killSubthread"
-            key="key_killSubthread"/>
-        <menuitem label="&watchThreadMenu.label;"
-            accesskey="&watchThreadMenu.accesskey;"
-            id="watchThread"
-            command="cmd_watchThread"
-            key="key_watchThread"/>
+        <menuitem id="killThread"
+                  label="&killThreadMenu.label;"
+                  accesskey="&killThreadMenu.accesskey;"
+                  command="cmd_killThread"
+                  type="checkbox"
+                  key="key_killThread"/>
+        <menuitem id="killSubthread"
+                  label="&killSubthreadMenu.label;"
+                  accesskey="&killSubthreadMenu.accesskey;"
+                  type="checkbox"
+                  command="cmd_killSubthread"
+                  key="key_killSubthread"/>
+        <menuitem id="watchThread"
+                  label="&watchThreadMenu.label;"
+                  accesskey="&watchThreadMenu.accesskey;"
+                  type="checkbox"
+                  command="cmd_watchThread"
+                  key="key_watchThread"/>
       </menupopup>
     </menu>
 

@@ -2122,13 +2122,25 @@ function assert_visible(aViewIndexOrMessage) {
   if (typeof(aViewIndexOrMessage) == "number")
     viewIndex = _normalize_view_index(aViewIndexOrMessage);
   else
-    viewIndex = mc.dbView.findIndexOfMsgHdr(aViewIndexOrMessage);
+    viewIndex = mc.dbView.findIndexOfMsgHdr(aViewIndexOrMessage, false);
   let treeBox = mc.threadTree.boxObject.QueryInterface(Ci.nsITreeBoxObject);
   if (viewIndex < treeBox.getFirstVisibleRow() ||
       viewIndex > treeBox.getLastVisibleRow())
     throw new Error("View index " + viewIndex + " is not visible! (" +
                     treeBox.getFirstVisibleRow() + "-" +
                     treeBox.getLastVisibleRow() + " are visible)");
+}
+
+/**
+ * Assert that the given message is now shown in the current view.
+ */
+function assert_not_shown(aMessages) {
+  aMessages.forEach(function(msg) {
+    let viewIndex = mc.dbView.findIndexOfMsgHdr(msg, false);
+    if (viewIndex !== nsMsgViewIndex_None)
+      throw new Error("Message shows; "+ msg.messageKey + ": " +
+                      msg.mime2DecodedSubject);
+  });
 }
 
 /**

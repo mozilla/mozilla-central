@@ -1279,8 +1279,8 @@ DBViewWrapper.prototype = {
    * - Single-folder threaded/unthreaded can handle a change to/from unthreaded/
    *    threaded, so set it.
    * - Single-folder can _not_ handle a change between grouped and not-grouped,
-   *    so re-generate the view.  Nor can it handle a change involving
-   *    kUnreadOnly.
+   *    so re-generate the view. Also it can't handle a change involving
+   *    kUnreadOnly or kShowIgnored.
    */
   set _viewFlags(aViewFlags) {
     if (this._viewUpdateDepth || !this.dbView)
@@ -1291,7 +1291,8 @@ DBViewWrapper.prototype = {
       if ((this.isVirtual && this.isMultiFolder) ||
           (this.isSingleFolder &&
            !(changedFlags & (nsMsgViewFlagsType.kGroupBySort |
-                             nsMsgViewFlagsType.kUnreadOnly)))) {
+                             nsMsgViewFlagsType.kUnreadOnly |
+                             nsMsgViewFlagsType.kShowIgnored)))) {
         this.dbView.viewFlags = aViewFlags;
         // ugh, and the single folder case needs us to re-apply his sort...
         if (this.isSingleFolder)
@@ -1603,22 +1604,22 @@ DBViewWrapper.prototype = {
   },
 
   /**
-   * Are we showing ignored/killed threads?  Only meaningful for newsgroups.
+   * Are we showing ignored/killed threads?
    */
   get showIgnored() {
     return Boolean(this._viewFlags & nsMsgViewFlagsType.kShowIgnored);
   },
   /**
-   * Set whether we are showing ignored/killed threads.  Only meaningful for
-   *  newsgroups.
+   * Set whether we are showing ignored/killed threads.
    */
   set showIgnored(aShowIgnored) {
-    if (this.showIgnored != aShowIgnored) {
-      if (aShowIgnored)
-        this._viewFlags |= nsMsgViewFlagsType.kShowIgnored;
-      else
-        this._viewFlags &= ~nsMsgViewFlagsType.kShowIgnored;
-    }
+    if (this.showIgnored == aShowIgnored)
+      return;
+
+    if (aShowIgnored)
+      this._viewFlags |= nsMsgViewFlagsType.kShowIgnored;
+    else
+      this._viewFlags &= ~nsMsgViewFlagsType.kShowIgnored;
   },
 
   /**

@@ -61,6 +61,8 @@ function fillMailContextMenu(event)
 
   goUpdateCommand('cmd_printpreview');
   goUpdateCommand('cmd_print');
+
+  updateCheckedStateForIgnoreAndWatchThreadCmds();
   
   gContextMenu = new nsContextMenu(event.target, event.shiftKey);
   return gContextMenu.shouldDisplay;

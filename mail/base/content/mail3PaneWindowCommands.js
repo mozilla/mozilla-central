@@ -234,15 +234,15 @@ var DefaultController =
       case "cmd_viewNormalHeader":
       case "cmd_stop":
       case "cmd_chat":
+      case "cmd_watchThread":
+      case "cmd_killThread":
+      case "cmd_killSubthread":
         return true;
       case "cmd_downloadFlagged":
       case "cmd_downloadSelected":
       case "cmd_synchronizeOffline":
         return MailOfflineMgr.isOnline();
 
-      case "cmd_watchThread":
-      case "cmd_killThread":
-      case "cmd_killSubthread":
       case "cmd_cancel":
         return(gFolderDisplay.selectedMessageIsNews);
 
@@ -288,7 +288,7 @@ var DefaultController =
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.junk);
       case "cmd_killThread":
       case "cmd_killSubthread":
-        return GetNumSelectedMessages() > 0;
+        return (GetNumSelectedMessages() > 0);
       case "cmd_watchThread":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.toggleThreadWatched);
       case "cmd_createFilterFromPopup":
@@ -650,10 +650,28 @@ var DefaultController =
         gFolderTreeController.deleteFolder();
         break;
       case "cmd_killThread":
-        /* kill thread kills the thread and then does a next unread */
+        if (!gFolderDisplay.selectedMessageIsNews) {
+          if (!gFolderDisplay.selectedMessageThreadIgnored) {
+            ShowIgnoredMessageNotification(gFolderDisplay.selectedMessages, false);
+          }
+          else {
+            document.getElementById("msg-footer-notification-box")
+                    .removeTransientNotifications();
+          }
+        }
+        // kill thread kills the thread and then does a next unread
         GoNextMessage(nsMsgNavigationType.toggleThreadKilled, true);
         break;
       case "cmd_killSubthread":
+        if (!gFolderDisplay.selectedMessageIsNews) {
+          if (!gFolderDisplay.selectedMessageSubthreadIgnored) {
+            ShowIgnoredMessageNotification(gFolderDisplay.selectedMessages, true);
+          }
+          else {
+            document.getElementById("msg-footer-notification-box")
+                    .removeTransientNotifications();
+          }
+        }
         GoNextMessage(nsMsgNavigationType.toggleSubthreadKilled, true);
         break;
       case "cmd_watchThread":
@@ -951,6 +969,82 @@ var DefaultController =
     }
   }
 };
+
+/**
+ * Show a notification in the message pane footer, allowing the user to learn
+ * more about the ignore thread feature, and also allowing undo ignore thread.
+ * @param aMsgs the messages that were ignore
+ * @param aSubThread only boolean indicating if it was ignore subthread or
+ *                   ignore thread
+ */
+function ShowIgnoredMessageNotification(aMsgs, aSubthreadOnly) {
+  let notifyBox = document.getElementById("msg-footer-notification-box");
+  notifyBox.removeTransientNotifications(); // don't wanna pile these up
+
+  let bundle = new StringBundle("chrome://messenger/locale/messenger.properties");
+
+  let buttons = [
+    {
+      label:     bundle.get("learnMoreAboutIgnoreThread"),
+      accessKey: bundle.get("learnMoreAboutIgnoreThreadAccessKey"),
+      popup:     null,
+      callback:  function(aNotificationBar, aButton) {
+        let url = Services.prefs.getCharPref("mail.ignore_thread.learn_more_url");
+        openContentTab(url);
+        return true; // keep notification open
+      }
+    },
+    {
+      label:     bundle.get(!aSubthreadOnly ? "undoIgnoreThread":
+                                              "undoIgnoreSubthread"),
+      accessKey: bundle.get(!aSubthreadOnly ? "undoIgnoreThreadAccessKey":
+                                              "undoIgnoreSubthreadAccessKey"),
+      isDefault: true,
+      popup:     null,
+      callback:  function(aNotificationBar, aButton) {
+        aMsgs.forEach(function(msg) {
+          let msgDb = msg.folder.msgDatabase;
+          if (aSubthreadOnly) {
+            msgDb.MarkHeaderKilled(msg, false, gDBView);
+          }
+          else {
+            let thread = msgDb.GetThreadContainingMsgHdr(msg);
+            msgDb.MarkThreadIgnored(thread, thread.threadKey, false, gDBView);
+          }
+        });
+        return false; // close notification
+      }
+    }
+  ];
+
+  let threadIds = [];
+  aMsgs.forEach(function(msg) {
+    if (threadIds.indexOf(msg.threadId) == -1)
+      threadIds.push(msg.threadId);
+  });
+  let nbrOfThreads = threadIds.length;
+
+  if (nbrOfThreads == 1) {
+    let ignoredThreadText = bundle.get(!aSubthreadOnly ?
+      "ignoredThreadFeedback": "ignoredSubthreadFeedback");
+    let subj = aMsgs[0].mime2DecodedSubject || "";
+    if (subj.length > 45)
+      subj = subj.substring(0, 45) + "…";
+    let text = ignoredThreadText.replace("#1", subj);
+
+    let notification = notifyBox.appendNotification(
+      text, "ignoreThreadInfo", null,
+      notifyBox.PRIORITY_INFO_MEDIUM, buttons);
+  }
+  else {
+    let ignoredThreadText = bundle.get(!aSubthreadOnly ?
+      "ignoredThreadsFeedback": "ignoredSubthreadsFeedback");
+    let text = ignoredThreadText.replace("#1", nbrOfThreads);
+    let notification = notifyBox.appendNotification(
+      text, "ignoreThreadsInfo", null,
+      notifyBox.PRIORITY_INFO_MEDIUM, buttons);
+  }
+}
 
 function CloseTabOrWindow()
 {

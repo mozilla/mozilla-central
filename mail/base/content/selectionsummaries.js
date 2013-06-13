@@ -13,7 +13,7 @@ let gSelectionSummaryStrings = {
   NConversations: "NConversations",
   numMsgs: "numMsgs",
   countUnread: "countUnread",
-  Nmessages: "Nmessages",
+  ignoredCount: "ignoredCount",
   messagesSize: "messagesSize",
   noticeText: "noticeText",
   noSubject: "noSubject",
@@ -195,18 +195,18 @@ MultiMessageSummary.prototype = {
    * Fill in the summary pane describing the selected messages
    **/
   _onLoad: function() {
-    let htmlpane = document.getElementById('multimessage');
-    // First, we group the messages in threads.
-    // count threads
-    let threads = {};
-    let numThreads = 0;
-    let viewThreadId = function (aMsgHdr) {
+    function viewThreadId(aMsgHdr) {
       let thread = gDBView.getThreadContainingMsgHdr(aMsgHdr);
       return thread.threadKey;
-    };
+    }
+
+    let htmlpane = document.getElementById('multimessage');
+    // First, we group the messages in threads and count the threads.
+    let threads = {};
+    let numThreads = 0;
     for (let [,msgHdr] in Iterator(this._msgHdrs))
     {
-      if (! threads[viewThreadId(msgHdr)]) {
+      if (!threads[viewThreadId(msgHdr)]) {
         threads[viewThreadId(msgHdr)] = [msgHdr];
         numThreads += 1;
       } else {
@@ -252,10 +252,10 @@ MultiMessageSummary.prototype = {
 
       // we'll mark the thread unread if any messages in it are unread
       for (let [, msgHdr] in Iterator(msgs)) {
-        if (! msgHdr.isRead)
-          countUnread += 1;
+        if (!msgHdr.isRead)
+          countUnread++;
         if (msgHdr.isFlagged)
-          countStarred += 1;
+          countStarred++;
       }
 
       let numMsgs = msgs.length;
@@ -514,12 +514,6 @@ ThreadSummary.prototype = {
 
     let firstMsgHdr = this._msgHdrs[0];
     let numMessages = this._msgHdrs.length;
-    let subject = (firstMsgHdr.mime2DecodedSubject || gSelectionSummaryStrings["noSubject"])
-       + " "
-       + PluralForm.get(numMessages, gSelectionSummaryStrings["Nmessages"]).replace('#1', numMessages);
-    let heading = htmlpane.contentDocument.getElementById('heading');
-    heading.setAttribute("class", "heading");
-    heading.textContent = subject;
 
     // enable/disable the archive button as appropriate
     let archiveBtn = htmlpane.contentDocument.getElementById('hdrArchiveButton');
@@ -530,19 +524,26 @@ ThreadSummary.prototype = {
       messagesElt.removeChild(messagesElt.firstChild);
 
     let count = 0;
+    let ignoredCount = 0;
     const MAX_THREADS = 100;
     const SNIPPET_LENGTH = 300;
     let maxCountExceeded = false;
     for (let i = 0; i < numMessages; ++i) {
-      count += 1;
+      let msgHdr = this._msgHdrs[i];
+
+      if (msgHdr.isKilled) { // ignored subthread...
+        ignoredCount++;
+        continue;
+      }
+
+      count++;
       if (count > MAX_THREADS) {
         maxCountExceeded = true;
         break;
       }
-      let msgHdr = this._msgHdrs[i];
 
       let msg_classes = ["message"];
-      if (! msgHdr.isRead)
+      if (!msgHdr.isRead)
         msg_classes.push("unread");
       if (msgHdr.isFlagged)
         msg_classes.push("starred");
@@ -619,6 +620,23 @@ ThreadSummary.prototype = {
 
       messagesElt.appendChild(msgNode);
     }
+
+    let countInfo =
+      PluralForm.get(numMessages, gSelectionSummaryStrings["numMsgs"])
+                .replace("#1", numMessages);
+    if (ignoredCount != 0) {
+      countInfo += " - " +
+        PluralForm.get(ignoredCount, gSelectionSummaryStrings["ignoredCount"])
+                  .replace("#1", ignoredCount);
+    }
+
+    let subject = (firstMsgHdr.mime2DecodedSubject ||
+                   gSelectionSummaryStrings["noSubject"]) +
+                  " (" + countInfo + ")";
+    let heading = htmlpane.contentDocument.getElementById("heading");
+    heading.setAttribute("class", "heading");
+    heading.textContent = subject;
+
     // stash somewhere so it doesn't get GC'ed
     this._glodaQueries.push(Gloda.getMessageCollectionForHeaders(this._msgHdrs, this));
     this.notifyMaxCountExceeded(htmlpane.contentDocument, numMessages, MAX_THREADS);

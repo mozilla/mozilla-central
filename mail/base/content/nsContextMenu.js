@@ -42,6 +42,7 @@ function nsContextMenu(aXulMenu, aIsShift) {
   // Message Related Items
   this.inMessageArea = false;
   this.inThreadPane = false;
+  this.inStandaloneWindow = false;
   this.messagepaneIsBlank = false;
   this.numSelectedMessages = 0;
   this.isNewsgroup = false;
@@ -319,6 +320,23 @@ nsContextMenu.prototype = {
 
     this.showItem("mailContext-mark", msgModifyItems);
 
+    this.showItem("mailContext-ignoreThread", !this.inStandaloneWindow &&
+                                              this.numSelectedMessages >= 1 &&
+                                              !this.hideMailItems &&
+                                              !this.onPlayableMedia);
+
+    this.showItem("mailContext-ignoreSubthread", !this.inStandaloneWindow &&
+                                                 this.numSelectedMessages >= 1 &&
+                                                 !this.hideMailItems &&
+                                                 !this.onPlayableMedia);
+
+    this.showItem("mailContext-watchThread", !this.inStandaloneWindow &&
+                                             this.numSelectedMessages > 0 &&
+                                             !this.hideMailItems &&
+                                             !this.onPlayableMedia);
+
+    this.showItem("mailContext-afterWatchThread", !this.inStandaloneWindow);
+
     this.showItem("mailContext-saveAs", this.numSelectedMessages > 0 &&
                                         !this.hideMailItems &&
                                         !gMessageDisplay.isDummy &&
@@ -518,11 +536,14 @@ nsContextMenu.prototype = {
       // mailTabType's list of modes, then we'll assume it is a message related
       // tab.
       this.inMessageArea = tabmail.selectedTab.mode.name in mailTabType.modes;
+      this.inStandaloneWindow = false;
     }
-    else
+    else {
       // Assume that if we haven't got a tabmail item, then we're in standalone
       // window
       this.inMessageArea = true;
+      this.inStandaloneWindow = true;
+    }
 
     if (!this.inMessageArea) {
       this.inThreadPane = false;

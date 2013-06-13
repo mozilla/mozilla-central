@@ -94,6 +94,21 @@ function goUpdateMailMenuItems(commandset)
     if (commandID)
       goUpdateCommand(commandID);
   }
+
+  updateCheckedStateForIgnoreAndWatchThreadCmds();
+}
+
+/**
+ * Update the ignore (sub)thread, and watch thread commands so the menus
+ * using them get the checked state set up properly.
+ */
+function updateCheckedStateForIgnoreAndWatchThreadCmds() {
+  document.getElementById("cmd_killThread")
+          .setAttribute("checked", gFolderDisplay.selectedMessageThreadIgnored);
+  document.getElementById("cmd_killSubthread")
+          .setAttribute("checked", gFolderDisplay.selectedMessageSubthreadIgnored);
+  document.getElementById("cmd_watchThread")
+          .setAttribute("checked", gFolderDisplay.selectedMessageThreadWatched);
 }
 
 function file_init()
@@ -414,13 +429,7 @@ function InitMessageMenu()
   document.getElementById("replyMainMenu").hidden = isNews;
   document.getElementById("replySenderMainMenu").hidden = !isNews;
 
-  // We only kill and watch threads for news.
-  document.getElementById("threadItemsSeparator").hidden = !isNews;
-  document.getElementById("killThread").hidden = !isNews;
-  document.getElementById("killSubthread").hidden = !isNews;
-  document.getElementById("watchThread").hidden = !isNews;
   document.getElementById("menu_cancel").hidden = !isNews;
-
 
   // Disable the move and copy menus if there are no messages selected or if
   // the message is a dummy - e.g. opening a message in the standalone window.
@@ -478,11 +487,6 @@ function InitAppMessageMenu()
   document.getElementById("appmenu_replyMainMenu").hidden = isNews;
   document.getElementById("appmenu_replySenderMainMenu").hidden = !isNews;
 
-  // We only kill and watch threads for news.
-  document.getElementById("appmenu_threadItemsSeparator").hidden = !isNews;
-  document.getElementById("appmenu_killThread").hidden = !isNews;
-  document.getElementById("appmenu_killSubthread").hidden = !isNews;
-  document.getElementById("appmenu_watchThread").hidden = !isNews;
   document.getElementById("appmenu_cancel").hidden = !isNews;
 
   // Disable the move and copy menus if there are no messages selected or if

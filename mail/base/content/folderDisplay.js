@@ -10,6 +10,7 @@ var gFolderDisplay = null;
 var gMessageDisplay = null;
 
 var nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+var nsMsgMessageFlags = Components.interfaces.nsMsgMessageFlags;
 
 /**
  * Maintains a list of listeners for all FolderDisplayWidget instances in this
@@ -1940,6 +1941,35 @@ FolderDisplayWidget.prototype = {
     //  return true using its own heuristics.  But since we are moving to a tab
     //  model more heavily, at some point the 3-pane will need this.)
     return Boolean(message && !message.folder);
+  },
+
+  /**
+   * @return true if there is a selected message and the message belongs to an
+   *              ignored thread.
+   */
+  get selectedMessageThreadIgnored() {
+    let message = this.selectedMessage;
+    return Boolean(message &&
+                   message.folder.msgDatabase.IsIgnored(message.messageKey));
+  },
+
+  /**
+   * @return true if there is a selected message and the message is the base
+   *              message for an ignored subthread.
+   */
+  get selectedMessageSubthreadIgnored() {
+    let message = this.selectedMessage;
+    return Boolean(message && (message.flags & nsMsgMessageFlags.Ignored));
+  },
+
+  /**
+   * @return true if there is a selected message and the message belongs to a
+   *              watched thread.
+   */
+  get selectedMessageThreadWatched() {
+    let message = this.selectedMessage;
+    return Boolean(message &&
+                   message.folder.msgDatabase.IsWatched(message.messageKey));
   },
 
   /**

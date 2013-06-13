@@ -130,15 +130,15 @@ treechildren::-moz-tree-image(threadCol, container) {
   list-style-image: url("chrome://messenger/skin/icons/thread.png");
 }
 
-treechildren::-moz-tree-image(news, threadCol, watch) {
+treechildren::-moz-tree-image(threadCol, watch) {
   list-style-image: url("chrome://messenger/skin/icons/thread-watched.png");
 }
 
-treechildren::-moz-tree-image(news, threadCol, ignore) {
+treechildren::-moz-tree-image(threadCol, ignore) {
   list-style-image: url("chrome://messenger/skin/icons/thread-ignored.png");
 }
 
-treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
+treechildren::-moz-tree-image(threadCol, ignoreSubthread) {
   list-style-image: url("chrome://messenger/skin/icons/message-ignored.png");
 }
 

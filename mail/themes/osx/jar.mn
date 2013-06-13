@@ -209,8 +209,6 @@ classic.jar:
   skin/classic/messenger/icons/message-closed-kill.png           (mail/icons/message-closed-kill.png)
   skin/classic/messenger/icons/thread-closed-selected.png        (mail/icons/thread-closed-selected.png)
   skin/classic/messenger/icons/thread-closed.png                 (mail/icons/thread-closed.png)
-  skin/classic/messenger/icons/thread-new-closed-eye.png         (mail/icons/thread-new-closed-eye.png)
-  skin/classic/messenger/icons/thread-new-closed-kill.png        (mail/icons/thread-new-closed-kill.png)
   skin/classic/messenger/icons/thread-new-closed.png             (mail/icons/thread-new-closed.png)
   skin/classic/messenger/icons/threadcol.png                     (mail/icons/threadcol.png)
   skin/classic/messenger/icons/threadpane-col.png                (mail/icons/threadpane-col.png)

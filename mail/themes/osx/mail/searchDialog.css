@@ -267,24 +267,6 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   -moz-padding-start: 0;
 }
 
-/* ..... new thread icons for watch and ignore ..... */
-
-treechildren::-moz-tree-image(news, threadCol, watch) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-closed-eye.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, ignore) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-closed-kill.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, container, hasUnread, watch) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-new-closed-eye.png");
-}
-
-treechildren::-moz-tree-image(news, threadCol, container, hasUnread, ignore) {
-  list-style-image: url("chrome://messenger/skin/icons/thread-new-closed-kill.png");
-}
-
 #sizeCol,
 #unreadCol,
 #totalCol {

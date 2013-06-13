@@ -808,6 +808,9 @@ pref("mail.cloud_files.enabled", true);
 pref("mail.cloud_files.inserted_urls.footer.link", "http://www.getthunderbird.com");
 pref("mail.cloud_files.learn_more_url", "https://support.mozillamessaging.com/kb/filelink-large-attachments");
 
+// Ignore threads
+pref("mail.ignore_thread.learn_more_url", "https://support.mozillamessaging.com/kb/ignore-threads");
+
 // Sanitize dialog window
 pref("privacy.cpd.cookies", true);
 pref("privacy.cpd.cache", true);
