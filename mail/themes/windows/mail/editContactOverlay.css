@@ -10,9 +10,7 @@
 }
 
 #editContactPanel {
-  -moz-appearance: menupopup;
-  color: MenuText;
-  padding: 4px;
+  -moz-margin-start: 0px;
 }
 
 #editContactPanelIcon {

@@ -86,8 +86,7 @@ var editContactInlineUI = {
 
   showEditContactPanel: function showEditContactPanel(aCardDetails, aAnchorElement) {
     this._cardDetails = aCardDetails;
-    let position = (getComputedStyle(this.panel, null).direction == "rtl") ?
-      "after_end" : "after_start";
+    let position = "after_start";
     this._doShowEditContactPanel(aAnchorElement, position);
   },
 

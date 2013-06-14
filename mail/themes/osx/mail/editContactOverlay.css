@@ -10,17 +10,7 @@
 }
 
 #editContactPanel {
-  -moz-appearance: none;
-  background-color: #EDEDED;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 5px;
-  border-top-left-radius: 0px;
-  padding: 10px 8px 6px;
-  margin-top: 4px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .5) inset,
-              0 1px 0 rgba(255, 255, 255, .05) inset,
-              0 0 0 1px rgba(0, 0, 0, .25);
-  color: #333;
+  -moz-margin-start: 0px;
 }
 
 #editContactPanel > #editContactContent {

@@ -18,7 +18,11 @@
                   src="chrome://messenger/locale/editContactOverlay.properties"/>
   </stringbundleset>
 
-  <panel id="editContactPanel" orient="vertical" ignorekeys="true" hidden="true"
+  <panel id="editContactPanel"
+         type="arrow"
+         orient="vertical"
+         ignorekeys="true"
+         hidden="true"
          aria-labelledby="editContactPanelTitle"
          onpopuphidden="editContactInlineUI.onPopupHidden(event);"
          onpopupshown="editContactInlineUI.onPopupShown(event);"
