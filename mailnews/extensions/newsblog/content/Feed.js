@@ -381,6 +381,7 @@ Feed.prototype =
 
     // storeNextItem() will iterate through the parsed items, storing each one.
     this.itemsToStoreIndex = 0;
+    this.itemsStored = 0;
     this.storeNextItem();
   },
 
@@ -479,7 +480,8 @@ Feed.prototype =
 
     let item = this.itemsToStore[this.itemsToStoreIndex];
 
-    item.store();
+    if (item.store())
+      this.itemsStored++;
 
     this.itemsToStoreIndex++;
 
@@ -527,6 +529,7 @@ Feed.prototype =
     // Flush any feed item changes to disk.
     let ds = FeedUtils.getItemsDS(aFeed.server);
     ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
+    FeedUtils.log.debug("Feed.cleanupParsingState: items stored - " + this.itemsStored);
 
     if (aFeed.downloadCallback)
       aFeed.downloadCallback.downloaded(aFeed, aCode);
@@ -536,6 +539,7 @@ Feed.prototype =
     this.request = null;
     this.itemsToStore = "";
     this.itemsToStoreIndex = 0;
+    this.itemsStored = 0;
     this.storeItemsTimer = null;
   },
 

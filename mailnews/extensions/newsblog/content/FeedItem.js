@@ -116,6 +116,7 @@ FeedItem.prototype =
     // this.title and this.content contain HTML.
     // this.mUrl and this.contentBase contain plain text.
 
+    let stored = false;
     let resource = this.findStoredResource();
     if (resource == null)
     {
@@ -137,8 +138,10 @@ FeedItem.prototype =
       this.content = content;
       this.writeToFolder();
       this.markStored(resource);
+      stored = true;
     }
     this.markValid(resource);
+    return stored;
   },
 
   findStoredResource: function()

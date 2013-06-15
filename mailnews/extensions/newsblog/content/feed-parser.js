@@ -114,9 +114,10 @@ FeedParser.prototype =
     FeedUtils.log.debug("FeedParser.parseAsRSS2: items to parse - " +
                         itemNodes.length);
 
-    for (let i = 0; i < itemNodes.length; i++)
+    for (let itemNode of itemNodes)
     {
-      let itemNode = itemNodes[i];
+      if (!itemNode.childElementCount)
+        continue;
       let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
@@ -228,7 +229,7 @@ FeedParser.prototype =
                                                    tag.getAttribute("fileSize")));
         }
 
-      parsedItems[i] = item;
+      parsedItems.push(item);
     }
 
     return parsedItems;
@@ -343,9 +344,10 @@ FeedParser.prototype =
     FeedUtils.log.debug("FeedParser.parseAsAtom: items to parse - " +
                         items.length);
 
-    for (let i = 0; i < items.length; i++)
+    for (let itemNode of items)
     {
-      let itemNode = items[i];
+      if (!itemNode.childElementCount)
+        continue;
       let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
@@ -429,7 +431,7 @@ FeedParser.prototype =
       }
 
       item.content = content;
-      parsedItems[i] = item;
+      parsedItems.push(item);
     }
 
     return parsedItems;
@@ -466,9 +468,10 @@ FeedParser.prototype =
     FeedUtils.log.debug("FeedParser.parseAsAtomIETF: items to parse - " +
                         items.length);
 
-    for (let i = 0; i < items.length; i++)
+    for (let itemNode of items)
     {
-      let itemNode = items[i];
+      if (!itemNode.childElementCount)
+        continue;
       let item = new FeedItem();
       item.feed = aFeed;
       item.characterSet = "UTF-8";
@@ -547,7 +550,7 @@ FeedParser.prototype =
                                                    tag.getAttribute("title")));
         }
 
-      parsedItems[i] = item;
+      parsedItems.push(item);
     }
 
     return parsedItems;
