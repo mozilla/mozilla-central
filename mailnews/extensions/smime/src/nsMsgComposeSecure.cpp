@@ -823,26 +823,15 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
       nsCString mailbox_lowercase;
       ToLowerCase(nsDependentCString(mailbox), mailbox_lowercase);
       nsCOMPtr<nsIX509Cert> cert;
-      certdb->FindCertByEmailAddress(nullptr, mailbox_lowercase.get(), getter_AddRefs(cert));
-      bool foundValidCert = false;
-
-      if (cert) {
-        uint32_t verification_result;
-
-        if (NS_SUCCEEDED(
-            cert->VerifyForUsage(nsIX509Cert::CERT_USAGE_EmailRecipient, &verification_result))
-            &&
-            nsIX509Cert::VERIFIED_OK == verification_result)
-        {
-          foundValidCert = true;
-        }
-      }
-      
-      if (!foundValidCert) {
+      res = certdb->FindCertByEmailAddress(nullptr, mailbox_lowercase.get(),
+                                           getter_AddRefs(cert));
+      if (NS_FAILED(res)) {
         // Failure to find a valid encryption cert is fatal.
-        // here I assume that mailbox contains ascii rather than utf8.
-        SetErrorWithParam(sendReport, NS_LITERAL_STRING("MissingRecipientEncryptionCert").get(), mailbox);
-        res = NS_ERROR_FAILURE;
+        // Here I assume that mailbox is ascii rather than utf8.
+        SetErrorWithParam(sendReport,
+                          NS_LITERAL_STRING("MissingRecipientEncryptionCert").get(),
+                          mailbox);
+
         goto FAIL;
       }
 

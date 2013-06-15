@@ -120,29 +120,11 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         ToLowerCase(email, email_lowercase);
 
         nsCOMPtr<nsIX509Cert> cert;
-        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr, email_lowercase.get(), getter_AddRefs(cert)))
-            && cert)
+        if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr,
+                           email_lowercase.get(), getter_AddRefs(cert))))
         {
           *iCert = cert;
           NS_ADDREF(*iCert);
-
-          uint32_t verification_result;
-
-          if (NS_FAILED(
-              cert->VerifyForUsage(nsIX509Cert::CERT_USAGE_EmailRecipient, &verification_result)))
-          {
-            *iCV = nsIX509Cert::NOT_VERIFIED_UNKNOWN;
-            found_blocker = true;
-          }
-          else
-          {
-            *iCV = verification_result;
-
-            if (verification_result != nsIX509Cert::VERIFIED_OK)
-            {
-              found_blocker = true;
-            }
-          }
 
           nsCOMPtr<nsIX509CertValidity> validity;
           rv = cert->GetValidity(getter_AddRefs(validity));
@@ -267,19 +249,9 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
       ToLowerCase(email, email_lowercase);
 
       nsCOMPtr<nsIX509Cert> cert;
-      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr, email_lowercase.get(), getter_AddRefs(cert)))
-          && cert)
-      {
-        uint32_t verification_result;
-
-        if (NS_SUCCEEDED(
-              cert->VerifyForUsage(nsIX509Cert::CERT_USAGE_EmailRecipient, &verification_result))
-            &&
-            nsIX509Cert::VERIFIED_OK == verification_result)
-        {
-          haveCert[i] = true;
-        }
-      }
+      if (NS_SUCCEEDED(certdb->FindCertByEmailAddress(nullptr,
+                         email_lowercase.get(), getter_AddRefs(cert))))
+        haveCert[i] = true;
 
       if (!haveCert[i])
         ++missing_count;
