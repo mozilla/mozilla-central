@@ -32,7 +32,7 @@ typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(9ce446f3-398c-4462-a4c6-0ce562d5bd29)]
+[scriptable, uuid(c72edf93-2a1f-42fa-868b-b19adaebf4ca)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -284,16 +284,6 @@ interface nsIMsgFolder : nsISupports {
    * synchronously instead of asynchronously
    */
   readonly attribute boolean manyHeadersToDownload;
-
-  /**
-   * this should go into a news-specific interface
-   */
-  readonly attribute boolean knowsSearchNntpExtension;
-
-  /**
-   * this should go into a news-specific interface
-   */
-  readonly attribute boolean allowsPosting;
 
   readonly attribute ACString relativePathName;
 

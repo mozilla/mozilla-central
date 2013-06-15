@@ -4411,20 +4411,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetDeletable(bool *deletable)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetKnowsSearchNntpExtension(bool *knowsExtension)
-{
-  NS_ENSURE_ARG_POINTER(knowsExtension);
-  *knowsExtension = false;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgDBFolder::GetAllowsPosting(bool *allowsPosting)
-{
-  NS_ENSURE_ARG_POINTER(allowsPosting);
-  *allowsPosting = true;
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsMsgDBFolder::GetDisplayRecipients(bool *displayRecipients)
 {
   nsresult rv;
