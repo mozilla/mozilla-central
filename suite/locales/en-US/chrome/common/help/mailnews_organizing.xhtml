@@ -647,11 +647,21 @@
     folder through which you want to search.</li>
   <li>Select <q>Search subfolders</q> to include all subfolders in the
     search.</li>
-  <li>Select <q>Search local system</q> to search only messages from newsgroups
-    or IMAP accounts that have been saved locally.
-
-    <p><strong>Note</strong>: The checkbox will be disabled if it&apos;s not
-      possible to search remotely stored messages.</p>
+  <li>Next to <q>Perform search operations on</q>, select an option where to
+    search for messages in newsgroups or IMAP accounts:
+    <ul>
+      <li>Choose <q>Local system</q> to use only the information stored locally
+        for the search without any network activity. This mode includes all
+        major message headers. You can&apos;t search the message body locally
+        unless the account and its folders have been set up for
+        <a href="mailnews_account_settings.xhtml#synchronization_and_storage">synchronization</a>.
+      </li>
+      <li>Choose <q>Remote server</q> to perform all searches on the server
+        where the messages are located. This will allow you to also search for
+        contents in message bodies which have not been synchronized.</li>
+    </ul>
+    <p><strong>Note</strong>: This menu will be disabled if it&apos;s not
+      possible to search remotely on the server (e.g., for POP accounts).</p>
   </li>
   <li>Select which matching option Mail &amp; Newsgroups will use to search for
     messages that match all or at least one of the conditions (criteria) that

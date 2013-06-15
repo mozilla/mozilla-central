@@ -7,8 +7,10 @@
 <!ENTITY searchHeading.accesskey     "e">
 <!ENTITY searchSubfolders.label      "Search subfolders">
 <!ENTITY searchSubfolders.accesskey  "u">
-<!ENTITY searchLocalSystem.label     "Search local system">
-<!ENTITY searchLocalSystem.accesskey "y">
+<!ENTITY searchOnHeading.label       "Perform search operations on:">
+<!ENTITY searchOnHeading.accesskey   "P">
+<!ENTITY searchOnRemote.label        "Remote server">
+<!ENTITY searchOnLocal.label         "Local system">
 <!ENTITY resetButton.label           "Clear">
 <!ENTITY resetButton.accesskey       "C">
 <!ENTITY openButton.label            "Open">
@@ -23,8 +25,8 @@
 <!ENTITY moveButton.accesskey        "T">
 <!ENTITY goToFolderButton.label      "Open Message Folder">
 <!ENTITY goToFolderButton.accesskey  "n">
-<!ENTITY saveAsVFButton.label      "Save as Search Folder">
-<!ENTITY saveAsVFButton.accesskey  "v">
+<!ENTITY saveAsVFButton.label        "Save as Search Folder">
+<!ENTITY saveAsVFButton.accesskey    "v">
 
 <!-- for ABSearchDialog.xul -->
 <!ENTITY abSearchHeading.label       "Search in:">

@@ -86,16 +86,33 @@
          <menulist id="searchableFolders" flex="2">
            <menupopup class="searchPopup" oncommand="updateSearchFolderPicker(this.getAttribute('uri'));"/>
          </menulist>
-         <spacer flex="10"/>
+         <checkbox id="checkSearchSubFolders"
+                   label="&searchSubfolders.label;"
+                   checked="true"
+                   accesskey="&searchSubfolders.accesskey;"/>
+         <spacer flex="3"/>
          <button id="search-button" oncommand="onSearchButton(event);" default="true"/>
         </hbox>
         <hbox align="center">
-           <checkbox id="checkSearchSubFolders" label="&searchSubfolders.label;" checked="true" accesskey="&searchSubfolders.accesskey;"/>
-           <checkbox id="checkSearchLocalSystem"
-                     label="&searchLocalSystem.label;"
-                     accesskey="&searchLocalSystem.accesskey;"
-                     persist="checked"
-                     oncommand="updateSearchLocalSystem();"/>
+           <label id="searchOnHeading"
+                  value="&searchOnHeading.label;"
+                  accesskey="&searchOnHeading.accesskey;"
+                  control="menuSearchLocalSystem">
+             <observes element="menuSearchLocalSystem"
+                       attribute="disabled"/>
+           </label>
+           <menulist id="menuSearchLocalSystem"
+                     persist="value"
+                     oncommand="updateSearchLocalSystem();">
+             <menupopup>
+               <menuitem id="menuOnRemote"
+                         value="remote"
+                         label="&searchOnRemote.label;"/>
+               <menuitem id="menuOnLocal"
+                         value="local"
+                         label="&searchOnLocal.label;"/>
+             </menupopup>
+           </menulist>
            <spacer flex="1"/>
            <button label="&resetButton.label;" oncommand="onResetSearch(event);" accesskey="&resetButton.accesskey;"/>
          </hbox>

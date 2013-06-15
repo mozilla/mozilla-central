@@ -40,7 +40,7 @@ listcell > hbox {
   padding: 0px;
 }
 
-menulist {
+menulist:not(#menuSearchLocalSystem) {
   width: 18em;
 }
 

@@ -35,11 +35,11 @@
   color: #8C99AB;
 }
 
-menulist {
+menulist:not(#menuSearchLocalSystem) {
   width: 12em;
 }
 
-menulist > menupopup > menuitem {
+menulist:not(#menuSearchLocalSystem) > menupopup > menuitem {
   -moz-padding-end: 2px;
 }
 

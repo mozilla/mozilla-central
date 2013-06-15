@@ -343,7 +343,7 @@ function updateSearchFolderPicker(folderURI)
     // use the URI to get the real folder
     gMsgFolderSelected = GetMsgFolderFromUri(folderURI);
 
-    var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
+    var searchLocalSystem = document.getElementById("menuSearchLocalSystem");
     if (searchLocalSystem)
         searchLocalSystem.disabled = gMsgFolderSelected.server.searchScope == nsMsgSearchScope.offlineMail;
     setSearchScope(GetScopeForFolder(gMsgFolderSelected));
@@ -468,8 +468,10 @@ function AddSubFoldersToURI(folder)
 
 function GetScopeForFolder(folder) 
 {
-  var searchLocalSystem = document.getElementById("checkSearchLocalSystem");
-  return searchLocalSystem && searchLocalSystem.checked ? nsMsgSearchScope.offlineMail : folder.server.searchScope;
+  var searchLocalSystem = document.getElementById("menuSearchLocalSystem");
+  return searchLocalSystem && searchLocalSystem.value == "local" ?
+                              nsMsgSearchScope.offlineMail :
+                              folder.server.searchScope;
 }
 
 var nsMsgViewSortType = Components.interfaces.nsMsgViewSortType;
