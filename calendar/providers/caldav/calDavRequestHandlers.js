@@ -324,7 +324,7 @@ webDavSyncHandler.prototype = {
     doWebDAVSync: function doWebDAVSync() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.changeLogListener);
+            this.calendar.setupAuthentication(this.changeLogListener);
             return;
         }
 
@@ -351,10 +351,10 @@ webDavSyncHandler.prototype = {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
         cal.LOG("CalDAV: webdav-sync Token: " + this.calendar.mWebdavSyncToken);
-        let httpchannel = cal.prepHttpChannel(requestUri,
-                                              queryXml,
-                                              "text/xml; charset=utf-8",
-                                              this.calendar);
+        let httpchannel = this.calendar.prepHttpChannel(requestUri,
+                                                        queryXml,
+                                                        "text/xml; charset=utf-8",
+                                                        this.calendar);
         httpchannel.setRequestHeader("Depth", "1", false);
         httpchannel.requestMethod = "REPORT";
         // Submit the request
@@ -662,7 +662,7 @@ multigetSyncHandler.prototype = {
     doMultiGet: function doMultiGet() {
         if (this.calendar.mDisabled) {
             // check if maybe our calendar has become available
-            this.calendar.checkDavResourceType(this.changeLogListener);
+            this.calendar.setupAuthentication(this.changeLogListener);
             return;
         }
 
@@ -690,10 +690,10 @@ multigetSyncHandler.prototype = {
         if (this.calendar.verboseLogging()) {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
-        let httpchannel = cal.prepHttpChannel(requestUri,
-                                              queryXml,
-                                              "text/xml; charset=utf-8",
-                                              this.calendar);
+        let httpchannel = this.calendar.prepHttpChannel(requestUri,
+                                                        queryXml,
+                                                        "text/xml; charset=utf-8",
+                                                        this.calendar);
         httpchannel.setRequestHeader("Depth", "1", false);
         httpchannel.requestMethod = "REPORT";
         // Submit the request

@@ -21,6 +21,7 @@ EXTRA_JS_MODULES = \
     calRecurrenceUtils.jsm \
     calUtils.jsm \
     calXMLUtils.jsm \
+    OAuth2.jsm \
     ical.js \
     $(NULL)
 
