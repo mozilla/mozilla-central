@@ -1372,6 +1372,11 @@
             if (t.previousSibling.selected)
               t.setAttribute("afterselected", true);
 
+            // Prevent the superfluous initial load of a blank document
+            // if we're going to load something other than about:blank.
+            if (!blank)
+              b.setAttribute("nodefaultsrc", "true");
+
             // NB: this appendChild call causes us to run constructors for the
             // browser element, which fires off a bunch of notifications. Some
             // of those notifications can cause code to run that inspects our
@@ -1399,11 +1404,6 @@
             this.mTabFilters[position] = filter;
 
             if (!blank) {
-              // Stop the existing about:blank load.  Otherwise, if aURI
-              // doesn't stop in-progress loads on its own, we'll get into
-              // trouble with multiple parallel loads running at once.
-              b.stop();
-
               // pretend the user typed this so it'll be available till
               // the document successfully loads
               b.userTypedValue = aURI;
