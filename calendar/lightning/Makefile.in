@@ -15,7 +15,7 @@ include $(DEPTH)/config/autoconf.mk
 export XPI_NAME = lightning
 export USE_EXTENSION_MANIFEST = 1
 XPI_PKGNAME = lightning-$(LIGHTNING_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
-GDATA_XPI_PKGNAME = gdata-provider-$(GDATA_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
+XPI_VERSION = $(LIGHTNING_VERSION)
 
 XPI_EM_ID = {e2fda1a4-762b-4020-b5ad-a41df1933103}
 
@@ -121,6 +121,11 @@ libs::
 
 include $(topsrcdir)/config/rules.mk
 include $(srcdir)/lightning-packager.mk
+
+# For Lightning, we also need to preprocess the l10n prefs
+repack-process-extrafiles: lightning-extrafiles
+lightning-extrafiles:
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # If the macbundle dist dir was already created, sync lightning here to avoid

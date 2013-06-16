@@ -7,6 +7,9 @@ ac_add_options --enable-jemalloc
 ac_add_options --enable-profiling
 ac_add_options --with-l10n-base=../../l10n
 
+# Build lightning locales
+ac_add_options --enable-calendar
+
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
 

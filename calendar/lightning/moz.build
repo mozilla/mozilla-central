@@ -5,7 +5,6 @@
 
 DIRS += [
     '../libical',
-    '../locales',
     '../base',
     '../providers',
     '../import-export',

@@ -10,8 +10,6 @@
 SYMBOL_INDEX_NAME = \
    $(MOZ_APP_NAME)-$(MOZ_APP_VERSION)-$(OS_TARGET)-$(BUILDID)$(EXTRA_BUILDID)-symbols.txt
 
-include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/package-name.mk
-
 ifeq ($(OS_ARCH),WINNT)
 # we want to copy PDB files on Windows
 MAKE_SYM_STORE_ARGS := -c --vcs-info

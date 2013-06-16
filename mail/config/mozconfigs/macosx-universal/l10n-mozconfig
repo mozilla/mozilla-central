@@ -18,8 +18,9 @@ ac_add_options --disable-install-strip
 ac_add_options --enable-profiling
 ac_add_options --with-l10n-base=../../../l10n
 
-# Make sure Lightning is also unified
-#mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/lightning/build/universal.mk
+# Build lightning locales
+ac_add_options --enable-calendar
+mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/lightning/build/universal.mk
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1

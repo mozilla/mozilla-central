@@ -128,13 +128,6 @@ clobber-zip:
 
 langpack: langpack-$(AB_CD)
 
-# This is a generic target that will make a langpack, repack ZIP (+tarball)
-# builds, and repack and installer if applicable. It is called from the
-# tinderbox scripts. Alter it with caution.
-
-installers-%: clobber-% langpack-% repackage-win32-installer-% repackage-zip-%
-	@echo "repackaging done"
-
 ifdef MOZ_UPDATER
 libs:: $(call MERGE_FILE,updater/updater.ini) $(call mkdir_deps,$(DIST)/bin)
 ifeq ($(OS_ARCH),WINNT)
@@ -201,3 +194,38 @@ ifdef LOCALE_MERGEDIR
 	MACOSX_DEPLOYMENT_TARGET= compare-locales -m $(LOCALE_MERGEDIR) $(srcdir)/l10n.ini $(L10NBASEDIR) $*
 endif
 	@echo
+
+ifdef MOZ_CALENDAR
+LIGHTNING_PATH=$(DEPTH)/calendar/lightning
+GDATA_PATH=$(DEPTH)/calendar/providers/gdata
+
+# Define hooks for forwarding targets
+INSTALLERS_TARGETS += calendar-clobber-% calendar-langpack-% calendar-repackage-zip-%
+FORWARD_TARGETS=wget-en-US unpack
+FORWARD_PATTERN_TARGETS=clobber-% langpack-% repackage-zip-%
+
+# Add calendar targets to the non-pattern rules
+wget-en-US: calendar-wget-en-US
+unpack: calendar-unpack
+upload: calendar-upload
+
+# And finally, define the calendar targets
+$(addprefix calendar-,$(FORWARD_TARGETS)):
+	$(MAKE) -C $(LIGHTNING_PATH) $(subst calendar-,,$@)
+	# TODO temporarily disable gdata since it wasn't built $(MAKE) -C $(GDATA_PATH) $(subst calendar-,,$@)
+
+$(addprefix calendar-,$(FORWARD_PATTERN_TARGETS)):
+	$(MAKE) -C $(LIGHTNING_PATH) $(subst calendar-,,$@)
+	# TODO temporarily disable gdata since it wasn't built $(MAKE) -C $(GDATA_PATH) $(subst calendar-,,$@)
+
+calendar-upload:
+	$(MAKE) -C $(LIGHTNING_PATH) upload AB_CD=$(AB_CD)
+	# TODO temporarily disable gdata since it wasn't built $(MAKE) -C $(GDATA_PATH) upload AB_CD=$(AB_CD)
+endif
+
+# This is a generic target that will make a langpack, repack ZIP (+tarball)
+# builds, and repack and installer if applicable. It is called from the
+# tinderbox scripts. Alter it with caution.
+INSTALLERS_TARGETS += clobber-% langpack-% repackage-win32-installer-% repackage-zip-%
+installers-%: $(INSTALLERS_TARGETS)
+	@echo "repackaging done"
