@@ -138,6 +138,18 @@ Feed.prototype =
       return;
     }
 
+    if (Services.io.offline) {
+      // If offline and don't want to go online, just add the feed subscription;
+      // it can be verified later (the folder name will be the url if not adding
+      // to an existing folder). Only for subscribe actions; passive biff and
+      // active get new messages are handled prior to getting here.
+      let win = Services.wm.getMostRecentWindow("mail:3pane");
+      if (!win.MailOfflineMgr.getNewMail()) {
+        this.storeNextItem();
+        return;
+      }
+    }
+
     this.request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
                    createInstance(Ci.nsIXMLHttpRequest);
     // Must set onProgress before calling open.

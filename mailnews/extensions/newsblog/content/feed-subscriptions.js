@@ -1402,6 +1402,9 @@ var FeedSubscriptions = {
     mSubscribeMode: true,
     downloaded: function(feed, aErrorCode)
     {
+      // Offline check is done in the context of 3pane, return to the subscribe
+      // window once the modal prompt is dispatched.
+      window.focus();
       // Feed is null if our attempt to parse the feed failed.
       let message = "";
       let win = FeedSubscriptions;
@@ -1516,6 +1519,7 @@ var FeedSubscriptions = {
     // corresponding to the total number of feed items to download.
     onFeedItemStored: function (feed, aCurrentFeedItems, aMaxFeedItems)
     {
+      window.focus();
       let message = FeedUtils.strings.formatStringFromName(
                       "subscribe-gettingFeedItems",
                       [aCurrentFeedItems, aMaxFeedItems], 2);

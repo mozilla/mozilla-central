@@ -15,6 +15,9 @@ var nsNewsBlogFeedDownloader =
     if (!gExternalScriptsLoaded)
       loadScripts();
 
+    if (Services.io.offline)
+      return;
+
     // We don't yet support the ability to check for new articles while we are
     // in the middle of subscribing to a feed. For now, abort the check for
     // new feeds.
