@@ -2994,7 +2994,7 @@
     <toolbarbutton id="button-getmsg"
                    type="menu-button"
                    class="toolbarbutton-1"
-                   label="&getMsgButton.label;"
+                   label="&getMsgButton1.label;"
                    tooltiptext="&getMsgButton.tooltip;"
                    oncommand="MsgGetMessagesForAccount(event.target._folder)"
                    observes="button_getNewMessages">
