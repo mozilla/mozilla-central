@@ -7,16 +7,13 @@ var MODULE_NAME = 'test-plugin-blocked';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
 
-var controller = {};
-Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var elib = {};
-Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
-
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 var gOldStartUrl = null;
 var gOldBlDetailsUrl = null;
 var gOldPluginUpdateUrl = null;
+
+var testDone = false;
 
 const kPluginId = "test-plugin";
 const kStartPagePref = "mailnews.start_page.override_url";
@@ -26,6 +23,7 @@ const kPluginsUpdatePref = "plugins.update.url";
 // so we get the right path for the resources.
 const kUrl = collector.addHttpResource('../content-tabs/html', '');
 const kPluginUrl = kUrl + "plugin.html";
+const kPluginBlocklistUrl = kUrl + "blocklistHard.xml";
 const kBlDetailsUrl = kUrl + "blocklist_details.html";
 const kPluginUpdateUrl = kUrl + "plugin_update.html";
 
@@ -52,24 +50,35 @@ function teardownModule(module) {
   Services.prefs.setCharPref(kPluginsUpdatePref, gOldPluginUpdateUrl);
 }
 
-function setupTest() {
-  let plugin = get_test_plugin();
-  plugin.disabled = false;
-  plugin.blocklisted = true;
-}
-
-function teardownTest() {
-  let plugin = get_test_plugin();
-  plugin.disabled = false;
-  plugin.blocklisted = false;
-}
-
 /* Tests that the notification bar appears for plugins that
  * are blocklisted.  Ensures that the notification bar gives
  * links to the human-readable blocklist, as well as the
  * plugin update page.
  */
 function test_blocklisted_plugin_notification() {
+  let plugin = get_test_plugin();
+  let pluginState = plugin.enabledState;
+  plugin.enabledState = plugin.STATE_ENABLED;
+  assert_not_equals(plugin, null, "Test plugin not found");
+  assert_false(plugin.blocklisted, "Test plugin was unexpectedly blocklisted");
+  assert_false(plugin.disabled, "Test plugin not enabled");
+
+  Services.prefs.setBoolPref("extensions.blocklist.suppressUI", true);
+
+  setAndUpdateBlocklist(kPluginBlocklistUrl, function() {
+    assert_true(plugin.blocklisted, "Test plugin was not properly blocklisted");
+    subtest_blocklisted_plugin_notification();
+  });
+
+  mc.waitFor(function () { return testDone; }, "Plugin test taking too long",
+             100000, 1000);
+
+  Services.prefs.clearUserPref("extensions.blocklist.suppressUI");
+  resetBlocklist();
+  plugin.enabledState = pluginState;
+}
+
+function subtest_blocklisted_plugin_notification() {
   // Prepare to capture the notification bar
   NotificationWatcher.planForNotification(mc);
   let pluginTab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew,
@@ -101,4 +110,5 @@ function test_blocklisted_plugin_notification() {
 
   // Close the tab to finish up.
   mc.tabmail.closeTab(pluginTab);
+  testDone = true;
 }

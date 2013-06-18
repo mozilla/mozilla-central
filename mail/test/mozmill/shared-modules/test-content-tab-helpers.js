@@ -33,6 +33,8 @@ var folderDisplayHelper;
 var mc;
 var wh;
 
+var _originalBlocklistURL = null;
+
 // logHelper (and therefore folderDisplayHelper) exports
 var mark_failure;
 let gMockExtProtocolSvcReg;
@@ -70,6 +72,9 @@ function installInto(module) {
   module.get_notification_bar_for_tab = get_notification_bar_for_tab;
   module.get_test_plugin = get_test_plugin;
   module.plugins_run_in_separate_processes = plugins_run_in_separate_processes;
+  module.updateBlocklist = updateBlocklist;
+  module.setAndUpdateBlocklist = setAndUpdateBlocklist;
+  module.resetBlocklist = resetBlocklist;
   module.gMockExtProtSvcReg = gMockExtProtSvcReg;
   module.gMockExtProtSvc = gMockExtProtSvc;
 }
@@ -415,4 +420,27 @@ function plugins_run_in_separate_processes(aController) {
   }
 
   return supportsOOPP;
+}
+
+function updateBlocklist(aCallback) {
+  let blocklistNotifier = Cc["@mozilla.org/extensions/blocklist;1"]
+                            .getService(Ci.nsITimerCallback);
+  let observer = function() {
+    aCallback();
+    Services.obs.removeObserver(observer, "blocklist-updated");
+  };
+  Services.obs.addObserver(observer, "blocklist-updated", false);
+  blocklistNotifier.notify(null);
+}
+
+function setAndUpdateBlocklist(aURL, aCallback) {
+  if (!_originalBlocklistURL) {
+    _originalBlocklistURL = Services.prefs.getCharPref("extensions.blocklist.url");
+  }
+  Services.prefs.setCharPref("extensions.blocklist.url", aURL);
+  updateBlocklist(aCallback);
+}
+
+function resetBlocklist(aCallback) {
+  Services.prefs.setCharPref("extensions.blocklist.url", _originalBlocklistURL);
 }
