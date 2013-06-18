@@ -10,10 +10,14 @@ var gGeneralPane = {
   init: function ()
   {
     this.mPane = document.getElementById("paneGeneral");
-    
+
+    this.updateStartPage();
+
     this.updatePlaySound();
+
+    this.updateCustomizeAlert();
   },
-    
+
   /**
    * Restores the default start page as the user's start page
    */
@@ -134,5 +138,17 @@ var gGeneralPane = {
     soundTypeEl.disabled = soundsDisabled;
     document.getElementById('browseForSound').disabled = soundsDisabled || soundTypeEl.value != 1;
     document.getElementById('playSound').disabled = soundsDisabled || soundTypeEl.value != 1; 
+  },
+
+  updateStartPage: function()
+  {
+    document.getElementById("mailnewsStartPageUrl").disabled =
+      !document.getElementById("mailnewsStartPageEnabled").checked;
+  },
+
+  updateCustomizeAlert: function()
+  {
+    document.getElementById("customizeMailAlert").disabled =
+      !document.getElementById("newMailNotificationAlert").checked;
   }
 };

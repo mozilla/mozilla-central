@@ -157,8 +157,10 @@
         <tabpanel orient="vertical">
           <vbox flex="1">
             <hbox id="cloudFileToggleAndThreshold" align="center">
-              <checkbox label="&enableCloudFileAccountOffer.label;"
-                        preference="mail.compose.big_attachments.notify"/>
+              <checkbox id="enableThreshold"
+                        label="&enableCloudFileAccountOffer.label;"
+                        preference="mail.compose.big_attachments.notify"
+                        oncommand="gCloudFileTab.updateThreshold();"/>
               <textbox id="cloudFileThreshold" type="number" increment="1"
                        maxlength="4" size="1"
                        preference="mail.compose.big_attachments.threshold_kb"

@@ -20,6 +20,8 @@ var gComposePane = {
 
     this.updateAttachmentCheck();
 
+    this.updateEmailCollection();
+
     if (!(("arguments" in window) && window.arguments[1])) {
       // If no tab was specified, select the last used tab.
       let preference = document.getElementById("mail.preferences.compose.selectedTabIndex");
@@ -64,6 +66,12 @@ var gComposePane = {
   {
     this.enableElement(document.getElementById("attachment_reminder_button"),
       document.getElementById("attachment_reminder_label").checked);
+  },
+
+  updateEmailCollection: function()
+  {
+    this.enableElement(document.getElementById("localDirectoriesList"),
+      document.getElementById("emailCollectionOutgoing").checked);
   },
 
   enableElement: function(aElement, aEnable)

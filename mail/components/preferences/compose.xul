@@ -191,19 +191,21 @@
                         accesskey="&editDirectories.accesskey;"/>
               </hbox>
             </groupbox>
-            
+
             <separator class="thin"/>
 
             <hbox align="center" pack="start">
-              <checkbox id="emailCollectionOutgoing" label="&emailCollectionPicker.label;" 
-                        accesskey="&emailCollectionPicker.accesskey;" preference="mail.collect_email_address_outgoing"/>
+              <checkbox id="emailCollectionOutgoing" label="&emailCollectionPicker.label;"
+                        accesskey="&emailCollectionPicker.accesskey;"
+                        preference="mail.collect_email_address_outgoing"
+                        oncommand="gComposePane.updateEmailCollection();"/>
               <menulist id="localDirectoriesList" flex="1"
                         preference="mail.collect_addressbook"
                         aria-labelledby="emailCollectionOutgoing">
                 <menupopup id="abPopup-menupopup" class="addrbooksPopup"
                            localonly="true" writable="true"/>
               </menulist>
-            </hbox>   
+            </hbox>
          </tabpanel>
 
          <tabpanel orient="vertical">

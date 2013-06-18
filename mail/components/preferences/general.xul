@@ -40,7 +40,8 @@
         <hbox align="start">
           <checkbox id="mailnewsStartPageEnabled" label="&enableStartPage.label;"
                     preference="mailnews.start_page.enabled"
-                    accesskey="&enableStartPage.accesskey;"/>
+                    accesskey="&enableStartPage.accesskey;"
+                    oncommand="gGeneralPane.updateStartPage();"/>
         </hbox>
         <hbox align="center">
           <label value="&location.label;" accesskey="&location1.accesskey;" control="mailnewsStartPageUrl"/>
@@ -64,8 +65,12 @@
                 accesskey="&bounceSystemDockIcon.accesskey;"/>
 #else
       <hbox align="center" flex="1">
-        <checkbox id="newMailNotificationAlert" label="&showAnimatedAlert.label;" accesskey="&showAnimatedAlert.accesskey;"
-                  preference="mail.biff.show_alert" flex="1"/>
+        <checkbox id="newMailNotificationAlert"
+                  label="&showAnimatedAlert.label;"
+                  accesskey="&showAnimatedAlert.accesskey;"
+                  preference="mail.biff.show_alert"
+                  oncommand="gGeneralPane.updateCustomizeAlert();"
+                  flex="1"/>
         <button id="customizeMailAlert" label="&customizeMailAlert.label;" accesskey="&customizeMailAlert.accesskey;"
                 oncommand="gGeneralPane.customizeMailAlert();"/>
       </hbox>

@@ -548,6 +548,8 @@ var gCloudFileTab = {
     window.addEventListener("unload", this, false);
     CommandUpdate_CloudFile();
 
+    this.updateThreshold();
+
     this._initialized = true;
   },
 
@@ -829,11 +831,15 @@ var gCloudFileTab = {
     return isNaN(intValue) ? 0 : intValue * 1024;
   },
 
+  updateThreshold: function CFT_updateThreshold() {
+    document.getElementById("cloudFileThreshold").disabled =
+    !document.getElementById("enableThreshold").checked;
+  },
+
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces
                                                    .nsIObserver,
                                          Components.interfaces
-                                                   .nsISupportsWeakReference]),
-
+                                                   .nsISupportsWeakReference])
 }
 
 //****************************************************************************//
