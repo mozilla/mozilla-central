@@ -20,17 +20,19 @@ typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
                                                     int32_t totalSize, const PRUnichar* aMsg, 
                                                     void *tagData);
 
+class nsMsgAttachmentHandler;
 %}
 
 native nsAttachSaveCompletionCallback(nsAttachSaveCompletionCallback);
+[ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 
 
-[noscript, uuid(4f3ad52d-888d-487d-961c-9c727c35434c)]
+[noscript, uuid(7316af6b-050d-4697-9d39-b0b358514f5c)]
 interface nsIURLFetcher : nsISupports
 {
   boolean stillRunning();
 
-  void fireURLRequest(in nsIURI aURL, in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void fireURLRequest(in nsIURI aURL, in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in nsMsgAttachmentHandler tagData);
 
-  void initialize(in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in voidPtr tagData);
+  void initialize(in nsIFile localFile, in nsIOutputStream fileStream, in nsAttachSaveCompletionCallback cb, in nsMsgAttachmentHandler tagData);
 };

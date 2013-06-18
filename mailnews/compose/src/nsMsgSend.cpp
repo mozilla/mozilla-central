@@ -269,7 +269,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_attachment1_body_length = 0;
   m_attachment_count = 0;
   m_attachment_pending_count = 0;
-  m_attachments = nullptr;
   m_status = NS_OK;
   m_plaintext = nullptr;
   m_related_part = nullptr;
@@ -299,7 +298,7 @@ nsMsgComposeAndSend::~nsMsgComposeAndSend()
     if (m_plaintext->mTmpFile)
       m_plaintext->mTmpFile->Remove(false);
 
-    delete m_plaintext;
+    m_plaintext = nullptr;
   }
 
   if (mHTMLFile)
@@ -314,10 +313,7 @@ nsMsgComposeAndSend::~nsMsgComposeAndSend()
   if (mTempFile && !mReturnFile)
     mTempFile->Remove(false);
 
-  if (m_attachments)
-  {
-    delete[] m_attachments;
-  }
+  m_attachments.Clear();
 }
 
 NS_IMETHODIMP nsMsgComposeAndSend::GetDefaultPrompt(nsIPrompt ** aPrompt)
@@ -550,7 +546,6 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     rv = NS_GetURLSpecFromFile(mHTMLFile, tempURL);
     if (NS_FAILED(rv) || NS_FAILED(nsMsgNewURL(getter_AddRefs(m_plaintext->mURL), tempURL.get())))
     {
-      delete m_plaintext;
       m_plaintext = nullptr;
       goto FAILMEM;
     }
@@ -881,7 +876,7 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     // part of an enclosed MHTML message!
     for (i = 0; i < m_attachment_count; i++)
     {
-      nsMsgAttachmentHandler *ma = &m_attachments[i];
+      nsMsgAttachmentHandler *ma = m_attachments[i];
       if (!ma->mMHTMLPart)
         PreProcessPart(ma, toppart);
     }
@@ -898,26 +893,26 @@ nsMsgComposeAndSend::GatherMimeAttachments()
         // look for earlier part with the same content id. If we find it,
         // need to remember the mapping between our node index and the
         // part num of the earlier part.
-        int32_t nodeIndex = m_attachments[i].mNodeIndex;
+        int32_t nodeIndex = m_attachments[i]->mNodeIndex;
         if (nodeIndex != -1)
         {
           for (uint32_t j = 0; j < i; j++)
           {
-            if (m_attachments[j].mNodeIndex != -1 &&
-                m_attachments[j].m_contentId.Equals(m_attachments[i].m_contentId))
-              m_partNumbers[nodeIndex] = m_partNumbers[m_attachments[j].mNodeIndex];
+            if (m_attachments[j]->mNodeIndex != -1 &&
+                m_attachments[j]->m_contentId.Equals(m_attachments[i]->m_contentId))
+              m_partNumbers[nodeIndex] = m_partNumbers[m_attachments[j]->mNodeIndex];
           }
         }
         // rhp: This is here because we could get here after saying OK
         // to a lot of prompts about not being able to fetch this part!
         //
-        if (m_attachments[i].mPartUserOmissionOverride)
+        if (m_attachments[i]->mPartUserOmissionOverride)
           continue;
 
         // Now, we need to add this part to the m_related_part member so the
         // message will be generated correctly.
-        if (m_attachments[i].mMHTMLPart)
-          PreProcessPart(&(m_attachments[i]), m_related_part);
+        if (m_attachments[i]->mMHTMLPart)
+          PreProcessPart(m_attachments[i], m_related_part);
       }
     }
 
@@ -1827,7 +1822,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
         continue;
       nsString nodeValue;
       node->GetNodeValue(nodeValue);
-      LossyCopyUTF16toASCII(nodeValue, m_attachments[i].m_contentId);
+      LossyCopyUTF16toASCII(nodeValue, m_attachments[i]->m_contentId);
     }
     else
     {
@@ -1837,18 +1832,18 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
       imageData->GetUri(getter_AddRefs(attachment.m_url));
       if (!attachment.m_url)
         return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
-      imageData->GetCid(m_attachments[i].m_contentId);
+      imageData->GetCid(m_attachments[i]->m_contentId);
       imageData->GetName(attachment.m_realName);
     }
 
 
     // MUST set this to get placed in the correct part of the message
-    m_attachments[i].mMHTMLPart = true;
+    m_attachments[i]->mMHTMLPart = true;
 
-    m_attachments[i].mDeleteFile = true;
-    m_attachments[i].m_done = false;
-    m_attachments[i].SetMimeDeliveryState(this);
-    m_attachments[i].mNodeIndex = locCount;
+    m_attachments[i]->mDeleteFile = true;
+    m_attachments[i]->m_done = false;
+    m_attachments[i]->SetMimeDeliveryState(this);
+    m_attachments[i]->mNodeIndex = locCount;
 
     j++;
     domSaveArray[j].node = node;
@@ -1860,7 +1855,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
       bool isEqual = false;
       NS_ASSERTION(attachment.m_url, "null attachment url!");
       if (attachment.m_url)
-        (void)attachment.m_url->Equals(m_attachments[k].mURL, &isEqual);
+        (void)attachment.m_url->Equals(m_attachments[k]->mURL, &isEqual);
       if (isEqual)
       {
         duplicateOf = k;
@@ -1873,39 +1868,39 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
       //
       // Now we have to get all of the interesting information from
       // the nsIDOMNode we have in hand...
-      m_attachments[i].mURL = attachment.m_url;
+      m_attachments[i]->mURL = attachment.m_url;
 
-      m_attachments[i].m_overrideType = attachment.m_realType;
-      m_attachments[i].m_overrideEncoding = attachment.m_realEncoding;
-      m_attachments[i].m_desiredType = attachment.m_desiredType;
-      m_attachments[i].m_description = attachment.m_description;
-      m_attachments[i].m_realName = attachment.m_realName;
-      m_attachments[i].m_xMacType = attachment.m_xMacType;
-      m_attachments[i].m_xMacCreator = attachment.m_xMacCreator;
+      m_attachments[i]->m_overrideType = attachment.m_realType;
+      m_attachments[i]->m_overrideEncoding = attachment.m_realEncoding;
+      m_attachments[i]->m_desiredType = attachment.m_desiredType;
+      m_attachments[i]->m_description = attachment.m_description;
+      m_attachments[i]->m_realName = attachment.m_realName;
+      m_attachments[i]->m_xMacType = attachment.m_xMacType;
+      m_attachments[i]->m_xMacCreator = attachment.m_xMacCreator;
 
-      m_attachments[i].m_charset = mCompFields->GetCharacterSet();
-      m_attachments[i].m_encoding = ENCODING_7BIT;
+      m_attachments[i]->m_charset = mCompFields->GetCharacterSet();
+      m_attachments[i]->m_encoding = ENCODING_7BIT;
 
-      if (m_attachments[i].mURL)
-        msg_pick_real_name(&m_attachments[i], nullptr, mCompFields->GetCharacterSet());
+      if (m_attachments[i]->mURL)
+        msg_pick_real_name(m_attachments[i], nullptr, mCompFields->GetCharacterSet());
 
-      if (m_attachments[i].m_contentId.IsEmpty())
+      if (m_attachments[i]->m_contentId.IsEmpty())
       {
         //
         // Next, generate a content id for use with this part
         //
         nsCString email;
         mUserIdentity->GetEmail(email);
-        m_attachments[i].m_contentId = mime_gen_content_id(locCount+1, email.get());
+        m_attachments[i]->m_contentId = mime_gen_content_id(locCount+1, email.get());
       }
 
       //
       // Start counting the attachments which are going to come from mail folders
       // and from NNTP servers.
       //
-      if (m_attachments[i].mURL)
+      if (m_attachments[i]->mURL)
       {
-        nsIURI *uri = m_attachments[i].mURL;
+        nsIURI *uri = m_attachments[i]->mURL;
         bool match = false;
         if ((NS_SUCCEEDED(uri->SchemeIs("mailbox", &match)) && match) ||
            (NS_SUCCEEDED(uri->SchemeIs("imap", &match)) && match))
@@ -1917,8 +1912,8 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
     }
     else
     {
-      m_attachments[i].m_contentId = m_attachments[duplicateOf].m_contentId;
-      m_attachments[i].SetMimeDeliveryState(nullptr);
+      m_attachments[i]->m_contentId = m_attachments[duplicateOf]->m_contentId;
+      m_attachments[i]->SetMimeDeliveryState(nullptr);
     }
 
     //
@@ -1927,10 +1922,10 @@ nsMsgComposeAndSend::ProcessMultipartRelated(int32_t *aMailboxCount, int32_t *aN
     // the HTML we need.
     //
     nsString domURL;
-    if (!m_attachments[duplicateOf == -1 ? i : duplicateOf].m_contentId.IsEmpty())
+    if (!m_attachments[duplicateOf == -1 ? i : duplicateOf]->m_contentId.IsEmpty())
     {
       nsString   newSpec(NS_LITERAL_STRING("cid:"));
-      newSpec.Append(NS_ConvertASCIItoUTF16(m_attachments[duplicateOf == -1 ? i : duplicateOf].m_contentId));
+      newSpec.AppendASCII(m_attachments[duplicateOf == -1 ? i : duplicateOf]->m_contentId.get());
 
       // Now, we know the types of objects this node can be, so we will do
       // our query interface here and see what we come up with
@@ -2104,7 +2099,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
     {
       bool sendViaCloud = false;
       attachment->GetSendViaCloud(&sendViaCloud);
-      m_attachments[newLoc].mSendViaCloud = sendViaCloud;
+      m_attachments[newLoc]->mSendViaCloud = sendViaCloud;
       attachment->GetUrl(url);
       if (!url.IsEmpty())
       {
@@ -2115,11 +2110,11 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           nsCString cloudProviderKey;
           // We'd like to output a part for the attachment, just an html part
           // with information about how to download the attachment.
-          // m_attachments[newLoc].m_done = true;
-          attachment->GetHtmlAnnotation(m_attachments[newLoc].mHtmlAnnotation);
-          m_attachments[newLoc].m_type = "text/html";
-          attachment->GetCloudProviderKey(m_attachments[newLoc].mCloudProviderKey);
-          attachment->GetContentLocation(m_attachments[newLoc].mCloudUrl);
+          // m_attachments[newLoc]->m_done = true;
+          attachment->GetHtmlAnnotation(m_attachments[newLoc]->mHtmlAnnotation);
+          m_attachments[newLoc]->m_type.AssignLiteral("text/html");
+          attachment->GetCloudProviderKey(m_attachments[newLoc]->mCloudProviderKey);
+          attachment->GetContentLocation(m_attachments[newLoc]->mCloudUrl);
         }
         // Just look for local file:// attachments and do the right thing.
         if (nsMsgIsLocalFile(url.get()))
@@ -2128,15 +2123,15 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           // Now we have to setup the m_attachments entry for the file://
           // URL that is passed in...
           //
-          m_attachments[newLoc].mDeleteFile = false;
+          m_attachments[newLoc]->mDeleteFile = false;
 
-          nsMsgNewURL(getter_AddRefs(m_attachments[newLoc].mURL), url.get());
+          nsMsgNewURL(getter_AddRefs(m_attachments[newLoc]->mURL), url.get());
 
-          if (m_attachments[newLoc].mTmpFile)
+          if (m_attachments[newLoc]->mTmpFile)
           {
-            if (m_attachments[newLoc].mDeleteFile)
-              m_attachments[newLoc].mTmpFile->Remove(false);
-            m_attachments[newLoc].mTmpFile =nullptr;
+            if (m_attachments[newLoc]->mDeleteFile)
+              m_attachments[newLoc]->mTmpFile->Remove(false);
+            m_attachments[newLoc]->mTmpFile =nullptr;
           }
           nsresult rv;
           nsCOMPtr<nsIIOService> ioService =
@@ -2149,13 +2144,13 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           NS_ENSURE_SUCCESS(rv, rv);
           nsCOMPtr <nsIFile> fileURLFile;
           fileURL->GetFile(getter_AddRefs(fileURLFile));
-          m_attachments[newLoc].mTmpFile = do_QueryInterface(fileURLFile);
-          m_attachments[newLoc].mDeleteFile = false;
-          if (m_attachments[newLoc].mURL)
+          m_attachments[newLoc]->mTmpFile = do_QueryInterface(fileURLFile);
+          m_attachments[newLoc]->mDeleteFile = false;
+          if (m_attachments[newLoc]->mURL)
           {
             nsAutoString proposedName;
             attachment->GetName(proposedName);
-            msg_pick_real_name(&m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
+            msg_pick_real_name(m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
           }
 
           // Now, most importantly, we need to figure out what the content type is for
@@ -2171,8 +2166,8 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           if (sendViaCloud)
             mustSnarfAttachment = false;
 
-          attachment->GetContentType(getter_Copies(m_attachments[newLoc].m_type));
-          if (m_attachments[newLoc].m_type.IsEmpty())
+          attachment->GetContentType(getter_Copies(m_attachments[newLoc]->m_type));
+          if (m_attachments[newLoc]->m_type.IsEmpty())
           {
             nsresult  rv = NS_OK;
             nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv));
@@ -2183,7 +2178,7 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
               {
                 nsAutoCString fileExt;
                 //First try using the real file name
-                rv = fileUrl->SetFileName(m_attachments[newLoc].m_realName);
+                rv = fileUrl->SetFileName(m_attachments[newLoc]->m_realName);
                 if (NS_SUCCEEDED(rv))
                 {
                   rv = fileUrl->GetFileExtension(fileExt);
@@ -2193,12 +2188,12 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
   #ifndef XP_MACOSX
                     if (!type.Equals("multipart/appledouble"))  // can't do apple double on non-macs
   #endif
-                    m_attachments[newLoc].m_type = type;
+                    m_attachments[newLoc]->m_type = type;
                   }
                 }
 
                 //Then try using the url if we still haven't figured out the content type
-                if (m_attachments[newLoc].m_type.IsEmpty())
+                if (m_attachments[newLoc]->m_type.IsEmpty())
                 {
                   rv = fileUrl->SetSpec(url);
                   if (NS_SUCCEEDED(rv))
@@ -2210,13 +2205,13 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
   #ifndef XP_MACOSX
                     if (!type.Equals("multipart/appledouble"))  // can't do apple double on non-macs
   #endif
-                      m_attachments[newLoc].m_type = type;
+                      m_attachments[newLoc]->m_type = type;
                     // rtf and vcs files may look like text to sniffers,
                     // but they're not human readable.
                     if (type.IsEmpty() && !fileExt.IsEmpty() &&
                          (MsgLowerCaseEqualsLiteral(fileExt, "rtf") ||
                           MsgLowerCaseEqualsLiteral(fileExt, "vcs")))
-                      m_attachments[newLoc].m_type = APPLICATION_OCTET_STREAM;
+                      m_attachments[newLoc]->m_type = APPLICATION_OCTET_STREAM;
                     }
                   }
                 }
@@ -2225,35 +2220,35 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
           }
           else
           {
-            attachment->GetContentTypeParam(getter_Copies(m_attachments[newLoc].m_typeParam));
+            attachment->GetContentTypeParam(getter_Copies(m_attachments[newLoc]->m_typeParam));
             mustSnarfAttachment = false;
           }
 
           //We need to snarf the file to figure out how to send it only if we don't have a content type...
-          if (mustSnarfAttachment || m_attachments[newLoc].m_type.IsEmpty())
+          if (mustSnarfAttachment || m_attachments[newLoc]->m_type.IsEmpty())
           {
-            m_attachments[newLoc].m_done = false;
-            m_attachments[newLoc].SetMimeDeliveryState(this);
+            m_attachments[newLoc]->m_done = false;
+            m_attachments[newLoc]->SetMimeDeliveryState(this);
           }
           else
           {
-            m_attachments[newLoc].m_done = true;
-            m_attachments[newLoc].SetMimeDeliveryState(nullptr);
+            m_attachments[newLoc]->m_done = true;
+            m_attachments[newLoc]->SetMimeDeliveryState(nullptr);
           }
           // For local files, if they are HTML docs and we don't have a charset, we should
           // sniff the file and see if we can figure it out.
-          if (!m_attachments[newLoc].m_type.IsEmpty())
+          if (!m_attachments[newLoc]->m_type.IsEmpty())
           {
-            if (m_attachments[newLoc].m_type.LowerCaseEqualsLiteral(TEXT_HTML))
+            if (m_attachments[newLoc]->m_type.LowerCaseEqualsLiteral(TEXT_HTML))
             {
-              char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(m_attachments[newLoc].mTmpFile);
+              char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(m_attachments[newLoc]->mTmpFile);
               if (tmpCharset[0] != '\0')
-                m_attachments[newLoc].m_charset = tmpCharset;
+                m_attachments[newLoc]->m_charset = tmpCharset;
             }
           }
 
-          attachment->GetMacType(getter_Copies(m_attachments[newLoc].m_xMacType));
-          attachment->GetMacCreator(getter_Copies(m_attachments[newLoc].m_xMacCreator));
+          attachment->GetMacType(getter_Copies(m_attachments[newLoc]->m_xMacType));
+          attachment->GetMacCreator(getter_Copies(m_attachments[newLoc]->m_xMacCreator));
 
           ++newLoc;
         }
@@ -2302,17 +2297,17 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(uint32_t   aStartLocation,
               !PL_strncasecmp(url.get(), "imap-message://", 15) ||
               !PL_strncasecmp(url.get(), "news-message://", 15);
 
-          m_attachments[newLoc].mDeleteFile = true;
-          m_attachments[newLoc].m_done = false;
-          m_attachments[newLoc].SetMimeDeliveryState(this);
+          m_attachments[newLoc]->mDeleteFile = true;
+          m_attachments[newLoc]->m_done = false;
+          m_attachments[newLoc]->SetMimeDeliveryState(this);
 
           if (!isAMessageAttachment)
-            nsMsgNewURL(getter_AddRefs(m_attachments[newLoc].mURL), url.get());
+            nsMsgNewURL(getter_AddRefs(m_attachments[newLoc]->mURL), url.get());
 
-          m_attachments[newLoc].m_encoding = ENCODING_7BIT;
+          m_attachments[newLoc]->m_encoding = ENCODING_7BIT;
 
-          attachment->GetMacType(getter_Copies(m_attachments[newLoc].m_xMacType));
-          attachment->GetMacCreator(getter_Copies(m_attachments[newLoc].m_xMacCreator));
+          attachment->GetMacType(getter_Copies(m_attachments[newLoc]->m_xMacType));
+          attachment->GetMacCreator(getter_Copies(m_attachments[newLoc]->m_xMacCreator));
 
           /* Count up attachments which are going to come from mail folders
              and from NNTP servers. */
@@ -2325,17 +2320,17 @@ nsMsgComposeAndSend::AddCompFieldRemoteAttachments(uint32_t   aStartLocation,
             else
               (*aMailboxCount)++;
 
-            m_attachments[newLoc].m_uri = url;
-            m_attachments[newLoc].mURL = nullptr;
+            m_attachments[newLoc]->m_uri = url;
+            m_attachments[newLoc]->mURL = nullptr;
           }
           else
-            do_add_attachment = (nullptr != m_attachments[newLoc].mURL);
-          m_attachments[newLoc].mSendViaCloud = false;
+            do_add_attachment = (nullptr != m_attachments[newLoc]->mURL);
+          m_attachments[newLoc]->mSendViaCloud = false;
           if (do_add_attachment)
           {
             nsAutoString proposedName;
             attachment->GetName(proposedName);
-            msg_pick_real_name(&m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
+            msg_pick_real_name(m_attachments[newLoc], proposedName.get(), mCompFields->GetCharacterSet());
             ++newLoc;
           }
         }
@@ -2384,9 +2379,10 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
   m_attachment_count = mPreloadedAttachmentCount + mRemoteAttachmentCount;
 
   // Now create the array of attachment handlers...
-  m_attachments = (nsMsgAttachmentHandler *) new nsMsgAttachmentHandler[m_attachment_count];
-  if (! m_attachments)
-    return NS_ERROR_OUT_OF_MEMORY;
+  for (int i = 0; i < m_attachment_count; i++) {
+    nsRefPtr<nsMsgAttachmentHandler> handler = new nsMsgAttachmentHandler;
+    m_attachments.AppendElement(handler);
+  }
 
   // clear this new memory...
   uint32_t     i;    // counter for location in attachment array...
@@ -2411,66 +2407,66 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
         continue;
 
       /* These attachments are already "snarfed". */
-      m_attachments[i].mDeleteFile = false;
-      m_attachments[i].SetMimeDeliveryState(nullptr);
-      m_attachments[i].m_done = true;
+      m_attachments[i]->mDeleteFile = false;
+      m_attachments[i]->SetMimeDeliveryState(nullptr);
+      m_attachments[i]->m_done = true;
 
-      attachedFile->GetOrigUrl(getter_AddRefs(m_attachments[i].mURL));
+      attachedFile->GetOrigUrl(getter_AddRefs(m_attachments[i]->mURL));
 
-      attachedFile->GetType(m_attachments[i].m_type);
+      attachedFile->GetType(m_attachments[i]->m_type);
 
       // Set it to the compose fields for a default...
-      m_attachments[i].m_charset = mCompFields->GetCharacterSet();
+      m_attachments[i]->m_charset = mCompFields->GetCharacterSet();
 
       // If we still don't have a content type, we should really try sniff one out!
-      if (m_attachments[i].m_type.IsEmpty())
-        m_attachments[i].PickEncoding(mCompFields->GetCharacterSet(), this);
+      if (m_attachments[i]->m_type.IsEmpty())
+        m_attachments[i]->PickEncoding(mCompFields->GetCharacterSet(), this);
 
       // For local files, if they are HTML docs and we don't have a charset, we should
       // sniff the file and see if we can figure it out.
-      if (!m_attachments[i].m_type.IsEmpty())
+      if (!m_attachments[i]->m_type.IsEmpty())
       {
         nsCOMPtr<nsIFile> tmpFile;
         attachedFile->GetTmpFile(getter_AddRefs(tmpFile));
-        if (m_attachments[i].m_type.LowerCaseEqualsLiteral(TEXT_HTML) && tmpFile)
+        if (m_attachments[i]->m_type.LowerCaseEqualsLiteral(TEXT_HTML) && tmpFile)
         {
           char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(tmpFile);
           if (tmpCharset[0] != '\0')
-            m_attachments[i].m_charset = tmpCharset;
+            m_attachments[i]->m_charset = tmpCharset;
         }
       }
 
-      attachedFile->GetDescription(m_attachments[i].m_description);
-      attachedFile->GetRealName(m_attachments[i].m_realName);
-      attachedFile->GetXMacType(m_attachments[i].m_xMacType);
-      attachedFile->GetXMacCreator(m_attachments[i].m_xMacCreator);
-      attachedFile->GetEncoding(m_attachments[i].m_encoding);
+      attachedFile->GetDescription(m_attachments[i]->m_description);
+      attachedFile->GetRealName(m_attachments[i]->m_realName);
+      attachedFile->GetXMacType(m_attachments[i]->m_xMacType);
+      attachedFile->GetXMacCreator(m_attachments[i]->m_xMacCreator);
+      attachedFile->GetEncoding(m_attachments[i]->m_encoding);
 
-      if (m_attachments[i].mTmpFile)
+      if (m_attachments[i]->mTmpFile)
       {
-        if (m_attachments[i].mDeleteFile)
-          m_attachments[i].mTmpFile->Remove(false);
-        m_attachments[i].mTmpFile = nullptr;
+        if (m_attachments[i]->mDeleteFile)
+          m_attachments[i]->mTmpFile->Remove(false);
+        m_attachments[i]->mTmpFile = nullptr;
       }
-      attachedFile->GetTmpFile(getter_AddRefs(m_attachments[i].mTmpFile));
+      attachedFile->GetTmpFile(getter_AddRefs(m_attachments[i]->mTmpFile));
 
-      attachedFile->GetSize(&m_attachments[i].m_size);
-      attachedFile->GetUnprintableCount(&m_attachments[i].m_unprintable_count);
-      attachedFile->GetHighbitCount(&m_attachments[i].m_highbit_count);
-      attachedFile->GetCtlCount(&m_attachments[i].m_ctl_count);
-      attachedFile->GetNullCount(&m_attachments[i].m_null_count);
-      attachedFile->GetMaxLineLength(&m_attachments[i].m_max_column);
+      attachedFile->GetSize(&m_attachments[i]->m_size);
+      attachedFile->GetUnprintableCount(&m_attachments[i]->m_unprintable_count);
+      attachedFile->GetHighbitCount(&m_attachments[i]->m_highbit_count);
+      attachedFile->GetCtlCount(&m_attachments[i]->m_ctl_count);
+      attachedFile->GetNullCount(&m_attachments[i]->m_null_count);
+      attachedFile->GetMaxLineLength(&m_attachments[i]->m_max_column);
 
       /* If the attachment has an encoding, and it's not one of
       the "null" encodings, then keep it. */
-      if (!m_attachments[i].m_encoding.IsEmpty() &&
-          !m_attachments[i].m_encoding.LowerCaseEqualsLiteral(ENCODING_7BIT) &&
-          !m_attachments[i].m_encoding.LowerCaseEqualsLiteral(ENCODING_8BIT) &&
-          !m_attachments[i].m_encoding.LowerCaseEqualsLiteral(ENCODING_BINARY))
-        m_attachments[i].m_already_encoded_p = true;
+      if (!m_attachments[i]->m_encoding.IsEmpty() &&
+          !m_attachments[i]->m_encoding.LowerCaseEqualsLiteral(ENCODING_7BIT) &&
+          !m_attachments[i]->m_encoding.LowerCaseEqualsLiteral(ENCODING_8BIT) &&
+          !m_attachments[i]->m_encoding.LowerCaseEqualsLiteral(ENCODING_BINARY))
+        m_attachments[i]->m_already_encoded_p = true;
 
-            if (m_attachments[i].mURL)
-        msg_pick_real_name(&m_attachments[i], nullptr, mCompFields->GetCharacterSet());
+            if (m_attachments[i]->mURL)
+        msg_pick_real_name(m_attachments[i], nullptr, mCompFields->GetCharacterSet());
     }
   }
 
@@ -2510,30 +2506,30 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       nsCOMPtr<nsIMsgAttachmentData> attachment(do_QueryElementAt(attachments, i));
       if (!attachment)
         continue;
-      m_attachments[i].mDeleteFile = true;
-      m_attachments[i].m_done = false;
-      m_attachments[i].SetMimeDeliveryState(this);
+      m_attachments[i]->mDeleteFile = true;
+      m_attachments[i]->m_done = false;
+      m_attachments[i]->SetMimeDeliveryState(this);
 
-      attachment->GetUrl(getter_AddRefs(m_attachments[i].mURL));
+      attachment->GetUrl(getter_AddRefs(m_attachments[i]->mURL));
 
-      attachment->GetRealType(m_attachments[i].m_overrideType);
-      m_attachments[i].m_charset = mCompFields->GetCharacterSet();
-      attachment->GetRealEncoding(m_attachments[i].m_overrideEncoding);
-      attachment->GetDesiredType(m_attachments[i].m_desiredType);
-      attachment->GetDescription(m_attachments[i].m_description);
-      attachment->GetRealName(m_attachments[i].m_realName);
-      attachment->GetXMacType(m_attachments[i].m_xMacType);
-      attachment->GetXMacCreator(m_attachments[i].m_xMacCreator);
-      m_attachments[i].m_encoding = ENCODING_7BIT;
+      attachment->GetRealType(m_attachments[i]->m_overrideType);
+      m_attachments[i]->m_charset = mCompFields->GetCharacterSet();
+      attachment->GetRealEncoding(m_attachments[i]->m_overrideEncoding);
+      attachment->GetDesiredType(m_attachments[i]->m_desiredType);
+      attachment->GetDescription(m_attachments[i]->m_description);
+      attachment->GetRealName(m_attachments[i]->m_realName);
+      attachment->GetXMacType(m_attachments[i]->m_xMacType);
+      attachment->GetXMacCreator(m_attachments[i]->m_xMacCreator);
+      m_attachments[i]->m_encoding = ENCODING_7BIT;
 
       // real name is set in the case of vcard so don't change it.  XXX STILL NEEDED?
-      // m_attachments[i].m_real_name = 0;
+      // m_attachments[i]->m_real_name = 0;
 
       /* Count up attachments which are going to come from mail folders
       and from NNTP servers. */
-    if (m_attachments[i].mURL)
+    if (m_attachments[i]->mURL)
     {
-    nsIURI *uri = m_attachments[i].mURL;
+    nsIURI *uri = m_attachments[i]->mURL;
     bool match = false;
     if ((NS_SUCCEEDED(uri->SchemeIs("mailbox", &match)) && match) ||
       (NS_SUCCEEDED(uri->SchemeIs("imap", &match)) && match))
@@ -2543,7 +2539,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
         news_count++;
 
       if (uri)
-        msg_pick_real_name(&m_attachments[i], nullptr, mCompFields->GetCharacterSet());
+        msg_pick_real_name(m_attachments[i], nullptr, mCompFields->GetCharacterSet());
       }
     }
   }
@@ -2564,7 +2560,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
 
     for (i = 0; i < m_attachment_count; i++)
     {
-      if (m_attachments[i].m_done || m_attachments[i].mSendViaCloud)
+      if (m_attachments[i]->m_done || m_attachments[i]->mSendViaCloud)
       {
         m_attachment_pending_count--;
         continue;
@@ -2573,11 +2569,11 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       //
       //  IF we get here and the URL is NULL, just dec the pending count and move on!!!
       //
-      if ( (!m_attachments[i].mURL) && (!m_attachments[i].m_uri.Length()) )
+      if ( (!m_attachments[i]->mURL) && (!m_attachments[i]->m_uri.Length()) )
       {
-        m_attachments[i].m_bogus_attachment = true;
-        m_attachments[i].m_done = true;
-        m_attachments[i].SetMimeDeliveryState(nullptr);
+        m_attachments[i]->m_bogus_attachment = true;
+        m_attachments[i]->m_done = true;
+        m_attachments[i]->SetMimeDeliveryState(nullptr);
         m_attachment_pending_count--;
         continue;
       }
@@ -2592,7 +2588,7 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       nsString msg;
       mComposeBundle->GetStringFromID(NS_MSG_GATHERING_ATTACHMENT, getter_Copies(msg));
 
-      printfString = nsTextFormatter::smprintf(msg.get(), m_attachments[i].m_realName.get());
+      printfString = nsTextFormatter::smprintf(msg.get(), m_attachments[i]->m_realName.get());
 
       if (printfString)
       {
@@ -2605,12 +2601,12 @@ nsMsgComposeAndSend::HackAttachments(nsIArray *attachments,
       */
       needToCallGatherMimeAttachments = false;
 
-      nsresult status = m_attachments[i].SnarfAttachment(mCompFields);
+      nsresult status = m_attachments[i]->SnarfAttachment(mCompFields);
       if (NS_FAILED(status))
       {
         nsString errorMsg;
         nsAutoString attachmentFileName;
-        nsresult rv = ConvertToUnicode(nsMsgI18NFileSystemCharset(), m_attachments[i].m_realName, attachmentFileName);
+        nsresult rv = ConvertToUnicode(nsMsgI18NFileSystemCharset(), m_attachments[i]->m_realName, attachmentFileName);
         if (NS_SUCCEEDED(rv))
         {
           nsCOMPtr<nsIStringBundle> bundle;
@@ -4856,14 +4852,11 @@ nsresult nsMsgComposeAndSend::Abort()
   if (m_plaintext)
     rv = m_plaintext->Abort();
 
-  if (m_attachments)
+  for (i = 0; i < m_attachment_count; i ++)
   {
-    for (i = 0; i < m_attachment_count; i ++)
-    {
-      nsMsgAttachmentHandler *ma = &m_attachments[i];
-      if (ma)
-        rv = ma->Abort();
-    }
+    nsMsgAttachmentHandler *ma = m_attachments[i];
+    if (ma)
+      rv = ma->Abort();
   }
 
   /* stop the current running url */
@@ -4891,10 +4884,10 @@ NS_IMETHODIMP nsMsgComposeAndSend::GetProcessAttachmentsSynchronously(bool *_ret
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgComposeAndSend::GetAttachmentHandlers(nsMsgAttachmentHandler * *_retval)
+NS_IMETHODIMP nsMsgComposeAndSend::GetAttachmentHandlers(nsTArray<nsRefPtr<nsMsgAttachmentHandler>> **_retval)
 {
   NS_ENSURE_ARG(_retval);
-  *_retval = m_attachments;
+  *_retval = &m_attachments;
   return NS_OK;
 }
 

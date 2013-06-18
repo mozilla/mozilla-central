@@ -211,11 +211,10 @@ nsresult
 nsURLFetcher::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 {
   /* check if the user has canceld the operation */
-  nsMsgAttachmentHandler *attachmentHdl = (nsMsgAttachmentHandler *)mTagData;
-  if (attachmentHdl)
+  if (mTagData)
   {
     nsCOMPtr<nsIMsgSend> sendPtr;
-    attachmentHdl->GetMimeDeliveryState(getter_AddRefs(sendPtr));
+    mTagData->GetMimeDeliveryState(getter_AddRefs(sendPtr));
     if (sendPtr)
     {
       nsCOMPtr<nsIMsgProgress> progress;
@@ -228,7 +227,7 @@ nsURLFetcher::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
           return request->Cancel(NS_ERROR_ABORT);
       }
     }
-    attachmentHdl->mRequest = request;
+    mTagData->mRequest = request;
   }
 
   /* call our converter or consumer */
@@ -254,9 +253,8 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
   if (mConverter)
     (void) mConverter->OnStopRequest(request, ctxt, aStatus);
 
-  nsMsgAttachmentHandler *attachmentHdl = (nsMsgAttachmentHandler *)mTagData;
-  if (attachmentHdl)
-    attachmentHdl->mRequest = nullptr;
+  if (mTagData)
+    mTagData->mRequest = nullptr;
 
   //
   // Now complete the stream!
@@ -288,7 +286,7 @@ nsresult
 nsURLFetcher::Initialize(nsIFile *localFile, 
                          nsIOutputStream *outputStream,
                          nsAttachSaveCompletionCallback cb, 
-                         void *tagData)
+                         nsMsgAttachmentHandler *tagData)
 {
   if (!outputStream || !localFile)
     return NS_ERROR_INVALID_ARG;
@@ -296,13 +294,13 @@ nsURLFetcher::Initialize(nsIFile *localFile,
   mOutStream = outputStream;
   mLocalFile = localFile;
   mCallback = cb;     //JFD: Please, no more callback, use a listener...
-  mTagData = tagData; //JFD: TODO, WE SHOULD USE A NSCOMPTR to hold this stuff!!!
+  mTagData = tagData;
   return NS_OK;
 }
 
 nsresult
 nsURLFetcher::FireURLRequest(nsIURI *aURL, nsIFile *localFile, nsIOutputStream *outputStream, 
-                             nsAttachSaveCompletionCallback cb, void *tagData)
+                             nsAttachSaveCompletionCallback cb, nsMsgAttachmentHandler *tagData)
 {
   nsresult rv;
 

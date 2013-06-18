@@ -8,6 +8,7 @@
 #include "nsIURLFetcher.h"
 
 #include "nsCOMPtr.h"
+#include "nsAutoPtr.h"
 #include "nsIInputStream.h"
 #include "nsIStreamListener.h"
 
@@ -18,6 +19,8 @@
 #include "nsIWebProgressListener.h"
 #include "nsWeakReference.h"
 #include "nsStringGlue.h"
+
+class nsMsgAttachmentHandler;
 
 class nsURLFetcher : public nsIURLFetcher,
                      public nsIStreamListener,
@@ -65,7 +68,7 @@ private:
   uint32_t                        mBufferSize;              // Buffer size;
   nsCString                  mContentType;             // The content type retrieved from the server
   nsCString                  mCharset;                 // The charset retrieved from the server
-  void                            *mTagData;      // Tag data for callback...
+  nsRefPtr<nsMsgAttachmentHandler> mTagData;      // Tag data for callback...
   nsAttachSaveCompletionCallback  mCallback;      // Callback to call once the file is saved...
   nsCOMPtr<nsISupports>           mLoadCookie;    // load cookie used by the uri loader when we fetch the url
   bool                            mOnStopRequestProcessed; // used to prevent calling OnStopRequest multiple times

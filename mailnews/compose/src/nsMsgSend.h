@@ -318,7 +318,7 @@ public:
   char                    *mOriginalHTMLBody;
 
   // The plaintext form of the first attachment, if needed.
-  nsMsgAttachmentHandler  *m_plaintext;
+  nsRefPtr<nsMsgAttachmentHandler>  m_plaintext;
 
   // The multipart/related save object for HTML text.
   nsMsgSendPart           *m_related_part;
@@ -329,7 +329,7 @@ public:
   //
   uint32_t                m_attachment_count;
   uint32_t                m_attachment_pending_count;
-  nsMsgAttachmentHandler  *m_attachments;
+  nsTArray< nsRefPtr<nsMsgAttachmentHandler> >  m_attachments;
   nsresult                m_status; // in case some attachments fail but not all
 
   uint32_t                mPreloadedAttachmentCount;

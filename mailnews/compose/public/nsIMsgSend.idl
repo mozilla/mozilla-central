@@ -145,12 +145,14 @@ interface nsIMsgEmbeddedImageData : nsISupports
 %{ C++
 // Forward declaration
 class nsMsgAttachmentHandler;
+#include "nsAutoPtr.h"
+#include "nsTArray.h"
 %}
 
-[ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
+[ptr] native nsMsgAttachmentHandlerArray(nsTArray<nsRefPtr<nsMsgAttachmentHandler>>);
 
-[scriptable, uuid(bf4ed5b0-9560-11e2-9e96-0800200c9a66)]
+[scriptable, uuid(648f8e40-3977-4dd8-88f1-b932bc654aef)]
 interface nsIMsgSend : nsISupports
 {
   //
@@ -354,7 +356,7 @@ interface nsIMsgSend : nsISupports
     /* process attachment */
     void gatherMimeAttachments();
     readonly attribute boolean processAttachmentsSynchronously;
-    [noscript] nsMsgAttachmentHandler getAttachmentHandlers();
+    [noscript] nsMsgAttachmentHandlerArray getAttachmentHandlers();
     readonly attribute unsigned long attachmentCount;
     attribute unsigned long pendingAttachmentCount;
     readonly attribute nsMsgDeliverMode deliveryMode;

@@ -1153,18 +1153,15 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
      */
     uint32_t i;
     nsMsgAttachmentHandler *next = 0;
-    nsMsgAttachmentHandler *attachments = nullptr;
-    uint32_t attachmentCount = 0;
+    nsTArray<nsRefPtr<nsMsgAttachmentHandler>> *attachments;
 
-    m_mime_delivery_state->GetAttachmentCount(&attachmentCount);
-    if (attachmentCount)
-      m_mime_delivery_state->GetAttachmentHandlers(&attachments);
+    m_mime_delivery_state->GetAttachmentHandlers(&attachments);
 
-    for (i = 0; i < attachmentCount; i++)
+    for (i = 0; i < attachments->Length(); i++)
     {
-      if (!attachments[i].m_done)
+      if (!(*attachments)[i]->m_done)
       {
-        next = &attachments[i];
+        next = (*attachments)[i];
         //
         // rhp: We need to get a little more understanding to failed URL
         // requests. So, at this point if most of next is NULL, then we
@@ -1173,8 +1170,8 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
         //
         if ( (!next->mURL) && (next->m_uri.IsEmpty()) )
         {
-          attachments[i].m_done = true;
-          attachments[i].SetMimeDeliveryState(nullptr);
+          (*attachments)[i]->m_done = true;
+          (*attachments)[i]->SetMimeDeliveryState(nullptr);
           m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
           m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
           next->mPartUserOmissionOverride = true;

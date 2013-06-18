@@ -63,6 +63,8 @@ class MimeEncoder;
 //
 class nsMsgAttachmentHandler
 {
+  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(nsMsgAttachmentHandler)
+
   typedef mozilla::mailnews::MimeEncoder MimeEncoder;
 public:
   nsMsgAttachmentHandler();
