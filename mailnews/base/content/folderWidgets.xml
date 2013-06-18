@@ -649,6 +649,9 @@
           }
           menu.setAttribute("generated", "true");
           this.appendChild(menu);
+          if (!recentFolders.length)
+            menu.setAttribute("disabled", "true");
+
           var sep = document.createElement("menuseparator");
           sep.setAttribute("generated", "true");
           this.appendChild(sep);
