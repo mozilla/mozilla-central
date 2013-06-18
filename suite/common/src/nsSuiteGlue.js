@@ -197,7 +197,6 @@ SuiteGlue.prototype = {
     if (aWebProgress.DOMWindow.top == aWebProgress.DOMWindow &&
         aWebProgress instanceof Components.interfaces.nsIDocShell &&
         aWebProgress.loadType & Components.interfaces.nsIDocShell.LOAD_CMD_NORMAL &&
-        aWebProgress instanceof Components.interfaces.nsIDocShellHistory &&
         aWebProgress.useGlobalHistory) {
       switch (aLocation.scheme) {
         case "about":

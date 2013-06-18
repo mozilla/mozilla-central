@@ -479,8 +479,7 @@ var specialTabs = {
 
     // enable global history
     try {
-      browser.docShell.QueryInterface(Components.interfaces.nsIDocShellHistory)
-             .useGlobalHistory = true;
+      browser.docShell.useGlobalHistory = true;
     } catch(ex) {
       Components.utils.reportError("Places database may be locked: " + ex);
     }
