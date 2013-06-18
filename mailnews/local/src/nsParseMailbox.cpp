@@ -1304,7 +1304,7 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
   recipient  = (to.length         ? &to :
   cc.length         ? &cc :
   m_newsgroups.length ? &m_newsgroups :
-  sender);
+  0);
   ccList     = (cc.length ? &cc : 0);
   bccList    = (m_bccList.length    ? &m_bccList    : 0);
   subject    = (m_subject.length    ? &m_subject    : 0);
