@@ -5,3 +5,9 @@
 
 MODULE = 'mailnewsglobaldb'
 
+EXTRA_COMPONENTS += [
+    'glautocomp.js',
+    'gloda.manifest',
+    'jsmimeemitter.js',
+]
+

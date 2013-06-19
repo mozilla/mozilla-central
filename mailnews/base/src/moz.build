@@ -67,3 +67,11 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk2':
     CPP_SOURCES += ['nsMessengerUnixIntegration.cpp']
 elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     CMMSRCS += ['nsMessengerOSXIntegration.mm']
+
+EXTRA_COMPONENTS += [
+    'msgAsyncPrompter.js',
+    'msgBase.manifest',
+    'newMailNotificationService.js',
+    'nsMailNewsCommandLineHandler.js',
+]
+

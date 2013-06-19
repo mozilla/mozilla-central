@@ -18,11 +18,6 @@ endif
 EXPORT_DIR	= $(DIST)/bin/isp
 
 
-EXTRA_COMPONENTS += \
-		nsMsgTraitService.js \
-		nsMsgTraitService.manifest \
-		$(NULL)
- 
 EXPORT_RESOURCE_FILES	= \
 				  Bogofilter.sfd \
 				  DSPAM.sfd \

@@ -16,12 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-EXTRA_COMPONENTS += \
-		nsAbLDAPAttributeMap.js \
-		nsAbAutoCompleteMyDomain.js \
-		nsAbAutoCompleteSearch.js \
-		$(NULL)
-
 EXTRA_PP_COMPONENTS += \
 		nsAddrbook.manifest \
 		$(NULL)
@@ -35,9 +29,6 @@ DEFINES += -DMOZ_LDAP_XPCOM
 
 ifdef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
 DEFINES += -DMOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
-EXTRA_COMPONENTS += \
-		nsAbLDAPAutoCompleteSearch.js \
-		$(NULL)
 endif
 
 # XXX These files are not being built as they don't work. Bug 311632 should

@@ -20,3 +20,8 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk2':
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     CPP_SOURCES += ['nsMailMacIntegration.cpp']
 
+EXTRA_COMPONENTS += [
+    'nsSetDefaultMail.js',
+    'shell.manifest',
+]
+

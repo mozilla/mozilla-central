@@ -20,13 +20,6 @@ ifdef MOZ_LDAP_XPCOM
 DEFINES         += -DMOZ_LDAP_XPCOM
 endif
 
-EXTRA_COMPONENTS = \
-		nsMailNewsCommandLineHandler.js \
-		msgAsyncPrompter.js \
-		newMailNotificationService.js \
-		msgBase.manifest \
-		$(NULL)
-
 EXTRA_JS_MODULES = \
 		virtualFolderWrapper.js \
 		$(NULL)

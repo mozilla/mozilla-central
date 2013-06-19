@@ -5,3 +5,8 @@
 
 MODULE = 'offline-startup'
 
+EXTRA_COMPONENTS += [
+    'js/offlineStartup.js',
+    'js/offlineStartup.manifest',
+]
+

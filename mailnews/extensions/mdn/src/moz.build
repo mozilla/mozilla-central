@@ -9,3 +9,8 @@ CPP_SOURCES += [
     'nsMsgMdnGenerator.cpp',
 ]
 
+EXTRA_COMPONENTS += [
+    'mdn-service.js',
+    'mdn-service.manifest',
+]
+

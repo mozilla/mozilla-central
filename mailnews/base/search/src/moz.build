@@ -21,3 +21,8 @@ CPP_SOURCES += [
     'nsMsgSearchValue.cpp',
 ]
 
+EXTRA_COMPONENTS += [
+    'nsMsgTraitService.js',
+    'nsMsgTraitService.manifest',
+]
+

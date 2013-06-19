@@ -9,11 +9,6 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-    calImportExportModule.js \
-    calImportExportModule.manifest \
-    $(NULL)
-
 EXTRA_SCRIPTS = \
     calHtmlExport.js \
     calIcsImportExport.js \

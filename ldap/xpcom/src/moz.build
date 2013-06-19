@@ -24,3 +24,9 @@ if CONFIG['MOZ_PREF_EXTENSIONS']:
 
 if CONFIG['MOZ_PSM']:
     CPP_SOURCES += ['nsLDAPSecurityGlue.cpp']
+
+EXTRA_COMPONENTS += [
+    'ldapComponents.manifest',
+    'nsLDAPProtocolHandler.js',
+]
+

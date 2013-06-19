@@ -10,11 +10,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-		irc.js \
-		irc.manifest \
-		$(NULL)
-
 EXTRA_JS_MODULES = \
 		ircBase.jsm \
 		ircCAP.jsm \

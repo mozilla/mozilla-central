@@ -22,11 +22,6 @@ else
 FORCE_SHARED_LIB = 1
 endif
 
-EXTRA_COMPONENTS = \
-		nsLDAPProtocolHandler.js \
-		ldapComponents.manifest \
-		$(NULL)
-
 ifdef MOZ_PREF_EXTENSIONS
 DEFINES += -DMOZ_PREF_EXTENSIONS
 endif

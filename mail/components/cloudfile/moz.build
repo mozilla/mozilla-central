@@ -9,3 +9,10 @@ XPIDL_SOURCES += [
 
 MODULE = 'cloudfile'
 
+EXTRA_COMPONENTS += [
+    'cloudFileComponents.manifest',
+    'nsBox.js',
+    'nsUbuntuOne.js',
+    'nsYouSendIt.js',
+]
+

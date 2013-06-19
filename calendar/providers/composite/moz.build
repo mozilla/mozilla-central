@@ -5,3 +5,8 @@
 
 MODULE = 'calCompositeCalendar'
 
+EXTRA_COMPONENTS += [
+    'calCompositeCalendar.js',
+    'calCompositeCalendar.manifest',
+]
+

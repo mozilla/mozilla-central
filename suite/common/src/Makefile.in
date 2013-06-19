@@ -10,15 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-	nsAbout.js \
-	nsSessionStartup.js \
-	nsSidebar.js \
-	SuiteCommon.manifest \
-	nsSuiteDownloadManagerUI.js \
-	nsSuiteGlue.js \
-	$(NULL)
-
 EXTRA_PP_COMPONENTS = \
 	nsSessionStore.js \
 	$(NULL)

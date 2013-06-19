@@ -75,3 +75,8 @@ if CONFIG['MOZ_PSM']:
         'mimemcms.cpp',
     ]
 
+EXTRA_COMPONENTS += [
+    'mimeJSComponents.js',
+    'msgMime.manifest',
+]
+

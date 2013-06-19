@@ -5,3 +5,10 @@
 
 DIRS += ['locales']
 
+if not CONFIG['MOZ_STANDALONE_COMPOSER']:
+    if CONFIG['MOZ_SUITE']:
+        EXTRA_COMPONENTS += [
+            'nsComposerCmdLineHandler.js',
+            'nsComposerCmdLineHandler.manifest',
+        ]
+

@@ -11,3 +11,10 @@ XPIDL_SOURCES += [
 
 MODULE = 'activity'
 
+EXTRA_COMPONENTS += [
+    'activityComponents.manifest',
+    'nsActivity.js',
+    'nsActivityManager.js',
+    'nsActivityManagerUI.js',
+]
+

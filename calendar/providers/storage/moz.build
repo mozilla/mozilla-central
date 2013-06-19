@@ -5,3 +5,8 @@
 
 MODULE = 'calStorageCalendar'
 
+EXTRA_COMPONENTS += [
+    'calStorageCalendar.js',
+    'calStorageCalendar.manifest',
+]
+

@@ -5,3 +5,8 @@
 
 MODULE = 'newsblog'
 
+EXTRA_COMPONENTS += [
+    'js/newsblog.js',
+    'js/newsblog.manifest',
+]
+

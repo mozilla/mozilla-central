@@ -8,3 +8,8 @@ XPIDL_SOURCES += [
 ]
 
 XPIDL_MODULE = 'caldatetime_icaljs'
+
+EXTRA_COMPONENTS += [
+    'calICALJSComponents.js',
+]
+

@@ -10,7 +10,6 @@ VPATH = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 NO_COMPONENTS_MANIFEST = 1
-EXTRA_COMPONENTS = calICALJSComponents.js
 BACKEND_MANIFESTS = icaljs.manifest
 DEFINES += -DXPIDL_MODULE=$(XPIDL_MODULE)
 NO_JS_MANIFEST = 1

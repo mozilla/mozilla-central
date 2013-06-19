@@ -10,15 +10,6 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-    calItemModule.manifest \
-    calItemModule.js \
-    calTimezoneService.manifest \
-    calTimezoneService.js \
-    calDefaultACLManager.js \
-    calDefaultACLManager.manifest \
-    $(NULL)
-
 EXTRA_SCRIPTS = \
     calAlarm.js \
     calAlarmService.js \

@@ -5,3 +5,10 @@
 
 MODULE = 'lightning'
 
+EXTRA_COMPONENTS += [
+    'calItipProtocolHandler.js',
+    'calItipProtocolHandler.manifest',
+    'lightningTextCalendarConverter.js',
+    'lightningTextCalendarConverter.manifest',
+]
+

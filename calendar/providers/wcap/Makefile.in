@@ -18,14 +18,6 @@ EXTRA_SCRIPTS = \
                 calWcapCalendar.js \
                 $(NULL)
 
-EXTRA_COMPONENTS = \
-                calWcapCalendarModule.js \
-                calWcapCalendarModule.manifest \
-                $(NULL)
-
-# installing EXTRA_SCRIPTS into js/
-
-# using NSINSTALL to make directory: no mtime to preserve:
 libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
 	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js

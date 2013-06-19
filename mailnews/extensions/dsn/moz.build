@@ -5,3 +5,8 @@
 
 MODULE = 'msgdsn'
 
+EXTRA_COMPONENTS += [
+    'src/dsn-service.js',
+    'src/dsn-service.manifest',
+]
+

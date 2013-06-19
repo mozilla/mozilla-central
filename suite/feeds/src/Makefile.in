@@ -12,11 +12,4 @@ include $(DEPTH)/config/autoconf.mk
 LIBRARY_NAME = suitefeeds_s
 FORCE_STATIC_LIB = 1
 
-EXTRA_COMPONENTS = \
-	SuiteFeeds.manifest \
-	FeedConverter.js \
-	FeedWriter.js \
-	WebContentConverter.js \
-	$(NULL)
-
 include $(topsrcdir)/config/rules.mk

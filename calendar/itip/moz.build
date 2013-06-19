@@ -5,3 +5,8 @@
 
 MODULE = 'calItipEmailTransport'
 
+EXTRA_COMPONENTS += [
+    'calItipEmailTransport.js',
+    'calItipEmailTransport.manifest',
+]
+

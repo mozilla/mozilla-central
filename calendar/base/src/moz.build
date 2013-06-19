@@ -11,3 +11,12 @@ XPIDL_MODULE = 'calbaseinternal'
 
 MODULE = 'calbase'
 
+EXTRA_COMPONENTS += [
+    'calDefaultACLManager.js',
+    'calDefaultACLManager.manifest',
+    'calItemModule.js',
+    'calItemModule.manifest',
+    'calTimezoneService.js',
+    'calTimezoneService.manifest',
+]
+

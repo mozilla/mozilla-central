@@ -5,3 +5,7 @@
 
 MODULE = 'smile'
 
+EXTRA_COMPONENTS += [
+    'smileApplication.manifest',
+]
+

@@ -9,11 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-		xmpp.js \
-		xmpp.manifest \
-		$(NULL)
-
 EXTRA_JS_MODULES = \
 		xmpp.jsm \
 		xmpp-authmechs.jsm \

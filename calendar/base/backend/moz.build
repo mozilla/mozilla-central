@@ -7,3 +7,9 @@ DIRS = [
     'libical',
     'icaljs'
 ]
+
+EXTRA_COMPONENTS += [
+    'calBackendLoader.js',
+    'calBackendLoader.manifest',
+]
+

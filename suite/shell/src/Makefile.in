@@ -13,22 +13,10 @@ FORCE_STATIC_LIB=1
 
 
 ifeq ($(OS_ARCH),WINNT)
-build_extra := 1
 OS_LIBS         += $(call EXPAND_LIBNAME,ole32 version uuid shell32)
-else
-ifeq ($(MOZ_WIDGET_TOOLKIT), cocoa)
-build_extra := 1
-else
-ifeq ($(MOZ_WIDGET_TOOLKIT), gtk2)
-build_extra := 1
-endif
-endif
 endif
 
-ifdef build_extra
-EXTRA_COMPONENTS = nsSetDefault.manifest nsSetDefault.js
 LIBRARY_NAME = shellservice_s
-endif
 
 include $(topsrcdir)/config/rules.mk
 

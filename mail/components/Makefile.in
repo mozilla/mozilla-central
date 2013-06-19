@@ -10,14 +10,6 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-	nsMailDefaultHandler.js \
-	mailContentHandler.js \
-	aboutRedirector.js \
-	mailGlue.js \
-	mailComponents.manifest \
-	$(NULL)
-
 EXTRA_JS_MODULES = \
   appIdleManager.js \
   $(NULL)

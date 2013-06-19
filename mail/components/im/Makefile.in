@@ -9,12 +9,6 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_COMPONENTS = \
-		imIncomingServer.js \
-		imProtocolInfo.js \
-		im.manifest \
-		$(NULL)
-
 EXTRA_JS_MODULES = \
 		modules/chatHandler.jsm \
 		modules/index_im.js \

@@ -5,3 +5,8 @@
 
 MODULE = 'calICSCalendar'
 
+EXTRA_COMPONENTS += [
+    'calICSCalendar.js',
+    'calICSCalendar.manifest',
+]
+
