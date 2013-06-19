@@ -1750,6 +1750,98 @@ endif
 endif
 
 ################################################################################
+# Install/copy rules
+#
+# The INSTALL_TARGETS variable contains a list of all install target
+# categories. Each category defines a list of files and executables, and an
+# install destination,
+#
+# FOO_FILES := foo bar
+# FOO_EXECUTABLES := baz
+# FOO_DEST := target_path
+# INSTALL_TARGETS += FOO
+#
+# Additionally, a FOO_TARGET variable may be added to indicate the target for
+# which the files and executables are installed. Default is "libs".
+
+# If we're using binary nsinstall and it's not built yet, fallback to python nsinstall.
+ifneq (,$(filter $(CONFIG_TOOLS)/nsinstall$(HOST_BIN_SUFFIX),$(install_cmd)))
+ifeq (,$(wildcard $(CONFIG_TOOLS)/nsinstall$(HOST_BIN_SUFFIX)))
+nsinstall_is_usable = $(if $(wildcard $(CONFIG_TOOLS)/nsinstall$(HOST_BIN_SUFFIX)),yes)
+
+define install_cmd_override
+$(1): install_cmd = $$(if $$(nsinstall_is_usable),$$(INSTALL),$$(NSINSTALL_PY)) $$(1)
+endef
+endif
+endif
+
+define install_file_template
+$(or $(3),libs):: $(2)/$(notdir $(1))
+$(call install_cmd_override,$(2)/$(notdir $(1)))
+$(2)/$(notdir $(1)): $(1)
+	$$(call install_cmd,$(4) "$$<" "$${@D}")
+endef
+$(foreach category,$(INSTALL_TARGETS),\
+  $(if $($(category)_DEST),,$(error Missing $(category)_DEST))\
+  $(foreach file,$($(category)_FILES),\
+    $(eval $(call install_file_template,$(file),$($(category)_DEST),$($(category)_TARGET),$(IFLAGS1)))\
+  )\
+  $(foreach file,$($(category)_EXECUTABLES),\
+    $(eval $(call install_file_template,$(file),$($(category)_DEST),$($(category)_TARGET),$(IFLAGS2)))\
+  )\
+)
+
+################################################################################
+# Preprocessing rules
+#
+# The PP_TARGETS variable contains a list of all preprocessing target
+# categories. Each category has associated variables listing input files, the
+# output directory, extra preprocessor flags, and so on. For example:
+#
+#   FOO := input-file
+#   FOO_PATH := target-directory
+#   FOO_FLAGS := -Dsome_flag
+#   PP_TARGETS += FOO
+#
+# If PP_TARGETS lists a category name <C> (like FOO, above), then we consult the
+# following make variables to see what to do:
+#
+# - <C> lists input files to be preprocessed with config/Preprocessor.py. We
+#   search VPATH for the names given here. If an input file name ends in '.in',
+#   that suffix is omitted from the output file name.
+#
+# - <C>_PATH names the directory in which to place the preprocessed output
+#   files. We create this directory if it does not already exist. Setting
+#   this variable is optional; if unset, we install the files in $(CURDIR).
+#
+# - <C>_FLAGS lists flags to pass to Preprocessor.py, in addition to the usual
+#   bunch. Setting this variable is optional.
+#
+# - <C>_TARGET names the 'make' target that should depend on creating the output
+#   files. Setting this variable is optional; if unset, we preprocess the
+#   files for the 'libs' target.
+
+# preprocess_file_template defines preprocessing rules.
+# $(call preprocess_file_template, source_file, output_file,
+#                                  makefile_target, extra_flags)
+define preprocess_file_template
+$(2): $(1) $$(GLOBAL_DEPS)
+	$$(RM) "$$@"
+	$$(PYTHON) $$(MOZILLA_DIR)/config/Preprocessor.py $(4) $$(DEFINES) $$(ACDEFINES) $$(XULPPFLAGS) "$$<" -o "$$@"
+$(3):: $(2)
+endef
+
+$(foreach category,$(PP_TARGETS),						\
+  $(foreach file,$($(category)),						\
+    $(eval $(call preprocess_file_template,					\
+                  $(file),							\
+                  $(or $($(category)_PATH),$(CURDIR))/$(notdir $(file:.in=)),	\
+                  $(or $($(category)_TARGET),libs),				\
+                  $($(category)_FLAGS)))					\
+   )										\
+ )
+
+################################################################################
 # Special gmake rules.
 ################################################################################
 
