@@ -24,6 +24,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsThreadUtils.h"
+#include "nsProxyRelease.h"
 
 #define MIME_SUPERCLASS mimeEncryptedClass
 MimeDefClass(MimeEncryptedCMS, MimeEncryptedCMSClass,
@@ -242,7 +243,8 @@ protected:
    * but this is fine, because there is no race with the original thread.
    * Race-protection for XPCOM reference counting is sufficient.
    */
-  nsCOMPtr<nsIMsgSMIMEHeaderSink> mHeaderSink;
+  bool mSinkIsNull;
+  nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> mHeaderSink;
   int32_t mMimeNestingLevel;
 
   nsCString mFromAddr;
@@ -254,17 +256,17 @@ protected:
 class SignedStatusRunnable : public nsRunnable
 {
 public:
-  SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink, int32_t aNestingLevel,
+  SignedStatusRunnable(const nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> &aSink, int32_t aNestingLevel,
                        int32_t aSignatureStatus, nsIX509Cert *aSignerCert);
   NS_DECL_NSIRUNNABLE
 protected:
-  nsCOMPtr<nsIMsgSMIMEHeaderSink> m_sink;
+  nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> m_sink;
   int32_t m_nestingLevel;
   int32_t m_signatureStatus;
   nsCOMPtr<nsIX509Cert> m_signerCert;
 };
 
-SignedStatusRunnable::SignedStatusRunnable(nsIMsgSMIMEHeaderSink *aSink,
+SignedStatusRunnable::SignedStatusRunnable(const nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> &aSink,
                                            int32_t aNestingLevel,
                                            int32_t aSignatureStatus,
                                            nsIX509Cert *aSignerCert) :
@@ -279,7 +281,7 @@ NS_IMETHODIMP SignedStatusRunnable::Run()
 }
 
 
-nsresult ProxySignedStatus(nsIMsgSMIMEHeaderSink *aSink,
+nsresult ProxySignedStatus(const nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> &aSink,
                            int32_t aNestingLevel,
                            int32_t aSignatureStatus,
                            nsIX509Cert *aSignerCert)
@@ -295,7 +297,8 @@ nsSMimeVerificationListener::nsSMimeVerificationListener(const char *aFromAddr, 
                                                          const char *aSenderAddr, const char *aSenderName,
                                                          nsIMsgSMIMEHeaderSink *aHeaderSink, int32_t aMimeNestingLevel)
 {
-  mHeaderSink = aHeaderSink;
+  mHeaderSink = new nsMainThreadPtrHolder<nsIMsgSMIMEHeaderSink>(aHeaderSink);
+  mSinkIsNull = !aHeaderSink;
   mMimeNestingLevel = aMimeNestingLevel;
 
   mFromAddr = aFromAddr;
@@ -308,7 +311,7 @@ NS_IMETHODIMP nsSMimeVerificationListener::Notify(nsICMSMessage2 *aVerifiedMessa
                                                   nsresult aVerificationResultCode)
 {
   // Only continue if we have a valid pointer to the UI
-  NS_ENSURE_TRUE(mHeaderSink, NS_OK);
+  NS_ENSURE_FALSE(mSinkIsNull, NS_OK);
   
   NS_ENSURE_TRUE(aVerifiedMessage, NS_ERROR_FAILURE);
   
