@@ -65,3 +65,5 @@ elif CONFIG['OS_ARCH'] == 'OS2':
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk2':
     CPP_SOURCES += ['nsMessengerUnixIntegration.cpp']
+elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+    CMMSRCS += ['nsMessengerOSXIntegration.mm']

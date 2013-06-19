@@ -9,3 +9,7 @@ CPP_SOURCES += [
     'nsAppleMailImport.cpp',
 ]
 
+CMMSRCS += [
+    'nsEmlxHelperUtils.mm',
+]
+
