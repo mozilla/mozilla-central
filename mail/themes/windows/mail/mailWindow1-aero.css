@@ -50,6 +50,10 @@
     -moz-appearance: -moz-win-borderless-glass;
     background-color: transparent !important;
   }
+
+  #mail-toolbar-menubar2 > .titlebar-placeholder {
+    display: none;
+  }
 }
 
 @media not all and (-moz-windows-compositor) {

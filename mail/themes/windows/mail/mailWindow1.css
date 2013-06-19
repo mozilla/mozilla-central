@@ -602,3 +602,10 @@ treechildren::-moz-tree-cell-text(subjectCol) {
 #locationFolders > .menulist-label-box > .menulist-label {
   -moz-margin-start: 2px !important;
 }
+
+@media not all and (-moz-windows-compositor) {
+  #mail-toolbar-menubar2[autohide="false"] +
+  #tabs-toolbar > .titlebar-placeholder {
+    display: none;
+  }
+}
