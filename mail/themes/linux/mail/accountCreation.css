@@ -127,12 +127,6 @@ checkbox.acknowledge_checkbox {
   max-width: 320px;
 }
 
-label.textbox-label {
-  color: GrayText;
-  font-size: smaller;
-  border-bottom: 1px dotted InactiveBorder;
-}
-
 .protocol {
   width: 8em;
 }
