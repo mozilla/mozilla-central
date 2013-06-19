@@ -52,7 +52,7 @@
   protection of sensitive information exchanged with email, calendar, or
   directory servers. The newer Transport Layer Security (TLS) protocol is an
   IETF standard based on SSL but with its own version numbering. TLS 1.0 can
-  be thought of as SSL 3.1, and TLS 1.1 is in turn an update to TLS 1.0. Newer
+  be thought of as SSL 3.1, TLS 1.1 is in turn an update to TLS 1.0, etc. Newer
   protocols are preferred over older ones as they provide better security and
   more features. Older protocols are supported to ensure compatibility.</p>
 
@@ -66,8 +66,9 @@
 
 <ul>
   <li><strong>Enable</strong>: Check the <strong>SSL 3.0</strong>, <strong>TLS
-    1.0</strong>, and/or <strong>TLS 1.1</strong> boxes to indicate which
-    protocol versions can be used for a secure connection to a server.</li>
+    1.0</strong>, <strong>TLS 1.1</strong>, and/or <strong>TLS 1.2</strong>
+    boxes to indicate which protocol versions can be used for a secure
+    connection to a server.</li>
 </ul>
 
 <p><strong>Notes</strong>:</p>
@@ -78,8 +79,8 @@
   <li>Also, the selection must be contiguous. It is not possible to select both
     SSL 3.0 and TLS 1.1 but to exclude the intermediate TLS 1.0 version.</li>
   <li>You can extend the range by multiple versions. For example, if only SSL
-    3.0 is currently checked and you select TLS 1.1, the TLS 1.0 version is
-    automatically selected as well.</li>
+    3.0 is currently checked and you select TLS 1.2, the TLS 1.0 and TLS 1.1
+    versions are automatically selected as well.</li>
   <li>Checkboxes may appear checked but grayed out if you cannot uncheck them
     without violating these rules. Uncheck the outermost boxes to regain
     access to an enclosed intermediate version.</li>

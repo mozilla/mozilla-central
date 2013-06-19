@@ -4,8 +4,8 @@
 
 function Startup()
 {
-  // array associating XUL element IDs with preference values [0,1,2]
-  gSslPrefElementIds = ["allowSSL30", "allowTLS10", "allowTLS11"];
+  // array associating XUL element IDs with preference values [0,1,2,3]
+  gSslPrefElementIds = ["allowSSL30", "allowTLS10", "allowTLS11", "allowTLS12"];
 
   // initial setting of checkboxes based on preference values
   UpdateSslBoxes();

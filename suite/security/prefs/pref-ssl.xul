@@ -61,17 +61,22 @@
                   class="nogray-disabled"
                   label="&limit.ssl30.label;"
                   accesskey="&limit.ssl30.accesskey;"
-                  oncommand="UpdateSslPrefs()"/>
+                  oncommand="UpdateSslPrefs();"/>
         <checkbox id="allowTLS10"
                   class="nogray-disabled"
                   label="&limit.tls10.label;"
                   accesskey="&limit.tls10.accesskey;"
-                  oncommand="UpdateSslPrefs()"/>
+                  oncommand="UpdateSslPrefs();"/>
         <checkbox id="allowTLS11"
                   class="nogray-disabled"
                   label="&limit.tls11.label;"
                   accesskey="&limit.tls11.accesskey;"
-                  oncommand="UpdateSslPrefs()"/>
+                  oncommand="UpdateSslPrefs();"/>
+        <checkbox id="allowTLS12"
+                  class="nogray-disabled"
+                  label="&limit.tls12.label;"
+                  accesskey="&limit.tls12.accesskey;"
+                  oncommand="UpdateSslPrefs();"/>
       </hbox>
 
     </groupbox>
