@@ -5,3 +5,10 @@
 
 MODULE = 'importWM'
 
+CPP_SOURCES += [
+    'nsWMImport.cpp',
+    'nsWMSettings.cpp',
+    'nsWMStringBundle.cpp',
+    'nsWMUtils.cpp',
+]
+

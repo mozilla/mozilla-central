@@ -5,3 +5,7 @@
 
 MODULE = 'import'
 
+CPP_SOURCES += [
+    'nsImportModule.cpp',
+]
+

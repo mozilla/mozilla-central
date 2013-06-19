@@ -17,10 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-                nsMsgMdnGenerator.cpp \
-		$(NULL)
-
 EXTRA_COMPONENTS =  mdn-service.js \
                     mdn-service.manifest
 

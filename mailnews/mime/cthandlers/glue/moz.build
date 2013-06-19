@@ -9,3 +9,8 @@ EXPORTS += [
     'nsMimeContentTypeHandler.h',
 ]
 
+CPP_SOURCES += [
+    'mimexpcom.cpp',
+    'nsMimeContentTypeHandler.cpp',
+]
+

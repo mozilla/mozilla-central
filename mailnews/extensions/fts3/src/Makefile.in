@@ -17,11 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-		nsFts3Tokenizer.cpp \
-		nsGlodaRankerFunction.cpp \
-		$(NULL)
-
 LOCAL_INCLUDES = \
 		$(SQLITE_CFLAGS)
 

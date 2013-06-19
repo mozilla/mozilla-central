@@ -5,3 +5,21 @@
 
 MODULE = 'import'
 
+CPP_SOURCES += [
+    'ImportCharSet.cpp',
+    'ImportOutFile.cpp',
+    'ImportTranslate.cpp',
+    'nsImportABDescriptor.cpp',
+    'nsImportAddressBooks.cpp',
+    'nsImportEmbeddedImageData.cpp',
+    'nsImportEncodeScan.cpp',
+    'nsImportFieldMap.cpp',
+    'nsImportMail.cpp',
+    'nsImportMailboxDescriptor.cpp',
+    'nsImportMimeEncode.cpp',
+    'nsImportScanFile.cpp',
+    'nsImportService.cpp',
+    'nsImportStringBundle.cpp',
+    'nsImportTranslator.cpp',
+]
+

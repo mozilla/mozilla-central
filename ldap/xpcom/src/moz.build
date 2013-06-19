@@ -5,3 +5,22 @@
 
 MODULE = 'mozldap'
 
+CPP_SOURCES += [
+    'nsLDAPBERElement.cpp',
+    'nsLDAPBERValue.cpp',
+    'nsLDAPConnection.cpp',
+    'nsLDAPControl.cpp',
+    'nsLDAPMessage.cpp',
+    'nsLDAPModification.cpp',
+    'nsLDAPOperation.cpp',
+    'nsLDAPProtocolModule.cpp',
+    'nsLDAPServer.cpp',
+    'nsLDAPService.cpp',
+    'nsLDAPURL.cpp',
+]
+
+if CONFIG['MOZ_PREF_EXTENSIONS']:
+    CPP_SOURCES += ['nsLDAPSyncQuery.cpp']
+
+if CONFIG['MOZ_PSM']:
+    CPP_SOURCES += ['nsLDAPSecurityGlue.cpp']

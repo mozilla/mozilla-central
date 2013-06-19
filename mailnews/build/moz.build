@@ -5,3 +5,7 @@
 
 MODULE = 'mail'
 
+CPP_SOURCES += [
+    'nsMailModule.cpp',
+]
+

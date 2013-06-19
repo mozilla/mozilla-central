@@ -5,3 +5,31 @@
 
 MODULE = 'msglocal'
 
+CPP_SOURCES += [
+    'nsLocalMailFolder.cpp',
+    'nsLocalUndoTxn.cpp',
+    'nsLocalUtils.cpp',
+    'nsMailboxProtocol.cpp',
+    'nsMailboxServer.cpp',
+    'nsMailboxService.cpp',
+    'nsMailboxUrl.cpp',
+    'nsMsgBrkMBoxStore.cpp',
+    'nsMsgLocalStoreUtils.cpp',
+    'nsMsgMaildirStore.cpp',
+    'nsNoIncomingServer.cpp',
+    'nsNoneService.cpp',
+    'nsParseMailbox.cpp',
+    'nsPop3IncomingServer.cpp',
+    'nsPop3Protocol.cpp',
+    'nsPop3Service.cpp',
+    'nsPop3Sink.cpp',
+    'nsPop3URL.cpp',
+    'nsRssIncomingServer.cpp',
+    'nsRssService.cpp',
+]
+
+if CONFIG['MOZ_MOVEMAIL']:
+    CPP_SOURCES += [
+        'nsMovemailIncomingServer.cpp',
+        'nsMovemailService.cpp',
+    ]

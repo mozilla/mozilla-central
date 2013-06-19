@@ -22,8 +22,6 @@ endif
 
 MODULE_NAME	= nsImportServiceModule
 
-CPPSRCS		=  nsImportModule.cpp
-
 SHARED_LIBRARY_LIBS = \
 		../src/$(LIB_PREFIX)import_s.$(LIB_SUFFIX) \
 		../text/src/$(LIB_PREFIX)imptext_s.$(LIB_SUFFIX) \

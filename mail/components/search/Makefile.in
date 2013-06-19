@@ -29,11 +29,6 @@ ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
 endif
 
-
-CPPSRCS = \
-  nsMailWinSearchHelper.cpp \
-  $(NULL)
-
 # Windows Search component
 EXTRA_PP_JS_MODULES += \
   WinSearchIntegration.js \

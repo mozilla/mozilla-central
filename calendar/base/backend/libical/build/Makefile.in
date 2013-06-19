@@ -20,9 +20,6 @@ FORCE_USE_PIC   = 1 # Force use of PIC
 USE_STATIC_LIBS = 1
 NO_COMPONENTS_MANIFEST = 1
 
-CPPSRCS = calBaseModule.cpp \
-	$(NULL)
-
 LOCAL_INCLUDES = \
 	-I$(srcdir)/..
 

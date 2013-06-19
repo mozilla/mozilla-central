@@ -5,3 +5,15 @@
 
 MODULE = 'importOE'
 
+CPP_SOURCES += [
+    'WabObject.cpp',
+    'nsOE5File.cpp',
+    'nsOEAddressIterator.cpp',
+    'nsOEImport.cpp',
+    'nsOEMailbox.cpp',
+    'nsOERegUtil.cpp',
+    'nsOEScanBoxes.cpp',
+    'nsOESettings.cpp',
+    'nsOEStringBundle.cpp',
+]
+

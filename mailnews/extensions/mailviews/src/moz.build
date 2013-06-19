@@ -5,3 +5,7 @@
 
 MODULE = 'mailview'
 
+CPP_SOURCES += [
+    'nsMsgMailViewList.cpp',
+]
+

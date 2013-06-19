@@ -9,3 +9,25 @@ EXPORTS += [
     'nsImapCore.h',
 ]
 
+CPP_SOURCES += [
+    'nsAutoSyncManager.cpp',
+    'nsAutoSyncState.cpp',
+    'nsIMAPBodyShell.cpp',
+    'nsIMAPGenericParser.cpp',
+    'nsIMAPHostSessionList.cpp',
+    'nsIMAPNamespace.cpp',
+    'nsImapFlagAndUidState.cpp',
+    'nsImapIncomingServer.cpp',
+    'nsImapMailFolder.cpp',
+    'nsImapOfflineSync.cpp',
+    'nsImapProtocol.cpp',
+    'nsImapSearchResults.cpp',
+    'nsImapServerResponseParser.cpp',
+    'nsImapService.cpp',
+    'nsImapStringBundle.cpp',
+    'nsImapUndoTxn.cpp',
+    'nsImapUrl.cpp',
+    'nsImapUtils.cpp',
+    'nsSyncRunnableHelpers.cpp',
+]
+

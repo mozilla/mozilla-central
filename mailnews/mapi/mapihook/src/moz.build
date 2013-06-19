@@ -5,3 +5,12 @@
 
 MODULE = 'msgMapi'
 
+CPP_SOURCES += [
+    'Registry.cpp',
+    'msgMapiFactory.cpp',
+    'msgMapiHook.cpp',
+    'msgMapiImp.cpp',
+    'msgMapiMain.cpp',
+    'msgMapiSupport.cpp',
+]
+

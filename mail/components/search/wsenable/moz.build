@@ -5,3 +5,7 @@
 
 PROGRAM = 'WSEnable'
 
+CPP_SOURCES += [
+    'WSEnable.cpp',
+]
+

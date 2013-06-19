@@ -6,3 +6,7 @@
 XPIDL_MODULE = 'caldatetime_libical'
 MODULE = 'calbasecomps'
 
+CPP_SOURCES += [
+    'calBaseModule.cpp',
+]
+

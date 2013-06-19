@@ -20,20 +20,6 @@ EXTRA_COMPONENTS = \
   shell.manifest \
   $(NULL)
 
-CPPSRCS = DirectoryProvider.cpp
-
-ifeq ($(OS_ARCH),WINNT)
-CPPSRCS += nsMailWinIntegration.cpp
-endif
-
-ifeq ($(MOZ_WIDGET_TOOLKIT), gtk2)
-CPPSRCS += nsMailGNOMEIntegration.cpp
-endif
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-CPPSRCS += nsMailMacIntegration.cpp
-endif
-
 FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk

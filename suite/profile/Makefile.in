@@ -12,10 +12,6 @@ include $(DEPTH)/config/autoconf.mk
 LIBRARY_NAME	= suiteprofile_s
 
 
-CPPSRCS 	= \
-		nsSuiteDirectoryProvider.cpp \
-		$(NULL)
-
 EXTRA_DSO_LDOPTS = $(MOZ_COMPONENT_LIBS)
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

@@ -17,28 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-		nsImapUtils.cpp \
-		nsIMAPBodyShell.cpp \
-		nsIMAPGenericParser.cpp \
-		nsIMAPHostSessionList.cpp \
-		nsIMAPNamespace.cpp \
-		nsImapIncomingServer.cpp \
-		nsImapMailFolder.cpp \
-		nsImapProtocol.cpp \
-		nsImapSearchResults.cpp \
-		nsImapServerResponseParser.cpp \
-		nsImapService.cpp \
-		nsImapUrl.cpp \
-		nsImapFlagAndUidState.cpp \
-		nsImapUndoTxn.cpp \
-		nsImapStringBundle.cpp \
-		nsImapOfflineSync.cpp \
-		nsAutoSyncState.cpp \
-		nsAutoSyncManager.cpp \
-		nsSyncRunnableHelpers.cpp \
-		$(NULL)
-
 include $(topsrcdir)/config/config.mk
 
 ifeq ($(OS_ARCH),WINNT)

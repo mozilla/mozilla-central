@@ -28,3 +28,25 @@ EXPORTS.mozilla.mailnews += [
     'ServiceList.h',
     'Services.h',
 ]
+
+CPP_SOURCES += [
+    'Services.cpp',
+    'nsImapMoveCoalescer.cpp',
+    'nsMsgCompressIStream.cpp',
+    'nsMsgCompressOStream.cpp',
+    'nsMsgDBFolder.cpp',
+    'nsMsgFileStream.cpp',
+    'nsMsgI18N.cpp',
+    'nsMsgIdentity.cpp',
+    'nsMsgIncomingServer.cpp',
+    'nsMsgKeyArray.cpp',
+    'nsMsgKeySet.cpp',
+    'nsMsgLineBuffer.cpp',
+    'nsMsgMailNewsUrl.cpp',
+    'nsMsgProtocol.cpp',
+    'nsMsgReadStateTxn.cpp',
+    'nsMsgTxn.cpp',
+    'nsMsgUtils.cpp',
+    'nsStopwatch.cpp',
+]
+

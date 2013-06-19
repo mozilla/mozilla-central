@@ -9,10 +9,6 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-CPPSRCS = \
-  WSEnable.cpp \
-  $(NULL)
-
 RCINCLUDE = WSEnable.rc
 OS_LIBS += ole32.lib shell32.lib
 

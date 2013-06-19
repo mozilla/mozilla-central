@@ -16,27 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-CPPSRCS		= \
-		nsMsgLineBuffer.cpp \
-		nsMsgDBFolder.cpp \
-		nsMsgKeyArray.cpp \
-		nsMsgKeySet.cpp \
-		nsMsgIdentity.cpp \
-		nsMsgIncomingServer.cpp \
-		nsMsgUtils.cpp \
-		nsMsgProtocol.cpp \
-		nsMsgMailNewsUrl.cpp \
-		nsMsgTxn.cpp \
-		nsMsgI18N.cpp \
-		nsImapMoveCoalescer.cpp \
-		nsMsgFileStream.cpp \
-		nsMsgCompressIStream.cpp \
-		nsMsgCompressOStream.cpp \
-		nsMsgReadStateTxn.cpp \
-		nsStopwatch.cpp \
-		Services.cpp \
-		$(NULL)
-
 EXTRA_JS_MODULES = \
 		folderUtils.jsm \
 		errUtils.js \

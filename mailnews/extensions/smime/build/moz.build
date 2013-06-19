@@ -5,3 +5,7 @@
 
 MODULE = 'msgsmime'
 
+CPP_SOURCES += [
+    'nsMsgSMIMEFactory.cpp',
+]
+

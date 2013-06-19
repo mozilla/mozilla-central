@@ -5,3 +5,7 @@
 
 MODULE = 'impapplemail'
 
+CPP_SOURCES += [
+    'nsAppleMailImport.cpp',
+]
+

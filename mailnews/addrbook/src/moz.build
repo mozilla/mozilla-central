@@ -9,3 +9,64 @@ EXPORTS += [
     'nsVCardObj.h',
 ]
 
+CPP_SOURCES += [
+    'nsAbAddressCollector.cpp',
+    'nsAbBSDirectory.cpp',
+    'nsAbBooleanExpression.cpp',
+    'nsAbCardProperty.cpp',
+    'nsAbContentHandler.cpp',
+    'nsAbDirFactoryService.cpp',
+    'nsAbDirProperty.cpp',
+    'nsAbDirectoryQuery.cpp',
+    'nsAbDirectoryQueryProxy.cpp',
+    'nsAbLDIFService.cpp',
+    'nsAbMDBCard.cpp',
+    'nsAbMDBDirFactory.cpp',
+    'nsAbMDBDirProperty.cpp',
+    'nsAbMDBDirectory.cpp',
+    'nsAbManager.cpp',
+    'nsAbQueryStringToExpression.cpp',
+    'nsAbView.cpp',
+    'nsAddbookProtocolHandler.cpp',
+    'nsAddbookUrl.cpp',
+    'nsAddrDatabase.cpp',
+    'nsDirPrefs.cpp',
+    'nsMsgVCardService.cpp',
+    'nsVCard.cpp',
+    'nsVCardObj.cpp',
+]
+
+if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
+    CPP_SOURCES += [
+        'nsAbOutlookDirFactory.cpp',
+        'nsAbOutlookDirectory.cpp',
+        'nsAbWinHelper.cpp',
+        'nsMapiAddressBook.cpp',
+        'nsWabAddressBook.cpp',
+    ]
+
+if CONFIG['OS_ARCH'] == 'Darwin':
+    CPP_SOURCES += [
+        'nsAbOSXDirFactory.cpp',
+    ]
+
+if CONFIG['MOZ_LDAP_XPCOM']:
+    CPP_SOURCES += [
+        'nsAbBoolExprToLDAPFilter.cpp',
+        'nsAbLDAPCard.cpp',
+        'nsAbLDAPDirFactory.cpp',
+        'nsAbLDAPDirectory.cpp',
+        'nsAbLDAPDirectoryQuery.cpp',
+        'nsAbLDAPDirectoryModify.cpp',
+        'nsAbLDAPListenerBase.cpp',
+        'nsAbLDAPReplicationData.cpp',
+        'nsAbLDAPReplicationQuery.cpp',
+        'nsAbLDAPReplicationService.cpp',
+    ]
+
+    if not CONFIG['MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE']:
+        CPP_SOURCES += [
+            'nsAbLDAPAutoCompFormatter.cpp',
+            'nsLDAPAutoCompleteSession.cpp',
+        ]
+

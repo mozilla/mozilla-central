@@ -5,3 +5,10 @@
 
 MODULE = 'suitemigration'
 
+CPP_SOURCES += [
+    'nsNetscapeProfileMigratorBase.cpp',
+    'nsProfileMigrator.cpp',
+    'nsSuiteProfileMigratorUtils.cpp',
+    'nsThunderbirdProfileMigrator.cpp',
+]
+

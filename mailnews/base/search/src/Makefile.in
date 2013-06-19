@@ -18,20 +18,6 @@ endif
 EXPORT_DIR	= $(DIST)/bin/isp
 
 
-CPPSRCS		= \
-		nsMsgFilterService.cpp \
-		nsMsgFilterList.cpp \
-		nsMsgFilter.cpp \
-		nsMsgSearchTerm.cpp \
-		nsMsgBodyHandler.cpp \
-		nsMsgLocalSearch.cpp \
-		nsMsgSearchValue.cpp \
-		nsMsgSearchAdapter.cpp \
-		nsMsgSearchSession.cpp \
-		nsMsgImapSearch.cpp \
-		nsMsgSearchNews.cpp \
-		$(NULL)
-
 EXTRA_COMPONENTS += \
 		nsMsgTraitService.js \
 		nsMsgTraitService.manifest \

@@ -20,15 +20,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 
 
-CPPSRCS		= \
-		msgMapiFactory.cpp \
-		msgMapiHook.cpp \
-		msgMapiImp.cpp \
-		msgMapiMain.cpp \
-		msgMapiSupport.cpp \
-		Registry.cpp \
-		$(NULL)
-
 LOBJS		= ../build/msgMapi_i.$(OBJ_SUFFIX)
 
 ifdef MOZILLA_INTERNAL_API

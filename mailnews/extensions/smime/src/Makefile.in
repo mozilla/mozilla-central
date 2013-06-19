@@ -17,12 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-                nsMsgComposeSecure.cpp \
-                nsSMimeJSHelper.cpp \
-                nsEncryptedSMIMEURIsService.cpp \
-		$(NULL)
-
 EXTRA_COMPONENTS = \
   smime-service.js \
   smime-service.manifest \

@@ -11,3 +11,57 @@ EXPORTS += [
     'nsMsgRDFUtils.h',
 ]
 
+CPP_SOURCES += [
+    'MailNewsDLF.cpp',
+    'nsCidProtocolHandler.cpp',
+    'nsCopyMessageStreamListener.cpp',
+    'nsMailDirProvider.cpp',
+    'nsMessenger.cpp',
+    'nsMessengerBootstrap.cpp',
+    'nsMessengerContentHandler.cpp',
+    'nsMsgAccount.cpp',
+    'nsMsgAccountManager.cpp',
+    'nsMsgAccountManagerDS.cpp',
+    'nsMsgBiffManager.cpp',
+    'nsMsgContentPolicy.cpp',
+    'nsMsgCopyService.cpp',
+    'nsMsgDBView.cpp',
+    'nsMsgFolderCache.cpp',
+    'nsMsgFolderCacheElement.cpp',
+    'nsMsgFolderCompactor.cpp',
+    'nsMsgFolderDataSource.cpp',
+    'nsMsgFolderNotificationService.cpp',
+    'nsMsgGroupThread.cpp',
+    'nsMsgGroupView.cpp',
+    'nsMsgMailSession.cpp',
+    'nsMsgOfflineManager.cpp',
+    'nsMsgProgress.cpp',
+    'nsMsgPurgeService.cpp',
+    'nsMsgQuickSearchDBView.cpp',
+    'nsMsgRDFDataSource.cpp',
+    'nsMsgRDFUtils.cpp',
+    'nsMsgSearchDBView.cpp',
+    'nsMsgServiceProvider.cpp',
+    'nsMsgSpecialViews.cpp',
+    'nsMsgStatusFeedback.cpp',
+    'nsMsgTagService.cpp',
+    'nsMsgThreadedDBView.cpp',
+    'nsMsgWindow.cpp',
+    'nsMsgXFViewThread.cpp',
+    'nsMsgXFVirtualFolderDBView.cpp',
+    'nsSpamSettings.cpp',
+    'nsStatusBarBiffManager.cpp',
+    'nsSubscribableServer.cpp',
+    'nsSubscribeDataSource.cpp',
+]
+
+if CONFIG['NS_PRINTING']:
+    CPP_SOURCES += ['nsMsgPrintEngine.cpp']
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    CPP_SOURCES += ['nsMessengerWinIntegration.cpp']
+elif CONFIG['OS_ARCH'] == 'OS2':
+    CPP_SOURCES += ['nsMessengerOS2Integration.cpp']
+
+if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk2':
+    CPP_SOURCES += ['nsMessengerUnixIntegration.cpp']

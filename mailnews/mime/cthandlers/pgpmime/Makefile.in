@@ -20,10 +20,6 @@ endif
 
 EXTRA_DSO_LIBS = mimecthglue_s
 
-CPPSRCS = \
-  nsPgpMimeProxy.cpp \
-  $(NULL)
-
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
   $(LIBS_DIR) \

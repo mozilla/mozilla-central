@@ -27,31 +27,12 @@ EXTRA_COMPONENTS = \
 		ldapComponents.manifest \
 		$(NULL)
 
-CPPSRCS		= \
-		nsLDAPProtocolModule.cpp \
-		nsLDAPMessage.cpp \
-		nsLDAPConnection.cpp \
-		nsLDAPOperation.cpp \
-		nsLDAPURL.cpp \
-		nsLDAPServer.cpp \
-		nsLDAPService.cpp \
-		nsLDAPBERValue.cpp \
-		nsLDAPControl.cpp \
-		nsLDAPBERElement.cpp \
-		nsLDAPModification.cpp \
-		$(NULL)
-
 ifdef MOZ_PREF_EXTENSIONS
 DEFINES += -DMOZ_PREF_EXTENSIONS
-
-CPPSRCS += nsLDAPSyncQuery.cpp
 endif
 
 ifdef MOZ_PSM
 DEFINES		+= -DMOZ_PSM
-CPPSRCS		+= \
-		nsLDAPSecurityGlue.cpp \
-		$(NULL)
 endif
 
 EXTRA_DSO_LDOPTS += $(LDAP_LIBS)

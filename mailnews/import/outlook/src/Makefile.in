@@ -17,19 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-		nsOutlookStringBundle.cpp	\
-		nsOutlookImport.cpp		\
-		nsOutlookSettings.cpp		\
-		MapiApi.cpp			\
-		nsOutlookMail.cpp		\
-		MapiMessage.cpp			\
-		MapiMimeTypes.cpp		\
-		nsOutlookCompose.cpp		\
-		rtfDecoder.cpp		\
-		rtfMailDecoder.cpp		\
-		$(NULL)
-
 LOCAL_INCLUDES += -I$(srcdir)/../../src
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

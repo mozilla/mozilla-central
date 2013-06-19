@@ -5,3 +5,8 @@
 
 MODULE = 'smime'
 
+CPP_SOURCES += [
+    'nsSMIMEStub.cpp',
+    'nsSMIMEStubFactory.cpp',
+]
+

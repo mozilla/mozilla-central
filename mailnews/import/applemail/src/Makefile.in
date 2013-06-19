@@ -15,10 +15,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-CPPSRCS = \
-		nsAppleMailImport.cpp \
-		$(NULL)
-
 CMMSRCS = \
 		nsEmlxHelperUtils.mm \
 		$(NULL)

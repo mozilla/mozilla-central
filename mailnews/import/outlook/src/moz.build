@@ -5,3 +5,16 @@
 
 MODULE = 'impOutlk'
 
+CPP_SOURCES += [
+    'MapiApi.cpp',
+    'MapiMessage.cpp',
+    'MapiMimeTypes.cpp',
+    'nsOutlookCompose.cpp',
+    'nsOutlookImport.cpp',
+    'nsOutlookMail.cpp',
+    'nsOutlookSettings.cpp',
+    'nsOutlookStringBundle.cpp',
+    'rtfDecoder.cpp',
+    'rtfMailDecoder.cpp',
+]
+

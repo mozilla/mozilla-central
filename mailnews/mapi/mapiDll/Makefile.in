@@ -21,8 +21,6 @@ MOZILLA_INTERNAL_API = 1
 endif
 
 
-CPPSRCS		= MapiDll.cpp
-
 OS_LIBS		+= ole32.lib
 
 # Force use of PIC

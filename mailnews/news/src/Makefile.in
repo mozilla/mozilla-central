@@ -17,21 +17,6 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-		nsNNTPArticleList.cpp \
-		nsNNTPNewsgroupList.cpp \
-		nsNNTPNewsgroupPost.cpp \
-		nsNNTPProtocol.cpp \
-		nsNntpUrl.cpp \
-		nsNntpService.cpp \
-		nsNewsFolder.cpp \
-		nsNntpIncomingServer.cpp \
-		nsNntpMockChannel.cpp \
-		nsNewsUtils.cpp \
-		nsNewsDownloadDialogArgs.cpp \
-		nsNewsDownloader.cpp \
-		$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 OS_CXXFLAGS += -DNOMINMAX
 endif

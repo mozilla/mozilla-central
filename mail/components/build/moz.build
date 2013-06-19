@@ -5,3 +5,7 @@
 
 MODULE = 'mailcomps'
 
+CPP_SOURCES += [
+    'nsMailComps.cpp',
+]
+

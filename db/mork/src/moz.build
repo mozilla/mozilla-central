@@ -5,3 +5,51 @@
 
 MODULE = 'mork'
 
+CPP_SOURCES += [
+    'morkArray.cpp',
+    'morkAtom.cpp',
+    'morkAtomMap.cpp',
+    'morkAtomSpace.cpp',
+    'morkBead.cpp',
+    'morkBlob.cpp',
+    'morkBuilder.cpp',
+    'morkCell.cpp',
+    'morkCellObject.cpp',
+    'morkCh.cpp',
+    'morkConfig.cpp',
+    'morkCursor.cpp',
+    'morkDeque.cpp',
+    'morkEnv.cpp',
+    'morkFactory.cpp',
+    'morkFile.cpp',
+    'morkHandle.cpp',
+    'morkIntMap.cpp',
+    'morkMap.cpp',
+    'morkNode.cpp',
+    'morkNodeMap.cpp',
+    'morkObject.cpp',
+    'morkParser.cpp',
+    'morkPool.cpp',
+    'morkPortTableCursor.cpp',
+    'morkProbeMap.cpp',
+    'morkRow.cpp',
+    'morkRowCellCursor.cpp',
+    'morkRowMap.cpp',
+    'morkRowObject.cpp',
+    'morkRowSpace.cpp',
+    'morkSink.cpp',
+    'morkSpace.cpp',
+    'morkStore.cpp',
+    'morkStream.cpp',
+    'morkTable.cpp',
+    'morkTableRowCursor.cpp',
+    'morkThumb.cpp',
+    'morkWriter.cpp',
+    'morkYarn.cpp',
+    'morkZone.cpp',
+    'orkinHeap.cpp',
+]
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    CPP_SOURCES += ['morkSearchRowCursor.cpp']
+

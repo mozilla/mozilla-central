@@ -13,29 +13,6 @@ LIBRARY_NAME = profilemigration_s
 MODULE_NAME = nsMailProfileMigratorModule
 MOZILLA_INTERNAL_API = 1
 
-CPPSRCS = \
-	nsProfileMigrator.cpp \
-	nsMailProfileMigratorUtils.cpp \
-	nsNetscapeProfileMigratorBase.cpp \
-	nsSeamonkeyProfileMigrator.cpp \
-	$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-CPPSRCS += \
-	nsProfileMigratorBase.cpp \
-	nsOEProfileMigrator.cpp \
-	nsOutlookProfileMigrator.cpp \
-	nsEudoraProfileMigrator.cpp \
-	$(NULL)
-endif
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-CPPSRCS += \
-	nsProfileMigratorBase.cpp \
-	nsEudoraProfileMigrator.cpp \
-        $(NULL)
-endif
-
 FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk

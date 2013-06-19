@@ -10,3 +10,7 @@ EXPORTS += [
     'nsMorkCID.h',
 ]
 
+CPP_SOURCES += [
+    'nsMorkFactory.cpp',
+]
+

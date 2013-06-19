@@ -10,3 +10,8 @@ CSRCS += [
     'fts3_porter.c',
 ]
 
+CPP_SOURCES += [
+    'nsFts3Tokenizer.cpp',
+    'nsGlodaRankerFunction.cpp',
+]
+

@@ -16,33 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-CPPSRCS		= \
-		nsAbManager.cpp \
-		nsAbCardProperty.cpp \
-		nsDirPrefs.cpp \
-		nsAddrDatabase.cpp \
-		nsAbDirProperty.cpp \
-		nsAbAddressCollector.cpp \
-		nsAddbookProtocolHandler.cpp  \
-		nsAbMDBDirProperty.cpp \
-		nsAbMDBDirectory.cpp \
-		nsAbMDBCard.cpp \
-		nsAbBSDirectory.cpp \
-		nsAddbookUrl.cpp    \
-		nsAbDirFactoryService.cpp	\
-		nsAbMDBDirFactory.cpp	\
-                nsAbDirectoryQuery.cpp    \
-                nsAbDirectoryQueryProxy.cpp    \
-                nsAbBooleanExpression.cpp \
-                nsAbQueryStringToExpression.cpp \
-                nsAbView.cpp \
-                nsVCard.cpp \
-                nsVCardObj.cpp \
-                nsMsgVCardService.cpp \
-                nsAbLDIFService.cpp \
-                nsAbContentHandler.cpp \
-		$(NULL)
-
 EXTRA_COMPONENTS += \
 		nsAbLDAPAttributeMap.js \
 		nsAbAutoCompleteMyDomain.js \
@@ -55,41 +28,12 @@ EXTRA_PP_COMPONENTS += \
 
 ifeq ($(OS_ARCH),WINNT)
 OS_CXXFLAGS += -DNOMINMAX
-ifndef GNU_CC
-
-CPPSRCS		+= \
-		nsAbOutlookDirFactory.cpp \
-		nsAbOutlookDirectory.cpp \
-		nsAbWinHelper.cpp \
-		nsMapiAddressBook.cpp \
-		nsWabAddressBook.cpp \
-		$(NULL)
-
-endif
 endif
 
 ifdef MOZ_LDAP_XPCOM
 DEFINES += -DMOZ_LDAP_XPCOM
 
-CPPSRCS		+= \
-		nsAbLDAPDirectory.cpp \
-		nsAbLDAPDirFactory.cpp	\
-		nsAbLDAPCard.cpp \
-		nsAbLDAPListenerBase.cpp \
-		nsAbLDAPDirectoryQuery.cpp \
-		nsAbLDAPDirectoryModify.cpp \
-		nsAbBoolExprToLDAPFilter.cpp \
-		nsAbLDAPReplicationService.cpp \
-		nsAbLDAPReplicationQuery.cpp \
-		nsAbLDAPReplicationData.cpp \
-		$(NULL)
-
-ifndef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
-CPPSRCS		+= \
-		nsAbLDAPAutoCompFormatter.cpp \
-		nsLDAPAutoCompleteSession.cpp \
-		$(NULL)
-else
+ifdef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
 DEFINES += -DMOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
 EXTRA_COMPONENTS += \
 		nsAbLDAPAutoCompleteSearch.js \
@@ -103,10 +47,6 @@ endif
 endif
 
 ifeq ($(OS_ARCH),Darwin)
-CPPSRCS		+= \
-		nsAbOSXDirFactory.cpp \
-		$(NULL)
-
 CMMSRCS		+= \
 		nsAbOSXCard.mm \
 		nsAbOSXDirectory.mm \

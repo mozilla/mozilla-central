@@ -10,3 +10,7 @@ PARALLEL_DIRS += [
 
 MODULE = 'suiteprofile'
 
+CPP_SOURCES += [
+    'nsSuiteDirectoryProvider.cpp',
+]
+

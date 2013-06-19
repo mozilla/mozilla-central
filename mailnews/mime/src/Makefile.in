@@ -11,10 +11,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 ifdef MOZ_PSM
-BUILD_SMIME=1
-endif
-
-ifdef BUILD_SMIME
 DEFINES		+= -DENABLE_SMIME
 endif
 
@@ -22,55 +18,6 @@ LIBRARY_NAME	= mime_s
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
-endif
-
-CPPSRCS		= \
-		nsMimeObjectClassAccess.cpp \
-		nsMimeConverter.cpp \
-		nsSimpleMimeConverterStub.cpp \
-		mimecont.cpp \
-		mimeebod.cpp \
-		mimeenc.cpp \
-		mimeeobj.cpp \
-		mimehdrs.cpp \
-		mimei.cpp \
-		mimeiimg.cpp \
-		mimeleaf.cpp \
-		mimemalt.cpp \
-		mimemapl.cpp \
-		mimemdig.cpp \
-		mimemmix.cpp \
-		mimempar.cpp \
-		mimemrel.cpp \
-		mimemsg.cpp \
-		mimemsig.cpp \
-		mimemult.cpp \
-		mimeobj.cpp \
-		mimepbuf.cpp \
-		mimesun.cpp \
-		mimetenr.cpp \
-		mimetext.cpp \
-		mimethtm.cpp \
-		mimethpl.cpp \
-		mimethsa.cpp \
-		mimetpla.cpp \
-		mimetpfl.cpp \
-		mimetric.cpp \
-		mimeunty.cpp \
-		mimecth.cpp \
-		mimebuf.cpp \
-		mimecom.cpp \
-		mimemoz2.cpp \
-		comi18n.cpp \
-		nsMsgHeaderParser.cpp \
-		nsStreamConverter.cpp \
-		mimedrft.cpp \
-                mimecryp.cpp
-
-ifdef BUILD_SMIME
-CPPSRCS += \
-                mimecms.cpp \
-                mimemcms.cpp
 endif
 
 EXTRA_COMPONENTS = \

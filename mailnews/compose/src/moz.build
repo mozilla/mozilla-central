@@ -9,3 +9,33 @@ EXPORTS += [
     'nsComposeStrings.h',
 ]
 
+CPP_SOURCES += [
+    'nsMsgAttachment.cpp',
+    'nsMsgAttachmentHandler.cpp',
+    'nsMsgCompFields.cpp',
+    'nsMsgCompUtils.cpp',
+    'nsMsgCompose.cpp',
+    'nsMsgComposeContentHandler.cpp',
+    'nsMsgComposeParams.cpp',
+    'nsMsgComposeProgressParams.cpp',
+    'nsMsgComposeService.cpp',
+    'nsMsgCopy.cpp',
+    'nsMsgPrompts.cpp',
+    'nsMsgQuote.cpp',
+    'nsMsgSend.cpp',
+    'nsMsgSendLater.cpp',
+    'nsMsgSendPart.cpp',
+    'nsMsgSendReport.cpp',
+    'nsSmtpProtocol.cpp',
+    'nsSmtpServer.cpp',
+    'nsSmtpService.cpp',
+    'nsSmtpUrl.cpp',
+    'nsURLFetcher.cpp',
+]
+
+if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+    CPP_SOURCES += [
+        'nsMsgAppleDoubleEncode.cpp',
+        'nsMsgAppleEncode.cpp',
+    ]
+

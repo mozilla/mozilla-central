@@ -17,13 +17,4 @@ FORCE_USE_PIC   = 1 # Force use of PIC
 USE_STATIC_LIBS = 1
 NO_INTERFACES_MANIFEST = 1
 
-CPPSRCS = calDateTime.cpp \
-	  calDuration.cpp \
-	  calPeriod.cpp \
-	  calICSService.cpp \
-	  calTimezone.cpp \
-	  calRecurrenceRule.cpp \
-	  calUtils.cpp \
-	  $(NULL)
-
 include $(topsrcdir)/config/rules.mk

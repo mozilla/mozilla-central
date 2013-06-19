@@ -5,3 +5,7 @@
 
 MODULE = 'vcard'
 
+CPP_SOURCES += [
+    'mimevcrd.cpp',
+]
+

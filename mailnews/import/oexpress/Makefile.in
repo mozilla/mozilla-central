@@ -16,19 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-CPPSRCS		= \
-		nsOEImport.cpp			\
-		nsOEScanBoxes.cpp		\
-		nsOEMailbox.cpp			\
-		nsOEAddressIterator.cpp		\
-		WabObject.cpp			\
-		nsOERegUtil.cpp			\
-		nsOE5File.cpp			\
-		nsOESettings.cpp		\
-		nsOEStringBundle.cpp		\
-		$(NULL)
-
-# we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
 
 ifeq ($(OS_ARCH),WINNT)

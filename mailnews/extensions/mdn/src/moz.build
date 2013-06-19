@@ -5,3 +5,7 @@
 
 MODULE = 'msgmdn'
 
+CPP_SOURCES += [
+    'nsMsgMdnGenerator.cpp',
+]
+

@@ -5,3 +5,24 @@
 
 MODULE = 'mailprofilemigration'
 
+CPP_SOURCES += [
+    'nsMailProfileMigratorUtils.cpp',
+    'nsNetscapeProfileMigratorBase.cpp',
+    'nsProfileMigrator.cpp',
+    'nsSeamonkeyProfileMigrator.cpp',
+]
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    CPP_SOURCES += [
+        'nsEudoraProfileMigrator.cpp',
+        'nsOEProfileMigrator.cpp',
+        'nsOutlookProfileMigrator.cpp',
+        'nsProfileMigratorBase.cpp',
+    ]
+
+if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+    CPP_SOURCES += [
+        'nsEudoraProfileMigrator.cpp',
+        'nsProfileMigratorBase.cpp',
+    ]
+

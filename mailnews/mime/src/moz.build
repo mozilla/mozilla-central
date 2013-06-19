@@ -25,3 +25,53 @@ EXPORTS += [
     'nsStreamConverter.h',
 ]
 
+CPP_SOURCES += [
+    'comi18n.cpp',
+    'mimebuf.cpp',
+    'mimecom.cpp',
+    'mimecont.cpp',
+    'mimecryp.cpp',
+    'mimecth.cpp',
+    'mimedrft.cpp',
+    'mimeebod.cpp',
+    'mimeenc.cpp',
+    'mimeeobj.cpp',
+    'mimehdrs.cpp',
+    'mimei.cpp',
+    'mimeiimg.cpp',
+    'mimeleaf.cpp',
+    'mimemalt.cpp',
+    'mimemapl.cpp',
+    'mimemdig.cpp',
+    'mimemmix.cpp',
+    'mimemoz2.cpp',
+    'mimempar.cpp',
+    'mimemrel.cpp',
+    'mimemsg.cpp',
+    'mimemsig.cpp',
+    'mimemult.cpp',
+    'mimeobj.cpp',
+    'mimepbuf.cpp',
+    'mimesun.cpp',
+    'mimetenr.cpp',
+    'mimetext.cpp',
+    'mimethpl.cpp',
+    'mimethsa.cpp',
+    'mimethtm.cpp',
+    'mimetpfl.cpp',
+    'mimetpla.cpp',
+    'mimetric.cpp',
+    'mimeunty.cpp',
+    'nsMimeConverter.cpp',
+    'nsMimeObjectClassAccess.cpp',
+    'nsMsgHeaderParser.cpp',
+    'nsSimpleMimeConverterStub.cpp',
+    'nsStreamConverter.cpp',
+]
+
+if CONFIG['MOZ_PSM']:
+    CPP_SOURCES += [
+        'mimecms.cpp',
+        'mimemcms.cpp',
+    ]
+

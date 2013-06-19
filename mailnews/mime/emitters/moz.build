@@ -9,3 +9,13 @@ EXPORTS += [
     'nsMimeEmitterCID.h',
 ]
 
+CPP_SOURCES += [
+    'nsEmitterUtils.cpp',
+    'nsMimeBaseEmitter.cpp',
+    'nsMimeHtmlEmitter.cpp',
+    'nsMimePlainEmitter.cpp',
+    'nsMimeRawEmitter.cpp',
+    'nsMimeRebuffer.cpp',
+    'nsMimeXmlEmitter.cpp',
+]
+

@@ -5,3 +5,7 @@
 
 MODULE = 'suite'
 
+CPP_SOURCES += [
+    'nsSuiteModule.cpp',
+]
+

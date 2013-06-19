@@ -17,24 +17,8 @@ LIBXUL_LIBRARY = 1
 endif
 
 
-CPPSRCS		= \
-		nsEudoraStringBundle.cpp \
-		nsEudoraImport.cpp \
-		nsEudoraMailbox.cpp \
-		nsEudoraSettings.cpp \
-		nsEudoraEditor.cpp \
-		nsEudoraCompose.cpp \
-		nsEudoraAddress.cpp \
-		nsEudoraFilters.cpp \
-		$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
-CPPSRCS += nsEudoraWin32.cpp
 OS_CXXFLAGS += -DNOMINMAX
-endif
-
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-CPPSRCS += nsEudoraMac.cpp
 endif
 
 LOCAL_INCLUDES += -I$(srcdir)/../../src

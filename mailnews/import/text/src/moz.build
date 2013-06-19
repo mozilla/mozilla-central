@@ -5,3 +5,8 @@
 
 MODULE = 'impText'
 
+CPP_SOURCES += [
+    'nsTextAddress.cpp',
+    'nsTextImport.cpp',
+]
+

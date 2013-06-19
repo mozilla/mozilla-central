@@ -22,8 +22,6 @@ else
 FORCE_SHARED_LIB = 1
 endif
 
-CPPSRCS		= nsMorkFactory.cpp
-
 SHARED_LIBRARY_LIBS = ../src/$(LIB_PREFIX)msgmork_s.$(LIB_SUFFIX)
 
 ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE

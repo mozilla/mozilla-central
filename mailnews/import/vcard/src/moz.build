@@ -5,3 +5,8 @@
 
 MODULE = 'impvcard'
 
+CPP_SOURCES += [
+    'nsVCardAddress.cpp',
+    'nsVCardImport.cpp',
+]
+

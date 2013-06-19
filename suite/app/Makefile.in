@@ -23,8 +23,6 @@ include $(topsrcdir)/config/rules.mk
 else
 # Build a binary bootstrapping with XRE_main
 
-CPPSRCS = nsSuiteApp.cpp
-
 LOCAL_INCLUDES += \
   -I$(MOZILLA_SRCDIR)/toolkit/xre \
   -I$(MOZILLA_SRCDIR)/xpcom/base \

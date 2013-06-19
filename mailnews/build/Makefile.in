@@ -34,8 +34,6 @@ ifeq ($(OS_ARCH),WINNT)
 DEFINES		+= -DZLIB_DLL
 endif
 
-CPPSRCS		= nsMailModule.cpp
-
 SHARED_LIBRARY_LIBS = \
 	        ../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX) \
 		../base/src/$(LIB_PREFIX)msgbase_s.$(LIB_SUFFIX) \

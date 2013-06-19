@@ -5,3 +5,14 @@
 
 MODULE = 'msgdb'
 
+CPP_SOURCES += [
+    'nsDBFolderInfo.cpp',
+    'nsImapMailDatabase.cpp',
+    'nsMailDatabase.cpp',
+    'nsMsgDatabase.cpp',
+    'nsMsgHdr.cpp',
+    'nsMsgOfflineImapOperation.cpp',
+    'nsMsgThread.cpp',
+    'nsNewsDatabase.cpp',
+]
+

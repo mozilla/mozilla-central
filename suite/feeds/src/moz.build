@@ -5,3 +5,7 @@
 
 MODULE = 'suitefeeds'
 
+CPP_SOURCES += [
+    'nsFeedSniffer.cpp',
+]
+

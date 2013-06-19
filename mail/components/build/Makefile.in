@@ -21,9 +21,6 @@ LIBXUL_LIBRARY = 1
 MOZILLA_INTERNAL_API = 1
 FORCE_USE_PIC = 1
 
-CPPSRCS = nsMailComps.cpp \
-          $(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,ole32 shell32)
 endif

@@ -16,11 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-CPPSRCS		= \
-		nsTextImport.cpp				\
-		nsTextAddress.cpp 				\
-		$(NULL)
-
 LOCAL_INCLUDES += -I$(srcdir)/../../src
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
