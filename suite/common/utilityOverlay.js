@@ -575,7 +575,7 @@ function goClickThrobber(urlPref, aEvent)
 
 function getTopWin()
 {
-  return gPrivate || Services.wm.getMostRecentWindow("navigator:browser");
+  return top.gPrivate || Services.wm.getMostRecentWindow("navigator:browser");
 }
 
 function isRestricted( url )
