@@ -50,7 +50,7 @@ SHORTOS = linux
 endif
 
 # function oslocales(filename)
-oslocales = $(shell awk '{ if ($$2 == "" || $$2 == "$(SHORTOS)") { print $$1 } }' $1)
+oslocales = $(shell $(AWK) '{ if ($$2 == "" || $$2 == "$(SHORTOS)") { print $$1 } }' $(1))
 
 # function apposlocales(app)
 apposlocales = $(call oslocales,$(topsrcdir)/$1/locales/$(if $(filter $(MOZ_UPDATE_CHANNEL),beta release),shipped-locales,all-locales))
@@ -95,9 +95,9 @@ langpack-en-US:
 # Skip those locales in Thunderbird but not in Lightning. Use either
 # all-locales or shipped-locales, depending on if we are doing a
 # regular repack or a release repack
-CAL_LOCALES = $(call apposlocales,calendar)
-TB_LOCALES = $(call apposlocales,mail)
-TB_SKIP_LOCALES = $(filter-out $(CAL_LOCALES) en-US,$(TB_LOCALES))
+CAL_LOCALES := $(call apposlocales,calendar)
+TB_LOCALES := $(call apposlocales,mail)
+TB_SKIP_LOCALES := $(filter-out $(CAL_LOCALES) en-US,$(TB_LOCALES))
 $(addprefix langpack-,$(TB_SKIP_LOCALES)) $(addprefix upload-,$(TB_SKIP_LOCALES)):
 	@echo "Skipping $@ as it is not in Lightning's locales: $(CAL_LOCALES)"
 
@@ -158,11 +158,12 @@ repack-process-extrafiles:
 # When repackaging Lightning from the builder, platform.ini is not yet created.
 # Recreate it from the application.ini bundled with the downloaded xpi.
 $(LIBXUL_DIST)/bin/platform.ini:
-	 echo "[Build]" >> $(LIBXUL_DIST)/bin/platform.ini
-	 echo "Milestone=$(call print_ltnconfig,Gecko,MaxVersion)" >> $(LIBXUL_DIST)/bin/platform.ini
-	 echo "SourceStamp=$(call print_ltnconfig,Build,SourceStamp)" >> $(LIBXUL_DIST)/bin/platform.ini
-	 echo "SourceRepository=$(call print_ltnconfig,Build,SourceRepository)" >> $(LIBXUL_DIST)/bin/platform.ini
-	 echo "BuildID=$(call print_ltnconfig,App,BuildID)" >> $(LIBXUL_DIST)/bin/platform.ini
+	mkdir -p $(@D)
+	echo "[Build]" >> $(LIBXUL_DIST)/bin/platform.ini
+	echo "Milestone=$(call print_ltnconfig,Gecko,MaxVersion)" >> $(LIBXUL_DIST)/bin/platform.ini
+	echo "SourceStamp=$(call print_ltnconfig,Build,SourceStamp)" >> $(LIBXUL_DIST)/bin/platform.ini
+	echo "SourceRepository=$(call print_ltnconfig,Build,SourceRepository)" >> $(LIBXUL_DIST)/bin/platform.ini
+	echo "BuildID=$(call print_ltnconfig,App,BuildID)" >> $(LIBXUL_DIST)/bin/platform.ini
 
 recreate-platformini: $(LIBXUL_DIST)/bin/platform.ini
 

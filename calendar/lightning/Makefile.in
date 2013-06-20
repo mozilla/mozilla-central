@@ -124,6 +124,7 @@ include $(srcdir)/lightning-packager.mk
 
 # For Lightning, we also need to preprocess the l10n prefs
 repack-process-extrafiles: lightning-extrafiles
+lightning-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
 lightning-extrafiles:
 	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
 
