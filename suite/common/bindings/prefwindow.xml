@@ -272,36 +272,26 @@
                          document.getElementById(this.lastSelected);
           if (!lastPane)
             this.lastSelected = "";
-          var paneToLoad = null;
           if ("arguments" in window && window.arguments[0])
           {
             var initialPane = document.getElementById(window.arguments[0]);
             if (initialPane && initialPane.nodeName == "prefpane")
             {
-              paneToLoad = initialPane;
-              this.lastSelected = paneToLoad.id;
+              this.currentPane = initialPane;
+              this.lastSelected = initialPane.id;
             }
           }
           else if (lastPane)
-            paneToLoad = lastPane;
-          else if (this.preferencePanes.length > 0)
-            paneToLoad = this.preferencePanes[0];
-          if (paneToLoad && (paneToLoad != this.currentPane))
+            this.currentPane = lastPane;
+          try
           {
-            this._initialized = false;
-            try
-            {
-              this.showPane(paneToLoad); // may need to load it first
-            }
-            catch (e)
-            {
-              dump('***** broken prefpane: ' + paneToLoad.id + '\n' + e + '\n');
-              paneToLoad = null;
-            }
-            this.currentPane = paneToLoad;
-          }
-          if (this.currentPane)
+            this.showPane(this.currentPane); // may need to load it first
             this.syncTreeWithPane(this.currentPane, true);
+          }
+          catch (e)
+          {
+            dump('***** broken prefpane: ' + this.currentPane.id + '\n' + e + '\n');
+          }
         ]]>
         </body>
       </method>
@@ -387,6 +377,8 @@
             }
           }
           this.setPaneTitle(aPane);
+          if (this.scrollHeight > window.innerHeight)
+            window.innerHeight = this.scrollHeight;
         ]]>
         </body>
       </method>
