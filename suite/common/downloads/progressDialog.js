@@ -29,12 +29,10 @@ function progressStartup() {
   gDownload = window.arguments[0];
 
   var recentDMWindow = Services.wm.getMostRecentWindow("Download:Manager");
-  if (recentDMWindow && recentDMWindow.gDownloadTreeView.rowCount > 0) {
+  if (recentDMWindow &&
+      gDownload.guid in recentDMWindow.gDownloadTreeView._dlMap)
     // we have been opened by a download manager, get the end time from there
-    let dmtree = recentDMWindow.gDownloadTreeView;
-    let dldata = dmtree.getRowData(dmtree._getIdxForGUID(gDownload.guid));
-    gEndTime = dldata.endTime;
-  }
+    gEndTime = recentDMWindow.gDownloadTreeView._dlMap[gDownload.guid].endTime;
 
   // cache elements to save .getElementById() calls
   gDownloadBundle = document.getElementById("dmBundle");
