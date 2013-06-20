@@ -34,7 +34,7 @@ EN_US_BINARY_URL = $(error You must set EN_US_BINARY_URL)
 endif
 
 XPI_STAGE_PATH = $(DIST)/$(UNIVERSAL_PATH)xpi-stage
-_ABS_XPI_STAGE_PATH = $(ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage
+_ABS_XPI_STAGE_PATH = $(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage
 $(XPI_STAGE_PATH):
 	mkdir -p $@
 
@@ -99,7 +99,7 @@ CAL_LOCALES = $(call apposlocales,calendar)
 TB_LOCALES = $(call apposlocales,mail)
 TB_SKIP_LOCALES = $(filter-out $(CAL_LOCALES) en-US,$(TB_LOCALES))
 $(addprefix langpack-,$(TB_SKIP_LOCALES)) $(addprefix upload-,$(TB_SKIP_LOCALES)):
-	@echo "Skipping $@ as it is not in Lightning's $(LOCALES_FILENAME)"
+	@echo "Skipping $@ as it is not in Lightning's locales: $(CAL_LOCALES)"
 
 # Calling these targets with prerequisites causes the libs and subsequent
 # targets to be switched in order due to some make voodoo. Therefore we call
