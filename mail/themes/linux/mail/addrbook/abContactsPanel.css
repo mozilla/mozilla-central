@@ -11,24 +11,12 @@
   
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#abContactsPanel 
-{
+#abContactsPanel {
   -moz-appearance: toolbox;
   background-color: -moz-Dialog;
 }
 
-#results_box
-{
-  background-color: transparent;
-}
-
-#GeneratedName
-{
-  background-color: transparent;
-}
-
-#PrimaryEmail
-{
+#results_box {
   background-color: transparent;
 }
 
@@ -36,41 +24,4 @@
   -moz-border-end: none;
   -moz-border-start: 1px solid ThreeDShadow;
   border-bottom: 1px solid ThreeDShadow;
-}
-
-treechildren::-moz-tree-image(GeneratedName) {
-  -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
-}
-
-treechildren::-moz-tree-image(GeneratedName, MailList) {
-  -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
-}
-
-/* ::::: directory pane icons ::::: */
-
-treechildren::-moz-tree-image(DirCol) {
-  -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/addrbook.png");
-}
-
-treechildren::-moz-tree-image(DirCol, IsMailList-true) {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
-}
-
-treechildren::-moz-tree-image(DirCol, IsRemote-true) {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook.gif");
-}
-
-treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/secure-remote-addrbook.gif");
-}
-
-#dirTree [sortDirection="ascending"] {
-  list-style-image: none;
-}
-
-#dirTree [sortDirection="descending"] {
-  list-style-image: none;
 }

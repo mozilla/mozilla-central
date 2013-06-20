@@ -11,26 +11,12 @@
   
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#abContactsPanel 
-{
+#abContactsPanel {
   -moz-appearance: toolbox;
   background-image: url("chrome://messenger/skin/grain.png");
   background-color: #E2E7ED;
 }
 
-#results_box
-{
+#results_box {
   background-color: transparent;
 }
-
-#GeneratedName
-{
-  background-color: transparent;
-}
-
-#PrimaryEmail
-{
-  background-color: transparent;
-}
-
-
