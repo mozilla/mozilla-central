@@ -514,6 +514,8 @@
 @BINPATH@/components/TCPSocket.js
 @BINPATH@/components/TCPSocketParentIntermediary.js
 @BINPATH@/components/TCPSocket.manifest
+@BINPATH@/components/PeerConnection.js
+@BINPATH@/components/PeerConnection.manifest
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/toolkitplaces.manifest
@@ -696,6 +698,7 @@
 @BINPATH@/components/mozfind.xpt
 @BINPATH@/components/mimetype.xpt
 @BINPATH@/components/parentalcontrols.xpt
+@BINPATH@/components/peerconnection.xpt
 @BINPATH@/components/exthandler.xpt
 @BINPATH@/components/exthelper.xpt
 @BINPATH@/components/embed_base.xpt
