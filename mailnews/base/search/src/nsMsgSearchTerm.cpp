@@ -741,8 +741,9 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
                                                 bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
   *pResult = false;
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   bool matchExpected = m_operator == nsMsgSearchOp::Contains ||
                          m_operator == nsMsgSearchOp::Is ||
                          m_operator == nsMsgSearchOp::BeginsWith ||
@@ -759,8 +760,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   nsMsgBodyHandler * bodyHandler =
     new nsMsgBodyHandler (scope, length, msg, db, headers, headersSize,
                           ForFiltering);
-  if (!bodyHandler)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(bodyHandler, NS_ERROR_OUT_OF_MEMORY);
 
   bodyHandler->SetStripHeaders (false);
 
@@ -791,7 +791,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
       {
         bool stringMatches;
         // match value with the other info.
-        err = MatchRfc2047String(headerFullValue, charset, charsetOverride, &stringMatches);
+        rv = MatchRfc2047String(headerFullValue, charset, charsetOverride, &stringMatches);
         if (matchExpected == stringMatches) // if we found a match
         {
           searchingHeaders = false;   // then stop examining the headers
@@ -841,7 +841,7 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
   }
   delete bodyHandler;
   *pResult = result;
-  return err;
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgSearchTerm::MatchHdrProperty(nsIMsgDBHdr *aHdr, bool *aResult)
@@ -851,14 +851,14 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchHdrProperty(nsIMsgDBHdr *aHdr, bool *aResult
 
   nsCString dbHdrValue;
   aHdr->GetStringProperty(m_hdrProperty.get(), getter_Copies(dbHdrValue));
-  nsresult rv = MatchString(dbHdrValue, nullptr, aResult);
-  return rv;
+  return MatchString(dbHdrValue, nullptr, aResult);
 }
 
 NS_IMETHODIMP nsMsgSearchTerm::MatchFolderFlag(nsIMsgDBHdr *aMsgToMatch, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aMsgToMatch);
   NS_ENSURE_ARG_POINTER(aResult);
+
   nsCOMPtr<nsIMsgFolder> msgFolder;
   nsresult rv = aMsgToMatch->GetFolder(getter_AddRefs(msgFolder));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -872,6 +872,7 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchUint32HdrProperty(nsIMsgDBHdr *aHdr, bool *a
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_ARG_POINTER(aHdr);
 
+  nsresult rv = NS_OK;
   uint32_t dbHdrValue;
   aHdr->GetUint32Property(m_hdrProperty.get(), &dbHdrValue);
 
@@ -895,17 +896,19 @@ NS_IMETHODIMP nsMsgSearchTerm::MatchUint32HdrProperty(nsIMsgDBHdr *aHdr, bool *a
       result = true;
     break;
   default:
-    break;
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for uint");
   }
   *aResult = result;
-  return NS_OK;
+  return rv;
 }
 
 nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offset, uint32_t length /*in lines*/, const char *folderCharset,
                                       nsIMsgDBHdr *msg, nsIMsgDatabase* db, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
-  nsresult err = NS_OK;
+
+  nsresult rv = NS_OK;
 
   bool result = false;
   *pResult = false;
@@ -970,7 +973,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
         char startChar = (char) compare.CharAt(0);
         if (startChar != '\r' && startChar != '\n')
         {
-          err = MatchString(compare, folderCharset, &result);
+          rv = MatchString(compare, folderCharset, &result);
           lines++;
         }
         compare.Truncate();
@@ -985,7 +988,7 @@ nsresult nsMsgSearchTerm::MatchBody (nsIMsgSearchScopeTerm *scope, uint64_t offs
 #endif
   delete bodyHan;
   *pResult = result;
-  return err;
+  return rv;
 }
 
 nsresult nsMsgSearchTerm::InitializeAddressBook()
@@ -1028,13 +1031,25 @@ nsresult nsMsgSearchTerm::MatchInAddressBook(const nsACString &aAddress,
 
   if (mDirectory)
   {
-    nsIAbCard* cardForAddress = nullptr;
-    rv = mDirectory->CardForEmailAddress(aAddress, &cardForAddress);
+    nsCOMPtr<nsIAbCard> cardForAddress = nullptr;
+    rv = mDirectory->CardForEmailAddress(aAddress,
+                                         getter_AddRefs(cardForAddress));
     if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
       return rv;
-    if ((m_operator == nsMsgSearchOp::IsInAB && cardForAddress) || (m_operator == nsMsgSearchOp::IsntInAB && !cardForAddress))
-      *pResult = true;
-    NS_IF_RELEASE(cardForAddress);
+    switch(m_operator)
+    {
+    case nsMsgSearchOp::IsInAB:
+      if (cardForAddress)
+        *pResult = true;
+      break;
+    case nsMsgSearchOp::IsntInAB:
+      if (!cardForAddress)
+        *pResult = true;
+      break;
+    default:
+      rv = NS_ERROR_FAILURE;
+      NS_ERROR("invalid compare op for address book");
+    }
   }
 
   return rv;
@@ -1052,16 +1067,14 @@ nsresult nsMsgSearchTerm::MatchRfc2047String(const nsACString &rfc2047string,
   nsAutoCString stringToMatch;
   nsresult rv = mimeConverter->DecodeMimeHeaderToUTF8(
     rfc2047string, charset, charsetOverride, false, stringToMatch);
-
+  NS_ENSURE_SUCCESS(rv, rv);
   if (m_operator == nsMsgSearchOp::IsInAB ||
       m_operator == nsMsgSearchOp::IsntInAB)
-    rv = MatchInAddressBook(
+    return MatchInAddressBook(
       stringToMatch.IsEmpty() ? rfc2047string : stringToMatch, pResult);
-  else
-    rv = MatchString(stringToMatch.IsEmpty() ? rfc2047string : stringToMatch,
-      nullptr, pResult);
 
-  return rv;
+  return MatchString(stringToMatch.IsEmpty() ? rfc2047string : stringToMatch,
+      nullptr, pResult);
 }
 
 // *pResult is false when strings don't match, true if they do.
@@ -1070,9 +1083,10 @@ nsresult nsMsgSearchTerm::MatchString(const nsACString &stringToMatch,
                                       bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
   bool result = false;
 
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   nsAutoString utf16StrToMatch;
   nsAutoString needle;
 
@@ -1132,11 +1146,12 @@ nsresult nsMsgSearchTerm::MatchString(const nsACString &stringToMatch,
       result = true;
     break;
   default:
-    NS_ASSERTION(false, "invalid operator matching search results");
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for matching search results");
   }
 
   *pResult = result;
-  return err;
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (bool *aResult)
@@ -1145,69 +1160,69 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (bool *aResult)
  return NS_OK;
 }
 
- nsresult nsMsgSearchTerm::MatchRfc822String (const char *string, const char *charset, bool charsetOverride, bool *pResult)
- {
-   NS_ENSURE_ARG_POINTER(pResult);
-   *pResult = false;
-   bool result;
-   nsresult err = InitHeaderAddressParser();
-   if (NS_FAILED(err))
-     return err;
-   // Isolate the RFC 822 parsing weirdnesses here. MSG_ParseRFC822Addresses
-   // returns a catenated string of null-terminated strings, which we walk
-   // across, tring to match the target string to either the name OR the address
+nsresult nsMsgSearchTerm::MatchRfc822String (const char *string,
+                                             const char *charset,
+                                             bool charsetOverride,
+                                             bool *pResult)
+{
+  NS_ENSURE_ARG_POINTER(pResult);
 
-   char *names = nullptr, *addresses = nullptr;
+  *pResult = false;
+  bool result;
+  nsresult rv = InitHeaderAddressParser();
+  NS_ENSURE_SUCCESS(rv, rv);
+  // Isolate the RFC 822 parsing weirdnesses here. MSG_ParseRFC822Addresses
+  // returns a catenated string of null-terminated strings, which we walk
+  // across, tring to match the target string to either the name OR the address
 
-   // Change the sense of the loop so we don't bail out prematurely
-   // on negative terms. i.e. opDoesntContain must look at all recipients
-   bool boolContinueLoop;
-   GetMatchAllBeforeDeciding(&boolContinueLoop);
-   result = boolContinueLoop;
+  char *names = nullptr, *addresses = nullptr;
 
-   uint32_t count;
-   nsresult parseErr = m_headerAddressParser->ParseHeaderAddresses(string,
-                                                                   &names,
-                                                                   &addresses,
-                                                                   &count);
+  // Change the sense of the loop so we don't bail out prematurely
+  // on negative terms. i.e. opDoesntContain must look at all recipients
+  bool boolContinueLoop;
+  GetMatchAllBeforeDeciding(&boolContinueLoop);
+  result = boolContinueLoop;
+  uint32_t count;
+  nsresult parseErr = m_headerAddressParser->ParseHeaderAddresses(string,
+                                                                  &names,
+                                                                  &addresses,
+                                                                  &count);
 
-   if (NS_SUCCEEDED(parseErr) && count > 0)
-   {
-     NS_ASSERTION(names, "couldn't get names");
-     NS_ASSERTION(addresses, "couldn't get addresses");
-     if (!names || !addresses)
-       return err;
+  if (NS_SUCCEEDED(parseErr) && count > 0)
+  {
+    NS_ASSERTION(names, "couldn't get names");
+    NS_ASSERTION(addresses, "couldn't get addresses");
+    if (!names || !addresses)
+      return rv;
+    nsAutoCString walkNames;
+    nsAutoCString walkAddresses;
+    int32_t namePos = 0;
+    int32_t addressPos = 0;
+    for (uint32_t i = 0; i < count && result == boolContinueLoop; i++)
+    {
+      walkNames = names + namePos;
+      walkAddresses = addresses + addressPos;
+      if ( m_operator == nsMsgSearchOp::IsInAB ||
+           m_operator == nsMsgSearchOp::IsntInAB)
+      {
+        rv = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
+      }
+      else
+      {
+        rv = MatchRfc2047String(walkNames, charset, charsetOverride, &result);
+        if (boolContinueLoop == result)
+          rv = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
+      }
+      namePos += walkNames.Length() + 1;
+      addressPos += walkAddresses.Length() + 1;
+    }
 
-     nsAutoCString walkNames;
-     nsAutoCString walkAddresses;
-     int32_t namePos = 0;
-     int32_t addressPos = 0;
-     for (uint32_t i = 0; i < count && result == boolContinueLoop; i++)
-     {
-       walkNames = names + namePos;
-       walkAddresses = addresses + addressPos;
-       if ( m_operator == nsMsgSearchOp::IsInAB ||
-            m_operator == nsMsgSearchOp::IsntInAB)
-       {
-         err = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
-       }
-       else
-       {
-         err = MatchRfc2047String(walkNames, charset, charsetOverride, &result);
-         if (boolContinueLoop == result)
-           err = MatchRfc2047String(walkAddresses, charset, charsetOverride, &result);
-       }
-
-       namePos += walkNames.Length() + 1;
-       addressPos += walkAddresses.Length() + 1;
-     }
-
-     PR_Free(names);
-     PR_Free(addresses);
-   }
-   *pResult = result;
-   return err;
- }
+    PR_Free(names);
+    PR_Free(addresses);
+  }
+  *pResult = result;
+  return rv;
+}
 
 
 nsresult nsMsgSearchTerm::GetLocalTimes (PRTime a, PRTime b, PRExplodedTime &aExploded, PRExplodedTime &bExploded)
@@ -1228,36 +1243,36 @@ nsresult nsMsgSearchTerm::MatchDate (PRTime dateToMatch, bool *pResult)
   PRExplodedTime tmToMatch, tmThis;
   if (NS_SUCCEEDED(GetLocalTimes(dateToMatch, m_value.u.date, tmToMatch, tmThis)))
   {
-  switch (m_operator)
-  {
-  case nsMsgSearchOp::IsBefore:
+    switch (m_operator)
+    {
+    case nsMsgSearchOp::IsBefore:
       if (tmToMatch.tm_year < tmThis.tm_year ||
-          (tmToMatch.tm_year == tmThis.tm_year &&
+         (tmToMatch.tm_year == tmThis.tm_year &&
            tmToMatch.tm_yday < tmThis.tm_yday))
         result = true;
-    break;
-  case nsMsgSearchOp::IsAfter:
+      break;
+    case nsMsgSearchOp::IsAfter:
       if (tmToMatch.tm_year > tmThis.tm_year ||
-          (tmToMatch.tm_year == tmThis.tm_year &&
+         (tmToMatch.tm_year == tmThis.tm_year &&
            tmToMatch.tm_yday > tmThis.tm_yday))
         result = true;
-    break;
-  case nsMsgSearchOp::Is:
+      break;
+    case nsMsgSearchOp::Is:
       if (tmThis.tm_year == tmToMatch.tm_year &&
           tmThis.tm_month == tmToMatch.tm_month &&
           tmThis.tm_mday == tmToMatch.tm_mday)
         result = true;
-    break;
-  case nsMsgSearchOp::Isnt:
+      break;
+    case nsMsgSearchOp::Isnt:
       if (tmThis.tm_year != tmToMatch.tm_year ||
           tmThis.tm_month != tmToMatch.tm_month ||
           tmThis.tm_mday != tmToMatch.tm_mday)
         result = true;
-    break;
-  default:
-    rv = NS_ERROR_FAILURE;
-    NS_ASSERTION(false, "invalid compare op for dates");
-  }
+      break;
+    default:
+      rv = NS_ERROR_FAILURE;
+      NS_ERROR("invalid compare op for dates");
+    }
   }
   *pResult = result;
   return rv;
@@ -1269,7 +1284,7 @@ nsresult nsMsgSearchTerm::MatchAge (PRTime msgDate, bool *pResult)
   NS_ENSURE_ARG_POINTER(pResult);
 
   bool result = false;
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
 
   PRTime now = PR_Now();
   PRTime cutOffDay = now - m_value.u.age * PR_USEC_PER_DAY;
@@ -1303,10 +1318,11 @@ nsresult nsMsgSearchTerm::MatchAge (PRTime msgDate, bool *pResult)
       }
       break;
     default:
-      NS_ASSERTION(false, "invalid compare op for msg age");
+      rv = NS_ERROR_FAILURE;
+      NS_ERROR("invalid compare op for msg age");
   }
   *pResult = result;
-  return err;
+  return rv;
 }
 
 
@@ -1314,6 +1330,7 @@ nsresult nsMsgSearchTerm::MatchSize (uint32_t sizeToMatch, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
 
+  nsresult rv = NS_OK;
   bool result = false;
   // We reduce the sizeToMatch rather than supplied size
   // as then we can do an exact match on the displayed value
@@ -1340,10 +1357,11 @@ nsresult nsMsgSearchTerm::MatchSize (uint32_t sizeToMatch, bool *pResult)
       result = true;
     break;
   default:
-    break;
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for size to match");
   }
   *pResult = result;
-  return NS_OK;
+  return rv;
 }
 
 nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, bool *pResult)
@@ -1355,7 +1373,7 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, bool *pResult)
     *pResult = !(aJunkScore && *aJunkScore);
     return NS_OK;
   }
-  else if (m_operator == nsMsgSearchOp::IsntEmpty)
+  if (m_operator == nsMsgSearchOp::IsntEmpty)
   {
     *pResult = (aJunkScore && *aJunkScore);
     return NS_OK;
@@ -1387,7 +1405,8 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, bool *pResult)
       break;
     default:
       rv = NS_ERROR_FAILURE;
-      NS_ASSERTION(false, "invalid compare op for junk status");
+      matches = false;
+      NS_ERROR("invalid compare op for junk status");
   }
 
   *pResult = matches;
@@ -1397,6 +1416,7 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, bool *pResult)
 nsresult nsMsgSearchTerm::MatchJunkScoreOrigin(const char *aJunkScoreOrigin, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
   bool matches = false;
   nsresult rv = NS_OK;
 
@@ -1410,7 +1430,7 @@ nsresult nsMsgSearchTerm::MatchJunkScoreOrigin(const char *aJunkScoreOrigin, boo
     break;
   default:
     rv = NS_ERROR_FAILURE;
-    NS_ASSERTION(false, "invalid compare op for junk score origin");
+    NS_ERROR("invalid compare op for junk score origin");
   }
 
   *pResult = matches;
@@ -1420,6 +1440,8 @@ nsresult nsMsgSearchTerm::MatchJunkScoreOrigin(const char *aJunkScoreOrigin, boo
 nsresult nsMsgSearchTerm::MatchJunkPercent(uint32_t aJunkPercent, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
+  nsresult rv = NS_OK;
   bool result = false;
   switch (m_operator)
   {
@@ -1436,16 +1458,19 @@ nsresult nsMsgSearchTerm::MatchJunkPercent(uint32_t aJunkPercent, bool *pResult)
       result = true;
     break;
   default:
-    break;
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for junk percent");
   }
   *pResult = result;
-  return NS_OK;
+  return rv;
 }
   
 
 nsresult nsMsgSearchTerm::MatchLabel(nsMsgLabelValue aLabelValue, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
+  nsresult rv = NS_OK;
   bool result = false;
   switch (m_operator)
   {
@@ -1453,16 +1478,20 @@ nsresult nsMsgSearchTerm::MatchLabel(nsMsgLabelValue aLabelValue, bool *pResult)
     if (m_value.u.label == aLabelValue)
       result = true;
     break;
-  default:
+  case nsMsgSearchOp::Isnt:
     if (m_value.u.label != aLabelValue)
       result = true;
-    break;
+  default:
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for label value");
   }
 
   *pResult = result;
-  return NS_OK;
+  return rv;
 }
 
+// MatchStatus () is not only used for nsMsgMessageFlags but also for 
+// nsMsgFolderFlags (both being 'unsigned long')
 nsresult nsMsgSearchTerm::MatchStatus(uint32_t statusToMatch, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
@@ -1470,6 +1499,8 @@ nsresult nsMsgSearchTerm::MatchStatus(uint32_t statusToMatch, bool *pResult)
   nsresult rv = NS_OK;
   bool matches = (statusToMatch & m_value.u.msgStatus);
 
+// nsMsgSearchOp::Is and nsMsgSearchOp::Isnt are intentionally used as
+// Contains and DoesntContain respectively, for legacy reasons.
   switch (m_operator)
   {
   case nsMsgSearchOp::Is:
@@ -1479,6 +1510,7 @@ nsresult nsMsgSearchTerm::MatchStatus(uint32_t statusToMatch, bool *pResult)
     break;
   default:
     rv = NS_ERROR_FAILURE;
+    matches = false;
     NS_ERROR("invalid compare op for msg status");
   }
 
@@ -1499,6 +1531,7 @@ nsresult nsMsgSearchTerm::MatchStatus(uint32_t statusToMatch, bool *pResult)
 nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
   bool matches = false;
 
   // special-case empty for performance reasons
@@ -1613,8 +1646,8 @@ nsresult nsMsgSearchTerm::MatchKeyword(const nsACString& keywordList, bool *pRes
     return NS_OK;
   }
 
-
   // no valid match operator found
+  *pResult = false;
   NS_ERROR("invalid compare op for msg status");
   return NS_ERROR_FAILURE;
 }
@@ -1625,7 +1658,7 @@ nsMsgSearchTerm::MatchPriority (nsMsgPriorityValue priorityToMatch,
 {
   NS_ENSURE_ARG_POINTER(pResult);
 
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   bool result = false;
 
   // Use this ugly little hack to get around the fact that enums don't have
@@ -1652,18 +1685,18 @@ nsMsgSearchTerm::MatchPriority (nsMsgPriorityValue priorityToMatch,
       result = true;
     break;
   default:
-    result = false;
-    err = NS_ERROR_FAILURE;
-    NS_ASSERTION(false, "invalid match operator");
+    rv = NS_ERROR_FAILURE;
+    NS_ERROR("invalid compare op for priority");
   }
   *pResult = result;
-  return err;
+  return rv;
 }
 
 // match a custom search term
 NS_IMETHODIMP nsMsgSearchTerm::MatchCustom(nsIMsgDBHdr* aHdr, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
+
   nsresult rv;
   nsCOMPtr<nsIMsgFilterService> filterService =
       do_GetService(NS_MSGFILTERSERVICE_CONTRACTID, &rv);
@@ -1876,7 +1909,7 @@ nsresult nsMsgSearchScopeTerm::InitializeAdapter (nsISupportsArray *termList)
   if (m_adapter)
     return NS_OK;
 
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
 
   switch (m_attribute)
   {
@@ -1907,13 +1940,13 @@ nsresult nsMsgSearchScopeTerm::InitializeAdapter (nsISupportsArray *termList)
       break;
     default:
       NS_ASSERTION(false, "invalid scope");
-      err = NS_ERROR_FAILURE;
+      rv = NS_ERROR_FAILURE;
   }
 
   if (m_adapter)
-    err = m_adapter->ValidateTerms ();
+    rv = m_adapter->ValidateTerms ();
 
-  return err;
+  return rv;
 }
 
 
@@ -1958,55 +1991,54 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
 {
   NS_ENSURE_ARG_POINTER(src);
   NS_ENSURE_ARG_POINTER(dst);
-
   // Yes, this could be an operator overload, but nsMsgSearchValue is totally public, so I'd
   // have to define a derived class with nothing by operator=, and that seems like a bit much
-  nsresult err = NS_OK;
+  nsresult rv = NS_OK;
   src->GetAttrib(&dst->attribute);
   switch (dst->attribute)
   {
   case nsMsgSearchAttrib::Priority:
-    err = src->GetPriority(&dst->u.priority);
+    rv = src->GetPriority(&dst->u.priority);
     break;
   case nsMsgSearchAttrib::Date:
-    err = src->GetDate(&dst->u.date);
+    rv = src->GetDate(&dst->u.date);
     break;
   case nsMsgSearchAttrib::HasAttachmentStatus:
   case nsMsgSearchAttrib::MsgStatus:
   case nsMsgSearchAttrib::FolderFlag:
   case nsMsgSearchAttrib::Uint32HdrProperty:
-    err = src->GetStatus(&dst->u.msgStatus);
+    rv = src->GetStatus(&dst->u.msgStatus);
     break;
   case nsMsgSearchAttrib::MessageKey:
-    err = src->GetMsgKey(&dst->u.key);
+    rv = src->GetMsgKey(&dst->u.key);
     break;
   case nsMsgSearchAttrib::AgeInDays:
-    err = src->GetAge(&dst->u.age);
+    rv = src->GetAge(&dst->u.age);
     break;
   case nsMsgSearchAttrib::Label:
-    err = src->GetLabel(&dst->u.label);
+    rv = src->GetLabel(&dst->u.label);
     break;
   case nsMsgSearchAttrib::JunkStatus:
-    err = src->GetJunkStatus(&dst->u.junkStatus);
+    rv = src->GetJunkStatus(&dst->u.junkStatus);
     break;
   case nsMsgSearchAttrib::JunkPercent:
-    err = src->GetJunkPercent(&dst->u.junkPercent);
+    rv = src->GetJunkPercent(&dst->u.junkPercent);
     break;
   case nsMsgSearchAttrib::Size:
-    err = src->GetSize(&dst->u.size);
+    rv = src->GetSize(&dst->u.size);
     break;
   default:
     if (dst->attribute < nsMsgSearchAttrib::kNumMsgSearchAttributes)
     {
       NS_ASSERTION(IS_STRING_ATTRIBUTE(dst->attribute), "assigning non-string result");
       nsString unicodeString;
-      err = src->GetStr(unicodeString);
+      rv = src->GetStr(unicodeString);
       dst->string = ToNewUTF8String(unicodeString);
     }
     else
-      err = NS_ERROR_INVALID_ARG;
+      rv = NS_ERROR_INVALID_ARG;
   }
-  return err;
+  return rv;
 }
 
 
