@@ -468,7 +468,7 @@ function Startup()
                  .QueryInterface(Components.interfaces.nsILoadContext);
   if (lc.usePrivateBrowsing) {
     gPrivate = window;
-    document.documentElement.setAttribute("windowtype", "navigator:private");
+    document.documentElement.removeAttribute("windowtype");
     var titlemodifier = document.documentElement.getAttribute("titlemodifier");
     if (titlemodifier)
       titlemodifier += " ";
