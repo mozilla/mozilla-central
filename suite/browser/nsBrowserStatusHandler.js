@@ -366,29 +366,36 @@ nsBrowserStatusHandler.prototype =
      */
     switch (aState & wpl_security_bits) {
       case wpl.STATE_IS_SECURE:
+        const nsISSLStatusProvider = Components.interfaces.nsISSLStatusProvider;
+        var cert = getBrowser().securityUI.QueryInterface(nsISSLStatusProvider)
+                               .SSLStatus.serverCert;
+        var issuerName = cert.issuerOrganization ||
+                         cert.issuerCommonName || cert.issuerName;
+        this.securityButton.setAttribute("tooltiptext",
+          gNavigatorBundle.getFormattedString("securityButtonTooltipSecure",
+                                              [issuerName]));
         this.securityButton.setAttribute("level", "high");
         this.urlBar.setAttribute("level", "high");
         break;
       case wpl.STATE_IS_BROKEN:
+        this.securityButton.setAttribute("tooltiptext",
+          gNavigatorBundle.getString("securityButtonTooltipMixedContent"));
         this.securityButton.setAttribute("level", "broken");
         this.urlBar.setAttribute("level", "broken");
         break;
       case wpl.STATE_IS_INSECURE:
       default:
+        this.securityButton.setAttribute("tooltiptext",
+          gNavigatorBundle.getString("securityButtonTooltipInsecure"));
         this.securityButton.removeAttribute("level");
         this.urlBar.removeAttribute("level");
         break;
     }
 
-    var securityUI = getBrowser().securityUI;
-    if (securityUI)
-      this.securityButton.setAttribute("tooltiptext", securityUI.tooltipText);
-    else
-      this.securityButton.removeAttribute("tooltiptext");
-
     if (aState & wpl.STATE_IDENTITY_EV_TOPLEVEL) {
       var organization =
-          securityUI.QueryInterface(Components.interfaces.nsISSLStatusProvider)
+        getBrowser().securityUI
+                    .QueryInterface(Components.interfaces.nsISSLStatusProvider)
                     .SSLStatus
                     .QueryInterface(Components.interfaces.nsISSLStatus)
                     .serverCert.organization;
