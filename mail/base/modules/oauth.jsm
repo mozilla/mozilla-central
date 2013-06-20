@@ -12,7 +12,7 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
 var EXPORTED_SYMBOLS = ["OAuth"];
 
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
@@ -105,11 +105,6 @@ OAuth.prototype = {
       ["oauth_version", "1.0"]
     ]);
 
-    // encodeURI *AND* % escape characters that encodeURIComponent doesn't.
-    function percentEncode(aString)
-      encodeURIComponent(aString).replace(/\!|\*|\'|\(|\)/g, function(m)
-        ({"!": "%21", "*": "%2A", "'": "%27", "(": "%28", ")": "%29"}[m]))
-
     let dataParams = [];
     let url = /^https?:/.test(aUrl) ? aUrl : this.baseURI + aUrl;
     let urlSpec = url;
@@ -156,8 +151,14 @@ OAuth.prototype = {
 
     let authorization =
       "OAuth " + params.map(function (p) p[0] + "=\"" + p[1] + "\"").join(", ");
-    let headers = (aHeaders || []).concat([["Authorization", authorization]]);
-    return doXHRequest(url, headers, aPOSTData, aOnLoad, aOnError, aThis, aMethod);
+    let options = {
+      headers: (aHeaders || []).concat([["Authorization", authorization]]),
+      postData: aPOSTData,
+      method: aMethod,
+      onLoad: aOnLoad.bind(aThis),
+      onError: aOnError.bind(aThis)
+    };
+    return httpRequest(url, options);
   },
   _parseURLData: function(aData) {
     let result = {};

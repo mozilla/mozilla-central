@@ -4,7 +4,7 @@
 
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 Cu.import("resource:///modules/imServices.jsm");
 Cu.import("resource:///modules/imXPCOMUtils.jsm");
 Cu.import("resource:///modules/jsProtoHelper.jsm");
@@ -459,10 +459,16 @@ Account.prototype = {
 
     let authorization =
       "OAuth " + params.map(function (p) p[0] + "=\"" + p[1] + "\"").join(", ");
-    let headers = (aHeaders || []).concat([["Authorization", authorization]]);
 
-    return doXHRequest(url, headers, aPOSTData, aOnLoad, aOnError, aThis, null,
-                       this);
+    let options = {
+      headers: (aHeaders || []).concat([["Authorization", authorization]]),
+      postData: aPOSTData,
+      onLoad: aOnLoad.bind(this),
+      onError: aOnError.bind(this),
+      logger: {log: this.LOG.bind(this),
+               debug: this.DEBUG.bind(this)}
+    }
+    return httpRequest(url, options);
   },
   _parseURLData: function(aData) {
     let result = {};

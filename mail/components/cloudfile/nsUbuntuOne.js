@@ -14,7 +14,7 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 Cu.import("resource:///modules/oauth.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
@@ -471,41 +471,43 @@ nsUbuntuOne.prototype = {
       encodeURIComponent(tokenName);
 
     this.log.info("Requesting Authentication token");
-    doXHRequest(
-      newTokenUrl, [["Authorization", credentials]], "",
-      function(aResponseText, aRequest) {
-        this.log.info("Retrieved a new token from SSO");
-        let tokenInfo = JSON.parse(aResponseText);
+    httpRequest(newTokenUrl, {
+        headers: [["Authorization", credentials]],
+        onLoad: function(aResponseText, aRequest) {
+          this.log.info("Retrieved a new token from SSO");
+          let tokenInfo = JSON.parse(aResponseText);
 
-        // We need to tell Ubuntu One to pull the token from the SSO
-        // service now.
-        this._connection = new OAuth(this.displayName, null, null,
-                                     tokenInfo.token, tokenInfo.token_secret,
-                                     tokenInfo.consumer_key,
-                                     tokenInfo.consumer_secret,
-                                     "PLAINTEXT");
-        this._connection.signAndSend(
-          gSsoPingUrl, [], "POST", "",
-          function(aResponseText, aRequest) {
-            this.log.info("Token transferred to Ubuntu One: " + aResponseText);
-            // Now that the token has successfully been transferred,
-            // save it locally.
-            this._cachedAuthToken = tokenInfo.token;
-            this._cachedAuthSecret = tokenInfo.token_secret;
-            this._cachedConsumerKey = tokenInfo.consumer_key;
-            this._cachedConsumerSecret = tokenInfo.consumer_secret;
-            successCallback();
-          }.bind(this),
-          function(aException, aResponseText, aRequest) {
-            this.log.info("Failed to transfer access token to Ubuntu One:" +
-                          aResponseText);
-            failureCallback();
-          }.bind(this), this);
-      }.bind(this),
-      function(aException, aResponseText, aRequest) {
-        this.log.info("Failed to acquire an access token:" + aResponseText);
-        failureCallback();
-      }.bind(this), this, "GET");
+          // We need to tell Ubuntu One to pull the token from the SSO
+          // service now.
+          this._connection = new OAuth(this.displayName, null, null,
+                                       tokenInfo.token, tokenInfo.token_secret,
+                                       tokenInfo.consumer_key,
+                                       tokenInfo.consumer_secret,
+                                       "PLAINTEXT");
+          this._connection.signAndSend(
+            gSsoPingUrl, [], "POST", "",
+            function(aResponseText, aRequest) {
+              this.log.info("Token transferred to Ubuntu One: " + aResponseText);
+              // Now that the token has successfully been transferred,
+              // save it locally.
+              this._cachedAuthToken = tokenInfo.token;
+              this._cachedAuthSecret = tokenInfo.token_secret;
+              this._cachedConsumerKey = tokenInfo.consumer_key;
+              this._cachedConsumerSecret = tokenInfo.consumer_secret;
+              successCallback();
+            }.bind(this),
+            function(aException, aResponseText, aRequest) {
+              this.log.info("Failed to transfer access token to Ubuntu One:" +
+                            aResponseText);
+              failureCallback();
+            }.bind(this), this);
+        }.bind(this),
+        onError: function(aException, aResponseText, aRequest) {
+          this.log.info("Failed to acquire an access token:" + aResponseText);
+          failureCallback();
+        }.bind(this),
+        method: "GET"
+      });
   },
 
   /**

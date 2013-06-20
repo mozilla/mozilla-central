@@ -9,7 +9,7 @@ var EXPORTED_SYMBOLS = ["OAuth2"];
 
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu} = Components;
 
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 Cu.import("resource:///modules/Services.jsm");
 Cu.import("resource:///modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
@@ -171,7 +171,12 @@ OAuth2.prototype = {
             params.push(["refresh_token", aCode]);
         }
 
-        doXHRequest(this.tokenURI, null, params, this.onAccessTokenReceived, this.onAccessTokenFailed, this);
+        let options = {
+          postData: params,
+          onLoad: this.onAccessTokenReceived.bind(this),
+          onError: this.onAccessTokenFailed.bind(this)
+        }
+        httpRequest(this.tokenURI, options);
     },
 
     onAccessTokenFailed: function onAccessTokenFailed(aData) {

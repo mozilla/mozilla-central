@@ -14,7 +14,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource:///modules/cloudFileAccounts.js");
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 
 var gServerUrl = "https://www.box.com/api/1.0/rest";
 var gUploadUrl = "https://upload.box.net/api/1.0/upload/";
@@ -323,13 +323,11 @@ nsBox.prototype = {
     }.bind(this)
 
     // Request to get user info
-    doXHRequest(requestUrl,
-                null,
-                null,
-                accountInfoSuccess,
-                accountInfoFailure,
-                this,
-                "GET");
+    httpRequest(requestUrl, {
+                  onLoad: accountInfoSuccess,
+                  onError: accountInfoFailure,
+                  method: "GET"
+                });
   },
 
   /**
@@ -448,13 +446,11 @@ nsBox.prototype = {
     }.bind(this);
 
     // Request to create the folder
-    doXHRequest(requestUrl,
-                null,
-                null,
-                createSuccess,
-                createFailure,
-                this,
-                "GET");
+    httpRequest(requestUrl, {
+                  onLoad: createSuccess,
+                  onError: createFailure,
+                  method: "GET"
+                });
   },
 
   /**
@@ -565,13 +561,11 @@ nsBox.prototype = {
     }.bind(this);
 
     // Request to delete a file
-    doXHRequest(requestUrl,
-                null,
-                null,
-                deleteSuccess,
-                deleteFailure,
-                this,
-                "GET");
+    httpRequest(requestUrl, {
+                  onLoad: deleteSuccess,
+                  onError: deleteFailure,
+                  method: "GET"
+                });
   },
 
   _getUrlParameter: function nsBox_getAuthParameter(aUrl, aName)

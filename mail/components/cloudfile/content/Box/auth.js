@@ -9,7 +9,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 const Cr = Components.results;
 
-Cu.import("resource:///modules/http.jsm");
+Cu.import("resource://gre/modules/Http.jsm");
 Cu.import("resource:///modules/gloda/log4moz.js");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -214,13 +214,11 @@ var nsBoxAuth = {
     }.bind(this)
 
     // Request to get the ticket
-    doXHRequest(requestUrl,
-                null,
-                null,
-                ticketSuccess,
-                ticketFailure,
-                this,
-                "GET");
+    httpRequest(requestUrl, {
+                  onLoad: ticketSuccess,
+                  onError: ticketFailure,
+                  method: "GET"
+                });
     this.numTries++;
   }
 

@@ -15,6 +15,3 @@ EXTRA_JS_MODULES += [
     'jsProtoHelper.jsm',
     'socket.jsm',
 ]
-
-if not CONFIG['MOZ_THUNDERBIRD']:
-    EXTRA_JS_MODULES += ['http.jsm']
