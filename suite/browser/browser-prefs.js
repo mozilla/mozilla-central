@@ -653,6 +653,9 @@ pref("browser.taskbar.lists.recent.enabled", false);
 pref("browser.taskbar.lists.maxListItemCount", 7);
 pref("browser.taskbar.lists.tasks.enabled", true);
 pref("browser.taskbar.lists.refreshInSeconds", 120);
+pref("browser.taskbar.previews.enable", true);
+pref("browser.taskbar.previews.max", 20);
+pref("browser.taskbar.previews.cachetime", 5);
 #endif
 
 pref("sidebar.customize.all_panels.url", "http://sidebar-rdf.netscape.com/%LOCALE%/sidebar-rdf/%SIDEBAR_VERSION%/all-panels.rdf");

@@ -866,7 +866,8 @@
         </body>
       </method>
 
-      <method name="updateTitlebar">
+      <method name="getWindowTitleForBrowser">
+        <parameter name="aBrowser"/>
         <body>
           <![CDATA[
             var newTitle = "";
@@ -878,11 +879,11 @@
             // Strip out any null bytes in the content title, since the
             // underlying widget implementations of nsWindow::SetTitle pass
             // null-terminated strings to system APIs.
-            if (this.docShell.contentViewer)
-              docTitle = this.contentTitle.replace(/\0+/g, "");
+            if (aBrowser.docShell.contentViewer)
+              docTitle = aBrowser.contentTitle.replace(/\0/g, "");
 
             if (!docTitle && !modifier) {
-              docTitle = this.getTitleForURI(this.mCurrentBrowser.currentURI);
+              docTitle = this.getTitleForURI(aBrowser.currentURI);
               if (!docTitle) {
                 // Here we actually override contenttitlesetting, because we
                 // don't want the titledefault value.
@@ -903,8 +904,7 @@
             // (only for schemes that support a host)
             try {
               if (docElement.getAttribute("chromehidden").indexOf("location") != -1) {
-                var uri  = this.mURIFixup.createExposableURI(
-                             this.mCurrentBrowser.currentURI);
+                var uri = this.mURIFixup.createExposableURI(aBrowser.currentURI);
                 if (uri.schemeIs("about"))
                   newTitle = uri.spec + sep + newTitle;
                 else if (uri.host)
@@ -913,6 +913,15 @@
             } catch (e) {
             }
 
+            return newTitle;
+          ]]>
+        </body>
+      </method>
+
+      <method name="updateTitlebar">
+        <body>
+          <![CDATA[
+            var newTitle = this.getWindowTitleForBrowser(this.mCurrentBrowser);
             document.title = newTitle;
             window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                   .getInterface(Components.interfaces.nsIWebNavigation)
@@ -949,14 +958,11 @@
         </body>
       </method>
 
+      <field name="mAeroPeek">false</field>
+
       <method name="updateCurrentBrowser">
         <body>
           <![CDATA[
-            // we only want to return to the parent tab if no other
-            // tabs have been opened and the user hasn't switched tabs
-            this.mPreviousTab = null;
-            this.mLastRelatedIndex = 0;
-
             var newBrowser = this.mPanelContainer.selectedPanel.firstChild;
             // Transfer the dropped link handler to the new browser.
             // Note: closing the current tab sets mCurrentBrowser to null
@@ -985,12 +991,6 @@
                               newBrowser.securityUI,
                               newBrowser,
                               tabListener.mFeeds);
-
-            // Update the window title.
-            this.updateTitlebar();
-
-            // FAYT
-            this.fastFind.setDocShell(this.mCurrentBrowser.docShell);
 
             // Send the state, status and progress to all progress listeners.
             var flags = tabListener.mStateFlags &
@@ -1028,6 +1028,20 @@
                                          tabListener.mMessage,
                                          progress],
                                         true, false);
+
+            if (this.mAeroPeek)
+              return;
+
+            // we only want to return to the parent tab if no other
+            // tabs have been opened and the user hasn't switched tabs
+            this.mPreviousTab = null;
+            this.mLastRelatedIndex = 0;
+
+            // Update the window title.
+            this.updateTitlebar();
+
+            // FAYT
+            this.fastFind.setDocShell(this.mCurrentBrowser.docShell);
 
             // We've selected the new tab, so go ahead and notify listeners
             this.mCurrentTab.dispatchEvent(new Event("TabSelect",
@@ -1586,6 +1600,10 @@
               this.selectedTab = t;
               this.mStrip.collapsed = false;
             }
+            this.tabContainer._handleNewTab(t);
+
+            t.dispatchEvent(new Event("TabOpen",
+              { bubbles: true, cancelable: false }));
 
             return t;
           ]]>

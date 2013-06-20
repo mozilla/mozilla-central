@@ -12,6 +12,7 @@ include $(DEPTH)/config/autoconf.mk
 EXTRA_JS_MODULES = \
   DownloadTaskbarIntegration.jsm \
   Sanitizer.jsm \
+  WindowsPreviewPerTab.jsm \
   $(NULL)
 
 ifeq ($(OS_ARCH),WINNT)

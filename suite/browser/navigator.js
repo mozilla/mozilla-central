@@ -5,6 +5,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/DownloadTaskbarIntegration.jsm");
+Components.utils.import("resource:///modules/WindowsPreviewPerTab.jsm");
 
 __defineGetter__("PluralForm", function() {
   Components.utils.import("resource://gre/modules/PluralForm.jsm");
@@ -671,6 +672,8 @@ function Startup()
   gBrowser.mPanelContainer.addEventListener("PreviewBrowserTheme", LightWeightThemeWebInstaller, false, true);
   gBrowser.mPanelContainer.addEventListener("ResetBrowserThemePreview", LightWeightThemeWebInstaller, false, true);
 
+  AeroPeek.onOpenWindow(window);
+
   if (!gPrivate) {
     DownloadTaskbarIntegration.onBrowserWindowLoad(window);
 
@@ -749,6 +752,8 @@ function WindowFocusTimerCallback(element)
 
 function Shutdown()
 {
+  AeroPeek.onCloseWindow(window);
+
   PlacesStarButton.uninit();
 
   // shut down browser access support
