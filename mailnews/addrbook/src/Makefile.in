@@ -16,10 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-EXTRA_PP_COMPONENTS += \
-		nsAddrbook.manifest \
-		$(NULL)
-
 ifeq ($(OS_ARCH),WINNT)
 OS_CXXFLAGS += -DNOMINMAX
 endif

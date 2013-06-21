@@ -15,3 +15,7 @@ EXTRA_COMPONENTS += [
     'steelApplication.manifest',
 ]
 
+EXTRA_PP_COMPONENTS += [
+    'steelApplication.js',
+]
+

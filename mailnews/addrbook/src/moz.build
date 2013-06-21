@@ -84,3 +84,7 @@ EXTRA_COMPONENTS += [
     'nsAbLDAPAttributeMap.js',
 ]
 
+EXTRA_PP_COMPONENTS += [
+    'nsAddrbook.manifest',
+]
+

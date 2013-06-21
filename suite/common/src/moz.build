@@ -14,3 +14,7 @@ EXTRA_COMPONENTS += [
     'nsSuiteGlue.js',
 ]
 
+EXTRA_PP_COMPONENTS += [
+    'nsSessionStore.js',
+]
+
