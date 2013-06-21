@@ -13,8 +13,4 @@ ifndef MOZ_STANDALONE_COMPOSER
 PREF_JS_EXPORTS = $(srcdir)/composer.js
 endif
 
-EXTRA_JS_MODULES += \
-  editorUtilities.jsm \
-  $(NULL)
-
 include $(topsrcdir)/config/rules.mk

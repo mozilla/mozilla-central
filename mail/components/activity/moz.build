@@ -18,3 +18,15 @@ EXTRA_COMPONENTS += [
     'nsActivityManagerUI.js',
 ]
 
+EXTRA_JS_MODULES += [
+    'modules/activityModules.js',
+    'modules/alertHook.js',
+    'modules/autosync.js',
+    'modules/glodaIndexer.js',
+    'modules/moveCopy.js',
+    'modules/pop3Download.js',
+    'modules/sendLater.js',
+]
+
+JS_MODULES_PATH = 'modules/activity'
+

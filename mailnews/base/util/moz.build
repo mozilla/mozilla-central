@@ -50,3 +50,19 @@ CPP_SOURCES += [
     'nsStopwatch.cpp',
 ]
 
+EXTRA_JS_MODULES += [
+    'IOUtils.js',
+    'JXON.js',
+    'StringBundle.js',
+    'errUtils.js',
+    'folderUtils.jsm',
+    'hostnameUtils.jsm',
+    'iteratorUtils.jsm',
+    'jsTreeSelection.js',
+    'mailServices.js',
+    'mailnewsMigrator.js',
+    'msgDBCacheManager.js',
+    'templateUtils.js',
+    'traceHelper.js',
+]
+

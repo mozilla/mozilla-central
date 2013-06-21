@@ -16,23 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-EXTRA_JS_MODULES = \
-		folderUtils.jsm \
-		errUtils.js \
-		iteratorUtils.jsm \
-		jsTreeSelection.js \
-		traceHelper.js \
-		StringBundle.js \
-		templateUtils.js \
-		IOUtils.js \
-		mailnewsMigrator.js \
-		mailServices.js \
-		msgDBCacheManager.js \
-		hostnameUtils.jsm \
-		JXON.js \
-		$(NULL)
-
-# we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
 
 DEFINES		+= -D_IMPL_NS_MSG_BASE

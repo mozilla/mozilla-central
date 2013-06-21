@@ -13,11 +13,5 @@ include $(DEPTH)/config/autoconf.mk
 libs:: jsmime/mimeParser.jsm
 	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_TARGET)/modules)
 
-JS_MODULES_PATH = $(FINAL_TARGET)/modules/mime
-
-EXTRA_JS_MODULES = \
-  jsmime/mimeParserCore.js \
-  $(NULL)
-
 include $(topsrcdir)/config/rules.mk
 

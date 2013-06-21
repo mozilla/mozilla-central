@@ -5,3 +5,33 @@
 
 MODULE = 'mailnewsglobaldb'
 
+EXTRA_JS_MODULES += [
+    'collection.js',
+    'connotent.js',
+    'databind.js',
+    'datamodel.js',
+    'datastore.js',
+    'dbview.js',
+    'everybody.js',
+    'explattr.js',
+    'facet.js',
+    'fundattr.js',
+    'gloda.js',
+    'index_ab.js',
+    'index_msg.js',
+    'indexer.js',
+    'log4moz.js',
+    'mimeTypeCategories.js',
+    'mimemsg.js',
+    'msg_search.js',
+    'noun_freetag.js',
+    'noun_mimetype.js',
+    'noun_tag.js',
+    'public.js',
+    'query.js',
+    'suffixtree.js',
+    'utils.js',
+]
+
+JS_MODULES_PATH = 'modules/gloda'
+

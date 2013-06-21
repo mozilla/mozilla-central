@@ -46,3 +46,7 @@ EXTRA_COMPONENTS += [
     'nsMailDefaultHandler.js',
 ]
 
+EXTRA_JS_MODULES += [
+    'appIdleManager.js',
+]
+

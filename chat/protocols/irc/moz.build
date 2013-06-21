@@ -10,3 +10,19 @@ EXTRA_COMPONENTS += [
     'irc.manifest',
 ]
 
+EXTRA_JS_MODULES += [
+    'ircBase.jsm',
+    'ircCAP.jsm',
+    'ircCTCP.jsm',
+    'ircCommands.jsm',
+    'ircDCC.jsm',
+    'ircHandlers.jsm',
+    'ircISUPPORT.jsm',
+    'ircMultiPrefix.jsm',
+    'ircNonStandard.jsm',
+    'ircSASL.jsm',
+    'ircServices.jsm',
+    'ircUtils.jsm',
+    'ircWatchMonitor.jsm',
+]
+

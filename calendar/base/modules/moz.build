@@ -5,3 +5,18 @@
 
 MODULE = 'calbase'
 
+EXTRA_JS_MODULES += [
+    'calAlarmUtils.jsm',
+    'calAuthUtils.jsm',
+    'calHashedArray.jsm',
+    'calItemUtils.jsm',
+    'calIteratorUtils.jsm',
+    'calItipUtils.jsm',
+    'calPrintUtils.jsm',
+    'calProviderUtils.jsm',
+    'calRecurrenceUtils.jsm',
+    'calUtils.jsm',
+    'calXMLUtils.jsm',
+    'ical.js',
+]
+

@@ -9,3 +9,9 @@ EXTRA_COMPONENTS += [
     'imProtocolInfo.js',
 ]
 
+EXTRA_JS_MODULES += [
+    'modules/chatHandler.jsm',
+    'modules/index_im.js',
+    'modules/search_im.js',
+]
+

@@ -18,3 +18,7 @@ EXTRA_PP_COMPONENTS += [
     'nsSessionStore.js',
 ]
 
+EXTRA_JS_MODULES += [
+    'PlacesUIUtils.jsm',
+]
+

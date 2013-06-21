@@ -14,3 +14,9 @@ TEST_DIRS += ['test']
 
 MODULE = 'mime'
 
+EXTRA_JS_MODULES += [
+    'jsmime/mimeParserCore.js',
+]
+
+JS_MODULES_PATH = 'modules/mime'
+

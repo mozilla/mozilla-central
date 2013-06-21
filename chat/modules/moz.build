@@ -5,3 +5,16 @@
 
 XPCSHELL_TESTS_MANIFESTS += ['test/xpcshell.ini']
 
+EXTRA_JS_MODULES += [
+    'imContentSink.jsm',
+    'imServices.jsm',
+    'imSmileys.jsm',
+    'imStatusUtils.jsm',
+    'imThemes.jsm',
+    'imXPCOMUtils.jsm',
+    'jsProtoHelper.jsm',
+    'socket.jsm',
+]
+
+if not CONFIG['MOZ_THUNDERBIRD']:
+    EXTRA_JS_MODULES += ['http.jsm']

@@ -10,21 +10,6 @@ relativesrcdir = @relativesrcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_JS_MODULES = \
-	imContentSink.jsm \
-	imServices.jsm \
-	imSmileys.jsm \
-	imStatusUtils.jsm \
-	imThemes.jsm \
-	imXPCOMUtils.jsm \
-	jsProtoHelper.jsm \
-	socket.jsm \
-	$(NULL)
-
-ifndef MOZ_THUNDERBIRD
-EXTRA_JS_MODULES += http.jsm
-endif
-
 EXTRA_PP_JS_MODULES = \
 	hiddenWindow.jsm \
 	imTextboxUtils.jsm \

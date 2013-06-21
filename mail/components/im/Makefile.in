@@ -9,12 +9,6 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-EXTRA_JS_MODULES = \
-		modules/chatHandler.jsm \
-		modules/index_im.js \
-		modules/search_im.js \
-		$(NULL)
-
 PREF_JS_EXPORTS = $(srcdir)/all-im.js
 
 include $(topsrcdir)/config/rules.mk

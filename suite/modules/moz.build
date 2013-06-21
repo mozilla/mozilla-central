@@ -5,3 +5,12 @@
 
 TEST_DIRS += ['test']
 
+EXTRA_JS_MODULES += [
+    'DownloadTaskbarIntegration.jsm',
+    'Sanitizer.jsm',
+    'WindowsPreviewPerTab.jsm',
+]
+
+if CONFIG['OS_ARCH'] == 'WINNT':
+    EXTRA_JS_MODULES += ['WindowsJumpLists.jsm']
+

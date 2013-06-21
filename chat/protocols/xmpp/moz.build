@@ -8,3 +8,10 @@ EXTRA_COMPONENTS += [
     'xmpp.manifest',
 ]
 
+EXTRA_JS_MODULES += [
+    'xmpp-authmechs.jsm',
+    'xmpp-session.jsm',
+    'xmpp-xml.jsm',
+    'xmpp.jsm',
+]
+

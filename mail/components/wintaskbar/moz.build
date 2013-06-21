@@ -5,3 +5,7 @@
 
 MODULE = 'wintaskbar'
 
+EXTRA_JS_MODULES += [
+    'windowsJumpLists.js',
+]
+

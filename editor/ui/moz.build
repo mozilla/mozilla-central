@@ -12,3 +12,7 @@ if not CONFIG['MOZ_STANDALONE_COMPOSER']:
             'nsComposerCmdLineHandler.manifest',
         ]
 
+EXTRA_JS_MODULES += [
+    'editorUtilities.jsm',
+]
+
