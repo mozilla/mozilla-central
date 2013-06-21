@@ -236,10 +236,6 @@ toolbar[iconsize="small"] > #sync-button[status=active] {
   min-height: 0;
 }
 
-#nav-bar[iconsize="small"] > .toolbar-primary-holder {
-  background: #D0D7DF;
-}
-
 /* ::::: fullscreen window controls ::::: */
 
 #window-controls {
@@ -686,7 +682,7 @@ panel[nomatch="true"] > .autocomplete-search-box {
 
 /* ::::: navigator throbber ::::: */
 
-#throbber-box {
+.toolbar-primary #throbber-box {
   background: none; /* override bg used to cover toolbar line */
   margin: 0px 0px 2px;
 }
