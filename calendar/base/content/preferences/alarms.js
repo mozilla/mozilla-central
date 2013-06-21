@@ -92,10 +92,10 @@ var gAlarmsPane = {
         soundUrl.value = document.getElementById("calendar.alarms.soundURL").value;
         if (soundUrl.value.indexOf("file://") == 0) {
             soundUrl.label = this.convertURLToLocalFile(soundUrl.value).leafName;
-            soundUrl.image = "moz-icon://" + soundUrl.label + "?size=16";
         } else {
             soundUrl.label = soundUrl.value;
         }
+        soundUrl.image = "moz-icon://" + soundUrl.label + "?size=16";
         return undefined;
     },
 
