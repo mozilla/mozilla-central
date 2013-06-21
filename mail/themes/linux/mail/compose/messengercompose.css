@@ -348,7 +348,6 @@ treechildren::-moz-tree-image(remote-err) {
   -moz-appearance: toolbar;
   color: WindowText;
   text-shadow: none;
-  min-height: 132px;
 }
 
 /* ::::: format toolbar ::::: */

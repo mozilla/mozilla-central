@@ -811,7 +811,7 @@
               <menupopup id="msgIdentityPopup"/>
             </menulist>
           </hbox>
-          <listbox id="addressingWidget" flex="1" seltype="multiple" rows="4"
+          <listbox id="addressingWidget" flex="1" seltype="multiple" rows="1"
                    onkeydown="awKeyDown(event, this)"
                    onclick="awClickEmptySpace(event.originalTarget, true)"
                    disableonsend="true">

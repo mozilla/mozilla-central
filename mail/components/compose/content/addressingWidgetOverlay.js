@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 top.MAX_RECIPIENTS = 1; /* for the initial listitem created in the XUL */
@@ -41,6 +42,32 @@ function awGetNumberOfCols()
   }
 
   return gNumberOfCols;
+}
+
+/**
+ * Adjust the default and minimum number of visible recipient rows for addressingWidget
+ */
+function awInitializeNumberOfRowsShown()
+{
+  let msgHeadersToolbar = document.getElementById("MsgHeadersToolbar");
+  let addressingWidget = document.getElementById("addressingWidget");
+  let awNumRowsShownDefault =
+    Services.prefs.getIntPref("mail.compose.addresswidget.numRowsShownDefault");
+
+  // Set minimum number of rows shown for address widget, per hardwired
+  // rows="1" attribute of addressingWidget, to prevent resizing the
+  // subject and format toolbar over the address widget.
+  // This lets users shrink the address widget to one row (with delicate UX)
+  // and thus maximize the space available for composition body,
+  // especially on small screens.
+  msgHeadersToolbar.minHeight = msgHeadersToolbar.boxObject.height;
+
+  // Set default number of rows shown for address widget.
+  addressingWidget.setAttribute("rows", awNumRowsShownDefault);
+  msgHeadersToolbar.height = msgHeadersToolbar.boxObject.height;
+
+  // Update addressingWidget internals.
+  awCreateOrRemoveDummyRows();
 }
 
 function awInputElementName()

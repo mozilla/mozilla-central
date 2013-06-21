@@ -2528,9 +2528,7 @@ function ComposeLoad()
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;
 
-  // Prevent resizing the subject and format toolbar over the addressswidget.
-  var headerToolbar = document.getElementById("MsgHeadersToolbar");
-  headerToolbar.minHeight = headerToolbar.boxObject.height;
+  awInitializeNumberOfRowsShown();
 }
 
 function ComposeUnload()

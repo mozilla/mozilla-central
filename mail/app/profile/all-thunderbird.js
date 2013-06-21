@@ -495,6 +495,9 @@ pref("toolbar.customization.usesheet", true);
 pref("toolbar.customization.usesheet", false);
 #endif
 
+// Number of recipient rows shown by default
+pref("mail.compose.addresswidget.numRowsShownDefault", 3);
+
 // Check for missing attachments?
 pref("mail.compose.attachment_reminder", true);
 // Words that should trigger a missing attachments warning.

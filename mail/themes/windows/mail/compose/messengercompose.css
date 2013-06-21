@@ -452,10 +452,6 @@ treechildren::-moz-tree-image(remote-err) {
   margin: 0 1px !important;
 }
 
-#MsgHeadersToolbar {
-  min-height: 132px;
-}
-
 /* ::::: format toolbar ::::: */
 
 #FormatToolbox {

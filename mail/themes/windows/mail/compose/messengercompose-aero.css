@@ -53,7 +53,6 @@ toolbar:not(:-moz-lwtheme) {
 }
 
 #MsgHeadersToolbar {
-  min-height: 132px;
   text-shadow: none;
   color: -moz-DialogText;
   background-color: -moz-Dialog;
