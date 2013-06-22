@@ -105,6 +105,7 @@ function imAccount(aKey, aName, aPrplId)
 
   this.id = aKey;
   this.numericId = parseInt(aKey.substr(kAccountKeyPrefix.length));
+  gAccountsService._keepAccount(this);
   this.prefBranch = Services.prefs.getBranch(kPrefAccountPrefix + aKey + ".");
 
   if (aName) {
@@ -138,8 +139,6 @@ function imAccount(aKey, aName, aPrplId)
 
   // Ensure the account is correctly stored in blist.sqlite.
   Services.contacts.storeAccount(this.numericId, this.name, prplId);
-
-  gAccountsService._keepAccount(this);
 
   // Get the prplIAccount from the protocol plugin.
   this.prplAccount = this.protocol.getAccount(this);
