@@ -597,10 +597,6 @@ function updateSelectedLabel(aElement) {
  * @param aItems    The array of items to consider
  */
 function setupAttendanceMenu(aMenu, aItems) {
-    let allSingle = aItems.every(function(x) !x.recurrenceId);
-    setElementValue(aMenu, allSingle ? "single" : "recurring", "itemType");
-
-    // Set up the attendance menu
     function getInvStat(item) {
         let attendee = null;
         if (cal.isInvitation(item)) {
@@ -613,6 +609,11 @@ function setupAttendanceMenu(aMenu, aItems) {
         }
         return attendee && attendee.participationStatus;
     }
+
+    goUpdateCommand("calendar_attendance_command");
+
+    let allSingle = aItems.every(function(x) !x.recurrenceId);
+    setElementValue(aMenu, allSingle ? "single" : "recurring", "itemType");
 
     let firstStatusOccurrences = aItems.length && getInvStat(aItems[0]);
     let firstStatusParents = aItems.length && getInvStat(aItems[0].parentItem);
