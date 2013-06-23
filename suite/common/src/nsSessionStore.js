@@ -281,6 +281,11 @@ SessionStoreService.prototype = {
           delete this._initialState.windows[0].hidden;
           // Since nothing is hidden in the first window, it cannot be a popup
           delete this._initialState.windows[0].isPopup;
+          // clear any lastSessionWindowID attributes since those don't matter
+          // during normal restore
+          this._initialState.windows.forEach(function(aWindow) {
+            delete aWindow.__lastSessionWindowID;
+          });
         }
       }
       catch (ex) { debug("The session file is invalid: " + ex); }
