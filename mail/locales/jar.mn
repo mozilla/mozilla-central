@@ -213,6 +213,4 @@
   locale/@AB_CD@/mozldap/ldap.properties                                (%chrome/mozldap/ldap.properties)
 % locale communicator @AB_CD@ %locale/@AB_CD@/communicator/
   locale/@AB_CD@/communicator/utilityOverlay.dtd                        (%chrome/communicator/utilityOverlay.dtd)
-% locale testpilot @AB_CD@ %locale/@AB_CD@/feedback/
-  locale/@AB_CD@/feedback/main.dtd                       (%feedback/main.dtd)
-  locale/@AB_CD@/feedback/main.properties                (%feedback/main.properties)
+

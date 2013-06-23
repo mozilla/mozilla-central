@@ -17,7 +17,6 @@ include $(topsrcdir)/config/rules.mk
 # If adding extra extensions here, check that EXTRA_ARGS defined below won't
 # affect them unintentionally.
 EXTENSIONS = \
-  tbtestpilot@labs.mozilla.com \
   $(NULL)
 
 # We are in release mode, we don't want to ship the debug file.

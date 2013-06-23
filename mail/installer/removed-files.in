@@ -166,6 +166,17 @@ defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/SchemaStrings.tbl
 defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
+
+# Remove obsolete bundled thunderbird test pilot.
+# In the average case, this directory is only used by Test Pilot, and will get
+# removed by the updater. In some cases (eg, partner builds), distribution/
+# will have other files and/or directories in it. In these cases, the updater
+# will print a non-fatal error and continue on, because we're not appending
+# '*' to force a recursive removal.
+distribution/
+distribution/extensions/
+distribution/extensions/tbtestpilot@labs.mozilla.com.xpi
+
 greprefs/all.js
 greprefs/security-prefs.js
 greprefs/xpinstall.js
