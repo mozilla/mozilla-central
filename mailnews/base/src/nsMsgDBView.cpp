@@ -3063,9 +3063,10 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
   uint32_t numMsgs;
   messageArray->GetLength(&numMsgs);
 
-  int32_t warnType = 0;
   const char *warnCollapsedPref = "mail.warn_on_collapsed_thread_operation";
   const char *warnShiftDelPref = "mail.warn_on_shift_delete";
+  const char *warnNewsPref = "news.warn_on_delete";
+  const char *activePref = nullptr;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3074,18 +3075,26 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     bool pref = false;
     prefBranch->GetBoolPref(warnCollapsedPref, &pref);
     if (pref)
-      warnType = 1;
+      activePref = warnCollapsedPref;
   }
 
-  if (warnType == 0 && deleteStorage)
+  if (!activePref && deleteStorage)
   {
     bool pref = false;
     prefBranch->GetBoolPref(warnShiftDelPref, &pref);
     if (pref)
-      warnType = 2;
+      activePref = warnShiftDelPref;
   }
 
-  if (warnType)
+  if (!activePref && mIsNews)
+  {
+    bool pref = false;
+    prefBranch->GetBoolPref(warnNewsPref, &pref);
+    if (pref)
+      activePref = warnNewsPref;
+  }
+
+  if (activePref)
   {
     nsCOMPtr<nsIPrompt> dialog;
 
@@ -3102,12 +3111,13 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     nsString checkboxText;
     nsString buttonApplyNowText;
     dialogTitle.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.title").get()));
-    if (warnType == 1)
-      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.collapsed.desc").get()));
-    else
-      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.shiftDel.desc").get()));
     checkboxText.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.dontAsk.label").get()));
     buttonApplyNowText.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.delete.label").get()));
+
+    if (activePref == warnCollapsedPref)
+      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.collapsed.desc").get()));
+    else // if (activePref == warnShiftDelPref || activePref == warnNewsPref)
+      confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.deleteNoTrash.desc").get()));
 
     const PRUint32 buttonFlags =
       (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
@@ -3119,8 +3129,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     if (buttonPressed)
       return NS_ERROR_FAILURE;
     if (dontAsk)
-      prefBranch->SetBoolPref(warnType == 1 ? warnCollapsedPref :
-                              warnShiftDelPref, false);
+      prefBranch->SetBoolPref(activePref, false);
   }
 
   if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)

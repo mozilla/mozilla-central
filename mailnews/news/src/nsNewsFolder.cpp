@@ -449,22 +449,6 @@ nsMsgNewsFolder::GetCanCompact(bool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanDeleteMessages(bool *aResult)
-{
-  NS_ENSURE_ARG_POINTER(aResult);
-
-  nsresult rv;
-  nsCOMPtr<nsIPrefBranch> prefBranch =
-    do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Don't allow delete by default
-  *aResult = false;
-  prefBranch->GetBoolPref("news.allow_delete_with_no_undo", aResult);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsMsgNewsFolder::GetMessages(nsISimpleEnumerator **result)
 {
   nsresult rv = GetDatabase();

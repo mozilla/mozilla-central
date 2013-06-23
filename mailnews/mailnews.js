@@ -176,7 +176,6 @@ pref("mail.dsn.ret_full_on", true);                    // DSN request is sent wi
 pref("news.show_size_in_lines",             true);
 pref("news.update_unread_on_expand",        true);
 pref("news.get_messages_on_select",         true);
-pref("news.allow_delete_with_no_undo",      false);
 
 pref("mailnews.wraplength",                 72);
 pref("mail.compose.wrap_to_window_width",   false);
@@ -202,6 +201,7 @@ pref("mailnews.reply_quoting_selection.multi_word",    true);
 pref("mail.operate_on_msgs_in_collapsed_threads", false);
 pref("mail.warn_on_collapsed_thread_operation", true);
 pref("mail.warn_on_shift_delete", true);
+pref("news.warn_on_delete", true);
 pref("mail.purge_threshhold_mb", 20);
 pref("mail.prompt_purge_threshhold",       true);
 pref("mail.purge.ask",                     true);
