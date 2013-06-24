@@ -21,3 +21,7 @@ ac_add_options --enable-debug-symbols="-gdwarf-2"
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
+
+#Disable gstreamer building until we have libs that can support it
+# Bug 886180
+ac_add_options --disable-gstreamer

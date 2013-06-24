@@ -30,3 +30,7 @@ mk_add_options MOZ_MAKE_FLAGS="-j4"
 
 #Use ccache
 ac_add_options --with-ccache=/usr/bin/ccache
+
+#Disable gstreamer building until we have libs that can support it
+# Bug 886180
+ac_add_options --disable-gstreamer
