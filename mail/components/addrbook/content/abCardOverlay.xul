@@ -170,12 +170,11 @@
           </vbox> <!-- End of Phonenumbers -->
         </hbox> <!-- End of Name/Email/Phonenumbers -->
         <!-- Email Preferences -->
-        <hbox>
-          <vbox valign="middle">
-            <label control="PreferMailFormatPopup"
-                   value="&PreferMailFormat.label;"
-                   accesskey="&PreferMailFormat.accesskey;"/>
-          </vbox>
+        <hbox align="center">
+          <label control="PreferMailFormatPopup"
+                 value="&PreferMailFormat.label;"
+                 accesskey="&PreferMailFormat.accesskey;"/>
+
           <menulist id="PreferMailFormatPopup">
             <menupopup>
               <!-- 0,1,2 come from nsIAbPreferMailFormat in nsIAbCard.idl -->
@@ -184,6 +183,7 @@
               <menuitem value="2" label="&HTML.label;"/>
             </menupopup>
           </menulist>
+
           <checkbox id="allowRemoteContent" label="&allowRemoteContent1.label;"
                     accesskey="&allowRemoteContent1.accesskey;"
                     tooltiptext="&allowRemoteContent1.tooltip;"/>

@@ -1178,7 +1178,16 @@ static void convertNameValue(VObject *vObj, nsIAbCard *aCard)
       return;
 
   char *cardPropValue = getCString(vObj);
-  aCard->SetPropertyAsAUTF8String(cardPropName, nsDependentCString(cardPropValue));
+  if (PL_strcmp(cardPropName, kPreferMailFormatProperty)) {
+    aCard->SetPropertyAsAUTF8String(cardPropName, nsDependentCString(cardPropValue));
+  } else {
+    if (!PL_strcmp(cardPropValue, "TRUE"))
+      aCard->SetPropertyAsUint32(cardPropName, nsIAbPreferMailFormat::html);
+    else if (!PL_strcmp(cardPropValue, "FALSE"))
+      aCard->SetPropertyAsUint32(cardPropName, nsIAbPreferMailFormat::plaintext);
+    else
+      aCard->SetPropertyAsUint32(cardPropName, nsIAbPreferMailFormat::unknown);
+  }
   PR_FREEIF(cardPropValue);
   return;
 }
