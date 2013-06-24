@@ -380,48 +380,37 @@ nsLDAPConnection::RemovePendingOperation(uint32_t aOperationID)
 class nsOnLDAPMessageRunnable : public nsRunnable
 {
 public:
-  nsOnLDAPMessageRunnable(nsILDAPMessageListener *aListener,
-                          nsILDAPMessage *aMsg);
+  nsOnLDAPMessageRunnable(nsLDAPMessage *aMsg, bool aClear)
+    : m_msg(aMsg)
+    , m_clear(aClear)
+  {}
   NS_DECL_NSIRUNNABLE
 private:
-  nsCOMPtr<nsILDAPMessage> m_msg;
-  nsCOMPtr<nsILDAPMessageListener> m_listener;
+  nsRefPtr<nsLDAPMessage> m_msg;
+  bool m_clear;
 };
-
-nsOnLDAPMessageRunnable::nsOnLDAPMessageRunnable(nsILDAPMessageListener *aListener,
-                                                 nsILDAPMessage *aMsg) :
-  m_msg(aMsg), m_listener(aListener)
-{
-}
 
 NS_IMETHODIMP nsOnLDAPMessageRunnable::Run()
 {
-  return m_listener->OnLDAPMessage(m_msg);
-}
+  // get the message listener object.
+  nsLDAPOperation *nsoperation = static_cast<nsLDAPOperation *>(m_msg->mOperation.get());
+  nsCOMPtr<nsILDAPMessageListener> listener;
+  nsresult rv = nsoperation->GetMessageListener(getter_AddRefs(listener));
 
-class nsOnLDAPInitMessageRunnable : public nsRunnable
-{
-public:
-  nsOnLDAPInitMessageRunnable(nsILDAPMessageListener *aListener,
-                              nsILDAPConnection *aConn,
-                              nsresult aStatus);
-  NS_DECL_NSIRUNNABLE
-private:
-  nsCOMPtr<nsILDAPConnection> m_conn;
-  nsCOMPtr<nsILDAPMessageListener> m_listener;
-  nsresult m_status;
-};
+  if (m_clear)
+  {
+    // try to break cycles
+    nsoperation->Clear();
+  }
 
-nsOnLDAPInitMessageRunnable::nsOnLDAPInitMessageRunnable(nsILDAPMessageListener *aListener,
-                                                         nsILDAPConnection *aConn,
-                                                         nsresult aStatus) :
-  m_listener(aListener), m_conn(aConn), m_status(aStatus)
-{
-}
+  if (!listener)
+  {
+    NS_ERROR("nsLDAPConnection::InvokeMessageCallback(): probable "
+             "memory corruption: GetMessageListener() returned nullptr");
+    return rv;
+  }
 
-NS_IMETHODIMP nsOnLDAPInitMessageRunnable::Run()
-{
-  return m_listener->OnLDAPInit(m_conn, m_status);
+  return listener->OnLDAPMessage(m_msg);
 }
 
 nsresult
@@ -435,41 +424,25 @@ nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
   PR_LOG(gLDAPLogModule, PR_LOG_DEBUG, ("InvokeMessageCallback entered\n"));
 #endif
 
-  nsresult rv;
   // Get the operation.
   nsCOMPtr<nsILDAPOperation> operation;
   mPendingOperations.Get((uint32_t)aOperation, getter_AddRefs(operation));
 
   NS_ENSURE_TRUE(operation, NS_ERROR_NULL_POINTER);
 
-  static_cast<nsLDAPMessage *>(aMsg)->mOperation = operation;
+  nsLDAPMessage *msg = static_cast<nsLDAPMessage *>(aMsg);
+  msg->mOperation = operation;
 
-  // get the message listener object.
-  nsCOMPtr<nsILDAPMessageListener> listener;
-  rv = operation->GetMessageListener(getter_AddRefs(listener));
-  if (NS_FAILED(rv))
-  {
-    NS_ERROR("nsLDAPConnection::InvokeMessageCallback(): probable "
-             "memory corruption: GetMessageListener() returned error");
-    return NS_ERROR_UNEXPECTED;
-  }
   // proxy the listener callback to the ui thread.
-  if (listener)
-  {
-    nsRefPtr<nsOnLDAPMessageRunnable> runnable =
-      new nsOnLDAPMessageRunnable(listener, aMsg);
-    // invoke the callback
-    NS_DispatchToMainThread(runnable);
-  }
+  nsRefPtr<nsOnLDAPMessageRunnable> runnable =
+    new nsOnLDAPMessageRunnable(msg, aRemoveOpFromConnQ);
+  // invoke the callback
+  NS_DispatchToMainThread(runnable);
 
   // if requested (ie the operation is done), remove the operation
   // from the connection queue.
   if (aRemoveOpFromConnQ)
   {
-    // try to break cycles
-    nsLDAPOperation* nsoperation = static_cast<nsLDAPOperation *>(operation.get());
-    if (nsoperation)
-      nsoperation->Clear();
     mPendingOperations.Remove(aOperation);
 
     PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,

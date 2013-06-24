@@ -23,6 +23,7 @@ class nsLDAPMessage : public nsILDAPMessage
     friend class nsLDAPOperation;
     friend class nsLDAPConnection;
     friend class nsLDAPConnectionRunnable;
+    friend class nsOnLDAPMessageRunnable;
 
   public:
 
