@@ -6,6 +6,7 @@
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-alarms.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-attendees.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/widgets/calendar-widget-bindings.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
@@ -682,8 +683,13 @@
                        disable-on-readonly="true"/>
                 <hbox id="event-grid-category-box" align="center">
                     <menulist id="item-categories"
+                              type="panel-menulist"
                               disable-on-readonly="true"
-                              flex="1"/>
+                              flex="1">
+                        <panel id="item-categories-panel"
+                               type="category-panel"
+                               onpopuphiding="updateCategoryMenulist()"/>
+                    </menulist>
                     <label value="&event.calendar.label;"
                            accesskey="&event.calendar.accesskey;"
                            control="item-calendar"

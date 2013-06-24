@@ -144,6 +144,37 @@ var taskDetailsView = {
                 }
             }
         }
+    },
+
+    loadCategories: function loadCategories(event) {
+        let panel = event.target;
+        let item = document.getElementById("calendar-task-tree").currentTask;
+        panel.loadItem(item);
+    },
+
+    saveCategories: function saveCategories(event) {
+        let panel = event.target;
+        let item = document.getElementById("calendar-task-tree").currentTask;
+        let categoriesMap = {};
+
+        for each (let cat in item.getCategories({})) {
+            categoriesMap[cat] = true;
+        }
+
+        for each (let cat in panel.categories) {
+            if (cat in categoriesMap) {
+                delete categoriesMap[cat];
+            } else {
+                categoriesMap[cat] = false;
+            }
+        }
+
+        if (categoriesMap.toSource() != "({})") {
+            let newItem = item.clone();
+            newItem.setCategories(panel.categories.length, panel.categories);
+
+            doTransaction('modify', newItem, newItem.calendar, item, null);
+        }
     }
 };
 

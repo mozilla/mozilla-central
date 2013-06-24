@@ -60,3 +60,11 @@ calendar-list-tree {
 calendar-list-tree[type="full"] {
    -moz-binding: url(chrome://calendar/content/widgets/calendar-list-tree.xml#full-calendar-list-tree);
 }
+
+menulist[type="panel-menulist"] {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#panel-menulist);
+}
+
+panel[type="category-panel"] {
+   -moz-binding: url(chrome://calendar/content/widgets/calendar-widgets.xml#category-panel);
+}

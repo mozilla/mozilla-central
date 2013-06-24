@@ -28,27 +28,6 @@ function addCalendarNames(aEvent) {
 }
 
 /**
- * Add categories to the given menupopup.
- *
- * XXX Either replace the existing items using replaceNode, or use helper
- * functions (cal.removeChildren).
- * XXX Shouldn't we be removing previous children here?
- *
- * @param aEvent    The popupshowing event of the opening menu
- */
-function addCategoryNames(aEvent) {
-    var tasks = getSelectedTasks(aEvent);
-    var tasksSelected = (tasks.length > 0);
-    if (tasksSelected) {
-        var index = appendCategoryItems(tasks[0], aEvent.target, document.getElementById("calendar_task_category_command"));
-        aEvent.target.childNodes[index].setAttribute("checked","true");
-    } else {
-        appendCategoryItems(null, aEvent.target);
-        applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
-    }
-}
-
-/**
  * Change the opening context menu for the selected tasks.
  *
  * @param aEvent    The popupshowing event of the opening menu.
@@ -154,28 +133,6 @@ function contextChangeTaskProgress(aEvent, aProgress) {
                 break;
         }
         doTransaction('modify', newTask, newTask.calendar, task, null);
-    }
-    endBatchTransaction();
-}
-
-/**
- * Handler function to change the category of the selected tasks. The targeted
- * menuitem must have a cateogory value as described in setCateogry.
- *
- * @see setCategory
- * @param aEvent      The DOM event that triggered this command.
- */
-function contextChangeTaskCategory(aEvent) {
-    startBatchTransaction();
-    var tasks = getSelectedTasks(aEvent);
-    var tasksSelected = (tasks.length > 0);
-    if (tasksSelected) {
-        var menuItem = aEvent.target;
-        for (var t = 0; t < tasks.length; t++) {
-            var newTask = tasks[t].clone().QueryInterface( Components.interfaces.calITodo );
-            setCategory(newTask, menuItem);
-            doTransaction('modify', newTask, newTask.calendar, tasks[t], null);
-        }
     }
     endBatchTransaction();
 }

@@ -2,13 +2,127 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-
-<!DOCTYPE bindings SYSTEM "chrome://global/locale/global.dtd">
+<!DOCTYPE dialog [
+  <!ENTITY % dtd1 SYSTEM "chrome://global/locale/global.dtd" > %dtd1;
+  <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %dtd2;
+]>
 
 <bindings id="calendar-widgets"
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!-- Unfortunately, the normal menulist binding doesn't allow a panel child
+       This binding replaces the usual menulist to allow a panel -->
+  <binding id="panel-menulist" extends="chrome://global/content/bindings/menulist.xml#menulist">
+    <content sizetopopup="pref">
+      <xul:hbox class="menulist-label-box" flex="1">
+        <xul:image class="menulist-icon" xbl:inherits="src=image,src"/>
+        <xul:label class="menulist-label" xbl:inherits="value=label,crop,accesskey" crop="right" flex="1"/>
+      </xul:hbox>
+      <xul:dropmarker class="menulist-dropmarker" type="menu" xbl:inherits="disabled,open"/>
+      <children includes="menupopup|panel"/>
+    </content>
+  </binding>
+
+   <binding id="category-panel" extends="chrome://global/content/bindings/popup.xml#panel">
+    <resources>
+      <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
+    </resources>
+    <content>
+        <xul:textbox  anonid="category-textbox"
+                      class="categories-textbox"
+                      type="search"
+                      searchbutton="true"
+                      placeholder="&event.categories.textbox.label;"
+                      oncommand="document.getBindingParent(this).addNewCategory();"
+                      flex="1"/>
+        <xul:listbox anonid="categories-listbox"
+                   class="categories-listbox"
+                   selType="multiple"
+                   >
+        <children/>
+      </xul:listbox>
+    </content>
+    <implementation>
+      <property name="categories" readonly="true">
+        <getter><![CDATA[
+          let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
+          let checkedNodes = categoryListbox.getElementsByAttribute("checked", "true");
+          return Array.slice(checkedNodes).map(function(x) x.getAttribute("value"));
+        ]]></getter>
+      </property>
+      <method name="insertCategory">
+        <parameter name="category" />
+        <parameter name="categories" />
+        <parameter name="categoryListbox" />
+        <parameter name="compare" />
+        <body><![CDATA[
+            let newIndex = cal.binaryInsert(categories, category, compare, true);
+            let item = categoryListbox.childNodes[newIndex];
+
+            if (!item || item.getAttribute("value") != category) {
+                // The item doesn't exist, insert it at the correct spot.
+                item = categoryListbox.insertItemAt(newIndex, category, category);
+                item.setAttribute("type", "checkbox");
+            }
+
+            item.setAttribute("checked", "true");
+          ]]></body>
+      </method>
+      <method name="addNewCategory">
+      <body><![CDATA[
+          let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
+          let categoryTextbox = document.getAnonymousElementByAttribute(this, "anonid", "category-textbox");
+          let category = categoryTextbox.value;
+
+          if (!category) {
+            return;
+          }
+
+          let localeCollator = cal.createLocaleCollator();
+          function compare(a, b) localeCollator.compareString(0, a, b);
+
+          let children = categoryListbox.childNodes;
+          let categories = [];
+          for (var i = 0; i < children.length; i++) {
+            categories.push(children[i].label);
+          }
+
+          this.insertCategory(category, categories, categoryListbox, compare);
+          categoryTextbox.value = "";
+        ]]></body>
+    </method>
+      <method name="loadItem">
+        <parameter name="aItem"/>
+        <body><![CDATA[
+          let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
+          let categoryList = getPrefCategoriesArray();
+
+          cal.sortArrayByLocaleCollator(categoryList);
+
+          removeChildren(categoryListbox);
+
+          for each (let cat in categoryList) {
+              // First insert all categories from the prefs
+              let item = categoryListbox.appendItem(cat, cat);
+              item.setAttribute("type", "checkbox");
+          }
+
+          if (aItem) {
+              let localeCollator = cal.createLocaleCollator();
+              function compare(a, b) localeCollator.compareString(0, a, b);
+
+              // Ensure the item's categories are in the list and they are checked.
+              for each (let cat in aItem.getCategories({})) {
+                this.insertCategory(cat, categoryList, categoryListbox, compare);
+              }
+          }
+        ]]></body>
+      </method>
+    </implementation>
+  </binding>
+
   <binding id="doubleimage-toolbarbutton" extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton">
     <resources>
       <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>

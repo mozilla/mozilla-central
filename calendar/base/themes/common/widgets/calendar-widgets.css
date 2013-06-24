@@ -57,3 +57,19 @@ treenode-checkbox > .checkbox-label-center-box > .checkbox-label-box > .checkbox
 .unselected-text[selected="true"] {
     visibility: hidden;
 }
+
+.categories-listbox {
+    -moz-appearance: none;
+    background-color: menu;
+    margin: 0 0 4px 0;
+    border: 0;
+}
+
+.categories-textbox .textbox-search-icon {
+    list-style-image: none;
+    cursor:default;
+}
+
+.categories-textbox {
+    -moz-appearance: textfield;
+}

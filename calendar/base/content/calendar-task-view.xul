@@ -6,6 +6,7 @@
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-task-view.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-bindings.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/widgets/calendar-widget-bindings.css"?>
 
 <?xml-stylesheet type="text/css" href="chrome://messenger/skin/messageHeader.css"?>
 
@@ -119,8 +120,10 @@
                                          command="calendar_task_category_command"
                                          observes="calendar_task_category_command"
                                          class="toolbarbutton-1 msgHeaderView-button">
-                            <menupopup id="task-actions-category-menupopup"
-                                       onpopupshowing="addCategoryNames(event)"/>
+                              <panel id="task-actions-category-panel"
+                                     type="category-panel"
+                                     onpopupshowing="taskDetailsView.loadCategories(event)"
+                                     onpopuphiding="taskDetailsView.saveCategories(event)"/>
                           </toolbarbutton>
                           <toolbarbutton id="task-actions-markcompleted"
                                          type="menu-button"

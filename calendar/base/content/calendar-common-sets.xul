@@ -63,7 +63,7 @@
     <command id="calendar_week-view_command" oncommand="goDoCommand('calendar_week-view_command')"/>
     <command id="calendar_multiweek-view_command" oncommand="goDoCommand('calendar_multiweek-view_command')"/>
     <command id="calendar_month-view_command" oncommand="goDoCommand('calendar_month-view_command')"/>
-    <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
+    <command id="calendar_task_category_command"/>
     <command id="calendar_toggle_completed_command" oncommand="toggleCompleted(event)"/>
     <command id="calendar_percentComplete-0_command" oncommand="contextChangeTaskProgress(event, 0)"/>
     <command id="calendar_percentComplete-25_command" oncommand="contextChangeTaskProgress(event, 25)"/>

@@ -303,59 +303,6 @@ function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnComm
 }
 
 /**
-* Fills up a menu - either a menupopup or a menulist - with menuitems that refer
-* to categories.
-*
-* @param aItem                 The event or task
-* @param aCategoryMenuList     The direct parent of the menuitems - either a
-*                                menupopup or a menulist
-* @param aCommand              A string that is applied to the "oncommand"
-*                                attribute of each menuitem
-* @return                      The index of the category that is selected.
-*                                By default 0 is returned.
-*/
-function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
-    var categoriesList = getPrefCategoriesArray();
-
-    // 'split'may return an array containing one
-    // empty string, rather than an empty array. This results in an empty
-    // menulist item with no corresponding category.
-    if (categoriesList.length == 1 && !categoriesList[0].length) {
-        categoriesList.pop();
-    }
-
-    // insert the category already in the menulist so it doesn't get lost
-    if (aItem) {
-        for each (var itemCategory in aItem.getCategories({})) {
-            if (!categoriesList.some(function(cat){ return cat == itemCategory; })){
-                categoriesList.push(itemCategory);
-            }
-        }
-        cal.sortArrayByLocaleCollator(categoriesList);
-    }
-
-    while (aCategoryMenuList.hasChildNodes()) {
-       aCategoryMenuList.removeChild(aCategoryMenuList.lastChild);
-    }
-
-    var indexToSelect = 0;
-    var menuitem = addMenuItem(aCategoryMenuList, calGetString("calendar", "None"), "NONE", aCommand);
-    if (aCategoryMenuList.localName == "menupopup") {
-        menuitem.setAttribute("type", "checkbox");
-    }
-    for (var i in categoriesList) {
-        var menuitem = addMenuItem(aCategoryMenuList, categoriesList[i], categoriesList[i], aCommand);
-        if (aCategoryMenuList.localName == "menupopup") {
-            menuitem.setAttribute("type", "checkbox");
-        }
-        if (itemCategory && categoriesList[i] == itemCategory) {
-            indexToSelect = parseInt(i) + 1;  // Add 1 because of 'None'
-        }
-    }
-    return indexToSelect;
-}
-
-/**
  * Helper function to add a menuitem to a menulist or similar.
  *
  * @param aParent     The XUL node to add the menuitem to.
@@ -438,23 +385,6 @@ function checkRadioControl(aParent, aValue) {
         }
     }
     return false;
-}
-
-/**
- * Sets the category on the given item, from the menuitem element.
- *
- * @param aItem           The item to set the category on.
- * @param aMenuElement    The menuitem to retrieve the category from.
- */
-function setCategory(aItem, aMenuElement) {
-    // Category
-    var category = getElementValue(aMenuElement);
-    // xxx todo: what about category "NONE"?
-    if (category == "NONE") {
-        aItem.setCategories(0, []);
-    } else {
-        aItem.setCategories(1, [category]);
-    }
 }
 
 /**

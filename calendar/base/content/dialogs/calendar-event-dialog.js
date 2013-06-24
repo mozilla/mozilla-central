@@ -343,10 +343,7 @@ function loadDialog(item) {
     }
 
     // Categories
-    var categoryMenuList = document.getElementById("item-categories");
-    var indexToSelect = appendCategoryItems(item, categoryMenuList);
-
-    categoryMenuList.selectedIndex = indexToSelect;
+    loadCategories(item);
 
     // Attachment
     loadCloudProviders();
@@ -456,6 +453,48 @@ function loadDialog(item) {
 
     gShowTimeAs = item.getProperty("TRANSP");
     updateShowTimeAs();
+}
+
+/**
+ * Loads the item's categories into the category panel
+ *
+ * @param aItem     The item to load into the category panel
+ */
+function loadCategories(aItem) {
+    let categoryPanel = document.getElementById("item-categories-panel");
+    categoryPanel.loadItem(aItem);
+    updateCategoryMenulist();
+}
+
+/**
+ * Updates the category menulist to show the correct label, depending on the
+ * selected categories in the category panel
+ */
+function updateCategoryMenulist() {
+    let categoryMenulist = document.getElementById("item-categories");
+    let categoryPanel = document.getElementById("item-categories-panel");
+    let categoryList = categoryPanel.categories;
+
+    let label;
+    if (categoryList.length > 1) {
+        label = cal.calGetString("calendar", "multipleCategories");
+    } else if (categoryList.length == 1) {
+        label = categoryList[0];
+    } else {
+        label = cal.calGetString("calendar", "None");
+    }
+    categoryMenulist.setAttribute("label", label);
+}
+
+/**
+ * Saves the selected categories into the passed item
+ *
+ * @param aItem     The item to set the categories on
+ */
+function saveCategories(aItem) {
+    let categoryPanel = document.getElementById("item-categories-panel");
+    let categoryList = categoryPanel.categories;
+    aItem.setCategories(categoryList.length, categoryList);
 }
 
 /**
@@ -919,7 +958,8 @@ function saveDialog(item) {
         setItemProperty(item, "PERCENT-COMPLETE", percentCompleteInteger);
     }
 
-    setCategory(item, "item-categories");
+    // Categories
+    saveCategories(item);
 
     // Attachment
     // We want the attachments to be up to date, remove all first.

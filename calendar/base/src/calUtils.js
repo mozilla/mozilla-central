@@ -647,7 +647,13 @@ function categoriesStringToArray(aCategories) {
     }
     // \u001A is the unicode "SUBSTITUTE" character
     function revertCommas(name) { return name.replace(/\u001A/g, ","); }
-    return aCategories.replace(/\\,/g, "\u001A").split(",").map(revertCommas);
+    let categories = aCategories.replace(/\\,/g, "\u001A").split(",").map(revertCommas);
+    if (categories.length == 1 && categories[0] == "") {
+        // Split will return an array with an empty element when splitting an
+        // empty string, correct this.
+        categories.pop();
+    }
+    return categories;
 }
 
 /**
