@@ -424,6 +424,7 @@ SessionStoreService.prototype = {
           delete aTab.linkedBrowser.__SS_data;
           delete aTab.linkedBrowser.__SS_tabStillLoading;
           delete aTab.linkedBrowser.__SS_formDataSaved;
+          delete aTab.linkedBrowser.__SS_hostSchemeData;
           if (aTab.linkedBrowser.__SS_restoreState)
             this._resetTabRestoringState(aTab);
         });
@@ -801,6 +802,8 @@ SessionStoreService.prototype = {
     delete browser.__SS_data;
     delete browser.__SS_tabStillLoading;
     delete browser.__SS_formDataSaved;
+    delete browser.__SS_hostSchemeData;
+
     // If this tab was in the middle of restoring or still needs to be restored,
     // we need to reset that state. If the tab was restoring, we will attempt to
     // restore the next tab.
@@ -1474,10 +1477,11 @@ SessionStoreService.prototype = {
       tabData.index = history.index + 1;
     }
     else if (history && history.count > 0) {
+      browser.__SS_hostSchemeData = [];
       try {
         for (var j = 0; j < history.count; j++) {
           let entry = this._serializeHistoryEntry(history.getEntryAtIndex(j, false),
-                                                  aFullData, aTab.pinned);
+                                                  aFullData, aTab.pinned, browser.__SS_hostSchemeData);
           tabData.entries.push(entry);
         }
         // If we make it through the for loop, then we're ok and we should clear
@@ -1560,15 +1564,16 @@ SessionStoreService.prototype = {
    *        always return privacy sensitive data (use with care)
    * @param aIsPinned
    *        the tab is pinned and should be treated differently for privacy
+   * @param aHostSchemeData
+   *        an array of objects with host & scheme keys
    * @returns object
    */
   _serializeHistoryEntry:
-    function sss_serializeHistoryEntry(aEntry, aFullData, aIsPinned) {
+    function sss_serializeHistoryEntry(aEntry, aFullData, aIsPinned, aHostSchemeData) {
     var entry = { url: aEntry.URI.spec };
 
     try {
-      entry._scheme = aEntry.URI.scheme;
-      entry._host = aEntry.URI.host;
+      aHostSchemeData.push({ host: aEntry.URI.host, scheme: aEntry.URI.scheme });
     }
     catch (ex) {
       // We just won't attempt to get cookies for this entry.
@@ -1670,7 +1675,7 @@ SessionStoreService.prototype = {
       for (var i = 0; i < aEntry.childCount; i++) {
         var child = aEntry.GetChildAt(i);
         if (child) {
-          entry.children.push(this._serializeHistoryEntry(child, aFullData, aIsPinned));
+          entry.children.push(this._serializeHistoryEntry(child, aFullData, aIsPinned, aHostSchemeData));
         }
         else { // to maintain the correct frame order, insert a dummy entry
           entry.children.push({ url: "about:blank" });
@@ -1977,26 +1982,43 @@ SessionStoreService.prototype = {
    *        is the entry we're evaluating for a pinned tab; used only if
    *        aCheckPrivacy
    */
-  _extractHostsForCookies:
-    function sss_extractHostsForCookies(aEntry, aHosts, aCheckPrivacy, aIsPinned) {
-
-    // _host and _scheme may not be set (for about: urls for example), in which
-    // case testing _scheme will be sufficient.
-    if (/https?/.test(aEntry._scheme) && !aHosts[aEntry._host] &&
-        (!aCheckPrivacy ||
-         this._checkPrivacyLevel(aEntry._scheme == "https", aIsPinned))) {
-      // By setting this to true or false, we can determine when looking at
-      // the host in _updateCookies if we should check for privacy.
-      aHosts[aEntry._host] = aIsPinned;
-    }
-    else if (aEntry._scheme == "file") {
-      aHosts[aEntry._host] = true;
-    }
-
+  _extractHostsForCookiesFromEntry:
+    function sss__extractHostsForCookiesFromEntry(aEntry, aHosts, aCheckPrivacy, aIsPinned) {
+ 
     if (aEntry.children) {
       aEntry.children.forEach(function(entry) {
-        this._extractHostsForCookies(entry, aHosts, aCheckPrivacy, aIsPinned);
+        this._extractHostsForCookiesFromEntry(entry, aHosts, aCheckPrivacy, aIsPinned);
       }, this);
+    }
+  },
+
+  /**
+   * extract the base domain from a host & scheme
+   * @param aHost
+   *        the host of a uri (usually via nsIURI.host)
+   * @param aScheme
+   *        the scheme of a uri (usually via nsIURI.scheme)
+   * @param aHosts
+   *        the hash that will be used to store hosts eg, { hostname: true }
+   * @param aCheckPrivacy
+   *        should we check the privacy level for https
+   * @param aIsPinned
+   *        is the entry we're evaluating for a pinned tab; used only if
+   *        aCheckPrivacy
+   */
+  _extractHostsForCookiesFromHostScheme:
+    function sss__extractHostsForCookiesFromHostScheme(aHost, aScheme, aHosts, aCheckPrivacy, aIsPinned) {
+    // host and scheme may not be set (for about: urls for example), in which
+    // case testing scheme will be sufficient.
+    if (/https?/.test(aScheme) && !aHosts[aHost] &&
+        (!aCheckPrivacy ||
+         this._checkPrivacyLevel(aScheme == "https", aIsPinned))) {
+      // By setting this to true or false, we can determine when looking at
+      // the host in _updateCookies if we should check for privacy.
+      aHosts[aHost] = aIsPinned;
+    }
+    else if (aScheme == "file") {
+      aHosts[aHost] = true;
     }
   },
 
@@ -2008,11 +2030,18 @@ SessionStoreService.prototype = {
   _updateCookieHosts: function sss_updateCookieHosts(aWindow) {
     var hosts = this._internalWindows[aWindow.__SSi].hosts = {};
 
-    this._windows[aWindow.__SSi].tabs.forEach(function(aTabData) {
-      aTabData.entries.forEach(function(entry) {
-        this._extractHostsForCookies(entry, hosts, true, !!aTabData.pinned);
-      }, this);
-    }, this);
+    // Since _updateCookiesHosts is only ever called for open windows during a
+    // session, we can call into _extractHostsForCookiesFromHostScheme directly
+    // using data that is attached to each browser.
+    for (let i = 0; i < aWindow.gBrowser.tabs.length; i++) {
+      let tab = aWindow.gBrowser.tabs[i];
+      let hostSchemeData = tab.linkedBrowser.__SS_hostSchemeData || [];
+      for (let j = 0; j < hostSchemeData.length; j++) {
+        this._extractHostsForCookiesFromHostScheme(hostSchemeData[j].host,
+                                                   hostSchemeData[j].scheme,
+                                                   hosts, true, tab.pinned);
+      }
+    }
   },
 
   /**
@@ -3657,7 +3686,7 @@ SessionStoreService.prototype = {
     let cookieHosts = {};
     aTargetWinState.tabs.forEach(function(tab) {
       tab.entries.forEach(function(entry) {
-        this._extractHostsForCookies(entry, cookieHosts, false)
+        this._extractHostsForCookiesFromEntry(entry, cookieHosts, false);
       }, this);
     }, this);
 
