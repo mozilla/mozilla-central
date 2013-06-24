@@ -327,6 +327,17 @@ appUpdater.prototype =
         return;
       }
 
+      if (gAppUpdater.update.unsupported) {
+        let unsupportedLink = document.getElementById("unsupportedLink");
+        if (gAppUpdater.update.detailsURL)
+          unsupportedLink.href = gAppUpdater.update.detailsURL;
+        else
+          unsupportedLink.setAttribute("hidden", true);
+        
+        gAppUpdater.selectPanel("unsupportedSystem");
+        return;
+      }
+
       if (!gAppUpdater.aus.canApplyUpdates) {
         gAppUpdater.selectPanel("manualUpdate");
         return;
