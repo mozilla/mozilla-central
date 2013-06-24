@@ -225,24 +225,21 @@ spacer {
   #CreateAccountMail,
   #CreateAccountMovemail {
     background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 32, 32, 0);
-    background-repeat: no-repeat;
-    background-size: 32px 32px;
+    background-size: 16px 16px;
   }
 
   #CreateAccountChat {
-    background: url("chrome://chat/skin/chat-16.png") no-repeat;
-    background-size: 32px 32px;
+    background: url("chrome://chat/skin/chat-32.png") no-repeat;
+    background-size: 16px 16px;
   }
 
   #CreateAccountNewsgroups {
     background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 160, 32, 128);
-    background-repeat: no-repeat;
-    background-size: 32px 32px;
+    background-size: 16px 16px;
   }
 
   #CreateAccountRSS {
     background-image: -moz-image-rect(url("chrome://messenger/skin/icons/server@2x.png"), 0, 192, 32, 160);
-    background-repeat: no-repeat;
-    background-size: 32px 32px;
+    background-size: 16px 16px;
   }
 }

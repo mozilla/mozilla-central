@@ -20,6 +20,7 @@ chat.jar:
 	skin/classic/chat/unknown-16.png
 	skin/classic/chat/chat-16.png
 	skin/classic/chat/chat-left-16.png
+	skin/classic/chat/chat-32.png
 	skin/classic/chat/conv.css
 	skin/classic/chat/browserRequest.css
 	skin/classic/chat/prpl-generic/icon32.png	(icons/prpl-generic-32.png)
