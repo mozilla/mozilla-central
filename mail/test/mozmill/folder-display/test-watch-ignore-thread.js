@@ -28,6 +28,11 @@ function setupModule(module) {
   be_in_folder(folder);
   make_display_threaded();
   expand_all_threads();
+
+  if (mc.mozmillModule.isMac) {
+    test_view_threads_ignored_threads.__force_skip__ = true;
+    test_watch_thread.__force_skip__ = true;
+  }
 }
 
 /**
