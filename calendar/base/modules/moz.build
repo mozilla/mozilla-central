@@ -8,6 +8,7 @@ MODULE = 'calbase'
 EXTRA_JS_MODULES += [
     'calAlarmUtils.jsm',
     'calAuthUtils.jsm',
+    'calExtract.jsm',
     'calHashedArray.jsm',
     'calItemUtils.jsm',
     'calIteratorUtils.jsm',

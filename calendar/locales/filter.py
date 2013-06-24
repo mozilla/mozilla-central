@@ -15,6 +15,11 @@ def test(mod, path, entity = None):
   if path == "chrome/calendar/calendar-event-dialog.properties":
     return not re.match(r".*Nounclass[1-9]", entity)
 
+  # most extraction related strings are not required
+  if path == "chrome/calendar/calendar-extract.properties":
+    if not re.match(r"from.today", entity):
+      return "report"
+
   # Sunbird specific strings don't need translation
   if path.startswith("chrome/sunbird/"):
     return False

@@ -34,3 +34,4 @@ calendar-@AB_CD@.jar:
     locale/@AB_CD@/calendar/preferences/views.dtd          (%chrome/calendar/preferences/views.dtd)
     locale/@AB_CD@/calendar/dialogs/calendar-event-dialog-reminder.dtd  (%chrome/calendar/dialogs/calendar-event-dialog-reminder.dtd)
     locale/@AB_CD@/calendar/calendar-event-dialog-attendees.properties  (%chrome/calendar/calendar-event-dialog-attendees.properties)
+    locale/@AB_CD@/calendar/calendar-extract.properties  (%chrome/calendar/calendar-extract.properties)
