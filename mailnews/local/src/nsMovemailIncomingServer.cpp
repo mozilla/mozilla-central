@@ -107,73 +107,15 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
         do_QueryInterface(rootFolder, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::SpecialUse);
-    return NS_OK;
+    return localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::SpecialUse);
 }
 
 NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-    NS_ENSURE_ARG_POINTER(aPath);
-    nsCOMPtr <nsIFile> path;
-    nsresult rv = aPath->Clone(getter_AddRefs(path));
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsresult rv = CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = path->AppendNative(NS_LITERAL_CSTRING("Inbox"));
-    if (NS_FAILED(rv)) return rv;
-    bool exists;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) 
-    {
-      rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-      if (NS_FAILED(rv)) return rv;
-    }
-
-    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Trash"));
-    if (NS_FAILED(rv)) return rv;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Sent"));
-    if (NS_FAILED(rv)) return rv;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Drafts"));
-    if (NS_FAILED(rv)) return rv;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Templates"));
-    if (NS_FAILED(rv)) return rv;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-        if (NS_FAILED(rv)) return rv;
-    }
-
-    rv = path->SetNativeLeafName(NS_LITERAL_CSTRING("Unsent Messages"));
-    if (NS_FAILED(rv)) return rv;
-    rv = path->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
-    if (!exists) {
-        rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-        if (NS_FAILED(rv)) return rv;
-    }
-    return rv;
+  return CreateLocalFolder(NS_LITERAL_STRING("Trash"));
 }
 
 
