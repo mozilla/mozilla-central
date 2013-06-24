@@ -757,9 +757,9 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
     rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT, getter_Copies(defaultKey));
 
     if (NS_SUCCEEDED(rv))
-      GetAccount(defaultKey, getter_AddRefs(m_defaultAccount));
+      rv = GetAccount(defaultKey, getter_AddRefs(m_defaultAccount));
 
-    if (!m_defaultAccount) {
+    if (NS_FAILED(rv) || !m_defaultAccount) {
       nsCOMPtr<nsIMsgAccount> firstAccount;
       uint32_t index;
       bool foundValidDefaultAccount = false;
@@ -780,7 +780,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
         }
 
         // if this can serve as default server, set it as default and
-        // break outof the loop.
+        // break out of the loop.
         if (canBeDefaultServer) {
           SetDefaultAccount(account);
           foundValidDefaultAccount = true;
@@ -789,27 +789,36 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
       }
 
       if (!foundValidDefaultAccount) {
-        // get the first account and use it.
-        // we need to fix this scenario.
-        NS_WARNING("No valid default account found, just using first (FIXME)");
-        SetDefaultAccount(firstAccount);
+        // Get the first account and use it.
+        // We need to fix this scenario, e.g. in bug 342632.
+        NS_WARNING("No valid default account found.");
+        if (firstAccount) {
+          NS_WARNING("Just using the first one (FIXME).");
+          SetDefaultAccount(firstAccount);
+        }
       }
     }
   }
 
+  if (!m_defaultAccount) {
+    // Absolutely no usable account found. Error out.
+    NS_ERROR("Default account is null, when not expected!");
+    *aDefaultAccount = nullptr;
+    return NS_ERROR_FAILURE;
+  }
   NS_ADDREF(*aDefaultAccount = m_defaultAccount);
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::SetDefaultAccount(nsIMsgAccount * aDefaultAccount)
+nsMsgAccountManager::SetDefaultAccount(nsIMsgAccount *aDefaultAccount)
 {
   if (m_defaultAccount != aDefaultAccount)
   {
     nsCOMPtr<nsIMsgAccount> oldAccount = m_defaultAccount;
     m_defaultAccount = aDefaultAccount;
-    setDefaultAccountPref(aDefaultAccount); // it's ok if this fails
-    notifyDefaultServerChange(oldAccount, aDefaultAccount); // ok if notifications fail
+    (void) setDefaultAccountPref(aDefaultAccount);
+    (void) notifyDefaultServerChange(oldAccount, aDefaultAccount);
   }
   return NS_OK;
 }
