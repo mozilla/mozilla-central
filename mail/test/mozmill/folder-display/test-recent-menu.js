@@ -35,12 +35,13 @@ function test_move_message() {
   be_in_folder(folder1);
   msgHdr = select_click_row(0);
   right_click_on_row(0);
-  // this will cause the initial build of the move recent context menu,
-  // which should be empty. Not localizable, but recent doesn't have an
-  // id we can use.
-  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-moveMenu"}, {label: "Recent"}]);
+  // This will cause the initial build of the move recent context menu,
+  // which should be empty and disabled.
+  mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-moveMenu"}]);
   let recentMenu = mc.eid("mailContext-moveMenu").node.firstChild.firstChild;
+  assert_equals(recentMenu.getAttribute("disabled"), "true");
   gInitRecentMenuCount = recentMenu.firstChild.children.length;
+  assert_equals(gInitRecentMenuCount, 0);
   close_popup(mc, mc.eid("mailContext"));
   let array = Cc["@mozilla.org/array;1"]
                 .createInstance(Ci.nsIMutableArray);
@@ -60,6 +61,8 @@ function test_move_message() {
   mc.waitFor(function () copyListener.copyDone,
              "Timeout waiting for copy to complete", 10000, 100);
   // We've moved a message to aaafolder2 - it should appear in recent list now.
+  // Clicking the menuitem by label is not localizable, but Recent doesn't have an
+  // id we can use.
   mc.click_menus_in_sequence(mc.e("mailContext"), [{id: "mailContext-moveMenu"},
                                                    {label: "Recent"}]);
   // firstChild is move menu popup, its child is Recent, its child is menuPopup,
