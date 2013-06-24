@@ -9,6 +9,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
 // Controller object for folder pane
 var FolderPaneController =
@@ -1039,7 +1040,7 @@ function ShowIgnoredMessageNotification(aMsgs, aSubthreadOnly) {
   else {
     let ignoredThreadText = bundle.get(!aSubthreadOnly ?
       "ignoredThreadsFeedback": "ignoredSubthreadsFeedback");
-    let text = ignoredThreadText.replace("#1", nbrOfThreads);
+    let text = PluralForm.get(nbrOfThreads, ignoredThreadText).replace("#1", nbrOfThreads);
     let notification = notifyBox.appendNotification(
       text, "ignoreThreadsInfo", null,
       notifyBox.PRIORITY_INFO_MEDIUM, buttons);
