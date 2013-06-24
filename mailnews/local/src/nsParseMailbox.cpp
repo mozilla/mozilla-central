@@ -879,7 +879,7 @@ void nsParseMailMessageState::GetAggregateHeader (nsVoidArray &list, struct mess
 
   if (length > 0)
   {
-    char *value = (char*) PR_MALLOC (length + 1); //+1 for null term
+    char *value = (char*) PR_CALLOC (length + 1); //+1 for null term
     if (value)
     {
       // Catenate all the To lines together, separated by commas
@@ -888,7 +888,7 @@ void nsParseMailMessageState::GetAggregateHeader (nsVoidArray &list, struct mess
       for (i = 0; i < size; i++)
       {
         header = (struct message_header*) list.ElementAt(i);
-        PL_strcat (value, header->value);
+        PL_strncat (value, header->value, header->length);
         if (i + 1 < size)
           PL_strcat (value, ",");
       }
