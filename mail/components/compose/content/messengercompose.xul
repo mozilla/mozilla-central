@@ -221,6 +221,9 @@
 #endif
   <key id="key_selectAll" key="&selectAllCmd.key;" modifiers="accel"/>
   <key id="key_find" key="&findCmd.key;" command="cmd_find" modifiers="accel"/>
+#ifndef XP_MACOSX
+  <key id="key_findReplace" key="&findReplaceCmd.key;" command="cmd_find" modifiers="accel"/>
+#endif
   <key id="key_findNext" key="&findAgainCmd.key;" command="cmd_findNext" modifiers="accel"/>
   <key id="key_findPrev" key="&findPrevCmd.key;" command="cmd_findPrev" modifiers="accel, shift"/>
   <key keycode="&findAgainCmd.key2;" command="cmd_findNext"/>
