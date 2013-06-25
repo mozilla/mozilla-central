@@ -235,7 +235,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Mail Extensions (smime, etc.)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-#ifdef XP_WIN32
+#ifdef MOZ_MAPI_SUPPORT
 @BINPATH@/MapiProxy.dll
 @BINPATH@/mozMapi32.dll
 @BINPATH@/components/mapihook.xpt

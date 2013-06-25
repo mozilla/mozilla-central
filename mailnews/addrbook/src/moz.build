@@ -36,7 +36,7 @@ CPP_SOURCES += [
     'nsVCardObj.cpp',
 ]
 
-if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
+if CONFIG['OS_ARCH'] == 'WINNT' and CONFIG['MOZ_MAPI_SUPPORT']:
     CPP_SOURCES += [
         'nsAbOutlookDirFactory.cpp',
         'nsAbOutlookDirectory.cpp',

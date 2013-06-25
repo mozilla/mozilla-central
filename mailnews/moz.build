@@ -31,10 +31,12 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
 if CONFIG['OS_ARCH'] == 'WINNT':
     PARALLEL_DIRS += ['import/eudora/src']
 
+    if CONFIG['MOZ_MAPI_SUPPORT']:
+        PARALLEL_DIRS += ['import/outlook/src']
+
     if not CONFIG['GNU_CC']:
         PARALLEL_DIRS += [
             'import/oexpress',
-            'import/outlook/src',
             'import/winlivemail',
         ]
 
@@ -45,7 +47,7 @@ TEST_TOOL_DIRS += [
     'local/test',
 ]
 
-if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
+if CONFIG['MOZ_MAPI_SUPPORT']:
     PARALLEL_DIRS += [
         'mapi/mapiDLL',
         'mapi/mapihook',

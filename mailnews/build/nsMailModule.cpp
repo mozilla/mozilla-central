@@ -160,7 +160,7 @@
 #endif
 
 
-#if defined(XP_WIN) && !defined(__MINGW32__)
+#if defined(MOZ_MAPI_SUPPORT)
 #include "nsAbOutlookDirFactory.h"
 #include "nsAbOutlookDirectory.h"
 #endif
@@ -450,7 +450,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbDirFactoryService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirFactory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddbookProtocolHandler)
 
-#if defined(XP_WIN) && !defined(__MINGW32__)
+#if defined(MOZ_MAPI_SUPPORT)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOutlookDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbOutlookDirFactory)
 #endif
@@ -506,7 +506,7 @@ NS_DEFINE_NAMED_CID(NS_ABMDBDIRFACTORY_CID);
 NS_DEFINE_NAMED_CID(NS_ABDIRECTORYQUERYARGUMENTS_CID);
 NS_DEFINE_NAMED_CID(NS_BOOLEANCONDITIONSTRING_CID);
 NS_DEFINE_NAMED_CID(NS_BOOLEANEXPRESSION_CID);
-#if defined(XP_WIN) && !defined(__MINGW32__)
+#if defined(MOZ_MAPI_SUPPORT)
 NS_DEFINE_NAMED_CID(NS_ABOUTLOOKDIRECTORY_CID);
 NS_DEFINE_NAMED_CID(NS_ABOUTLOOKDIRFACTORY_CID);
 #endif
@@ -888,7 +888,7 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_ABCONTENTHANDLER_CID, false, NULL, nsAbContentHandlerConstructor },
   { &kNS_ABDIRFACTORYSERVICE_CID, false, NULL, nsAbDirFactoryServiceConstructor },
   { &kNS_ABMDBDIRFACTORY_CID, false, NULL, nsAbMDBDirFactoryConstructor },
-#if defined(XP_WIN) && !defined(__MINGW32__)
+#if defined(MOZ_MAPI_SUPPORT)
   { &kNS_ABOUTLOOKDIRECTORY_CID, false, NULL, nsAbOutlookDirectoryConstructor },
   { &kNS_ABOUTLOOKDIRFACTORY_CID, false, NULL, nsAbOutlookDirFactoryConstructor },
 #endif
@@ -1093,7 +1093,7 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
   { NS_CONTENT_HANDLER_CONTRACTID_PREFIX"text/x-vcard", &kNS_ABCONTENTHANDLER_CID },
   { NS_ABDIRFACTORYSERVICE_CONTRACTID, &kNS_ABDIRFACTORYSERVICE_CID },
   { NS_ABMDBDIRFACTORY_CONTRACTID, &kNS_ABMDBDIRFACTORY_CID },
-#if defined(XP_WIN) && !defined(__MINGW32__)
+#if defined(MOZ_MAPI_SUPPORT)
   { NS_ABOUTLOOKDIRECTORY_CONTRACTID, &kNS_ABOUTLOOKDIRECTORY_CID },
   { NS_ABOUTLOOKDIRFACTORY_CONTRACTID, &kNS_ABOUTLOOKDIRFACTORY_CID },
 #endif
