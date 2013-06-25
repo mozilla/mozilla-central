@@ -29,7 +29,7 @@ MOZ_MEDIA_NAVIGATOR=1
 MOZ_MORK=1
 MAIL_COMPONENT="mail msgsmime import"
 MAIL_MODULE="MODULE(nsMailModule) MODULE(nsMsgSMIMEModule) MODULE(nsImportServiceModule)"
-if test -n "$_WIN32_MSVC"; then
+if test -n "$MOZ_MAPI_SUPPORT"; then
   MAIL_COMPONENT="$MAIL_COMPONENT msgMapi"
   MAIL_MODULE="$MAIL_MODULE MODULE(msgMapiModule)"
 fi

@@ -85,6 +85,24 @@ AC_SUBST(MOZ_LDAP_XPCOM)
 AC_SUBST(LDAP_CFLAGS)
 AC_SUBST(LDAP_LIBS)
 
+dnl =========================================================
+dnl = MAPI support (Windows only)
+dnl =========================================================
+
+if test "$_WIN32_MSVC"; then
+    MOZ_MAPI_SUPPORT=1
+fi
+
+MOZ_ARG_DISABLE_BOOL(mapi,
+[  --disable-mapi          Disable MAPI support],
+    MOZ_MAPI_SUPPORT= )
+
+AC_SUBST(MOZ_MAPI_SUPPORT)
+
+if test -n "$MOZ_MAPI_SUPPORT"; then
+    AC_DEFINE(MOZ_MAPI_SUPPORT)
+fi
+
 if test -z "$MOZ_INCOMPLETE_EXTERNAL_LINKAGE"; then
   MOZ_APP_COMPONENT_LIBS="xpautocomplete mailcomps $MAIL_COMPONENT $LDAP_COMPONENT $MORK_COMPONENT"
   MOZ_APP_COMPONENT_MODULES="MODULE(xpAutoComplete) MODULE(nsMailCompsModule) $MAIL_MODULE $LDAP_MODULE $MORK_MODULE"
