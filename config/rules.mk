@@ -61,9 +61,6 @@ ifndef INCLUDED_VERSION_MK
 include $(topsrcdir)/config/version.mk
 endif
 
-USE_AUTOTARGETS_MK = 1
-include $(topsrcdir)/config/makefiles/makeutils.mk
-
 ifdef SDK_XPIDLSRCS
 XPIDLSRCS += $(SDK_XPIDLSRCS)
 endif
@@ -1305,19 +1302,15 @@ endif
 
 ifndef NO_DIST_INSTALL
 ifneq (,$(EXPORTS))
-EXPORTS_FILES := $(EXPORTS)
-EXPORTS_DEST := $(DIST)/include
-EXPORTS_TARGET := export
-INSTALL_TARGETS += EXPORTS
+export:: $(EXPORTS)
+	$(call install_cmd,$(IFLAGS1) $^ $(DIST)/include)
 endif
 endif # NO_DIST_INSTALL
 
 define EXPORT_NAMESPACE_RULE
 ifndef NO_DIST_INSTALL
-EXPORTS_$(namespace)_FILES := $$(EXPORTS_$(namespace))
-EXPORTS_$(namespace)_DEST := $$(DIST)/include/$(namespace)
-EXPORTS_$(namespace)_TARGET := export
-INSTALL_TARGETS += EXPORTS_$(namespace)
+export:: $(EXPORTS_$(namespace))
+	$(call install_cmd,$(IFLAGS1) $$^ $(DIST)/include/$(namespace))
 endif # NO_DIST_INSTALL
 endef
 
@@ -1343,9 +1336,16 @@ PREF_PPFLAGS = --line-endings=crlf
 endif
 
 ifndef NO_DIST_INSTALL
-PREF_JS_EXPORTS_PATH := $(FINAL_TARGET)/$(PREF_DIR)
-PREF_JS_EXPORTS_FLAGS := $(PREF_PPFLAGS)
-PP_TARGETS += PREF_JS_EXPORTS
+$(FINAL_TARGET)/$(PREF_DIR):
+	$(NSINSTALL) -D $@
+
+libs:: $(FINAL_TARGET)/$(PREF_DIR) $(PREF_JS_EXPORTS)
+	$(EXIT_ON_ERROR)  \
+	for i in $(PREF_JS_EXPORTS); do \
+	  dest=$(FINAL_TARGET)/$(PREF_DIR)/`basename $$i`; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
+	done
 endif
 endif
 
@@ -1360,10 +1360,12 @@ ifdef ENABLE_TESTS
 ifdef TESTING_JS_MODULES
 testmodulesdir = $(MOZDEPTH)/_tests/modules/$(TESTING_JS_MODULE_DIR)
 
+libs::
+	$(NSINSTALL) -D $(testmodulesdir)
+
+libs:: $(TESTING_JS_MODULES)
 ifndef NO_DIST_INSTALL
-TESTING_JS_MODULES_FILES := $(TESTING_JS_MODULES)
-TESTING_JS_MODULES_DEST := $(testmodulesdir)
-INSTALL_TARGETS += TESTING_JS_MODULES
+	$(INSTALL) $(IFLAGS) $^ $(testmodulesdir)
 endif
 
 endif
@@ -1373,14 +1375,15 @@ endif
 # Copy each element of AUTOCFG_JS_EXPORTS to $(FINAL_TARGET)/defaults/autoconfig
 
 ifneq ($(AUTOCFG_JS_EXPORTS),)
+$(FINAL_TARGET)/defaults/autoconfig::
+	$(NSINSTALL) -D $@
+
 ifndef NO_DIST_INSTALL
-AUTOCFG_JS_EXPORTS_FILES := $(AUTOCFG_JS_EXPORTS)
-AUTOCFG_JS_EXPORTS_DEST := $(FINAL_TARGET)/defaults/autoconfig
-AUTOCFG_JS_EXPORTS_TARGET := export
-INSTALL_TARGETS += AUTOCFG_JS_EXPORTS
-endif
+export:: $(AUTOCFG_JS_EXPORTS) $(FINAL_TARGET)/defaults/autoconfig
+	$(call install_cmd,$(IFLAGS1) $^)
 endif
 
+endif
 ################################################################################
 # Export the elements of $(XPIDLSRCS)
 # generating .h and .xpt files and moving them to the appropriate places.
@@ -1428,6 +1431,7 @@ $(XPIDL_GEN_DIR)/%.h: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
 	@if test -n "$(findstring $*.h, $(EXPORTS))"; \
 	  then echo "*** WARNING: file $*.h generated from $*.idl overrides $(srcdir)/$*.h"; else true; fi
 
+ifndef NO_GEN_XPT
 # generate intermediate .xpt files into $(XPIDL_GEN_DIR), then link
 # into $(XPIDL_MODULE).xpt and export it to $(FINAL_TARGET)/components.
 $(XPIDL_GEN_DIR)/%.xpt: %.idl $(XPIDL_DEPS) $(XPIDL_GEN_DIR)/.done
@@ -1443,32 +1447,56 @@ $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt: $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.xpt,$(
 	$(XPIDL_LINK) $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.xpt,$(XPIDLSRCS))
 endif # XPIDL_MODULE.xpt != XPIDLSRCS
 
+libs:: $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt
 ifndef NO_DIST_INSTALL
-XPIDL_MODULE_FILES := $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt
-XPIDL_MODULE_DEST := $(FINAL_TARGET)/components
-INSTALL_TARGETS += XPIDL_MODULE
-
+	$(call install_cmd,$(IFLAGS1) $(XPIDL_GEN_DIR)/$(XPIDL_MODULE).xpt $(FINAL_TARGET)/components)
 ifndef NO_INTERFACES_MANIFEST
-libs:: $(call mkdir_deps,$(FINAL_TARGET)/components)
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/interfaces.manifest "interfaces $(XPIDL_MODULE).xpt"
 	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/interfaces.manifest"
 endif
 endif
 
+endif # NO_GEN_XPT
+
 GARBAGE_DIRS		+= $(XPIDL_GEN_DIR)
 
-ifndef NO_DIST_INSTALL
-XPIDL_HEADERS_FILES := $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.h, $(XPIDLSRCS))
-XPIDL_HEADERS_DEST := $(DIST)/include
-XPIDL_HEADERS_TARGET := export
-INSTALL_TARGETS += XPIDL_HEADERS
-
-XPIDLSRCS_FILES := $(XPIDLSRCS)
-XPIDLSRCS_DEST := $(IDL_DIR)
-XPIDLSRCS_TARGET := export
-INSTALL_TARGETS += XPIDLSRCS
-endif # NO_DIST_INSTALL
 endif # XPIDLSRCS
+
+ifneq ($(XPIDLSRCS),)
+# export .idl files to $(IDL_DIR)
+ifndef NO_DIST_INSTALL
+export:: $(XPIDLSRCS) $(IDL_DIR)
+	$(call install_cmd,$(IFLAGS1) $^)
+
+export:: $(patsubst %.idl,$(XPIDL_GEN_DIR)/%.h, $(XPIDLSRCS)) $(DIST)/include
+	$(call install_cmd,$(IFLAGS1) $^)
+endif # NO_DIST_INSTALL
+
+endif # XPIDLSRCS
+
+
+
+#
+# General rules for exporting idl files.
+#
+# WORK-AROUND ONLY, for mozilla/tools/module-deps/bootstrap.pl build.
+# Bug to fix idl dependency problems w/o this extra build pass is
+#   http://bugzilla.mozilla.org/show_bug.cgi?id=145777
+#
+$(IDL_DIR)::
+	$(NSINSTALL) -D $@
+
+export-idl:: $(SUBMAKEFILES) $(MAKE_DIRS)
+
+ifneq ($(XPIDLSRCS),)
+ifndef NO_DIST_INSTALL
+export-idl:: $(XPIDLSRCS) $(IDL_DIR)
+	$(call install_cmd,$(IFLAGS1) $^)
+endif
+endif
+	$(LOOP_OVER_PARALLEL_DIRS)
+	$(LOOP_OVER_DIRS)
+	$(LOOP_OVER_TOOL_DIRS)
 
 ################################################################################
 # Copy each element of EXTRA_COMPONENTS to $(FINAL_TARGET)/components
@@ -1483,17 +1511,22 @@ endif
 ifdef EXTRA_COMPONENTS
 libs:: $(EXTRA_COMPONENTS)
 ifndef NO_DIST_INSTALL
-EXTRA_COMPONENTS_FILES := $(EXTRA_COMPONENTS)
-EXTRA_COMPONENTS_DEST := $(FINAL_TARGET)/components
-INSTALL_TARGETS += EXTRA_COMPONENTS
+	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_TARGET)/components)
 endif
 
 endif
 
 ifdef EXTRA_PP_COMPONENTS
+libs:: $(EXTRA_PP_COMPONENTS)
 ifndef NO_DIST_INSTALL
-EXTRA_PP_COMPONENTS_PATH := $(FINAL_TARGET)/components
-PP_TARGETS += EXTRA_PP_COMPONENTS
+	$(EXIT_ON_ERROR) \
+	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
+	for i in $^; do \
+	  fname=`basename $$i`; \
+	  dest=$(FINAL_TARGET)/components/$${fname}; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
+	done
 endif
 endif
 
@@ -1511,17 +1544,23 @@ JS_MODULES_PATH ?= modules
 FINAL_JS_MODULES_PATH := $(FINAL_TARGET)/$(JS_MODULES_PATH)
 
 ifdef EXTRA_JS_MODULES
+libs:: $(EXTRA_JS_MODULES)
 ifndef NO_DIST_INSTALL
-EXTRA_JS_MODULES_FILES := $(EXTRA_JS_MODULES)
-EXTRA_JS_MODULES_DEST := $(FINAL_JS_MODULES_PATH)
-INSTALL_TARGETS += EXTRA_JS_MODULES
+	$(call install_cmd,$(IFLAGS1) $^ $(FINAL_JS_MODULES_PATH))
 endif
+
 endif
 
 ifdef EXTRA_PP_JS_MODULES
+libs:: $(EXTRA_PP_JS_MODULES)
 ifndef NO_DIST_INSTALL
-EXTRA_PP_JS_MODULES_PATH := $(FINAL_JS_MODULES_PATH)
-PP_TARGETS += EXTRA_PP_JS_MODULES
+	$(EXIT_ON_ERROR) \
+	$(NSINSTALL) -D $(JS_MODULES_PATH); \
+	for i in $^; do \
+	  dest=$(FINAL_JS_MODULES_PATH)/`basename $$i`; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
+	done
 endif
 
 endif
@@ -1530,19 +1569,25 @@ endif
 # SDK
 
 ifneq (,$(SDK_LIBRARY))
+$(SDK_LIB_DIR)::
+	$(NSINSTALL) -D $@
+
 ifndef NO_DIST_INSTALL
-SDK_LIBRARY_FILES := $(SDK_LIBRARY)
-SDK_LIBRARY_DEST := $(SDK_LIB_DIR)
-INSTALL_TARGETS += SDK_LIBRARY
+libs:: $(SDK_LIBRARY) $(SDK_LIB_DIR)
+	$(call install_cmd,$(IFLAGS2) $^)
 endif
+
 endif # SDK_LIBRARY
 
 ifneq (,$(SDK_BINARY))
+$(SDK_BIN_DIR)::
+	$(NSINSTALL) -D $@
+
 ifndef NO_DIST_INSTALL
-SDK_BINARY_EXECUTABLES := $(SDK_BINARY)
-SDK_BINARY_DEST := $(SDK_BIN_DIR)
-INSTALL_TARGETS += SDK_BINARY
+libs:: $(SDK_BINARY) $(SDK_BIN_DIR)
+	$(call install_cmd,$(IFLAGS2) $^)
 endif
+
 endif # SDK_BINARY
 
 ################################################################################
@@ -1570,15 +1615,30 @@ endif
 endif
 
 ifneq ($(DIST_FILES),)
-DIST_FILES_PATH := $(FINAL_TARGET)
-DIST_FILES_FLAGS := $(XULAPP_DEFINES)
-PP_TARGETS += DIST_FILES
+$(DIST)/bin:
+	$(NSINSTALL) -D $@
+
+libs:: $(DIST_FILES) $(DIST)/bin
+	@$(EXIT_ON_ERROR) \
+	for f in $(DIST_FILES); do \
+	  dest=$(FINAL_TARGET)/`basename $$f`; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py \
+	    $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) \
+	    $(srcdir)/$$f > $$dest; \
+	done
 endif
 
 ifneq ($(DIST_CHROME_FILES),)
-DIST_CHROME_FILES_PATH := $(FINAL_TARGET)/chrome
-DIST_CHROME_FILES_FLAGS := $(XULAPP_DEFINES)
-PP_TARGETS += DIST_CHROME_FILES
+libs:: $(DIST_CHROME_FILES)
+	@$(EXIT_ON_ERROR) \
+	for f in $(DIST_CHROME_FILES); do \
+	  dest=$(FINAL_TARGET)/chrome/`basename $$f`; \
+	  $(RM) -f $$dest; \
+	  $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py \
+	    $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) \
+	    $(srcdir)/$$f > $$dest; \
+	done
 endif
 
 ifneq ($(XPI_PKGNAME),)
