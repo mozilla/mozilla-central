@@ -6,6 +6,7 @@
 MODULE = 'calbase'
 
 EXTRA_JS_MODULES += [
+    'OAuth2.jsm',
     'calAlarmUtils.jsm',
     'calAuthUtils.jsm',
     'calExtract.jsm',
