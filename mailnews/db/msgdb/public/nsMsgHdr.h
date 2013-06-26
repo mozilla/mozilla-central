@@ -6,6 +6,7 @@
 #ifndef _nsMsgHdr_H
 #define _nsMsgHdr_H
 
+#include "mozilla/MemoryReporting.h"
 #include "nsIMsgHdr.h"
 #include "nsStringGlue.h"
 #include "MailNewsTypes.h"
@@ -41,11 +42,11 @@ public:
     bool        IsAncestorKilled(uint32_t ancestorsToCheck);
     void        ReparentInThread(nsIMsgThread *thread);
 
-    size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOfFun) const
+    size_t SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOfFun) const
     {
       return m_references.SizeOfExcludingThis(aMallocSizeOfFun);
     }
-    size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOfFun) const
+    size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOfFun) const
     {
       return aMallocSizeOfFun(this) + SizeOfExcludingThis(aMallocSizeOfFun);
     }

@@ -1003,7 +1003,7 @@ void nsMsgDatabase::DumpCache()
 // Memory Reporting implementations
 
 size_t nsMsgDatabase::HeaderHashSizeOf(PLDHashEntryHdr *hdr,
-                                       nsMallocSizeOfFun aMallocSizeOf,
+                                       mozilla::MallocSizeOf aMallocSizeOf,
                                        void *arg)
 {
   MsgHdrHashElement *entry = reinterpret_cast<MsgHdrHashElement*>(hdr);
@@ -1013,7 +1013,7 @@ size_t nsMsgDatabase::HeaderHashSizeOf(PLDHashEntryHdr *hdr,
     SizeOfIncludingThis(aMallocSizeOf);
 }
 
-size_t nsMsgDatabase::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+size_t nsMsgDatabase::SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
 {
   size_t totalSize = 0;
   if (m_dbFolderInfo)

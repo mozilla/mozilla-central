@@ -6,6 +6,7 @@
 #ifndef _nsMsgDatabase_H_
 #define _nsMsgDatabase_H_
 
+#include "mozilla/MemoryReporting.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgHdr.h"
 #include "nsStringGlue.h"
@@ -417,10 +418,10 @@ protected:
   // Memory reporter details
 public:
   static size_t HeaderHashSizeOf(PLDHashEntryHdr *hdr,
-                                 nsMallocSizeOfFun aMallocSizeOf,
+                                 mozilla::MallocSizeOf aMallocSizeOf,
                                  void *arg);
-  virtual size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const;
-  virtual size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  virtual size_t SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
+  virtual size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
   {
     return aMallocSizeOf(this) + SizeOfExcludingThis(aMallocSizeOf);
   }

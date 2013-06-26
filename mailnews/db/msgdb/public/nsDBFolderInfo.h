@@ -9,6 +9,7 @@
 #ifndef _nsDBFolderInfo_H
 #define _nsDBFolderInfo_H
 
+#include "mozilla/MemoryReporting.h"
 #include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "mdb.h"
@@ -60,11 +61,11 @@ public:
 
   nsTArray<nsMsgKey> m_lateredKeys; // list of latered messages
 
-  virtual size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  virtual size_t SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
   {
     return m_lateredKeys.SizeOfExcludingThis(aMallocSizeOf);
   }
-  virtual size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+  virtual size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
   {
     return aMallocSizeOf(this) + SizeOfExcludingThis(aMallocSizeOf);
   }
