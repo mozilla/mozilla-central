@@ -3753,7 +3753,7 @@ nsresult nsMsgDatabase::GetCollationKeyGenerator()
 
 nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token columnToken, uint8_t **result, uint32_t *len)
 {
-  const char *nakedString = nullptr;
+  const char *nakedString = "";
   nsresult err;
 
   err = RowCellColumnToConstCharPtr(row, columnToken, &nakedString);
