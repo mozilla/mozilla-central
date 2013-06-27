@@ -1941,17 +1941,17 @@
                           type="radio"
                           name="openFeedGroup"
                           label="&openFeedWebPage.label;"
-                          oncommand="ChangeFeedOpenHandler(0);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 0"/>
                 <menuitem id="appmenu_openFeedSummary"
                           type="radio"
                           name="openFeedGroup"
                           label="&openFeedSummary.label;"
-                          oncommand="ChangeFeedOpenHandler(1);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 1"/>
                 <menuitem id="appmenu_openFeedWebPageInMessagePane"
                           type="radio"
                           name="openFeedGroup"
                           label="&openFeedWebPageInMP.label;"
-                          oncommand="ChangeFeedOpenHandler(2);"/>
+                          oncommand="FeedMessageHandler.onOpenPref = 2"/>
               </menupopup>
             </menu>
             <menuseparator id="appmenu_messageAfterOpenMsgSeparator"/>
