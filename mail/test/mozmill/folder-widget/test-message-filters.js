@@ -9,7 +9,7 @@ var MODULE_NAME = "test-message-filters";
 
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
-                       "test-nntp-helpers", "address-book-helpers",
+                       "nntp-helpers", "address-book-helpers",
                        "prompt-helpers"];
 
 var elib = {};
@@ -18,16 +18,9 @@ var folderA;
 
 function setupModule(module)
 {
-  let fdh = collector.getModule("folder-display-helpers");
-  fdh.installInto(module);
-  let wh = collector.getModule("window-helpers");
-  wh.installInto(module);
-  let nh = collector.getModule("test-nntp-helpers");
-  nh.installInto(module);
-  let abh = collector.getModule("address-book-helpers");
-  abh.installInto(module);
-  let ph = collector.getModule("prompt-helpers");
-  ph.installInto(module);
+  for (let lib of MODULE_REQUIRES) {
+    collector.getModule(lib).installInto(module);
+  }
 
   setupNNTPDaemon();
 

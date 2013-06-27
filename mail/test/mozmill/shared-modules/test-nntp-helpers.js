@@ -7,13 +7,14 @@ var Cc = Components.classes;
 var Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource:///modules/mailServices.js");
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 
-const MODULE_NAME = 'test-nntp-helpers';
+const MODULE_NAME = 'nntp-helpers';
 
 const RELATIVE_ROOT = '../shared-modules';
 
