@@ -10,11 +10,15 @@
 }
 
 .text-link {
+  color: #33f !important;
+}
+
+.bottom-link {
   color: #fff !important;
 }
 
 #rightBox {
-  /* this margin prevents text from overlapping the planet image */
+  /* this margin prevents text from overlapping the egg image */
   margin-left: 280px;
   margin-right: 20px;
 }
