@@ -644,31 +644,29 @@ function CheckAndSaveDocument(command, allowDontSave)
   var dialogMsg = GetString(doPublish ? "PublishPrompt" : "SaveFilePrompt");
   dialogMsg = (dialogMsg.replace(/%title%/,title)).replace(/%reason%/,reasonToSave);
 
-  var promptService = GetPromptService();
-
-  var result = {value:0};
-  var promptFlags = promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1;
-  var button1Title = null;
-  var button3Title = null;
+  let result = {value:0};
+  let promptFlags = Services.prompt.BUTTON_TITLE_CANCEL * Services.prompt.BUTTON_POS_1;
+  let button1Title = null;
+  let button3Title = null;
 
   if (doPublish)
   {
-    promptFlags += promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0;
+    promptFlags += Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_0;
     button1Title = GetString("Publish");
     button3Title = GetString("DontPublish");    
   }
   else
   {
-    promptFlags += promptService.BUTTON_TITLE_SAVE * promptService.BUTTON_POS_0;
+    promptFlags += Services.prompt.BUTTON_TITLE_SAVE * Services.prompt.BUTTON_POS_0;
   }
 
   // If allowing "Don't..." button, add that
   if (allowDontSave)
     promptFlags += doPublish ?
-        (promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_2)
-        : (promptService.BUTTON_TITLE_DONT_SAVE * promptService.BUTTON_POS_2);
+        (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_2)
+        : (Services.prompt.BUTTON_TITLE_DONT_SAVE * Services.prompt.BUTTON_POS_2);
   
-  result = promptService.confirmEx(window, dialogTitle, dialogMsg, promptFlags,
+  result = Services.prompt.confirmEx(window, dialogTitle, dialogMsg, promptFlags,
                           button1Title, null, button3Title, null, {value:0});
 
   if (result == 0)
