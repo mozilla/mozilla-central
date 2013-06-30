@@ -973,7 +973,7 @@ void Base64Encoder::Base64EncodeBits(RangedPtr<char> &out, uint32_t bits)
     else if (k < 62)  *out++ = k - 52 + '0';
     else if (k == 62) *out++ = '+';
     else if (k == 63) *out++ = '/';
-    else MOZ_NOT_REACHED("6 bits should only be between 0 and 64");
+    else MOZ_CRASH("6 bits should only be between 0 and 64");
   }
 }
 
