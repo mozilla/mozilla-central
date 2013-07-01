@@ -305,7 +305,7 @@
   ${AddHandlerValues} "$0\SeaMonkeyHTML" "$2" \
                       "$INSTDIR\chrome\icons\default\html-file.ico,0" \
                       "${AppRegName} Document" "" ""
-  ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "true" \
+  ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "delete" \
                          "${DDEApplication}" "$3" "WWW_OpenURL"
 
   ; An empty string is used for the 4th & 5th params because the following
@@ -353,7 +353,7 @@
   ; protocol handler
   ${AddHandlerValues} "$0\SeaMonkeyEML"  "$1" "$INSTDIR\chrome\icons\default\misc-file.ico,0" "${AppRegNameMail} Document" "" ""
 
-  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE" "$2" "$8,0" "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE" "$2" "$8,0" "${AppRegNameMail} URL" "delete" ""
 
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handler already has a display name and additional keys required
@@ -373,7 +373,7 @@
   StrCpy $0 "SOFTWARE\Classes"
   StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
 
-  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "delete" ""
   ; An empty string is used for the 4th & 5th params because the following
   ; protocol handlers already have a display name and additional keys required
   ; for a protocol handler.
@@ -696,7 +696,7 @@
   ${IsHandlerForInstallDir} "SeaMonkeyURL" $R9
   ${If} "$R9" == "true"
     ${AddDDEHandlerValues} "SeaMonkeyURL" "$3" "$8,0" "${AppRegName} URL" \
-                           "true" "${DDEApplication}" "$4" "WWW_OpenURL"
+                           "delete" "${DDEApplication}" "$4" "WWW_OpenURL"
   ${EndIf}
 
   ${IsHandlerForInstallDir} "ftp" $R9
@@ -727,7 +727,7 @@
   ${IsHandlerForInstallDir} "SeaMonkeyMAIL" $R9
   ${If} "$R9" == "true"
     ${AddHandlerValues} "SOFTWARE\Classes\SeaMonkeyMAIL" "$2" "$8,0" \
-                        "${AppRegNameMail} URL" "true" ""
+                        "${AppRegNameMail} URL" "delete" ""
   ${EndIf}
 
   ${IsHandlerForInstallDir} "mailto" $R9
@@ -738,7 +738,7 @@
   ${IsHandlerForInstallDir} "SeaMonkeyNEWS" $R9
   ${If} "$R9" == "true"
     ${AddHandlerValues} "SOFTWARE\Classes\SeaMonkeyNEWS" "$2" "$8,0" \
-                        "${AppRegNameMail} URL" "true" ""
+                        "${AppRegNameMail} URL" "delete" ""
   ${EndIf}
 
   ${IsHandlerForInstallDir} "news" $R9
@@ -824,7 +824,7 @@
 
   ; Always set the file and protocol handlers since they may specify a
   ; different path and the path is used by Vista when setting associations.
-  ${AddHandlerValues} "$0\SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "true" "true"
+  ${AddHandlerValues} "$0\SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "delete" "true"
 
   ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
   ; protocol handler
@@ -857,7 +857,7 @@
   GetFullPathName $8 "$INSTDIR\${FileMainEXE}"
 
   StrCpy $1 "$\"$8$\" -compose $\"%1$\""
-  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE" "$1" "$8,0" "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyCOMPOSE" "$1" "$8,0" "${AppRegNameMail} URL" "delete" ""
 
   ReadRegStr $2 SHCTX "$0\mailto\shell\open\command" ""
   ${GetPathFromString} "$2" $3
@@ -872,7 +872,7 @@
   ${AddHandlerValues} "$0\SeaMonkeyEML" "$1" "$INSTDIR\chrome\icons\default\misc-file.ico,0" "${AppRegNameMail} Document" "" ""
 
   StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
-  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
+  ${AddHandlerValues} "$0\SeaMonkeyNEWS" "$1" "$8,0" "${AppRegNameNews} URL" "delete" ""
 
   ReadRegStr $2 SHCTX "$0\news\shell\open\command" ""
   ${GetPathFromString} "$2" $3
