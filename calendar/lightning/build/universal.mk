@@ -26,7 +26,8 @@ postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
 	rm -rf $(DIST_UNI)/xpi-stage/lightning*
 	cp -R $(DIST_ARCH_1)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
-	rm -f $(DIST_UNI)/xpi-stage/lightning/components/libical.manifest
+	grep -v binary-component $(DIST_ARCH_1)/xpi-stage/lightning/components/libical.manifest > \
+	    $(DIST_UNI)/xpi-stage/lightning/components/libical.manifest
 	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
 		$(DIST_ARCH_1)/xpi-stage/lightning`; \
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/components/$$platform; \
