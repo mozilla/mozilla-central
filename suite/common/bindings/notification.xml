@@ -769,6 +769,16 @@
         </body>
       </method>
 
+      <method name="getPluginUI">
+        <parameter name="aPlugin"/>
+        <parameter name="aClassName"/>
+        <body>
+          <![CDATA[
+            return aPlugin.ownerDocument.getAnonymousElementByAttribute(aPlugin, "class", aClassName);
+          ]]>
+        </body>
+      </method>
+
       <method name="addLinkClickCallback">
         <parameter name="linkNode"/>
         <parameter name="callback"/>
@@ -817,9 +827,18 @@
       <method name="submitReport">
         <parameter name="pluginDumpID"/>
         <parameter name="browserDumpID"/>
+        <parameter name="plugin"/>
         <body>
           <![CDATA[
-            this.CrashSubmit.submit(pluginDumpID);
+            var keyVals = {};
+            if (plugin) {
+              let userComment = this.getPluginUI(plugin, "submitComment").value.trim();
+              if (userComment)
+                keyVals.PluginUserComment = userComment;
+              if (this.getPluginUI(plugin, "submitURLOptIn").checked)
+                keyVals.PluginContentURL = plugin.ownerDocument.URL;
+            }
+            this.CrashSubmit.submit(pluginDumpID, { extraExtraKeyVals: keyVals });
             if (browserDumpID)
               this.CrashSubmit.submit(browserDumpID);
           ]]>
@@ -1309,7 +1328,7 @@
         <body>
           <![CDATA[
             var doc = pluginElement.ownerDocument;
-            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+            var overlay = this.getPluginUI(pluginElement, "mainBox");
             if (overlay) // no overlay if plugin has been activated
               overlay.style.visibility = "hidden";
           ]]>
@@ -1321,7 +1340,7 @@
         <body>
           <![CDATA[
             var doc = pluginElement.ownerDocument;
-            var overlay = doc.getAnonymousElementByAttribute(pluginElement, "class", "mainBox");
+            var overlay = this.getPluginUI(pluginElement, "mainBox");
 
             var objLoadingContent = pluginElement.QueryInterface(Components.interfaces.nsIObjectLoadingContent);
             if (!this.canActivatePlugin(objLoadingContent)) {
@@ -1344,7 +1363,7 @@
 
             this.addLinkClickCallback(overlay, this.activateSinglePlugin, pluginElement);
 
-            var closeIcon = doc.getAnonymousElementByAttribute(pluginElement, "anonid", "closeIcon");
+            var closeIcon = this.getPluginUI(pluginElement, "closeIcon");
             this.addLinkClickCallback(closeIcon, this.hideClickToPlayOverlay, pluginElement);
           ]]>
         </body>
@@ -1355,7 +1374,7 @@
         <body>
           <![CDATA[
             var doc = pluginElement.ownerDocument;
-            var previewContent = doc.getAnonymousElementByAttribute(pluginElement, "class", "previewPluginContent");
+            var previewContent = this.getPluginUI(pluginElement, "previewPluginContent");
 
             var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
             if (!iframe) {
@@ -2064,7 +2083,7 @@
               // themselves, so don't stomp on the page developer's toes.
               if (!(plugin instanceof HTMLObjectElement)) {
                 // We don't yet check to see if there's actually an installer available.
-                var installStatus = doc.getAnonymousElementByAttribute(plugin, "class", "installStatus");
+                var installStatus = this.getPluginUI(plugin, "installStatus");
                 installStatus.setAttribute("status", "ready");
                 var iconStatus = doc.getAnonymousElementByAttribute(plugin, "class", "icon");
                 iconStatus.setAttribute("status", "ready");
@@ -2173,11 +2192,15 @@
             }
             else { // doPrompt
               status = "please";
-              // XXX can we make the link target actually be blank?
-              let pleaseLink = doc.getAnonymousElementByAttribute(
-                                    plugin, "class", "pleaseSubmitLink");
-              this.addLinkClickCallback(pleaseLink, this.submitReport,
-                                        pluginDumpID, browserDumpID);
+              this.getPluginUI(plugin, "submitButton").addEventListener("click",
+                function (event) {
+                  if (event.button != 0 || !event.isTrusted)
+                    return;
+                  this.submitReport(pluginDumpID, browserDumpID, plugin);
+                  this._prefs.setBoolPref("dom.ipc.plugins.reportCrashURL", optInCB.checked);
+                }.bind(this));
+                let optInCB = this.getPluginUI(plugin, "submitURLOptIn");
+                optInCB.checked = this._prefs.getBoolPref("dom.ipc.plugins.reportCrashURL");
             }
 
             // If we're showing the link to manually trigger report submission, we'll
@@ -2223,29 +2246,32 @@
 
           statusDiv.setAttribute("status", status);
 
-          var bottomLinks = doc.getAnonymousElementByAttribute(plugin, "class", "msg msgBottomLinks");
-          bottomLinks.style.display = "block";
           var helpIcon = doc.getAnonymousElementByAttribute(plugin, "class", "helpIcon");
           this.addLinkClickCallback(helpIcon, this.openHelpPage);
 
           var messageString = this._stringBundle.formatStringFromName("crashedpluginsMessage.title", [pluginName], 1);
-          var crashText = doc.getAnonymousElementByAttribute(plugin, "class", "msg msgCrashed");
+          var crashText = this.getPluginUI(plugin, "msgCrashedText");
           crashText.textContent = messageString;
 
           var link = doc.getAnonymousElementByAttribute(plugin, "class", "reloadLink");
           this.addLinkClickCallback(link, this.reloadPage);
 
+          var isShowing = true;
+
           // Is the <object>'s size too small to hold what we want to show?
           if (this.isTooSmall(plugin, overlay)) {
-            // Hide the overlay's contents. Use visibility style, so that it
-            // doesn't collapse down to 0x0.
-            overlay.style.visibility = "hidden";
-            // If another plugin on the page was large enough to show our UI, we
-            // don't want to show a notification bar.
-            if (!this.crashNotified)
-              this.showPluginCrashedNotification(pluginDumpID, browserDumpID, messageString);
+            // First try hiding the comment box and related report submission UI.
+            statusDiv.removeAttribute("status");
+
+            if (this.isTooSmall(plugin, overlay)) {
+              // Hide the overlay's contents. Use visibility style, so that it doesn't
+              // collapse down to 0x0.
+              overlay.style.visibility = "hidden";
+              isShowing = false;
+            }
           }
-          else {
+
+          if (isShowing) {
             // If a previous plugin on the page was too small and resulted in
             // adding a notification bar, then remove it because this plugin
             // instance it big enough to serve as in-content notification.
@@ -2253,6 +2279,11 @@
             if (notification)
               this.removeNotification(notification, true);
             this.crashNotified = true;
+          } else {
+            // If another plugin on the page was large enough to show our UI, we don't
+            // want to show a notification bar.
+            if (!this.crashNotified)
+              this.showPluginCrashedNotification(pluginDumpID, browserDumpID, messageString);
           }
         ]]>
       </handler>
