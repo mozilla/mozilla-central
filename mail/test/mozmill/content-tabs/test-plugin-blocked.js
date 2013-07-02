@@ -65,7 +65,7 @@ function test_blocklisted_plugin_notification() {
 
   Services.prefs.setBoolPref("extensions.blocklist.suppressUI", true);
 
-  setAndUpdateBlocklist(kPluginBlocklistUrl, function() {
+  setAndUpdateBlocklist(mc, kPluginBlocklistUrl, function() {
     assert_true(plugin.blocklisted, "Test plugin was not properly blocklisted");
     subtest_blocklisted_plugin_notification();
   });

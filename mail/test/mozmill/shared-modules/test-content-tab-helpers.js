@@ -422,23 +422,23 @@ function plugins_run_in_separate_processes(aController) {
   return supportsOOPP;
 }
 
-function updateBlocklist(aCallback) {
+function updateBlocklist(aController, aCallback) {
   let blocklistNotifier = Cc["@mozilla.org/extensions/blocklist;1"]
                             .getService(Ci.nsITimerCallback);
   let observer = function() {
-    aCallback();
     Services.obs.removeObserver(observer, "blocklist-updated");
+    aController.window.setTimeout(aCallback, 0);
   };
   Services.obs.addObserver(observer, "blocklist-updated", false);
   blocklistNotifier.notify(null);
 }
 
-function setAndUpdateBlocklist(aURL, aCallback) {
+function setAndUpdateBlocklist(aController, aURL, aCallback) {
   if (!_originalBlocklistURL) {
     _originalBlocklistURL = Services.prefs.getCharPref("extensions.blocklist.url");
   }
   Services.prefs.setCharPref("extensions.blocklist.url", aURL);
-  updateBlocklist(aCallback);
+  updateBlocklist(aController, aCallback);
 }
 
 function resetBlocklist(aCallback) {
