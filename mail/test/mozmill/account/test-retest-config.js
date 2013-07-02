@@ -46,6 +46,9 @@ function open_mail_account_setup_wizard(k) {
 }
 
 function test_re_test_config() {
+  // Opening multiple windows in the same run seems to require letting the stack
+  // unwind before opening the next one, so do that here.
+  mc.sleep(0);
   open_mail_account_setup_wizard(function (awc) {
     // Input user's account information
     awc.e("realname").focus();
