@@ -315,25 +315,52 @@ var WindowWatcher = {
       let troller = new controller.MozMillController(domWindow);
       augment_controller(troller, this.waitingForOpen);
 
-      this.waitingList.delete(this.waitingForOpen);
       this._timer.cancel();
 
-      // now we are waiting for it to close...
-      this.waitingForClose = this.waitingForOpen;
-      this.waitingForOpen = null;
+      let self = this;
+      function startTest() {
+        try {
+          let runner = new frame.Runner(collector);
+          runner.wrapper(self.subTestFunc, troller);
+        }
+        finally {
+          self.subTestFunc = null;
+        }
 
-      try {
-        let runner = new frame.Runner(collector);
-        runner.wrapper(this.subTestFunc, troller);
-      }
-      finally {
-        this.subTestFunc = null;
+        // if the test failed, make sure we force the window closed...
+        // except I'm not sure how to easily figure that out...
+        // so just close it no matter what.
+        troller.window.close();
+
+        self.waitingList.delete(self.waitingForOpen);
+        // now we are waiting for it to close...
+        self.waitingForClose = self.waitingForOpen;
+        self.waitingForOpen = null;
       }
 
-      // if the test failed, make sure we force the window closed...
-      // except I'm not sure how to easily figure that out...
-      // so just close it no matter what.
-      troller.window.close();
+      let targetFocusedWindow = {};
+      Services.focus.getFocusedElementForWindow(domWindow, true,
+                                                targetFocusedWindow);
+      targetFocusedWindow = targetFocusedWindow.value;
+
+      let focusedWindow = {};
+      if (Services.focus.activeWindow) {
+        Services.focus.getFocusedElementForWindow(Services.focus.activeWindow, true,
+                                                  focusedWindow);
+
+        focusedWindow = focusedWindow.value;
+      }
+
+      if (focusedWindow == targetFocusedWindow) {
+        startTest();
+      } else {
+        function onFocus(event) {
+          targetFocusedWindow.removeEventListener("focus", onFocus, true);
+          targetFocusedWindow.setTimeout(startTest, 0);
+        }
+        targetFocusedWindow.addEventListener("focus", onFocus, true);
+        targetFocusedWindow.focus();
+      }
     }
     // notify is only used for modal dialogs, which are never the first window,
     //  so we can always just use this set of timeouts/intervals.
