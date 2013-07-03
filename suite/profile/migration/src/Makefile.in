@@ -13,4 +13,6 @@ LIBRARY_NAME	= suitemigration_s
 
 FORCE_STATIC_LIB = 1
 
+USE_STATIC_LIBS = 1
+
 include $(topsrcdir)/config/rules.mk
