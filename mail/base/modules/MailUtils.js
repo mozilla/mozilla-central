@@ -340,7 +340,7 @@ var MailUtils =
         folder.setStringProperty(aPropertyName, aPropertyValue);
         // force the reference to be forgotten.
         folder.msgDatabase = null;
-        yield;
+        yield undefined;
       }
     }
     let worker = folder_string_setter_worker();

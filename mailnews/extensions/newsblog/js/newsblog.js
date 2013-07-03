@@ -120,7 +120,7 @@ var nsNewsBlogFeedDownloader =
             }
           }, Ci.nsIThread.DISPATCH_NORMAL);
 
-          yield;
+          yield undefined;
         }
       }
     }
