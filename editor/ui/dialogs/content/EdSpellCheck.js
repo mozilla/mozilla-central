@@ -13,8 +13,6 @@ var gDictCount = 0;
 
 function Startup()
 {
-  var sendMailMessageMode = false;
-
   var editor = GetCurrentEditor();
   if (!editor)
   {
@@ -35,7 +33,6 @@ function Startup()
   try {
     // TxtSrv Filter Contract Id
     var filterContractId;
-    sendMailMessageMode = window.arguments[0];
     var skipBlockQuotes = window.arguments[1];
     var enableSelectionChecking = window.arguments[2];
 
@@ -45,7 +42,7 @@ function Startup()
       filterContractId = "@mozilla.org/editor/txtsrvfilter;1";
 
     gSpellChecker.setFilter(Components.classes[filterContractId].createInstance(Components.interfaces.nsITextServicesFilter));
-    gSpellChecker.InitSpellChecker(editor, enableSelectionChecking);
+    gSpellChecker.InitSpellChecker(editor, enableSelectionChecking, spellCheckStarted);
 
   }
   catch(ex) {
@@ -53,7 +50,9 @@ function Startup()
     window.close();
     return;
   }
+}
 
+function spellCheckStarted() {
   gDialog.MisspelledWordLabel = document.getElementById("MisspelledWordLabel");
   gDialog.MisspelledWord      = document.getElementById("MisspelledWord");
   gDialog.ReplaceButton       = document.getElementById("Replace");
@@ -82,7 +81,7 @@ function Startup()
 
   // When startup param is true, setup different UI when spell checking 
   //   just before sending mail message  
-  if (sendMailMessageMode)
+  if (window.arguments[0])
   {
     // If no misspelled words found, simply close dialog and send message
     if (!gMisspelledWord)
@@ -431,16 +430,21 @@ function SelectLanguage()
 
 function Recheck()
 {
-  //TODO: Should we bother to add a "Recheck" method to interface?
-  try {
-    var curLang = gSpellChecker.GetCurrentDictionary();
-    gSpellChecker.UninitSpellChecker();
-    gSpellChecker.InitSpellChecker(GetCurrentEditor(), false);
-    gSpellChecker.SetCurrentDictionary(curLang);
+  var recheckLanguage;
+
+  function finishRecheck() {
+    gSpellChecker.SetCurrentDictionary(recheckLanguage);
     gMisspelledWord = gSpellChecker.GetNextMisspelledWord();
     SetWidgetsForMisspelledWord();
+  }
+
+  //TODO: Should we bother to add a "Recheck" method to interface?
+  try {
+    recheckLanguage = gSpellChecker.GetCurrentDictionary();
+    gSpellChecker.UninitSpellChecker();
+    gSpellChecker.InitSpellChecker(GetCurrentEditor(), false, finishRecheck);
   } catch(ex) {
-    dump(ex);
+    Components.utils.reportError(ex);
   }
 }
 
