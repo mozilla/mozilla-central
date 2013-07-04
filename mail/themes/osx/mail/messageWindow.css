@@ -22,6 +22,10 @@
   background: none !important;
 }
 
+#mail-bar3:-moz-lwtheme {
+  padding-top: 22px;
+}
+
 .mail-toolbox > toolbar:not(:-moz-lwtheme) {
   -moz-appearance: toolbar;
 }
