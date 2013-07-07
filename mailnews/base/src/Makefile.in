@@ -23,8 +23,3 @@ endif
 FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk
-
-ifdef MOZ_MOVEMAIL
-DEFINES	+= -DHAVE_MOVEMAIL
-endif
-

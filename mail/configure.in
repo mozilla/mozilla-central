@@ -19,6 +19,8 @@ if test "$MOZ_MORK"; then
 fi
 if test "$OS_ARCH" != "WINNT" -a "$OS_ARCH" != "OS2"; then
   MOZ_MOVEMAIL=1
+  HAVE_MOVEMAIL=1
+  AC_DEFINE(HAVE_MOVEMAIL)
 fi
 AC_SUBST(MOZ_MOVEMAIL)
 

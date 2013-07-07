@@ -190,7 +190,7 @@
                  value="&feedsSectionHdr.label;"
                  chromedir="&locale.dir;"
                  onclick="CreateNewAccountTB('feeds');"/>
-#ifdef MOZ_MOVEMAIL
+#ifdef HAVE_MOVEMAIL
           <label id="CreateAccountMovemail"
                  class="acctCentralNewAcctText acctCentralLinkText"
                  value="&movemail.label;"
