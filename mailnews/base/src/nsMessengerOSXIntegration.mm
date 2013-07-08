@@ -216,6 +216,13 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
   if (!strcmp(aTopic, "alertclickcallback"))
     return OnAlertClicked(aData);
 
+#ifdef MOZ_SUITE
+  // SeaMonkey does most of the GUI work in JS code when clicking on a mail
+  // notification, so it needs an extra function here 
+  if (!strcmp(aTopic, "alertclicksimplecallback"))
+    return OnAlertClickedSimple();
+#endif
+
   if (!strcmp(aTopic, "mail-startup-done")) {
     nsresult rv;
     nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
@@ -447,6 +454,17 @@ nsMessengerOSXIntegration::OnAlertClicked(const PRUnichar* aAlertCookie)
   openMailWindow(NS_ConvertUTF16toUTF8(aAlertCookie));
   return NS_OK;
 }
+
+#ifdef MOZ_SUITE
+nsresult
+nsMessengerOSXIntegration::OnAlertClickedSimple()
+{
+  // SeaMonkey only function; only focus the app here, rest of the work will
+  // be done in suite/mailnews/mailWidgets.xml
+  FocusAppNative();
+  return NS_OK;
+}
+#endif
 
 nsresult
 nsMessengerOSXIntegration::OnAlertFinished()

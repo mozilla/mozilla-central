@@ -44,6 +44,9 @@ private:
   nsresult ShowAlertMessage(const nsAString& aAlertTitle, const nsAString& aAlertText, const nsACString& aFolderURI);
   nsresult OnAlertFinished();
   nsresult OnAlertClicked(const PRUnichar * aAlertCookie);
+#ifdef MOZ_SUITE
+  nsresult OnAlertClickedSimple();
+#endif
   nsresult GetStringBundle(nsIStringBundle **aBundle);
   void FillToolTipInfo(nsIMsgFolder *aFolder, int32_t aNewCount);
   nsresult GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCString& aFolderURI);

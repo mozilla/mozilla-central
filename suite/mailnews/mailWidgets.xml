@@ -2069,6 +2069,9 @@
 
           if (topmostMsgWindow)
           {
+            // Bring window to the front
+            topmostMsgWindow.domWindow.focus();
+
             try {
               // SelectFolder throws an exception if the folder is not in the current folder view
               mailSession.topmostMsgWindow.windowCommands.selectFolder(this.folderUri);
@@ -2084,7 +2087,7 @@
           }
 
           if (gAlertListener)
-            gAlertListener.observe(null, "alertclickcallback", "");
+            gAlertListener.observe(null, "alertclicksimplecallback", "");
         ]]>
       </handler>
     </handlers>
