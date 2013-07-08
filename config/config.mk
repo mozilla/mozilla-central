@@ -208,11 +208,10 @@ endif
 
 ifdef LIBXUL_LIBRARY
 ifdef IS_COMPONENT
-ifdef MODULE_NAME
-DEFINES += -DXPCOM_TRANSLATE_NSGM_ENTRY_POINT=1
-else
-$(error Component makefile does not specify MODULE_NAME.)
+$(error IS_COMPONENT is set, but is not compatible with LIBXUL_LIBRARY)
 endif
+ifdef MODULE_NAME
+$(error MODULE_NAME is $(MODULE_NAME) but MODULE_NAME and LIBXUL_LIBRARY are not compatible)
 endif
 FORCE_STATIC_LIB=1
 SHORT_LIBNAME=
