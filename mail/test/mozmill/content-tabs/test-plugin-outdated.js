@@ -7,29 +7,21 @@ var MODULE_NAME = 'test-plugin-outdated';
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
 
-var controller = {};
-Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var elib = {};
-Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
-
 Components.utils.import('resource://gre/modules/Services.jsm');
 
 var gOldStartUrl = null;
 var gOldPluginUpdateUrl = null;
-var gHadBlocklist = false;
 
-const kPluginId = "test-plugin";
 const kStartPagePref = "mailnews.start_page.override_url";
 const kPluginsUpdatePref = "plugins.update.url";
-const kBlEnabledPref = "extensions.blocklist.enabled";
 // RELATIVE_ROOT messes with the collector, so we have to bring the path back
 // so we get the right path for the resources.
 const kUrl = collector.addHttpResource('../content-tabs/html', '');
 const kPluginUrl = kUrl + "plugin.html";
 const kPluginUpdateUrl = kUrl + "plugin_update.html";
-const kBlocklist = "blocklist.xml";
-const kBlocklistOld = "blocklist-old.xml";
-const kNewBlocklistPath = "./html/" + kBlocklist;
+const kPluginBlocklistUrl = kUrl + "blocklist.xml";
+
+var testDone = false;
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -47,51 +39,31 @@ function setupModule(module) {
 
   Services.prefs.setCharPref(kStartPagePref, kPluginUrl);
   Services.prefs.setCharPref(kPluginsUpdatePref, kPluginUpdateUrl);
-
-  // See if there's a local blocklist.xml in the profile directory.
-  // If so, rename it.
-  let profD = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
-  let blFile = profD.clone();
-  blFile.append(kBlocklist);
-
-  if (blFile.exists()) {
-    gHadBlocklist = true;
-    blFile.moveTo(profD, kBlocklistOld);
-  }
-
-  // Now copy the blocklist from the test to the profile directory
-  let path = os.getFileForPath(__file__);
-  let newBlFile = os.getFileForPath(os.abspath(kNewBlocklistPath, path));
-  newBlFile.copyTo(profD, kBlocklist);
-
-  // Cause a reload of blocklist.xml
-  Services.prefs.setBoolPref(kBlEnabledPref, false);
-  Services.prefs.setBoolPref(kBlEnabledPref, true);
 }
 
 function teardownModule(module) {
   Services.prefs.setCharPref(kStartPagePref, gOldStartUrl);
   Services.prefs.setCharPref(kPluginsUpdatePref, gOldPluginUpdateUrl);
-
-  // Remove the blocklist.xml we put into the profile directory.
-  let profD = Services.dirsvc.get("ProfD", Components.interfaces.nsIFile);
-  newBlFile = profD.clone();
-  newBlFile.append("blocklist.xml");
-  newBlFile.remove(false);
-
-  // If there was a blocklist there originally, put it back.
-  if (gHadBlocklist) {
-    let blOldFile = profD.clone();
-    blOldFile.append("blocklist-old.xml");
-    blOldFile.moveTo(profD, "blocklist.xml");
-  }
-
-  // Cause a reload of blocklist.xml
-  Services.prefs.setBoolPref(kBlEnabledPref, false);
-  Services.prefs.setBoolPref(kBlEnabledPref, true);
 }
 
 function test_outdated_plugin_notification() {
+  let plugin = get_test_plugin();
+  assert_not_equals(plugin, null, "Test plugin not found");
+
+  Services.prefs.setBoolPref("extensions.blocklist.suppressUI", true);
+
+  setAndUpdateBlocklist(mc, kPluginBlocklistUrl, function() {
+    subtest_outdated_plugin_notification();
+  });
+
+  mc.waitFor(function () { return testDone; }, "Plugin test taking too long",
+             100000, 1000);
+
+  Services.prefs.clearUserPref("extensions.blocklist.suppressUI");
+  resetBlocklist();
+}
+
+function subtest_outdated_plugin_notification() {
   // Prepare to capture the notification bar
   NotificationWatcher.planForNotification(mc);
   let pluginTab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew,
@@ -113,4 +85,5 @@ function test_outdated_plugin_notification() {
   mc.tabmail.closeTab(updateTab);
 
   mc.tabmail.closeTab(pluginTab);
+  testDone = true;
 }
