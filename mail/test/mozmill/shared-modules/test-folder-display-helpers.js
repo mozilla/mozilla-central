@@ -656,6 +656,9 @@ function open_message_from_file(file) {
                        "all,chrome,dialog=no,status,toolbar", fileURL);
   let msgc = windowHelper.wait_for_new_window("mail:messageWindow");
   wait_for_message_display_completion(msgc, true);
+
+  windowHelper.wait_for_window_focused(msgc.window);
+
   return msgc;
 }
 

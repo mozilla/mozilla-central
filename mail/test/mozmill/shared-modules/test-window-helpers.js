@@ -89,6 +89,7 @@ function installInto(module) {
   module.wait_for_window_close = wait_for_window_close;
   module.close_window = close_window;
   module.wait_for_existing_window = wait_for_existing_window;
+  module.wait_for_window_focused = wait_for_window_focused;
 
   module.wait_for_browser_load = wait_for_browser_load;
   module.wait_for_frame_load = wait_for_frame_load;
@@ -654,6 +655,42 @@ function close_window(aController) {
   plan_for_window_close(aController);
   aController.window.close();
   wait_for_window_close();
+}
+
+/**
+ * Wait for the window to be focused.
+ *
+ * @param aWindow the window to be focused.
+ */
+function wait_for_window_focused(aWindow) {
+  let targetWindow = {};
+
+  Services.focus.getFocusedElementForWindow(aWindow, true,
+                                            targetWindow);
+  targetWindow = targetWindow.value;
+
+  let focusedWindow = {};
+  if (Services.focus.activeWindow) {
+    Services.focus.getFocusedElementForWindow(Services.focus.activeWindow,
+                                              true, focusedWindow);
+    focusedWindow = focusedWindow.value;
+  }
+
+  let focused = false;
+  if (focusedWindow == targetWindow) {
+    focused = true;
+  } else {
+    function onFocus(event) {
+      targetWindow.removeEventListener("focus", onFocus, true);
+      focused = true;
+    }
+    targetWindow.addEventListener("focus", onFocus, true);
+    targetWindow.focus();
+  }
+
+  utils.waitFor(function() focused,
+      "Timeout waiting for window to be focused.",
+      WINDOW_FOCUS_TIMEOUT_MS, 100, this);
 }
 
 /**
