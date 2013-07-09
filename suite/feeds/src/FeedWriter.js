@@ -116,9 +116,7 @@ function safeGetCharPref(pref, defaultValue) {
  */
 function makeURI(aURLSpec, aCharset) {
   try {
-    var ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-    return ioSvc.newURI(aURLSpec, aCharset, null);
+    return Services.io.newURI(aURLSpec, aCharset, null);
   } catch (ex) {
   }
 
@@ -150,8 +148,6 @@ function convertByteUnits(aBytes) {
 }
 
 function FeedWriter() {
-  this._ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
   this._mimeSvc = Components.classes["@mozilla.org/mime;1"]
                             .getService(Components.interfaces.nsIMIMEService);
 }
@@ -193,11 +189,9 @@ FeedWriter.prototype = {
    *          The URI spec to set as the href
    */
   _safeSetURIAttribute: function safeSetURIAttribute(element, attribute, uri) {
-    var secman = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                           .getService(Components.interfaces.nsIScriptSecurityManager);
     const flags = Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
     try {
-      secman.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
+      Services.scriptSecurityManager.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
       // checkLoadURIStrWithPrincipal will throw if the link URI should not be
       // loaded, either because our feedURI isn't allowed to load it or per
       // the rules specified in |flags|, so we'll never "linkify" the link...
@@ -207,7 +201,7 @@ FeedWriter.prototype = {
       Components.utils.evalInSandbox(codeStr, this._contentSandbox);
     }
     catch (e) {
-      // Not allowed to load this link because secman.checkLoadURIStr threw
+      // Not allowed to load this link because checkLoadURIStrWithPrincipal threw
     }
   },
 
@@ -248,9 +242,7 @@ FeedWriter.prototype = {
   __bundle: null,
   get _bundle() {
     if (!this.__bundle) {
-      this.__bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                .getService(Components.interfaces.nsIStringBundleService)
-                                .createBundle(STRING_BUNDLE_URI);
+      this.__bundle = Services.strings.createBundle(STRING_BUNDLE_URI);
     }
 
     return this.__bundle;
@@ -660,8 +652,8 @@ FeedWriter.prototype = {
    * @returns moz-icon url of the given file as a string
    */
   _getFileIconURL: function getFileIconURL(file) {
-    var fph = this._ioSvc.getProtocolHandler("file")
-                  .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+    var fph = Services.io.getProtocolHandler("file")
+                      .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
     var urlSpec = fph.getURLSpecFromFile(file);
     return "moz-icon://" + urlSpec + "?size=16";
   },
@@ -708,10 +700,7 @@ FeedWriter.prototype = {
       if (fp.show() == Components.interfaces.nsIFilePicker.returnOK) {
         this._selectedApp = fp.file;
         if (this._selectedApp) {
-          var dirsvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                                 .getService(Components.interfaces.nsIProperties);
-
-          var file = dirsvc.get("XREExeF", Components.interfaces.nsILocalFile);
+          var file = Services.dirsvc.get("XREExeF", Components.interfaces.nsILocalFile);
           if (fp.file.leafName != file.leafName) {
             this._initMenuItemWithFile(this._contentSandbox.selectedAppMenuItem,
                                        this._selectedApp);
@@ -1066,9 +1055,7 @@ FeedWriter.prototype = {
                       .QueryInterface(Components.interfaces.nsIDocShell)
                       .currentDocumentChannel;
 
-    var resolvedURI = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService)
-                                .newChannel(FEEDHANDLER_URI, null, null).URI;
+    var resolvedURI = Services.io.newChannel(FEEDHANDLER_URI, null, null).URI;
 
     if (resolvedURI.equals(chan.URI))
       return chan.originalURI;
@@ -1092,9 +1079,7 @@ FeedWriter.prototype = {
     this._document = aWindow.document;
     this._handlersMenuList = this._getUIElement("handlersMenuList");
 
-    var secman = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                           .getService(Components.interfaces.nsIScriptSecurityManager);
-    this._feedPrincipal = secman.getSimpleCodebasePrincipal(this._feedURI);
+    this._feedPrincipal = Services.scriptSecurityManager.getSimpleCodebasePrincipal(this._feedURI);
 
     LOG("Subscribe Preview: feed uri = " + this._window.location.href);
 

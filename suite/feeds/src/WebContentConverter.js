@@ -142,9 +142,7 @@ WebContentConverterRegistrar.prototype = {
   __bundle: null,
   get _bundle() {
     if (!this.__bundle) {
-      this.__bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService)
-                        .createBundle(STRING_BUNDLE_URI);
+      this.__bundle = Services.strings.createBundle(STRING_BUNDLE_URI);
     }
     return this.__bundle;
   },
@@ -299,9 +297,7 @@ WebContentConverterRegistrar.prototype = {
   },
 
   _makeURI: function(aURL, aOriginCharset, aBaseURI) {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    return ioService.newURI(aURL, aOriginCharset, aBaseURI);
+    return Services.io.newURI(aURL, aOriginCharset, aBaseURI);
   },
 
   _checkAndGetURI: function checkAndGetURI(aURIString, aContentWindow) {
@@ -374,17 +370,13 @@ WebContentConverterRegistrar.prototype = {
       // Inside the private browsing mode, we don't want to alert the user to save
       // a protocol handler.  We log it to the error console so that web developers
       // would have some way to tell what's going wrong.
-      Components.classes["@mozilla.org/consoleservice;1"]
-                .getService(Components.interfaces.nsIConsoleService)
-                .logStringMessage("Web page denied access to register a protocol handler inside private browsing mode");
+      Service.console.logStringMessage("Web page denied access to register a protocol handler inside private browsing mode");
       return;
     }
 
     // First, check to make sure this isn't already handled internally (we don't
     // want to let them take over, say "chrome").
-    var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService);
-    var handler = ios.getProtocolHandler(aProtocol);
+    var handler = Services.io.getProtocolHandler(aProtocol);
     if (!(handler instanceof Components.interfaces.nsIExternalProtocolHandler)) {
       // This is handled internally, so we don't want them to register
       // XXX this should be a "security exception" according to spec, but that
@@ -787,14 +779,12 @@ WebContentConverterRegistrar.prototype = {
    * See nsIObserver
    */
   observe: function observe(subject, topic, data) {
-    var os = Components.classes["@mozilla.org/observer-service;1"]
-                       .getService(Components.interfaces.nsIObserverService);
     switch (topic) {
     case "app-startup":
-      os.addObserver(this, "final-ui-startup", false);
+      Services.obs.addObserver(this, "final-ui-startup", false);
       break;
     case "final-ui-startup":
-      os.removeObserver(this, "final-ui-startup");
+      Services.obs.removeObserver(this, "final-ui-startup");
       this._init();
       break;
     }

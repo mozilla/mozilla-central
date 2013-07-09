@@ -100,8 +100,6 @@ function safeGetCharPref(pref, defaultValue) {
 }
 
 function FeedConverter() {
-  this._ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
 }
 
 FeedConverter.prototype = {
@@ -252,14 +250,14 @@ FeedConverter.prototype = {
         feedService.addFeedResult(result);
 
         // Now load the actual XUL document.
-        var chromeURI = this._ioSvc.newURI(FEEDHANDLER_URI, null, null);
-        chromeChannel = this._ioSvc.newChannelFromURI(chromeURI, null);
+        var chromeURI = Services.io.newURI(FEEDHANDLER_URI, null, null);
+        chromeChannel = Services.io.newChannelFromURI(chromeURI, null);
         chromeChannel.owner = Services.scriptSecurityManager
                                       .getNoAppCodebasePrincipal(chromeURI);
         chromeChannel.originalURI = result.uri;
       }
       else
-        chromeChannel = this._ioSvc.newChannelFromURI(result.uri, null);
+        chromeChannel = Services.io.newChannelFromURI(result.uri, null);
 
       chromeChannel.loadGroup = this._request.loadGroup;
       chromeChannel.asyncOpen(this._listener, null);
@@ -335,8 +333,6 @@ FeedConverter.prototype = {
  * converter completes.
  */
 function FeedResultService() {
-  this._ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
 }
 
 FeedResultService.prototype = {
@@ -371,7 +367,7 @@ FeedResultService.prototype = {
       // http://foo.com/index.rdf -> feed://foo.com/index.rdf
       // other urls: prepend feed: scheme, e.g.
       // https://foo.com/index.rdf -> feed:https://foo.com/index.rdf
-      var feedURI = this._ioSvc.newURI(spec, null, null);
+      var feedURI = Services.io.newURI(spec, null, null);
       if (feedURI.schemeIs("http")) {
         feedURI.scheme = "feed";
         spec = feedURI.spec;
@@ -400,9 +396,7 @@ FeedResultService.prototype = {
       LOG("unexpected handler: " + handler);
       // fall through
     case "bookmarks":
-      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                         .getService(Components.interfaces.nsIWindowMediator);
-      var topWindow = wm.getMostRecentWindow("navigator:browser");
+      var topWindow = Services.wm.getMostRecentWindow("navigator:browser");
       topWindow.PlacesCommandHook.addLiveBookmark(spec, title, subtitle);
       break;
     case "messenger":
@@ -474,9 +468,7 @@ FeedResultService.prototype = {
  * URIs that are actually either http or https.
  */
 function GenericProtocolHandler(scheme, classID) {
-  this._ioSvc = Components.classes["@mozilla.org/network/io-service;1"]
-                          .getService(Components.interfaces.nsIIOService);
-  this._http = this._ioSvc.getProtocolHandler("http");
+  this._http = Services.io.getProtocolHandler("http");
   this.scheme = scheme;
   this.classID = classID;
 }
@@ -504,7 +496,7 @@ GenericProtocolHandler.prototype = {
       throw Components.results.NS_ERROR_MALFORMED_URI;
 
     var prefix = /^feed:\/\//.test(spec) ? "http:" : "";
-    var inner = this._ioSvc.newURI(spec.replace("feed:", prefix),
+    var inner = Services.io.newURI(spec.replace("feed:", prefix),
                                    originalCharset, baseURI);
     var netutil = Components.classes["@mozilla.org/network/util;1"]
                             .getService(Components.interfaces.nsINetUtil);
@@ -519,7 +511,7 @@ GenericProtocolHandler.prototype = {
 
   newChannel: function newChannel(aUri) {
     var uri = aUri.QueryInterface(Components.interfaces.nsINestedURI).innerURI;
-    var channel = this._ioSvc.newChannelFromURI(uri);
+    var channel = Services.io.newChannelFromURI(uri);
     if (channel instanceof Components.interfaces.nsIHttpChannel)
       // Set this so we know this is supposed to be a feed
       channel.setRequestHeader("X-Moz-Is-Feed", "1", false);
