@@ -2344,7 +2344,6 @@ function ComposeStartup(recycled, aParams)
 
     // Do setup common to Message Composer and Web Composer.
     EditorSharedStartup();
-    InitLanguageMenu();
   }
 
   if (params.bodyIsLink)
@@ -4803,10 +4802,6 @@ function InitEditor()
           .setAttribute('hidden', gSpellChecker.canSpellCheck);
   // Then, we enable related UI entries.
   enableInlineSpellCheck(getPref("mail.spellcheck.inline"));
-  let dictMenu = document.getElementById("spellCheckDictionariesMenu");
-  let dictSep = document.getElementById("spellCheckLanguageSeparator");
-  gSpellChecker.addDictionaryListToMenu(dictMenu, dictSep);
-
   gAttachmentNotifier.init(editor.document);
 }
 
