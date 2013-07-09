@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/hostnameUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 var gProtocolInfo = null;
 var gPrefsBundle;
@@ -45,8 +46,8 @@ function outgoingPageInit() {
     // Don't use the default smtp server if smtp server creation was explicitly
     // requested in isp rdf.
     // If we're reusing the default smtp we should not set the smtp hostname.
-    if (parent.smtpService.defaultServer && !smtpCreateNewServer) {
-      smtpServer = parent.smtpService.defaultServer;
+    if (MailServices.smtp.defaultServer && !smtpCreateNewServer) {
+      smtpServer = MailServices.smtp.defaultServer;
       setPageData(pageData, "identity", "smtpServerKey", "");
     }
 
@@ -82,7 +83,7 @@ function outgoingPageInit() {
       boxToShow.removeAttribute("hidden");
 
     var smtpNameInput = document.getElementById("smtpusername");
-    var smtpServer = parent.smtpService.defaultServer;
+    let smtpServer = MailServices.smtp.defaultServer;
     if (smtpServer && smtpServer.hostname && smtpServer.username) {
       // we have a default SMTP server, so modify and show the static text
       // and store the username for the default server in the textbox.

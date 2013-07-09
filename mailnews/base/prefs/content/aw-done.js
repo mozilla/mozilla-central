@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gPrefsBundle;
 
 function donePageInit() {
@@ -125,7 +127,7 @@ function donePageInit() {
 
         var smtpServerName="";
         if (pageData.server && pageData.server.smtphostname) {
-          var smtpServer = parent.smtpService.defaultServer;
+          let smtpServer = MailServices.smtp.defaultServer;
           smtpServerName = pageData.server.smtphostname.value;
           if (!smtpServerName && smtpServer && smtpServer.hostname)
               smtpServerName = smtpServer.hostname;
