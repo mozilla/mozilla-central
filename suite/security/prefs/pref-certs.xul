@@ -29,6 +29,13 @@
       <preference id="security.disable_button.openDeviceManager"
                   name="security.disable_button.openDeviceManager"
                   type="bool"/>
+      <preference id="security.OCSP.enabled"
+                  name="security.OCSP.enabled"
+                  type="int"
+                  onchange="DoEnabling(this.value);"/>
+      <preference id="security.OCSP.require"
+                  name="security.OCSP.require"
+                  type="bool"/>
     </preferences>
 
 
@@ -72,6 +79,21 @@
               accesskey="&managedevices.accesskey;"
               preference="security.disable_button.openDeviceManager"/>
     </hbox>
+  </groupbox>
+
+  <!-- Validation -->
+  <groupbox align="start">
+    <caption label="&validation.ocsp.caption;"/>
+    <checkbox id="enableOCSPBox"
+              label="&enableOCSP.label;"
+              accesskey="&enableOCSP.accesskey;"
+              onsynctopreference="return +this.checked;"
+              preference="security.OCSP.enabled"/>
+    <separator class="thin"/>
+    <checkbox id="requireWorkingOCSP"
+              label="&validation.requireOCSP.description;"
+              accesskey="&validation.requireOCSP.accesskey;"
+              preference="security.OCSP.require"/>
   </groupbox>
 
   </prefpane>

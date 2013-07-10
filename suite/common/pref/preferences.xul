@@ -184,11 +184,6 @@
                     prefpane="certs_pane"
                     url="chrome://pippki/content/pref-certs.xul"
                     helpTopic="certs_prefs"/>
-          <treeitem id="validationItem"
-                    label="&validation.label;"
-                    prefpane="validation_pane"
-                    url="chrome://pippki/content/pref-validation.xul"
-                    helpTopic="validation_prefs"/>
         </treechildren>
       </treeitem>
 

@@ -9,5 +9,3 @@ pippki.jar:
    content/pippki/pref-masterpass.xul       (prefs/pref-masterpass.xul)
    content/pippki/pref-ssl.js               (prefs/pref-ssl.js)
    content/pippki/pref-ssl.xul              (prefs/pref-ssl.xul)
-   content/pippki/pref-validation.js        (prefs/pref-validation.js)
-   content/pippki/pref-validation.xul       (prefs/pref-validation.xul)
