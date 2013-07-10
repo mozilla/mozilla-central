@@ -1906,6 +1906,20 @@
         </body>
       </method>
 
+      <method name="_getTabForContentWindow">
+        <parameter name="aWindow"/>
+        <body>
+          <![CDATA[
+            const browsers = this.browsers;
+            for (var i = 0; i < browsers.length; ++i)
+              if (browsers[i].contentWindow == aWindow)
+                return this.tabs[i];
+
+            return null;
+          ]]>
+        </body>
+      </method>
+
       <method name="getBrowserForTab">
         <parameter name="aTab"/>
         <body>
@@ -2762,15 +2776,10 @@
           if (!event.isTrusted)
             return;
 
-          const browsers = this.browsers;
-          if (browsers.length == 1)
+          if (this.tabs.length == 1)
             return;
-          var i = 0;
-          for (; i < browsers.length; ++i) {
-            if (browsers[i].contentWindow == event.target)
-              break;
-          }
-          this.removeTab(this.tabs[i]);
+
+          this.removeTab(this._getTabForContentWindow(event.target));
           event.preventDefault();
         ]]>
       </handler>
@@ -2781,15 +2790,7 @@
 
           // We're about to open a modal dialog, make sure the opening
           // tab is brought to the front.
-
-          const browsers = this.browsers;
-          for (var i = 0; i < browsers.length; ++i) {
-            if (browsers[i].contentWindow == event.target.top) {
-              this.selectedTab = this.tabs[i];
-
-              break;
-            }
-          }
+          this.selectedTab = this._getTabForContentWindow(event.target.top);
         ]]>
       </handler>
 
