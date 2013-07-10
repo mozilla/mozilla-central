@@ -20,6 +20,10 @@ fi
 
 . $topsrcdir/build/win64/mozconfig.vs2010
 
+# Set up mapi includes (must be done after visual studio setup)
+export INCLUDE=$INCLUDE:/c/Office\ 2010\ Developer\ Resources/Outlook\ 2010\ MAPI\ Headers
+mk_export_correct_style INCLUDE
+
 # Run client.py
 mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
