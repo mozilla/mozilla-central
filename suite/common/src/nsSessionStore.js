@@ -35,10 +35,9 @@ const NOTIFY_BROWSER_STATE_RESTORED = "sessionstore-browser-state-restored";
 
 // global notifications observed
 const OBSERVING = [
-  "domwindowopened", "domwindowclosed",
-  "quit-application-requested", "quit-application-granted",
-  "browser-lastwindow-close-granted",
-  "quit-application", "browser:purge-session-history"
+  "domwindowclosed",
+  "quit-application-requested", "quit-application-granted", "quit-application",
+  "browser-lastwindow-close-granted", "browser:purge-session-history"
 ];
 
 /*
@@ -370,12 +369,6 @@ SessionStoreService.prototype = {
     var _this = this;
 
     switch (aTopic) {
-    case "domwindowopened": // catch new windows
-      aSubject.addEventListener("load", function aSubjectLoad(aEvent) {
-        aEvent.currentTarget.removeEventListener("load", aSubjectLoad, false);
-        _this.onLoad(aEvent.currentTarget);
-      }, false);
-      break;
     case "domwindowclosed": // catch closed windows
       this.onClose(aSubject);
       break;
