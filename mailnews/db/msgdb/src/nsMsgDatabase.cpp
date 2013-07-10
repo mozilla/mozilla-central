@@ -391,9 +391,7 @@ NS_IMETHODIMP nsMsgDBService::RegisterPendingListener(nsIMsgFolder *aFolder, nsI
   // if there is a db open on this folder already, we should register the listener.
   m_foldersPendingListeners.AppendObject(aFolder);
   m_pendingListeners.AppendObject(aListener);
-  nsCOMPtr <nsIMsgDatabase> openDB;
-
-  openDB = getter_AddRefs((nsIMsgDatabase *) nsMsgDatabase::FindInCache(aFolder));
+  nsCOMPtr <nsIMsgDatabase> openDB = dont_AddRef((nsIMsgDatabase *) nsMsgDatabase::FindInCache(aFolder));
   if (openDB)
     openDB->AddListener(aListener);
   return NS_OK;
@@ -406,7 +404,7 @@ NS_IMETHODIMP nsMsgDBService::UnregisterPendingListener(nsIDBChangeListener *aLi
   if (listenerIndex != -1)
   {
     nsCOMPtr <nsIMsgFolder> folder = m_foldersPendingListeners[listenerIndex];
-    nsCOMPtr <nsIMsgDatabase> msgDB = getter_AddRefs(nsMsgDatabase::FindInCache(folder));
+    nsCOMPtr <nsIMsgDatabase> msgDB = dont_AddRef(nsMsgDatabase::FindInCache(folder));
     if (msgDB)
       msgDB->RemoveListener(aListener);
     m_foldersPendingListeners.RemoveObjectAt(listenerIndex);
@@ -4599,7 +4597,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, bool &newThread)
     if (reference.IsEmpty())
       break;
 
-    thread = getter_AddRefs(GetThreadForReference(reference, getter_AddRefs(replyToHdr))) ;
+    thread = dont_AddRef(GetThreadForReference(reference, getter_AddRefs(replyToHdr))) ;
     if (thread)
     {
       if (replyToHdr)
@@ -4630,7 +4628,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, bool &newThread)
     if (ThreadBySubjectWithoutRe() || (newHdrFlags & nsMsgMessageFlags::HasRe))
     {
       nsAutoCString cSubject(subject);
-      thread = getter_AddRefs(GetThreadForSubject(cSubject));
+      thread = dont_AddRef(GetThreadForSubject(cSubject));
       if(thread)
       {
         thread->GetThreadKey(&threadId);
@@ -4649,7 +4647,7 @@ nsresult nsMsgDatabase::ThreadNewHdr(nsMsgHdr* newHdr, bool &newThread)
     nsCString msgId;
     newHdr->GetMessageId(getter_Copies(msgId));
 
-    thread = getter_AddRefs(GetThreadForMessageId(msgId));
+    thread = dont_AddRef(GetThreadForMessageId(msgId));
     if (thread)
     {
       thread->GetThreadKey(&threadId);
