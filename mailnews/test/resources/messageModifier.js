@@ -176,8 +176,16 @@ SyntheticMessageSet.prototype = {
                                   Components.interfaces.nsIMutableArray)];
     }
   },
-  setRead: function(aRead) {
-    for each (let msgHdr in this.msgHdrs) {
+  /**
+   * Sets the status of the messages to read/unread.
+   *
+   * @param aRead    true/false to set messages as read/unread
+   * @param aMsgHdr  A message header to work on. If not specified,
+   *                 mark all messages in the current set.
+   */
+  setRead: function(aRead, aMsgHdr) {
+    let msgHdrs = aMsgHdr ? [aMsgHdr] : this.msgHdrList;
+    for (let msgHdr of msgHdrs) {
       msgHdr.markRead(aRead);
     }
   },
@@ -203,18 +211,23 @@ SyntheticMessageSet.prototype = {
    *  classifier.  Which I'm conveniently not.  Feel free to add a
    *  "setJunkForRealsies" method if you are.)
    *
+   * @param aIsJunk  true/false to set messages to junk/non-junk
+   * @param aMsgHdr  A message header to work on. If not specified,
+   *                 mark all messages in the current set.
    * Generates a JunkStatusChanged nsIMsgFolderListener itemEvent notification.
    */
-  setJunk: function(aIsJunk) {
+  setJunk: function(aIsJunk, aMsgHdr) {
     let junkscore = aIsJunk ? "100" : "0";
-    for each (let msgHdr in this.msgHdrs) {
+    let msgHdrs = aMsgHdr ? [aMsgHdr] : this.msgHdrList;
+    for (let msgHdr of msgHdrs) {
       msgHdr.setStringProperty("junkscore", junkscore);
     };
 
     let atomService = Cc["@mozilla.org/atom-service;1"].
                         getService(Ci.nsIAtomService);
     let atom = atomService.getAtom(aIsJunk ? "junk" : "notjunk");
-    MailServices.mfn.notifyItemEvent(this.xpcomHdrArray,
+    let xpcomHdrArray = toXPCOMArray(msgHdrs, Ci.nsIMutableArray);
+    MailServices.mfn.notifyItemEvent(xpcomHdrArray,
                                      "JunkStatusChanged",
                                      atom);
   },

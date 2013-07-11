@@ -663,8 +663,8 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     //  approach.  In the first pass we just allocate messages to the folder
     //  we are going to insert them into.  In the second pass we insert the
     //  messages into folders in batches and perform any mutations.
-    let folderBatches = [{folder: folder, messages: []} for each
-                         ([, folder] in Iterator(aMsgFolders))];
+    let folderBatches = [{folder: folder, messages: []} for
+                         (folder of aMsgFolders)];
     iterFolders = _looperator(folderBatches);
     let iPerSet = 0, folderBatch = iterFolders.next();
 
@@ -674,11 +674,12 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     do {
       didSomething = false;
       // for each message set, if it is not out of messages, add the message
-      for each (let [, messageSet] in Iterator(aMessageSets)) {
+      for (let messageSet of aMessageSets) {
         if (iPerSet < messageSet.synMessages.length) {
           let synMsg = messageSet._trackMessageAddition(folderBatch.folder,
                                                         iPerSet);
-          folderBatch.messages.push(synMsg);
+          folderBatch.messages.push({ messageSet: messageSet, synMsg: synMsg,
+                                      index: iPerSet });
           didSomething = true;
         }
       }
@@ -687,36 +688,35 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     } while (didSomething);
 
     // - inject messages
-    for each ([, folderBatch] in Iterator(folderBatches)) {
+    for (folderBatch of folderBatches) {
       // it is conceivable some folders might not get any messages, skip them.
       if (!folderBatch.messages.length)
         continue;
 
       let folder = folderBatch.folder;
       folder.gettingNewMessages = true;
-      let messageStrings = [synMsg.toMboxString() for each
-                            ([, synMsg] in Iterator(folderBatch.messages))];
+      let messageStrings = [message.synMsg.toMboxString() for
+                            (message of folderBatch.messages)];
       folder.addMessageBatch(messageStrings.length, messageStrings);
 
-      for each (let [, synMsg] in Iterator(folderBatch.messages)) {
-        // if we need to mark the message as junk grab the header and do so
-        // (The message set can mark the whole set as junk, but not just
-        //  specific messages.)
-        if (synMsg.metaState.junk) {
-          let msgHdr = messageSet.getMsgHdr(iPerSet);
-          msgHdr.setStringProperty("junkscore", "100");
+      for (let message of folderBatch.messages) {
+        let synMsgState = message.synMsg.metaState;
+        // If we need to mark the message as junk grab the header and do so.
+        if (synMsgState.junk) {
+          message.messageSet.setJunk(true,
+            message.messageSet.getMsgHdr(message.index));
         }
-        if (synMsg.metaState.read) {
+        if (synMsgState.read) {
           // XXX this will generate an event; I'm not sure if we should be
           //  trying to avoid that or not.  This case is really only added
           //  for IMAP where this makes more sense.
-          let msgHdr = messageSet.getMsgHdr(iPerSet);
-          msgHdr.markRead(true);
+          message.messageSet.setRead(true,
+            message.messageSet.getMsgHdr(message.index));
         }
       }
       if (folderBatch.messages.length)
       {
-        let lastMRUTime = Math.floor(Number(folderBatch.messages[0].date)
+        let lastMRUTime = Math.floor(Number(folderBatch.messages[0].synMsg.date)
                                      / 1000);
         folder.setStringProperty("MRUTime", lastMRUTime);
       }
@@ -731,7 +731,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
     // XXX we probably need to be doing more in terms of filters here,
     //  although since filters really want to be run on the inbox, there
     //  are separate potential semantic issues involved.
-    for each (let [, folder] in Iterator(aMsgFolders)) {
+    for (let folder of aMsgFolders) {
       folder.callFilterPlugins(null);
     }
   }
