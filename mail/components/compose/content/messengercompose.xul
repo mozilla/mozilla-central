@@ -331,62 +331,52 @@
 
 <menupopup id="msgComposeAttachmentItemContext"
            onpopupshowing="updateAttachmentItems();">
-  <menuitem id="composeAttachmentContext_openItem"
-            label="&openAttachment.label;"
+  <menuitem label="&openAttachment.label;"
             accesskey="&openAttachment.accesskey;"
             command="cmd_openAttachment"/>
-  <menuitem id="composeAttachmentContext_deleteItem"
-            label="&removeAttachment.label;"
+  <menuitem label="&removeAttachment.label;"
             accesskey="&removeAttachment.accesskey;"
             command="cmd_delete"/>
-  <menuitem id="composeAttachmentContext_renameItem"
-            label="&renameAttachment.label;"
+  <menuitem label="&renameAttachment.label;"
             accesskey="&renameAttachment.accesskey;"
             command="cmd_renameAttachment"/>
-  <menu id="composeAttachmentContext_convertCloudMenu"
-        label="&convertCloud.label;"
+  <menu label="&convertCloud.label;"
         accesskey="&convertCloud.accesskey;"
         command="cmd_convertCloud">
-    <menupopup id="convertCloudMenuItems_popup"
-               onpopupshowing="addConvertCloudMenuItems(this, 'context_convertCloudSeparator', 'context_convertCloud');">
-      <menuitem id="convertCloudMenuItems_popup_convertAttachment"
+    <menupopup onpopupshowing="addConvertCloudMenuItems(this, 'context_convertCloudSeparator', 'context_convertCloud');">
+      <menuitem id="context_convertAttachment"
                 type="radio" name="context_convertCloud"
                 label="&convertRegularAttachment.label;"
                 accesskey="&convertRegularAttachment.accesskey;"
                 command="cmd_convertAttachment"/>
-      <menuseparator id="convertCloudSeparator"/>
+      <menuseparator id="context_convertCloudSeparator"/>
     </menupopup>
   </menu>
-  <menuitem id="composeAttachmentContext_cancelUploadItem"
+  <menuitem id="context_cancelUpload"
             label="&cancelUpload.label;"
             accesskey="&cancelUpload.accesskey;"
             command="cmd_cancelUpload"/>
   <menuseparator/>
-  <menuitem id="composeAttachmentContext_selectAllItem"
-            label="&selectAll.label;"
+  <menuitem label="&selectAll.label;"
             accesskey="&selectAll.accesskey;"
             command="cmd_selectAll"/>
 </menupopup>
 
 <menupopup id="msgComposeAttachmentListContext"
            onpopupshowing="updateAttachmentItems();">
-  <menuitem id="attachmentListContext_selectAllItem"
-            label="&selectAll.label;"
+  <menuitem label="&selectAll.label;"
             accesskey="&selectAll.accesskey;"
             command="cmd_selectAll"/>
   <menuseparator/>
-  <menuitem id="attachmentListContext_attachFileItem"
-            label="&attachFile.label;"
+  <menuitem label="&attachFile.label;"
             accesskey="&attachFile.accesskey;"
             command="cmd_attachFile"/>
-  <menu id="attachmentListContext_attachCloudMenu"
-        label="&attachCloud.label;"
+  <menu label="&attachCloud.label;"
         accesskey="&attachCloud.accesskey;"
         command="cmd_attachCloud">
-    <menupopup id="attachCloudMenu_attachCloudPopup" onpopupshowing="addAttachCloudMenuItems(this);"/>
+    <menupopup onpopupshowing="addAttachCloudMenuItems(this);"/>
   </menu>
-  <menuitem id="attachmentListContext_attachPageItem"
-            label="&attachPage.label;"
+  <menuitem label="&attachPage.label;"
             accesskey="&attachPage.accesskey;"
             command="cmd_attachPage"/>
 </menupopup>
@@ -700,24 +690,19 @@
                ondragdrop="nsDragAndDrop.drop(event, envelopeDragObserver);"
                ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
       <menupopup id="button-attachPopup" onpopupshowing="updateAttachmentItems();">
-        <menuitem id="button-attachPopup_attachFileItem"
-                  label="&attachFileCmd.label;"
+        <menuitem label="&attachFileCmd.label;"
                   accesskey="&attachFileCmd.accesskey;"
                   command="cmd_attachFile"/>
-        <menu id="button-attachPopup_attachCloudMenu"
-              label="&attachCloudCmd.label;"
+        <menu label="&attachCloudCmd.label;"
               accesskey="&attachCloudCmd.accesskey;"
               command="cmd_attachCloud">
-          <menupopup id="attachCloudMenu_popup" onpopupshowing="addAttachCloudMenuItems(this);"/>
+          <menupopup onpopupshowing="addAttachCloudMenuItems(this);"/>
         </menu>
-        <menuitem id="button-attachPopup_attachPageItem"
-                  label="&attachPageCmd.label;"
+        <menuitem label="&attachPageCmd.label;"
                   accesskey="&attachPageCmd.accesskey;"
                   command="cmd_attachPage"/>
         <menuseparator/>
-        <menuitem id="button-attachPopup_attachVCardItem"
-                  type="checkbox"
-                  label="&attachVCardCmd.label;"
+        <menuitem type="checkbox" label="&attachVCardCmd.label;"
                   accesskey="&attachVCardCmd.accesskey;"
                   command="cmd_attachVCard"/>
       </menupopup>
@@ -737,15 +722,12 @@
                tooltiptext="&saveButton.tooltip;"
                command="cmd_saveDefault">
          <menupopup id="button-savePopup" onpopupshowing="InitFileSaveAsMenu();">
-           <menuitem id="savePopup_saveAsFile"
-                     label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;"
+           <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;"
                      command="cmd_saveAsFile" type="radio" name="radiogroup_SaveAs"/>
            <menuseparator/>
-           <menuitem id="savePopup_saveAsDraft"
-                     label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;"
+           <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;"
                      command="cmd_saveAsDraft" type="radio" name="radiogroup_SaveAs"/>
-           <menuitem id="savePopup_saveAsTemplate"
-                     label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;"
+           <menuitem label="&saveAsTemplateCmd.label;" accesskey="&saveAsTemplateCmd.accesskey;"
                      command="cmd_saveAsTemplate" type="radio" name="radiogroup_SaveAs"/>
          </menupopup>
     </toolbarbutton>
@@ -800,7 +782,7 @@
 
   <hbox flex="1">
     <vbox id="sidebar-box" persist="sidebarVisible width" hidden="true">
-      <sidebarheader id="sidebarHeader" align="center">
+      <sidebarheader align="center">
         <label id="sidebar-title" value="&addressesSidebarTitle.label;"/>
         <spacer flex="1"/>
         <toolbarbutton class="ab-closebutton" oncommand="toggleAddressPicker();"/>
@@ -874,7 +856,7 @@
           </listbox>
           <hbox id="subject-box">
             <hbox align="center" pack="end" style="&headersSpace.style;">
-              <label id="subjectLabel" value="&subject.label;" accesskey="&subject.accesskey;" control="msgSubject"/>
+              <label value="&subject.label;" accesskey="&subject.accesskey;" control="msgSubject"/>
             </hbox>
             <textbox id="msgSubject" flex="1" class="toolbar" disableonsend="true" spellcheck="true"
                      oninput="gContentChanged=true;SetComposeWindowTitle();"
