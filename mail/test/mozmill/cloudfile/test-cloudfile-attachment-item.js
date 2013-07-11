@@ -155,7 +155,7 @@ function assert_can_cancel_upload(aController, aProvider, aListener,
 
   assert_false(cmd.hidden);
   assert_false(cmd.disabled);
-  let cancelItem = aController.eid("context_cancelUpload");
+  let cancelItem = aController.eid("composeAttachmentContext_cancelUploadItem");
   aController.click(cancelItem);
 
   // Close the popup, and wait for the cancellation to be complete.

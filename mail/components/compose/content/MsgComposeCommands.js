@@ -709,7 +709,7 @@ var attachmentBucketController = {
 
     cmd_cancelUpload: {
       isEnabled: function() {
-        let cmd = document.getElementById("context_cancelUpload");
+        let cmd = document.getElementById("composeAttachmentContext_cancelUploadItem");
 
         // If Filelink is disabled, hide this menuitem and bailout.
         if (!Services.prefs.getBoolPref("mail.cloud_files.enabled")) {
@@ -1023,7 +1023,7 @@ function addConvertCloudMenuItems(aParentMenu, aAfterNodeId, aRadioGroup)
     aParentMenu.removeChild(afterNode.nextSibling);
 
   if (!attachment.sendViaCloud) {
-    let item = document.getElementById("context_convertAttachment");
+    let item = document.getElementById("convertCloudMenuItems_popup_convertAttachment");
     item.setAttribute("checked", "true");
   }
 

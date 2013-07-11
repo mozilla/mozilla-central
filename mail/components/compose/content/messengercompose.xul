@@ -348,7 +348,7 @@
         accesskey="&convertCloud.accesskey;"
         command="cmd_convertCloud">
     <menupopup id="convertCloudMenuItems_popup"
-               onpopupshowing="addConvertCloudMenuItems(this, 'context_convertCloudSeparator', 'context_convertCloud');">
+               onpopupshowing="addConvertCloudMenuItems(this, 'convertCloudSeparator', 'context_convertCloud');">
       <menuitem id="convertCloudMenuItems_popup_convertAttachment"
                 type="radio" name="context_convertCloud"
                 label="&convertRegularAttachment.label;"
