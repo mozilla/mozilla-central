@@ -44,6 +44,7 @@ function actually_run_test() {
   // adding messages leaves some headers around as garbage - make sure
   // those are cleaned up so the db will get closed.
   Components.utils.forceGC();
+  Components.utils.forceCC();
   do_check_eq(gDbService.cachedDBForFolder(gTestFolder), null);
   // no retention settings, so we should have the same number of messages.
   do_check_eq(numMessages, gTestFolder.msgDatabase.dBFolderInfo.numMessages);
