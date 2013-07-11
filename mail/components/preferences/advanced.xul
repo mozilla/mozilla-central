@@ -131,9 +131,6 @@
       <preference id="security.disable_button.openCertManager"
                   name="security.disable_button.openCertManager"
                   type="bool"/>
-      <preference id="security.OCSP.disable_button.managecrl"
-                  name="security.OCSP.disable_button.managecrl"
-                  type="bool"/>
       <preference id="security.disable_button.openDeviceManager"
                   name="security.disable_button.openDeviceManager"
                   type="bool"/>
@@ -438,35 +435,21 @@
 
           <separator/>
 
-#ifdef XP_MACOSX
-          <vbox>
-#endif
           <hbox>
             <button id="viewCertificatesButton"
                     label="&viewCertificates.label;"
                     accesskey="&viewCertificates.accesskey;"
                     oncommand="gAdvancedPane.showCertificates();"
                     preference="security.disable_button.openCertManager"/>
-            <button id="viewCRLButton"
-                    label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;"
-                    oncommand="gAdvancedPane.showCRLs();"
-                    preference="security.OCSP.disable_button.managecrl"/>
             <button id="verificationButton"
                     label="&validation.label;" accesskey="&validation.accesskey;"
                     oncommand="gAdvancedPane.showOCSP();"/>
-#ifdef XP_MACOSX
-          </hbox>
-          <hbox>
-#endif
             <button id="viewSecurityDevicesButton"
                     label="&viewSecurityDevices.label;"
                     accesskey="&viewSecurityDevices.accesskey;"
                     oncommand="gAdvancedPane.showSecurityDevices();"
                     preference="security.disable_button.openDeviceManager"/>
           </hbox>
-#ifdef XP_MACOSX
-          </vbox>
-#endif
         </tabpanel>
       </tabpanels>
     </tabbox>
