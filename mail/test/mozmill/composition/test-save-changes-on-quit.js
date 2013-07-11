@@ -37,9 +37,9 @@ var setupModule = function (module) {
   folder = create_folder("PromptToSaveTest");
 
   add_message_to_folder(folder, create_message()); // row 0
-
-  folder.addMessage(msgSource("content type: text", "text")); // row 1
-  folder.addMessage(msgSource("content type missing", null)); // row 2
+  let localFolder = folder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localFolder.addMessage(msgSource("content type: text", "text")); // row 1
+  localFolder.addMessage(msgSource("content type missing", null)); // row 2
 };
 
 function msgSource(aSubject, aContentType) {
