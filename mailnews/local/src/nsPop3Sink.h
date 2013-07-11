@@ -16,6 +16,7 @@
 #include "nsIMsgFolder.h"
 #include "nsAutoPtr.h"
 #include "nsTArray.h"
+#include "nsStringGlue.h"
 
 class nsParseNewMailState;
 class nsIMsgFolder;
@@ -44,21 +45,19 @@ public:
     static char*  GetDummyEnvelope(void);
 
 protected:
-
-    nsresult WriteLineToMailbox(const char *buffer);
+    nsresult WriteLineToMailbox(const nsACString& buffer);
     nsresult ReleaseFolderLock();
     nsresult HandleTempDownloadFailed(nsIMsgWindow *msgWindow);
 
     bool m_authed;
-    char* m_accountUrl;
+    nsCString m_accountUrl;
     uint32_t m_biffState;
     int32_t m_numNewMessages;
     int32_t m_numNewMessagesInFolder;
     int32_t m_numMsgsDownloaded;
     bool m_senderAuthed;
-    char* m_outputBuffer;
-    int32_t m_outputBufferSize;
-    nsIPop3IncomingServer *m_popServer;
+    nsCString m_outputBuffer;
+    nsCOMPtr<nsIPop3IncomingServer> m_popServer;
     //Currently the folder we want to update about biff info
     nsCOMPtr<nsIMsgFolder> m_folder;
     nsRefPtr<nsParseNewMailState> m_newMailParser;

@@ -178,7 +178,7 @@ nsresult nsMsgLineBuffer::BufferInput(const char *net_buffer, int32_t net_buffer
     return NS_OK;
 }
 
-nsresult nsMsgLineBuffer::HandleLine(char *line, uint32_t line_length)
+nsresult nsMsgLineBuffer::HandleLine(const char *line, uint32_t line_length)
 {
   NS_ASSERTION(false, "must override this method if you don't provide a handler");
   return NS_OK;
@@ -275,9 +275,9 @@ nsMsgLineStreamBuffer::~nsMsgLineStreamBuffer()
 
 nsresult nsMsgLineStreamBuffer::GrowBuffer(int32_t desiredSize)
 {
-  m_dataBuffer = (char *) PR_REALLOC(m_dataBuffer, desiredSize);
-  if (!m_dataBuffer)
-    return NS_ERROR_OUT_OF_MEMORY;
+  char* newBuffer = (char *) PR_REALLOC(m_dataBuffer, desiredSize);
+  NS_ENSURE_TRUE(newBuffer, NS_ERROR_OUT_OF_MEMORY);
+  m_dataBuffer = newBuffer;
   m_dataBufferSize = desiredSize;
   return NS_OK;
 }

@@ -431,7 +431,7 @@ void nsMsgMailboxParser::OnNewMessage(nsIMsgWindow *msgWindow)
   Clear();
 }
 
-nsresult nsMsgMailboxParser::HandleLine(char *line, uint32_t lineLength)
+nsresult nsMsgMailboxParser::HandleLine(const char *line, uint32_t lineLength)
 {
   /* If this is the very first line of a non-empty folder, make sure it's an envelope */
   if (m_graph_progress_received == 0)

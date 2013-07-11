@@ -305,13 +305,12 @@ nsresult
 nsMsgSendLater::BuildNewBuffer(const char* aBuf, uint32_t aCount, uint32_t *totalBufSize)
 {
   // Only build a buffer when there are leftovers...
-  if (!mLeftoverBuffer)
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_TRUE(mLeftoverBuffer, NS_ERROR_FAILURE);
 
   int32_t leftoverSize = PL_strlen(mLeftoverBuffer);
-  mLeftoverBuffer = (char *)PR_Realloc(mLeftoverBuffer, aCount + leftoverSize);
-  if (!mLeftoverBuffer)
-    return NS_ERROR_FAILURE;
+  char* newBuffer = (char *) PR_Realloc(mLeftoverBuffer, aCount + leftoverSize);
+  NS_ENSURE_TRUE(newBuffer, NS_ERROR_OUT_OF_MEMORY);
+  mLeftoverBuffer = newBuffer;
 
   memcpy(mLeftoverBuffer + leftoverSize, aBuf, aCount);
   *totalBufSize = aCount + leftoverSize;

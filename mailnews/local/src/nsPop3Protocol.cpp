@@ -1873,10 +1873,6 @@ int32_t nsPop3Protocol::NextAuthStep()
             */
             SetFlag(POP3_PASSWORD_FAILED);
             Error("pop3PasswordFailure");
-
-            if (m_nsIPop3Sink)
-                m_nsIPop3Sink->SetMailAccountURL(NULL);
-
             return 0;
         }
         PR_LOG(POP3LOGMODULE, PR_LOG_DEBUG,
@@ -2376,7 +2372,7 @@ nsPop3Protocol::GurlResponse()
     {
         SetCapFlag(POP3_HAS_GURL);
         if (m_nsIPop3Sink)
-            m_nsIPop3Sink->SetMailAccountURL(m_commandResponse.get());
+            m_nsIPop3Sink->SetMailAccountURL(m_commandResponse);
     }
     else
     {

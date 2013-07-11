@@ -280,7 +280,7 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   bool usemime = nsMsgMIMEGetConformToStandard();
   int32_t size = 0;
-  char *buffer = 0, *buffer_tail = 0;
+  char *buffer = nullptr, *buffer_tail = nullptr;
   bool isDraft =
     deliver_mode == nsIMsgSend::nsMsgSaveAsDraft ||
     deliver_mode == nsIMsgSend::nsMsgSaveAsTemplate ||
@@ -307,9 +307,10 @@ mime_generate_headers (nsMsgCompFields *fields,
   headerBuf.Truncate();
 
   NS_ASSERTION (fields, "null fields");
-  if (!fields)
+  if (!fields) {
+    *status = NS_ERROR_NULL_POINTER;
     return nullptr;
-
+  }
   pFrom = fields->GetFrom();
   if (pFrom)
     headerBuf.Append(pFrom);
@@ -343,8 +344,10 @@ mime_generate_headers (nsMsgCompFields *fields,
   size += 2560;
 
   buffer = (char *) PR_Malloc (size);
-  if (!buffer)
+  if (!buffer) {
+    *status = NS_ERROR_OUT_OF_MEMORY;
     return nullptr; /* NS_ERROR_OUT_OF_MEMORY */
+  }
 
   buffer_tail = buffer;
 
@@ -482,6 +485,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     char *duppedNewsGrp = PL_strdup(pNewsGrp);
     if (!duppedNewsGrp) {
       PR_FREEIF(buffer);
+      *status = NS_ERROR_OUT_OF_MEMORY;
       return nullptr; /* NS_ERROR_OUT_OF_MEMORY */
     }
     char *n2 = nsMsgStripLine(duppedNewsGrp);
@@ -515,7 +519,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     // "news://news.mozilla.org/netscape.test,news://news.mozilla.org/netscape.junk"
     // we need to turn that into: "netscape.test,netscape.junk"
     //
-    nsCOMPtr <nsINntpService> nntpService = do_GetService("@mozilla.org/messenger/nntpservice;1");
+    nsCOMPtr<nsINntpService> nntpService = do_GetService("@mozilla.org/messenger/nntpservice;1", &rv);
     if (NS_FAILED(rv) || !nntpService) {
       *status = NS_ERROR_FAILURE;
       return nullptr;
@@ -707,13 +711,16 @@ mime_generate_headers (nsMsgCompFields *fields,
     PUSH_STRING (pOtherHdr);
   }
 
-  if (buffer_tail > buffer + size - 1)
+  if (buffer_tail > buffer + size - 1) {
+    PR_FREEIF(buffer);
     return nullptr;
-
+  }
   /* realloc it smaller... */
-  buffer = (char*)PR_REALLOC (buffer, buffer_tail - buffer + 1);
+  char *newBuffer = (char*) PR_REALLOC(buffer, buffer_tail - buffer + 1);
+  if (!newBuffer) // The original bigger buffer is still usable to the caller.
+    return buffer;
 
-  return buffer;
+  return newBuffer;
 }
 
 static void

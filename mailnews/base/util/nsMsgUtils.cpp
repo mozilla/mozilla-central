@@ -620,7 +620,6 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubject)
 {
   const char *s, *s_end;
-  const char *last;
   uint32_t L;
   bool result = false;
   NS_ASSERTION(stringP, "bad null param");
@@ -658,7 +657,6 @@ bool NS_MsgStripRE(const char **stringP, uint32_t *lengthP, char **modifiedSubje
   L = lengthP ? *lengthP : strlen(s);
 
   s_end = s + L;
-  last = s;
 
  AGAIN:
 
@@ -766,28 +764,20 @@ char * NS_MsgSACopy (char **destination, const char *source)
   return *destination;
 }
 
-/*  Again like strdup but it concatinates and free's and uses Realloc
+/*  Again like strdup but it concatenates and free's and uses Realloc.
 */
 char * NS_MsgSACat (char **destination, const char *source)
 {
   if (source && *source)
-    if (*destination)
-    {
-      int length = PL_strlen (*destination);
-      *destination = (char *) PR_Realloc (*destination, length + PL_strlen(source) + 1);
-      if (*destination == nullptr)
-        return(nullptr);
+  {
+    int destLength = *destination ? PL_strlen(*destination) : 0;
+    char* newDestination = (char*) PR_Realloc(*destination, destLength + PL_strlen(source) + 1);
+    if (newDestination == nullptr)
+      return nullptr;
 
-      PL_strcpy (*destination + length, source);
-    }
-    else
-    {
-      *destination = (char *) PR_Malloc (PL_strlen(source) + 1);
-      if (*destination == nullptr)
-        return(nullptr);
-
-      PL_strcpy (*destination, source);
-    }
+    *destination = newDestination;
+    PL_strcpy(*destination + destLength, source);
+  }
   return *destination;
 }
 

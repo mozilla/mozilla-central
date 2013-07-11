@@ -872,8 +872,8 @@ static char * lexGetDataFromBase64()
     unsigned long trip = 0;
     unsigned char b;
     int c;
-    unsigned char *bytes = NULL;
-    unsigned char *oldBytes = NULL;
+    unsigned char *bytes = nullptr;
+    unsigned char *oldBytes = nullptr;
 
     DBG_(("db: lexGetDataFromBase64\n"));
     while (1) {
@@ -934,18 +934,16 @@ static char * lexGetDataFromBase64()
 		if (bytesLen + numOut > bytesMax) {
 		    if (!bytes) {
 			bytesMax = 1024;
-			bytes = (unsigned char*)PR_CALLOC(bytesMax);
-			}
-		    else {
+		    } else {
 			bytesMax <<= 2;
 			oldBytes = bytes;
-			bytes = (unsigned char*)PR_Realloc(bytes,bytesMax);
-			}
-			if (bytes == 0) {
-			  mime_error("out of memory while processing BASE64 data\n");
-                          break;
-			}
 		    }
+		    bytes = (unsigned char*) PR_Realloc(oldBytes, bytesMax);
+		    if (!bytes) {
+			mime_error("out of memory while processing BASE64 data\n");
+			break;
+		    }
+		}
 		if (bytes) {
 			memcpy(bytes + bytesLen, outBytes, numOut);
 			bytesLen += numOut;

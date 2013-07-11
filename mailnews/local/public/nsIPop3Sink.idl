@@ -9,11 +9,11 @@
 
 interface nsIURI;
 
-[scriptable, uuid(ceabfc6b-f139-4c25-890f-efb7c3069d3f)]
+[scriptable, uuid(ceabfc6b-f139-4c25-890f-efb7c3069d40)]
 interface nsIPop3Sink : nsISupports {
 
   attribute boolean userAuthenticated;
-  attribute string mailAccountURL;
+  attribute ACString mailAccountURL;
   attribute boolean buildMessageUri;
   attribute string messageUri;
   attribute string baseMessageUri;

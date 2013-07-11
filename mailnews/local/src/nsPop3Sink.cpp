@@ -50,28 +50,20 @@ nsPop3Sink::nsPop3Sink()
 {
     m_authed = false;
     m_downloadingToTempFile = false;
-    m_accountUrl = nullptr;
     m_biffState = 0;
     m_numNewMessages = 0;
     m_numNewMessagesInFolder = 0;
     m_numMsgsDownloaded = 0;
     m_senderAuthed = false;
-    m_outputBuffer = nullptr;
-    m_outputBufferSize = 0;
-    m_popServer = nullptr;
     m_outFileStream = nullptr;
     m_uidlDownload = false;
     m_buildMessageUri = false;
     if (!POP3LOGMODULE)
       POP3LOGMODULE = PR_NewLogModule("POP3");
-
 }
 
 nsPop3Sink::~nsPop3Sink()
 {
-    PR_Free(m_accountUrl);
-    PR_Free(m_outputBuffer);
-    NS_IF_RELEASE(m_popServer);
     PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Calling ReleaseFolderLock from ~nsPop3Sink"));
     ReleaseFolderLock();
 }
@@ -98,25 +90,16 @@ nsPop3Sink::SetSenderAuthedFlag(void* closure, bool authed)
 }
 
 nsresult
-nsPop3Sink::SetMailAccountURL(const char* urlString)
+nsPop3Sink::SetMailAccountURL(const nsACString &urlString)
 {
-  if (urlString)
-  {
-    PR_Free(m_accountUrl);
-    m_accountUrl = PL_strdup(urlString);
-  }
-
+  m_accountUrl.Assign(urlString);
   return NS_OK;
 }
 
 nsresult
-nsPop3Sink::GetMailAccountURL(char* *urlString)
+nsPop3Sink::GetMailAccountURL(nsACString &urlString)
 {
-  NS_ASSERTION(urlString, "null getter in getMailAccountURL");
-  if (!urlString)
-    return NS_ERROR_NULL_POINTER;
-
-  *urlString = strdup(m_accountUrl);
+  urlString.Assign(m_accountUrl);
   return NS_OK;
 }
 
@@ -565,48 +548,48 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     if (closure)
         *closure = (void*) this;
 
-    char *dummyEnvelope = GetDummyEnvelope();
-
-  rv = WriteLineToMailbox(dummyEnvelope);
-  NS_ENSURE_SUCCESS(rv, rv);
-    // write out account-key before UIDL so the code that looks for
+    nsCString outputString(GetDummyEnvelope());
+    rv = WriteLineToMailbox(outputString);
+    NS_ENSURE_SUCCESS(rv, rv);
+    // Write out account-key before UIDL so the code that looks for
     // UIDL will find the account first and know it can stop looking
     // once it finds the UIDL line.
     if (!m_accountKey.IsEmpty())
     {
-      nsAutoCString outputString;
       outputString.AssignLiteral(HEADER_X_MOZILLA_ACCOUNT_KEY ": ");
       outputString.Append(m_accountKey);
       outputString.AppendLiteral(MSG_LINEBREAK);
-      WriteLineToMailbox(outputString.get());
+      rv = WriteLineToMailbox(outputString);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
     if (uidlString)
     {
-      nsAutoCString uidlCString("X-UIDL: ");
-      uidlCString += uidlString;
-      uidlCString += MSG_LINEBREAK;
-      rv = WriteLineToMailbox(const_cast<char*>(uidlCString.get()));
+      outputString.AssignLiteral("X-UIDL: ");
+      outputString.Append(uidlString);
+      outputString.AppendLiteral(MSG_LINEBREAK);
+      rv = WriteLineToMailbox(outputString);
       NS_ENSURE_SUCCESS(rv, rv);
     }
+
     // WriteLineToMailbox("X-Mozilla-Status: 8000" MSG_LINEBREAK);
     char *statusLine = PR_smprintf(X_MOZILLA_STATUS_FORMAT MSG_LINEBREAK, flags);
-    rv = WriteLineToMailbox(statusLine);
-    if (NS_FAILED(rv)) return rv;
-    rv = WriteLineToMailbox("X-Mozilla-Status2: 00000000" MSG_LINEBREAK);
-    if (NS_FAILED(rv)) return rv;
-    // leave space for 60 bytes worth of keys/tags
-    rv = WriteLineToMailbox(X_MOZILLA_KEYWORDS);
+    outputString.Assign(statusLine);
+    rv = WriteLineToMailbox(outputString);
     PR_smprintf_free(statusLine);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = WriteLineToMailbox(NS_LITERAL_CSTRING("X-Mozilla-Status2: 00000000" MSG_LINEBREAK));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // leave space for 60 bytes worth of keys/tags
+    rv = WriteLineToMailbox(NS_LITERAL_CSTRING(X_MOZILLA_KEYWORDS));
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsPop3Sink::SetPopServer(nsIPop3IncomingServer *server)
 {
-  NS_IF_RELEASE(m_popServer);
-  m_popServer=server;
-  NS_ADDREF(m_popServer);
-
+  m_popServer = server;
   return NS_OK;
 }
 
@@ -634,8 +617,8 @@ NS_IMETHODIMP nsPop3Sink::SetFolder(nsIMsgFolder * aFolder)
 nsresult
 nsPop3Sink::GetServerFolder(nsIMsgFolder **aFolder)
 {
-  if (!aFolder)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aFolder);
+
   if (m_popServer)
   {
     // not sure what this is used for - might be wrong if we have a deferred account.
@@ -678,53 +661,33 @@ nsresult
 nsPop3Sink::IncorporateWrite(const char* block,
                              int32_t length)
 {
-  int32_t blockOffset = 0;
+  m_outputBuffer.Truncate();
   if (!strncmp(block, "From ", 5))
-  {
-    length++;
-    blockOffset = 1;
-  }
-  if (!m_outputBuffer || length > m_outputBufferSize)
-  {
-    if (!m_outputBuffer)
-      m_outputBuffer = (char*) PR_MALLOC(length+1);
-    else
-      m_outputBuffer = (char*) PR_REALLOC(m_outputBuffer, length+1);
+    m_outputBuffer.Assign('>');
 
-    m_outputBufferSize = length;
-  }
-  if (m_outputBuffer)
-  {
-    if (blockOffset == 1)
-      *m_outputBuffer = '>';
-    memcpy(m_outputBuffer + blockOffset, block, length - blockOffset);
-    *(m_outputBuffer + length) = 0;
-    nsresult rv = WriteLineToMailbox (m_outputBuffer);
-    if (NS_FAILED(rv)) return rv;
-  }
-  return NS_OK;
+  m_outputBuffer.Append(block);
+
+  return WriteLineToMailbox(m_outputBuffer);
 }
 
-nsresult nsPop3Sink::WriteLineToMailbox(const char *buffer)
+nsresult nsPop3Sink::WriteLineToMailbox(const nsACString& buffer)
 {
-
-  if (buffer)
+  if (!buffer.IsEmpty())
   {
-    int32_t bufferLen = PL_strlen(buffer);
-    if (m_newMailParser) // HandleLine should really take a const char *...
-      m_newMailParser->HandleLine((char *) buffer, bufferLen);
+    uint32_t bufferLen = buffer.Length();
+    if (m_newMailParser)
+      m_newMailParser->HandleLine(buffer.BeginReading(), bufferLen);
     // The following (!m_outFileStream etc) was added to make sure that we don't write somewhere
     // where for some reason or another we can't write to and lose the messages
     // See bug 62480
-    if (!m_outFileStream)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(m_outFileStream, NS_ERROR_OUT_OF_MEMORY);
 
     // seek to the end in case someone else has seeked elsewhere in our stream.
     nsCOMPtr <nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
     seekableOutStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
     uint32_t bytesWritten;
-    m_outFileStream->Write(buffer, bufferLen, &bytesWritten);
-    if ((int32_t) bytesWritten != bufferLen) return NS_ERROR_FAILURE;
+    m_outFileStream->Write(buffer.BeginReading(), bufferLen, &bytesWritten);
+    NS_ENSURE_TRUE(bytesWritten == bufferLen, NS_ERROR_FAILURE);
   }
   return NS_OK;
 }
@@ -786,7 +749,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, int32_t aSize)
     nsBuildLocalMessageURI(m_baseMessageUri.get(), msgKey, m_messageUri);
   }
 
-  nsresult rv = WriteLineToMailbox(MSG_LINEBREAK);
+  nsresult rv = WriteLineToMailbox(NS_LITERAL_CSTRING(MSG_LINEBREAK));
   NS_ENSURE_SUCCESS(rv, rv);
   bool leaveOnServer = false;
   m_popServer->GetLeaveMessagesOnServer(&leaveOnServer);

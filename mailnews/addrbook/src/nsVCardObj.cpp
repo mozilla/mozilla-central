@@ -863,8 +863,11 @@ stuff:
   }
   else if (fp->alloc) {
     fp->limit = fp->limit + OFILE_REALLOC_SIZE;
-    fp->s = (char *)PR_Realloc(fp->s,fp->limit);
-    if (fp->s) goto stuff;
+    char* newBuf = (char *) PR_Realloc(fp->s, fp->limit);
+    if (newBuf) {
+      fp->s = newBuf;
+      goto stuff;
+    }
   }
   if (fp->alloc)
     PR_FREEIF(fp->s);

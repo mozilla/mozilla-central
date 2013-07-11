@@ -3248,8 +3248,9 @@ NS_IMETHODIMP nsImapMailFolder::CopyDataToOutputStreamForAppend(nsIInputStream *
 
   if ( aLength + m_copyState->m_leftOver > m_copyState->m_dataBufferSize )
   {
-    m_copyState->m_dataBuffer = (char *) PR_REALLOC(m_copyState->m_dataBuffer, aLength + m_copyState->m_leftOver+ 1);
-    NS_ENSURE_TRUE(m_copyState->m_dataBuffer, NS_ERROR_OUT_OF_MEMORY);
+    char *newBuffer = (char*) PR_REALLOC(m_copyState->m_dataBuffer, aLength + m_copyState->m_leftOver+ 1);
+    NS_ENSURE_TRUE(newBuffer, NS_ERROR_OUT_OF_MEMORY);
+    m_copyState->m_dataBuffer = newBuffer;
     m_copyState->m_dataBufferSize = aLength + m_copyState->m_leftOver;
   }
 

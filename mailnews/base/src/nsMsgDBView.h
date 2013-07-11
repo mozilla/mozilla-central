@@ -11,7 +11,6 @@
 #include "nsIMessenger.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
-#include "nsMsgLineBuffer.h" // for nsByteArray
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsIDBChangeListener.h"
