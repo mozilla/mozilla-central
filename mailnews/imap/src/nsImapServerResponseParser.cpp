@@ -97,7 +97,7 @@ bool nsImapServerResponseParser::GetNextLineForParser(char **nextLine)
   // message up just in the interrupt case
   if (NS_FAILED(fServerConnection.GetConnectionStatus()) &&
       !fServerConnection.DeathSignalReceived())
-    fServerConnection.AlertUserEventUsingId(IMAP_SERVER_DISCONNECTED);
+    fServerConnection.AlertUserEventUsingName("imapServerDisconnected");
   return rv;
 }
 
@@ -276,7 +276,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
 
 void nsImapServerResponseParser::HandleMemoryFailure()
 {
-  fServerConnection.AlertUserEventUsingId(IMAP_OUT_OF_MEMORY);
+  fServerConnection.AlertUserEventUsingName("imapOutOfMemory");
   nsIMAPGenericParser::HandleMemoryFailure();
 }
 
@@ -3130,7 +3130,7 @@ bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, int32_t origin)
       charsReadSoFar += strlen(fCurrentLine);
       if (!fDownloadingHeaders && fCurrentCommandIsSingleMessageFetch)
       {
-        fServerConnection.ProgressEventFunctionUsingId(IMAP_DOWNLOADING_MESSAGE);
+        fServerConnection.ProgressEventFunctionUsingName("imapDownloadingMessage");
         if (fTotalDownloadSize > 0)
           fServerConnection.PercentProgressUpdateEvent(0,charsReadSoFar + origin, fTotalDownloadSize);
       }

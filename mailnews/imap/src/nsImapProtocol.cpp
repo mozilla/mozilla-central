@@ -455,7 +455,7 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nullptr),
   // used to buffer incoming data by ReadNextLine
   m_inputStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, true /* allocate new lines */, false /* leave CRLFs on the returned string */);
   m_currentBiffState = nsIMsgFolder::nsMsgBiffState_Unknown;
-  m_progressStringId = 0;
+  m_progressStringName.Truncate();
 
   // since these are embedded in the nsImapProtocol object, but passed
   // through proxied xpcom methods, just AddRef them here.
@@ -1606,7 +1606,7 @@ bool nsImapProtocol::ProcessCurrentURL()
              kIMAP4other) ) )
       {
         if (!DeathSignalReceived() && NS_SUCCEEDED(GetConnectionStatus()))
-          AlertUserEventUsingId(IMAP_SERVER_NOT_IMAP4);
+          AlertUserEventUsingName("imapServerNotImap4");
 
         SetConnectionStatus(NS_ERROR_FAILURE);        // stop netlib
       }
@@ -2499,7 +2499,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
              || m_imapAction == nsIImapUrl::nsImapMsgPreview)
           {
             // multiple messages, fetch them all
-            SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
+            SetProgressString("imapFolderReceivingMessageOf");
 
             m_progressIndex = 0;
             m_progressCount = CountMessagesInIdString(messageIdString.get());
@@ -2513,7 +2513,7 @@ void nsImapProtocol::ProcessSelectedStateURL()
               ? kBodyStart : kEveryThingRFC822Peek);
             if (m_imapAction == nsIImapUrl::nsImapMsgPreview)
               HeaderFetchCompleted();
-            SetProgressString(0);
+            SetProgressString(nullptr);
           }
           else
           {
@@ -2757,8 +2757,9 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsCString messageIdString;
           m_runningUrl->GetListOfMessageIds(messageIdString);
 
-          ProgressEventFunctionUsingId (HandlingMultipleMessages(messageIdString) ?
-                                      IMAP_DELETING_MESSAGES :IMAP_DELETING_MESSAGE);
+          ProgressEventFunctionUsingName(HandlingMultipleMessages(messageIdString) ?
+                                         "imapDeletingMessages" :
+                                         "imapDeletingMessage");
 
           Store(messageIdString, "+FLAGS (\\Deleted)",  bMessageIdsAreUids);
 
@@ -2864,15 +2865,15 @@ void nsImapProtocol::ProcessSelectedStateURL()
             if (m_imapAction == nsIImapUrl::nsImapOnlineMove)
             {
               if (HandlingMultipleMessages(messageIdString))
-                ProgressEventFunctionUsingIdWithString (IMAP_MOVING_MESSAGES_TO, destinationMailbox);
+                ProgressEventFunctionUsingNameWithString("imapMovingMessages", destinationMailbox);
               else
-                ProgressEventFunctionUsingIdWithString (IMAP_MOVING_MESSAGE_TO, destinationMailbox);
+                ProgressEventFunctionUsingNameWithString("imapMovingMessage", destinationMailbox);
             }
             else {
               if (HandlingMultipleMessages(messageIdString))
-                ProgressEventFunctionUsingIdWithString (IMAP_COPYING_MESSAGES_TO, destinationMailbox);
+                ProgressEventFunctionUsingNameWithString("imapCopyingMessages", destinationMailbox);
               else
-                ProgressEventFunctionUsingIdWithString (IMAP_COPYING_MESSAGE_TO, destinationMailbox);
+                ProgressEventFunctionUsingNameWithString("imapCopyingMessage", destinationMailbox);
             }
             Copy(messageIdString.get(), destinationMailbox, bMessageIdsAreUids);
             PR_FREEIF( destinationMailbox);
@@ -2918,13 +2919,13 @@ void nsImapProtocol::ProcessSelectedStateURL()
           nsresult rv = m_runningUrl->GetListOfMessageIds(messageIdString);
           if (NS_SUCCEEDED(rv))
           {
-            SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
+            SetProgressString("imapFolderReceivingMessageOf");
             m_progressIndex = 0;
             m_progressCount = CountMessagesInIdString(messageIdString.get());
 
             FetchMessage(messageIdString, kEveryThingRFC822Peek);
 
-            SetProgressString(0);
+            SetProgressString(nullptr);
             if (m_imapMailFolderSink)
             {
               ImapOnlineCopyState copyStatus;
@@ -3108,7 +3109,7 @@ void nsImapProtocol::CreateEscapedMailboxName(const char *rawName, nsCString &es
 }
 void nsImapProtocol::SelectMailbox(const char *mailboxName)
 {
-  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_SELECTING_MAILBOX, mailboxName);
+  ProgressEventFunctionUsingNameWithString("imapStatusSelectingMailbox", mailboxName);
   IncrementCommandTagNumber();
 
   m_closeNeededBeforeSelect = false;   // initial value
@@ -4162,19 +4163,19 @@ void nsImapProtocol::FolderMsgDump(uint32_t *msgUids, uint32_t msgCount, nsIMAPe
   // lets worry about this progress stuff later.
   switch (fields) {
   case kHeadersRFC822andUid:
-    SetProgressString(IMAP_RECEIVING_MESSAGE_HEADERS_OF);
+    SetProgressString("imapReceivingMessageHeaders");
     break;
   case kFlags:
-    SetProgressString(IMAP_RECEIVING_MESSAGE_FLAGS_OF);
+    SetProgressString("imapReceivingMessageFlags");
     break;
   default:
-    SetProgressString(IMAP_FOLDER_RECEIVING_MESSAGE_OF);
+    SetProgressString("imapFolderReceivingMessageOf");
     break;
   }
 
   FolderMsgDumpLoop(msgUids, msgCount, fields);
 
-  SetProgressString(0);
+  SetProgressString(nullptr);
 }
 
 void nsImapProtocol::WaitForPotentialListOfBodysToFetch(uint32_t **msgIdList, uint32_t &msgCount)
@@ -4671,11 +4672,11 @@ char* nsImapProtocol::CreateNewLineFromSocket()
     {
         case NS_ERROR_UNKNOWN_HOST:
         case NS_ERROR_UNKNOWN_PROXY_HOST:
-            AlertUserEventUsingId(IMAP_UNKNOWN_HOST_ERROR);
+            AlertUserEventUsingName("imapUnknownHostError");
             break;
         case NS_ERROR_CONNECTION_REFUSED:
         case NS_ERROR_PROXY_CONNECTION_REFUSED:
-            AlertUserEventUsingId(IMAP_CONNECTION_REFUSED_ERROR);
+            AlertUserEventUsingName("imapConnectionRefusedError");
             break;
         case NS_ERROR_NET_TIMEOUT:
         case NS_ERROR_NET_RESET:
@@ -4701,10 +4702,11 @@ char* nsImapProtocol::CreateNewLineFromSocket()
             }
           }
           if (rv == NS_ERROR_NET_TIMEOUT)
-            AlertUserEventUsingId(IMAP_NET_TIMEOUT_ERROR);
+            AlertUserEventUsingName("imapNetTimeoutError");
           else
-            AlertUserEventUsingId(TestFlag(IMAP_RECEIVED_GREETING)
-            ? IMAP_SERVER_DISCONNECTED : IMAP_SERVER_DROPPED_CONNECTION);
+            AlertUserEventUsingName(TestFlag(IMAP_RECEIVED_GREETING) ?
+                                    "imapServerDisconnected" :
+                                    "imapServerDroppedConnection");
           break;
         default:
             break;
@@ -4958,7 +4960,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
     case kListingForInfoOnly:
       {
         //UpdateProgressWindowForUpgrade(adoptedBoxSpec->allocatedPathName);
-        ProgressEventFunctionUsingIdWithString(IMAP_DISCOVERING_MAILBOX,
+        ProgressEventFunctionUsingNameWithString("imapDiscoveringMailbox",
           adoptedBoxSpec->mAllocatedPathName.get());
         nsIMAPMailboxInfo *mb = new nsIMAPMailboxInfo(adoptedBoxSpec->mAllocatedPathName,
                                                       adoptedBoxSpec->mHierarchySeparator);
@@ -4978,7 +4980,7 @@ nsImapProtocol::DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec)
 }
 
 void
-nsImapProtocol::AlertUserEventUsingId(uint32_t aMessageId)
+nsImapProtocol::AlertUserEventUsingName(const char* aMessageName)
 {
   if (m_imapServerSink)
   {
@@ -4989,7 +4991,8 @@ nsImapProtocol::AlertUserEventUsingId(uint32_t aMessageId)
       mailnewsUrl->GetSuppressErrorMsgs(&suppressErrorMsg);
 
     if (!suppressErrorMsg)
-      m_imapServerSink->FEAlertWithID(aMessageId, mailnewsUrl);
+      m_imapServerSink->FEAlertWithName(aMessageName,
+                                        mailnewsUrl);
   }
 }
 
@@ -5024,20 +5027,21 @@ void nsImapProtocol::ResetProgressInfo()
 {
   m_lastProgressTime = 0;
   m_lastPercent = -1;
-  m_lastProgressStringId = (uint32_t) -1;
+  m_lastProgressStringName.Truncate();
 }
 
-void nsImapProtocol::SetProgressString(int32_t stringId)
+void nsImapProtocol::SetProgressString(const char * stringName)
 {
-  m_progressStringId = stringId;
-  if (m_progressStringId && m_imapServerSink)
-    m_imapServerSink->GetImapStringByID(stringId, m_progressString);
+  m_progressStringName.Assign(stringName);
+  if (!m_progressStringName.IsEmpty() && m_imapServerSink)
+    m_imapServerSink->GetImapStringByName(stringName,
+                                          m_progressString);
 }
 
 void
 nsImapProtocol::ShowProgress()
 {
-  if (!m_progressString.IsEmpty() && m_progressStringId)
+  if (!m_progressString.IsEmpty() && !m_progressStringName.IsEmpty())
   {
     PRUnichar *progressString = NULL;
     const char *mailboxName = GetServerStateParser().GetSelectedMailboxName();
@@ -5059,26 +5063,26 @@ nsImapProtocol::ShowProgress()
 }
 
 void
-nsImapProtocol::ProgressEventFunctionUsingId(uint32_t aMsgId)
+nsImapProtocol::ProgressEventFunctionUsingName(const char* aMsgName)
 {
-  if (m_imapMailFolderSink && aMsgId != m_lastProgressStringId)
+  if (m_imapMailFolderSink && !m_lastProgressStringName.Equals(aMsgName))
   {
-    m_imapMailFolderSink->ProgressStatus(this, aMsgId, nullptr);
-    m_lastProgressStringId = aMsgId;
-    // who's going to free this? Does ProgressStatus complete synchronously?
+    m_imapMailFolderSink->ProgressStatusString(this, aMsgName, nullptr);
+    m_lastProgressStringName.Assign(aMsgName);
+    // who's going to free this? Does ProgressStatusString complete synchronously?
   }
 }
 
 void
-nsImapProtocol::ProgressEventFunctionUsingIdWithString(uint32_t aMsgId, const
-                                                       char * aExtraInfo)
+nsImapProtocol::ProgressEventFunctionUsingNameWithString(const char* aMsgName,
+                                                         const char * aExtraInfo)
 {
   if (m_imapMailFolderSink)
   {
     nsString unicodeStr;
     nsresult rv = CopyMUTF7toUTF16(nsDependentCString(aExtraInfo), unicodeStr);
     if (NS_SUCCEEDED(rv))
-      m_imapMailFolderSink->ProgressStatus(this, aMsgId, unicodeStr.get());
+      m_imapMailFolderSink->ProgressStatusString(this, aMsgName, unicodeStr.get());
   }
 }
 
@@ -5237,7 +5241,7 @@ nsImapProtocol::Expunge()
 
   if (aclFlags && !(aclFlags & IMAP_ACL_EXPUNGE_FLAG))
     return;
-  ProgressEventFunctionUsingId (IMAP_STATUS_EXPUNGING_MAILBOX);
+  ProgressEventFunctionUsingName("imapStatusExpungingMailbox");
 
   if(gCheckDeletedBeforeExpunge)
   {
@@ -5300,7 +5304,7 @@ void nsImapProtocol::StartTLS()
 void nsImapProtocol::Capability()
 {
 
-    ProgressEventFunctionUsingId (IMAP_STATUS_CHECK_COMPAT);
+    ProgressEventFunctionUsingName("imapStatusCheckCompat");
     IncrementCommandTagNumber();
     nsCString command(GetServerCommandTag());
 
@@ -5410,7 +5414,7 @@ void nsImapProtocol::Language()
   if (!TestFlag(IMAP_ISSUED_LANGUAGE_REQUEST))
   {
     SetFlag(IMAP_ISSUED_LANGUAGE_REQUEST);
-    ProgressEventFunctionUsingId (IMAP_STATUS_CHECK_COMPAT);
+    ProgressEventFunctionUsingName("imapStatusCheckCompat");
     IncrementCommandTagNumber();
     nsCString command(GetServerCommandTag());
 
@@ -5571,7 +5575,7 @@ void nsImapProtocol::ResetAuthMethods()
 
 nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &password, eIMAPCapabilityFlag flag)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_AUTH_LOGIN);
+  ProgressEventFunctionUsingName("imapStatusSendingAuthLogin");
   IncrementCommandTagNumber();
 
   char * currentCommand=nullptr;
@@ -5772,7 +5776,7 @@ nsresult nsImapProtocol::AuthLogin(const char *userName, const nsCString &passwo
   else if (flag & kHasAuthOldLoginCapability)
   {
     PR_LOG(IMAP, PR_LOG_DEBUG, ("old-style auth"));
-    ProgressEventFunctionUsingId (IMAP_STATUS_SENDING_LOGIN);
+    ProgressEventFunctionUsingName("imapStatusSendingLogin");
     IncrementCommandTagNumber();
     nsCString command (GetServerCommandTag());
     nsAutoCString escapedUserName;
@@ -5815,7 +5819,7 @@ void nsImapProtocol::OnLSubFolders()
   char *mailboxName = OnCreateServerSourceFolderPathString();
   if (mailboxName)
   {
-    ProgressEventFunctionUsingId(IMAP_STATUS_LOOKING_FOR_MAILBOX);
+    ProgressEventFunctionUsingName("imapStatusLookingForMailbox");
     IncrementCommandTagNumber();
     PR_snprintf(m_dataOutputBuf, OUTPUT_BUFFER_SIZE,"%s list \"\" \"%s\"" CRLF, GetServerCommandTag(), mailboxName);
     nsresult rv = SendData(m_dataOutputBuf);
@@ -6352,7 +6356,7 @@ void nsImapProtocol::Logout(bool shuttingDown /* = false */,
                             bool waitForResponse /* = true */)
 {
   if (!shuttingDown)
-    ProgressEventFunctionUsingId (IMAP_STATUS_LOGGING_OUT);
+    ProgressEventFunctionUsingName("imapStatusLoggingOut");
 
 /******************************************************************
  * due to the undo functionality we cannot issule a close when logout; there
@@ -6396,7 +6400,7 @@ void nsImapProtocol::Noop()
 void nsImapProtocol::XServerInfo()
 {
 
-    ProgressEventFunctionUsingId (IMAP_GETTING_SERVER_INFO);
+    ProgressEventFunctionUsingName("imapGettingServerInfo");
     IncrementCommandTagNumber();
     nsCString command(GetServerCommandTag());
 
@@ -6409,7 +6413,7 @@ void nsImapProtocol::XServerInfo()
 
 void nsImapProtocol::Netscape()
 {
-    ProgressEventFunctionUsingId (IMAP_GETTING_SERVER_INFO);
+    ProgressEventFunctionUsingName("imapGettingServerInfo");
     IncrementCommandTagNumber();
 
     nsCString command(GetServerCommandTag());
@@ -6426,7 +6430,7 @@ void nsImapProtocol::Netscape()
 void nsImapProtocol::XMailboxInfo(const char *mailboxName)
 {
 
-    ProgressEventFunctionUsingId (IMAP_GETTING_MAILBOX_INFO);
+    ProgressEventFunctionUsingName("imapGettingMailboxInfo");
     IncrementCommandTagNumber();
     nsCString command(GetServerCommandTag());
 
@@ -7299,7 +7303,7 @@ void nsImapProtocol::DiscoverMailboxList()
     // GetServerStateParser().SetReportingErrors(false);
     if (total)
     {
-      ProgressEventFunctionUsingId(IMAP_GETTING_ACL_FOR_FOLDER);
+      ProgressEventFunctionUsingName("imapGettingACLForFolder");
       nsIMAPMailboxInfo * mb = nullptr;
       do
       {
@@ -7425,7 +7429,7 @@ bool nsImapProtocol::CreateMailboxRespectingSubscriptions(const char *mailboxNam
 
 void nsImapProtocol::CreateMailbox(const char *mailboxName)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_CREATING_MAILBOX);
+  ProgressEventFunctionUsingName("imapStatusCreatingMailbox");
 
   IncrementCommandTagNumber();
 
@@ -7469,7 +7473,7 @@ void nsImapProtocol::DeleteMailbox(const char *mailboxName)
     Close();
 
 
-  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_DELETING_MAILBOX, mailboxName);
+  ProgressEventFunctionUsingNameWithString("imapStatusDeletingMailbox", mailboxName);
 
     IncrementCommandTagNumber();
 
@@ -7492,7 +7496,7 @@ void nsImapProtocol::RenameMailbox(const char *existingName,
   if (FolderIsSelected(existingName))
     Close();
 
-  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_RENAMING_MAILBOX, existingName);
+  ProgressEventFunctionUsingNameWithString("imapStatusRenamingMailbox", existingName);
 
   IncrementCommandTagNumber();
 
@@ -7541,7 +7545,7 @@ bool nsImapProtocol::GetListSubscribedIsBrokenOnServer()
 
 void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessary)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_LOOKING_FOR_MAILBOX);
+  ProgressEventFunctionUsingName("imapStatusLookingForMailbox");
 
   IncrementCommandTagNumber();
 
@@ -7574,7 +7578,7 @@ void nsImapProtocol::Lsub(const char *mailboxPattern, bool addDirectoryIfNecessa
 void nsImapProtocol::List(const char *mailboxPattern, bool addDirectoryIfNecessary,
                           bool useXLIST)
 {
-  ProgressEventFunctionUsingId (IMAP_STATUS_LOOKING_FOR_MAILBOX);
+  ProgressEventFunctionUsingName("imapStatusLookingForMailbox");
 
   IncrementCommandTagNumber();
 
@@ -7602,7 +7606,7 @@ void nsImapProtocol::List(const char *mailboxPattern, bool addDirectoryIfNecessa
 
 void nsImapProtocol::Subscribe(const char *mailboxName)
 {
-  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_SUBSCRIBE_TO_MAILBOX, mailboxName);
+  ProgressEventFunctionUsingNameWithString("imapStatusSubscribeToMailbox", mailboxName);
 
   IncrementCommandTagNumber();
 
@@ -7621,7 +7625,7 @@ void nsImapProtocol::Subscribe(const char *mailboxName)
 
 void nsImapProtocol::Unsubscribe(const char *mailboxName)
 {
-  ProgressEventFunctionUsingIdWithString (IMAP_STATUS_UNSUBSCRIBE_MAILBOX, mailboxName);
+  ProgressEventFunctionUsingNameWithString("imapStatusUnsubscribeMailbox", mailboxName);
   IncrementCommandTagNumber();
 
   nsCString escapedName;
@@ -7689,7 +7693,7 @@ void nsImapProtocol::Search(const char * searchCriteria,
                             bool notifyHit /* true */)
 {
   m_notifySearchHit = notifyHit;
-  ProgressEventFunctionUsingId (IMAP_STATUS_SEARCH_MAILBOX);
+  ProgressEventFunctionUsingName("imapStatusSearchMailbox");
   IncrementCommandTagNumber();
 
   nsCString protocolString(GetServerCommandTag());
@@ -8078,7 +8082,7 @@ void nsImapProtocol::Close(bool shuttingDown /* = false */,
   command.Append(" close" CRLF);
 
   if (!shuttingDown)
-    ProgressEventFunctionUsingId (IMAP_STATUS_CLOSE_MAILBOX);
+    ProgressEventFunctionUsingName("imapStatusCloseMailbox");
 
   GetServerStateParser().ResetFlagInfo();
 
@@ -8256,7 +8260,7 @@ bool nsImapProtocol::TryToLogon()
               kHasAuthLoginCapability | kHasAuthPlainCapability) &&
           GetServerStateParser().GetCapabilityFlag() & kHasCRAMCapability)
         // tell user to change to encrypted pw
-        AlertUserEventUsingId(IMAP_AUTH_CHANGE_PLAIN_TO_ENCRYPT);
+        AlertUserEventUsingName("imapAuthChangePlainToEncrypt");
       // pref has encrypted pw & server claims to support plaintext pw
       else if (m_prefAuthMethods == kHasCRAMCapability &&
                GetServerStateParser().GetCapabilityFlag() &
@@ -8267,14 +8271,14 @@ bool nsImapProtocol::TryToLogon()
         if (m_socketType == nsMsgSocketType::SSL ||
             m_socketType == nsMsgSocketType::alwaysSTARTTLS)
           // tell user to change to plaintext pw
-          AlertUserEventUsingId(IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_SSL);
+          AlertUserEventUsingName("imapAuthChangeEncryptToPlainSSL");
         else
           // tell user to change to plaintext pw, with big warning
-          AlertUserEventUsingId(IMAP_AUTH_CHANGE_ENCRYPT_TO_PLAIN_NO_SSL);
+          AlertUserEventUsingName("imapAuthChangeEncryptToPlainNoSSL");
       }
       else
         // just "change auth method"
-        AlertUserEventUsingId(IMAP_AUTH_MECH_NOT_SUPPORTED);
+        AlertUserEventUsingName("imapAuthMechNotSupported");
 
       skipLoop = true;
     }
@@ -8364,7 +8368,7 @@ bool nsImapProtocol::TryToLogon()
           {
             // GSSAPI failed, and it's the only available method,
             // and it's password-less, so nothing left to do.
-            AlertUserEventUsingId(IMAP_AUTH_GSSAPI_FAILED);
+            AlertUserEventUsingName("imapAuthGssapiFailed");
             break;
           }
 

@@ -2742,9 +2742,9 @@ NS_IMETHODIMP nsImapService::NewChannel(nsIURI *aURI, nsIChannel **aRetVal)
         CopyASCIItoUTF16(fullFolderName, unescapedName);
       const PRUnichar *formatStrings[1] = { unescapedName.get() };
       
-      rv = bundle->FormatStringFromID(IMAP_SUBSCRIBE_PROMPT,
-                                      formatStrings, 1,
-                                      getter_Copies(confirmText));
+      rv = bundle->FormatStringFromName(
+        NS_LITERAL_STRING("imapSubscribePrompt").get(),
+        formatStrings, 1, getter_Copies(confirmText));
       NS_ENSURE_SUCCESS(rv,rv);
       
       bool confirmResult = false;

@@ -235,12 +235,12 @@ public:
 
   // Event handlers for the imap parser.
   void DiscoverMailboxSpec(nsImapMailboxSpec * adoptedBoxSpec);
-  void AlertUserEventUsingId(uint32_t aMessageId);
+  void AlertUserEventUsingName(const char* aMessageId);
   void AlertUserEvent(const char * message);
   void AlertUserEventFromServer(const char * aServerEvent);
 
-  void ProgressEventFunctionUsingId(uint32_t aMsgId);
-  void ProgressEventFunctionUsingIdWithString(uint32_t aMsgId, const char *
+  void ProgressEventFunctionUsingName(const char* aMsgId);
+  void ProgressEventFunctionUsingNameWithString(const char* aMsgId, const char *
     aExtraInfo);
   void PercentProgressUpdateEvent(PRUnichar *message, int64_t currentProgress, int64_t maxProgress);
   void ShowProgress();
@@ -623,13 +623,13 @@ private:
   nsString mAcceptLanguages;
   
   // progress stuff
-  void SetProgressString(int32_t stringId);
+  void SetProgressString(const char* stringName);
   
   nsString m_progressString;
-  int32_t       m_progressStringId;
+  nsCString     m_progressStringName;
   int32_t       m_progressIndex;
   int32_t       m_progressCount;
-  uint32_t      m_lastProgressStringId;
+  nsCString     m_lastProgressStringName;
   int32_t       m_lastPercent;
   int64_t       m_lastProgressTime;
 

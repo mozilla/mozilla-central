@@ -16,7 +16,7 @@ interface nsIImapMockChannel;
  * nsIImapServerSink is designed to be used as a proxy to the application's UI
  * thread from the running IMAP threads.
  */
-[scriptable, uuid(33184087-eadc-4b5d-aad6-14cf6e6a43af)]
+[scriptable, uuid(2160c641-e4fa-4bbc-ab8b-d9ba45069027)]
 interface nsIImapServerSink : nsISupports {
   /**
    * Check if the given folder path is a possible IMAP mailbox.
@@ -74,8 +74,7 @@ interface nsIImapServerSink : nsISupports {
    * mock channel.
    */
   void abortQueuedUrls();
-  AString getImapStringByID(in long msgId);
-
+  AString getImapStringByName(in string msgName);
   /**
    * Alerts the user that the login to the IMAP server failed. Asks whether the
    * connection should: retry, cancel, or request a new password.
@@ -99,11 +98,10 @@ interface nsIImapServerSink : nsISupports {
    * Alerts the user with a localized string. It will attempt to fill in
    * the hostname into the string if necessary.
    *
-   * @param aMsgId  The id of the string to present to the user..
+   * @param aMsgName  The id of the string to present to the user..
    * @param aUrl    The running url.
    */
-  void fEAlertWithID(in long aMsgId, in nsIMsgMailNewsUrl aUrl);
-
+  void fEAlertWithName(in string aMsgName, in nsIMsgMailNewsUrl aUrl);
   /**
    * Takes a response from the server and prepends it with IMAP_SERVER_SAID 
    *

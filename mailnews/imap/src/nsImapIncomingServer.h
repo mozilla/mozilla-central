@@ -82,7 +82,6 @@ protected:
   bool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
 
   nsresult GetStringBundle();
-  nsString GetImapStringByName(const nsString &aName);
   static nsresult AlertUser(const nsAString& aString, nsIMsgMailNewsUrl *aUrl);
 
 private:
@@ -94,7 +93,7 @@ private:
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, bool *urlDoomed);
   bool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
-  nsresult GetFormattedStringFromID(const nsAString& aValue, int32_t aID, nsAString& aResult);
+  nsresult GetFormattedStringFromName(const nsAString& aValue, const char* aName, nsAString& aResult);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, bool *prefValue);
   bool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
                             uint32_t folderFlag, nsCString &existingUri);

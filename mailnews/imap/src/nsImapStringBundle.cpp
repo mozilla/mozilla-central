@@ -17,14 +17,14 @@
 
 extern "C" 
 nsresult
-IMAPGetStringByID(int32_t stringID, PRUnichar **aString)
+IMAPGetStringByName(const char* stringName, PRUnichar **aString)
 {
-  nsresult res=NS_OK;
   nsCOMPtr <nsIStringBundle> sBundle;
-  res = IMAPGetStringBundle(getter_AddRefs(sBundle));
-  if (NS_SUCCEEDED(res) && sBundle)
-    res = sBundle->GetStringFromID(stringID, aString);
-  return res;
+  nsresult rv = IMAPGetStringBundle(getter_AddRefs(sBundle));
+  if (NS_SUCCEEDED(rv) && sBundle)
+    rv = sBundle->GetStringFromName(NS_ConvertASCIItoUTF16(stringName).get(),
+                                    aString);
+  return rv;
 }
 
 nsresult
