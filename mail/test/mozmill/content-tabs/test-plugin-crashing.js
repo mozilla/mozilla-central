@@ -233,7 +233,7 @@ function test_crashed_plugin_notification_inline() {
     return submitDiv;
   }
 
-  mc.waitFor(function() (getStatusDiv() != null),
+  mc.waitFor(function() gContentWindow.document.mozNoPluginCrashedNotification,
              "Timed out waiting for plugin status div to appear");
 
   let submitDiv = getStatusDiv();
