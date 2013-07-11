@@ -9,10 +9,6 @@ var MODULE_REQUIRES = ['folder-display-helpers', 'content-tab-helpers'];
 
 var frame = {};
 Components.utils.import('resource://mozmill/modules/frame.js', frame);
-var controller = {};
-Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var elib = {};
-Components.utils.import('resource://mozmill/modules/elementslib.js', elib);
 
 Components.utils.import('resource://gre/modules/Services.jsm');
 
@@ -20,8 +16,8 @@ var gContentWindow = null;
 var gJSObject = null;
 var gTabDoc = null;
 var gOldStartPage = null;
-let gOldCrashReporterEnabled = null;
-
+var gOldCrashReporterEnabled = null;
+var crashReporter = null;
 const kPluginId = "test-plugin";
 const kStartPagePref = "mailnews.start_page.override_url";
 const kPluginCrashDocPref = "plugins.crash.supportUrl";
@@ -45,30 +41,30 @@ function setupModule(module) {
   Services.prefs.setCharPref(kStartPagePref, kPluginUrl);
   Services.prefs.setCharPref(kPluginCrashDocPref, kPluginCrashDocUrl);
 
-  let Cc = Components.classes;
-  let Ci = Components.interfaces;
+  try {
+    crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
+                      .getService(Ci.nsICrashReporter);
+    // Force the crash reporter to be enabled, but record its old setting.
+    gOldCrashReporterEnabled = crashReporter.enabled;
 
-  let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
-                        .getService(Ci.nsICrashReporter);
-
-  // Force the crash reporter to be enabled, but record its old setting.
-  gOldCrashReporterEnabled = crashReporter.enabled;
-
-  if (!crashReporter.enabled) {
-    crashReporter.enabled = true;
+    if (!crashReporter.enabled) {
+      crashReporter.enabled = true;
+    }
+  } catch (e) {
+    // Crashreporter is not working.
   }
+
 
   /* Bug 689580 - these crash tests fail randomly on 64-bit OSX.  We'll
    * disable them for now, until we can figure out what's going on.
    */
-  Components.utils.import("resource://gre/modules/Services.jsm");
   let is64BitOSX = (mc.mozmillModule.isMac &&
                     Services.appinfo.XPCOMABI.contains("x86_64-"));
 
   // These tests are no good if the crash reporter is disabled, or if
   // we don't have out-of-process plugins enabled.
   if (is64BitOSX ||  // XXX Remove once Bug 689580 is resolved
-      !plugins_run_in_separate_processes(mc) ||
+      !plugins_run_in_separate_processes(mc) || !crashReporter ||
       !crashReporter.enabled) {
     let funcsToSkip = [test_can_crash_plugin,
                        test_crashed_plugin_notification_bar,
@@ -81,10 +77,8 @@ function setupModule(module) {
 };
 
 function teardownModule(module) {
-  let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
-                        .getService(Ci.nsICrashReporter);
-
-  crashReporter.enabled = gOldCrashReporterEnabled;
+  if (crashReporter)
+    crashReporter.enabled = gOldCrashReporterEnabled;
 
   Services.prefs.setCharPref(kStartPagePref, gOldStartPage);
   Services.prefs.setCharPref(kPluginCrashDocPref, gOldPluginCrashDocPage);
