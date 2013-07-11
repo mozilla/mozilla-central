@@ -2774,7 +2774,7 @@ nsDummyMsgHeader.prototype =
   markHasAttachments : function(hasAttachments) {},
   messageSize : 0,
   recipients : null,
-  from : null,
+  author: null,
   subject : "",
   get mime2DecodedSubject() { return this.subject; },
   ccList : null,

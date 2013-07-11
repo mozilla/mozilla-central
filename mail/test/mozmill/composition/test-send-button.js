@@ -121,9 +121,12 @@ function test_send_enabled_address_contacts_sidebar() {
 
   // Open Contacts sidebar and use our contact.
   cwc.window.toggleAddressPicker();
-  let sidebar = cwc.window.document.getElementById("sidebar");
-  cwc.waitForElement(new elib.ID(sidebar.contentDocument, "ccButton"));
+
+  let sidebar = cwc.e("sidebar");
+  wait_for_frame_load(sidebar,
+    "chrome://messenger/content/addressbook/abContactsPanel.xul");
   sidebar.contentDocument.getElementById("ccButton").click();
+
   // The recipient is filled in, Send must be enabled.
   check_send_commands_state(cwc, true);
 

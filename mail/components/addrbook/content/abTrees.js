@@ -51,10 +51,9 @@ abDirTreeItem.prototype = {
       }
 
       // We sort children based on their names
-      function nameSort(a, b) {
+      this._children.sort(function nameSort(a, b) {
         return a._directory.dirName.localeCompare(b._directory.dirName);
-      }
-      this._children.sort(nameSort);
+      });
     }
     return this._children;
   },

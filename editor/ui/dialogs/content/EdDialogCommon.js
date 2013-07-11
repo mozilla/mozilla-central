@@ -944,13 +944,11 @@ function FillLinkMenulist(linkMenulist, headingsArray)
     if (anchorList.length)
     {
       // case insensitive sort
-      function compare(a, b)
-      {
-        if(a.sortkey < b.sortkey) return -1;
-        if(a.sortkey > b.sortkey) return 1;
+      anchorList.sort(function compare(a, b) {
+        if (a.sortkey < b.sortkey) return -1;
+        if (a.sortkey > b.sortkey) return 1;
         return 0;
-      }
-      anchorList.sort(compare);
+      });
 
       for (i = 0; i < anchorList.length; i++)
         createMenuItem(menupopup,anchorList[i].anchor);
