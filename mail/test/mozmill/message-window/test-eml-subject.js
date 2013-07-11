@@ -11,6 +11,8 @@ var MODULE_NAME = "test-eml-subject";
 var RELATIVE_ROOT = "../shared-modules";
 const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
 
+var os = {};
+Cu.import('resource://mozmill/stdlib/os.js', os);
 Cu.import("resource:///modules/StringBundle.js");
 
 var setupModule = function(module) {

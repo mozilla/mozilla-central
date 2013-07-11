@@ -10,6 +10,7 @@ const MODULE_NAME = "attachment-helpers";
 const RELATIVE_ROOT = "../shared-modules";
 const MODULE_REQUIRES = ['mock-object-helpers'];
 
+Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 let gMockFilePickReg;

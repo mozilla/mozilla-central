@@ -30,6 +30,9 @@ const kDefaults = {
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+var os = {};
+Cu.import('resource://mozmill/stdlib/os.js', os);
+
 var fdh, moh;
 
 function setupModule(module) {

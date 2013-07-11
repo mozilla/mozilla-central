@@ -19,6 +19,7 @@ const kGetFileURL = "cloudfile:getFileURL";
 const kDeleteFile = "cloudfile:deleteFile";
 const kLogout = "cloudfile:logout";
 
+var os = {};
 Cu.import('resource://mozmill/stdlib/os.js', os);
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 

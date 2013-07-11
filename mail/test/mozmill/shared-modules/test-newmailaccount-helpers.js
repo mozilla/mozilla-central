@@ -15,6 +15,7 @@ var mc, fdh, kbh;
 
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource:///modules/iteratorUtils.jsm');
 Cu.import('resource:///modules/mailServices.js');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 

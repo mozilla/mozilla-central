@@ -22,6 +22,7 @@ const MODULE_REQUIRES = ['folder-display-helpers',
 const kAttachmentsVolume = '/~/Thunderbird Attachments';
 
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource:///modules/cloudFileAccounts.js');
 
 var gServer, gObsManager;
 
