@@ -638,7 +638,6 @@ pref("extensions.modern@themes.mozilla.org.description", "chrome://navigator/loc
 
 pref("xpinstall.enabled", true);
 pref("xpinstall.whitelist.add", "addons.mozilla.org");
-pref("xpinstall.whitelist.add.36", "getpersonas.com");
 
 pref("lightweightThemes.update.enabled", true);
 
