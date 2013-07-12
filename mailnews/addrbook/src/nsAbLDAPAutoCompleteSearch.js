@@ -104,12 +104,6 @@ nsAbLDAPAutoCompleteSearch.prototype = {
   _parser: MailServices.headerParser,
 
   // Private methods
-  // fullString is the full search string.
-  // rest is anything after the first word.
-  _checkEntry: function _checkEntry(card, search) {
-    return card.displayName.toLocaleLowerCase().startsWith(search) ||
-           card.primaryEmail.toLocaleLowerCase().startsWith(search);
-  },
 
   _checkDuplicate: function _checkDuplicate(card, emailAddress) {
     var lcEmailAddress = emailAddress.toLocaleLowerCase();
@@ -182,40 +176,6 @@ nsAbLDAPAutoCompleteSearch.prototype = {
       aListener.onSearchResult(this, this._result);
       return;
     }
-
-    // Compare lowercase strings, because autocomplete may mangle the case
-    // depending on the previous results.
-    if (aPreviousResult instanceof nsIAbAutoCompleteResult &&
-        aSearchString.startsWith(
-          aPreviousResult.searchString.toLocaleLowerCase()) &&
-        aPreviousResult.searchResult == ACR.RESULT_SUCCESS) {
-      // We have successful previous matches, therefore iterate through the
-      // list and reduce as appropriate.
-      for (var i = 0; i < aPreviousResult.matchCount; ++i) {
-        var card = aPreviousResult.getCardAt(i);
-        if (this._checkEntry(card, aSearchString)) {
-          // If it matches, just add it straight onto the array, these will
-          // already be in order because the previous search returned them
-          // in the correct order.
-          this._result._searchResults.push({
-            value: aPreviousResult.getValueAt(i),
-            card: card
-          });
-        }
-      }
-
-      if (this._result.matchCount) {
-        this._result.searchResult = ACR.RESULT_SUCCESS;
-        // For LDAP results, the comment column is always the same, so just
-        // use the first value from the previous results to set the value.
-        this._result._commentColumn = aPreviousResult.getCommentAt(0);
-      }
-      aListener.onSearchResult(this, this._result);
-      return;
-    }
-
-    // Here we need to do the real search, as we haven't got any previous
-    // results to fall back on.
 
     if (aParam != this._cachedParam) {
       this._cachedIdentity = MailServices.accounts.getIdentity(aParam);
