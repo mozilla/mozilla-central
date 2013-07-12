@@ -2661,7 +2661,6 @@ nsresult nsMsgComposeAndSend::SetMimeHeader(nsMsgCompFields::MsgHeaderID header,
     case nsMsgCompFields::MSG_SUBJECT_HEADER_ID :
     case nsMsgCompFields::MSG_REFERENCES_HEADER_ID :
     case nsMsgCompFields::MSG_X_TEMPLATE_HEADER_ID :
-    case nsMsgCompFields::MSG_ATTACHMENTS_HEADER_ID :
       dupHeader = mime_fix_header(value);
       break;
 

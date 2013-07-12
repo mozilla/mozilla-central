@@ -7,7 +7,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISimpleEnumerator.idl"
 
-[scriptable, uuid(bb793677-87c1-4125-b929-252bd9177794)]
+[scriptable, uuid(bfd07df7-6707-47c8-860d-fd4b30934034)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -53,13 +53,6 @@ interface nsIMsgCompFields : nsISupports {
    * and "\n" on Linux and OSX.
    */
   attribute AString body;
-
-  /**
-   * temporaryFiles
-   *
-   * @OBSOLETE, DO NOT USE ANYMORE
-   */
-  attribute string  temporaryFiles;
 
   readonly attribute nsISimpleEnumerator attachments;
   void addAttachment(in nsIMsgAttachment attachment);

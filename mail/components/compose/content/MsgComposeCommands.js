@@ -3746,29 +3746,6 @@ function AddAttachments(aAttachments, aCallback)
   return items;
 }
 
-/**
- * Add a file object as attachment. This is mostly just a helper function to
- * wrap a file into an nsIMsgAttachment object with it's URL set. Note: this
- * function is DEPRECATED. Use AddAttachments and FileToAttachment instead.
- *
- * @param file the nsIFile object to add as attachment
- */
-function AddFileAttachment(file)
-{
-  AddAttachments([FileToAttachment(file)]);
-}
-
-/**
- * Add an attachment object as attachment. The attachment URL must be set. Note:
- * this function is DEPRECATED. Use AddAttachments instead.
- *
- * @param attachment the nsIMsgAttachment object to add as attachment
- */
-function AddUrlAttachment(attachment)
-{
-  AddAttachments([attachment]);
-}
-
 function MessageGetNumSelectedAttachments()
 {
   var bucketList = document.getElementById("attachmentBucket");

@@ -3115,7 +3115,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     rv = wwatch->GetNewPrompter(0, getter_AddRefs(dialog));
     NS_ENSURE_SUCCESS(rv, rv);
     bool dontAsk = false; // "Don't ask..." - unchecked by default.
-    PRInt32 buttonPressed = 0;
+    int32_t buttonPressed = 0;
 
     nsString dialogTitle;
     nsString confirmString;
@@ -3130,7 +3130,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     else // if (activePref == warnShiftDelPref || activePref == warnNewsPref)
       confirmString.Adopt(GetString(NS_LITERAL_STRING("confirmMsgDelete.deleteNoTrash.desc").get()));
 
-    const PRUint32 buttonFlags =
+    const uint32_t buttonFlags =
       (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
       (nsIPrompt::BUTTON_TITLE_CANCEL * nsIPrompt::BUTTON_POS_1);
     rv = dialog->ConfirmEx(dialogTitle.get(), confirmString.get(), buttonFlags,

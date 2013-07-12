@@ -212,18 +212,6 @@ NS_IMETHODIMP nsMsgCompFields::GetSubject(nsAString &_retval)
   return GetUnicodeHeader(MSG_SUBJECT_HEADER_ID, _retval);
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetTemporaryFiles(const char *value)
-{
-  NS_ERROR("nsMsgCompFields::SetTemporaryFiles is not supported anymore, please use nsMsgCompFields::AddAttachment");
-  return SetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID, value);
-}
-
-NS_IMETHODIMP nsMsgCompFields::GetTemporaryFiles(char **_retval)
-{
-  *_retval = strdup(GetAsciiHeader(MSG_TEMPORARY_FILES_HEADER_ID));
-  return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-}
-
 NS_IMETHODIMP nsMsgCompFields::SetOrganization(const nsAString &value)
 {
   return SetUnicodeHeader(MSG_ORGANIZATION_HEADER_ID, value);

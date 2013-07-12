@@ -264,11 +264,6 @@ nsresult nsDBFolderInfo::AddToNewMDB()
     mdb_err err = store->NewTable(m_mdb->GetEnv(), m_rowScopeToken,
       m_tableKindToken, true, nullptr, &m_mdbTable);
 
-    // make sure the oid of the table is 1.
-    struct mdbOid folderInfoTableOID;
-    folderInfoTableOID.mOid_Id = 1;
-    folderInfoTableOID.mOid_Scope = m_rowScopeToken;
-
     // create the singleton row for the dbFolderInfo.
     err  = store->NewRowWithOid(m_mdb->GetEnv(),
       &gDBFolderInfoOID, &m_mdbRow);

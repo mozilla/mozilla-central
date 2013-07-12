@@ -2,14 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-let EXPORTED_SYMBOLS = ["StringBundle"];
+const EXPORTED_SYMBOLS = ["StringBundle"];
 
 Components.utils.import("resource://gre/modules/Services.jsm");
-
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
 
 /**
  * A string bundle.
@@ -116,7 +111,8 @@ StringBundle.prototype = {
       // We could simply return the nsIPropertyElement objects, but I think
       // it's better to return standard JS objects that behave as consumers
       // expect JS objects to behave (f.e. you can modify them dynamically).
-      let string = enumerator.getNext().QueryInterface(Ci.nsIPropertyElement);
+      let string = enumerator.getNext()
+        .QueryInterface(Components.interfaces.nsIPropertyElement);
       strings.push({ key: string.key, value: string.value });
     }
 
@@ -189,16 +185,5 @@ StringBundle.prototype = {
    */
   getFormattedString: function(key, args) {
     return this.get(key, args);
-  },
-
-  /**
-   * Get an enumeration of the strings in the bundle.
-   * @deprecated use |getAll| instead
-   *
-   * @returns {nsISimpleEnumerator}
-   *          a enumeration of the strings in the bundle
-   */
-  get strings() {
-    return this.stringBundle.getSimpleEnumeration();
   }
 }
