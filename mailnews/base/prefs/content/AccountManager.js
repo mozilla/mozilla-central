@@ -1329,6 +1329,13 @@ function setFormElementValue(formElement, value) {
       formElement.value = value;
     }
   }
+  else if (type == "label") {
+    if (value == null || value == undefined) {
+      formElement.value = "";
+    } else {
+      formElement.value = value;
+    }
+  }
 
   // let the form figure out what to do with it
   else {
