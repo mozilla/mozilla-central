@@ -19,8 +19,7 @@ interface nsIAddrDatabase;
 interface nsIMdbRow;
 interface nsIAbCard;
 
-
-[scriptable, uuid(0e376da3-e289-4d14-bdec-867764585eb7)]
+[scriptable, uuid(deee9264-1fe3-47b1-b745-47b22de454e2)]
 interface nsIImportFieldMap : nsISupports
 {
   /*
@@ -57,11 +56,6 @@ interface nsIImportFieldMap : nsISupports
   void  SetFieldMap( in long index, in long fieldNum);
 
   /*
-    Set the field that this index maps to, -1 for no field
-  */
-  void  SetFieldMapByDescription( in long index, in wstring fieldDesc);
-
-  /*
     Return if this field is "active" in the map.
   */
   boolean  GetFieldActive( in long index);
@@ -75,26 +69,4 @@ interface nsIImportFieldMap : nsISupports
     Set the value of the given field in the database row
   */
   void  SetFieldValue( in nsIAddrDatabase database, in nsIMdbRow row, in long fieldNum, in wstring value);
-
-  /*
-    Set the value of the given field in the database row
-  */
-  void  SetFieldValueByDescription( in nsIAddrDatabase database, in nsIMdbRow row, in wstring fieldDesc, in wstring value);
-
-  /*
-    Get the value of the given field from the address card
-  */
-  wstring GetFieldValue( in nsIAbCard card, in long fieldNum);
-
-  /*
-    Get the value of the given field from the address card
-  */
-  wstring GetFieldValueByDescription( in nsIAbCard card, in wstring fieldDesc);
-
 };
-
-
-
-%{ C++
-
-%}
