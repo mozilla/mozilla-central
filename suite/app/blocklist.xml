@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1372691042000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1373408730000">
   <emItems>
       <emItem  blockID="i350" id="sqlmoz@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
@@ -179,10 +179,6 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i386" id="7lffxtbr@CursorMania_7l.com">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
       <emItem  blockID="i127" id="plugin@youtubeplayer.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -228,10 +224,6 @@
                     </versionRange>
                   </emItem>
       <emItem  blockID="i370" id="happylyrics@hpyproductions.net">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i388" id="5mffxtbr@MyFunCards_5m.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -322,6 +314,10 @@
                     </versionRange>
                   </emItem>
       <emItem  blockID="i344" id="lrcsTube@hansanddeta.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i426" id="addlyrics@addlyrics.net">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -488,10 +484,6 @@
                     </versionRange>
                   </emItem>
       <emItem  blockID="i306" id="{ADFA33FD-16F5-4355-8504-DF4D664CFE10}">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i384" id="7lffxtbr@PopularScreensavers_7l.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
