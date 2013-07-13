@@ -1,12 +1,13 @@
+. $topsrcdir/build/unix/mozconfig.linux
+
 ac_add_options --enable-application=mail
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-codesighs
 ac_add_options --enable-signmar
 ac_add_options --enable-profiling
+ac_add_options --disable-elf-hack # --enable-elf-hack conflicts with --enable-profiling
 ac_add_options --enable-calendar
-
-. $topsrcdir/build/unix/mozconfig.linux
 
 # Avoid dependency on libstdc++ 4.5
 ac_add_options --enable-stdcxx-compat
