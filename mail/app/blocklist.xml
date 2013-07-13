@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1371672180000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1373408730000">
   <emItems>
       <emItem  blockID="i350" id="sqlmoz@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
@@ -9,8 +9,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i41" id="{99079a25-328f-4bd4-be04-00955acaa0a7}">
+      <emItem  blockID="i402" id="{99079a25-328f-4bd4-be04-00955acaa0a7}">
                         <versionRange  minVersion="0.1" maxVersion="4.3.1.00" severity="1">
+                    </versionRange>
+                                <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i71" id="youtube@2youtube.com">
@@ -45,6 +47,10 @@
                         <versionRange  minVersion="0" maxVersion="1.0.8" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i400" id="{dd6b651f-dfb9-4142-b0bd-09912ad22674}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i348" id="{13c9f1f9-2322-4d5c-81df-6d4bf8476ba4}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
@@ -53,8 +59,14 @@
                         <versionRange  minVersion=" " maxVersion="8.5">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i236" id="{EEE6C361-6118-11DC-9C72-001320C79847}">
+      <emItem  blockID="i392" id="{EEE6C361-6118-11DC-9C72-001320C79847}">
                         <versionRange  minVersion="0" maxVersion="1.7.999" severity="1">
+                    </versionRange>
+                                <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i406" id="{bf7380fa-e3b4-4db2-af3e-9d8783a45bfc}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i64" id="royal@facebook.com">
@@ -103,6 +115,10 @@
                   </emItem>
       <emItem  blockID="i97" id="support3_en@adobe122.com">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i382" id="{6926c7f7-6006-42d1-b046-eba1b3010315}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i62" id="jid0-EcdqvFOgWLKHNJPuqAnawlykCGZ@jetpack">
@@ -199,11 +215,19 @@
                         <versionRange  minVersion="0" maxVersion="1.0" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i398" id="{377e5d4d-77e5-476a-8716-7e70a9272da0}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i256" id="/^[0-9a-f]+@[0-9a-f]+\.info/">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i370" id="happylyrics@hpyproductions.net">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i396" id="/@(ft|putlocker|clickmovie|m2k|sharerepo|smarter-?)downloader\.com$/">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -292,7 +316,19 @@
                   </emItem>
       <emItem  blockID="i13" id="{E8E88AB0-7182-11DF-904E-6045E0D72085}">
                         </emItem>
+      <emItem  blockID="i394" id="{7D4F1959-3F72-49d5-8E59-F02F8AA6815D}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i344" id="lrcsTube@hansanddeta.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i426" id="addlyrics@addlyrics.net">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i404" id="{a9bb9fa0-4122-4c75-bd9a-bc27db3f9155}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -574,6 +610,12 @@
                   </pluginItem>
       <pluginItem  blockID="p366">
                   <match name="filename" exp="Scorch\.plugin" />                      <versionRange  minVersion="6.2.0" maxVersion="6.2.0" severity="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p408">
+                  <match name="filename" exp="QuickTime Plugin\.plugin" />                      <versionRange  minVersion="0" maxVersion="7.6.5" severity="0" vulnerabilitystatus="1"></versionRange>
+                  </pluginItem>
+      <pluginItem  blockID="p410">
+                  <match name="filename" exp="npqtplugin\.dll" />                      <versionRange  minVersion="0" maxVersion="7.7.3" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
     </pluginItems>
 
