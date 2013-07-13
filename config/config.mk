@@ -723,3 +723,11 @@ export CL_INCLUDES_PREFIX
 OBJ_SUFFIX := $(_OBJ_SUFFIX)
 
 DEFINES += -DNO_NSPR_10_SUPPORT
+
+# Run a named Python build action. The first argument is the name of the build
+# action. The second argument are the arguments to pass to the action (space
+# delimited arguments). e.g.
+#
+#   libs::
+#       $(call py_action,purge_manifests,_build_manifests/purge/foo.manifest)
+py_action = $(PYTHON) -m mozbuild.action.$(1) $(2)
