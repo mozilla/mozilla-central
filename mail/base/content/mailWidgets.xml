@@ -2375,16 +2375,23 @@
     <handlers>
       <handler event="popupshowing">
         <![CDATA[
-          var msgFolder = gFolderTreeView.getFolderAtCoords(event.clientX,
+          let msgFolder = gFolderTreeView.getFolderAtCoords(event.clientX,
                                                             event.clientY);
-          if (!msgFolder || msgFolder.isServer)
+          if (!msgFolder)
             return false;
 
-          var asyncResults = {};
-          let newMessages = document.getAnonymousNodes(this)[0].parseFolder(msgFolder, null, asyncResults);
-          let addLocation = document.getAnonymousNodes(this)[0].addLocationInfo(msgFolder);
+          let tooltipnode = document.getAnonymousNodes(this)[0];
+          let asyncResults = {};
+          if (tooltipnode.parseFolder(msgFolder, null, asyncResults))
+            return true;
 
-          return newMessages || addLocation;
+          let row = {}, col = {};
+          gFolderTreeView._tree.getCellAt(event.clientX, event.clientY, row, col, {});
+          let cropped = gFolderTreeView._tree.isCellCropped(row.value, col.value);
+          if (tooltipnode.addLocationInfo(msgFolder, cropped))
+            return true;
+
+          return false;
         ]]>
       </handler>
 
@@ -2410,7 +2417,7 @@
           <![CDATA[
             // skip servers, Trash, Junk folders and newsgroups
 
-            if (!aFolder || aFolder.isServer ||
+            if (!aFolder || aFolder.isServer || !aFolder.hasNewMessages ||
                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Junk) ||
                 aFolder.getFlag(Components.interfaces.nsMsgFolderFlags.Trash) ||
                 (aFolder.server instanceof Components.interfaces.nsINntpIncomingServer))
@@ -2519,19 +2526,9 @@
 
       <method name="addLocationInfo">
         <parameter name="aFolder"/>
+        <parameter name="aCropped"/>
         <body>
           <![CDATA[
-            // Use the full newsgroup name as tooltip for abbreviated newsgroups.
-            if ((aFolder.server instanceof Components.interfaces.nsINntpIncomingServer) &&
-                !(aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
-                aFolder.server.abbreviate) {
-
-              let loc = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryLocation");
-              loc.setAttribute("location", aFolder.name);
-              document.getAnonymousNodes(this)[0].appendChild(loc);
-              return true;
-            }
-
             // Display location info for items in favorite folder pane mode.
             if (gFolderTreeView.mode == "favorite") {
               let loc = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryLocation");
@@ -2542,6 +2539,18 @@
                 midFolder = midFolder.parent;
               }
               loc.setAttribute("location", aFolder.server.prettyName + " - " + midPath + aFolder.name);
+              document.getAnonymousNodes(this)[0].appendChild(loc);
+              return true;
+            }
+
+            // If folder name is cropped or is a newsgroup and abbreviated per
+            // pref, use the full name as a tooltip.
+            if (aCropped ||
+                ((aFolder.server instanceof Components.interfaces.nsINntpIncomingServer) &&
+                 !(aFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual) &&
+                 aFolder.server.abbreviate) && !aFolder.isServer) {
+              let loc = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "folderSummaryLocation");
+              loc.setAttribute("location", aFolder.name);
               document.getAnonymousNodes(this)[0].appendChild(loc);
               return true;
             }
