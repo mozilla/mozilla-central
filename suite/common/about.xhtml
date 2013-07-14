@@ -31,7 +31,7 @@
   </div>
 
   <ul id="aboutPageList">
-    <li>&channel.description.start;<strong id="currentChannel">default</strong>&channel.description.end;</li>
+    <li>&channel.description.start;<strong id="currentChannel"/>&channel.description.end;</li>
     <li>&about.credits.beforeLink;<a href="about:credits">&about.credits.linkTitle;</a>&about.credits.afterLink;</li>
     <li>&about.license.beforeTheLink;<a href="about:license">&about.license.linkTitle;</a>&about.license.afterTheLink;</li>
     <li>&about.relnotes.beforeTheLink;<a id="releaseNotesURL" href="">&about.relnotes.linkTitle;</a>&about.relnotes.afterTheLink;</li>
@@ -89,10 +89,9 @@
       }
 
       // Determine and display current channel.
-      try {
-        var updateChannel = Services.prefs.getDefaultBranch("").getCharPref("app.update.channel");
-        document.getElementById("currentChannel").textContent = updateChannel;
-      } catch (ex) {}
+      Components.utils.import("resource://gre/modules/Services.jsm");
+      document.getElementById("currentChannel").textContent =
+        Services.prefs.getDefaultBranch("").getCharPref("app.update.channel");
     </script>
 
   </ul>
