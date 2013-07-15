@@ -9,6 +9,7 @@
 #include "mimexpcom.h"
 #include "nsIStringBundle.h"
 #include "prmem.h"
+#include "plstr.h"
 #include "mozilla/Services.h"
 
 #define SMIME_PROPERTIES_URL          "chrome://messenger/locale/smime.properties"
