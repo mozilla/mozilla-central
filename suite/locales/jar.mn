@@ -12,9 +12,7 @@
 % locale messenger @AB_CD@ %locale/@AB_CD@/messenger/
 % locale messenger-mapi @AB_CD@ %locale/@AB_CD@/messenger-mapi/
 % locale messenger-region @AB_CD@ %locale/@AB_CD@/messenger-region/
-#ifdef MOZ_PSM
 % locale messenger-smime @AB_CD@ %locale/@AB_CD@/messenger-smime/
-#endif
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/
 % locale mozldap @AB_CD@ %locale/@AB_CD@/mozldap/
 % locale navigator @AB_CD@ %locale/@AB_CD@/navigator/
@@ -335,7 +333,6 @@
   locale/@AB_CD@/messenger/wmImportMsgs.properties                          (%chrome/mailnews/wmImportMsgs.properties)
   locale/@AB_CD@/messenger-mapi/mapi.properties                             (%chrome/mailnews/mapi/mapi.properties)
   locale/@AB_CD@/messenger-region/region.properties                         (%chrome/mailnews/region.properties)
-#ifdef MOZ_PSM
   locale/@AB_CD@/messenger/am-smime.dtd                                     (%chrome/mailnews/smime/am-smime.dtd)
   locale/@AB_CD@/messenger/am-smime.properties                              (%chrome/mailnews/smime/am-smime.properties)
   locale/@AB_CD@/messenger-smime/certFetchingStatus.dtd                     (%chrome/mailnews/smime/certFetchingStatus.dtd)
@@ -347,7 +344,6 @@
   locale/@AB_CD@/messenger-smime/msgReadSMIMEOverlay.dtd                    (%chrome/mailnews/smime/msgReadSMIMEOverlay.dtd)
   locale/@AB_CD@/messenger-smime/msgReadSMIMEOverlay.properties             (%chrome/mailnews/smime/msgReadSMIMEOverlay.properties)
   locale/@AB_CD@/messenger-smime/msgSecurityInfo.properties                 (%chrome/mailnews/smime/msgSecurityInfo.properties)
-#endif
   locale/@AB_CD@/messenger-newsblog/newsblog.properties                     (%chrome/mailnews/newsblog/newsblog.properties)
   locale/@AB_CD@/messenger-newsblog/feed-subscriptions.dtd                  (%chrome/mailnews/newsblog/feed-subscriptions.dtd)
   locale/@AB_CD@/messenger-newsblog/am-newsblog.dtd                         (%chrome/mailnews/newsblog/am-newsblog.dtd)

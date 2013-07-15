@@ -38,10 +38,6 @@ RETRIEVE_WINDOWS_INSTALLER = 1
 
 MOZ_LANGPACK_EID=langpack-$(AB_CD)@seamonkey.mozilla.org
 
-DEFINES += \
-	-DMOZ_PSM=$(MOZ_PSM) \
-	$(NULL)
-
 PREF_JS_EXPORTS = $(call MERGE_FILE,suite-l10n.js)
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)

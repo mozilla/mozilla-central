@@ -28,6 +28,7 @@ EXPORTS += [
 CPP_SOURCES += [
     'comi18n.cpp',
     'mimebuf.cpp',
+    'mimecms.cpp',
     'mimecom.cpp',
     'mimecont.cpp',
     'mimecryp.cpp',
@@ -42,6 +43,7 @@ CPP_SOURCES += [
     'mimeleaf.cpp',
     'mimemalt.cpp',
     'mimemapl.cpp',
+    'mimemcms.cpp',
     'mimemdig.cpp',
     'mimemmix.cpp',
     'mimemoz2.cpp',
@@ -68,12 +70,6 @@ CPP_SOURCES += [
     'nsSimpleMimeConverterStub.cpp',
     'nsStreamConverter.cpp',
 ]
-
-if CONFIG['MOZ_PSM']:
-    CPP_SOURCES += [
-        'mimecms.cpp',
-        'mimemcms.cpp',
-    ]
 
 EXTRA_COMPONENTS += [
     'mimeJSComponents.js',

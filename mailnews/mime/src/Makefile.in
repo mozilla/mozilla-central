@@ -10,9 +10,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-ifdef MOZ_PSM
 DEFINES		+= -DENABLE_SMIME
-endif
 
 LIBRARY_NAME	= mime_s
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE

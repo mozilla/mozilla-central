@@ -558,7 +558,6 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
                          " invalid");
             }
 
-#ifdef MOZ_PSM
             // This code sets up the current connection to use PSM for SSL
             // functionality.  Making this use libssldap instead for
             // non-browser user shouldn't be hard.
@@ -580,7 +579,6 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
                              " connection");
                 }
             }
-#endif
         }
     }
 

@@ -10,8 +10,3 @@ PARALLEL_DIRS += [
 
 # pgpmime depends on glue.
 DIRS += ['pgpmime']
-
-if not CONFIG['MOZ_PSM']:
-    # smimestub always depends on glue, so always build that afterwards.
-    DIRS += ['smimestub']
-

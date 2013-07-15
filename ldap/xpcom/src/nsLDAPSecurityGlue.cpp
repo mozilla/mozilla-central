@@ -4,8 +4,6 @@
 
 // Only build this code if PSM is being built also
 //
-#ifdef MOZ_PSM
-
 #include "nsLDAPInternal.h"
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
@@ -337,5 +335,3 @@ nsLDAPInstallSSL( LDAP *ld, const char *aHostName)
 
     return NS_OK;
 }
-
-#endif

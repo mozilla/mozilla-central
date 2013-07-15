@@ -14,6 +14,7 @@ CPP_SOURCES += [
     'nsLDAPModification.cpp',
     'nsLDAPOperation.cpp',
     'nsLDAPProtocolModule.cpp',
+    'nsLDAPSecurityGlue.cpp',
     'nsLDAPServer.cpp',
     'nsLDAPService.cpp',
     'nsLDAPURL.cpp',
@@ -21,9 +22,6 @@ CPP_SOURCES += [
 
 if CONFIG['MOZ_PREF_EXTENSIONS']:
     CPP_SOURCES += ['nsLDAPSyncQuery.cpp']
-
-if CONFIG['MOZ_PSM']:
-    CPP_SOURCES += ['nsLDAPSecurityGlue.cpp']
 
 EXTRA_COMPONENTS += [
     'ldapComponents.manifest',

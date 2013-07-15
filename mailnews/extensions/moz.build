@@ -14,8 +14,6 @@ PARALLEL_DIRS += [
     'newsblog',
     'fts3/public',
     'fts3/src',
+    'smime',
 ]
-
-if CONFIG['MOZ_PSM']:
-    PARALLEL_DIRS += ['smime']
 
