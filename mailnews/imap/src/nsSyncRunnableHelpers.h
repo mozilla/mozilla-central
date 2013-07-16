@@ -25,7 +25,7 @@ public:
     : mReceiver(receiver)
   { }
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER
 
@@ -42,7 +42,7 @@ public:
     NS_ASSERTION(receiver, "Don't allow receiver is nullptr");
   }
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPMAILFOLDERSINK
 
 private:
@@ -56,7 +56,7 @@ public:
     : mReceiver(receiver)
   { }
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPSERVERSINK
 
 private:
@@ -71,7 +71,7 @@ public:
     : mReceiver(receiver)
   { }
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPMESSAGESINK
 
 private:
@@ -85,7 +85,7 @@ public:
     : mReceiver(receiver)
   { }
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPPROTOCOLSINK
 
 private:

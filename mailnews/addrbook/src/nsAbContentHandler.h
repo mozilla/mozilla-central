@@ -16,7 +16,7 @@ public:
   nsAbContentHandler();
   virtual ~nsAbContentHandler();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSICONTENTHANDLER
   NS_DECL_NSISTREAMLOADEROBSERVER
 };

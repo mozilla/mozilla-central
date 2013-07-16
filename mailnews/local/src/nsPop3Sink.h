@@ -36,7 +36,7 @@ public:
     nsPop3Sink();
     virtual ~nsPop3Sink();
 
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIPOP3SINK
     nsresult GetServerFolder(nsIMsgFolder **aFolder);
     nsresult FindPartialMessages();

@@ -101,7 +101,7 @@ public:
   virtual ~EudoraSendListener() {}
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   /* void OnStartSending (in string aMsgID, in uint32_t aMsgSize); */
   NS_IMETHOD OnStartSending(const char *aMsgID, uint32_t aMsgSize) {return NS_OK;}
@@ -136,7 +136,7 @@ public:
 };
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(EudoraSendListener, nsIMsgSendListener)
+NS_IMPL_ISUPPORTS1(EudoraSendListener, nsIMsgSendListener)
 
 nsresult EudoraSendListener::CreateSendListener(nsIMsgSendListener **ppListener)
 {

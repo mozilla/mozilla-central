@@ -11,7 +11,7 @@
 
 using namespace mozilla;
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPModification, nsILDAPModification)
+NS_IMPL_ISUPPORTS1(nsLDAPModification, nsILDAPModification)
 
 // constructor
 //

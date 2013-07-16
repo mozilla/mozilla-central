@@ -34,7 +34,7 @@ public:
   virtual ~CopyListener(void);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_IMETHOD OnStartCopy() MOZ_OVERRIDE;
   

@@ -39,7 +39,7 @@
 
 ///////////// nsIMAPBodyShell ////////////////////////////////////
 
-NS_IMPL_THREADSAFE_ISUPPORTS0(nsIMAPBodyShell)
+NS_IMPL_ISUPPORTS0(nsIMAPBodyShell)
 
 nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection,
                                  nsIMAPBodypartMessage *message, uint32_t UID,

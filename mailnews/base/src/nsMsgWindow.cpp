@@ -41,7 +41,7 @@
 
 static NS_DEFINE_CID(kTransactionManagerCID, NS_TRANSACTIONMANAGER_CID);
 
-NS_IMPL_THREADSAFE_ISUPPORTS3(nsMsgWindow,
+NS_IMPL_ISUPPORTS3(nsMsgWindow,
                               nsIMsgWindow,
                               nsIURIContentListener,
                               nsISupportsWeakReference)

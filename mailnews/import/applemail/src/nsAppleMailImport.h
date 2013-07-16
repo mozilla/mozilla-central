@@ -40,7 +40,7 @@ class nsAppleMailImportModule : public nsIImportModule
   nsAppleMailImportModule();
   virtual ~nsAppleMailImportModule();
     
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMPORTMODULE
 
   private:
@@ -55,7 +55,7 @@ class nsAppleMailImportMail : public nsIImportMail
   nsAppleMailImportMail();
   virtual ~nsAppleMailImportMail();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMPORTMAIL
 
   nsresult Initialize();

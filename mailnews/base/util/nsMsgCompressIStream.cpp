@@ -22,7 +22,7 @@ nsMsgCompressIStream::~nsMsgCompressIStream()
   Close();
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS2(nsMsgCompressIStream, nsIInputStream,
+NS_IMPL_ISUPPORTS2(nsMsgCompressIStream, nsIInputStream,
                               nsIAsyncInputStream)
 
 nsresult nsMsgCompressIStream::InitInputStream(nsIInputStream *rawStream)

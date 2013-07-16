@@ -44,7 +44,7 @@
 
 extern PRLogModuleInfo *POP3LOGMODULE;
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
+NS_IMPL_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
 
 nsPop3Sink::nsPop3Sink()
 {

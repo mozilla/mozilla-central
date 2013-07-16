@@ -26,7 +26,7 @@ typedef enum
 class nsAddrDatabase : public nsIAddrDatabase
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIADDRDBANNOUNCER
   //////////////////////////////////////////////////////////////////////////////
   // nsIAddrDatabase methods:

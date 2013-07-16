@@ -42,7 +42,7 @@ class nsLDAPConnection : public nsILDAPConnection,
     friend class nsLDAPConnectionRunnable;
 
   public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSILDAPCONNECTION
     NS_DECL_NSIDNSLISTENER
     NS_DECL_NSIOBSERVER
@@ -114,7 +114,7 @@ public:
                            nsLDAPConnection *aConnection);
   virtual ~nsLDAPConnectionRunnable();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIRUNNABLE
 
   int32_t mOperationID;

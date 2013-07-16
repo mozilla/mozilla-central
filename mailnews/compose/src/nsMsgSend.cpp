@@ -247,7 +247,7 @@ NS_IMETHODIMP MsgDeliveryListener::OnStopRunningUrl(nsIURI *url, nsresult aExitC
 
 
 /* the following macro actually implement addref, release and query interface for our component. */
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgComposeAndSend, nsIMsgSend)
+NS_IMPL_ISUPPORTS1(nsMsgComposeAndSend, nsIMsgSend)
 
 nsMsgComposeAndSend::nsMsgComposeAndSend() :
     m_messageKey(0xffffffff)

@@ -28,7 +28,7 @@ public:
   nsMsgOfflineManager();
   virtual ~nsMsgOfflineManager();
   
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
  
   /* nsIMsgOfflineManager methods */
   

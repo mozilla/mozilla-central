@@ -19,7 +19,7 @@
 class nsImportMailboxDescriptor : public nsIImportMailboxDescriptor
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_IMETHOD  GetIdentifier(uint32_t *pIdentifier) MOZ_OVERRIDE { *pIdentifier = m_id; return NS_OK;}
   NS_IMETHOD  SetIdentifier(uint32_t ident) MOZ_OVERRIDE { m_id = ident; return NS_OK;}

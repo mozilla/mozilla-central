@@ -58,7 +58,7 @@ public:
   virtual             ~nsMimeBaseEmitter (void);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_DECL_NSIMIMEEMITTER
   NS_DECL_NSIINTERFACEREQUESTOR

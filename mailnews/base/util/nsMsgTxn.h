@@ -52,7 +52,7 @@ public:
     nsresult SetMsgWindow(nsIMsgWindow *msgWindow);
     nsresult SetTransactionType(uint32_t txnType);
  
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIPROPERTYBAG
     NS_DECL_NSIPROPERTYBAG2
     NS_DECL_NSIWRITABLEPROPERTYBAG

@@ -41,7 +41,7 @@ public:
   nsImportGenericAddressBooks();
   virtual ~nsImportGenericAddressBooks();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   /* nsISupports GetData (in string dataId); */
   NS_IMETHOD GetData(const char *dataId, nsISupports **_retval);
@@ -170,7 +170,7 @@ nsImportGenericAddressBooks::~nsImportGenericAddressBooks()
 
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportGenericAddressBooks, nsIImportGeneric)
+NS_IMPL_ISUPPORTS1(nsImportGenericAddressBooks, nsIImportGeneric)
 
 
 NS_IMETHODIMP nsImportGenericAddressBooks::GetData(const char *dataId, nsISupports **_retval)

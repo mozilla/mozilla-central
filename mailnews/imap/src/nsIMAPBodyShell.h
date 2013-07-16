@@ -212,7 +212,7 @@ class nsIMAPMessagePartIDArray;
 class nsIMAPBodyShell : public nsISupports
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   nsIMAPBodyShell(nsImapProtocol *protocolConnection,
                   nsIMAPBodypartMessage *message, uint32_t UID,
                   const char *folderName);

@@ -42,7 +42,7 @@ class NS_MSG_BASE nsMsgIncomingServer : public nsIMsgIncomingServer,
   nsMsgIncomingServer();
   virtual ~nsMsgIncomingServer();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMSGINCOMINGSERVER
 
 protected:

@@ -93,7 +93,7 @@ static int32_t gPromoteNoopToCheckCount = 0;
 static const uint32_t kFlagChangesBeforeCheck = 10;
 static const int32_t kMaxSecondsBeforeCheck = 600;
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgImapHdrXferInfo, nsIImapHeaderXferInfo)
+NS_IMPL_ISUPPORTS1(nsMsgImapHdrXferInfo, nsIImapHeaderXferInfo)
 
 nsMsgImapHdrXferInfo::nsMsgImapHdrXferInfo()
   : m_hdrInfos(kNumHdrsToXfer)
@@ -172,7 +172,7 @@ void nsMsgImapHdrXferInfo::ReleaseAll()
   m_nextFreeHdrInfo = 0;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgImapLineDownloadCache, nsIImapHeaderInfo)
+NS_IMPL_ISUPPORTS1(nsMsgImapLineDownloadCache, nsIImapHeaderInfo)
 
 // **** helper class for downloading line ****
 nsMsgImapLineDownloadCache::nsMsgImapLineDownloadCache()
@@ -8647,18 +8647,8 @@ nsImapCacheStreamListener::OnDataAvailable(nsIRequest *request, nsISupports * aC
   return mListener->OnDataAvailable(mChannelToUse, aCtxt, aInStream, aSourceOffset, aCount);
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsImapMockChannel)
-NS_IMPL_THREADSAFE_RELEASE(nsImapMockChannel)
-
-NS_INTERFACE_MAP_BEGIN(nsImapMockChannel)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIImapMockChannel)
-  NS_INTERFACE_MAP_ENTRY(nsIImapMockChannel)
-  NS_INTERFACE_MAP_ENTRY(nsIChannel)
-  NS_INTERFACE_MAP_ENTRY(nsIRequest)
-  NS_INTERFACE_MAP_ENTRY(nsICacheListener)
-  NS_INTERFACE_MAP_ENTRY(nsITransportEventSink)
-  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END_THREADSAFE
+NS_IMPL_ISUPPORTS6(nsImapMockChannel, nsIImapMockChannel, nsIChannel,
+  nsIRequest, nsICacheListener, nsITransportEventSink, nsISupportsWeakReference)
 
 
 nsImapMockChannel::nsImapMockChannel()

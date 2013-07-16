@@ -14,7 +14,7 @@ public:
   nsMsgCompressOStream();
   ~nsMsgCompressOStream();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_DECL_NSIOUTPUTSTREAM
 

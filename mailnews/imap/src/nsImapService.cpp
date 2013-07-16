@@ -83,15 +83,13 @@ static bool gInitialized = false;
 static int32_t gMIMEOnDemandThreshold = 15000;
 static bool gMIMEOnDemand = false;
 
-NS_IMPL_THREADSAFE_ADDREF(nsImapService)
-NS_IMPL_THREADSAFE_RELEASE(nsImapService)
-NS_IMPL_QUERY_INTERFACE6(nsImapService,
-                         nsIImapService,
-                         nsIMsgMessageService,
-                         nsIProtocolHandler,
-                         nsIMsgProtocolInfo,
-                         nsIMsgMessageFetchPartService,
-                         nsIContentHandler)
+NS_IMPL_ISUPPORTS6(nsImapService,
+                   nsIImapService,
+                   nsIMsgMessageService,
+                   nsIProtocolHandler,
+                   nsIMsgProtocolInfo,
+                   nsIMsgMessageFetchPartService,
+                   nsIContentHandler)
 
 nsImapService::nsImapService()
 {

@@ -1949,7 +1949,7 @@ NS_MSG_BASE void MsgReplaceSubstring(nsACString &str, const char *what, const ch
 class MsgInterfaceRequestorAgg : public nsIInterfaceRequestor
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIINTERFACEREQUESTOR
 
   MsgInterfaceRequestorAgg(nsIInterfaceRequestor *aFirst,
@@ -1961,7 +1961,7 @@ public:
 };
 
 // XXX This needs to support threadsafe refcounting until we fix bug 243591.
-NS_IMPL_THREADSAFE_ISUPPORTS1(MsgInterfaceRequestorAgg, nsIInterfaceRequestor)
+NS_IMPL_ISUPPORTS1(MsgInterfaceRequestorAgg, nsIInterfaceRequestor)
 
 NS_IMETHODIMP
 MsgInterfaceRequestorAgg::GetInterface(const nsIID &aIID, void **aResult)

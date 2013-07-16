@@ -222,7 +222,7 @@ MimePgpe_free(void *output_closure)
 
 
 ////////////////////////////////////////////////////////////////////////////
-NS_IMPL_THREADSAFE_ISUPPORTS5(nsPgpMimeProxy,
+NS_IMPL_ISUPPORTS5(nsPgpMimeProxy,
                               nsIPgpMimeProxy,
                               nsIRequestObserver,
                               nsIStreamListener,

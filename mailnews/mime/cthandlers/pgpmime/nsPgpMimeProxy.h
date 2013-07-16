@@ -30,7 +30,7 @@ class nsPgpMimeProxy : public nsIPgpMimeProxy,
                        public nsIInputStream
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIPGPMIMEPROXY
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER

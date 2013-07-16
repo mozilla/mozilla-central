@@ -9,12 +9,12 @@
 
 #include "mozilla/Monitor.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(StreamListenerProxy, nsIStreamListener)
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImapMailFolderSinkProxy, nsIImapMailFolderSink)
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImapServerSinkProxy, nsIImapServerSink)
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImapMessageSinkProxy,
+NS_IMPL_ISUPPORTS1(StreamListenerProxy, nsIStreamListener)
+NS_IMPL_ISUPPORTS1(ImapMailFolderSinkProxy, nsIImapMailFolderSink)
+NS_IMPL_ISUPPORTS1(ImapServerSinkProxy, nsIImapServerSink)
+NS_IMPL_ISUPPORTS1(ImapMessageSinkProxy,
                               nsIImapMessageSink)
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImapProtocolSinkProxy,
+NS_IMPL_ISUPPORTS1(ImapProtocolSinkProxy,
                               nsIImapProtocolSink)
 namespace {
 

@@ -17,7 +17,7 @@
 class nsLDAPServer : public nsILDAPServer
 {
   public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSILDAPSERVER
 
     // Constructor & destructor

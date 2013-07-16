@@ -25,14 +25,8 @@
 #include "nsMsgMailNewsUrl.h"
 #include "mozilla/Services.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgQuoteListener)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgQuoteListener)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgQuoteListener)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgQuoteListener)
-   NS_INTERFACE_MAP_ENTRY(nsIMimeStreamConverterListener)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgQuoteListener)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS2(nsMsgQuoteListener, nsIMsgQuoteListener,
+  nsIMimeStreamConverterListener)
 
 nsMsgQuoteListener::nsMsgQuoteListener()
 {
@@ -89,14 +83,7 @@ nsMsgQuote::~nsMsgQuote()
 {
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgQuote)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgQuote)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgQuote)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgQuote)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgQuote)
-   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS2(nsMsgQuote, nsIMsgQuote, nsISupportsWeakReference)
 
 NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIMsgQuotingOutputStreamListener ** aStreamListener)
 {

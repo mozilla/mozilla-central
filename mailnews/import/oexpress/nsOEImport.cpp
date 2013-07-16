@@ -59,7 +59,7 @@ public:
   static nsresult Create(nsIImportMail** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportmail interface
 
@@ -98,8 +98,8 @@ public:
 
   static nsresult Create(nsIImportAddressBooks** aImport);
 
-    // nsISupports interface
-    NS_DECL_ISUPPORTS
+  // nsISupports interface
+  NS_DECL_THREADSAFE_ISUPPORTS
 
     // nsIImportAddressBooks interface
 
@@ -284,7 +284,7 @@ ImportOEMailImpl::~ImportOEMailImpl()
 {
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOEMailImpl, nsIImportMail)
+NS_IMPL_ISUPPORTS1(ImportOEMailImpl, nsIImportMail)
 
 NS_IMETHODIMP ImportOEMailImpl::TranslateFolderName(const nsAString & aFolderName, nsAString & _retval)
 {
@@ -478,7 +478,7 @@ ImportOEAddressImpl::~ImportOEAddressImpl()
     delete m_pWab;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOEAddressImpl, nsIImportAddressBooks)
+NS_IMPL_ISUPPORTS1(ImportOEAddressImpl, nsIImportAddressBooks)
 
 NS_IMETHODIMP ImportOEAddressImpl::GetDefaultLocation(nsIFile **aLocation,
                                                       bool *aFound,

@@ -44,16 +44,8 @@ nsMsgStatusFeedback::~nsMsgStatusFeedback()
   mBundle = nullptr;
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgStatusFeedback)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgStatusFeedback)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgStatusFeedback)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
-  NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink) 
-  NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener) 
-  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS4(nsMsgStatusFeedback, nsIMsgStatusFeedback,
+  nsIProgressEventSink, nsIWebProgressListener, nsISupportsWeakReference)
 
 //////////////////////////////////////////////////////////////////////////////////
 // nsMsgStatusFeedback::nsIWebProgressListener

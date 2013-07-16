@@ -15,7 +15,7 @@
 class NS_MSG_BASE nsMsgIdentity : public nsIMsgIdentity
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMSGIDENTITY
   
 private:

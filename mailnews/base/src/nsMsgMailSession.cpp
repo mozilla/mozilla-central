@@ -30,14 +30,8 @@
 #include "nsIProperties.h"
 #include "mozilla/Services.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
-NS_INTERFACE_MAP_BEGIN(nsMsgMailSession)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgMailSession)
-  NS_INTERFACE_MAP_ENTRY(nsIFolderListener)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgMailSession)
-NS_INTERFACE_MAP_END_THREADSAFE
-  
+NS_IMPL_ISUPPORTS2(nsMsgMailSession, nsIMsgMailSession, nsIFolderListener)
+
 nsMsgMailSession::nsMsgMailSession()
 {
 }

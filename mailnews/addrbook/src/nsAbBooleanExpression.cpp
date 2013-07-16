@@ -6,7 +6,7 @@
 #include "nsAbBooleanExpression.h"
 #include "nsComponentManagerUtils.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbBooleanConditionString, nsIAbBooleanConditionString)
+NS_IMPL_ISUPPORTS1(nsAbBooleanConditionString, nsIAbBooleanConditionString)
 
 nsAbBooleanConditionString::nsAbBooleanConditionString() :
     mCondition (nsIAbBooleanConditionTypes::Exists)
@@ -75,7 +75,7 @@ NS_IMETHODIMP nsAbBooleanConditionString::SetValue(const PRUnichar * aValue)
     return NS_OK;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbBooleanExpression, nsIAbBooleanExpression)
+NS_IMPL_ISUPPORTS1(nsAbBooleanExpression, nsIAbBooleanExpression)
 
 nsAbBooleanExpression::nsAbBooleanExpression() :
     mOperation (nsIAbBooleanOperationTypes::AND)

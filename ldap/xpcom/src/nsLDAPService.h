@@ -80,7 +80,7 @@ class nsLDAPService : public nsILDAPService, public nsILDAPMessageListener
   public: 
     // interface decls
     //
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSILDAPSERVICE
     NS_DECL_NSILDAPMESSAGELISTENER
 

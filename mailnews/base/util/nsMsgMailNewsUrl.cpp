@@ -54,15 +54,7 @@ nsMsgMailNewsUrl::~nsMsgMailNewsUrl()
   PR_FREEIF(m_errorMessage);
 }
   
-NS_IMPL_THREADSAFE_ADDREF(nsMsgMailNewsUrl)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgMailNewsUrl)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgMailNewsUrl)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgMailNewsUrl)
-   NS_INTERFACE_MAP_ENTRY(nsIMsgMailNewsUrl)
-   NS_INTERFACE_MAP_ENTRY(nsIURL)
-   NS_INTERFACE_MAP_ENTRY(nsIURI)
-NS_INTERFACE_MAP_END_THREADSAFE
+NS_IMPL_ISUPPORTS3(nsMsgMailNewsUrl, nsIMsgMailNewsUrl, nsIURL, nsIURI)
 
 ////////////////////////////////////////////////////////////////////////////////////
 // Begin nsIMsgMailNewsUrl specific support

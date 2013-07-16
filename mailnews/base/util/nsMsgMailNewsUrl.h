@@ -41,7 +41,7 @@ class NS_MSG_BASE nsMsgMailNewsUrl : public nsIMsgMailNewsUrl
 public:
     nsMsgMailNewsUrl();
 
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIMSGMAILNEWSURL
     NS_DECL_NSIURI
     NS_DECL_NSIURL

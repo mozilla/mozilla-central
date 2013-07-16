@@ -53,7 +53,7 @@ public:
   static nsresult Create(nsIImportMail** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportmail interface
 
@@ -94,7 +94,7 @@ public:
   static nsresult Create(nsIImportAddressBooks** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportAddressBooks interface
 
@@ -296,7 +296,7 @@ ImportOutlookMailImpl::~ImportOutlookMailImpl()
   nsOutlookCompose::ReleaseIdentity();
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOutlookMailImpl, nsIImportMail)
+NS_IMPL_ISUPPORTS1(ImportOutlookMailImpl, nsIImportMail)
 
 NS_IMETHODIMP ImportOutlookMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found, bool *userVerify)
 {
@@ -485,7 +485,7 @@ ImportOutlookAddressImpl::~ImportOutlookAddressImpl()
 {
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOutlookAddressImpl, nsIImportAddressBooks)
+NS_IMPL_ISUPPORTS1(ImportOutlookAddressImpl, nsIImportAddressBooks)
 
 NS_IMETHODIMP ImportOutlookAddressImpl::GetAutoFind(PRUnichar **description, bool *_retval)
 {

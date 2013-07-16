@@ -45,7 +45,7 @@ public:
   virtual ~nsMsgCompFields();
 
   /* this macro defines QueryInterface, AddRef and Release for this class */
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMSGCOMPFIELDS
 
   typedef enum MsgHeaderID

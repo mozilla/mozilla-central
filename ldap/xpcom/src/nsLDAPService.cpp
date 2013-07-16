@@ -167,7 +167,7 @@ bool nsLDAPServiceEntry::DeleteEntry()
 
 // Here begins the implementation for nsLDAPService
 // 
-NS_IMPL_THREADSAFE_ISUPPORTS2(nsLDAPService,
+NS_IMPL_ISUPPORTS2(nsLDAPService,
                               nsILDAPService,
                               nsILDAPMessageListener)
 

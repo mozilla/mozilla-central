@@ -16,7 +16,7 @@
 // once bug # 101252 gets fixed, this should be reverted back to be non threadsafe
 // implementation is not really thread safe since each object should exist 
 // independently along with its related independent nsAbLDAPReplicationQuery object.
-NS_IMPL_THREADSAFE_ISUPPORTS2(nsAbLDAPProcessReplicationData, nsIAbLDAPProcessReplicationData, nsILDAPMessageListener)
+NS_IMPL_ISUPPORTS2(nsAbLDAPProcessReplicationData, nsIAbLDAPProcessReplicationData, nsILDAPMessageListener)
 
 nsAbLDAPProcessReplicationData::nsAbLDAPProcessReplicationData() :
   nsAbLDAPListenerBase(),

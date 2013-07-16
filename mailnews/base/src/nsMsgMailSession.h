@@ -37,7 +37,7 @@ public:
   nsMsgMailSession();
   virtual ~nsMsgMailSession();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMSGMAILSESSION
   NS_DECL_NSIFOLDERLISTENER
 

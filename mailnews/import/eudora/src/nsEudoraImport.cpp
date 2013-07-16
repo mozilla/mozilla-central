@@ -68,7 +68,7 @@ public:
   static nsresult Create(nsIImportMail** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportmail interface
 
@@ -117,7 +117,7 @@ public:
   static nsresult Create(nsIImportAddressBooks** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportAddressBooks interface
 
@@ -405,7 +405,7 @@ ImportEudoraMailImpl::~ImportEudoraMailImpl()
 
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportEudoraMailImpl, nsIImportMail)
+NS_IMPL_ISUPPORTS1(ImportEudoraMailImpl, nsIImportMail)
 
 NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found, bool *userVerify)
 {
@@ -596,7 +596,7 @@ ImportEudoraAddressImpl::~ImportEudoraAddressImpl()
 
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportEudoraAddressImpl, nsIImportAddressBooks)
+NS_IMPL_ISUPPORTS1(ImportEudoraAddressImpl, nsIImportAddressBooks)
 
 
 NS_IMETHODIMP ImportEudoraAddressImpl::GetAutoFind(PRUnichar **description, bool *_retval)

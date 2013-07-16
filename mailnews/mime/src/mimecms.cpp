@@ -221,7 +221,7 @@ bool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
 class nsSMimeVerificationListener : public nsISMimeVerificationListener
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSISMIMEVERIFICATIONLISTENER
 
   nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
@@ -291,7 +291,7 @@ nsresult ProxySignedStatus(const nsMainThreadPtrHandle<nsIMsgSMIMEHeaderSink> &a
   return NS_DispatchToMainThread(signedStatus, NS_DISPATCH_SYNC);
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
+NS_IMPL_ISUPPORTS1(nsSMimeVerificationListener, nsISMimeVerificationListener)
 
 nsSMimeVerificationListener::nsSMimeVerificationListener(const char *aFromAddr, const char *aFromName,
                                                          const char *aSenderAddr, const char *aSenderName,

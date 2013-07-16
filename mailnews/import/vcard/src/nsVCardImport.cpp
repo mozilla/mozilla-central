@@ -41,7 +41,7 @@ public:
       nsIImportAddressBooks** aImport, nsIStringBundle* aStringBundle);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportAddressBooks interface
 
@@ -194,7 +194,7 @@ ImportVCardAddressImpl::~ImportVCardAddressImpl()
 {
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportVCardAddressImpl, nsIImportAddressBooks)
+NS_IMPL_ISUPPORTS1(ImportVCardAddressImpl, nsIImportAddressBooks)
 
 NS_IMETHODIMP ImportVCardAddressImpl::GetAutoFind(
     PRUnichar **addrDescription, bool *_retval)

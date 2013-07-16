@@ -8,7 +8,7 @@
 #include "nsMemory.h"
 #include "nsStringGlue.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPBERValue, nsILDAPBERValue)
+NS_IMPL_ISUPPORTS1(nsLDAPBERValue, nsILDAPBERValue)
 
 nsLDAPBERValue::nsLDAPBERValue() : mValue(0), mSize(0)
 {

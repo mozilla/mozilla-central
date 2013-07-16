@@ -14,8 +14,8 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFolder.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgTxn)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgTxn)
+NS_IMPL_ADDREF(nsMsgTxn)
+NS_IMPL_RELEASE(nsMsgTxn)
 NS_INTERFACE_MAP_BEGIN(nsMsgTxn)
   NS_INTERFACE_MAP_ENTRY(nsIWritablePropertyBag)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsIPropertyBag, nsIWritablePropertyBag)

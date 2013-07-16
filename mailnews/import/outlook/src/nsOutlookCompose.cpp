@@ -122,7 +122,7 @@ public:
   virtual ~OutlookSendListener() { NS_IF_RELEASE(m_location); }
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   /* void OnStartSending (in string aMsgID, in uint32_t aMsgSize); */
   NS_IMETHOD OnStartSending(const char *aMsgID, uint32_t aMsgSize) {return NS_OK;}
@@ -155,7 +155,7 @@ public:
   nsIFile * m_location;
 };
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(OutlookSendListener, nsIMsgSendListener)
+NS_IMPL_ISUPPORTS1(OutlookSendListener, nsIMsgSendListener)
 
 nsresult OutlookSendListener::CreateSendListener(nsIMsgSendListener **ppListener)
 {

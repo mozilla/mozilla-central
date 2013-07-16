@@ -61,7 +61,7 @@ public:
                          nsIStringBundle *aStringBundle);
 
     // nsISupports interface
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
 
     // nsIImportAddressBooks interface
     
@@ -218,7 +218,7 @@ ImportAddressImpl::ImportAddressImpl(nsIStringBundle* aStringBundle) :
   m_haveDelim = false;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportAddressImpl, nsIImportAddressBooks)
+NS_IMPL_ISUPPORTS1(ImportAddressImpl, nsIImportAddressBooks)
 
 
 NS_IMETHODIMP ImportAddressImpl::GetAutoFind(PRUnichar **addrDescription, bool *_retval)

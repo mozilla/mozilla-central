@@ -72,7 +72,7 @@ public:
   nsMsgAccountManager();
   virtual ~nsMsgAccountManager();
   
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
  
   /* nsIMsgAccountManager methods */
   

@@ -169,7 +169,7 @@ public:
   //
   // Define QueryInterface, AddRef and Release for this class
   //
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   nsMsgComposeAndSend();
   virtual     ~nsMsgComposeAndSend();

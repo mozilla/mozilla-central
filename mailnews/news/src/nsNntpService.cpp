@@ -68,17 +68,9 @@ nsNntpService::~nsNntpService()
   // do nothing
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsNntpService)
-NS_IMPL_THREADSAFE_RELEASE(nsNntpService)
-
-NS_IMPL_QUERY_INTERFACE7(nsNntpService,
-                         nsINntpService,
-                         nsIMsgMessageService,
-                         nsIProtocolHandler,
-                         nsIMsgProtocolInfo,
-                         ICOMMANDLINEHANDLER,
-                         nsIMsgMessageFetchPartService,
-                         nsIContentHandler)
+NS_IMPL_ISUPPORTS7(nsNntpService, nsINntpService, nsIMsgMessageService,
+  nsIProtocolHandler, nsIMsgProtocolInfo, nsICommandLineHandler,
+  nsIMsgMessageFetchPartService, nsIContentHandler)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // nsIMsgMessageService support

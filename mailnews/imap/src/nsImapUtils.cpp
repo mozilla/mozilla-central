@@ -127,7 +127,7 @@ nsresult nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString &baseMe
 }
 
 // nsImapMailboxSpec definition
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapMailboxSpec, nsIMailboxSpec)
+NS_IMPL_ISUPPORTS1(nsImapMailboxSpec, nsIMailboxSpec)
 
 nsImapMailboxSpec::nsImapMailboxSpec()
 {

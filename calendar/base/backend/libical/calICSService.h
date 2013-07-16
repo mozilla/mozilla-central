@@ -65,7 +65,7 @@ protected:
 public:
     calICSService();
 
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSICLASSINFO
     NS_DECL_CALIICSSERVICE
 };
@@ -115,7 +115,7 @@ public:
         mReferencedTimezones.Init();
     }
 
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSICLASSINFO
     NS_DECL_CALIICALCOMPONENT
 

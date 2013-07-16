@@ -18,7 +18,7 @@
 class nsImportABDescriptor : public nsIImportABDescriptor
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_IMETHOD GetIdentifier(uint32_t *pIdentifier) MOZ_OVERRIDE {
     *pIdentifier = mId;

@@ -53,7 +53,7 @@ public:
   nsMsgProtocol(nsIURI * aURL);
   virtual ~nsMsgProtocol();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   // nsIChannel support
   NS_DECL_NSICHANNEL
   NS_DECL_NSIREQUEST

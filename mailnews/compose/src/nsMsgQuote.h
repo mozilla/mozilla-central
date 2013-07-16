@@ -21,7 +21,7 @@ public:
 	nsMsgQuoteListener();
 	virtual     ~nsMsgQuoteListener();
 
-	NS_DECL_ISUPPORTS
+	NS_DECL_THREADSAFE_ISUPPORTS
 
 	// nsIMimeStreamConverterListener support
 	NS_DECL_NSIMIMESTREAMCONVERTERLISTENER
@@ -36,7 +36,7 @@ public:
   nsMsgQuote();
   virtual ~nsMsgQuote();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMSGQUOTE
 
   // 

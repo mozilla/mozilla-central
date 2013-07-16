@@ -49,7 +49,7 @@ protected:
 class nsIMAPHostSessionList : public nsIImapHostSessionList, public nsIObserver, public nsSupportsWeakReference
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIOBSERVER  
 
   nsIMAPHostSessionList();

@@ -74,7 +74,7 @@ typedef struct _msg_line_info {
 class nsMsgImapLineDownloadCache : public nsIImapHeaderInfo, public nsByteArray
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPHEADERINFO
   nsMsgImapLineDownloadCache();
   virtual ~nsMsgImapLineDownloadCache();
@@ -95,7 +95,7 @@ private:
 class nsMsgImapHdrXferInfo : public nsIImapHeaderXferInfo
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPHEADERXFERINFO
   nsMsgImapHdrXferInfo();
   virtual ~nsMsgImapHdrXferInfo();
@@ -134,7 +134,7 @@ class nsImapProtocol : public nsIImapProtocol,
 {
 public:
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIINPUTSTREAMCALLBACK
   nsImapProtocol();
   virtual ~nsImapProtocol();
@@ -686,7 +686,7 @@ class nsImapMockChannel : public nsIImapMockChannel
 public:
   friend class nsImapProtocol;
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIMAPMOCKCHANNEL
   NS_DECL_NSICHANNEL
   NS_DECL_NSIREQUEST

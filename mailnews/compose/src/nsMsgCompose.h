@@ -38,7 +38,7 @@ class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 	virtual ~nsMsgCompose();
 
 	/* this macro defines QueryInterface, AddRef and Release for this class */
-	NS_DECL_ISUPPORTS
+	NS_DECL_THREADSAFE_ISUPPORTS
 
 	/*** nsIMsgCompose pure virtual functions */
 	NS_DECL_NSIMSGCOMPOSE

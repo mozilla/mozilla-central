@@ -21,7 +21,7 @@ using namespace mozilla;
 class nsAbModifyLDAPMessageListener : public nsAbLDAPListenerBase
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   nsAbModifyLDAPMessageListener(const int32_t type,
                                 const nsACString &cardDN,
@@ -63,7 +63,7 @@ protected:
 };
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbModifyLDAPMessageListener, nsILDAPMessageListener)
+NS_IMPL_ISUPPORTS1(nsAbModifyLDAPMessageListener, nsILDAPMessageListener)
 
 nsAbModifyLDAPMessageListener::nsAbModifyLDAPMessageListener(
     const int32_t type,

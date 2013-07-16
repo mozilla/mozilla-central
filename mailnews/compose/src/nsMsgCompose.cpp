@@ -180,15 +180,8 @@ nsMsgCompose::~nsMsgCompose()
 }
 
 /* the following macro actually implement addref, release and query interface for our component. */
-NS_IMPL_THREADSAFE_ADDREF(nsMsgCompose)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgCompose)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgCompose)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgCompose)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgCompose)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgSendListener)
-  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END
+NS_IMPL_ISUPPORTS3(nsMsgCompose, nsIMsgCompose, nsIMsgSendListener,
+  nsISupportsWeakReference)
 
 //
 // Once we are here, convert the data which we know to be UTF-8 to UTF-16

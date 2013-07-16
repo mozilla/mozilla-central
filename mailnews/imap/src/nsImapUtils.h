@@ -45,7 +45,7 @@ public:
   nsImapMailboxSpec();
   virtual ~nsImapMailboxSpec();
   
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMAILBOXSPEC
     
   nsImapMailboxSpec& operator= (const nsImapMailboxSpec& aCopy);

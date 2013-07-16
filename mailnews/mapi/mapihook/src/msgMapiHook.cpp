@@ -59,7 +59,7 @@ public:
     virtual ~nsMAPISendListener() { }
 
     // nsISupports interface
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
 
     /* void OnStartSending (in string aMsgID, in uint32_t aMsgSize); */
     NS_IMETHOD OnStartSending(const char *aMsgID, uint32_t aMsgSize) { return NS_OK; }
@@ -102,7 +102,7 @@ protected :
 };
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsMAPISendListener, nsIMsgSendListener)
+NS_IMPL_ISUPPORTS1(nsMAPISendListener, nsIMsgSendListener)
 
 nsresult nsMAPISendListener::CreateMAPISendListener( nsIMsgSendListener **ppListener)
 {

@@ -22,7 +22,7 @@ class nsAbLDAPProcessReplicationData : public nsIAbLDAPProcessReplicationData,
                                        public nsAbLDAPListenerBase
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIABLDAPPROCESSREPLICATIONDATA
 
   nsAbLDAPProcessReplicationData();

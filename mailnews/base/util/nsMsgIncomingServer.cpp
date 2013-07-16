@@ -68,13 +68,8 @@ nsMsgIncomingServer::~nsMsgIncomingServer()
 {
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgIncomingServer)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgIncomingServer)
-NS_INTERFACE_MAP_BEGIN(nsMsgIncomingServer)
-    NS_INTERFACE_MAP_ENTRY(nsIMsgIncomingServer)
-    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgIncomingServer)
-NS_INTERFACE_MAP_END_THREADSAFE
+NS_IMPL_ISUPPORTS2(nsMsgIncomingServer, nsIMsgIncomingServer,
+  nsISupportsWeakReference)
 
 NS_IMETHODIMP
 nsMsgIncomingServer::SetServerBusy(bool aServerBusy)

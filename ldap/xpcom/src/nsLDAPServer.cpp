@@ -6,7 +6,7 @@
 
 #include "nsLDAPServer.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPServer, nsILDAPServer)
+NS_IMPL_ISUPPORTS1(nsLDAPServer, nsILDAPServer)
 
 nsLDAPServer::nsLDAPServer()
     : mSizeLimit(0),

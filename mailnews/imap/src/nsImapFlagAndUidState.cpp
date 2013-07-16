@@ -10,7 +10,7 @@
 #include "prcmon.h"
 #include "nspr.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapFlagAndUidState, nsIImapFlagAndUidState)
+NS_IMPL_ISUPPORTS1(nsImapFlagAndUidState, nsIImapFlagAndUidState)
 
 using namespace mozilla;
 

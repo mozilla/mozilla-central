@@ -28,7 +28,7 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 #define REL_FILE_PREF_SUFFIX "-rel"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgIdentity,
+NS_IMPL_ISUPPORTS1(nsMsgIdentity,
                    nsIMsgIdentity)
 
 /*

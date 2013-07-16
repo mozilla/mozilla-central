@@ -50,8 +50,8 @@ nsLDAPConnection::~nsLDAPConnection()
   Close();
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsLDAPConnection)
-NS_IMPL_THREADSAFE_RELEASE(nsLDAPConnection)
+NS_IMPL_ADDREF(nsLDAPConnection)
+NS_IMPL_RELEASE(nsLDAPConnection)
 NS_IMPL_CLASSINFO(nsLDAPConnection, NULL, nsIClassInfo::THREADSAFE,
                   NS_LDAPCONNECTION_CID)
 
@@ -607,7 +607,7 @@ nsLDAPConnectionRunnable::~nsLDAPConnectionRunnable()
 {
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPConnectionRunnable, nsIRunnable)
+NS_IMPL_ISUPPORTS1(nsLDAPConnectionRunnable, nsIRunnable)
 
 NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
 {

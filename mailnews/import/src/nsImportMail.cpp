@@ -57,7 +57,7 @@ public:
   nsImportGenericMail();
   virtual ~nsImportGenericMail();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   /* nsISupports GetData (in string dataId); */
   NS_IMETHOD GetData(const char *dataId, nsISupports **_retval);
@@ -209,7 +209,7 @@ nsImportGenericMail::~nsImportGenericMail()
 
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportGenericMail, nsIImportGeneric)
+NS_IMPL_ISUPPORTS1(nsImportGenericMail, nsIImportGeneric)
 
 
 NS_IMETHODIMP nsImportGenericMail::GetData(const char *dataId, nsISupports **_retval)

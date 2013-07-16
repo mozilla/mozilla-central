@@ -20,7 +20,7 @@ public:
   nsStreamConverter();
   virtual ~nsStreamConverter();
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIMimeStreamConverter support
   NS_DECL_NSIMIMESTREAMCONVERTER

@@ -21,7 +21,7 @@ class nsMapiSupport : public nsIMapiSupport,
         ~nsMapiSupport();
 
         // Declare all interface methods we must implement.
-        NS_DECL_ISUPPORTS
+        NS_DECL_THREADSAFE_ISUPPORTS
         NS_DECL_NSIOBSERVER
         NS_DECL_NSIMAPISUPPORT
 

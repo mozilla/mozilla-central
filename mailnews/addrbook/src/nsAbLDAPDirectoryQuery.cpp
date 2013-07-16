@@ -27,7 +27,7 @@ using namespace mozilla;
 class nsAbQueryLDAPMessageListener : public nsAbLDAPListenerBase
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // Note that the directoryUrl is the details of the ldap directory
   // without any search params or return attributes specified. The searchUrl
@@ -74,7 +74,7 @@ protected:
 };
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbQueryLDAPMessageListener, nsILDAPMessageListener)
+NS_IMPL_ISUPPORTS1(nsAbQueryLDAPMessageListener, nsILDAPMessageListener)
 
 nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
         nsIAbDirectoryQueryResultListener *resultListener,
@@ -291,7 +291,7 @@ nsresult nsAbQueryLDAPMessageListener::OnLDAPMessageSearchResult(nsILDAPMessage 
 
 // nsAbLDAPDirectoryQuery
 
-NS_IMPL_THREADSAFE_ISUPPORTS2(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery,
+NS_IMPL_ISUPPORTS2(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery,
                               nsIAbDirectoryQueryResultListener)
 
 nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :

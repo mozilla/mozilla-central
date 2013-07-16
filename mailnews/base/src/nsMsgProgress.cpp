@@ -17,17 +17,8 @@
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsMsgProgress)
-NS_IMPL_THREADSAFE_RELEASE(nsMsgProgress)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgProgress)
-  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIMsgStatusFeedback)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgProgress)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgStatusFeedback)
-  NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
-  NS_INTERFACE_MAP_ENTRY(nsIProgressEventSink)
-  NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END_THREADSAFE
+NS_IMPL_ISUPPORTS5(nsMsgProgress, nsIMsgStatusFeedback, nsIMsgProgress,
+  nsIWebProgressListener, nsIProgressEventSink, nsISupportsWeakReference)
 
 
 nsMsgProgress::nsMsgProgress()

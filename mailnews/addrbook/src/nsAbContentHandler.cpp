@@ -28,12 +28,8 @@ nsAbContentHandler::~nsAbContentHandler()
 {
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsAbContentHandler)
-NS_IMPL_THREADSAFE_RELEASE(nsAbContentHandler)
-
-NS_IMPL_QUERY_INTERFACE2(nsAbContentHandler,
-                         nsIContentHandler,
-                         nsIStreamLoaderObserver)
+NS_IMPL_ISUPPORTS2(nsAbContentHandler, nsIContentHandler,
+  nsIStreamLoaderObserver)
 
 NS_IMETHODIMP
 nsAbContentHandler::HandleContent(const char *aContentType,

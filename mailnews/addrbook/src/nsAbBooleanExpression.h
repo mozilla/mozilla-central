@@ -14,7 +14,7 @@
 class nsAbBooleanConditionString : public nsIAbBooleanConditionString
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIABBOOLEANCONDITIONSTRING
 
     nsAbBooleanConditionString();
@@ -29,7 +29,7 @@ protected:
 class nsAbBooleanExpression: public nsIAbBooleanExpression
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIABBOOLEANEXPRESSION
 
     nsAbBooleanExpression();

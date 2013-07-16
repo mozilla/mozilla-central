@@ -12,15 +12,8 @@
 #include "nsMsgUtils.h"
 #include "netCore.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsCopyMessageStreamListener)
-NS_IMPL_THREADSAFE_RELEASE(nsCopyMessageStreamListener)
-
-NS_INTERFACE_MAP_BEGIN(nsCopyMessageStreamListener)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIStreamListener)
-   NS_INTERFACE_MAP_ENTRY(nsIStreamListener)
-   NS_INTERFACE_MAP_ENTRY(nsIRequestObserver)
-   NS_INTERFACE_MAP_ENTRY(nsICopyMessageStreamListener)
-NS_INTERFACE_MAP_END_THREADSAFE
+NS_IMPL_ISUPPORTS3(nsCopyMessageStreamListener, nsIStreamListener,
+  nsIRequestObserver, nsICopyMessageStreamListener)
 
 static nsresult GetMessage(nsIURI *aURL, nsIMsgDBHdr **message)
 {

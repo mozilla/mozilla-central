@@ -24,7 +24,7 @@ NS_METHOD nsImportABDescriptor::Create(nsISupports *aOuter, REFNSIID aIID, void 
   return rv;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportABDescriptor, nsIImportABDescriptor)
+NS_IMPL_ISUPPORTS1(nsImportABDescriptor, nsIImportABDescriptor)
 
 nsImportABDescriptor::nsImportABDescriptor()
   : mId(0), mRef(0), mSize(0), mImport(true)

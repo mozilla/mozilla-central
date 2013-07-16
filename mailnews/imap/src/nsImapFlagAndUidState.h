@@ -19,7 +19,7 @@ const int32_t kImapFlagAndUidStateSize =	100;
 class nsImapFlagAndUidState : public nsIImapFlagAndUidState
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     nsImapFlagAndUidState(int numberOfMessages);
     virtual ~nsImapFlagAndUidState();
 

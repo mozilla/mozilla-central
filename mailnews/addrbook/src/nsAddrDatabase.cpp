@@ -142,20 +142,6 @@ nsAddrDatabase::~nsAddrDatabase()
     NS_ASSERTION(m_ChangeListeners.Length() == 0, "shouldn't have any listeners");
 
     RemoveFromCache(this);
-}
-
-NS_IMPL_THREADSAFE_ADDREF(nsAddrDatabase)
-
-NS_IMETHODIMP_(nsrefcnt) nsAddrDatabase::Release(void)
-{
-  // XXX FIX THIS
-  NS_PRECONDITION(0 != mRefCnt, "dup release");
-  nsrefcnt count = NS_AtomicDecrementRefcnt(mRefCnt);
-  NS_LOG_RELEASE(this, count,"nsAddrDatabase");
-  if (count == 0)    // OK, the cache is no longer holding onto this, so we really want to delete it,
-  {                // after removing it from the cache.
-    mRefCnt = 1; /* stabilize */
-    RemoveFromCache(this);
     // clean up after ourself!
     if (m_mdbPabTable)
       m_mdbPabTable->Release();
@@ -163,26 +149,9 @@ NS_IMETHODIMP_(nsrefcnt) nsAddrDatabase::Release(void)
       m_mdbDeletedCardsTable->Release();
     NS_IF_RELEASE(m_mdbStore);
     NS_IF_RELEASE(m_mdbEnv);
-    delete this;
-    return 0;
-  }
-  return count;
 }
 
-NS_IMETHODIMP nsAddrDatabase::QueryInterface(REFNSIID aIID, void** aResult)
-{
-    if (aResult == NULL)
-        return NS_ERROR_NULL_POINTER;
-
-    if (aIID.Equals(NS_GET_IID(nsIAddrDatabase)) ||
-        aIID.Equals(NS_GET_IID(nsIAddrDBAnnouncer)) ||
-        aIID.Equals(NS_GET_IID(nsISupports))) {
-        *aResult = static_cast<nsIAddrDatabase*>(this);
-        NS_ADDREF_THIS();
-        return NS_OK;
-    }
-    return NS_NOINTERFACE;
-}
+NS_IMPL_ISUPPORTS2(nsAddrDatabase, nsIAddrDatabase, nsIAddrDBAnnouncer)
 
 NS_IMETHODIMP nsAddrDatabase::AddListener(nsIAddrDBListener *listener)
 {

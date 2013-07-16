@@ -21,7 +21,6 @@
 #include "nsICacheSession.h"
 
 #include "nsICommandLineHandler.h"
-#define ICOMMANDLINEHANDLER nsICommandLineHandler
 
 class nsIURI;
 class nsIUrlListener;
@@ -31,12 +30,12 @@ class nsNntpService : public nsINntpService,
                       public nsIMsgMessageFetchPartService,
                       public nsIProtocolHandler,
                       public nsIMsgProtocolInfo,
-                      public ICOMMANDLINEHANDLER,
+                      public nsICommandLineHandler,
                       public nsIContentHandler
 {
 public:
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSINNTPSERVICE
   NS_DECL_NSIMSGMESSAGESERVICE
   NS_DECL_NSIPROTOCOLHANDLER

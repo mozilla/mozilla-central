@@ -15,10 +15,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 
-NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
-NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
-
-NS_IMPL_QUERY_INTERFACE1(nsMessengerBootstrap, nsIMessengerWindowService)
+NS_IMPL_ISUPPORTS1(nsMessengerBootstrap, nsIMessengerWindowService)
 
 nsMessengerBootstrap::nsMessengerBootstrap()
 {

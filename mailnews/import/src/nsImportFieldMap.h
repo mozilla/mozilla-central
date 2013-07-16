@@ -19,7 +19,7 @@ class nsIStringBundle;
 class nsImportFieldMap : public nsIImportFieldMap
 {
 public:
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   NS_DECL_NSIIMPORTFIELDMAP
 

@@ -24,7 +24,7 @@ class nsMsgWindow : public nsIMsgWindow,
 
 public:
 
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   nsMsgWindow();
   virtual ~nsMsgWindow();

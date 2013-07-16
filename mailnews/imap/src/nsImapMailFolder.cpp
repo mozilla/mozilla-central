@@ -8173,7 +8173,7 @@ nsImapMailCopyState::~nsImapMailCopyState()
 }
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImapMailCopyState, nsImapMailCopyState)
+NS_IMPL_ISUPPORTS1(nsImapMailCopyState, nsImapMailCopyState)
 
 nsresult
 nsImapMailFolder::InitCopyState(nsISupports* srcSupport,

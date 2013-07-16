@@ -31,10 +31,7 @@ nsSubscribeDataSource::~nsSubscribeDataSource()
 {
 }
 
-NS_IMPL_THREADSAFE_ADDREF(nsSubscribeDataSource)
-NS_IMPL_THREADSAFE_RELEASE(nsSubscribeDataSource)
-
-NS_IMPL_QUERY_INTERFACE2(nsSubscribeDataSource, nsIRDFDataSource, nsISubscribeDataSource) 
+NS_IMPL_ISUPPORTS2(nsSubscribeDataSource, nsIRDFDataSource, nsISubscribeDataSource) 
 
 nsresult
 nsSubscribeDataSource::Init()

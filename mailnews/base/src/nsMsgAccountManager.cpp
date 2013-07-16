@@ -114,7 +114,7 @@ static PLDHashOperator
 hashCleanupDeferral(nsCStringHashKey::KeyType aKey,
                     nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure);
 
-NS_IMPL_THREADSAFE_ISUPPORTS5(nsMsgAccountManager,
+NS_IMPL_ISUPPORTS5(nsMsgAccountManager,
                               nsIMsgAccountManager,
                               nsIObserver,
                               nsISupportsWeakReference,

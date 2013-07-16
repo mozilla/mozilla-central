@@ -81,7 +81,7 @@ nsImportService::~nsImportService()
 
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportService, nsIImportService)
+NS_IMPL_ISUPPORTS1(nsImportService, nsIImportService)
 
 
 NS_IMETHODIMP nsImportService::DiscoverModules(void)

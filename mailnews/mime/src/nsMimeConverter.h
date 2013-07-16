@@ -31,7 +31,7 @@ public:
   virtual ~nsMimeConverter();
 
   /* this macro defines QueryInterface, AddRef and Release for this class */
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIMIMECONVERTER
 };
 

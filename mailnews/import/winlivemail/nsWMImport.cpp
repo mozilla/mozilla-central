@@ -52,7 +52,7 @@ public:
   static nsresult Create(nsIImportMail** aImport);
 
   // nsISupports interface
-  NS_DECL_ISUPPORTS
+  NS_DECL_THREADSAFE_ISUPPORTS
 
   // nsIImportmail interface
 
@@ -178,7 +178,7 @@ ImportWMMailImpl::~ImportWMMailImpl()
 {
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(ImportWMMailImpl, nsIImportMail)
+NS_IMPL_ISUPPORTS1(ImportWMMailImpl, nsIImportMail)
 
 NS_IMETHODIMP ImportWMMailImpl::TranslateFolderName(const nsAString & aFolderName, nsAString & _retval)
 {

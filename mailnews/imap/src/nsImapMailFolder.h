@@ -49,7 +49,7 @@ class nsImapMailCopyState: public nsISupports
 public:
     NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMAPMAILCOPYSTATE_IID)
 
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
 
     nsImapMailCopyState();
     virtual ~nsImapMailCopyState();

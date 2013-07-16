@@ -67,7 +67,7 @@ nsAppleMailImportModule::~nsAppleMailImportModule()
 }
 
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAppleMailImportModule, nsIImportModule)
+NS_IMPL_ISUPPORTS1(nsAppleMailImportModule, nsIImportModule)
 
 
 NS_IMETHODIMP nsAppleMailImportModule::GetName(PRUnichar **aName)
@@ -152,7 +152,7 @@ nsAppleMailImportMail::~nsAppleMailImportMail()
   IMPORT_LOG0("nsAppleMailImportMail destroyed");
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAppleMailImportMail, nsIImportMail)
+NS_IMPL_ISUPPORTS1(nsAppleMailImportMail, nsIImportMail)
 
 NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, bool *aFound, bool *aUserVerify)
 {

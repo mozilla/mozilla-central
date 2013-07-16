@@ -16,7 +16,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
+NS_IMPL_ISUPPORTS1(nsAbLDAPReplicationQuery,
                               nsIAbLDAPReplicationQuery)
 
 nsAbLDAPReplicationQuery::nsAbLDAPReplicationQuery()

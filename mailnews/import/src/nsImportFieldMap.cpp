@@ -30,7 +30,7 @@ NS_METHOD nsImportFieldMap::Create(nsIStringBundle *aBundle, nsISupports *aOuter
   return rv;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportFieldMap, nsIImportFieldMap)
+NS_IMPL_ISUPPORTS1(nsImportFieldMap, nsIImportFieldMap)
 
 NS_IMPL_GETSET(nsImportFieldMap, SkipFirstRecord, bool, m_skipFirstRecord)
 

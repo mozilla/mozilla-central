@@ -28,7 +28,7 @@
 
 static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 
-NS_IMPL_THREADSAFE_ISUPPORTS5(nsMsgOfflineManager,
+NS_IMPL_ISUPPORTS5(nsMsgOfflineManager,
                               nsIMsgOfflineManager,
                               nsIMsgSendLaterListener,
                               nsIObserver,

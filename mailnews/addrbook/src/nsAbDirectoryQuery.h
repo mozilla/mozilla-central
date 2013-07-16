@@ -16,7 +16,7 @@
 class nsAbDirectoryQuerySimpleBooleanExpression : public nsIAbBooleanExpression
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIABBOOLEANEXPRESSION
 
     nsAbDirectoryQuerySimpleBooleanExpression();
@@ -31,7 +31,7 @@ public:
 class nsAbDirectoryQueryArguments : public nsIAbDirectoryQueryArguments
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIABDIRECTORYQUERYARGUMENTS
 
     nsAbDirectoryQueryArguments();
@@ -48,7 +48,7 @@ protected:
 class nsAbDirectoryQueryPropertyValue : public nsIAbDirectoryQueryPropertyValue
 {
 public:
-    NS_DECL_ISUPPORTS
+    NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIABDIRECTORYQUERYPROPERTYVALUE
 
     nsAbDirectoryQueryPropertyValue();

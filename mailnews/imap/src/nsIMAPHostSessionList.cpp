@@ -58,7 +58,7 @@ nsIMAPHostInfo::~nsIMAPHostInfo()
   delete fShellCache;
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS3(nsIMAPHostSessionList,
+NS_IMPL_ISUPPORTS3(nsIMAPHostSessionList,
                               nsIImapHostSessionList,
                               nsIObserver,
                               nsISupportsWeakReference)
