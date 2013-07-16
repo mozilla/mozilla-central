@@ -6,6 +6,7 @@
 #ifndef nsSmtpProtocol_h___
 #define nsSmtpProtocol_h___
 
+#include "mozilla/Attributes.h"
 #include "nsMsgProtocol.h"
 #include "nsIStreamListener.h"
 #include "nsISmtpUrl.h"
@@ -81,15 +82,15 @@ public:
     nsSmtpProtocol(nsIURI * aURL);
     virtual ~nsSmtpProtocol();
 
-    virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nullptr);
-    virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
+    virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nullptr) MOZ_OVERRIDE;
+    virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false) MOZ_OVERRIDE;
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // we suppport the nsIStreamListener interface 
     ////////////////////////////////////////////////////////////////////////////////////////
 
     // stop binding is a "notification" informing us that the stream associated with aURL is going away. 
-    NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status);
+    NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status) MOZ_OVERRIDE;
 
 private:
     // if we are asked to load a url while we are blocked waiting for redirection information,
@@ -146,7 +147,7 @@ private:
     // initialization function given a new url and transport layer
     void Initialize(nsIURI * aURL);
     virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream, 
-                                          uint64_t sourceOffset, uint32_t length);
+                                          uint64_t sourceOffset, uint32_t length) MOZ_OVERRIDE;
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // Communication methods --> Reading and writing protocol
@@ -202,7 +203,7 @@ private:
     void    MarkAuthMethodAsFailed(int32_t failedAuthMethod);
     void    ResetAuthMethods();
 
-    virtual const char* GetType() {return "smtp";}
+    virtual const char* GetType() MOZ_OVERRIDE {return "smtp";}
 
     int32_t m_prefAuthMethods; // set of capability flags for auth methods
     int32_t m_failedAuthMethods; // ditto
