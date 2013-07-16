@@ -75,13 +75,12 @@ STDMETHODIMP CMapiImp::QueryInterface(const IID& aIid, void** aPpv)
 
 STDMETHODIMP_(ULONG) CMapiImp::AddRef()
 {
-    return PR_ATOMIC_INCREMENT(&m_cRef);
+    return ++m_cRef;
 }
 
 STDMETHODIMP_(ULONG) CMapiImp::Release() 
 {
-    int32_t temp;
-    temp = PR_ATOMIC_DECREMENT(&m_cRef);
+    int32_t temp = --m_cRef;
     if (m_cRef == 0)
     {
         delete this;

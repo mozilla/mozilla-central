@@ -39,7 +39,6 @@
 #include "nsIFactory.h"
 #include "nsISupports.h"
 #include "nsIModule.h"
-#include "pratom.h"
 #include "nsICategoryManager.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"

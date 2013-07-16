@@ -11,7 +11,6 @@
 #include "nsIServiceManager.h"
 #include "nsIModule.h"
 
-#include "pratom.h"
 #include "nsMsgSMIMECID.h"
 #include "nsMsgCompCID.h"
 

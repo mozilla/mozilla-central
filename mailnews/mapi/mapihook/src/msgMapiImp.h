@@ -10,6 +10,7 @@
 #include "msgMapi.h"
 #include "nspr.h"
 #include "nscore.h"
+#include "nsISupportsImpl.h" // ThreadSafeAutoRefCnt
 
 class nsIMsgFolder;
 class MsgMapiListContext;
@@ -70,7 +71,7 @@ public :
 
 private :
   PRLock *m_Lock;
-  int32_t m_cRef;
+  mozilla::ThreadSafeAutoRefCnt m_cRef;
 };
 
 #endif // MSG_MAPI_IMP_H
