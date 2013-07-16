@@ -188,6 +188,23 @@ SuiteGlue.prototype = {
       case "initial-migration":
         this._initialMigrationPerformed = true;
         break;
+      case "browser-search-engine-modified":
+        if (data != "engine-default" && data != "engine-current") {
+          break;
+        }
+        // Enforce that the search service's defaultEngine is always equal to
+        // its currentEngine. The search service will notify us any time either
+        // of them are changed (either by directly setting the relevant prefs,
+        // i.e. if add-ons try to change this directly, or if the
+        // nsIBrowserSearchService setters are called).
+        var ss = Services.search;
+        if (ss.currentEngine.name == ss.defaultEngine.name)
+          return;
+        if (data == "engine-current")
+          ss.defaultEngine = ss.currentEngine;
+        else
+          ss.currentEngine = ss.defaultEngine;
+        break;
     }
   },
 
@@ -245,6 +262,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "places-init-complete", true);
     Services.obs.addObserver(this, "places-database-locked", true);
     Services.obs.addObserver(this, "places-shutdown", true);
+    Services.obs.addObserver(this, "browser-search-engine-modified", true);
     Components.classes['@mozilla.org/docloaderservice;1']
               .getService(Components.interfaces.nsIWebProgress)
               .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);

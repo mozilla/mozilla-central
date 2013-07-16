@@ -3,6 +3,7 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
+<?xml-stylesheet href="chrome://communicator/content/search/searchbarBindings.css"?>
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/search/search.css" type="text/css"?>
 
@@ -12,6 +13,7 @@
       onload="Startup();"
       elementtofocus="sidebar-search-text">
 
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/search/search-panel.js"/>
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
@@ -19,7 +21,8 @@
               oncommand="SelectEngine(this);"/>
 
     <hbox align="center">
-      <textbox id="sidebar-search-text" flex="1" class="padded"
+      <textbox id="sidebar-search-text" flex="1"
+               class="search-textbox padded"
                ontextentered="doSearch();"
                placeholder="&search.placeholder;"
                type="autocomplete"

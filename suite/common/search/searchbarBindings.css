@@ -4,6 +4,10 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+.search-textbox {
+  -moz-binding: url("chrome://communicator/content/search/search.xml#search-textbox");
+}
+
 .searchbar-textbox {
   -moz-binding: url("chrome://communicator/content/search/search.xml#searchbar-textbox");
 }

@@ -45,6 +45,7 @@ var gEngineManagerDialog = {
         break;
       case "engine-removed":
       case "engine-current":
+      case "engine-default":
         // Not relevant
         break;
       }
@@ -145,7 +146,7 @@ var gEngineManagerDialog = {
         var bmsg = strings.getString("duplicateBookmarkMsg");
         var emsg = strings.getFormattedString("duplicateEngineMsg", [dupName]);
 
-        prompt.alert(window, dtitle, eduplicate ? emsg : bmsg);
+        Services.prompt.alert(window, dtitle, eduplicate ? emsg : bmsg);
       } else {
         gEngineView._engineStore.changeEngine(selectedEngine, "alias",
                                               alias.value);
