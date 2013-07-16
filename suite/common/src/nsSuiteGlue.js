@@ -28,6 +28,9 @@ XPCOMUtils.defineLazyModuleGetter(this, "PlacesBackups",
 XPCOMUtils.defineLazyModuleGetter(this, "BookmarkHTMLUtils",
                                   "resource://gre/modules/BookmarkHTMLUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "DebuggerServer",
+                                  "resource://gre/modules/devtools/dbg-server.jsm");
+
 // We try to backup bookmarks at idle times, to avoid doing that at shutdown.
 // Number of idle seconds before trying to backup bookmarks.  15 minutes.
 const BOOKMARKS_BACKUP_IDLE_TIME = 15 * 60;
@@ -35,6 +38,9 @@ const BOOKMARKS_BACKUP_IDLE_TIME = 15 * 60;
 const BOOKMARKS_BACKUP_INTERVAL = 86400 * 1000;
 // Maximum number of backups to create.  Old ones will be purged.
 const BOOKMARKS_BACKUP_MAX_BACKUPS = 10;
+// Devtools Preferences
+const DEBUGGER_REMOTE_ENABLED = "devtools.debugger.remote-enabled";
+const DEBUGGER_REMOTE_PORT = "devtools.debugger.remote-port";
 
 // Constructor
 
@@ -106,6 +112,24 @@ SuiteGlue.prototype = {
   observe: function(subject, topic, data)
   {
     switch(topic) {
+      case "nsPref:changed":
+        switch (data) {
+          case DEBUGGER_REMOTE_ENABLED:
+            if (this.dbgIsEnabled)
+              this.dbgStart();
+            else
+              this.dbgStop();
+            break;
+          case DEBUGGER_REMOTE_PORT:
+            /**
+             * If the server is not on, port changes have nothing to affect.
+             * The new value will be picked up if the server is started.
+             */
+            if (this.dbgIsEnabled)
+              this.dbgRestart();
+            break;
+        }
+        break;
       case "profile-before-change":
         this._onProfileShutdown();
         break;
@@ -263,6 +287,7 @@ SuiteGlue.prototype = {
     Services.obs.addObserver(this, "places-database-locked", true);
     Services.obs.addObserver(this, "places-shutdown", true);
     Services.obs.addObserver(this, "browser-search-engine-modified", true);
+    Services.prefs.addObserver("devtools.debugger.", this, true);
     Components.classes['@mozilla.org/docloaderservice;1']
               .getService(Components.interfaces.nsIWebProgress)
               .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
@@ -898,6 +923,36 @@ SuiteGlue.prototype = {
       Services.prefs.setBoolPref("browser.download.progress.closeWhenDone",
                                  !Services.prefs.getBoolPref("browser.download.progressDnldDialog.keepAlive"));
     } catch (e) {}
+  },
+
+  /**
+   * Devtools Debugger
+   */
+  get dbgIsEnabled()
+  {
+    return Services.prefs.getBoolPref(DEBUGGER_REMOTE_ENABLED);
+  },
+
+  dbgStart: function()
+  {
+    var port = Services.prefs.getIntPref(DEBUGGER_REMOTE_PORT);
+    if (!DebuggerServer.initialized) {
+      DebuggerServer.init();
+      DebuggerServer.addBrowserActors();
+    }
+    DebuggerServer.openListener(port);
+  },
+
+  dbgStop: function()
+  {
+    if (DebuggerServer.initialized)
+      DebuggerServer.closeListener();
+  },
+
+  dbgRestart: function()
+  {
+    this.dbgStop();
+    this.dbgStart();
   },
 
   // ------------------------------
