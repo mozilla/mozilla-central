@@ -9,6 +9,7 @@ function run_test() {
 
   test_parse_headers_without_crash("./data/mailformed_recipients.eml");
   test_parse_headers_without_crash("./data/mailformed_subject.eml");
+  test_parse_headers_without_crash("./data/invalid_mozilla_keys.eml");
 }
 
 function test_parse_headers_without_crash(eml) {

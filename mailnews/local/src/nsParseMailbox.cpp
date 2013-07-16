@@ -874,7 +874,6 @@ void nsParseMailMessageState::GetAggregateHeader (nsVoidArray &list, struct mess
   {
     header = (struct message_header*) list.ElementAt(i);
     length += (header->length + 1); //+ for ","
-    NS_ASSERTION(header->length == (int32_t)strlen(header->value), "header corrupted");
   }
 
   if (length > 0)
@@ -1056,7 +1055,7 @@ nsresult nsParseMailMessageState::ParseHeaders ()
 SEARCH_NEWLINE:
     // move past any non terminating characters, rewriting them if folding white space
     // exists
-    while (buf < buf_end && *buf != '\r' && *buf != '\n')
+    while (buf <= buf_end && *buf != '\r' && *buf != '\n')
     {
       if (writeOffset)
         *(buf - writeOffset) = *buf;
@@ -1101,6 +1100,8 @@ SEARCH_NEWLINE:
 
       header->value = value;
       header->length = buf - header->value - writeOffset;
+      if (header->length < 0)
+        header->length = 0;
     }
     if (*buf == '\r' || *buf == '\n')
     {
@@ -1214,8 +1215,6 @@ nsresult nsParseMailMessageState::InternSubject (struct message_header *header)
     m_newMsgHdr->SetSubject("");
     return NS_OK;
   }
-
-  NS_ASSERTION (header->length == (short) strlen(header->value), "subject corrupt while parsing message");
 
   key = (char *) header->value;  /* #### const evilness */
 
@@ -1441,7 +1440,6 @@ nsresult nsParseMailMessageState::FinalizeHeaders()
       group in the summary list, and only being able to sort on the first
         group rather than the whole list.  It's worth it. */
         char * ch;
-        NS_ASSERTION (recipient->length == (uint16_t) strlen(recipient->value), "invalid recipient");
         ch = PL_strchr(recipient->value, ',');
         if (ch)
         {
