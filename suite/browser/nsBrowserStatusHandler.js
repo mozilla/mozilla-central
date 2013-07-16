@@ -192,7 +192,7 @@ nsBrowserStatusHandler.prototype =
 
       // Call start document load listeners (only if this is a network load)
       if (aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK &&
-          aRequest && aWebProgress.DOMWindow == content)
+          aRequest && aWebProgress.isTopLevel)
         this.startDocumentLoad(aRequest);
 
       if (!(aStateFlags & nsIWebProgressListener.STATE_RESTORING)) {
@@ -210,7 +210,7 @@ nsBrowserStatusHandler.prototype =
     else if (aStateFlags & nsIWebProgressListener.STATE_STOP) {
       if (aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
         if (aRequest) {
-          if (aWebProgress.DOMWindow == content)
+          if (aWebProgress.isTopLevel)
             this.endDocumentLoad(aRequest, aStatus);
         }
       }
@@ -267,7 +267,7 @@ nsBrowserStatusHandler.prototype =
     const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
     if (gContextMenu) {
       // Optimise for the common case
-      if (aWebProgress.DOMWindow == content)
+      if (aWebProgress.isTopLevel)
         document.getElementById("contentAreaContextMenu").hidePopup();
       else {
         for (var contextWindow = gContextMenu.target.ownerDocument.defaultView;
@@ -283,7 +283,7 @@ nsBrowserStatusHandler.prototype =
 
    if (document.tooltipNode) {
      // Optimise for the common case
-     if (aWebProgress.DOMWindow == content) {
+     if (aWebProgress.isTopLevel) {
        document.getElementById("aHTMLTooltip").hidePopup();
        document.tooltipNode = null;
      } else {
@@ -323,7 +323,7 @@ nsBrowserStatusHandler.prototype =
     // Do not update urlbar if there was a subframe navigation
 
     var browser = getBrowser().selectedBrowser;
-    if (aWebProgress.DOMWindow == content) {
+    if (aWebProgress.isTopLevel) {
       var userTypedValue = browser.userTypedValue;
       if (userTypedValue === null) {
         URLBarSetURI(aLocation, true);

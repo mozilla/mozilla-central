@@ -459,7 +459,7 @@
                 // We need to add 2 because loadURIWithFlags may have
                 // cancelled a pending load which would have cleared
                 // its anchor scroll detection temporary increment.
-                if (aWebProgress.DOMWindow == this.mBrowser.contentWindow)
+                if (aWebProgress.isTopLevel)
                   this.mBrowser.userTypedClear += 2;
 
                 if (!this.mBlank && !(aStateFlags & nsIWebProgressListener.STATE_RESTORING)) {
@@ -473,7 +473,7 @@
                        aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
                 // The document is done loading, it's okay to clear
                 // the value again.
-                if (aWebProgress.DOMWindow == this.mBrowser.contentWindow)
+                if (aWebProgress.isTopLevel)
                   if (this.mBrowser.userTypedClear > 1)
                     this.mBrowser.userTypedClear -= 2;
                   else if (this.mBrowser.userTypedClear > 0)
@@ -541,7 +541,7 @@
 
             onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {
               const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
-              if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
+              if (aWebProgress.isTopLevel) {
                 if (!(aFlags & nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT)) {
                   this.mBrowser.mIconURL = "";
                   this.mFeeds = [];
@@ -846,7 +846,7 @@
                   if (aSecurityUI && "onSecurityChange" in element)
                     element.onSecurityChange(aWebProgress, null, aSecurityUI.state);
                   // If the document already exists, just resend cached data.
-                  if (!aRequest && aWebProgress.DOMWindow == aBrowser.contentWindow) {
+                  if (!aRequest && aWebProgress.isTopLevel) {
                     if (aBrowser.mIconURL && "onLinkIconAvailable" in element)
                       element.onLinkIconAvailable(aBrowser.mIconURL);
                     if ("onFeedAvailable" in element) {
