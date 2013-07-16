@@ -228,7 +228,7 @@
   ; protocol handler
   ${AddHandlerValues} "$0\ThunderbirdEML"  "$1" "$8,0" \
                       "${AppRegNameMail} Document" "" ""
-  ${AddHandlerValues} "$0\Thunderbird.Url.mailto"  "$2" "$8,0" "${AppRegNameMail} URL" "true" ""
+  ${AddHandlerValues} "$0\Thunderbird.Url.mailto"  "$2" "$8,0" "${AppRegNameMail} URL" "delete" ""
   ${AddHandlerValues} "$0\mailto" "$2" "$8,0" "${AppRegNameMail} URL" "true" ""
 
   ; Associate the file handlers with ThunderbirdEML
@@ -245,7 +245,7 @@
   StrCpy $1 "$\"$8$\" -osint -mail $\"%1$\""
 
   ${AddHandlerValues} "$0\Thunderbird.Url.news" "$1" "$8,0" \
-                      "${AppRegNameNews} URL" "true" ""
+                      "${AppRegNameNews} URL" "delete" ""
   ${AddHandlerValues} "$0\news"   "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\nntp"   "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
   ${AddHandlerValues} "$0\snews"  "$1" "$8,0" "${AppRegNameNews} URL" "true" ""
@@ -515,7 +515,7 @@
   ${IsHandlerForInstallDir} "Thunderbird.Url.mailto" $R9
   ${If} "$R9" == "true"
     ${AddHandlerValues} "SOFTWARE\Classes\Thunderbird.Url.mailto" "$1" "$8,0" \
-                        "${AppRegNameMail} URL" "true" ""
+                        "${AppRegNameMail} URL" "delete" ""
   ${EndIf}
 
   ${IsHandlerForInstallDir} "mailto" $R9
@@ -526,7 +526,7 @@
   ${IsHandlerForInstallDir} "Thunderbird.Url.news" $R9
   ${If} "$R9" == "true"
     ${AddHandlerValues} "SOFTWARE\Classes\Thunderbird.Url.news" "$2" "$8,0" \
-                        "${AppRegNameNews} URL" "true" ""
+                        "${AppRegNameNews} URL" "delete" ""
   ${EndIf}
 
   ${IsHandlerForInstallDir} "news" $R9
