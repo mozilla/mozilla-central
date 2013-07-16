@@ -6,6 +6,7 @@
 #ifndef nsLocalUndoTxn_h__
 #define nsLocalUndoTxn_h__
 
+#include "mozilla/Attributes.h"
 #include "msgCore.h"
 #include "nsIMsgFolder.h"
 #include "nsMailboxService.h"
@@ -28,8 +29,8 @@ public:
     NS_DECL_NSIFOLDERLISTENER
 
     // overloading nsITransaction methods
-    NS_IMETHOD UndoTransaction(void);
-    NS_IMETHOD RedoTransaction(void);
+    NS_IMETHOD UndoTransaction(void) MOZ_OVERRIDE;
+    NS_IMETHOD RedoTransaction(void) MOZ_OVERRIDE;
 
     // helper
     nsresult AddSrcKey(nsMsgKey aKey);

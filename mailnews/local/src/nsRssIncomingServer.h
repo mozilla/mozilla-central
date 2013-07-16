@@ -5,6 +5,7 @@
 #ifndef __nsRssIncomingServer_h
 #define __nsRssIncomingServer_h
 
+#include "mozilla/Attributes.h"
 #include "nsIRssIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
 #include "nsMsgIncomingServer.h"
@@ -23,13 +24,14 @@ public:
     NS_DECL_NSILOCALMAILINCOMINGSERVER
     NS_DECL_NSIMSGFOLDERLISTENER
 
-    NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
-    NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace);
-    NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
-    NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
-    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-    NS_IMETHOD GetSortOrder(int32_t* aSortOrder);
+    NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel) MOZ_OVERRIDE;
+    NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace) MOZ_OVERRIDE;
+    NS_IMETHOD GetAccountManagerChrome(nsAString& aResult) MOZ_OVERRIDE;
+    NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow) MOZ_OVERRIDE;
+    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff
+						) MOZ_OVERRIDE;
+    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages) MOZ_OVERRIDE;
+    NS_IMETHOD GetSortOrder(int32_t* aSortOrder) MOZ_OVERRIDE;
 
     nsRssIncomingServer();
     virtual ~nsRssIncomingServer();

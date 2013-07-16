@@ -6,6 +6,7 @@
 #ifndef __nsNoIncomingServer_h
 #define __nsNoIncomingServer_h
 
+#include "mozilla/Attributes.h"
 #include "msgCore.h"
 #include "nsINoIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
@@ -26,11 +27,11 @@ public:
   nsNoIncomingServer();
   virtual ~nsNoIncomingServer();
 
-  NS_IMETHOD GetLocalStoreType(nsACString& type);
-  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-  NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
-  NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
-  NS_IMETHOD GetSortOrder(int32_t* aSortOrder);
+  NS_IMETHOD GetLocalStoreType(nsACString& type) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages) MOZ_OVERRIDE;
+  NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff) MOZ_OVERRIDE;
+  NS_IMETHOD GetAccountManagerChrome(nsAString& aResult) MOZ_OVERRIDE;
+  NS_IMETHOD GetSortOrder(int32_t* aSortOrder) MOZ_OVERRIDE;
 };
 
 

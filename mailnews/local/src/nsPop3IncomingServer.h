@@ -6,6 +6,7 @@
 #ifndef __nsPop3IncomingServer_h
 #define __nsPop3IncomingServer_h
 
+#include "mozilla/Attributes.h"
 #include "msgCore.h"
 #include "nsIPop3IncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
@@ -28,19 +29,19 @@ public:
   nsPop3IncomingServer();
   virtual ~nsPop3IncomingServer();
 
-  NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
-  NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
-  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-  NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel);
-  NS_IMETHOD CloseCachedConnections();
-  NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
-  NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer);
-  NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer);
+  NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow) MOZ_OVERRIDE;
+  NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages) MOZ_OVERRIDE;
+  NS_IMETHOD GetOfflineSupportLevel(int32_t *aSupportLevel) MOZ_OVERRIDE;
+  NS_IMETHOD CloseCachedConnections() MOZ_OVERRIDE;
+  NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer) MOZ_OVERRIDE;
   NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
-                         nsIURI **aURL);
+                         nsIURI **aURL) MOZ_OVERRIDE;
   NS_IMETHOD GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow,
-                            nsIUrlListener *aUrlListener);
+                            nsIUrlListener *aUrlListener) MOZ_OVERRIDE;
 
 protected:
   nsresult GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **inbox);

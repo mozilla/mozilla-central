@@ -6,6 +6,7 @@
 #ifndef __nsMovemailIncomingServer_h
 #define __nsMovemailIncomingServer_h
 
+#include "mozilla/Attributes.h"
 #include "msgCore.h"
 #include "nsIMovemailIncomingServer.h"
 #include "nsILocalMailIncomingServer.h"
@@ -25,12 +26,12 @@ public:
     nsMovemailIncomingServer();
     virtual ~nsMovemailIncomingServer();
 
-    NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
-    NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
-    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
-    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
-    NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
+    NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow) MOZ_OVERRIDE;
+    NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages) MOZ_OVERRIDE;
+    NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer) MOZ_OVERRIDE;
+    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages) MOZ_OVERRIDE;
+    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff) MOZ_OVERRIDE;
+    NS_IMETHOD GetAccountManagerChrome(nsAString& aResult) MOZ_OVERRIDE;
 };
 
 
