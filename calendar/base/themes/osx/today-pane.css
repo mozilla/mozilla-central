@@ -20,7 +20,7 @@
 }
 
 .today-closebutton {
-  list-style-image: url("chrome://global/skin/icons/close-sidebar.png") !important;
+  list-style-image: url("chrome://global/skin/icons/close.png") !important;
 }
 
 .today-closebutton > .toolbarbutton-text {
