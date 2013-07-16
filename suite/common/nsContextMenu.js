@@ -377,6 +377,7 @@ nsContextMenu.prototype = {
                   onMedia && !this.target.paused && !this.target.ended);
     this.showItem("context-media-mute", onMedia && !this.target.muted);
     this.showItem("context-media-unmute", onMedia && this.target.muted);
+    this.showItem("context-media-playbackrate", onMedia);
     this.showItem("context-media-showcontrols", onMedia && !this.target.controls);
     this.showItem("context-media-hidecontrols", onMedia && this.target.controls);
     this.showItem("context-video-fullscreen", this.onVideo);
@@ -390,12 +391,17 @@ nsContextMenu.prototype = {
 
     // Disable them when there isn't a valid media source loaded.
     if (onMedia) {
+      this.setItemAttr("context-media-playbackrate-050", "checked", this.target.playbackRate == 0.5);
+      this.setItemAttr("context-media-playbackrate-100", "checked", this.target.playbackRate == 1.0);
+      this.setItemAttr("context-media-playbackrate-150", "checked", this.target.playbackRate == 1.5);
+      this.setItemAttr("context-media-playbackrate-200", "checked", this.target.playbackRate == 2.0);
       var hasError = this.target.error != null ||
                      this.target.networkState == this.target.NETWORK_NO_SOURCE;
       this.setItemAttr("context-media-play", "disabled", hasError);
       this.setItemAttr("context-media-pause", "disabled", hasError);
       this.setItemAttr("context-media-mute", "disabled", hasError);
       this.setItemAttr("context-media-unmute", "disabled", hasError);
+      this.setItemAttr("context-media-playbackrate", "disabled", hasError);
       this.setItemAttr("context-media-showcontrols", "disabled", hasError);
       this.setItemAttr("context-media-hidecontrols", "disabled", hasError);
       if (this.onVideo) {
@@ -1372,7 +1378,7 @@ nsContextMenu.prototype = {
     return false;
   },
 
-  mediaCommand: function(aCommand) {
+  mediaCommand: function(aCommand, aData) {
     var media = this.target;
 
     switch (aCommand) {
@@ -1387,6 +1393,9 @@ nsContextMenu.prototype = {
         break;
       case "unmute":
         media.muted = false;
+        break;
+      case "playbackRate":
+        media.playbackRate = aData;
         break;
       case "hidecontrols":
         media.removeAttribute("controls");
