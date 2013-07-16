@@ -6,6 +6,7 @@
 #ifndef _nsIMAPServerResponseParser_H_
 #define _nsIMAPServerResponseParser_H_
 
+#include "mozilla/Attributes.h"
 #include "nsIMAPHostSessionList.h"
 #include "nsImapSearchResults.h"
 #include "nsStringGlue.h"
@@ -31,8 +32,8 @@ public:
   virtual ~nsImapServerResponseParser();
 
   // Overridden from the base parser class
-  virtual bool       LastCommandSuccessful();
-  virtual void HandleMemoryFailure();
+  virtual bool       LastCommandSuccessful() MOZ_OVERRIDE;
+  virtual void HandleMemoryFailure() MOZ_OVERRIDE;
 
   // aignoreBadAndNOResponses --> don't throw a error dialog if this command results in a NO or Bad response
   // from the server..in other words the command is "exploratory" and we don't really care if it succeeds or fails.
@@ -181,9 +182,9 @@ protected:
 
   // Overridden from the nsIMAPGenericParser, to retrieve the next line
   // from the open socket.
-  virtual bool    GetNextLineForParser(char **nextLine);
+  virtual bool    GetNextLineForParser(char **nextLine) MOZ_OVERRIDE;
   // overriden to do logging
-  virtual void    SetSyntaxError(bool error, const char *msg = nullptr);
+  virtual void    SetSyntaxError(bool error, const char *msg = nullptr) MOZ_OVERRIDE;
 
 private:
   bool            fCurrentCommandFailed;

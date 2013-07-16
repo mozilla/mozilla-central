@@ -6,6 +6,7 @@
 #ifndef nsImapProtocol_h___
 #define nsImapProtocol_h___
 
+#include "mozilla/Attributes.h"
 #include "nsIImapProtocol.h"
 #include "nsIImapUrl.h"
 
@@ -139,10 +140,10 @@ public:
   virtual ~nsImapProtocol();
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
-                                        uint64_t sourceOffset, uint32_t length);
+                                        uint64_t sourceOffset, uint32_t length) MOZ_OVERRIDE;
 
   // nsIRunnable method
-  NS_IMETHOD Run();
+  NS_IMETHOD Run() MOZ_OVERRIDE;
 
   //////////////////////////////////////////////////////////////////////////////////
   // we support the nsIImapProtocol interface
@@ -432,7 +433,7 @@ private:
   // aSuppressLogging --> set to true if you wish to suppress logging for this particular command.
   // this is useful for making sure we don't log authenication information like the user's password (which was
   // encoded anyway), but still we shouldn't add that information to the log.
-  nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
+  nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false) MOZ_OVERRIDE;
 
   // state ported over from 4.5
   bool m_pseudoInterrupted;

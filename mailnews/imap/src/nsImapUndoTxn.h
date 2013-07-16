@@ -6,6 +6,7 @@
 #ifndef nsImapUndoTxn_h__
 #define nsImapUndoTxn_h__
 
+#include "mozilla/Attributes.h"
 #include "nsIMsgFolder.h"
 #include "nsImapCore.h"
 #include "nsIImapService.h"
@@ -32,8 +33,8 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIURLLISTENER
 
-  NS_IMETHOD UndoTransaction(void);
-  NS_IMETHOD RedoTransaction(void);
+  NS_IMETHOD UndoTransaction(void) MOZ_OVERRIDE;
+  NS_IMETHOD RedoTransaction(void) MOZ_OVERRIDE;
 
   // helper
   nsresult SetCopyResponseUid(const char *msgIdString);
@@ -78,8 +79,8 @@ public:
                    nsCOMArray<nsIMsgDBHdr> &srcHdrs);
   virtual ~nsImapOfflineTxn();
 
-  NS_IMETHOD UndoTransaction(void);
-  NS_IMETHOD RedoTransaction(void);
+  NS_IMETHOD UndoTransaction(void) MOZ_OVERRIDE;
+  NS_IMETHOD RedoTransaction(void) MOZ_OVERRIDE;
   void SetAddFlags(bool addFlags) {m_addFlags = addFlags;}
   void SetFlags(uint32_t flags) {m_flags = flags;}
 protected:

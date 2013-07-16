@@ -6,6 +6,7 @@
 #ifndef nsImapUrl_h___
 #define nsImapUrl_h___
 
+#include "mozilla/Attributes.h"
 #include "nsIImapUrl.h"
 #include "nsIImapMockChannel.h"
 #include "nsCOMPtr.h"
@@ -26,9 +27,9 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
 
   // nsIURI override
-  NS_IMETHOD SetSpec(const nsACString &aSpec);
-  NS_IMETHOD SetQuery(const nsACString &aQuery);
-  NS_IMETHOD Clone(nsIURI **_retval);
+  NS_IMETHOD SetSpec(const nsACString &aSpec) MOZ_OVERRIDE;
+  NS_IMETHOD SetQuery(const nsACString &aQuery) MOZ_OVERRIDE;
+  NS_IMETHOD Clone(nsIURI **_retval) MOZ_OVERRIDE;
 
   //////////////////////////////////////////////////////////////////////////////
   // we support the nsIImapUrl interface
@@ -36,9 +37,9 @@ public:
   NS_DECL_NSIIMAPURL
 
   // nsIMsgMailNewsUrl overrides
-  NS_IMETHOD IsUrlType(uint32_t type, bool *isType);
-  NS_IMETHOD GetFolder(nsIMsgFolder **aFolder);
-  NS_IMETHOD SetFolder(nsIMsgFolder *aFolder);
+  NS_IMETHOD IsUrlType(uint32_t type, bool *isType) MOZ_OVERRIDE;
+  NS_IMETHOD GetFolder(nsIMsgFolder **aFolder) MOZ_OVERRIDE;
+  NS_IMETHOD SetFolder(nsIMsgFolder *aFolder) MOZ_OVERRIDE;
   // nsIMsgMessageUrl
   NS_DECL_NSIMSGMESSAGEURL
   NS_DECL_NSIMSGI18NURL

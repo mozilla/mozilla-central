@@ -5,6 +5,7 @@
 #ifndef nsImapMailFolder_h__
 #define nsImapMailFolder_h__
 
+#include "mozilla/Attributes.h"
 #include "nsImapCore.h"
 #include "nsMsgDBFolder.h"
 #include "nsIImapMailFolderSink.h"
@@ -199,98 +200,98 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
 
   // nsIMsgFolder methods:
-  NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
+  NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetMessages(nsISimpleEnumerator* *result);
-  NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
+  NS_IMETHOD GetMessages(nsISimpleEnumerator* *result) MOZ_OVERRIDE;
+  NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow) MOZ_OVERRIDE;
 
-  NS_IMETHOD CreateSubfolder(const nsAString& folderName,nsIMsgWindow *msgWindow );
-  NS_IMETHOD AddSubfolder(const nsAString& aName, nsIMsgFolder** aChild);
+  NS_IMETHOD CreateSubfolder(const nsAString& folderName,nsIMsgWindow *msgWindow ) MOZ_OVERRIDE;
+  NS_IMETHOD AddSubfolder(const nsAString& aName, nsIMsgFolder** aChild) MOZ_OVERRIDE;
   NS_IMETHODIMP CreateStorageIfMissing(nsIUrlListener* urlListener);
 
-  NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
+  NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow) MOZ_OVERRIDE;
   NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow,
-                        bool aCompactOfflineAlso);
-  NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
+                        bool aCompactOfflineAlso) MOZ_OVERRIDE;
+  NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener) MOZ_OVERRIDE;
   NS_IMETHOD CopyDataToOutputStreamForAppend(nsIInputStream *aIStream,
-                     int32_t aLength, nsIOutputStream *outputStream);
-  NS_IMETHOD CopyDataDone();
-  NS_IMETHOD Delete ();
-  NS_IMETHOD Rename (const nsAString& newName, nsIMsgWindow *msgWindow);
-  NS_IMETHOD RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsgFolder *oldFolder);
-  NS_IMETHOD GetNoSelect(bool *aResult);
+                     int32_t aLength, nsIOutputStream *outputStream) MOZ_OVERRIDE;
+  NS_IMETHOD CopyDataDone() MOZ_OVERRIDE;
+  NS_IMETHOD Delete () MOZ_OVERRIDE;
+  NS_IMETHOD Rename (const nsAString& newName, nsIMsgWindow *msgWindow) MOZ_OVERRIDE;
+  NS_IMETHOD RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsgFolder *oldFolder) MOZ_OVERRIDE;
+  NS_IMETHOD GetNoSelect(bool *aResult) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetPrettyName(nsAString& prettyName); // Override of the base, for top-level mail folder
+  NS_IMETHOD GetPrettyName(nsAString& prettyName) MOZ_OVERRIDE; // Override of the base, for top-level mail folder
 
-  NS_IMETHOD GetFolderURL(nsACString& url);
+  NS_IMETHOD GetFolderURL(nsACString& url) MOZ_OVERRIDE;
 
-  NS_IMETHOD UpdateSummaryTotals(bool force) ;
+  NS_IMETHOD UpdateSummaryTotals(bool force) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetDeletable (bool *deletable);
+  NS_IMETHOD GetDeletable (bool *deletable) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetSizeOnDisk(uint32_t * size);
+  NS_IMETHOD GetSizeOnDisk(uint32_t * size) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetCanCreateSubfolders(bool *aResult);
-  NS_IMETHOD GetCanSubscribe(bool *aResult);
+  NS_IMETHOD GetCanCreateSubfolders(bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanSubscribe(bool *aResult) MOZ_OVERRIDE;
 
-  NS_IMETHOD ApplyRetentionSettings();
+  NS_IMETHOD ApplyRetentionSettings() MOZ_OVERRIDE;
 
-  NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag);
-  NS_IMETHOD MarkMessagesRead(nsIArray *messages, bool markRead);
-  NS_IMETHOD MarkAllMessagesRead(nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, bool markFlagged);
-  NS_IMETHOD MarkThreadRead(nsIMsgThread *thread);
-  NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel);
-  NS_IMETHOD SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& aJunkScore);
-  NS_IMETHOD DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow);
-  NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);
-  NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
+  NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag) MOZ_OVERRIDE;
+  NS_IMETHOD MarkMessagesRead(nsIArray *messages, bool markRead) MOZ_OVERRIDE;
+  NS_IMETHOD MarkAllMessagesRead(nsIMsgWindow *aMsgWindow) MOZ_OVERRIDE;
+  NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, bool markFlagged) MOZ_OVERRIDE;
+  NS_IMETHOD MarkThreadRead(nsIMsgThread *thread) MOZ_OVERRIDE;
+  NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel) MOZ_OVERRIDE;
+  NS_IMETHOD SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& aJunkScore) MOZ_OVERRIDE;
+  NS_IMETHOD DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow) MOZ_OVERRIDE;
+  NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element) MOZ_OVERRIDE;
+  NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element) MOZ_OVERRIDE;
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo,
-                                  nsIMsgDatabase **db);
+                                  nsIMsgDatabase **db) MOZ_OVERRIDE;
   NS_IMETHOD DeleteMessages(nsIArray *messages,
                             nsIMsgWindow *msgWindow, bool
                             deleteStorage, bool isMove,
-                            nsIMsgCopyServiceListener* listener, bool allowUndo);
+                            nsIMsgCopyServiceListener* listener, bool allowUndo) MOZ_OVERRIDE;
   NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder,
                           nsIArray* messages,
                           bool isMove, nsIMsgWindow *msgWindow,
                           nsIMsgCopyServiceListener* listener, bool isFolder,
-                          bool allowUndo);
+                          bool allowUndo) MOZ_OVERRIDE;
   NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, bool isMove, nsIMsgWindow *msgWindow,
-                        nsIMsgCopyServiceListener* listener);
+                        nsIMsgCopyServiceListener* listener) MOZ_OVERRIDE;
   NS_IMETHOD CopyFileMessage(nsIFile* file,
                               nsIMsgDBHdr* msgToReplace,
                               bool isDraftOrTemplate,
                               uint32_t aNewMsgFlags,
                               const nsACString &aNewMsgKeywords,
                               nsIMsgWindow *msgWindow,
-                              nsIMsgCopyServiceListener* listener);
-  NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
+                              nsIMsgCopyServiceListener* listener) MOZ_OVERRIDE;
+  NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener) MOZ_OVERRIDE;
 
-  NS_IMETHOD GetFilePath(nsIFile** aPathName);
-  NS_IMETHOD SetFilePath(nsIFile * aPath);
+  NS_IMETHOD GetFilePath(nsIFile** aPathName) MOZ_OVERRIDE;
+  NS_IMETHOD SetFilePath(nsIFile * aPath) MOZ_OVERRIDE;
 
-  NS_IMETHOD Shutdown(bool shutdownChildren);
+  NS_IMETHOD Shutdown(bool shutdownChildren) MOZ_OVERRIDE;
 
-  NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *msgWindow);
+  NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *msgWindow) MOZ_OVERRIDE;
 
-  NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
-  NS_IMETHOD GetCanFileMessages(bool *aCanFileMessages);
-  NS_IMETHOD GetCanDeleteMessages(bool *aCanDeleteMessages);
+  NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanFileMessages(bool *aCanFileMessages) MOZ_OVERRIDE;
+  NS_IMETHOD GetCanDeleteMessages(bool *aCanDeleteMessages) MOZ_OVERRIDE;
   NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, uint32_t aNumKeys,
                                                  bool aLocalOnly, nsIUrlListener *aUrlListener,
-                                                 bool *aAsyncResults);
+                                                 bool *aAsyncResults) MOZ_OVERRIDE;
 
-  NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
-  NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords) MOZ_OVERRIDE;
+  NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords) MOZ_OVERRIDE;
 
-  NS_IMETHOD NotifyCompactCompleted();
+  NS_IMETHOD NotifyCompactCompleted() MOZ_OVERRIDE;
 
   // overrides nsMsgDBFolder::HasMsgOffline()
-  NS_IMETHOD HasMsgOffline(nsMsgKey msgKey, bool *_retval);
+  NS_IMETHOD HasMsgOffline(nsMsgKey msgKey, bool *_retval) MOZ_OVERRIDE;
   // overrides nsMsgDBFolder::GetOfflineFileStream()
-  NS_IMETHOD GetOfflineFileStream(nsMsgKey msgKey, int64_t *offset, uint32_t *size, nsIInputStream **aFileStream);
+  NS_IMETHOD GetOfflineFileStream(nsMsgKey msgKey, int64_t *offset, uint32_t *size, nsIInputStream **aFileStream) MOZ_OVERRIDE;
 
   NS_DECL_NSIMSGIMAPMAILFOLDER
   NS_DECL_NSIIMAPMAILFOLDERSINK
@@ -299,15 +300,15 @@ public:
   NS_DECL_NSIREQUESTOBSERVER
 
   // nsIUrlListener methods
-  NS_IMETHOD OnStartRunningUrl(nsIURI * aUrl);
-  NS_IMETHOD OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode);
+  NS_IMETHOD OnStartRunningUrl(nsIURI * aUrl) MOZ_OVERRIDE;
+  NS_IMETHOD OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode) MOZ_OVERRIDE;
 
   NS_DECL_NSIMSGFILTERHITNOTIFY
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
 
-  NS_IMETHOD IsCommandEnabled(const nsACString& command, bool *result);
-  NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
-  NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
+  NS_IMETHOD IsCommandEnabled(const nsACString& command, bool *result) MOZ_OVERRIDE;
+  NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList) MOZ_OVERRIDE;
+  NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity) MOZ_OVERRIDE;
 
  /**
   * This method is used to locate a folder where a msg could be present, not just
@@ -317,7 +318,7 @@ public:
   *  @param msgKey key  of the msg for which we are trying to get the folder;
   *  @param aMsgFolder  required folder;
   */
-  NS_IMETHOD GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder);
+  NS_IMETHOD GetOfflineMsgFolder(nsMsgKey msgKey, nsIMsgFolder **aMsgFolder) MOZ_OVERRIDE;
 
   nsresult AddSubfolderWithPath(nsAString& name, nsIFile *dbPath, nsIMsgFolder **child, bool brandNew = false);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
@@ -342,7 +343,7 @@ public:
 protected:
   // Helper methods
 
-  virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder);
+  virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder) MOZ_OVERRIDE;
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, uint32_t &numNewUnread, nsIImapFlagAndUidState *flagState);
   void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
@@ -382,8 +383,8 @@ protected:
   //nsresult RenameLocal(const char *newName);
   nsresult AddDirectorySeparator(nsIFile *path);
   nsresult CreateSubFolders(nsIFile *path);
-  nsresult GetDatabase();
-  virtual void GetIncomingServerType(nsCString& serverType) { serverType.AssignLiteral("imap");}
+  nsresult GetDatabase() MOZ_OVERRIDE;
+  virtual void GetIncomingServerType(nsCString& serverType) MOZ_OVERRIDE { serverType.AssignLiteral("imap");}
 
   nsresult        GetFolderOwnerUserName(nsACString& userName);
   nsIMAPNamespace *GetNamespaceForFolder();
@@ -413,7 +414,7 @@ protected:
                           bool allowUndo);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
-  virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
+  virtual nsresult CreateBaseMessageURI(const nsACString& aURI) MOZ_OVERRIDE;
   // offline-ish methods
   nsresult GetClearedOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgOfflineImapOperation **originalOp, nsIMsgDatabase **originalDB);
   nsresult GetOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgOfflineImapOperation **originalOp, nsIMsgDatabase **originalDB);

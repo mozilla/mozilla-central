@@ -7,6 +7,7 @@
 #define _nsImapOfflineSync_H_
 
 
+#include "mozilla/Attributes.h"
 #include "nsIMsgDatabase.h"
 #include "nsIUrlListener.h"
 #include "nsIMsgOfflineImapOperation.h"
@@ -85,7 +86,7 @@ class nsImapOfflineDownloader : public nsImapOfflineSync
 public:
   nsImapOfflineDownloader(nsIMsgWindow *window, nsIUrlListener *listener);
   virtual ~nsImapOfflineDownloader();
-  virtual nsresult  ProcessNextOperation(); // this kicks off download
+  virtual nsresult  ProcessNextOperation() MOZ_OVERRIDE; // this kicks off download
 };
 
 #endif
