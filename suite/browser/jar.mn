@@ -29,6 +29,8 @@ comm.jar:
    content/navigator/safeBrowsingOverlay.xul
    content/navigator/tabbrowser.xml
    content/navigator/urlbarBindings.xml
+   content/navigator/webDeveloperOverlay.js
+   content/navigator/webDeveloperOverlay.xul
 #ifdef XP_MACOSX
    content/navigator/platformNavigationBindings.xul                 (mac/platformNavigationBindings.xul)
    content/navigator/platformMailOverlay.xul                        (mac/platformMailOverlay.xul)

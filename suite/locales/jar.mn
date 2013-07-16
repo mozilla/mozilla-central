@@ -360,6 +360,7 @@
   locale/@AB_CD@/navigator/tabbrowser.dtd                                   (%chrome/browser/tabbrowser.dtd)
   locale/@AB_CD@/navigator/tabbrowser.properties                            (%chrome/browser/tabbrowser.properties)
   locale/@AB_CD@/navigator/taskbar.properties                               (%chrome/browser/taskbar.properties)
+  locale/@AB_CD@/navigator/webDeveloper.dtd                                 (%chrome/browser/webDeveloper.dtd)
   locale/@AB_CD@/navigator-platform/mac/platformNavigationBindings.dtd      (%chrome/browser/mac/platformNavigationBindings.dtd)
   locale/@AB_CD@/navigator-platform/unix/platformNavigationBindings.dtd     (%chrome/browser/unix/platformNavigationBindings.dtd)
   locale/@AB_CD@/navigator-platform/win/platformNavigationBindings.dtd      (%chrome/browser/win/platformNavigationBindings.dtd)

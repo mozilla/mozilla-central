@@ -99,7 +99,10 @@
 
     // should we open it in a new window?
     if (Services.prefs.getBoolPref("middlemouse.openNewWindow")) {
-      openNewWindowWith(href, doc);
+      if (gPrivate)
+        openNewPrivateWith(href, doc);
+      else
+        openNewWindowWith(href, doc);
       event.stopPropagation();
       return true;
     }

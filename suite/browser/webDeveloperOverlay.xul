@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE overlay SYSTEM "chrome://navigator/locale/webDeveloper.dtd">
+
+<overlay id="webDeveloperOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <script type="application/javascript"
+          src="chrome://navigator/content/webDeveloperOverlay.js"/>
+
+  <menupopup id="toolsPopup">
+    <menuitem id="validatePage"
+              label="&validatePage.label;"
+              accesskey="&validatePage.accesskey;"
+              oncommand="gWebDeveloper.validateThisPage(event);"/>
+  </menupopup>
+
+</overlay>
