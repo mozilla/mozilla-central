@@ -7,6 +7,7 @@
 #ifndef nsAbBSDirectory_h__
 #define nsAbBSDirectory_h__
 
+#include "mozilla/Attributes.h"
 #include "nsAbDirProperty.h"
 
 #include "nsDataHashtable.h"
@@ -21,19 +22,19 @@ public:
 	virtual ~nsAbBSDirectory();
 
 	// nsIAbDirectory methods
-  NS_IMETHOD Init(const char *aURI);
-	NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
+  NS_IMETHOD Init(const char *aURI) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result) MOZ_OVERRIDE;
   NS_IMETHOD CreateNewDirectory(const nsAString &aDirName,
                                 const nsACString &aURI,
                                 uint32_t aType,
                                 const nsACString &aPrefName,
-                                nsACString &aResult);
+                                nsACString &aResult) MOZ_OVERRIDE;
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,
-                                  const nsACString &aURI);
-  NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, bool *hasDir);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
-  NS_IMETHOD GetURI(nsACString &aURI);
+                                  const nsACString &aURI) MOZ_OVERRIDE;
+  NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory) MOZ_OVERRIDE;
+  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, bool *hasDir) MOZ_OVERRIDE;
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD GetURI(nsACString &aURI) MOZ_OVERRIDE;
 
 protected:
   nsresult EnsureInitialized();

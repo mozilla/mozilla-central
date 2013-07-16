@@ -7,6 +7,7 @@
 #ifndef nsAbLDAPChangeLogQuery_h__
 #define nsAbLDAPChangeLogQuery_h__
 
+#include "mozilla/Attributes.h"
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsStringGlue.h"
 
@@ -20,7 +21,7 @@ public :
   nsAbLDAPChangeLogQuery();
   virtual ~nsAbLDAPChangeLogQuery();
 
-  NS_IMETHOD DoReplicationQuery();
+  NS_IMETHOD DoReplicationQuery() MOZ_OVERRIDE;
   NS_IMETHOD Init(const nsACString & aPrefName, nsIWebProgressListener *aProgressListener);
 };
 

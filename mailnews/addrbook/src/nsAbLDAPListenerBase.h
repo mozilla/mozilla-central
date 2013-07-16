@@ -6,6 +6,7 @@
 #ifndef nsAbLDAPListenerBase_h__
 #define nsAbLDAPListenerBase_h__
 
+#include "mozilla/Attributes.h"
 #include "nsCOMPtr.h"
 #include "nsILDAPMessageListener.h"
 #include "nsILDAPURL.h"
@@ -25,7 +26,7 @@ public:
                        const int32_t timeOut = 0);
   virtual ~nsAbLDAPListenerBase();
 
-  NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus);
+  NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus) MOZ_OVERRIDE;
 
 protected:
   nsresult OnLDAPMessageBind(nsILDAPMessage *aMessage);

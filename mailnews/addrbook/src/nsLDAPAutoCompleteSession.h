@@ -4,6 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/Attributes.h"
 #include "nsCOMPtr.h"
 #include "nsIAutoCompleteSession.h"
 #include "nsILDAPConnection.h"
@@ -34,15 +35,15 @@ public:
   nsLDAPAutoCompleteSession();
   virtual ~nsLDAPAutoCompleteSession();
 
-  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
-  NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus);
+  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage) MOZ_OVERRIDE;
+  NS_IMETHOD OnLDAPInit(nsILDAPConnection *aConn, nsresult aStatus) MOZ_OVERRIDE;
 
 protected:
   // Called if an LDAP initialization fails.
-  virtual void InitFailed(bool aCancelled = false);
+  virtual void InitFailed(bool aCancelled = false) MOZ_OVERRIDE;
 
   // Called to start off the required task after a bind.
-  virtual nsresult DoTask();
+  virtual nsresult DoTask() MOZ_OVERRIDE;
 
     enum SessionState { 
         UNBOUND = nsILDAPAutoCompFormatter::STATE_UNBOUND,

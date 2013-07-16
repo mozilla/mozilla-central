@@ -5,6 +5,7 @@
 #ifndef nsMapiAddressBook_h___
 #define nsMapiAddressBook_h___
 
+#include "mozilla/Attributes.h"
 #include "nsAbWinHelper.h"
  
 class nsMapiAddressBook : public nsAbWinHelper
@@ -39,9 +40,9 @@ protected :
     // Load the MAPI environment
     BOOL Initialize(void) ;
     // Allocation of a buffer for transmission to interfaces
-    virtual void AllocateBuffer(ULONG aByteCount, LPVOID *aBuffer) ;
+    virtual void AllocateBuffer(ULONG aByteCount, LPVOID *aBuffer) MOZ_OVERRIDE;
     // Destruction of a buffer provided by the interfaces
-    virtual void FreeBuffer(LPVOID aBuffer) ;
+    virtual void FreeBuffer(LPVOID aBuffer) MOZ_OVERRIDE;
     // Library management 
     static BOOL LoadMapiLibrary(void) ;
     static void FreeMapiLibrary(void) ;

@@ -5,6 +5,7 @@
 #ifndef nsAbLDAPChangeLogData_h__
 #define nsAbLDAPChangeLogData_h__
 
+#include "mozilla/Attributes.h"
 #include "nsAbLDAPReplicationData.h"
 #include "nsAbLDAPChangeLogQuery.h"
 #include "nsVoidArray.h"
@@ -30,8 +31,8 @@ protected :
   nsCOMPtr <nsIAbLDAPChangeLogQuery> mChangeLogQuery;
 
   nsresult OnLDAPBind(nsILDAPMessage *aMessage);
-  nsresult OnLDAPSearchEntry(nsILDAPMessage *aMessage);
-  nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage);
+  nsresult OnLDAPSearchEntry(nsILDAPMessage *aMessage) MOZ_OVERRIDE;
+  nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage) MOZ_OVERRIDE;
 
   nsresult ParseChangeLogEntries(nsILDAPMessage *aMessage);
   nsresult ParseRootDSEEntry(nsILDAPMessage *aMessage);

@@ -6,6 +6,7 @@
 #ifndef nsAbLDAPDirectory_h__
 #define nsAbLDAPDirectory_h__
 
+#include "mozilla/Attributes.h"
 #include "nsAbDirProperty.h"
 #include "nsAbLDAPDirectoryModify.h"
 #include "nsIAbDirectoryQuery.h"
@@ -29,23 +30,23 @@ public:
   nsAbLDAPDirectory();
   virtual ~nsAbLDAPDirectory();
 
-  NS_IMETHOD Init(const char *aUri);
+  NS_IMETHOD Init(const char *aUri) MOZ_OVERRIDE;
 
   // nsIAbDirectory methods
-  NS_IMETHOD GetPropertiesChromeURI(nsACString &aResult);
-  NS_IMETHOD GetURI(nsACString &aURI);
-  NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
-  NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
-  NS_IMETHOD GetIsQuery(bool *aResult);
-  NS_IMETHOD HasCard(nsIAbCard *cards, bool *hasCard);
-  NS_IMETHOD GetSupportsMailingLists(bool *aSupportsMailingsLists);
-  NS_IMETHOD GetReadOnly(bool *aReadOnly);
-  NS_IMETHOD GetIsRemote(bool *aIsRemote);
-  NS_IMETHOD GetIsSecure(bool *aIsRemote);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
-  NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard);
-  NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
-  NS_IMETHOD DeleteCards(nsIArray *aCards);
+  NS_IMETHOD GetPropertiesChromeURI(nsACString &aResult) MOZ_OVERRIDE;
+  NS_IMETHOD GetURI(nsACString &aURI) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result) MOZ_OVERRIDE;
+  NS_IMETHOD GetIsQuery(bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD HasCard(nsIAbCard *cards, bool *hasCard) MOZ_OVERRIDE;
+  NS_IMETHOD GetSupportsMailingLists(bool *aSupportsMailingsLists) MOZ_OVERRIDE;
+  NS_IMETHOD GetReadOnly(bool *aReadOnly) MOZ_OVERRIDE;
+  NS_IMETHOD GetIsRemote(bool *aIsRemote) MOZ_OVERRIDE;
+  NS_IMETHOD GetIsSecure(bool *aIsRemote) MOZ_OVERRIDE;
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard) MOZ_OVERRIDE;
+  NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard) MOZ_OVERRIDE;
+  NS_IMETHOD DeleteCards(nsIArray *aCards) MOZ_OVERRIDE;
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH

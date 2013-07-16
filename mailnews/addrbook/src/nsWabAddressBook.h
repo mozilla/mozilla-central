@@ -5,6 +5,7 @@
 #ifndef nsWabAddressBook_h___
 #define nsWabAddressBook_h___
 
+#include "mozilla/Attributes.h"
 #include "nsAbWinHelper.h"
 #include <wab.h>
 
@@ -27,9 +28,9 @@ protected :
     // Load the WAB environment
     BOOL Initialize(void) ;
     // Allocation of a buffer for transmission to interfaces
-    virtual void AllocateBuffer(ULONG aByteCount, LPVOID *aBuffer) ;
+    virtual void AllocateBuffer(ULONG aByteCount, LPVOID *aBuffer) MOZ_OVERRIDE;
     // Destruction of a buffer provided by the interfaces
-    virtual void FreeBuffer(LPVOID aBuffer) ;
+    virtual void FreeBuffer(LPVOID aBuffer) MOZ_OVERRIDE;
     // Manage the library
     static BOOL LoadWabLibrary(void) ;
     static void FreeWabLibrary(void) ;

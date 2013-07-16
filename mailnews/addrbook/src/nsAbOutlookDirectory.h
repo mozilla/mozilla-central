@@ -5,6 +5,7 @@
 #ifndef nsAbOutlookDirectory_h___
 #define nsAbOutlookDirectory_h___
 
+#include "mozilla/Attributes.h"
 #include "nsAbDirProperty.h"
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
@@ -31,24 +32,24 @@ public:
   virtual ~nsAbOutlookDirectory(void);
 
   // nsAbDirProperty methods
-  NS_IMETHOD GetDirType(int32_t *aDirType);
-  NS_IMETHOD GetURI(nsACString &aURI);
-  NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
-  NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
-  NS_IMETHOD GetIsQuery(bool *aResult);
-  NS_IMETHOD HasCard(nsIAbCard *aCard, bool *aHasCard);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory);
-  NS_IMETHOD DeleteCards(nsIArray *aCardList);
-  NS_IMETHOD DeleteDirectory(nsIAbDirectory *aDirectory);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
-  NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard);
-  NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
-  NS_IMETHOD DropCard(nsIAbCard *aData, bool needToCopyCard);
-  NS_IMETHOD AddMailList(nsIAbDirectory *aMailList, nsIAbDirectory **addedList);
-  NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
+  NS_IMETHOD GetDirType(int32_t *aDirType) MOZ_OVERRIDE;
+  NS_IMETHOD GetURI(nsACString &aURI) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes) MOZ_OVERRIDE;
+  NS_IMETHOD GetIsQuery(bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD HasCard(nsIAbCard *aCard, bool *aHasCard) MOZ_OVERRIDE;
+  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory) MOZ_OVERRIDE;
+  NS_IMETHOD DeleteCards(nsIArray *aCardList) MOZ_OVERRIDE;
+  NS_IMETHOD DeleteDirectory(nsIAbDirectory *aDirectory) MOZ_OVERRIDE;
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard) MOZ_OVERRIDE;
+  NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard) MOZ_OVERRIDE;
+  NS_IMETHOD DropCard(nsIAbCard *aData, bool needToCopyCard) MOZ_OVERRIDE;
+  NS_IMETHOD AddMailList(nsIAbDirectory *aMailList, nsIAbDirectory **addedList) MOZ_OVERRIDE;
+  NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard) MOZ_OVERRIDE;
   
   // nsAbDirProperty method
-  NS_IMETHOD Init(const char *aUri);
+  NS_IMETHOD Init(const char *aUri) MOZ_OVERRIDE;
   // nsIAbDirectoryQuery methods
   NS_DECL_NSIABDIRECTORYQUERY
   // nsIAbDirectorySearch methods

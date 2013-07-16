@@ -6,6 +6,7 @@
 #ifndef nsAbLDAPReplicationData_h__
 #define nsAbLDAPReplicationData_h__
 
+#include "mozilla/Attributes.h"
 #include "nsIAbLDAPReplicationData.h"
 #include "nsIWebProgressListener.h"
 #include "nsIAbLDAPReplicationQuery.h"
@@ -28,11 +29,11 @@ public:
   virtual ~nsAbLDAPProcessReplicationData();
 
   // nsILDAPMessageListener
-  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage);
+  NS_IMETHOD OnLDAPMessage(nsILDAPMessage *aMessage) MOZ_OVERRIDE;
 
 protected:
-  virtual nsresult DoTask();
-  virtual void InitFailed(bool aCancelled = false);
+  virtual nsresult DoTask() MOZ_OVERRIDE;
+  virtual void InitFailed(bool aCancelled = false) MOZ_OVERRIDE;
 
   // pointer to the interfaces used by this object
   nsCOMPtr<nsIWebProgressListener> mListener;

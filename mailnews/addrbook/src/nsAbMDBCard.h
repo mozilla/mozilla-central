@@ -6,6 +6,7 @@
 #ifndef nsAbMDBCard_h__
 #define nsAbMDBCard_h__
 
+#include "mozilla/Attributes.h"
 #include "nsAbCardProperty.h"
 #include "nsCOMPtr.h"
 
@@ -17,7 +18,7 @@ public:
   nsAbMDBCard(void);
   virtual ~nsAbMDBCard(void);
 
-  NS_IMETHOD Equals(nsIAbCard *card, bool *result);
+  NS_IMETHOD Equals(nsIAbCard *card, bool *result) MOZ_OVERRIDE;
 };
 
 #endif

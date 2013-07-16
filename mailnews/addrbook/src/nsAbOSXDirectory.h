@@ -6,6 +6,7 @@
 #ifndef nsAbOSXDirectory_h___
 #define nsAbOSXDirectory_h___
 
+#include "mozilla/Attributes.h"
 #include "nsISupports.h"
 #include "nsAbBaseCID.h"
 #include "nsAbDirProperty.h"
@@ -62,44 +63,44 @@ public:
   NS_DECL_NSIABDIRSEARCHLISTENER
     
   // nsIAbOSXDirectory method
-  NS_IMETHOD Init(const char *aUri);
+  NS_IMETHOD Init(const char *aUri) MOZ_OVERRIDE;
   
   // nsAbDirProperty methods
-  NS_IMETHOD GetReadOnly(bool *aReadOnly);
-  NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
-  NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
-  NS_IMETHOD GetIsQuery(bool *aResult);
-  NS_IMETHOD HasCard(nsIAbCard *aCard, bool *aHasCard);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory);
-  NS_IMETHOD GetURI(nsACString &aURI);
+  NS_IMETHOD GetReadOnly(bool *aReadOnly) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes) MOZ_OVERRIDE;
+  NS_IMETHOD GetIsQuery(bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD HasCard(nsIAbCard *aCard, bool *aHasCard) MOZ_OVERRIDE;
+  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory) MOZ_OVERRIDE;
+  NS_IMETHOD GetURI(nsACString &aURI) MOZ_OVERRIDE;
   NS_IMETHOD GetCardFromProperty(const char *aProperty,
                                  const nsACString &aValue,
                                  bool caseSensitive,
-                                 nsIAbCard **aResult);
+                                 nsIAbCard **aResult) MOZ_OVERRIDE;
   NS_IMETHOD GetCardsFromProperty(const char *aProperty,
                                   const nsACString &aValue,
                                   bool aCaseSensitive,
-                                  nsISimpleEnumerator **aResult);
+                                  nsISimpleEnumerator **aResult) MOZ_OVERRIDE;
   NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,
-                                 nsIAbCard **aResult);
+                                 nsIAbCard **aResult) MOZ_OVERRIDE;
 
   // nsIAbOSXDirectory
-  nsresult AssertChildNodes();
+  nsresult AssertChildNodes() MOZ_OVERRIDE;
   nsresult AssertDirectory(nsIAbManager *aManager,
-                           nsIAbDirectory *aDirectory);
+                           nsIAbDirectory *aDirectory) MOZ_OVERRIDE;
   nsresult AssertCard(nsIAbManager *aManager,
-                      nsIAbCard *aCard);
+                      nsIAbCard *aCard) MOZ_OVERRIDE;
   nsresult UnassertCard(nsIAbManager *aManager,
                         nsIAbCard *aCard,
-                        nsIMutableArray *aCardList);
+                        nsIMutableArray *aCardList) MOZ_OVERRIDE;
   nsresult UnassertDirectory(nsIAbManager *aManager,
-                             nsIAbDirectory *aDirectory);
+                             nsIAbDirectory *aDirectory) MOZ_OVERRIDE;
   
-  nsresult Update();
+  nsresult Update() MOZ_OVERRIDE;
 
-  nsresult DeleteUid(const nsACString &aUid);
+  nsresult DeleteUid(const nsACString &aUid) MOZ_OVERRIDE;
 
-  nsresult GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult);
+  nsresult GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult) MOZ_OVERRIDE;
 
   nsresult GetRootOSXDirectory(nsIAbOSXDirectory **aResult);
 
