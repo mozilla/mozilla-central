@@ -5,6 +5,7 @@
 #ifndef _nsImapMailDatabase_H_
 #define _nsImapMailDatabase_H_
 
+#include "mozilla/Attributes.h"
 #include "nsMailDatabase.h"
 
 class nsImapMailDatabase : public nsMailDatabase
@@ -16,24 +17,24 @@ public:
   nsImapMailDatabase();
   virtual ~nsImapMailDatabase();
   
-  NS_IMETHOD    StartBatch();
-  NS_IMETHOD    EndBatch();
-  NS_IMETHOD    GetSummaryValid(bool *aResult);
-  NS_IMETHOD    SetSummaryValid(bool valid = true);
-  virtual nsresult AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr);
+  NS_IMETHOD    StartBatch() MOZ_OVERRIDE;
+  NS_IMETHOD    EndBatch() MOZ_OVERRIDE;
+  NS_IMETHOD    GetSummaryValid(bool *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD    SetSummaryValid(bool valid = true) MOZ_OVERRIDE;
+  virtual nsresult AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr) MOZ_OVERRIDE;
 
-  NS_IMETHOD    ForceClosed();
-  NS_IMETHOD    AddNewHdrToDB(nsIMsgDBHdr *newHdr, bool notify);
+  NS_IMETHOD    ForceClosed() MOZ_OVERRIDE;
+  NS_IMETHOD    AddNewHdrToDB(nsIMsgDBHdr *newHdr, bool notify) MOZ_OVERRIDE;
   NS_IMETHOD    SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
-                                  const char *propertyVal);
+                                  const char *propertyVal) MOZ_OVERRIDE;
   NS_IMETHOD    SetUint32AttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
-                                  uint32_t propertyVal);
+                                  uint32_t propertyVal) MOZ_OVERRIDE;
   NS_IMETHOD    SetUint64AttributeOnPendingHdr(nsIMsgDBHdr *aPendingHdr,
                                                const char *aProperty,
-                                               uint64_t aPropertyVal);
+                                               uint64_t aPropertyVal) MOZ_OVERRIDE;
   NS_IMETHOD    DeleteMessages(uint32_t aNumKeys, nsMsgKey* nsMsgKeys,
-                               nsIDBChangeListener *instigator);
-  NS_IMETHOD    UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr);
+                               nsIDBChangeListener *instigator) MOZ_OVERRIDE;
+  NS_IMETHOD    UpdatePendingAttributes(nsIMsgDBHdr* aNewHdr) MOZ_OVERRIDE;
 
 protected:
   // IMAP does not set local file flags, override does nothing

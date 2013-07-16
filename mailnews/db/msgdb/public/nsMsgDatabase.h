@@ -6,6 +6,7 @@
 #ifndef _nsMsgDatabase_H_
 #define _nsMsgDatabase_H_
 
+#include "mozilla/Attributes.h"
 #include "mozilla/MemoryReporting.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgHdr.h"
@@ -93,7 +94,7 @@ public:
   nsresult InitSearchSession(nsIArray *searchTerms, nsIMsgFolder *folder);
 
 protected:
-  virtual nsresult               PrefetchNext();
+  virtual nsresult               PrefetchNext() MOZ_OVERRIDE;
 
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
 
