@@ -7,6 +7,7 @@
 #ifndef nsEudoraMac_h__
 #define nsEudoraMac_h__
 
+#include "mozilla/Attributes.h"
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
@@ -27,25 +28,25 @@ public:
   ~nsEudoraMac();
 
     // retrieve the mail folder
-  virtual bool      FindMailFolder(nsIFile **pFolder);
+  virtual bool      FindMailFolder(nsIFile **pFolder) MOZ_OVERRIDE;
     // get the list of mailboxes
   virtual nsresult  FindMailboxes(nsIFile *pRoot,
-                                  nsISupportsArray **ppArray);
+                                  nsISupportsArray **ppArray) MOZ_OVERRIDE;
     // get a TOC file from a mailbox file
   virtual nsresult  FindTOCFile(nsIFile *pMailFile,
                                 nsIFile **pTOCFile,
-                                bool *pDeleteToc);
+                                bool *pDeleteToc) MOZ_OVERRIDE;
 
   virtual nsresult  GetAttachmentInfo(const char *pFileName,
                                       nsIFile *pFile,
                                       nsCString& mimeType,
-                                      nsCString& aAttachment);
+                                      nsCString& aAttachment) MOZ_OVERRIDE;
 
     // Address book stuff
-  virtual bool      FindAddressFolder(nsIFile **pFolder);
+  virtual bool      FindAddressFolder(nsIFile **pFolder) MOZ_OVERRIDE;
     // get the list of mailboxes
   virtual nsresult  FindAddressBooks(nsIFile *pRoot,
-                                     nsISupportsArray **ppArray);
+                                     nsISupportsArray **ppArray) MOZ_OVERRIDE;
 
     // import settings
   static bool    ImportSettings(nsIFile *pIniFile,

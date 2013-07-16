@@ -7,6 +7,7 @@
 #ifndef nsEudoraWin32_h__
 #define nsEudoraWin32_h__
 
+#include "mozilla/Attributes.h"
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
@@ -27,19 +28,19 @@ public:
   ~nsEudoraWin32();
 
     // retrieve the mail folder
-  virtual bool      FindMailFolder(nsIFile **pFolder);
+  virtual bool      FindMailFolder(nsIFile **pFolder) MOZ_OVERRIDE;
     // get the list of mailboxes
-  virtual nsresult  FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindMailboxes(nsIFile *pRoot, nsISupportsArray **ppArray) MOZ_OVERRIDE;
     // get a TOC file from a mailbox file
-  virtual nsresult  FindTOCFile(nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc);
+  virtual nsresult  FindTOCFile(nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc) MOZ_OVERRIDE;
 
-  virtual nsresult  GetAttachmentInfo(const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
+  virtual nsresult  GetAttachmentInfo(const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment) MOZ_OVERRIDE;
 
   // Things that must be overridden because they are platform specific.
     // retrieve the address book folder
-  virtual bool      FindAddressFolder(nsIFile **pFolder);
+  virtual bool      FindAddressFolder(nsIFile **pFolder) MOZ_OVERRIDE;
     // get the list of address books
-  virtual nsresult  FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArray);
+  virtual nsresult  FindAddressBooks(nsIFile *pRoot, nsISupportsArray **ppArray) MOZ_OVERRIDE;
 
     // import settings from Win32 ini file
   static bool    ImportSettings(nsIFile *pIniFile, nsIMsgAccount **localMailAccount);

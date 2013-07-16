@@ -5,6 +5,7 @@
 #ifndef nsImportMimeEncode_h__
 #define nsImportMimeEncode_h__
 
+#include "mozilla/Attributes.h"
 #include "nsImportScanFile.h"
 #include "ImportOutFile.h"
 #include "nsImportEncodeScan.h"
@@ -34,7 +35,7 @@ protected:
 	bool	TranslateFileName(nsCString& inFile, nsCString& outFile);
 
 
-	virtual bool	ScanBuffer(bool *pDone);
+	virtual bool	ScanBuffer(bool *pDone) MOZ_OVERRIDE;
 
 
 protected:

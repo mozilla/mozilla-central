@@ -6,6 +6,7 @@
 #ifndef nsImportEncodeScan_h___
 #define nsImportEncodeScan_h___
 
+#include "mozilla/Attributes.h"
 #include "nsIFile.h"
 #include "nsImportScanFile.h"
 #include "nsStringGlue.h"
@@ -18,7 +19,7 @@ public:
   bool    InitEncodeScan(bool appleSingleEncode, nsIFile *pFile, const char *pName, uint8_t * pBuf, uint32_t sz);
   void  CleanUpEncodeScan(void);
 
-  virtual bool    Scan(bool *pDone);
+  virtual bool    Scan(bool *pDone) MOZ_OVERRIDE;
 
 protected:
   void   FillInEntries(int numEntries);

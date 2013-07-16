@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/Attributes.h"
 #include <string>
 #include "rtfDecoder.h"
 
@@ -9,11 +10,11 @@ class CRTFMailDecoder: public CRTFDecoder {
 public:
   enum Mode {mNone, mText, mHTML};
   CRTFMailDecoder() : m_mode(mNone), m_state(sNormal), m_skipLevel(0) {}
-  void BeginGroup();
-  void EndGroup();
-  void Keyword(const char* name, const int* Val);
-  void PCDATA(const wchar_t* data, size_t cch);
-  void BDATA(const char* data, size_t sz);
+  void BeginGroup() MOZ_OVERRIDE;
+  void EndGroup() MOZ_OVERRIDE;
+  void Keyword(const char* name, const int* Val) MOZ_OVERRIDE;
+  void PCDATA(const wchar_t* data, size_t cch) MOZ_OVERRIDE;
+  void BDATA(const char* data, size_t sz) MOZ_OVERRIDE;
   const wchar_t* text() { return m_text.c_str(); }
   std::wstring::size_type textSize() { return m_text.size(); }
   Mode mode() { return m_mode; }

@@ -6,6 +6,7 @@
 #ifndef nsImportTranslator_h___
 #define nsImportTranslator_h___
 
+#include "mozilla/Attributes.h"
 #include "nscore.h"
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
@@ -37,9 +38,9 @@ public:
 // rfc2231
 class CMHTranslator : public nsImportTranslator {
 public:
-  virtual uint32_t  GetMaxBufferSize(uint32_t inLen) { return (inLen * 3) + 1;}
-  virtual void    ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut);
-  virtual bool      ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr);
+  virtual uint32_t  GetMaxBufferSize(uint32_t inLen) MOZ_OVERRIDE { return (inLen * 3) + 1;}
+  virtual void    ConvertBuffer(const uint8_t * pIn, uint32_t inLen, uint8_t * pOut) MOZ_OVERRIDE;
+  virtual bool      ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr) MOZ_OVERRIDE;
 };
 
 // Specialized encoder, not a vaild language translator, used for mail headers
@@ -52,7 +53,7 @@ public:
 
   void  SetUseQuotedPrintable(void) { m_useQuotedPrintable = true;}
 
-  virtual bool    ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr);
+  virtual bool    ConvertToFile(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed = nullptr) MOZ_OVERRIDE;
   bool    ConvertToFileQ(const uint8_t * pIn, uint32_t inLen, ImportOutFile *pOutFile, uint32_t *pProcessed);
 
 protected:
