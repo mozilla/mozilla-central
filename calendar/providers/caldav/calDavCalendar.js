@@ -1644,6 +1644,13 @@ calDavCalendar.prototype = {
                 return;
             }
 
+            if (request.responseStatus >= 500 && request.responseStatus < 600) {
+                // Calendar not available
+                cal.LOG("CalDAV: Server not available " + request.responseStatus + ", abort sync for calendar " + thisCalendar.name);
+                thisCalendar.completeCheckServerInfo(aChangeLogListener, Components.results.NS_ERROR_ABORT);
+                return;
+            }
+
             if (request.responseStatus == 401 || request.responseStatus == 403) {
                 // Auth was cancelled, disable this calendar with auto-enable
                 thisCalendar.setProperty("disabled", "true");
