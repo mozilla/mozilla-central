@@ -683,7 +683,6 @@ panel[nomatch="true"] > .autocomplete-search-box {
 /* ::::: navigator throbber ::::: */
 
 .toolbar-primary #throbber-box {
-  background: none; /* override bg used to cover toolbar line */
   margin: 0px 0px 2px;
 }
 

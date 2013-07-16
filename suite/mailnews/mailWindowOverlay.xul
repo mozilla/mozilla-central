@@ -2228,7 +2228,7 @@
     <toolbaritem id="button-search-container"
                  title="&searchButton.title;"
                  align="center"
-                 class="chromeclass-toolbar-additional">
+                 class="toolbaritem-noline chromeclass-toolbar-additional">
       <button id="button-search"
               label="&searchButton.label;"
               accesskey="&searchButton.accesskey;"
@@ -2243,6 +2243,7 @@
               oncommand="goDoCommand('button_search')"/>
     </toolbaritem>
     <toolbaritem id="throbber-box"
+                 class="toolbaritem-noline"
                  align="center">
         <button id="navigator-throbber"
                 oncommand="goClickThrobber('messenger.throbber.url', event)"

@@ -144,7 +144,7 @@
                  title="&folderLocationToolbarItem.title;"
                  align="center"
                  context="folderPaneContext"
-                 class="chromeclass-toolbar-additional">
+                 class="toolbaritem-noline chromeclass-toolbar-additional">
       <image id="locationIcon" class="folderMenuItem"/>
       <menulist id="locationFolders"
                 class="folderMenuItem"
@@ -159,7 +159,7 @@
                  title="&mailViewsToolbarItem.title;"
                  observes="mailDisableViewsSearch"
                  align="center"
-                 class="chromeclass-toolbar-additional">
+                 class="toolbaritem-noline chromeclass-toolbar-additional">
       <label id="viewPickerLabel"
              value="&viewPicker.label;"
              accesskey="&viewPicker.accesskey;"
@@ -212,7 +212,7 @@
                  observes="mailDisableViewsSearch"
                  align="center"
                  flex="1"
-                 class="chromeclass-toolbar-additional">
+                 class="toolbaritem-noline chromeclass-toolbar-additional">
       <textbox id="searchInput"
                flex="1"
                type="search"

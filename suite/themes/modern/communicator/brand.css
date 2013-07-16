@@ -29,10 +29,7 @@
   -moz-box-align: start;
 }
 
-.toolbar-primary #throbber-box {
-  background: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif") #B1BDC9 repeat-x top;
-}
-
+toolbar[mode="icons"] #wrapper-throbber-box > #throbber-box > #navigator-throbber,
 toolbar[mode="icons"] #navigator-throbber {
   margin: 4px 8px 2px;
 }

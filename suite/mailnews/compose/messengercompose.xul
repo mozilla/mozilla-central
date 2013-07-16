@@ -521,6 +521,7 @@
       </toolbarbutton>
 
       <toolbaritem id="throbber-box"
+                   class="toolbaritem-noline"
                    removable="true"
                    align="center">
           <button id="navigator-throbber"

@@ -473,7 +473,7 @@
                  title="&searchBox.title;"
                  removable="true"
                  align="center"
-                 class="chromeclass-toolbar-additional">
+                 class="toolbaritem-noline chromeclass-toolbar-additional">
       <textbox id="searchInput"
                type="search"
                aria-controls="abResultsTree"
@@ -484,6 +484,7 @@
     </toolbaritem>
 
     <toolbaritem id="throbber-box"
+                 class="toolbaritem-noline"
                  removable="true"
                  align="center">
       <button id="navigator-throbber"

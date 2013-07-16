@@ -44,6 +44,11 @@
   display: none;
 }
 
+.toolbar-primary > .toolbaritem-noline,
+.toolbar-primary > toolbarpaletteitem > .toolbaritem-noline {
+  background: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif") #B1BDC9 repeat-x top;
+}
+
 toolbar[mode="text"] toolbarbutton[type="menu-button"],
 toolbar[labelalign="end"]:not([mode="icons"]) toolbarbutton[type="menu-button"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-button");
