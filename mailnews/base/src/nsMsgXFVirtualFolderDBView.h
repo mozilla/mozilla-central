@@ -6,6 +6,7 @@
 #ifndef _nsMsgXFVirtualFolderDBView_H_
 #define _nsMsgXFVirtualFolderDBView_H_
 
+#include "mozilla/Attributes.h"
 #include "nsMsgSearchDBView.h"
 #include "nsIMsgCopyServiceListener.h"
 #include "nsIMsgSearchNotify.h"
@@ -22,29 +23,29 @@ public:
   // we override all the methods, currently. Might change...
   NS_DECL_NSIMSGSEARCHNOTIFY
 
-  virtual const char * GetViewName(void) {return "XFVirtualFolderView"; }
+  virtual const char * GetViewName(void) MOZ_OVERRIDE {return "XFVirtualFolderView"; }
   NS_IMETHOD Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder, 
-        nsMsgViewFlagsTypeValue viewFlags, int32_t *pCount);
+        nsMsgViewFlagsTypeValue viewFlags, int32_t *pCount) MOZ_OVERRIDE;
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, 
-                         nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval);
+                         nsIMsgDBViewCommandUpdater *aCmdUpdater, nsIMsgDBView **_retval) MOZ_OVERRIDE;
   NS_IMETHOD CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMessengerInstance, 
-                        nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater);
-  NS_IMETHOD Close();
-  NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
-  NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command);
+                        nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater) MOZ_OVERRIDE;
+  NS_IMETHOD Close() MOZ_OVERRIDE;
+  NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType) MOZ_OVERRIDE;
+  NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command) MOZ_OVERRIDE;
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
   NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, uint32_t *aStatus, 
-                                 nsIDBChangeListener * aInstigator);
+                                 nsIDBChangeListener * aInstigator) MOZ_OVERRIDE;
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
 
-  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, bool ensureListed);
+  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, bool ensureListed) MOZ_OVERRIDE;
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
   void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, uint32_t numNewHits);
   void RemovePendingDBListeners();
 
 protected:
 
-  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator);
+  virtual nsresult GetMessageEnumerator(nsISimpleEnumerator **enumerator) MOZ_OVERRIDE;
 
   uint32_t m_cachedFolderArrayIndex; // array index of next folder with cached hits to deal with.
   nsCOMArray<nsIMsgFolder> m_foldersSearchingOver;

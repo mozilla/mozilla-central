@@ -6,6 +6,7 @@
 #ifndef nsMsgProtocol_h__
 #define nsMsgProtocol_h__
 
+#include "mozilla/Attributes.h"
 #include "nsIStreamListener.h"
 #include "nsIInputStream.h"
 #include "nsIOutputStream.h"
@@ -181,17 +182,17 @@ class NS_MSG_BASE nsMsgAsyncWriteProtocol : public nsMsgProtocol
 public:
   NS_DECL_ISUPPORTS_INHERITED
 
-  NS_IMETHOD Cancel(nsresult status);
+  NS_IMETHOD Cancel(nsresult status) MOZ_OVERRIDE;
 
   nsMsgAsyncWriteProtocol(nsIURI * aURL);
   virtual ~nsMsgAsyncWriteProtocol(); 
   
   // temporary over ride...
-  virtual nsresult PostMessage(nsIURI* url, nsIFile *postFile);
+  virtual nsresult PostMessage(nsIURI* url, nsIFile *postFile) MOZ_OVERRIDE;
   
   // over ride the following methods from the base class
-  virtual nsresult SetupTransportState();
-  virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
+  virtual nsresult SetupTransportState() MOZ_OVERRIDE;
+  virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false) MOZ_OVERRIDE;
   nsCString mAsyncBuffer;
 
   // if we suspended the asynch write while waiting for more data to write then this will be TRUE
@@ -235,7 +236,7 @@ protected:
   uint32_t  mNumBytesPosted; // used for deterimining progress on posting files 
   bool      mGenerateProgressNotifications; // set during a post operation after we've started sending the post data...
 
-  virtual nsresult CloseSocket(); 
+  virtual nsresult CloseSocket() MOZ_OVERRIDE; 
 };
 
 #undef  IMETHOD_VISIBILITY

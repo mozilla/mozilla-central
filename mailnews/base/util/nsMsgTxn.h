@@ -6,6 +6,7 @@
 #ifndef nsMsgTxn_h__
 #define nsMsgTxn_h__
 
+#include "mozilla/Attributes.h"
 #include "nsITransaction.h"
 #include "msgCore.h"
 #include "nsCOMPtr.h"
@@ -37,15 +38,15 @@ public:
 
     nsresult Init();
 
-    NS_IMETHOD DoTransaction(void);
+    NS_IMETHOD DoTransaction(void) MOZ_OVERRIDE;
 
-    NS_IMETHOD UndoTransaction(void) = 0;
+    NS_IMETHOD UndoTransaction(void) MOZ_OVERRIDE = 0;
 
-    NS_IMETHOD RedoTransaction(void) = 0;
+    NS_IMETHOD RedoTransaction(void) MOZ_OVERRIDE = 0;
     
-    NS_IMETHOD GetIsTransient(bool *aIsTransient);
+    NS_IMETHOD GetIsTransient(bool *aIsTransient) MOZ_OVERRIDE;
 
-    NS_IMETHOD Merge(nsITransaction *aTransaction, bool *aDidMerge);
+    NS_IMETHOD Merge(nsITransaction *aTransaction, bool *aDidMerge) MOZ_OVERRIDE;
 
     nsresult GetMsgWindow(nsIMsgWindow **msgWindow);
     nsresult SetMsgWindow(nsIMsgWindow *msgWindow);

@@ -6,6 +6,7 @@
 #ifndef __nsMsgAccountManagerDS_h
 #define __nsMsgAccountManagerDS_h
 
+#include "mozilla/Attributes.h"
 #include "nscore.h"
 #include "nsError.h"
 #include "nsIID.h"
@@ -34,35 +35,32 @@ public:
     
   nsMsgAccountManagerDataSource();
   virtual ~nsMsgAccountManagerDataSource();
-  virtual nsresult Init();
+  virtual nsresult Init() MOZ_OVERRIDE;
 
-  virtual void Cleanup();
+  virtual void Cleanup() MOZ_OVERRIDE;
   // service manager shutdown method
-
-    NS_DECL_ISUPPORTS_INHERITED
-    NS_DECL_NSIFOLDERLISTENER
-    NS_DECL_NSIINCOMINGSERVERLISTENER
-    NS_DECL_NSIOBSERVER
-  // RDF datasource methods
   
-  /* nsIRDFNode GetTarget (in nsIRDFResource aSource, in nsIRDFResource property, in boolean aTruthValue); */
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIFOLDERLISTENER
+  NS_DECL_NSIINCOMINGSERVERLISTENER
+  NS_DECL_NSIOBSERVER
+  // RDF datasource methods
   NS_IMETHOD GetTarget(nsIRDFResource *source,
                        nsIRDFResource *property,
                        bool aTruthValue,
                        nsIRDFNode **_retval);
-
-  /* nsISimpleEnumerator GetTargets (in nsIRDFResource aSource, in nsIRDFResource property, in boolean aTruthValue); */
   NS_IMETHOD GetTargets(nsIRDFResource *source,
                         nsIRDFResource *property,
                         bool aTruthValue,
-                        nsISimpleEnumerator **_retval);
-  /* nsISimpleEnumerator ArcLabelsOut (in nsIRDFResource aSource); */
-  NS_IMETHOD ArcLabelsOut(nsIRDFResource *source, nsISimpleEnumerator **_retval);
+                        nsISimpleEnumerator **_retval) MOZ_OVERRIDE;
+  NS_IMETHOD ArcLabelsOut(nsIRDFResource *source,
+                          nsISimpleEnumerator **_retval) MOZ_OVERRIDE;
 
   NS_IMETHOD HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aProperty,
                           nsIRDFNode *aTarget, bool aTruthValue,
-                          bool *_retval);
-  NS_IMETHOD HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, bool *result);
+                          bool *_retval) MOZ_OVERRIDE;
+  NS_IMETHOD HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc,
+                       bool *result) MOZ_OVERRIDE;
     
 protected:
 
@@ -88,8 +86,10 @@ protected:
                                nsCOMArray<nsIRDFResource> *aNodeArray);
   nsresult createSettingsResources(nsIRDFResource *aSource,
                                    nsCOMArray<nsIRDFResource> *aNodeArray);
-  nsresult appendGenericSettingsResources(nsIMsgIncomingServer *server, nsCOMArray<nsIRDFResource> *aNodeArray);
-  nsresult appendGenericSetting(const char *name, nsCOMArray<nsIRDFResource> *aNodeArray);
+  nsresult appendGenericSettingsResources(nsIMsgIncomingServer *server,\
+                                          nsCOMArray<nsIRDFResource> *aNodeArray);
+  nsresult appendGenericSetting(const char *name,
+                                nsCOMArray<nsIRDFResource> *aNodeArray);
 
   static nsIRDFResource* kNC_Name;
   static nsIRDFResource* kNC_FolderTreeName;

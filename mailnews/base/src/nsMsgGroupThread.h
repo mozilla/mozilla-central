@@ -3,6 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/Attributes.h"
 #include "msgCore.h"
 #include "nsCOMArray.h"
 #include "nsIMsgThread.h"
@@ -63,18 +64,21 @@ public:
   nsMsgXFGroupThread();
   virtual ~nsMsgXFGroupThread();
 
-  NS_IMETHOD GetNumChildren(uint32_t *aNumChildren);
-  NS_IMETHOD GetChildKeyAt(int32_t aIndex, nsMsgKey *aResult);
-  NS_IMETHOD GetChildHdrAt(int32_t aIndex, nsIMsgDBHdr **aResult);
-  NS_IMETHOD RemoveChildAt(int32_t aIndex);
+  NS_IMETHOD GetNumChildren(uint32_t *aNumChildren) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildKeyAt(int32_t aIndex, nsMsgKey *aResult) MOZ_OVERRIDE;
+  NS_IMETHOD GetChildHdrAt(int32_t aIndex, nsIMsgDBHdr **aResult) MOZ_OVERRIDE;
+  NS_IMETHOD RemoveChildAt(int32_t aIndex) MOZ_OVERRIDE;
 protected:
-  virtual void InsertMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
-  virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr);
-  virtual nsMsgViewIndex FindMsgHdr(nsIMsgDBHdr *hdr);
-  virtual nsMsgViewIndex AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView *view);
+  virtual void InsertMsgHdrAt(nsMsgViewIndex index,
+                              nsIMsgDBHdr *hdr) MOZ_OVERRIDE;
+  virtual void SetMsgHdrAt(nsMsgViewIndex index, nsIMsgDBHdr *hdr) MOZ_OVERRIDE;
+  virtual nsMsgViewIndex FindMsgHdr(nsIMsgDBHdr *hdr) MOZ_OVERRIDE;
+  virtual nsMsgViewIndex AddMsgHdrInDateOrder(nsIMsgDBHdr *child, 
+                                              nsMsgDBView *view) MOZ_OVERRIDE;
   virtual nsMsgViewIndex GetInsertIndexFromView(nsMsgDBView *view, 
                                           nsIMsgDBHdr *child, 
-                                          nsMsgViewSortOrderValue threadSortOrder);
+                                          nsMsgViewSortOrderValue threadSortOrder
+                                                ) MOZ_OVERRIDE;
 
   nsCOMArray<nsIMsgFolder> m_folders;
 };

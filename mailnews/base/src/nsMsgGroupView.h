@@ -6,6 +6,7 @@
 #ifndef _nsMsgGroupView_H_
 #define _nsMsgGroupView_H_
 
+#include "mozilla/Attributes.h"
 #include "nsMsgDBView.h"
 #include "nsInterfaceHashtable.h"
 
@@ -30,13 +31,13 @@ public:
                         nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCmdUpdater);
   NS_IMETHOD Close();
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey, int32_t aFlags, 
-                            nsIDBChangeListener *aInstigator);
+                            nsIDBChangeListener *aInstigator) MOZ_OVERRIDE;
   NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, uint32_t aOldFlags, 
-                                      uint32_t aNewFlags, nsIDBChangeListener *aInstigator);
+                                      uint32_t aNewFlags, nsIDBChangeListener *aInstigator) MOZ_OVERRIDE;
 
   NS_IMETHOD LoadMessageByViewIndex(nsMsgViewIndex aViewIndex);
-  NS_IMETHOD GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsAString& aProperties);
-  NS_IMETHOD GetRowProperties(int32_t aRow, nsAString& aProperties);
+  NS_IMETHOD GetCellProperties(int32_t aRow, nsITreeColumn *aCol, nsAString& aProperties) MOZ_OVERRIDE;
+  NS_IMETHOD GetRowProperties(int32_t aRow, nsAString& aProperties) MOZ_OVERRIDE;
   NS_IMETHOD CellTextForColumn(int32_t aRow, const PRUnichar *aColumnName,
                                nsAString &aValue);
   NS_IMETHOD GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr, nsIMsgThread **pThread);
@@ -46,12 +47,12 @@ protected:
   nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNewThread);
   virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
   nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, uint32_t * aAgeBucket, bool rcvDate = false); // helper function to get the age bucket for a hdr, useful when grouped by date
-  nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool /*ensureListed*/);
-  virtual int32_t FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
+  nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool /*ensureListed*/) MOZ_OVERRIDE;
+  virtual int32_t FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex) MOZ_OVERRIDE;
   nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
                                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
                                             int32_t *pThreadCount = NULL,
-                                            uint32_t *pFlags = NULL);
+                                            uint32_t *pFlags = NULL) MOZ_OVERRIDE;
 
   bool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
   virtual nsresult RebuildView(nsMsgViewFlagsTypeValue newFlags);
