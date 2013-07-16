@@ -5,6 +5,7 @@
 #ifndef _nsMimeXmlEmitter_h_
 #define _nsMimeXmlEmitter_h_
 
+#include "mozilla/Attributes.h"
 #include "prio.h"
 #include "nsMimeBaseEmitter.h"
 #include "nsMimeRebuffer.h"
@@ -18,20 +19,20 @@ public:
     nsMimeXmlEmitter ();
     virtual       ~nsMimeXmlEmitter (void);
 
-    NS_IMETHOD    Complete();
+    NS_IMETHOD    Complete() MOZ_OVERRIDE;
 
     // Header handling routines.
     NS_IMETHOD    StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
-                              const char *outCharset);
-    NS_IMETHOD    AddHeaderField(const char *field, const char *value);
+                              const char *outCharset) MOZ_OVERRIDE;
+    NS_IMETHOD    AddHeaderField(const char *field, const char *value) MOZ_OVERRIDE;
     NS_IMETHOD    EndHeader();
 
     // Attachment handling routines
     NS_IMETHOD    StartAttachment(const nsACString &name,
                                   const char *contentType, const char *url,
-                                  bool aIsExternalAttachment);
-    NS_IMETHOD    AddAttachmentField(const char *field, const char *value);
-    NS_IMETHOD    EndAttachment();
+                                  bool aIsExternalAttachment) MOZ_OVERRIDE;
+    NS_IMETHOD    AddAttachmentField(const char *field, const char *value) MOZ_OVERRIDE;
+    NS_IMETHOD    EndAttachment() MOZ_OVERRIDE;
 
     NS_IMETHOD    WriteXMLHeader(const char *msgID);
     NS_IMETHOD    WriteXMLTag(const char *tagName, const char *value);

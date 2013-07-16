@@ -5,6 +5,7 @@
 #ifndef _nsMimeHtmlEmitter_h_
 #define _nsMimeHtmlEmitter_h_
 
+#include "mozilla/Attributes.h"
 #include "prio.h"
 #include "nsMimeBaseEmitter.h"
 #include "nsMimeRebuffer.h"
@@ -24,24 +25,26 @@ public:
     virtual       ~nsMimeHtmlDisplayEmitter (void);
 
     // Header handling routines.
-    NS_IMETHOD    EndHeader(const nsACString &name);
+    NS_IMETHOD    EndHeader(const nsACString &name) MOZ_OVERRIDE;
 
     // Attachment handling routines
     NS_IMETHOD    StartAttachment(const nsACString &name,
                                   const char *contentType, const char *url,
-                                  bool aIsExternalAttachment);
-    NS_IMETHOD    AddAttachmentField(const char *field, const char *value);
-    NS_IMETHOD    EndAttachment();
-    NS_IMETHOD    EndAllAttachments();
+                                  bool aIsExternalAttachment) MOZ_OVERRIDE;
+    NS_IMETHOD    AddAttachmentField(const char *field, const char *value) MOZ_OVERRIDE;
+    NS_IMETHOD    EndAttachment() MOZ_OVERRIDE;
+    NS_IMETHOD    EndAllAttachments() MOZ_OVERRIDE;
 
     // Body handling routines
-    NS_IMETHOD    WriteBody(const nsACString &buf, uint32_t *amountWritten);
-    NS_IMETHOD    EndBody();
-    NS_IMETHOD    WriteHTMLHeaders(const nsACString &name);
+    NS_IMETHOD    WriteBody(const nsACString &buf, uint32_t *amountWritten) MOZ_OVERRIDE;
+    NS_IMETHOD    EndBody() MOZ_OVERRIDE;
+    NS_IMETHOD    WriteHTMLHeaders(const nsACString &name) MOZ_OVERRIDE;
 
-    virtual nsresult            WriteHeaderFieldHTMLPrefix(const nsACString &name);
-    virtual nsresult            WriteHeaderFieldHTML(const char *field, const char *value);
-    virtual nsresult            WriteHeaderFieldHTMLPostfix();
+    virtual nsresult    WriteHeaderFieldHTMLPrefix(const nsACString &name
+                                                   ) MOZ_OVERRIDE;
+    virtual nsresult    WriteHeaderFieldHTML(const char *field,
+                                             const char *value) MOZ_OVERRIDE;
+    virtual nsresult    WriteHeaderFieldHTMLPostfix() MOZ_OVERRIDE;
 
 protected:
     bool          mFirst;  // Attachment flag...

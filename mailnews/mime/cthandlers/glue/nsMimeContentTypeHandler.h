@@ -18,6 +18,7 @@
 #ifndef nsMimeContentTypeHandler_h_
 #define nsMimeContentTypeHandler_h_
 
+#include "mozilla/Attributes.h"
 #include "nsIMimeContentTypeHandler.h"
 
 typedef MimeObjectClass  *
@@ -33,11 +34,11 @@ public:
     /* this macro defines QueryInterface, AddRef and Release for this class */
     NS_DECL_ISUPPORTS 
 
-    NS_IMETHOD    GetContentType(char **contentType);
+    NS_IMETHOD    GetContentType(char **contentType) MOZ_OVERRIDE;
 
     NS_IMETHOD    CreateContentTypeHandlerClass(const char *content_type, 
                                                 contentTypeHandlerInitStruct *initStruct, 
-                                                MimeObjectClass **objClass);
+                                                MimeObjectClass **objClass) MOZ_OVERRIDE;
  private:
     char *mimeType;
     MCTHCreateCTHClass realCreateContentTypeHandlerClass;

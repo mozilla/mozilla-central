@@ -5,6 +5,7 @@
 #ifndef _nsMimeRawEmitter_h_
 #define _nsMimeRawEmitter_h_
 
+#include "mozilla/Attributes.h"
 #include "prio.h"
 #include "nsMimeBaseEmitter.h"
 #include "nsMimeRebuffer.h"
@@ -18,7 +19,8 @@ public:
     nsMimeRawEmitter ();
     virtual       ~nsMimeRawEmitter (void);
 
-    NS_IMETHOD    WriteBody(const nsACString &buf, uint32_t *amountWritten);
+    NS_IMETHOD    WriteBody(const nsACString &buf,
+                            uint32_t *amountWritten) MOZ_OVERRIDE;
 
 protected:
 };
