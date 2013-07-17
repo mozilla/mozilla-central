@@ -5,11 +5,8 @@
 /*
  * Helpers to deal with message (nsIMsgDBHdr) parsing.
  */
-var MODULE_NAME = 'message-helpers';
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "message-helpers";
 
 var frame = {};
 Cu.import('resource://mozmill/modules/frame.js', frame);
@@ -18,16 +15,7 @@ Cu.import('resource://mozmill/modules/utils.js', utils);
 
 Cu.import("resource://app/modules/gloda/mimemsg.js");
 
-// we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers'];
-
-function setupModule() {
-  // do nothing
-}
-
 function installInto(module) {
-  setupModule();
-
   module.to_mime_message = to_mime_message;
 }
 

@@ -2,9 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "junk-helpers";
+
+const RELATIVE_ROOT = "../shared-modules";
+// we need this for the main controller
+const MODULE_REQUIRES = ["folder-display-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -12,13 +14,6 @@ var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var utils = {};
 Cu.import("resource://mozmill/modules/utils.js", utils);
-
-const MODULE_NAME = 'junk-helpers';
-
-const RELATIVE_ROOT = '../shared-modules';
-
-// we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers'];
 
 var folderDisplayHelper;
 var mc;

@@ -2,9 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "mouse-event-helpers";
+
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -12,9 +13,6 @@ var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var EventUtils = {};
 Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
-
-const MODULE_NAME = 'mouse-event-helpers';
-const MODULE_REQUIRES = ['folder-display-helpers'];
 
 var fdh;
 

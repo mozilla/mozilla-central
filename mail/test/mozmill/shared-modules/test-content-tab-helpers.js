@@ -2,9 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "content-tab-helpers";
+
+const RELATIVE_ROOT = "../shared-modules";
+// we need this for the main controller
+const MODULE_REQUIRES = ["folder-display-helpers",
+                         "window-helpers",
+                         "mock-object-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -14,15 +18,6 @@ var utils = {};
 Cu.import('resource://mozmill/modules/utils.js', utils);
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-
-const MODULE_NAME = 'content-tab-helpers';
-
-const RELATIVE_ROOT = '../shared-modules';
-
-// we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers',
-                         'window-helpers',
-                         'mock-object-helpers'];
 
 const NORMAL_TIMEOUT = 6000;
 const FAST_TIMEOUT = 1000;
@@ -381,8 +376,7 @@ function get_notification_bar_for_tab(aTab) {
  * Returns null otherwise.
  */
 function get_test_plugin() {
-  var ph = Components.classes["@mozilla.org/plugin/host;1"]
-           .getService(Components.interfaces.nsIPluginHost);
+  let ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
   var tags = ph.getPluginTags();
 
   // Find the test plugin

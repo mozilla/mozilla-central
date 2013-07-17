@@ -2,12 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
   * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const MODULE_NAME = 'mock-object-helpers';
-const RELATIVE_ROOT = '../shared-modules';
-const MODULE_REQUIRES = [];
+const MODULE_NAME = "mock-object-helpers";
 
 let Cm = Components.manager;
-let Ci = Components.interfaces;
 
 function installInto(module) {
   module.MockObjectReplacer = MockObjectReplacer;
@@ -40,10 +37,8 @@ MockObjectRegisterer.prototype = {
   },
 
   unregister: function MOR_unregister() {
-
     let componentRegistrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
 
- 
     componentRegistrar.unregisterFactory(this._cid,
         this._mockFactory);
   },
@@ -140,9 +135,7 @@ MockObjectReplacer.prototype = {
  * Swiped from mozilla/testing/mochitest/tests/SimpleTest/specialpowersAPI.js
  */
 function swapFactoryRegistration(cid, contractID, newFactory, oldFactory) {
-  var componentRegistrar = Components
-                           .manager
-                           .QueryInterface(Components.interfaces.nsIComponentRegistrar);
+  let componentRegistrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
 
   var unregisterFactory = newFactory;
   var registerFactory = oldFactory;
@@ -150,8 +143,7 @@ function swapFactoryRegistration(cid, contractID, newFactory, oldFactory) {
   if (cid == null) {
     if (contractID != null) {
       cid = componentRegistrar.contractIDToCID(contractID);
-      oldFactory = Components.manager.getClassObject(Components.classes[contractID],
-          Components.interfaces.nsIFactory);
+      oldFactory = Cm.getClassObject(Cc[contractID], Ci.nsIFactory);
     } else {
       return {'error': "trying to register a new contract ID: Missing contractID"};
     }

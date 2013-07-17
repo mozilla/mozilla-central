@@ -2,14 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-let Cu = Components.utils;
-let Cc = Components.classes;
-let Ci = Components.interfaces;
-
-const MODULE_NAME = 'cloudfile-yousendit-helpers';
-
-const RELATIVE_ROOT = '../shared-modules';
-const MODULE_REQUIRES = [];
+const MODULE_NAME = "cloudfile-yousendit-helpers";
 
 Cu.import('resource://mozmill/stdlib/httpd.js');
 Cu.import('resource://gre/modules/Services.jsm');

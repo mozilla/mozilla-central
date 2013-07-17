@@ -2,15 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
   * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-let Cu = Components.utils;
-let Cc = Components.classes;
-let Ci = Components.interfaces;
+const MODULE_NAME = "cloudfile-helpers";
+
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers", "mock-object-helpers"];
+
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+var os = {};
+Cu.import('resource://mozmill/stdlib/os.js', os);
+
 let Cr = Components.results;
-
-const MODULE_NAME = 'cloudfile-helpers';
-
-const RELATIVE_ROOT = '../shared-modules';
-const MODULE_REQUIRES = ['folder-display-helpers'];
 
 const kMockContractIDPrefix = "@mozilla.org/mail/mockCloudFile;1?id=";
 
@@ -26,12 +28,6 @@ const kDefaults = {
   uploadExceedsFileLimit: Ci.nsIMsgCloudFileProvider.uploadExceedsFileLimit,
   uploadCanceled: Ci.nsIMsgCloudFileProvider.uploadCanceled,
 };
-
-Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-
-var os = {};
-Cu.import('resource://mozmill/stdlib/os.js', os);
 
 var fdh, moh;
 

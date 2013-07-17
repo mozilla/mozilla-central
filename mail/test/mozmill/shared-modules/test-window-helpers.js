@@ -2,9 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "window-helpers";
+
+Cu.import('resource:///modules/iteratorUtils.jsm');
+Cu.import('resource://gre/modules/NetUtil.jsm');
+Cu.import("resource://gre/modules/Services.jsm");
 
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
@@ -16,12 +18,6 @@ var frame = {};
 Cu.import('resource://mozmill/modules/frame.js', frame);
 var utils = {};
 Cu.import('resource://mozmill/modules/utils.js', utils);
-
-Cu.import('resource:///modules/iteratorUtils.jsm');
-Cu.import('resource://gre/modules/NetUtil.jsm');
-Cu.import("resource://gre/modules/Services.jsm");
-
-const MODULE_NAME = 'window-helpers';
 
 /**
  * Timeout to use when waiting for the first window ever to load.  This is
@@ -74,10 +70,6 @@ function hereIsMarkAction(mark_action_impl, mark_failure_impl,
   mark_action = mark_action_impl;
   mark_failure = mark_failure_impl;
   normalize_for_json = normalize_for_json_impl;
-}
-
-function setupModule() {
-  // do nothing
 }
 
 function installInto(module) {

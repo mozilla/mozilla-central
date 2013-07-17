@@ -2,11 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var MODULE_NAME = 'quick-filter-bar-helper';
+const MODULE_NAME = "quick-filter-bar-helper";
 
-const RELATIVE_ROOT = '../shared-modules';
-
-var MODULE_REQUIRES = ['folder-display-helpers'];
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers"];
 
 var initialized = false;
 function setupModule(module) {

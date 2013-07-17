@@ -2,9 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
+const MODULE_NAME = "nntp-helpers";
+
+const RELATIVE_ROOT = "../shared-modules";
+const MODULES_REQUIRES = ["folder-display-helpers", "window-helpers"];
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");
@@ -13,12 +14,6 @@ var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
 var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
-
-const MODULE_NAME = 'nntp-helpers';
-
-const RELATIVE_ROOT = '../shared-modules';
-
-const MODULES_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 const kSimpleNewsArticle =
   "From: John Doe <john.doe@example.com>\n"+

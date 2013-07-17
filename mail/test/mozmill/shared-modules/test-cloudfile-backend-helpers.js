@@ -2,15 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-let Cu = Components.utils;
-let Cc = Components.classes;
-let Ci = Components.interfaces;
+const MODULE_NAME = "cloudfile-backend-helpers";
 
-const MODULE_NAME = 'cloudfile-backend-helpers';
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["window-helpers"];
 
-const RELATIVE_ROOT = '../shared-modules';
-const MODULE_REQUIRES = ['folder-display-helpers',
-                         'window-helpers'];
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 
 const kUserAuthRequested = "cloudfile:auth";
 const kUserDataRequested = "cloudfile:user";
@@ -19,11 +16,7 @@ const kGetFileURL = "cloudfile:getFileURL";
 const kDeleteFile = "cloudfile:deleteFile";
 const kLogout = "cloudfile:logout";
 
-var os = {};
-Cu.import('resource://mozmill/stdlib/os.js', os);
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-
-var fdh, wh;
+var wh;
 
 function installInto(module) {
   setupModule(module);
@@ -39,7 +32,6 @@ function installInto(module) {
 }
 
 function setupModule(module) {
-  fdh = collector.getModule('folder-display-helpers');
   wh = collector.getModule('window-helpers');
 }
 

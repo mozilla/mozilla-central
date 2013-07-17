@@ -4,8 +4,6 @@
 
 const MODULE_NAME = "observer-helpers";
 
-const RELATIVE_ROOT = "../shared-modules";
-
 function installInto(module) {
   module.ObservationRecorder = ObservationRecorder;
 }

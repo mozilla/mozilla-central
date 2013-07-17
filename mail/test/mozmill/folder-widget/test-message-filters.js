@@ -38,14 +38,6 @@ function setupModule(module)
   test = "news:*";
 }
 
-function assert_equals(a, b, comment)
-{
-  if (!comment)
-    comment = "a != b";
-  if (a != b)
-    throw new Error(comment + ": '"+ a + "' != '" + b + "'.");
-}
-
 /*
  * Test that the message filter list shows newsgroup servers.
  */

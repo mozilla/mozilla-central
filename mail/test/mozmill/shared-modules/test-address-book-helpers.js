@@ -2,19 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var Ci = Components.interfaces;
-var Cc = Components.classes;
-var Cu = Components.utils;
-
 const MODULE_NAME = "address-book-helpers";
-const RELATIVE_ROOT = "../shared-modules";
-const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
-const ABMDB_PREFIX = "moz-abmdbdirectory://";
-const ABLDAP_PREFIX = "moz-abldapdirectory://";
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
 
 Cu.import("resource:///modules/mailServices.js");
 Cu.import("resource:///modules/Services.jsm");
+
+const ABMDB_PREFIX = "moz-abmdbdirectory://";
+const ABLDAP_PREFIX = "moz-abldapdirectory://";
 
 var collectedAddresses;
 
