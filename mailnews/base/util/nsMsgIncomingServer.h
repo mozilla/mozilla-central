@@ -62,7 +62,10 @@ protected:
   // offline messages.
   nsCOMPtr <nsIMsgPluggableStore> m_msgStore;
 
+  /// Helper routine to create local folder on disk if it doesn't exist
+  /// under the account's rootFolder.
   nsresult CreateLocalFolder(const nsAString& folderName);
+
   static nsresult GetDeferredServers(nsIMsgIncomingServer *destServer, nsCOMArray<nsIPop3IncomingServer>& aServers);
 
   nsresult CreateRootFolder();

@@ -440,10 +440,11 @@ nsPop3IncomingServer::SetFlagsOnDefaultMailboxes()
 }
 
 
-NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
+NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes()
 {
   nsresult rv = CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
   NS_ENSURE_SUCCESS(rv, rv);
+
   return CreateLocalFolder(NS_LITERAL_STRING("Trash"));
 }
 

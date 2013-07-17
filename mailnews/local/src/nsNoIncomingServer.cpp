@@ -64,12 +64,12 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsIFile *parentDir)
+// TODO: make this work with maildir message store, bug 890742.
+NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk)
 {
-  nsresult rv;
-  bool exists;
-  if (!folderNameOnDisk || !parentDir) return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG(folderNameOnDisk);
 
+  nsresult rv;
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -77,81 +77,82 @@ NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDi
   // the app defaults folder and returns it. Locale will be added to the path, if there is one.
   nsCOMPtr<nsIFile> defaultMessagesFile;
   rv = mailSession->GetDataFilesDir("messenger", getter_AddRefs(defaultMessagesFile));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // check if bin/defaults/messenger/<folderNameOnDisk>
   // (or bin/defaults/messenger/<locale>/<folderNameOnDisk> if we had a locale provide) exists.
   // it doesn't have to exist.  if it doesn't, return
   rv = defaultMessagesFile->AppendNative(nsDependentCString(folderNameOnDisk));
-  if (NS_FAILED(rv)) return rv;
-  rv = defaultMessagesFile->Exists(&exists);
-  if (NS_FAILED(rv)) return rv;
-  if (!exists) return NS_OK;
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  bool exists;
+  rv = defaultMessagesFile->Exists(&exists);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!exists)
+    return NS_OK;
+
+  nsCOMPtr<nsIFile> parentDir;
+  rv = GetLocalPath(getter_AddRefs(parentDir));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // check if parentDir/<folderNameOnDisk> exists
   {
     nsCOMPtr<nsIFile> testDir;
     rv = parentDir->Clone(getter_AddRefs(testDir));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     rv = testDir->AppendNative(nsDependentCString(folderNameOnDisk));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     rv = testDir->Exists(&exists);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   // if it exists add to the end, else copy
   if (exists)
   {
-#ifdef DEBUG_sspitzer
-    printf("append default %s\n",folderNameOnDisk);
+#ifdef DEBUG
+    printf("append default %s (unimplemented)\n", folderNameOnDisk);
 #endif
-    // todo for bug #1181
+    // todo for bug #1181 (the bug ID seems wrong...)
     // open folderFile, seek to end
     // read defaultMessagesFile, write to folderFile
   }
   else {
-#ifdef DEBUG_sspitzer
+#ifdef DEBUG
     printf("copy default %s\n",folderNameOnDisk);
 #endif
     rv = defaultMessagesFile->CopyTo(parentDir, EmptyString());
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
   }
   return NS_OK;
 }
 
 
-NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
+NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes()
 {
-  NS_ENSURE_ARG_POINTER(aPath);
-  
+  nsresult rv;
   bool isHidden = false;
   GetHidden(&isHidden);
   if (isHidden)
     return NS_OK;
-    
-  nsCOMPtr <nsIFile> path;
-  nsresult rv = aPath->Clone(getter_AddRefs(path));
-  NS_ENSURE_SUCCESS(rv, rv);
 
   // notice, no Inbox, unless we're deferred to...
-   // need to have a leaf to start with
-  rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
   bool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
-    CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
-  CreateLocalFolder(NS_LITERAL_STRING("Trash"));
+  {
+    rv = CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  rv = CreateLocalFolder(NS_LITERAL_STRING("Trash"));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // copy the default templates into the Templates folder
-  nsCOMPtr<nsIFile> parentDir;
-  rv = path->GetParent(getter_AddRefs(parentDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = CopyDefaultMessages("Templates", parentDir);
+  rv = CopyDefaultMessages("Templates");
   NS_ENSURE_SUCCESS(rv, rv);
 
-  (void ) CreateLocalFolder(NS_LITERAL_STRING("Unsent Messages"));
-  return NS_OK;
+  return CreateLocalFolder(NS_LITERAL_STRING("Unsent Messages"));
 }
 
 NS_IMETHODIMP

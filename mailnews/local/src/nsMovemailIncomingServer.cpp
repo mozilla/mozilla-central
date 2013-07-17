@@ -110,7 +110,7 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
     return localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::SpecialUse);
 }
 
-NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
+NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes()
 {
   nsresult rv = CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
   NS_ENSURE_SUCCESS(rv, rv);

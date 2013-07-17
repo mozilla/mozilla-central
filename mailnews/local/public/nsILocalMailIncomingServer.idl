@@ -9,13 +9,16 @@ interface nsIURI;
 interface nsIMsgWindow;
 interface nsIUrlListener;
 interface nsIMsgFolder;
-interface nsIFile;
 
-[scriptable, uuid(e710d72c-9328-4bcb-8b8f-dd7ac18e2156)]
-interface nsILocalMailIncomingServer : nsISupports 
+[scriptable, uuid(f465a3ee-5b29-4da6-8b2e-d764bcba468e)]
+interface nsILocalMailIncomingServer : nsISupports
 {
-  void createDefaultMailboxes(in nsIFile aPath);
+  /// Create the necessary default folders that must always exist in an account (e.g. Inbox/Trash).
+  void createDefaultMailboxes();
+
+  /// Set special folder flags on the default folders.
   void setFlagsOnDefaultMailboxes();
+
   nsIURI getNewMail(in nsIMsgWindow aMsgWindow, in nsIUrlListener aUrlListener, in nsIMsgFolder aInbox);
 };
 

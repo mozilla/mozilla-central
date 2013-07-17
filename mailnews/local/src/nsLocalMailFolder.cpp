@@ -248,7 +248,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
         NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
 
         // first create the folders on disk (as empty files)
-        rv = localMailServer->CreateDefaultMailboxes(path);
+        rv = localMailServer->CreateDefaultMailboxes();
         if (NS_FAILED(rv) && rv != NS_MSG_FOLDER_EXISTS)
           return rv;
 
