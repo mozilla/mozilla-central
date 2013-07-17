@@ -6,7 +6,7 @@ component {127b341a-bdda-4270-85e1-edff569a9b85} nsAbLDAPAttributeMap.js
 contract @mozilla.org/addressbook/ldap-attribute-map;1 {127b341a-bdda-4270-85e1-edff569a9b85}
 component {4ed7d5e1-8800-40da-9e78-c4f509d7ac5e} nsAbLDAPAttributeMap.js
 contract @mozilla.org/addressbook/ldap-attribute-map-service;1 {4ed7d5e1-8800-40da-9e78-c4f509d7ac5e}
-#ifdef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
+#ifdef MOZ_LDAP_XPCOM
 component {227e6482-fe9f-441f-9b7d-7b60375e7449} nsAbLDAPAutoCompleteSearch.js
 contract @mozilla.org/autocomplete/search;1?name=ldap {227e6482-fe9f-441f-9b7d-7b60375e7449}
 #endif

@@ -23,10 +23,6 @@ endif
 ifdef MOZ_LDAP_XPCOM
 DEFINES += -DMOZ_LDAP_XPCOM
 
-ifdef MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
-DEFINES += -DMOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE
-endif
-
 # XXX These files are not being built as they don't work. Bug 311632 should
 # fix them.
 # nsAbLDAPChangeLogQuery.cpp

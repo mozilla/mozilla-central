@@ -39,13 +39,6 @@ if CONFIG['MOZ_LDAP_XPCOM']:
         'nsIAbLDAPReplicationService.idl',
     ]
 
-    if not CONFIG['MOZ_INCOMPLETE_TOOLKIT_LDAP_AUTOCOMPLETE']:
-        XPIDL_SOURCES += [
-            'nsIAbLDAPAutoCompFormatter.idl',
-            'nsILDAPAutoCompFormatter.idl',
-            'nsILDAPAutoCompleteSession.idl',
-        ]
-
 MODULE = 'addrbook'
 
 EXPORTS += [
