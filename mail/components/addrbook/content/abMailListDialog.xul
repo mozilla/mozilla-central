@@ -67,11 +67,10 @@
         <listcell class="addressingWidgetCell">
           <textbox id="addressCol1#1" class="plain textbox-addressingWidget uri-element"
                    type="autocomplete" flex="1"
-                   autocompletesearch="addrbook" timeout="300" maxrows="4" 
+                   autocompletesearch="addrbook ldap" timeout="300" maxrows="4"
                    completedefaultindex="true" forcecomplete="true"
                    minresultsforpopup="3"
                    ontextentered="awRecipientTextCommand(eventParam, this)"
-                   oninput="setupLdapAutocompleteSession();"
                    onkeypress="handleKeyPress(this, event);"
                    onkeydown="awRecipientKeyDown(event, this);"
                    onclick="awNotAnEmptyArea(event);">

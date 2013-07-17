@@ -56,10 +56,6 @@ var gCurrentIdentity;
 var defaultSaveOperation;
 var gSendOrSaveOperationInProgress;
 var gCloseWindowAfterSave;
-var gSessionAdded;
-var gCurrentAutocompleteDirectory;
-var gSetupLdapAutocomplete;
-var gLDAPSession;
 var gSavedSendNowKey;
 var gSendFormat;
 var gLogComposePerformance;
@@ -100,10 +96,6 @@ function InitializeGlobalVariables()
   gSendOrSaveOperationInProgress = false;
   gAutoSaving = false;
   gCloseWindowAfterSave = false;
-  gSessionAdded = false;
-  gCurrentAutocompleteDirectory = null;
-  gSetupLdapAutocomplete = false;
-  gLDAPSession = null;
   gSavedSendNowKey = null;
   gSendFormat = nsIMsgCompSendFormat.AskUser;
   gSendDefaultCharset = null;
@@ -126,11 +118,6 @@ function ReleaseGlobalVariables()
 {
   gAccountManager = null;
   gCurrentIdentity = null;
-  gCurrentAutocompleteDirectory = null;
-  if (gLDAPSession) {
-    gLDAPSession = null;
-    Components.utils.forceGC();
-  }
   gCharsetConvertManager = null;
   gMsgCompose = null;
   gMailSession = null;
@@ -157,7 +144,6 @@ function enableEditableFields()
 var gComposeRecyclingListener = {
   onClose: function() {
     //Reset recipients and attachments
-    ReleaseAutoCompleteState();
     awResetAllRows();
     RemoveAllAttachments();
 
@@ -663,13 +649,6 @@ var messageComposeOfflineQuitObserver = {
     if (aTopic == "network:offline-status-changed")
     {
       MessageComposeOfflineStateChanged(aState == "offline");
-
-      try {
-        setupLdapAutocompleteSession();
-      } catch (ex) {
-        // catch the exception and ignore it, so that if LDAP setup
-        // fails, the entire compose window stuff doesn't get aborted
-      }
     }
     // check whether to veto the quit request (unless another observer already
     // did)
@@ -728,324 +707,6 @@ function MessageComposeOfflineStateChanged(goingOffline)
     }
 
   } catch(e) {}
-}
-
-var directoryServerObserver = {
-  observe: function(subject, topic, value) {
-      try {
-          setupLdapAutocompleteSession();
-      } catch (ex) {
-          // catch the exception and ignore it, so that if LDAP setup
-          // fails, the entire compose window doesn't get horked
-      }
-  }
-}
-
-function AddDirectoryServerObserver(flag) {
-  if (flag) {
-    Services.prefs.addObserver("ldap_2.autoComplete.useDirectory",
-                               directoryServerObserver, false);
-    Services.prefs.addObserver("ldap_2.autoComplete.directoryServer",
-                               directoryServerObserver, false);
-  }
-  else
-  {
-    var prefstring = "mail.identity." + gCurrentIdentity.key + ".overrideGlobal_Pref";
-    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
-    prefstring = "mail.identity." + gCurrentIdentity.key + ".directoryServer";
-    Services.prefs.addObserver(prefstring, directoryServerObserver, false);
-  }
-}
-
-function RemoveDirectoryServerObserver(prefstring)
-{
-  if (!prefstring) {
-    Services.prefs.removeObserver("ldap_2.autoComplete.useDirectory", directoryServerObserver);
-    Services.prefs.removeObserver("ldap_2.autoComplete.directoryServer", directoryServerObserver);
-  }
-  else
-  {
-    var str = prefstring + ".overrideGlobal_Pref";
-    Services.prefs.removeObserver(str, directoryServerObserver);
-    str = prefstring + ".directoryServer";
-    Services.prefs.removeObserver(str, directoryServerObserver);
-  }
-}
-
-function AddDirectorySettingsObserver()
-{
-  Services.prefs.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver, false);
-}
-
-function RemoveDirectorySettingsObserver(prefstring)
-{
-  Services.prefs.removeObserver(prefstring, directoryServerObserver);
-}
-
-function setupLdapAutocompleteSession()
-{
-    var autocompleteDirectory = null;
-    var prevAutocompleteDirectory = gCurrentAutocompleteDirectory;
-
-    if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
-        autocompleteDirectory = Services.prefs.getCharPref(
-            "ldap_2.autoComplete.directoryServer");
-
-    if(gCurrentIdentity.overrideGlobalPref) {
-        autocompleteDirectory = gCurrentIdentity.directoryServer;
-    }
-
-    // use a temporary to do the setup so that we don't overwrite the
-    // global, then have some problem and throw an exception, and leave the
-    // global with a partially setup session.  we'll assign the temp
-    // into the global after we're done setting up the session
-    //
-    var LDAPSession;
-    if (gLDAPSession) {
-        LDAPSession = gLDAPSession;
-    } else {
-        LDAPSession = Components
-            .classes["@mozilla.org/autocompleteSession;1?type=ldap"];
-        if (LDAPSession) {
-          try {
-            LDAPSession = LDAPSession.createInstance()
-                .QueryInterface(Components.interfaces.nsILDAPAutoCompleteSession);
-          } catch (ex) {dump ("ERROR: Cannot get the LDAP autocomplete session\n" + ex + "\n");}
-        }
-    }
-
-    if (autocompleteDirectory && !Services.io.offline) {
-        // Add observer on the directory server we are autocompleting against
-        // only if current server is different from previous.
-        // Remove observer if current server is different from previous
-        gCurrentAutocompleteDirectory = autocompleteDirectory;
-        if (prevAutocompleteDirectory) {
-          if (prevAutocompleteDirectory != gCurrentAutocompleteDirectory) {
-            RemoveDirectorySettingsObserver(prevAutocompleteDirectory);
-            AddDirectorySettingsObserver();
-          }
-        }
-        else
-          AddDirectorySettingsObserver();
-
-        // fill in the session params if there is a session
-        //
-        if (LDAPSession) {
-            let url = Services.prefs.getComplexValue(autocompleteDirectory +".uri",
-              Components.interfaces.nsISupportsString).data;
-
-            LDAPSession.serverURL =
-              Services.io.newURI(url, null, null)
-                         .QueryInterface(Components.interfaces.nsILDAPURL);
-
-            // get the login to authenticate as, if there is one
-            //
-            try {
-                LDAPSession.login = Services.prefs.getComplexValue(
-                    autocompleteDirectory + ".auth.dn",
-                    Components.interfaces.nsISupportsString).data;
-            } catch (ex) {
-                // if we don't have this pref, no big deal
-            }
-            
-            try {
-                LDAPSession.saslMechanism = Services.prefs.getComplexValue(
-                    autocompleteDirectory + ".auth.saslmech",
-                    Components.interfaces.nsISupportsString).data;
-            } catch (ex) {
-                // don't care if we don't have this pref
-            } 
-
-            // set the LDAP protocol version correctly
-            var protocolVersion;
-            try {
-                protocolVersion = Services.prefs.getCharPref(autocompleteDirectory +
-                                                             ".protocolVersion");
-            } catch (ex) {
-                // if we don't have this pref, no big deal
-            }
-            if (protocolVersion == "2") {
-                LDAPSession.version =
-                    Components.interfaces.nsILDAPConnection.VERSION2;
-            }
-
-            // don't search on non-CJK strings shorter than this
-            //
-            try {
-                LDAPSession.minStringLength = Services.prefs.getIntPref(
-                    autocompleteDirectory + ".autoComplete.minStringLength");
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsLDAPAutoCompleteSession use its default.
-            }
-
-            // don't search on CJK strings shorter than this
-            //
-            try {
-                LDAPSession.cjkMinStringLength = Services.prefs.getIntPref(
-                  autocompleteDirectory + ".autoComplete.cjkMinStringLength");
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsLDAPAutoCompleteSession use its default.
-            }
-
-            // we don't try/catch here, because if this fails, we're outta luck
-            //
-            var ldapFormatter = Components.classes[
-                "@mozilla.org/ldap-autocomplete-formatter;1?type=addrbook"]
-                .createInstance().QueryInterface(
-                    Components.interfaces.nsIAbLDAPAutoCompFormatter);
-
-            // override autocomplete name format?
-            //
-            try {
-                ldapFormatter.nameFormat =
-                    Services.prefs.getComplexValue(autocompleteDirectory +
-                                                   ".autoComplete.nameFormat",
-                                                   Components.interfaces.nsISupportsString).data;
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsAbLDAPAutoCompFormatter use its default.
-            }
-
-            // override autocomplete mail address format?
-            //
-            try {
-                ldapFormatter.addressFormat =
-                    Services.prefs.getComplexValue(autocompleteDirectory +
-                                                   ".autoComplete.addressFormat",
-                                                   Components.interfaces.nsISupportsString).data;
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsAbLDAPAutoCompFormatter use its default.
-            }
-
-            try {
-                // figure out what goes in the comment column, if anything
-                //
-                // 0 = none
-                // 1 = name of addressbook this card came from
-                // 2 = other per-addressbook format
-                //
-                var showComments = 0;
-
-                switch (Services.prefs.getIntPref("mail.autoComplete.commentColumn")) {
-
-                case 1:
-                    // use the name of this directory
-                    //
-                    ldapFormatter.commentFormat = Services.prefs.getComplexValue(
-                                autocompleteDirectory + ".description",
-                                Components.interfaces.nsISupportsString).data;
-                    break;
-
-                case 2:
-                    // override ldap-specific autocomplete entry?
-                    //
-                    try {
-                        ldapFormatter.commentFormat =
-                            Services.prefs.getComplexValue(autocompleteDirectory +
-                                                           ".autoComplete.commentFormat",
-                                                           Components.interfaces.nsISupportsString).data;
-                    } catch (innerException) {
-                        // if nothing has been specified, use the ldap
-                        // organization field
-                        ldapFormatter.commentFormat = "[o]";
-                    }
-                    break;
-
-                case 0:
-                default:
-                    // do nothing
-                }
-            } catch (ex) {
-                // if something went wrong while setting up comments, try and
-                // proceed anyway
-            }
-
-            // set the session's formatter, which also happens to
-            // force a call to the formatter's getAttributes() method
-            // -- which is why this needs to happen after we've set the
-            // various formats
-            //
-            LDAPSession.formatter = ldapFormatter;
-
-            // override autocomplete entry formatting?
-            //
-            try {
-                LDAPSession.outputFormat =
-                    Services.prefs.getComplexValue(autocompleteDirectory +
-                                                   ".autoComplete.outputFormat",
-                                                   Components.interfaces.nsISupportsString).data;
-
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsLDAPAutoCompleteSession use its default.
-            }
-
-            // override default search filter template?
-            //
-            try {
-                LDAPSession.filterTemplate = Services.prefs.getComplexValue(
-                    autocompleteDirectory + ".autoComplete.filterTemplate",
-                    Components.interfaces.nsISupportsString).data;
-
-            } catch (ex) {
-                // if this pref isn't there, no big deal.  just let
-                // nsLDAPAutoCompleteSession use its default
-            }
-
-            // override default maxHits (currently 100)
-            //
-            try {
-                // XXXdmose should really use .autocomplete.maxHits,
-                // but there's no UI for that yet
-                //
-                LDAPSession.maxHits =
-                    Services.prefs.getIntPref(autocompleteDirectory + ".maxHits");
-            } catch (ex) {
-                // if this pref isn't there, or is out of range, no big deal.
-                // just let nsLDAPAutoCompleteSession use its default.
-            }
-
-            if (!gSessionAdded) {
-                // if we make it here, we know that session initialization has
-                // succeeded; add the session for all recipients, and
-                // remember that we've done so
-                let maxRecipients = awGetMaxRecipients();
-                for (let i = 1; i <= maxRecipients; i++)
-                {
-                    let autoCompleteWidget = document.getElementById("addressCol2#" + i);
-                    if (autoCompleteWidget)
-                    {
-                      autoCompleteWidget.addSession(LDAPSession);
-                      // ldap searches don't insert a default entry with the default domain appended to it
-                      // so reduce the minimum results for a popup to 2 in this case.
-                      autoCompleteWidget.minResultsForPopup = 2;
-
-                    }
-                 }
-                gSessionAdded = true;
-            }
-        }
-    } else {
-      if (gCurrentAutocompleteDirectory) {
-        // Remove observer on the directory server since we are not doing Ldap
-        // autocompletion.
-        RemoveDirectorySettingsObserver(gCurrentAutocompleteDirectory);
-        gCurrentAutocompleteDirectory = null;
-      }
-      if (gLDAPSession && gSessionAdded) {
-        let maxRecipients = awGetMaxRecipients();
-        for (let i = 1; i <= maxRecipients; i++)
-          document.getElementById("addressCol2#" + i)
-                  .removeSession(gLDAPSession);
-        gSessionAdded = false;
-      }
-    }
-
-    gLDAPSession = LDAPSession;
-    gSetupLdapAutocomplete = true;
 }
 
 function DoCommandClose()
@@ -1479,7 +1140,6 @@ function ComposeLoad()
   sNameProperty = sRDF.GetResource("http://home.netscape.com/NC-rdf#Name?sort=true");
 
   AddMessageComposeOfflineQuitObserver();
-  AddDirectoryServerObserver(true);
 
   if (gLogComposePerformance)
     sMsgComposeService.TimeStamp("Start initializing the compose window (ComposeLoad)", false);
@@ -1528,12 +1188,7 @@ function ComposeUnload()
   EditorCleanup();
 
   RemoveMessageComposeOfflineQuitObserver();
-  RemoveDirectoryServerObserver(null);
 
-  if (gCurrentIdentity)
-    RemoveDirectoryServerObserver("mail.identity." + gCurrentIdentity.key);
-  if (gCurrentAutocompleteDirectory)
-    RemoveDirectorySettingsObserver(gCurrentAutocompleteDirectory);
   if (gMsgCompose)
     gMsgCompose.UnregisterStateListener(stateListener);
   if (gAutoSaveTimeout)
@@ -2319,9 +1974,6 @@ function SetComposeWindowTitle()
 // This is hooked up to the OS's window close widget (e.g., "X" for Windows)
 function ComposeCanClose()
 {
-  // Do this early, so ldap sessions have a better chance to
-  // cleanup after themselves.
-  ReleaseAutoCompleteState();
   if (gSendOrSaveOperationInProgress)
   {
     var brandShortName = sBrandBundle.getString("brandShortName");
@@ -2408,22 +2060,6 @@ function SetContentAndBodyAsUnmodified()
 {
   gMsgCompose.bodyModified = false;
   gContentChanged = false;
-}
-
-function ReleaseAutoCompleteState()
-{
-  let maxRecipients = awGetMaxRecipients();
-  for (let i = 1; i <= maxRecipients; i++)
-    document.getElementById("addressCol2#" + i).removeSession(gLDAPSession);
-
-  gSessionAdded = false;
-  gSetupLdapAutocomplete = false;
-  if (gLDAPSession) {
-    gLDAPSession = null;
-    // We're trying to force ldap sessions to get cleaned up as
-    // soon as possible so they don't hang on shutdown.
-    Components.utils.forceGC();
-  }
 }
 
 function MsgComposeCloseWindow(recycleIt)
@@ -2816,8 +2452,6 @@ function LoadIdentity(startup)
 
         if (!startup && prevIdentity && idKey != prevIdentity.key)
         {
-          var prefstring = "mail.identity." + prevIdentity.key;
-          RemoveDirectoryServerObserver(prefstring);
           var prevReplyTo = prevIdentity.replyTo;
           var prevCc = "";
           var prevBcc = "";
@@ -2910,17 +2544,9 @@ function LoadIdentity(startup)
           document.getElementById("msgcomposeWindow").dispatchEvent(event);
         }
 
-      AddDirectoryServerObserver(false);
       if (!startup) {
           if (getPref("mail.autoComplete.highlightNonMatches"))
             document.getElementById('addressCol2#1').highlightNonMatches = true;
-
-          try {
-              setupLdapAutocompleteSession();
-          } catch (ex) {
-              // catch the exception and ignore it, so that if LDAP setup
-              // fails, the entire compose window doesn't end up horked
-          }
 
           // only do this if we aren't starting up....it gets done as part of startup already
           addRecipientsToIgnoreList(gCurrentIdentity.identityName);
@@ -2949,14 +2575,6 @@ function setupAutocomplete()
   } catch (ex) {
       // if we can't get this pref, then don't show the columns (which is
       // what the XUL defaults to)
-  }
-  if (!gSetupLdapAutocomplete) {
-      try {
-          setupLdapAutocompleteSession();
-      } catch (ex) {
-          // catch the exception and ignore it, so that if LDAP setup
-          // fails, the entire compose window doesn't end up horked
-      }
   }
 }
 
