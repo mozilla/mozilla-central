@@ -92,10 +92,6 @@ nsAbLDAPAutoCompleteSearch.prototype = {
   // The URI of the currently active query.
   _activeQuery: null,
 
-  // Cache of the identity to save getting it each time if it doesn't change
-  _cachedParam: null,
-  _cachedIdentity: null,
-
   // The current search result.
   _result: null,
   // The listener to pass back results to.
@@ -177,18 +173,24 @@ nsAbLDAPAutoCompleteSearch.prototype = {
       return;
     }
 
-    if (aParam != this._cachedParam) {
-      this._cachedIdentity = MailServices.accounts.getIdentity(aParam);
-      this._cachedParam = aParam;
-    }
-
     // The rules here: If the current identity has a directoryServer set, then
     // use that, otherwise, try the global preference instead.
     var acDirURI = null;
+    var identity;
+
+    if (aParam) {
+      try {
+        identity = MailServices.accounts.getIdentity(aParam);
+      }
+      catch(ex) {
+        Components.utils.reportError("Couldn't get specified identity, falling " +
+                                     "back to global settings");
+      }
+    }
 
     // Does the current identity override the global preference?
-    if (this._cachedIdentity.overrideGlobalPref)
-      acDirURI = this._cachedIdentity.directoryServer;
+    if (identity && identity.overrideGlobalPref)
+      acDirURI = identity.directoryServer;
     else {
       // Try the global one
       if (Services.prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
