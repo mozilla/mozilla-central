@@ -7,8 +7,12 @@ const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/LoginManagerContent.jsm");
 Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
+
+var onContentLoaded = LoginManagerContent.onContentLoaded.bind(LoginManagerContent);
+var onUsernameInput = LoginManagerContent.onUsernameInput.bind(LoginManagerContent);
 
 XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
                                   "resource://gre/modules/NetUtil.jsm");
@@ -265,6 +269,12 @@ SuiteGlue.prototype = {
     }
   },
 
+  onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
+    aWebProgress.DOMWindow.addEventListener("DOMContentLoaded", onContentLoaded, true);
+    aWebProgress.DOMWindow.addEventListener("DOMAutoComplete", onUsernameInput, true);
+    aWebProgress.DOMWindow.addEventListener("change", onUsernameInput, true);
+  },
+
   // initialization (called on application startup)
   _init: function()
   {
@@ -290,7 +300,7 @@ SuiteGlue.prototype = {
     Services.prefs.addObserver("devtools.debugger.", this, true);
     Components.classes['@mozilla.org/docloaderservice;1']
               .getService(Components.interfaces.nsIWebProgress)
-              .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
+              .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION | Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
   },
 
   // profile is available
