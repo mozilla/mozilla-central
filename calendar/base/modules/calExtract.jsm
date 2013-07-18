@@ -136,7 +136,7 @@ Extractor.prototype = {
         }
         this.dailyNumbers = this.numbers.join(this.marker);
 
-        this.hourlyNumbers =  this.numbers[0] + this.marker;
+        this.hourlyNumbers = this.numbers[0] + this.marker;
         for (let i = 1; i <= 22; i++) {
             this.hourlyNumbers += this.numbers[i] + this.marker;
         }
@@ -301,7 +301,7 @@ Extractor.prototype = {
                                     let item = new Date(this.now.getTime());
                                     while (true) {
                                         item.setDate(item.getDate() + 1);
-                                        if (item.getMonth() == date.month - 1  &&
+                                        if (item.getMonth() == date.month - 1 &&
                                             item.getDate() == date.day) {
                                             date.year = item.getFullYear();
                                             break;
@@ -341,7 +341,7 @@ Extractor.prototype = {
                             let item = new Date(this.now.getTime());
                             while (true) {
                                 item.setDate(item.getDate() + 1);
-                                if (item.getMonth() == date.month - 1  &&
+                                if (item.getMonth() == date.month - 1 &&
                                     item.getDate() == date.day) {
                                     date.year = item.getFullYear();
                                     break;
@@ -358,7 +358,7 @@ Extractor.prototype = {
         }
     },
 
-    extractDate: function extractDate (pattern, relation) {
+    extractDate: function extractDate(pattern, relation) {
         let alts = this.getRepPatterns(pattern,
                                        ["(\\d{1,2}" + this.marker + this.dailyNumbers + ")"]);
         let res;
@@ -371,12 +371,11 @@ Extractor.prototype = {
                     let day = this.parseNumber(res[1], this.numbers);
                     if (this.isValidDay(day)) {
                         let item = new Date(this.now.getTime());
-                        if (this.now.getDate() > day) {
+                        if (this.now.getDate() != day) {
                             // find next nth date
                             while (true) {
                                 item.setDate(item.getDate() + 1);
-                                if (item.getMonth() != this.now.getMonth() &&
-                                    item.getDate() == day) {
+                                if (item.getDate() == day) {
                                     break;
                                 }
                             }
@@ -832,6 +831,7 @@ Extractor.prototype = {
         let def = "061dc19c-719f-47f3-b2b5-e767e6f02b7a";
         try {
             value = this.bundle.GetStringFromName(name);
+            this.checkForFaultyPatterns(value, name);
             if (value.trim() == "") {
                 cal.LOG("[calExtract] Pattern not found: " + name);
                 return def;
@@ -877,6 +877,7 @@ Extractor.prototype = {
 
         try {
             let value = this.bundle.GetStringFromName(name);
+            this.checkForFaultyPatterns(value, name);
             if (value.trim() == "") {
                 cal.LOG("[calExtract] Pattern empty: " + name);
                 return alts;
@@ -959,8 +960,17 @@ Extractor.prototype = {
         return value.replace(/\s+/g, "\\s*").sanitize();
     },
 
+    checkForFaultyPatterns: function checkForFaultyPatterns(pattern, name) {
+        if (/^\s*\|/.exec(pattern) || /\|\s*$/.exec(pattern) || /\|\s*\|/.exec(pattern)) {
+            dump("[calExtract] Faulty extraction pattern " +
+                 pattern + " for " + name + "\n");
+            Components.utils.reportError("[calExtract] Faulty extraction pattern " +
+                                         pattern + " for " + name);
+        }
+    },
+
     isValidYear: function isValidYear(year) {
-        return (year >= 2000  && year <= 2050);
+        return (year >= 2000 && year <= 2050);
     },
 
     isValidMonth: function isValidMonth(month) {
@@ -1083,6 +1093,9 @@ Extractor.prototype = {
 
     parseNumber: function parseNumber(number, numbers) {
         let r = parseInt(number, 10);
+        // number comes in as plain text, numbers are already adjusted for usage
+        // in regular expression
+        number = this.cleanPatterns(number);
         if (isNaN(r)) {
             for (let i = 0; i <= 31; i++) {
                 let ns = numbers[i].split("|");
