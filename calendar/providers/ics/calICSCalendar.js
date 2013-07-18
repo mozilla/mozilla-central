@@ -404,13 +404,18 @@ calICSCalendar.prototype = {
     {
         ctxt = ctxt.wrappedJSObject;
         let httpChannel;
+        let requestSucceeded = false;
         try {
             httpChannel = request.QueryInterface(Components.interfaces.nsIHttpChannel);
-            cal.LOG("[calICSCalendar] channel.requestSucceeded: " + httpChannel.requestSucceeded);
+            requestSucceeded = httpChannel.requestSucceeded;
         } catch(e) {
         }
 
-        if ((httpChannel && !httpChannel.requestSucceeded) ||
+        if (httpChannel) {
+            cal.LOG("[calICSCalendar] channel.requestSucceeded: " + requestSucceeded);
+        }
+
+        if ((httpChannel && !requestSucceeded) ||
             (!httpChannel && !Components.isSuccessCode(request.status))) {
             ctxt.mObserver.onError(this.superCalendar,
                                    Components.isSuccessCode(request.status)
