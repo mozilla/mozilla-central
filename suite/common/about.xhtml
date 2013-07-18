@@ -37,31 +37,24 @@
     <li>&about.relnotes.beforeTheLink;<a id="releaseNotesURL" href="">&about.relnotes.linkTitle;</a>&about.relnotes.afterTheLink;</li>
     <li>&about.buildconfig.beforeTheLink;<a href="about:buildconfig">&about.buildconfig.linkTitle;</a>&about.buildconfig.afterTheLink;</li>
     <script type="application/javascript">
+      Components.utils.import("resource://gre/modules/Services.jsm");
+
       // get release notes URL and vendor URL from prefs
-
-      var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                .getService(Components.interfaces.nsIURLFormatter);
-      var releaseNotesURL = formatter.formatURLPref("app.releaseNotesURL");
-
+      var releaseNotesURL = Services.urlFormatter.formatURLPref("app.releaseNotesURL");
       if (releaseNotesURL != "about:blank") {
         var relnotes = document.getElementById("releaseNotesURL");
         relnotes.setAttribute("href", releaseNotesURL);
       }
 
-      var vendorURL = formatter.formatURLPref("app.vendorURL");
+      var vendorURL = Services.urlFormatter.formatURLPref("app.vendorURL");
       if (vendorURL != "about:blank") {
         var vendor = document.getElementById("vendorURL");
         vendor.setAttribute("href", vendorURL);
       }
 
       // insert the version of the XUL application (!= XULRunner platform version)
-
-      var versionNum = Components.classes["@mozilla.org/xre/app-info;1"]
-                                 .getService(Components.interfaces.nsIXULAppInfo)
-                                 .version;
-
+      var versionNum = Services.appinfo.version;
       var version = document.getElementById("version");
-
       version.appendChild(document.createTextNode("&about.version; " + versionNum));
 
       // append user agent
@@ -76,9 +69,7 @@
         list.appendChild(document.createTextNode("\n    "));
       }
 
-      var buildId = Components.classes["@mozilla.org/xre/app-info;1"]
-                                 .getService(Components.interfaces.nsIXULAppInfo)
-                                 .appBuildID;
+      var buildId = Services.appinfo.appBuildID;
       if (buildId) {
         var listItem = list.appendChild(document.createElement("li"));
         listItem.appendChild(document.createTextNode("&about.buildIdentifier;"));
@@ -89,7 +80,6 @@
       }
 
       // Determine and display current channel.
-      Components.utils.import("resource://gre/modules/Services.jsm");
       document.getElementById("currentChannel").textContent =
         Services.prefs.getDefaultBranch("").getCharPref("app.update.channel");
     </script>
