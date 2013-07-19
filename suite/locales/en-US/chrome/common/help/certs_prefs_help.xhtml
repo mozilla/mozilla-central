@@ -72,7 +72,8 @@
   organizations.</p>
 
 <p>To examine or configure the certificates you have on file, click Manage
-  Certificates.</p>
+  Certificates. See <a href="using_certs_help.xhtml#managing_certificates">Managing
+  Certificates</a> for further information on this dialog.</p>
 
 <h3 id="manage_security_devices">Manage Security Devices</h3>
 
@@ -82,7 +83,46 @@
   additional security devices, such as smart cards, at the same time.</p>
 
 <p>To examine or configure your security devices, click Manage Security
-  Devices.</p>
+  Devices. See <a href="using_certs_help.xhtml#managing_smart_cards_and_other_security_devices">Managing
+  Smart Cards and Other Security Devices</a> for further information on
+  this dialog.</p>
+
+<h3 id="ocsp">OCSP</h3>
+
+<p>A certificate revocation list (CRL) is a list of revoked certificates that
+  is generated and signed by a
+  <a href="glossary.xhtml#certificate_authority">certificate authority
+  (CA)</a>. The Online Certificate Status Protocol (OCSP) makes it possible for
+  Certificate Manager to perform an online check of a certificate&apos;s
+  validity each time the certificate is viewed or used. This process involves
+  checking the certificate against a CRL maintained at a server specified by
+  the CA of that certificate. Your computer must be online for OCSP to work.</p>
+
+<p>The following settings in the OCSP section of the Certificates preferences
+  panel determine how Certificate Manager uses OCSP:</p>
+
+<ul>
+  <li><strong>Use the Online Certificate Status Protocol (OCSP) to confirm the
+    current validity of certificates</strong>: Select this if you want
+    Certificate Manager to perform an online status check each time it verifies
+    a certificate. Certificate Manager makes sure that the certificate is
+    listed as valid at the URL and checks validity period and trust settings.
+
+    <p><strong>Note</strong>: If this setting is not selected, Certificate
+      Manager will only confirm the certificate&apos;s validity period and that
+      it is correctly signed by a CA whose own CA certificate is both listed
+      under the CA Certificates tab (in the main Certificate Manager window)
+      and marked as trusted for issuing that kind of certificate.</p>
+  </li>
+  <li><strong>When an OCSP server connection fails, treat the certificate as
+    invalid</strong>: Select this if you want the validation to fail if a
+    connection to the OCSP server can&apos;t be established, thus enforcing
+    that a certificate always must be positively validated for each use.</li>
+</ul>
+
+<p>For more detailed information on certificate validation, see
+  <a href="using_certs_help.xhtml#controlling_validation">How Certificate
+  Validation Works</a>.</p>
 
 </body>
 </html>

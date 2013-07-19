@@ -960,7 +960,6 @@
         <rdf:li><rdf:Description ID="sec_gen_master_passwords" nc:name="Master Passwords" nc:link="passwords_help.xhtml#master_passwords"/> </rdf:li>
         <rdf:li><rdf:Description ID="sec_gen_ssl" nc:name="SSL" nc:link="ssl_help.xhtml#privacy_and_security_preferences_ssl"/> </rdf:li>
         <rdf:li><rdf:Description ID="sec_gen_certificates" nc:name="Certificates" nc:link="certs_prefs_help.xhtml#privacy_and_security_preferences_certificates"/> </rdf:li>
-        <rdf:li><rdf:Description ID="sec_gen_validation" nc:name="Validation" nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
@@ -1025,30 +1024,7 @@
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li><rdf:Description ID="using-help-certs-validation-how" nc:name="How Validation Works" nc:link="using_certs_help.xhtml#how_validation_works"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-help-certs-validation-crls" nc:name="Managing CRLs" nc:link="using_certs_help.xhtml#managing_crls"/> </rdf:li>
         <rdf:li><rdf:Description ID="using-help-certs-validation-ocsp" nc:name="Configuring OCSP" nc:link="using_certs_help.xhtml#configuring_ocsp"/> </rdf:li>
-        <rdf:li><rdf:Description ID="validation_prefs" nc:name="Validation Settings" nc:link="validation_help.xhtml"/> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
-<rdf:Description about="#using-help-certs-validation-crls">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li><rdf:Description ID="using-help-certs-validation-crls-next" nc:name="About the Next Update Date" nc:link="using_certs_help.xhtml#about_the_next_update_date"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-help-certs-validation-crls-import" nc:name="Importing CRLs" nc:link="using_certs_help.xhtml#importing_crls"/> </rdf:li>
-        <rdf:li><rdf:Description ID="using-help-certs-validation-crls-view" nc:name="Viewing and Managing CRLs" nc:link="using_certs_help.xhtml#viewing_and_managing_crls"/> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
-<rdf:Description about="#validation_prefs">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li><rdf:Description ID="validation-prefs" nc:name="Validation Preferences" nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/> </rdf:li>
-        <rdf:li><rdf:Description ID="validation-crl-manage" nc:name="Manage CRLs" nc:link="validation_help.xhtml#manage_crls"/> </rdf:li>
-        <rdf:li><rdf:Description ID="validation-crl-import" nc:name="CRL Import Status" nc:link="validation_help.xhtml#crl_import_status"/> </rdf:li>
-        <rdf:li><rdf:Description ID="validation-crl-auto-update-prefs" nc:name="Automatic CRL Update Preferences" nc:link="validation_help.xhtml#automatic_crl_update_preferences"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>

@@ -353,11 +353,6 @@
          nc:link="nav_help.xhtml#copying_saving_and_printing_pages"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="CRLs"
-         nc:name="CRLs"
-         nc:link="using_certs_help.xhtml#how_validation_works"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="Customizing"
          nc:name="Customizing Fonts and Colors"
          nc:link="customize_help.xhtml#changing_fonts_colors_and_themes"/>
@@ -601,36 +596,6 @@
        <rdf:Description ID="cookies:viewing"
          nc:name="viewing cookies"
          nc:link="using_priv_help.xhtml#viewing_cookies"/>
-     </rdf:li></rdf:Seq>
-   </nc:subheadings>
-</rdf:Description>
-
-<rdf:Description about="#CRLs">
-   <nc:subheadings>
-     <rdf:Seq><rdf:li>
-       <rdf:Description ID="CRLs:about"
-         nc:name="about CRLs"
-         nc:link="using_certs_help.xhtml#how_validation_works"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="CRLs:auto_upates_for"
-         nc:name="CRL auto update"
-         nc:link="validation_help.xhtml#automatic_crl_update_preferences"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="CRLs:managing"
-         nc:name="managing CRLs"
-         nc:link="validation_help.xhtml#manage_crls"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="CRLs:Next_Update_date"
-         nc:name="Next Update date"
-         nc:link="using_certs_help.xhtml#about_the_next_update_date"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="CRLs:preferences"
-         nc:name="CRL preferences"
-         nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -932,11 +897,6 @@
        <rdf:Description ID="import:certificates"
          nc:name="import certificates"
          nc:link="certs_help.xhtml#your_certificates"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="import:crls"
-         nc:name="import CRLs"
-         nc:link="using_certs_help.xhtml#importing_crls"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="import:feeds"
@@ -1398,11 +1358,6 @@
 <rdf:Description about="help-indexAZ.rdf#o">
    <nc:subheadings>
      <rdf:Seq><rdf:li>
-       <rdf:Description ID="OSCP"
-         nc:name="OSCP"
-         nc:link="using_certs_help.xhtml#how_validation_works"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="Offline"
          nc:name="Offline"/>
      </rdf:li>
@@ -1705,11 +1660,6 @@
        <rdf:Description ID="preferences:Tabbed_Browsing"
          nc:name="Tabbed Browsing preferences"
          nc:link="cs_nav_prefs_navigator.xhtml#tabbed_browsing"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="preferences:validation"
-         nc:name="validation preferences"
-         nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -2006,11 +1956,6 @@
        <rdf:Description ID="settings:SSL"
          nc:name="SSL settings"
          nc:link="ssl_help.xhtml#ssl_settings"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="settings:validation"
-         nc:name="validation settings"
-         nc:link="validation_help.xhtml#validation_settings"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -2232,29 +2177,14 @@
          nc:link="using_certs_help.xhtml#how_validation_works"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="validation:auto_updating_CRLs"
-         nc:name="auto updating CRLs"
-         nc:link="validation_help.xhtml#automatic_crl_update_preferences"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="validation:CRLs"
-         nc:name="CRLs"
-         nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="validation:managing_CRLs"
-         nc:name="managing CRLs"
-         nc:link="validation_help.xhtml#manage_crls"/>
-     </rdf:li>
-     <rdf:li>
        <rdf:Description ID="validation:OCSP"
          nc:name="OCSP"
-         nc:link="validation_help.xhtml#privacy_and_security_preferences_validation"/>
+         nc:link="certs_prefs_help.xhtml#ocsp"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="validation:settings"
          nc:name="validation settings"
-         nc:link="validation_help.xhtml#validation_settings"/>
+         nc:link="certs_prefs_help.xhtml#privacy_and_security_preferences_certificates"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
