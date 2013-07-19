@@ -551,7 +551,6 @@
 @BINPATH@/components/dom_alarm.xpt
 @BINPATH@/components/dom_apps.xpt
 @BINPATH@/components/dom_base.xpt
-@BINPATH@/components/dom_battery.xpt
 @BINPATH@/components/dom_browserelement.xpt
 @BINPATH@/components/dom_camera.xpt
 @BINPATH@/components/dom_canvas.xpt
