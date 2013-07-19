@@ -197,7 +197,7 @@ nsresult NS_MsgGetStringForAttribute(int16_t attrib, const char **string)
     }
   }
   if (!found)
-    *string = '\0'; // don't leave the string uninitialized
+    *string = ""; // don't leave the string uninitialized
 
   // we no longer return invalid attribute. If we cannot find the string in the table,
   // then it is an arbitrary header. Return success regardless if found or not
