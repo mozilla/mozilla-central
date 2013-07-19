@@ -15,11 +15,6 @@ MSVC_ENABLE_PGO := 1
 MOZILLA_INTERNAL_API =1
 LIBXUL_LIBRARY = 1
 
-# TODO: we do this in crashreporter and storage/src too, should be centralized
-ifeq ($(OS_ARCH),Linux)
-DEFINES += -DXP_LINUX
-endif
-
 CSRCS = \
 		nsErrorAssertsC.c \
 		$(NULL)
@@ -50,15 +45,10 @@ DISABLED_SDK_HEADERS += \
 		$(NULL)
 endif
 
-# we don't want the shared lib, but we want to force the creation of a static lib.
-FORCE_STATIC_LIB = 1
-
 
 include $(topsrcdir)/config/config.mk
-include $(topsrcdir)/ipc/chromium/chromium-config.mk
 include $(topsrcdir)/config/rules.mk
-
-DEFINES		+= -D_IMPL_NS_COM
+include $(topsrcdir)/ipc/chromium/chromium-config.mk
 
 ifdef MOZ_WIDGET_GTK
 CXXFLAGS        += $(TK_CFLAGS)

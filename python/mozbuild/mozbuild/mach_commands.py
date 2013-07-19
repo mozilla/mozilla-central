@@ -70,7 +70,7 @@ class TerminalLoggingHandler(logging.Handler):
 
         try:
             if self.footer:
-                    self.footer.clear()
+                self.footer.clear()
 
             self.fh.write(msg)
             self.fh.write('\n')
@@ -99,13 +99,8 @@ class BuildProgressFooter(object):
         self._monitor = monitor
 
     def _clear_lines(self, n):
-        for i in range(n):
-            self._fh.write(self._t.move_x(0))
-            self._fh.write(self._t.clear_eol())
-            self._fh.write(self._t.move_up())
-
-        self._fh.write(self._t.move_down())
-        self._fh.write(self._t.move_x(0))
+        self._fh.write(self._t.move(self._t.height - n, 0))
+        self._fh.write(self._t.clear_eos())
 
     def clear(self):
         """Removes the footer from the current terminal."""
@@ -127,7 +122,7 @@ class BuildProgressFooter(object):
         current_encountered = False
         for tier in self._monitor.tiers:
             if tier == self._monitor.current_tier:
-                parts.extend([('yellow', tier), ' '])
+                parts.extend([('underline_yellow', tier), ' '])
                 current_encountered = True
             elif not current_encountered:
                 parts.extend([('green', tier), ' '])
@@ -138,7 +133,7 @@ class BuildProgressFooter(object):
         parts.extend([('bold', 'SUBTIER'), ':', ' '])
         for subtier in self._monitor.subtiers:
             if subtier == self._monitor.current_subtier:
-                parts.extend([('yellow', subtier), ' '])
+                parts.extend([('underline_yellow', subtier), ' '])
                 current_encountered = True
             elif not current_encountered:
                 parts.extend([('green', subtier), ' '])
@@ -208,12 +203,12 @@ class BuildOutputManager(LoggingMixin):
         self.t = terminal
         self.footer = BuildProgressFooter(terminal, monitor)
 
-        handler = TerminalLoggingHandler()
-        handler.setFormatter(log_manager.terminal_formatter)
-        handler.footer = self.footer
+        self.handler = TerminalLoggingHandler()
+        self.handler.setFormatter(log_manager.terminal_formatter)
+        self.handler.footer = self.footer
 
-        old = log_manager.replace_terminal_handler(handler)
-        handler.level = old.level
+        old = log_manager.replace_terminal_handler(self.handler)
+        self.handler.level = old.level
 
     def __enter__(self):
         return self
@@ -248,7 +243,14 @@ class BuildOutputManager(LoggingMixin):
         if relevant:
             self.log(logging.INFO, 'build_output', {'line': line}, '{line}')
         elif state_changed:
-            self.refresh()
+            have_handler = hasattr(self, 'handler')
+            if have_handler:
+                self.handler.acquire()
+            try:
+                self.refresh()
+            finally:
+                if have_handler:
+                    self.handler.release()
 
 
 @CommandProvider
@@ -290,6 +292,17 @@ class Build(MachCommandBase):
                         path_arg.relpath())
 
                     if make_dir is None and make_target is None:
+                        return 1
+
+                    # See bug 886162 - we don't want to "accidentally" build
+                    # the entire tree (if that's really the intent, it's
+                    # unlikely they would have specified a directory.)
+                    if not make_dir and not make_target:
+                        print("The specified directory doesn't contain a "
+                              "Makefile and the first parent with one is the "
+                              "root of the tree. Please specify a directory "
+                              "with a Makefile or run |mach build| if you "
+                              "want to build the entire tree.")
                         return 1
 
                     target_pairs.append((make_dir, make_target))

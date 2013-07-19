@@ -16,7 +16,6 @@
 
 XPIDL_SOURCES += [
     'nsIAudioManager.idl',
-    'nsINavigatorAudioChannelManager.idl',
     'nsINetworkInterfaceListService.idl',
     'nsINetworkManager.idl',
     'nsIRadioInterfaceLayer.idl',
@@ -52,6 +51,7 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gonk':
         'nsVolumeMountLock.cpp',
         'nsVolumeService.cpp',
         'nsVolumeStat.cpp',
+        'OpenFileFinder.cpp',
         'TimeZoneSettingObserver.cpp',
         'Volume.cpp',
         'VolumeCommand.cpp',

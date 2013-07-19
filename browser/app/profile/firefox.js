@@ -135,17 +135,9 @@ pref("app.update.enabled", true);
 // the UI easier to construct.
 pref("app.update.auto", true);
 
-// Defines how the Application Update Service notifies the user about updates:
-//
-// AUM Set to:        Minor Releases:     Major Releases:
-// 0                  download no prompt  download no prompt
-// 1                  download no prompt  download no prompt if no incompatibilities
-// 2                  download no prompt  prompt
-//
 // See chart in nsUpdateService.js source for more details
 // incompatibilities are ignored by updates in Metro
-//
-pref("app.update.mode", 0);
+pref("app.update.mode", 1);
 
 #ifdef XP_WIN
 #ifdef MOZ_METRO
@@ -215,7 +207,6 @@ pref("extensions.{972ce4c6-7e08-4474-a285-3208198ce6fd}.name", "chrome://browser
 pref("extensions.{972ce4c6-7e08-4474-a285-3208198ce6fd}.description", "chrome://browser/locale/browser.properties");
 
 pref("xpinstall.whitelist.add", "addons.mozilla.org");
-pref("xpinstall.whitelist.add.36", "getpersonas.com");
 pref("xpinstall.whitelist.add.180", "marketplace.firefox.com");
 
 pref("lightweightThemes.update.enabled", true);
@@ -1092,6 +1083,9 @@ pref("devtools.debugger.ui.variables-searchbox-visible", false);
 // Enable the Profiler
 pref("devtools.profiler.enabled", true);
 
+// The default Profiler UI settings
+pref("devtools.profiler.ui.show-platform-data", false);
+
 // Enable the Network Monitor
 pref("devtools.netmonitor.enabled", true);
 
@@ -1131,6 +1125,7 @@ pref("devtools.gcli.eagerHelper", 2);
 // Remember the Web Console filters
 pref("devtools.webconsole.filter.network", true);
 pref("devtools.webconsole.filter.networkinfo", true);
+pref("devtools.webconsole.filter.netwarn", true);
 pref("devtools.webconsole.filter.csserror", true);
 pref("devtools.webconsole.filter.cssparser", true);
 pref("devtools.webconsole.filter.exception", true);
@@ -1146,6 +1141,7 @@ pref("devtools.webconsole.filter.secwarn", true);
 // Remember the Browser Console filters
 pref("devtools.browserconsole.filter.network", true);
 pref("devtools.browserconsole.filter.networkinfo", true);
+pref("devtools.browserconsole.filter.netwarn", true);
 pref("devtools.browserconsole.filter.csserror", true);
 pref("devtools.browserconsole.filter.cssparser", true);
 pref("devtools.browserconsole.filter.exception", true);

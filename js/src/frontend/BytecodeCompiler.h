@@ -26,13 +26,11 @@ CompileScript(JSContext *cx, HandleObject scopeChain, HandleScript evalCaller,
               SourceCompressionToken *extraSct = NULL);
 
 bool
-CompileLazyFunction(JSContext *cx, HandleFunction fun, LazyScript *lazy,
-                    const jschar *chars, size_t length);
+CompileLazyFunction(JSContext *cx, LazyScript *lazy, const jschar *chars, size_t length);
 
 bool
 CompileFunctionBody(JSContext *cx, MutableHandleFunction fun, CompileOptions options,
-                    const AutoNameVector &formals, const jschar *chars, size_t length,
-                    bool isAsmJSRecompile = false);
+                    const AutoNameVector &formals, const jschar *chars, size_t length);
 
 /*
  * True if str consists of an IdentifierStart character, followed by one or

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1372449691000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1373408730000">
   <emItems>
       <emItem  blockID="i350" id="sqlmoz@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
@@ -219,10 +219,6 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i386" id="7lffxtbr@CursorMania_7l.com">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
       <emItem  blockID="i4" id="{4B3803EA-5230-4DC3-A7FC-33638F3D3542}">
                         <versionRange  minVersion="1.2" maxVersion="1.2">
                       <targetApplication  id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}">
@@ -282,10 +278,6 @@
                     </versionRange>
                   </emItem>
       <emItem  blockID="i370" id="happylyrics@hpyproductions.net">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i388" id="5mffxtbr@MyFunCards_5m.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -391,6 +383,10 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i426" id="addlyrics@addlyrics.net">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i404" id="{a9bb9fa0-4122-4c75-bd9a-bc27db3f9155}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
@@ -454,6 +450,13 @@
                         </emItem>
       <emItem  blockID="i342" id="lbmsrvfvxcblvpane@lpaezhjez.org">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i424" id="{C7AE725D-FA5C-4027-BB4C-787EF9F8248A}">
+                        <versionRange  minVersion="0" maxVersion="1.0.0.2" severity="1">
+                      <targetApplication  id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}">
+                              <versionRange  minVersion="23.0a1" maxVersion="*" />
+                          </targetApplication>
                     </versionRange>
                   </emItem>
       <emItem  blockID="i336" id="CortonExt@ext.com">
@@ -566,10 +569,6 @@
                     </versionRange>
                   </emItem>
       <emItem  blockID="i306" id="{ADFA33FD-16F5-4355-8504-DF4D664CFE10}">
-                        <versionRange  minVersion="0" maxVersion="*" severity="1">
-                    </versionRange>
-                  </emItem>
-      <emItem  blockID="i384" id="7lffxtbr@PopularScreensavers_7l.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -1006,7 +1005,7 @@
                   <match name="filename" exp="Scorch\.plugin" />                      <versionRange  minVersion="6.2.0" maxVersion="6.2.0" severity="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p408">
-                  <match name="filename" exp="QuickTime Plugin\.plugin" />                      <versionRange  minVersion="0" maxVersion="7.7.0" severity="0" vulnerabilitystatus="1"></versionRange>
+                  <match name="filename" exp="QuickTime Plugin\.plugin" />                      <versionRange  minVersion="0" maxVersion="7.6.5" severity="0" vulnerabilitystatus="1"></versionRange>
                   </pluginItem>
       <pluginItem  blockID="p410">
                   <match name="filename" exp="npqtplugin\.dll" />                      <versionRange  minVersion="0" maxVersion="7.7.3" severity="0" vulnerabilitystatus="1"></versionRange>

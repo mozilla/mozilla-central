@@ -25,7 +25,6 @@
 #include "mozilla/ipc/GeckoChildProcessHost.h"
 #include "mozilla/ipc/TestShellChild.h"
 #include "mozilla/ipc/XPCShellEnvironment.h"
-#include "mozilla/jsipc/PContextWrapperChild.h"
 #include "mozilla/layers/CompositorChild.h"
 #include "mozilla/layers/ImageBridgeChild.h"
 #include "mozilla/layers/PCompositorChild.h"
@@ -50,6 +49,7 @@
 #include "nsDebugImpl.h"
 #include "nsHashPropertyBag.h"
 #include "nsLayoutStylesheetCache.h"
+#include "nsIJSRuntimeService.h"
 
 #include "IHistory.h"
 #include "nsDocShellCID.h"
@@ -64,6 +64,7 @@
 #include "nsFrameMessageManager.h"
 
 #include "nsIGeolocationProvider.h"
+#include "JavaScriptParent.h"
 #include "mozilla/dom/PMemoryReportRequestChild.h"
 
 #ifdef MOZ_PERMISSIONS
@@ -109,6 +110,7 @@
 #include "nsIPrincipal.h"
 #include "nsDeviceStorage.h"
 #include "AudioChannelService.h"
+#include "JavaScriptChild.h"
 #include "ProcessPriorityManager.h"
 
 using namespace base;
@@ -123,6 +125,7 @@ using namespace mozilla::hal_sandbox;
 using namespace mozilla::ipc;
 using namespace mozilla::layers;
 using namespace mozilla::net;
+using namespace mozilla::jsipc;
 #if defined(MOZ_WIDGET_GONK)
 using namespace mozilla::system;
 #endif
@@ -318,6 +321,8 @@ ContentChild::Init(MessageLoop* aIOLoop,
 
     SendGetProcessAttributes(&mID, &mIsForApp, &mIsForBrowser);
 
+    GetCPOWManager();
+
     if (mIsForApp && !mIsForBrowser) {
         SetProcessName(NS_LITERAL_STRING("(Preallocated app)"));
     } else {
@@ -379,7 +384,7 @@ ContentChild::InitXPCOM()
 }
 
 PMemoryReportRequestChild*
-ContentChild::AllocPMemoryReportRequest()
+ContentChild::AllocPMemoryReportRequestChild()
 {
     return new MemoryReportRequestChild();
 }
@@ -489,7 +494,7 @@ ContentChild::RecvAudioChannelNotify()
 }
 
 bool
-ContentChild::DeallocPMemoryReportRequest(PMemoryReportRequestChild* actor)
+ContentChild::DeallocPMemoryReportRequestChild(PMemoryReportRequestChild* actor)
 {
     delete actor;
     return true;
@@ -509,25 +514,26 @@ ContentChild::RecvDumpMemoryInfoToTempDir(const nsString& aIdentifier,
 
 bool
 ContentChild::RecvDumpGCAndCCLogsToFile(const nsString& aIdentifier,
+                                        const bool& aDumpAllTraces,
                                         const bool& aDumpChildProcesses)
 {
     nsCOMPtr<nsIMemoryInfoDumper> dumper = do_GetService("@mozilla.org/memory-info-dumper;1");
 
-    dumper->DumpGCAndCCLogsToFile(
-        aIdentifier, aDumpChildProcesses);
+    dumper->DumpGCAndCCLogsToFile(aIdentifier, aDumpAllTraces,
+                                  aDumpChildProcesses);
     return true;
 }
 
 PCompositorChild*
-ContentChild::AllocPCompositor(mozilla::ipc::Transport* aTransport,
-                               base::ProcessId aOtherProcess)
+ContentChild::AllocPCompositorChild(mozilla::ipc::Transport* aTransport,
+                                    base::ProcessId aOtherProcess)
 {
     return CompositorChild::Create(aTransport, aOtherProcess);
 }
 
 PImageBridgeChild*
-ContentChild::AllocPImageBridge(mozilla::ipc::Transport* aTransport,
-                                base::ProcessId aOtherProcess)
+ContentChild::AllocPImageBridgeChild(mozilla::ipc::Transport* aTransport,
+                                     base::ProcessId aOtherProcess)
 {
     return ImageBridgeChild::StartUpInChildProcess(aTransport, aOtherProcess);
 }
@@ -552,17 +558,42 @@ static void FirstIdle(void)
     ContentChild::GetSingleton()->SendFirstIdle();
 }
 
+mozilla::jsipc::PJavaScriptChild *
+ContentChild::AllocPJavaScriptChild()
+{
+    nsCOMPtr<nsIJSRuntimeService> svc = do_GetService("@mozilla.org/js/xpc/RuntimeService;1");
+    NS_ENSURE_TRUE(svc, NULL);
+
+    JSRuntime *rt;
+    svc->GetRuntime(&rt);
+    NS_ENSURE_TRUE(svc, NULL);
+
+    mozilla::jsipc::JavaScriptChild *child = new mozilla::jsipc::JavaScriptChild(rt);
+    if (!child->init()) {
+        delete child;
+        return NULL;
+    }
+    return child;
+}
+
+bool
+ContentChild::DeallocPJavaScriptChild(PJavaScriptChild *child)
+{
+    delete child;
+    return true;
+}
+
 PBrowserChild*
-ContentChild::AllocPBrowser(const IPCTabContext& aContext,
-                            const uint32_t& aChromeFlags)
+ContentChild::AllocPBrowserChild(const IPCTabContext& aContext,
+                                 const uint32_t& aChromeFlags)
 {
     // We'll happily accept any kind of IPCTabContext here; we don't need to
     // check that it's of a certain type for security purposes, because we
     // believe whatever the parent process tells us.
 
-    nsRefPtr<TabChild> child = TabChild::Create(TabContext(aContext), aChromeFlags);
+    nsRefPtr<TabChild> child = TabChild::Create(this, TabContext(aContext), aChromeFlags);
 
-    // The ref here is released in DeallocPBrowser.
+    // The ref here is released in DeallocPBrowserChild.
     return child.forget().get();
 }
 
@@ -571,7 +602,7 @@ ContentChild::RecvPBrowserConstructor(PBrowserChild* actor,
                                       const IPCTabContext& context,
                                       const uint32_t& chromeFlags)
 {
-    // This runs after AllocPBrowser() returns and the IPC machinery for this
+    // This runs after AllocPBrowserChild() returns and the IPC machinery for this
     // PBrowserChild has been set up.
 
     nsCOMPtr<nsIObserverService> os = services::GetObserverService();
@@ -595,7 +626,7 @@ ContentChild::RecvPBrowserConstructor(PBrowserChild* actor,
 
 
 bool
-ContentChild::DeallocPBrowser(PBrowserChild* iframe)
+ContentChild::DeallocPBrowserChild(PBrowserChild* iframe)
 {
     TabChild* child = static_cast<TabChild*>(iframe);
     NS_RELEASE(child);
@@ -603,13 +634,13 @@ ContentChild::DeallocPBrowser(PBrowserChild* iframe)
 }
 
 PBlobChild*
-ContentChild::AllocPBlob(const BlobConstructorParams& aParams)
+ContentChild::AllocPBlobChild(const BlobConstructorParams& aParams)
 {
-  return BlobChild::Create(aParams);
+  return BlobChild::Create(this, aParams);
 }
 
 bool
-ContentChild::DeallocPBlob(PBlobChild* aActor)
+ContentChild::DeallocPBlobChild(PBlobChild* aActor)
 {
   delete aActor;
   return true;
@@ -692,7 +723,7 @@ ContentChild::GetOrCreateActorForBlob(nsIDOMBlob* aBlob)
     }
     }
 
-  BlobChild* actor = BlobChild::Create(aBlob);
+  BlobChild* actor = BlobChild::Create(this, aBlob);
   NS_ENSURE_TRUE(actor, nullptr);
 
   if (!SendPBlobConstructor(actor, params)) {
@@ -703,8 +734,8 @@ ContentChild::GetOrCreateActorForBlob(nsIDOMBlob* aBlob)
 }
 
 PCrashReporterChild*
-ContentChild::AllocPCrashReporter(const mozilla::dom::NativeThreadId& id,
-                                  const uint32_t& processType)
+ContentChild::AllocPCrashReporterChild(const mozilla::dom::NativeThreadId& id,
+                                       const uint32_t& processType)
 {
 #ifdef MOZ_CRASHREPORTER
     return new CrashReporterChild();
@@ -714,92 +745,101 @@ ContentChild::AllocPCrashReporter(const mozilla::dom::NativeThreadId& id,
 }
 
 bool
-ContentChild::DeallocPCrashReporter(PCrashReporterChild* crashreporter)
+ContentChild::DeallocPCrashReporterChild(PCrashReporterChild* crashreporter)
 {
     delete crashreporter;
     return true;
 }
 
 PHalChild*
-ContentChild::AllocPHal()
+ContentChild::AllocPHalChild()
 {
     return CreateHalChild();
 }
 
 bool
-ContentChild::DeallocPHal(PHalChild* aHal)
+ContentChild::DeallocPHalChild(PHalChild* aHal)
 {
     delete aHal;
     return true;
 }
 
 PIndexedDBChild*
-ContentChild::AllocPIndexedDB()
+ContentChild::AllocPIndexedDBChild()
 {
   NS_NOTREACHED("Should never get here!");
   return NULL;
 }
 
 bool
-ContentChild::DeallocPIndexedDB(PIndexedDBChild* aActor)
+ContentChild::DeallocPIndexedDBChild(PIndexedDBChild* aActor)
 {
   delete aActor;
   return true;
 }
 
 PTestShellChild*
-ContentChild::AllocPTestShell()
+ContentChild::AllocPTestShellChild()
 {
     return new TestShellChild();
 }
 
 bool
-ContentChild::DeallocPTestShell(PTestShellChild* shell)
+ContentChild::DeallocPTestShellChild(PTestShellChild* shell)
 {
     delete shell;
     return true;
 }
 
+jsipc::JavaScriptChild *
+ContentChild::GetCPOWManager()
+{
+    if (ManagedPJavaScriptChild().Length()) {
+        return static_cast<JavaScriptChild*>(ManagedPJavaScriptChild()[0]);
+    }
+    JavaScriptChild* actor = static_cast<JavaScriptChild*>(SendPJavaScriptConstructor());
+    return actor;
+}
+
 bool
 ContentChild::RecvPTestShellConstructor(PTestShellChild* actor)
 {
-    actor->SendPContextWrapperConstructor()->SendPObjectWrapperConstructor(true);
     return true;
 }
 
 PDeviceStorageRequestChild*
-ContentChild::AllocPDeviceStorageRequest(const DeviceStorageParams& aParams)
+ContentChild::AllocPDeviceStorageRequestChild(const DeviceStorageParams& aParams)
 {
     return new DeviceStorageRequestChild();
 }
 
 bool
-ContentChild::DeallocPDeviceStorageRequest(PDeviceStorageRequestChild* aDeviceStorage)
+ContentChild::DeallocPDeviceStorageRequestChild(PDeviceStorageRequestChild* aDeviceStorage)
 {
     delete aDeviceStorage;
     return true;
 }
 
-PNeckoChild* 
-ContentChild::AllocPNecko()
+PNeckoChild*
+ContentChild::AllocPNeckoChild()
 {
     return new NeckoChild();
 }
 
-bool 
-ContentChild::DeallocPNecko(PNeckoChild* necko)
+bool
+ContentChild::DeallocPNeckoChild(PNeckoChild* necko)
 {
     delete necko;
     return true;
 }
 
 PExternalHelperAppChild*
-ContentChild::AllocPExternalHelperApp(const OptionalURIParams& uri,
-                                      const nsCString& aMimeContentType,
-                                      const nsCString& aContentDisposition,
-                                      const bool& aForceSave,
-                                      const int64_t& aContentLength,
-                                      const OptionalURIParams& aReferrer)
+ContentChild::AllocPExternalHelperAppChild(const OptionalURIParams& uri,
+                                           const nsCString& aMimeContentType,
+                                           const nsCString& aContentDisposition,
+                                           const bool& aForceSave,
+                                           const int64_t& aContentLength,
+                                           const OptionalURIParams& aReferrer)
 {
     ExternalHelperAppChild *child = new ExternalHelperAppChild();
     child->AddRef();
@@ -807,7 +847,7 @@ ContentChild::AllocPExternalHelperApp(const OptionalURIParams& uri,
 }
 
 bool
-ContentChild::DeallocPExternalHelperApp(PExternalHelperAppChild* aService)
+ContentChild::DeallocPExternalHelperAppChild(PExternalHelperAppChild* aService)
 {
     ExternalHelperAppChild *child = static_cast<ExternalHelperAppChild*>(aService);
     child->Release();
@@ -815,27 +855,27 @@ ContentChild::DeallocPExternalHelperApp(PExternalHelperAppChild* aService)
 }
 
 PSmsChild*
-ContentChild::AllocPSms()
+ContentChild::AllocPSmsChild()
 {
     return new SmsChild();
 }
 
 bool
-ContentChild::DeallocPSms(PSmsChild* aSms)
+ContentChild::DeallocPSmsChild(PSmsChild* aSms)
 {
     delete aSms;
     return true;
 }
 
 PStorageChild*
-ContentChild::AllocPStorage()
+ContentChild::AllocPStorageChild()
 {
     NS_NOTREACHED("We should never be manually allocating PStorageChild actors");
     return nullptr;
 }
 
 bool
-ContentChild::DeallocPStorage(PStorageChild* aActor)
+ContentChild::DeallocPStorageChild(PStorageChild* aActor)
 {
     DOMStorageDBChild* child = static_cast<DOMStorageDBChild*>(aActor);
     child->ReleaseIPDLReference();
@@ -843,7 +883,7 @@ ContentChild::DeallocPStorage(PStorageChild* aActor)
 }
 
 PBluetoothChild*
-ContentChild::AllocPBluetooth()
+ContentChild::AllocPBluetoothChild()
 {
 #ifdef MOZ_B2G_BT
     MOZ_CRASH("No one should be allocating PBluetoothChild actors");
@@ -853,7 +893,7 @@ ContentChild::AllocPBluetooth()
 }
 
 bool
-ContentChild::DeallocPBluetooth(PBluetoothChild* aActor)
+ContentChild::DeallocPBluetoothChild(PBluetoothChild* aActor)
 {
 #ifdef MOZ_B2G_BT
     delete aActor;
@@ -864,7 +904,7 @@ ContentChild::DeallocPBluetooth(PBluetoothChild* aActor)
 }
 
 PSpeechSynthesisChild*
-ContentChild::AllocPSpeechSynthesis()
+ContentChild::AllocPSpeechSynthesisChild()
 {
 #ifdef MOZ_WEBSPEECH
     MOZ_CRASH("No one should be allocating PSpeechSynthesisChild actors");
@@ -874,7 +914,7 @@ ContentChild::AllocPSpeechSynthesis()
 }
 
 bool
-ContentChild::DeallocPSpeechSynthesis(PSpeechSynthesisChild* aActor)
+ContentChild::DeallocPSpeechSynthesisChild(PSpeechSynthesisChild* aActor)
 {
 #ifdef MOZ_WEBSPEECH
     delete aActor;
@@ -1021,13 +1061,15 @@ ContentChild::RecvNotifyVisited(const URIParams& aURI)
 
 bool
 ContentChild::RecvAsyncMessage(const nsString& aMsg,
-                                     const ClonedMessageData& aData)
+                               const ClonedMessageData& aData,
+                               const InfallibleTArray<CpowEntry>& aCpows)
 {
   nsRefPtr<nsFrameMessageManager> cpm = nsFrameMessageManager::sChildProcessManager;
   if (cpm) {
     StructuredCloneData cloneData = ipc::UnpackClonedMessageDataForChild(aData);
+    CpowIdHolder cpows(GetCPOWManager(), aCpows);
     cpm->ReceiveMessage(static_cast<nsIContentFrameMessageManager*>(cpm.get()),
-                        aMsg, false, &cloneData, JS::NullPtr(), nullptr);
+                        aMsg, false, &cloneData, &cpows, nullptr);
   }
   return true;
 }
@@ -1139,10 +1181,13 @@ PreloadSlowThings()
 }
 
 bool
-ContentChild::RecvAppInfo(const nsCString& version, const nsCString& buildID)
+ContentChild::RecvAppInfo(const nsCString& version, const nsCString& buildID,
+                          const nsCString& name, const nsCString& UAName)
 {
     mAppInfo.version.Assign(version);
     mAppInfo.buildID.Assign(buildID);
+    mAppInfo.name.Assign(name);
+    mAppInfo.UAName.Assign(UAName);
     // If we're part of the mozbrowser machinery, go ahead and start
     // preloading things.  We can only do this for mozbrowser because
     // PreloadSlowThings() may set the docshell of the first TabChild

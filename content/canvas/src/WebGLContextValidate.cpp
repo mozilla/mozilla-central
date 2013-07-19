@@ -196,10 +196,19 @@ bool WebGLContext::ValidateBlendEquationEnum(WebGLenum mode, const char *info)
         case LOCAL_GL_FUNC_SUBTRACT:
         case LOCAL_GL_FUNC_REVERSE_SUBTRACT:
             return true;
+        case LOCAL_GL_MIN:
+        case LOCAL_GL_MAX:
+            if (IsWebGL2()) {
+                // http://www.opengl.org/registry/specs/EXT/blend_minmax.txt
+                return true;
+            }
+            break;
         default:
-            ErrorInvalidEnumInfo(info, mode);
-            return false;
+            break;
     }
+
+    ErrorInvalidEnumInfo(info, mode);
+    return false;
 }
 
 bool WebGLContext::ValidateBlendFuncDstEnum(WebGLenum factor, const char *info)
@@ -1007,22 +1016,12 @@ WebGLContext::InitAndValidateGL()
         // specifically enabled on desktop GLSL.
         gl->fEnable(LOCAL_GL_VERTEX_PROGRAM_POINT_SIZE);
 
-        // we don't do the following glEnable(GL_POINT_SPRITE) on ATI cards on Windows, because bug 602183 shows that it causes
-        // crashes in the ATI/Windows driver; and point sprites on ATI seem like a lost cause anyway, see
-        //    http://www.gamedev.net/community/forums/topic.asp?topic_id=525643
-        // Also, if the ATI/Windows driver implements a recent GL spec version, this shouldn't be needed anyway.
-#ifdef XP_WIN
-        if (!(gl->WorkAroundDriverBugs() &&
-              gl->Vendor() == gl::GLContext::VendorATI))
-#else
-        if (true)
-#endif
-        {
-            // gl_PointCoord is always available in ES2 GLSL and in newer desktop GLSL versions, but apparently
-            // not in OpenGL 2 and apparently not (due to a driver bug) on certain NVIDIA setups. See:
-            //   http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=261472
-            gl->fEnable(LOCAL_GL_POINT_SPRITE);
-        }
+        // gl_PointCoord is always available in ES2 GLSL and in newer desktop GLSL versions, but apparently
+        // not in OpenGL 2 and apparently not (due to a driver bug) on certain NVIDIA setups. See:
+        //   http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=261472
+        // Note that this used to cause crashes on old ATI drivers... hopefully not a significant
+        // problem anymore. See bug 602183.
+        gl->fEnable(LOCAL_GL_POINT_SPRITE);
     }
 
 #ifdef XP_MACOSX
@@ -1059,6 +1058,16 @@ WebGLContext::InitAndValidateGL()
         return false;
     }
 
+    if (IsWebGL2() &&
+        (!IsExtensionSupported(OES_vertex_array_object) ||
+         !IsExtensionSupported(WEBGL_draw_buffers) ||
+         !gl->IsExtensionSupported(gl::GLContext::EXT_gpu_shader4) ||
+         !gl->IsExtensionSupported(gl::GLContext::EXT_blend_minmax)
+        ))
+    {
+        return false;
+    }
+
     mMemoryPressureObserver
         = new WebGLMemoryPressureObserver(this);
     nsCOMPtr<nsIObserverService> observerService
@@ -1072,6 +1081,14 @@ WebGLContext::InitAndValidateGL()
     mDefaultVertexArray = new WebGLVertexArray(this);
     mDefaultVertexArray->mAttribBuffers.SetLength(mGLMaxVertexAttribs);
     mBoundVertexArray = mDefaultVertexArray;
+
+    if (IsWebGL2()) {
+        EnableExtension(OES_vertex_array_object);
+        EnableExtension(WEBGL_draw_buffers);
+
+        MOZ_ASSERT(IsExtensionEnabled(OES_vertex_array_object));
+        MOZ_ASSERT(IsExtensionEnabled(WEBGL_draw_buffers));
+    }
 
     return true;
 }

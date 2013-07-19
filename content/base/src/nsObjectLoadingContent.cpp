@@ -28,6 +28,7 @@
 #include "nsJSNPRuntime.h"
 #include "nsIPresShell.h"
 #include "nsIScriptGlobalObject.h"
+#include "nsScriptSecurityManager.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsIStreamConverterService.h"
 #include "nsIURILoader.h"
@@ -1079,21 +1080,29 @@ nsObjectLoadingContent::GetBaseURI(nsIURI **aResult)
 // see an interface requestor even though WebIDL bindings don't expose
 // that stuff.
 class ObjectInterfaceRequestorShim MOZ_FINAL : public nsIInterfaceRequestor,
-                                               public nsIChannelEventSink
+                                               public nsIChannelEventSink,
+                                               public nsIStreamListener
 {
 public:
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
   NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(ObjectInterfaceRequestorShim,
                                            nsIInterfaceRequestor)
   NS_DECL_NSIINTERFACEREQUESTOR
-  NS_FORWARD_NSICHANNELEVENTSINK(mContent->)
+  // nsRefPtr<nsObjectLoadingContent> fails due to ambiguous AddRef/Release,
+  // hence the ugly static cast :(
+  NS_FORWARD_NSICHANNELEVENTSINK(static_cast<nsObjectLoadingContent *>
+                                 (mContent.get())->)
+  NS_FORWARD_NSISTREAMLISTENER  (static_cast<nsObjectLoadingContent *>
+                                 (mContent.get())->)
+  NS_FORWARD_NSIREQUESTOBSERVER (static_cast<nsObjectLoadingContent *>
+                                 (mContent.get())->)
 
-  ObjectInterfaceRequestorShim(nsIChannelEventSink* aContent)
+  ObjectInterfaceRequestorShim(nsIObjectLoadingContent* aContent)
     : mContent(aContent)
   {}
 
 protected:
-  nsRefPtr<nsIChannelEventSink> mContent;
+  nsCOMPtr<nsIObjectLoadingContent> mContent;
 };
 
 NS_IMPL_CYCLE_COLLECTION_1(ObjectInterfaceRequestorShim, mContent)
@@ -1101,6 +1110,8 @@ NS_IMPL_CYCLE_COLLECTION_1(ObjectInterfaceRequestorShim, mContent)
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(ObjectInterfaceRequestorShim)
   NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
   NS_INTERFACE_MAP_ENTRY(nsIChannelEventSink)
+  NS_INTERFACE_MAP_ENTRY(nsIStreamListener)
+  NS_INTERFACE_MAP_ENTRY(nsIRequestObserver)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIInterfaceRequestor)
 NS_INTERFACE_MAP_END
 
@@ -1190,6 +1201,46 @@ nsObjectLoadingContent::ObjectState() const
   return NS_EVENT_STATE_LOADING;
 }
 
+// Returns false if mBaseURI is not acceptable for java applets.
+bool
+nsObjectLoadingContent::CheckJavaCodebase()
+{
+  nsCOMPtr<nsIContent> thisContent =
+    do_QueryInterface(static_cast<nsIImageLoadingContent*>(this));
+  nsCOMPtr<nsIScriptSecurityManager> secMan =
+    nsContentUtils::GetSecurityManager();
+  nsCOMPtr<nsINetUtil> netutil = do_GetNetUtil();
+  NS_ASSERTION(thisContent && secMan && netutil, "expected interfaces");
+
+
+  // Note that mBaseURI is this tag's requested base URI, not the codebase of
+  // the document for security purposes
+  nsresult rv = secMan->CheckLoadURIWithPrincipal(thisContent->NodePrincipal(),
+                                                  mBaseURI, 0);
+  if (NS_FAILED(rv)) {
+    LOG(("OBJLC [%p]: Java codebase check failed", this));
+    return false;
+  }
+
+  nsCOMPtr<nsIURI> principalBaseURI;
+  rv = thisContent->NodePrincipal()->GetURI(getter_AddRefs(principalBaseURI));
+  if (NS_FAILED(rv)) {
+    NS_NOTREACHED("Failed to URI from node principal?");
+    return false;
+  }
+  // We currently allow java's codebase to be non-same-origin, with
+  // the exception of URIs that represent local files
+  if (NS_URIIsLocalFile(mBaseURI) &&
+      nsScriptSecurityManager::GetStrictFileOriginPolicy() &&
+      !NS_RelaxStrictFileOriginPolicy(mBaseURI, principalBaseURI)) {
+    LOG(("OBJLC [%p]: Java failed RelaxStrictFileOriginPolicy for file URI",
+         this));
+    return false;
+  }
+
+  return true;
+}
+
 bool
 nsObjectLoadingContent::CheckLoadPolicy(int16_t *aContentPolicy)
 {
@@ -1261,7 +1312,7 @@ nsObjectLoadingContent::CheckProcessPolicy(int16_t *aContentPolicy)
   *aContentPolicy = nsIContentPolicy::ACCEPT;
   nsresult rv =
     NS_CheckContentProcessPolicy(objectType,
-                                 mURI,
+                                 mURI ? mURI : mBaseURI,
                                  doc->NodePrincipal(),
                                  static_cast<nsIImageLoadingContent*>(this),
                                  mContentType,
@@ -1418,12 +1469,15 @@ nsObjectLoadingContent::UpdateObjectParameters(bool aJavaURI)
   }
 
   if (isJava && hasCodebase && codebaseStr.IsEmpty()) {
-    // Java treats an empty codebase as the document codebase, but codebase=""
-    // as "/"
+    // Java treats codebase="" as "/"
     codebaseStr.AssignLiteral("/");
     // XXX(johns): This doesn't cover the case of "https:" which java would
     //             interpret as "https:///" but we interpret as this document's
     //             URI but with a changed scheme.
+  } else if (isJava && !hasCodebase) {
+    // Java expects a directory as the codebase, or else it will construct
+    // relative URIs incorrectly :(
+    codebaseStr.AssignLiteral(".");
   }
 
   if (!codebaseStr.IsEmpty()) {
@@ -1870,14 +1924,7 @@ nsObjectLoadingContent::LoadObject(bool aNotify,
   if (mType != eType_Null) {
     bool allowLoad = true;
     if (nsPluginHost::IsJavaMIMEType(mContentType.get())) {
-      nsCOMPtr<nsIScriptSecurityManager> secMan =
-        nsContentUtils::GetSecurityManager();
-      rv = secMan->CheckLoadURIWithPrincipal(thisContent->NodePrincipal(),
-                                             mBaseURI, 0);
-      if (NS_FAILED(rv)) {
-        LOG(("OBJLC [%p]: Java codebase check failed", this));
-        allowLoad = false;
-      }
+      allowLoad = CheckJavaCodebase();
     }
     int16_t contentPolicy = nsIContentPolicy::ACCEPT;
     // If mChannelLoaded is set we presumably already passed load policy
@@ -2224,7 +2271,7 @@ nsObjectLoadingContent::OpenChannel()
   }
 
   // AsyncOpen can fail if a file does not exist.
-  rv = chan->AsyncOpen(this, nullptr);
+  rv = chan->AsyncOpen(shim, nullptr);
   NS_ENSURE_SUCCESS(rv, rv);
   LOG(("OBJLC [%p]: Channel opened", this));
   mChannel = chan;
@@ -3169,7 +3216,7 @@ nsObjectLoadingContent::SetupProtoChain(JSContext* aCx,
     return;
   }
 
-  if (pi_proto && js::GetObjectClass(pi_proto) != &js::ObjectClass) {
+  if (pi_proto && js::GetObjectClass(pi_proto) != js::ObjectClassPtr) {
     // The plugin wrapper has a proto that's not Object.prototype, set
     // 'pi.__proto__.__proto__' to the original 'this.__proto__'
     if (pi_proto != my_proto && !::JS_SetPrototype(aCx, pi_proto, my_proto)) {
@@ -3303,8 +3350,8 @@ nsObjectLoadingContent::TeardownProtoChain()
 
 bool
 nsObjectLoadingContent::DoNewResolve(JSContext* aCx, JS::Handle<JSObject*> aObject,
-                                     JS::Handle<jsid> aId, unsigned aFlags,
-                                     JS::MutableHandle<JSObject*> aObjp)
+                                     JS::Handle<jsid> aId,
+                                     JS::MutableHandle<JS::Value> aValue)
 {
   // We don't resolve anything; we just try to make sure we're instantiated
 

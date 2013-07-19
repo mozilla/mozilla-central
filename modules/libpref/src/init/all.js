@@ -218,6 +218,9 @@ pref("media.navigator.enabled", true);
 // TextTrack support
 pref("media.webvtt.enabled", false);
 
+// Whether to enable MediaSource support
+pref("media.mediasource.enabled", false);
+
 #ifdef MOZ_WEBSPEECH
 pref("media.webspeech.recognition.enable", false);
 #endif
@@ -778,6 +781,9 @@ pref("dom.forms.color", false);
 // Enables system messages and activities
 pref("dom.sysmsg.enabled", false);
 
+// Enable pre-installed applications.
+pref("dom.webapps.useCurrentProfile", false);
+
 // Parsing perf prefs. For now just mimic what the old code did.
 #ifndef XP_WIN
 pref("content.sink.pending_event_mode", 0);
@@ -808,8 +814,6 @@ pref("javascript.options.baselinejit.chrome",  true);
 pref("javascript.options.ion.content",      true);
 pref("javascript.options.asmjs",            true);
 pref("javascript.options.ion.parallel_compilation", true);
-pref("javascript.options.pccounts.content", false);
-pref("javascript.options.pccounts.chrome",  false);
 pref("javascript.options.jit_hardening", true);
 pref("javascript.options.typeinference", true);
 // This preference limits the memory usage of javascript.
@@ -860,6 +864,12 @@ pref("security.fileuri.strict_origin_policy", true);
 // telemetry is also enabled as otherwise there is no way to report
 // the results
 pref("network.allow-experiments", true);
+
+// Transmit UDP busy-work to the LAN when anticipating low latency
+// network reads and on wifi to mitigate 802.11 Power Save Polling delays
+pref("network.tickle-wifi.enabled", false);
+pref("network.tickle-wifi.duration", 400);
+pref("network.tickle-wifi.delay", 16);
 
 // Turn off interprocess security checks. Needed to run xpcshell tests.
 pref("network.disable.ipc.security", false);
@@ -1844,11 +1854,11 @@ pref("dom.max_script_run_time", 10);
 // If true, ArchiveReader will be enabled
 pref("dom.archivereader.enabled", false);
 
-// If true, Future will be enabled
+// If true, Promise will be enabled
 #ifdef RELEASE_BUILD
-pref("dom.future.enabled", false);
+pref("dom.promise.enabled", false);
 #else
-pref("dom.future.enabled", true);
+pref("dom.promise.enabled", true);
 #endif
 
 // Hang monitor timeout after which we kill the browser, in seconds
@@ -1924,6 +1934,14 @@ pref("svg.display-lists.painting.enabled", true);
 pref("svg.paint-order.enabled", false);
 #else
 pref("svg.paint-order.enabled", true);
+#endif
+
+// Is support for the new marker features from SVG 2 enabled?  Currently
+// this just includes <marker orient="auto-start-reverse">.
+#ifdef RELEASE_BUILD
+pref("svg.marker-improvements.enabled", false);
+#else
+pref("svg.marker-improvements.enabled", true);
 #endif
 
 // Is support for the new SVG text implementation enabled?
@@ -4033,6 +4051,7 @@ pref("layers.acceleration.force-enabled", false);
 pref("layers.acceleration.draw-fps", false);
 
 pref("layers.draw-borders", false);
+pref("layers.frame-counter", false);
 
 #ifdef XP_MACOSX
 pref("layers.offmainthreadcomposition.enabled", true);
@@ -4154,7 +4173,6 @@ pref("dom.mozNetworkStats.enabled", false);
 
 // WebSettings
 pref("dom.mozSettings.enabled", false);
-pref("dom.navigator-property.disable.mozSettings", true);
 pref("dom.mozPermissionSettings.enabled", false);
 
 // W3C touch events

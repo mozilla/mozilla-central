@@ -14,8 +14,6 @@
 #include "ion/IonSpewer.h"
 #include "ion/VMFunctions.h"
 
-#include "builtin/Iterator-inl.h"
-#include "ion/IonFrames-inl.h"
 #include "vm/Interpreter-inl.h"
 
 namespace js {
@@ -3066,10 +3064,10 @@ static void GetFixedOrDynamicSlotOffset(HandleObject obj, uint32_t slot,
 static bool
 IsCacheableDOMProxy(JSObject *obj)
 {
-    if (!obj->isProxy())
+    if (!obj->is<ProxyObject>())
         return false;
 
-    BaseProxyHandler *handler = GetProxyHandler(obj);
+    BaseProxyHandler *handler = obj->as<ProxyObject>().handler();
 
     if (handler->family() != GetDOMProxyHandlerFamily())
         return false;
@@ -3101,7 +3099,7 @@ GenerateDOMProxyChecks(JSContext *cx, MacroAssembler &masm, Register object,
     //      1. The object is a DOMProxy.
     //      2. The object does not have expando properties, or has an expando
     //          which is known to not have the desired property.
-    Address handlerAddr(object, JSObject::getFixedSlotOffset(JSSLOT_PROXY_HANDLER));
+    Address handlerAddr(object, ProxyObject::offsetOfHandler());
     Address expandoAddr(object, JSObject::getFixedSlotOffset(GetDOMProxyExpandoSlot()));
 
     // Check that object is a DOMProxy.
@@ -3487,12 +3485,12 @@ static bool TryAttachNativeGetElemStub(JSContext *cx, HandleScript script,
 }
 
 static bool
-TypedArrayRequiresFloatingPoint(JSObject *obj)
+TypedArrayRequiresFloatingPoint(TypedArrayObject *tarr)
 {
-    uint32_t type = TypedArray::type(obj);
-    return (type == TypedArray::TYPE_UINT32 ||
-            type == TypedArray::TYPE_FLOAT32 ||
-            type == TypedArray::TYPE_FLOAT64);
+    uint32_t type = tarr->type();
+    return (type == TypedArrayObject::TYPE_UINT32 ||
+            type == TypedArrayObject::TYPE_FLOAT32 ||
+            type == TypedArrayObject::TYPE_FLOAT64);
 }
 
 static bool
@@ -3572,14 +3570,15 @@ TryAttachGetElemStub(JSContext *cx, HandleScript script, ICGetElem_Fallback *stu
     }
 
     // Check for TypedArray[int] => Number accesses.
-    if (obj->isTypedArray() && rhs.isInt32() && res.isNumber() &&
+    if (obj->is<TypedArrayObject>() && rhs.isInt32() && res.isNumber() &&
         !TypedArrayGetElemStubExists(stub, obj))
     {
-        if (!cx->runtime()->jitSupportsFloatingPoint && TypedArrayRequiresFloatingPoint(obj))
+        Rooted<TypedArrayObject*> tarr(cx, &obj->as<TypedArrayObject>());
+        if (!cx->runtime()->jitSupportsFloatingPoint && TypedArrayRequiresFloatingPoint(tarr))
             return true;
 
         IonSpew(IonSpew_BaselineIC, "  Generating GetElem(TypedArray[Int32]) stub");
-        ICGetElem_TypedArray::Compiler compiler(cx, obj->lastProperty(), TypedArray::type(obj));
+        ICGetElem_TypedArray::Compiler compiler(cx, tarr->lastProperty(), tarr->type());
         ICStub *typedArrayStub = compiler.getStub(compiler.getStubSpace(script));
         if (!typedArrayStub)
             return false;
@@ -3591,7 +3590,7 @@ TryAttachGetElemStub(JSContext *cx, HandleScript script, ICGetElem_Fallback *stu
     // GetElem operations on non-native objects other than typed arrays cannot
     // be cached by either Baseline or Ion. Indicate this in the cache so that
     // Ion does not generate a cache for this op.
-    if (!obj->isNative() && !obj->isTypedArray())
+    if (!obj->isNative() && !obj->is<TypedArrayObject>())
         stub->noteNonNativeAccess();
 
     return true;
@@ -3858,14 +3857,14 @@ ICGetElem_TypedArray::Compiler::generateStubCode(MacroAssembler &masm)
     Register key = masm.extractInt32(R1, ExtractTemp1);
 
     // Bounds check.
-    masm.unboxInt32(Address(obj, TypedArray::lengthOffset()), scratchReg);
+    masm.unboxInt32(Address(obj, TypedArrayObject::lengthOffset()), scratchReg);
     masm.branch32(Assembler::BelowOrEqual, scratchReg, key, &failure);
 
     // Load the elements vector.
-    masm.loadPtr(Address(obj, TypedArray::dataOffset()), scratchReg);
+    masm.loadPtr(Address(obj, TypedArrayObject::dataOffset()), scratchReg);
 
     // Load the value.
-    BaseIndex source(scratchReg, key, ScaleFromElemWidth(TypedArray::slotWidth(type_)));
+    BaseIndex source(scratchReg, key, ScaleFromElemWidth(TypedArrayObject::slotWidth(type_)));
     masm.loadFromTypedArray(type_, source, R0, false, scratchReg, &failure);
 
     // Todo: Allow loading doubles from uint32 arrays, but this requires monitoring.
@@ -3959,12 +3958,9 @@ ICGetElem_Arguments::Compiler::generateStubCode(MacroAssembler &masm)
     // unlikely.
     Label failureReconstructInputs;
     regs = availableGeneralRegs(0);
-    if (regs.has(objReg))
-        regs.take(objReg);
-    if (regs.has(idxReg))
-        regs.take(idxReg);
-    if (regs.has(scratchReg))
-        regs.take(scratchReg);
+    regs.takeUnchecked(objReg);
+    regs.takeUnchecked(idxReg);
+    regs.takeUnchecked(scratchReg);
     Register argData = regs.takeAny();
     Register tempReg = regs.takeAny();
 
@@ -4196,7 +4192,7 @@ DoSetElemFallback(JSContext *cx, BaselineFrame *frame, ICSetElem_Fallback *stub,
         index.isInt32() && index.toInt32() >= 0 &&
         !rhs.isMagic(JS_ELEMENTS_HOLE))
     {
-        JS_ASSERT(!obj->isTypedArray());
+        JS_ASSERT(!obj->is<TypedArrayObject>());
 
         bool addingCase;
         size_t protoDepth;
@@ -4240,24 +4236,24 @@ DoSetElemFallback(JSContext *cx, BaselineFrame *frame, ICSetElem_Fallback *stub,
         return true;
     }
 
-    if (obj->isTypedArray() && index.isInt32() && rhs.isNumber()) {
-        if (!cx->runtime()->jitSupportsFloatingPoint && TypedArrayRequiresFloatingPoint(obj))
+    if (obj->is<TypedArrayObject>() && index.isInt32() && rhs.isNumber()) {
+        Rooted<TypedArrayObject*> tarr(cx, &obj->as<TypedArrayObject>());
+        if (!cx->runtime()->jitSupportsFloatingPoint && TypedArrayRequiresFloatingPoint(tarr))
             return true;
 
-        uint32_t len = TypedArray::length(obj);
+        uint32_t len = tarr->length();
         int32_t idx = index.toInt32();
         bool expectOutOfBounds = (idx < 0) || (static_cast<uint32_t>(idx) >= len);
 
-        if (!TypedArraySetElemStubExists(stub, obj, expectOutOfBounds)) {
+        if (!TypedArraySetElemStubExists(stub, tarr, expectOutOfBounds)) {
             // Remove any existing TypedArraySetElemStub that doesn't handle out-of-bounds
             if (expectOutOfBounds)
-                RemoveExistingTypedArraySetElemStub(cx, stub, obj);
+                RemoveExistingTypedArraySetElemStub(cx, stub, tarr);
 
             IonSpew(IonSpew_BaselineIC,
                     "  Generating SetElem_TypedArray stub (shape=%p, type=%u, oob=%s)",
-                    obj->lastProperty(), TypedArray::type(obj),
-                    expectOutOfBounds ? "yes" : "no");
-            ICSetElem_TypedArray::Compiler compiler(cx, obj->lastProperty(), TypedArray::type(obj),
+                    tarr->lastProperty(), tarr->type(), expectOutOfBounds ? "yes" : "no");
+            ICSetElem_TypedArray::Compiler compiler(cx, tarr->lastProperty(), tarr->type(),
                                                     expectOutOfBounds);
             ICStub *typedArrayStub = compiler.getStub(compiler.getStubSpace(script));
             if (!typedArrayStub)
@@ -4645,14 +4641,14 @@ ICSetElem_TypedArray::Compiler::generateStubCode(MacroAssembler &masm)
 
     // Bounds check.
     Label oobWrite;
-    masm.unboxInt32(Address(obj, TypedArray::lengthOffset()), scratchReg);
+    masm.unboxInt32(Address(obj, TypedArrayObject::lengthOffset()), scratchReg);
     masm.branch32(Assembler::BelowOrEqual, scratchReg, key,
                   expectOutOfBounds_ ? &oobWrite : &failure);
 
     // Load the elements vector.
-    masm.loadPtr(Address(obj, TypedArray::dataOffset()), scratchReg);
+    masm.loadPtr(Address(obj, TypedArrayObject::dataOffset()), scratchReg);
 
-    BaseIndex dest(scratchReg, key, ScaleFromElemWidth(TypedArray::slotWidth(type_)));
+    BaseIndex dest(scratchReg, key, ScaleFromElemWidth(TypedArrayObject::slotWidth(type_)));
     Address value(BaselineStackReg, ICStackValueOffset);
 
     // We need a second scratch register. It's okay to clobber the type tag of
@@ -4663,11 +4659,11 @@ ICSetElem_TypedArray::Compiler::generateStubCode(MacroAssembler &masm)
     regs.take(scratchReg);
     Register secondScratch = regs.takeAny();
 
-    if (type_ == TypedArray::TYPE_FLOAT32 || type_ == TypedArray::TYPE_FLOAT64) {
+    if (type_ == TypedArrayObject::TYPE_FLOAT32 || type_ == TypedArrayObject::TYPE_FLOAT64) {
         masm.ensureDouble(value, FloatReg0, &failure);
         masm.storeToTypedFloatArray(type_, FloatReg0, dest);
         EmitReturnFromIC(masm);
-    } else if (type_ == TypedArray::TYPE_UINT8_CLAMPED) {
+    } else if (type_ == TypedArrayObject::TYPE_UINT8_CLAMPED) {
         Label notInt32;
         masm.branchTestInt32(Assembler::NotEqual, value, &notInt32);
         masm.unboxInt32(value, secondScratch);
@@ -5180,7 +5176,7 @@ TryAttachLengthStub(JSContext *cx, HandleScript script, ICGetProp_Fallback *stub
         stub->addNewStub(newStub);
         return true;
     }
-    if (obj->isTypedArray()) {
+    if (obj->is<TypedArrayObject>()) {
         JS_ASSERT(res.isInt32());
         IonSpew(IonSpew_BaselineIC, "  Generating GetProp(TypedArray.length) stub");
         ICGetProp_TypedArrayLength::Compiler compiler(cx);
@@ -5332,8 +5328,9 @@ TryAttachNativeGetPropStub(JSContext *cx, HandleScript script, jsbytecode *pc,
             } else {
                 kind = ICStub::GetProp_CallDOMProxyNative;
             }
-            ICGetPropCallDOMProxyNativeCompiler compiler(cx, kind, monitorStub, obj, holder, callee,
-                                                            pc - script->code);
+            Rooted<ProxyObject*> proxy(cx, &obj->as<ProxyObject>());
+            ICGetPropCallDOMProxyNativeCompiler
+                compiler(cx, kind, monitorStub, proxy, holder, callee, pc - script->code);
             newStub = compiler.getStub(compiler.getStubSpace(script));
         } else {
             ICGetProp_CallNative::Compiler compiler(cx, monitorStub, obj, holder, callee,
@@ -5352,7 +5349,8 @@ TryAttachNativeGetPropStub(JSContext *cx, HandleScript script, jsbytecode *pc,
         JS_ASSERT(obj == holder);
 
         IonSpew(IonSpew_BaselineIC, "  Generating GetProp(DOMProxyProxy) stub");
-        ICGetProp_DOMProxyShadowed::Compiler compiler(cx, monitorStub, obj, name,
+        Rooted<ProxyObject*> proxy(cx, &obj->as<ProxyObject>());
+        ICGetProp_DOMProxyShadowed::Compiler compiler(cx, monitorStub, proxy, name,
                                                       pc - script->code);
         ICStub *newStub = compiler.getStub(compiler.getStubSpace(script));
         if (!newStub)
@@ -5555,12 +5553,12 @@ ICGetProp_TypedArrayLength::Compiler::generateStubCode(MacroAssembler &masm)
 
     // Implement the negated version of JSObject::isTypedArray predicate.
     masm.loadObjClass(obj, scratch);
-    masm.branchPtr(Assembler::Below, scratch, ImmWord(&TypedArray::classes[0]), &failure);
+    masm.branchPtr(Assembler::Below, scratch, ImmWord(&TypedArrayObject::classes[0]), &failure);
     masm.branchPtr(Assembler::AboveOrEqual, scratch,
-                   ImmWord(&TypedArray::classes[TypedArray::TYPE_MAX]), &failure);
+                   ImmWord(&TypedArrayObject::classes[TypedArrayObject::TYPE_MAX]), &failure);
 
     // Load length from fixed slot.
-    masm.loadValue(Address(obj, TypedArray::lengthOffset()), R0);
+    masm.loadValue(Address(obj, TypedArrayObject::lengthOffset()), R0);
     EmitReturnFromIC(masm);
 
     // Failure case - jump to next stub
@@ -5958,10 +5956,10 @@ ICGetPropCallDOMProxyNativeCompiler::generateStubCode(MacroAssembler &masm)
 ICStub *
 ICGetPropCallDOMProxyNativeCompiler::getStub(ICStubSpace *space)
 {
-    RootedShape shape(cx, obj_->lastProperty());
+    RootedShape shape(cx, proxy_->lastProperty());
     RootedShape holderShape(cx, holder_->lastProperty());
 
-    Value expandoSlot = obj_->getFixedSlot(GetDOMProxyExpandoSlot());
+    Value expandoSlot = proxy_->getFixedSlot(GetDOMProxyExpandoSlot());
     RootedShape expandoShape(cx, NULL);
     ExpandoAndGeneration *expandoAndGeneration;
     int32_t generation;
@@ -5981,12 +5979,12 @@ ICGetPropCallDOMProxyNativeCompiler::getStub(ICStubSpace *space)
 
     if (kind == ICStub::GetProp_CallDOMProxyNative) {
         return ICGetProp_CallDOMProxyNative::New(
-            space, getStubCode(), firstMonitorStub_, shape, GetProxyHandler(obj_),
+            space, getStubCode(), firstMonitorStub_, shape, proxy_->handler(),
             expandoShape, holder_, holderShape, getter_, pcOffset_);
     }
 
     return ICGetProp_CallDOMProxyWithGenerationNative::New(
-        space, getStubCode(), firstMonitorStub_, shape, GetProxyHandler(obj_),
+        space, getStubCode(), firstMonitorStub_, shape, proxy_->handler(),
         expandoAndGeneration, generation, expandoShape, holder_, holderShape, getter_,
         pcOffset_);
 }
@@ -5994,9 +5992,9 @@ ICGetPropCallDOMProxyNativeCompiler::getStub(ICStubSpace *space)
 ICStub *
 ICGetProp_DOMProxyShadowed::Compiler::getStub(ICStubSpace *space)
 {
-    RootedShape shape(cx, obj_->lastProperty());
-    return ICGetProp_DOMProxyShadowed::New(space, getStubCode(), firstMonitorStub_,
-                                           shape, GetProxyHandler(obj_), name_, pcOffset_);
+    RootedShape shape(cx, proxy_->lastProperty());
+    return ICGetProp_DOMProxyShadowed::New(space, getStubCode(), firstMonitorStub_, shape,
+                                           proxy_->handler(), name_, pcOffset_);
 }
 
 static bool
@@ -6289,7 +6287,7 @@ DoSetPropFallback(JSContext *cx, BaselineFrame *frame, ICSetProp_Fallback *stub,
     uint32_t oldSlots = obj->numDynamicSlots();
 
     if (op == JSOP_INITPROP && name != cx->names().proto) {
-        JS_ASSERT(obj->isObject());
+        JS_ASSERT(obj->is<JSObject>());
         if (!DefineNativeProperty(cx, obj, id, rhs, NULL, NULL, JSPROP_ENUMERATE, 0, 0, 0))
             return false;
     } else if (op == JSOP_SETNAME || op == JSOP_SETGNAME) {
@@ -7232,8 +7230,7 @@ ICCallScriptedCompiler::generateStubCode(MacroAssembler &masm)
 
     regs.take(argcReg);
     regs.take(ArgumentsRectifierReg);
-    if (regs.has(BaselineTailCallReg))
-        regs.take(BaselineTailCallReg);
+    regs.takeUnchecked(BaselineTailCallReg);
 
     // Load the callee in R1.
     // Stack Layout: [ ..., CalleeVal, ThisVal, Arg0Val, ..., ArgNVal, +ICStackValueOffset+ ]
@@ -8560,21 +8557,20 @@ ICGetPropCallDOMProxyNativeStub::ICGetPropCallDOMProxyNativeStub(Kind kind, IonC
 ICGetPropCallDOMProxyNativeCompiler::ICGetPropCallDOMProxyNativeCompiler(JSContext *cx,
                                                                          ICStub::Kind kind,
                                                                          ICStub *firstMonitorStub,
-                                                                         HandleObject obj,
+                                                                         Handle<ProxyObject*> proxy,
                                                                          HandleObject holder,
                                                                          HandleFunction getter,
                                                                          uint32_t pcOffset)
   : ICStubCompiler(cx, kind),
     firstMonitorStub_(firstMonitorStub),
-    obj_(cx, obj),
+    proxy_(cx, proxy),
     holder_(cx, holder),
     getter_(cx, getter),
     pcOffset_(pcOffset)
 {
     JS_ASSERT(kind == ICStub::GetProp_CallDOMProxyNative ||
               kind == ICStub::GetProp_CallDOMProxyWithGenerationNative);
-    JS_ASSERT(obj_->isProxy());
-    JS_ASSERT(GetProxyHandler(obj_)->family() == GetDOMProxyHandlerFamily());
+    JS_ASSERT(proxy_->handler()->family() == GetDOMProxyHandlerFamily());
 }
 
 ICGetProp_DOMProxyShadowed::ICGetProp_DOMProxyShadowed(IonCode *stubCode,

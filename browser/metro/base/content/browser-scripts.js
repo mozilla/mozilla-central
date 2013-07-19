@@ -33,8 +33,12 @@ XPCOMUtils.defineLazyModuleGetter(this, "Promise",
 
 XPCOMUtils.defineLazyModuleGetter(this, "Task",
                                   "resource://gre/modules/Task.jsm");
+
 XPCOMUtils.defineLazyModuleGetter(this, "CrossSlide",
                                   "resource:///modules/CrossSlide.jsm");
+
+XPCOMUtils.defineLazyGetter(this, "OS",
+                                  "resource://gre/modules/osfile.jsm");
 
 /*
  * Services
@@ -118,10 +122,6 @@ let ScriptContexts = {};
   ["Downloads", "chrome://browser/content/downloads.js"],
   ["BookmarksPanelView", "chrome://browser/content/bookmarks.js"],
   ["ConsolePanelView", "chrome://browser/content/console.js"],
-  ["DownloadsPanelView", "chrome://browser/content/downloads.js"],
-  ["DownloadsView", "chrome://browser/content/downloads.js"],
-  ["Downloads", "chrome://browser/content/downloads.js"],
-  ["PreferencesPanelView", "chrome://browser/content/preferences.js"],
   ["BookmarksStartView", "chrome://browser/content/bookmarks.js"],
   ["HistoryView", "chrome://browser/content/history.js"],
   ["HistoryStartView", "chrome://browser/content/history.js"],
@@ -137,9 +137,8 @@ let ScriptContexts = {};
   ["ItemPinHelper", "chrome://browser/content/helperui/ItemPinHelper.js"],
   ["NavButtonSlider", "chrome://browser/content/NavButtonSlider.js"],
   ["ContextUI", "chrome://browser/content/ContextUI.js"],
+  ["FlyoutPanelsUI", "chrome://browser/content/flyouts/flyoutUI.js"],
 #ifdef MOZ_SERVICES_SYNC
-  ["Sync", "chrome://browser/content/sync.js"],
-  ["SyncPairDevice", "chrome://browser/content/sync.js"],
   ["RemoteTabsView", "chrome://browser/content/RemoteTabs.js"],
   ["RemoteTabsPanelView", "chrome://browser/content/RemoteTabs.js"],
   ["RemoteTabsStartView", "chrome://browser/content/RemoteTabs.js"],

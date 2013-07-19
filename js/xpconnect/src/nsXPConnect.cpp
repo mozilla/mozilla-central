@@ -35,6 +35,7 @@
 #include "XPCQuickStubs.h"
 
 #include "mozilla/dom/BindingUtils.h"
+#include "mozilla/dom/IDBVersionChangeEventBinding.h"
 #include "mozilla/dom/TextDecoderBinding.h"
 #include "mozilla/dom/TextEncoderBinding.h"
 #include "mozilla/dom/DOMErrorBinding.h"
@@ -221,7 +222,69 @@ nsXPConnect::IsISupportsDescendant(nsIInterfaceInfo* info)
     return found;
 }
 
+void
+xpc::SystemErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep)
+{
+    // It would be nice to assert !JS_DescribeScriptedCaller here, to be sure
+    // that there isn't any script running that could catch the exception. But
+    // the JS engine invokes the error reporter directly if someone reports an
+    // ErrorReport that it doesn't know how to turn into an exception. Arguably
+    // it should just learn how to throw everything. But either way, if the
+    // exception is ending here, it's not going to get propagated to a caller,
+    // so it's up to us to make it known.
+
+    nsresult rv;
+
+    /* Use the console service to register the error. */
+    nsCOMPtr<nsIConsoleService> consoleService =
+        do_GetService(NS_CONSOLESERVICE_CONTRACTID);
+
+    /*
+     * Make an nsIScriptError, populate it with information from this
+     * error, then log it with the console service.
+     */
+    nsCOMPtr<nsIScriptError> errorObject =
+        do_CreateInstance(NS_SCRIPTERROR_CONTRACTID);
+
+    if (consoleService && errorObject) {
+        uint32_t column = rep->uctokenptr - rep->uclinebuf;
+
+        const PRUnichar* ucmessage =
+            static_cast<const PRUnichar*>(rep->ucmessage);
+        const PRUnichar* uclinebuf =
+            static_cast<const PRUnichar*>(rep->uclinebuf);
+
+        rv = errorObject->Init(
+              ucmessage ? nsDependentString(ucmessage) : EmptyString(),
+              NS_ConvertASCIItoUTF16(rep->filename),
+              uclinebuf ? nsDependentString(uclinebuf) : EmptyString(),
+              rep->lineno, column, rep->flags,
+              "system javascript");
+        if (NS_SUCCEEDED(rv))
+            consoleService->LogMessage(errorObject);
+    }
+
+    /* Log to stderr in debug builds. */
+#ifdef DEBUG
+    fprintf(stderr, "System JS : %s %s:%d\n"
+            "                     %s\n",
+            JSREPORT_IS_WARNING(rep->flags) ? "WARNING" : "ERROR",
+            rep->filename, rep->lineno,
+            message ? message : "<no message>");
+#endif
+
+}
+
+NS_EXPORT_(void)
+xpc::SystemErrorReporterExternal(JSContext *cx, const char *message,
+                                 JSErrorReport *rep)
+{
+    return SystemErrorReporter(cx, message, rep);
+}
+
+
 /***************************************************************************/
+
 
 nsresult
 nsXPConnect::GetInfoForIID(const nsIID * aIID, nsIInterfaceInfo** info)
@@ -480,7 +543,8 @@ nsXPConnect::InitClassesWithNewWrappedGlobal(JSContext * aJSContext,
     MOZ_ASSERT(js::GetObjectClass(global)->flags & JSCLASS_DOM_GLOBAL);
 
     // Init WebIDL binding constructors wanted on all XPConnect globals.
-    if (!TextDecoderBinding::GetConstructorObject(aJSContext, global) ||
+    if (!IDBVersionChangeEventBinding::GetConstructorObject(aJSContext, global) ||
+        !TextDecoderBinding::GetConstructorObject(aJSContext, global) ||
         !TextEncoderBinding::GetConstructorObject(aJSContext, global) ||
         !DOMErrorBinding::GetConstructorObject(aJSContext, global)) {
         return UnexpectedFailure(NS_ERROR_FAILURE);
@@ -937,41 +1001,6 @@ nsXPConnect::GetWrappedNativePrototype(JSContext * aJSContext,
     return NS_OK;
 }
 
-/* void releaseJSContext (in JSContextPtr aJSContext, in bool noGC); */
-NS_IMETHODIMP
-nsXPConnect::ReleaseJSContext(JSContext * aJSContext, bool noGC)
-{
-    NS_ASSERTION(aJSContext, "bad param");
-    XPCCallContext* ccx = nullptr;
-    for (XPCCallContext* cur = GetRuntime()->GetCallContext();
-         cur;
-         cur = cur->GetPrevCallContext()) {
-        if (cur->GetJSContext() == aJSContext) {
-            ccx = cur;
-            // Keep looping to find the deepest matching call context.
-        }
-    }
-
-    if (ccx) {
-#ifdef DEBUG_xpc_hacker
-        printf("!xpc - deferring destruction of JSContext @ %p\n",
-               (void *)aJSContext);
-#endif
-        ccx->SetDestroyJSContextInDestructor();
-        return NS_OK;
-    }
-    // else continue on and synchronously destroy the JSContext ...
-
-    NS_ASSERTION(!XPCJSRuntime::Get()->GetJSContextStack()->HasJSContext(aJSContext),
-                 "JSContext still in threadjscontextstack!");
-
-    if (noGC)
-        JS_DestroyContextNoGC(aJSContext);
-    else
-        JS_DestroyContext(aJSContext);
-    return NS_OK;
-}
-
 /* void debugDump (in short depth); */
 NS_IMETHODIMP
 nsXPConnect::DebugDump(int16_t depth)
@@ -1129,7 +1158,7 @@ nsXPConnect::OnProcessNextEvent(nsIThreadInternal *aThread, bool aMayWait,
     // Push a null JSContext so that we don't see any script during
     // event processing.
     MOZ_ASSERT(NS_IsMainThread());
-    bool ok = PushJSContext(nullptr);
+    bool ok = PushJSContextNoScriptContext(nullptr);
     NS_ENSURE_TRUE(ok, NS_ERROR_FAILURE);
     return NS_OK;
 }
@@ -1148,7 +1177,7 @@ nsXPConnect::AfterProcessNextEvent(nsIThreadInternal *aThread,
     nsJSContext::MaybePokeCC();
     nsDOMMutationObserver::HandleMutations();
 
-    PopJSContext();
+    PopJSContextNoScriptContext();
 
     // If the cx stack is empty, that means we're at the an un-nested event
     // loop. This is a good time to make changes to debug mode.
@@ -1189,16 +1218,16 @@ nsXPConnect::GetRuntime(JSRuntime **runtime)
     return NS_OK;
 }
 
-/* [noscript, notxpcom] void registerGCCallback(in JSGCCallback func); */
+/* [noscript, notxpcom] void registerGCCallback(in xpcGCCallback func); */
 NS_IMETHODIMP_(void)
-nsXPConnect::RegisterGCCallback(JSGCCallback func)
+nsXPConnect::RegisterGCCallback(xpcGCCallback func)
 {
     mRuntime->AddGCCallback(func);
 }
 
-/* [noscript, notxpcom] void unregisterGCCallback(in JSGCCallback func); */
+/* [noscript, notxpcom] void unregisterGCCallback(in xpcGCCallback func); */
 NS_IMETHODIMP_(void)
-nsXPConnect::UnregisterGCCallback(JSGCCallback func)
+nsXPConnect::UnregisterGCCallback(xpcGCCallback func)
 {
     mRuntime->RemoveGCCallback(func);
 }
@@ -1284,13 +1313,14 @@ nsXPConnect::GetSafeJSContext()
 namespace xpc {
 
 bool
-PushJSContext(JSContext *aCx)
+PushJSContextNoScriptContext(JSContext *aCx)
 {
+    MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
     return XPCJSRuntime::Get()->GetJSContextStack()->Push(aCx);
 }
 
 void
-PopJSContext()
+PopJSContextNoScriptContext()
 {
     XPCJSRuntime::Get()->GetJSContextStack()->Pop();
 }
@@ -1349,7 +1379,8 @@ namespace xpc {
 bool
 DeferredRelease(nsISupports *obj)
 {
-    return nsXPConnect::GetRuntimeInstance()->DeferredRelease(obj);
+    nsContentUtils::DeferredFinalize(obj);
+    return true;
 }
 
 NS_EXPORT_(bool)

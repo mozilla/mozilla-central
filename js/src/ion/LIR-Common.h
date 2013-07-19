@@ -226,11 +226,13 @@ class LControlInstructionHelper : public LInstructionHelper<0, Operands, Temps> 
     MBasicBlock *successors_[Succs];
 
   public:
-    size_t numSuccessors() const { return Succs; }
+    virtual size_t numSuccessors() const MOZ_FINAL MOZ_OVERRIDE { return Succs; }
 
-    MBasicBlock *getSuccessor(size_t i) const { return successors_[i]; }
+    virtual MBasicBlock *getSuccessor(size_t i) const MOZ_FINAL MOZ_OVERRIDE {
+        return successors_[i];
+    }
 
-    void setSuccessor(size_t i, MBasicBlock *successor) {
+    virtual void setSuccessor(size_t i, MBasicBlock *successor) MOZ_FINAL MOZ_OVERRIDE {
         successors_[i] = successor;
     }
 };
@@ -968,12 +970,12 @@ class LCallNative : public LJSCallInstructionHelper<BOX_PIECES, 0, 4>
     LIR_HEADER(CallNative)
 
     LCallNative(uint32_t argslot,
-                const LDefinition &argJSContext, const LDefinition &argUintN,
+                const LDefinition &argContext, const LDefinition &argUintN,
                 const LDefinition &argVp, const LDefinition &tmpreg)
       : JSCallHelper(argslot)
     {
         // Registers used for callWithABI().
-        setTemp(0, argJSContext);
+        setTemp(0, argContext);
         setTemp(1, argUintN);
         setTemp(2, argVp);
 
@@ -981,7 +983,7 @@ class LCallNative : public LJSCallInstructionHelper<BOX_PIECES, 0, 4>
         setTemp(3, tmpreg);
     }
 
-    const LAllocation *getArgJSContextReg() {
+    const LAllocation *getArgContextReg() {
         return getTemp(0)->output();
     }
     const LAllocation *getArgUintNReg() {
@@ -2744,6 +2746,31 @@ class LConvertElementsToDoubles : public LInstructionHelper<0, 1, 0>
     }
 };
 
+// If |elements| has the CONVERT_DOUBLE_ELEMENTS flag, convert int32 value to
+// double. Else return the original value.
+class LMaybeToDoubleElement : public LInstructionHelper<BOX_PIECES, 2, 1>
+{
+  public:
+    LIR_HEADER(MaybeToDoubleElement)
+
+    LMaybeToDoubleElement(const LAllocation &elements, const LAllocation &value,
+                          const LDefinition &tempFloat) {
+        setOperand(0, elements);
+        setOperand(1, value);
+        setTemp(0, tempFloat);
+    }
+
+    const LAllocation *elements() {
+        return getOperand(0);
+    }
+    const LAllocation *value() {
+        return getOperand(1);
+    }
+    const LDefinition *tempFloat() {
+        return getTemp(0);
+    }
+};
+
 // Load a dense array's initialized length from an elements vector.
 class LInitializedLength : public LInstructionHelper<1, 1, 0>
 {
@@ -3725,14 +3752,16 @@ class LGetElementCacheV : public LInstructionHelper<BOX_PIECES, 1 + BOX_PIECES, 
     }
 };
 
-class LGetElementCacheT : public LInstructionHelper<1, 2, 0>
+class LGetElementCacheT : public LInstructionHelper<1, 2, 1>
 {
   public:
     LIR_HEADER(GetElementCacheT)
 
-    LGetElementCacheT(const LAllocation &object, const LAllocation &index) {
+    LGetElementCacheT(const LAllocation &object, const LAllocation &index,
+                      const LDefinition &temp) {
         setOperand(0, object);
         setOperand(1, index);
+        setTemp(0, temp);
     }
     const LAllocation *object() {
         return getOperand(0);
@@ -3742,6 +3771,9 @@ class LGetElementCacheT : public LInstructionHelper<1, 2, 0>
     }
     const LDefinition *output() {
         return getDef(0);
+    }
+    const LDefinition *temp() {
+        return getTemp(0);
     }
     const MGetElementCache *mir() const {
         return mir_->toGetElementCache();
@@ -4043,7 +4075,7 @@ class LSetPropertyCacheT : public LInstructionHelper<0, 2, 1>
     }
 };
 
-class LSetElementCacheV : public LInstructionHelper<0, 1 + 2 * BOX_PIECES, 1>
+class LSetElementCacheV : public LInstructionHelper<0, 1 + 2 * BOX_PIECES, 2>
 {
   public:
     LIR_HEADER(SetElementCacheV);
@@ -4051,9 +4083,12 @@ class LSetElementCacheV : public LInstructionHelper<0, 1 + 2 * BOX_PIECES, 1>
     static const size_t Index = 1;
     static const size_t Value = 1 + BOX_PIECES;
 
-    LSetElementCacheV(const LAllocation &object, const LDefinition &temp) {
+    LSetElementCacheV(const LAllocation &object, const LDefinition &elem,
+                      const LDefinition &temp)
+    {
         setOperand(0, object);
-        setTemp(0, temp);
+        setTemp(0, elem);
+        setTemp(1, temp);
     }
     const MSetElementCache *mir() const {
         return mir_->toSetElementCache();
@@ -4062,12 +4097,15 @@ class LSetElementCacheV : public LInstructionHelper<0, 1 + 2 * BOX_PIECES, 1>
     const LAllocation *object() {
         return getOperand(0);
     }
-    const LDefinition *temp() {
+    const LDefinition *temp0() {
         return getTemp(0);
+    }
+    const LDefinition *temp1() {
+        return getTemp(1);
     }
 };
 
-class LSetElementCacheT : public LInstructionHelper<0, 2 + BOX_PIECES, 1>
+class LSetElementCacheT : public LInstructionHelper<0, 2 + BOX_PIECES, 2>
 {
   public:
     LIR_HEADER(SetElementCacheT);
@@ -4075,10 +4113,11 @@ class LSetElementCacheT : public LInstructionHelper<0, 2 + BOX_PIECES, 1>
     static const size_t Index = 2;
 
     LSetElementCacheT(const LAllocation &object, const LAllocation &value,
-                      const LDefinition &temp) {
+                      const LDefinition &elem, const LDefinition &temp) {
         setOperand(0, object);
         setOperand(1, value);
-        setTemp(0, temp);
+        setTemp(0, elem);
+        setTemp(1, temp);
     }
     const MSetElementCache *mir() const {
         return mir_->toSetElementCache();
@@ -4090,8 +4129,11 @@ class LSetElementCacheT : public LInstructionHelper<0, 2 + BOX_PIECES, 1>
     const LAllocation *value() {
         return getOperand(1);
     }
-    const LDefinition *temp() {
+    const LDefinition *temp0() {
         return getTemp(0);
+    }
+    const LDefinition *temp1() {
+        return getTemp(1);
     }
 };
 
@@ -4439,7 +4481,7 @@ class MPhi;
 // register allocator. Like its equivalent in MIR, phis are collected at the
 // top of blocks and are meant to be executed in parallel, choosing the input
 // corresponding to the predecessor taken in the control flow graph.
-class LPhi : public LInstruction
+class LPhi MOZ_FINAL : public LInstruction
 {
     uint32_t numInputs_;
     LAllocation *inputs_;
@@ -4740,7 +4782,7 @@ class LAsmJSPassStackArg : public LInstructionHelper<0, 1, 0>
     }
 };
 
-class LAsmJSCall : public LInstruction
+class LAsmJSCall MOZ_FINAL : public LInstruction
 {
     LAllocation *operands_;
     uint32_t numOperands_;

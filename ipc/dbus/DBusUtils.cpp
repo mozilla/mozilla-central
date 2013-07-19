@@ -627,24 +627,17 @@ int dbus_returns_int32(DBusMessage *reply)
     LOG_AND_FREE_DBUS_ERROR_WITH_MSG(&err, reply);
   }
 
-  dbus_message_unref(reply);
   return ret;
 }
 
-int dbus_returns_uint32(DBusMessage *reply)
+void DBusReplyHandler::Callback(DBusMessage* aReply, void* aData)
 {
-  DBusError err;
-  uint32_t ret = -1;
+  MOZ_ASSERT(aData);
 
-  dbus_error_init(&err);
-  if (!dbus_message_get_args(reply, &err,
-                             DBUS_TYPE_UINT32, &ret,
-                             DBUS_TYPE_INVALID)) {
-    LOG_AND_FREE_DBUS_ERROR_WITH_MSG(&err, reply);
-  }
+  nsRefPtr<DBusReplyHandler> handler =
+    already_AddRefed<DBusReplyHandler>(static_cast<DBusReplyHandler*>(aData));
 
-  dbus_message_unref(reply);
-  return ret;
+  handler->Handle(aReply);
 }
 
 }

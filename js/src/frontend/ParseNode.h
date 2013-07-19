@@ -51,7 +51,17 @@ class UpvarCookie
     uint16_t slot()  const { JS_ASSERT(!isFree()); return slot_; }
 
     // This fails and issues an error message if newLevel is too large.
-    bool set(JSContext *cx, unsigned newLevel, uint16_t newSlot);
+    bool set(TokenStream &ts, unsigned newLevel, uint16_t newSlot) {
+        // This is an unsigned-to-uint16_t conversion, test for too-high
+        // values.  In practice, recursion in Parser and/or BytecodeEmitter
+        // will blow the stack if we nest functions more than a few hundred
+        // deep, so this will never trigger.  Oh well.
+        if (newLevel >= FREE_LEVEL)
+            return ts.reportError(JSMSG_TOO_DEEP);
+        level_ = newLevel;
+        slot_ = newSlot;
+        return true;
+    }
 
     void makeFree() {
         level_ = FREE_LEVEL;
@@ -203,20 +213,17 @@ enum ParseNodeKind
  *                            object containing arg and var properties.  We
  *                            create the function object at parse (not emit)
  *                            time to specialize arg and var bytecodes early.
- *                          pn_body: PNK_ARGSBODY if formal parameters,
- *                                   PNK_STATEMENTLIST node for function body
- *                                     statements,
- *                                   PNK_RETURN for expression closure, or
- *                                   PNK_SEQ for expression closure with
- *                                     destructured formal parameters
- *                                   PNK_LEXICALSCOPE for implicit function
- *                                     in generator-expression
+ *                          pn_body: PNK_ARGSBODY, ordinarily;
+ *                            PNK_LEXICALSCOPE for implicit function in genexpr
  *                          pn_cookie: static level and var index for function
  *                          pn_dflags: PND_* definition/use flags (see below)
  *                          pn_blockid: block id number
- * PNK_ARGSBODY list        list of formal parameters followed by
- *                            PNK_STATEMENTLIST node for function body
- *                            statements as final element
+ * PNK_ARGSBODY list        list of formal parameters followed by:
+ *                              PNK_STATEMENTLIST node for function body
+ *                                statements,
+ *                              PNK_RETURN for expression closure, or
+ *                              PNK_SEQ for expression closure with
+ *                                destructured formal parameters
  *                          pn_count: 1 + number of formal parameters
  *                          pn_tree: PNK_ARGSBODY or PNK_STATEMENTLIST node
  * PNK_SPREAD   unary       pn_kid: expression being spread
@@ -623,7 +630,6 @@ class ParseNode
 #define PND_LET                 0x01    /* let (block-scoped) binding */
 #define PND_CONST               0x02    /* const binding (orthogonal to let) */
 #define PND_ASSIGNED            0x04    /* set if ever LHS of assignment */
-#define PND_BLOCKCHILD          0x08    /* use or def is direct block child */
 #define PND_PLACEHOLDER         0x10    /* placeholder definition for lexdep */
 #define PND_BOUND               0x20    /* bound to a stack or global slot */
 #define PND_DEOPTIMIZED         0x40    /* former pn_used name node, pn_lexdef
@@ -706,7 +712,6 @@ class ParseNode
 
     bool isLet() const          { return test(PND_LET); }
     bool isConst() const        { return test(PND_CONST); }
-    bool isBlockChild() const   { return test(PND_BLOCKCHILD); }
     bool isPlaceholder() const  { return test(PND_PLACEHOLDER); }
     bool isDeoptimized() const  { return test(PND_DEOPTIMIZED); }
     bool isAssigned() const     { return test(PND_ASSIGNED); }
@@ -791,8 +796,13 @@ class ParseNode
 #endif
     ;
 
-    bool getConstantValue(JSContext *cx, bool strictChecks, MutableHandleValue vp);
+    bool getConstantValue(ExclusiveContext *cx, bool strictChecks, MutableHandleValue vp);
     inline bool isConstant();
+
+    template <class NodeType>
+    inline bool is() const {
+        return NodeType::test(*this);
+    }
 
     /* Casting operations. */
     template <class NodeType>
@@ -964,21 +974,16 @@ struct CodeNode : public ParseNode
 #endif
 };
 
-enum InBlockBool {
-    NotInBlock = false,
-    InBlock = true
-};
-
 struct NameNode : public ParseNode
 {
-    NameNode(ParseNodeKind kind, JSOp op, JSAtom *atom, InBlockBool inBlock, uint32_t blockid,
+    NameNode(ParseNodeKind kind, JSOp op, JSAtom *atom, uint32_t blockid,
              const TokenPos &pos)
       : ParseNode(kind, op, PN_NAME, pos)
     {
         pn_atom = atom;
         pn_expr = NULL;
         pn_cookie.makeFree();
-        pn_dflags = inBlock ? PND_BLOCKCHILD : 0;
+        pn_dflags = 0;
         pn_blockid = blockid;
         JS_ASSERT(pn_blockid == blockid);  // check for bitfield overflow
     }
@@ -1165,7 +1170,7 @@ class PropertyAccess : public ParseNode
 {
   public:
     PropertyAccess(ParseNode *lhs, PropertyName *name, uint32_t begin, uint32_t end)
-      : ParseNode(PNK_DOT, JSOP_GETPROP, PN_NAME, TokenPos(begin, end))
+      : ParseNode(PNK_DOT, JSOP_NOP, PN_NAME, TokenPos(begin, end))
     {
         JS_ASSERT(lhs != NULL);
         JS_ASSERT(name != NULL);
@@ -1192,7 +1197,7 @@ class PropertyByValue : public ParseNode
 {
   public:
     PropertyByValue(ParseNode *lhs, ParseNode *propExpr, uint32_t begin, uint32_t end)
-      : ParseNode(PNK_ELEM, JSOP_GETELEM, PN_BINARY, TokenPos(begin, end))
+      : ParseNode(PNK_ELEM, JSOP_NOP, PN_BINARY, TokenPos(begin, end))
     {
         pn_u.binary.left = lhs;
         pn_u.binary.right = propExpr;
@@ -1340,7 +1345,9 @@ struct Definition : public ParseNode
 class ParseNodeAllocator
 {
   public:
-    explicit ParseNodeAllocator(JSContext *cx) : cx(cx), freelist(NULL) {}
+    explicit ParseNodeAllocator(ExclusiveContext *cx, LifoAlloc &alloc)
+      : cx(cx), alloc(alloc), freelist(NULL)
+    {}
 
     void *allocNode();
     void freeNode(ParseNode *pn);
@@ -1348,7 +1355,8 @@ class ParseNodeAllocator
     void prepareNodeForMutation(ParseNode *pn);
 
   private:
-    JSContext *cx;
+    ExclusiveContext *cx;
+    LifoAlloc &alloc;
     ParseNode *freelist;
 };
 

@@ -22,7 +22,6 @@ relativesrcdir   = @relativesrcdir@
 include $(DEPTH)/config/autoconf.mk
 
 LIBRARY_NAME   = hal_s
-FORCE_STATIC_LIB = 1
 LIBXUL_LIBRARY = 1
 EXPORT_LIBRARY = 1
 FAIL_ON_WARNINGS = 1
@@ -31,20 +30,13 @@ MOCHITEST_BROWSER_FILES += \
 	tests/browser_alarms.js \
 	$(NULL)
 
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-DISABLED_CMMSRCS += \
-  CocoaSensor.mm \
-  smslib.mm \
-  $(NULL)
-endif
-
 ifdef MOZ_GAMEPAD
 LOCAL_INCLUDES = -I$(topsrcdir)/dom/base
 endif
 
 include $(topsrcdir)/config/config.mk
-include $(topsrcdir)/ipc/chromium/chromium-config.mk
 include $(topsrcdir)/config/rules.mk
+include $(topsrcdir)/ipc/chromium/chromium-config.mk
 
 CFLAGS          += $(GLIB_CFLAGS) $(MOZ_DBUS_GLIB_CFLAGS)
 CXXFLAGS        += $(GLIB_CFLAGS) $(MOZ_DBUS_GLIB_CFLAGS)

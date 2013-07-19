@@ -7,20 +7,20 @@
 #define mozilla_dom_HTMLLinkElement_h
 
 #include "mozilla/Attributes.h"
+#include "mozilla/dom/Link.h"
 #include "nsGenericHTMLElement.h"
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsILink.h"
 #include "nsStyleLinkElement.h"
-#include "mozilla/dom/Link.h"
 
 namespace mozilla {
 namespace dom {
 
-class HTMLLinkElement : public nsGenericHTMLElement,
-                        public nsIDOMHTMLLinkElement,
-                        public nsILink,
-                        public nsStyleLinkElement,
-                        public Link
+class HTMLLinkElement MOZ_FINAL : public nsGenericHTMLElement,
+                                  public nsIDOMHTMLLinkElement,
+                                  public nsILink,
+                                  public nsStyleLinkElement,
+                                  public Link
 {
 public:
   HTMLLinkElement(already_AddRefed<nsINodeInfo> aNodeInfo);

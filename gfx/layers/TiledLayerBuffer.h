@@ -19,7 +19,6 @@
 #include "nsRect.h"
 #include "nsRegion.h"
 #include "nsTArray.h"
-#include "gfxPlatform.h"
 
 namespace mozilla {
 namespace layers {
@@ -141,15 +140,6 @@ public:
       return;
     }
 
-    // Trying to diagnose bug 881018. Using two separate crash calls so that
-    // we get distinct line numbers in the crash reports.
-    if (aResolution > TILEDLAYERBUFFER_TILE_SIZE) {
-      MOZ_CRASH();
-    } else if (!(gfx::FuzzyEqual(aResolution, 1.0, 1e-5) ||
-                 gfx::FuzzyEqual(aResolution, gfxPlatform::GetLowPrecisionResolution(), 1e-5))) {
-      MOZ_CRASH();
-    }
-
     Update(nsIntRegion(), nsIntRegion());
     mResolution = aResolution;
   }
@@ -235,6 +225,7 @@ TiledLayerBuffer<Derived, Tile>::GetTile(const nsIntPoint& aTileOrigin) const
   // TODO Cache firstTileOriginX/firstTileOriginY
   // Find the tile x/y of the first tile and the target tile relative to the (0, 0)
   // origin, the difference is the tile x/y relative to the start of the tile buffer.
+  volatile float resolution = mResolution; // bug 881018 investigation
   int firstTileX = floor_div(mValidRegion.GetBounds().x, GetScaledTileLength());
   int firstTileY = floor_div(mValidRegion.GetBounds().y, GetScaledTileLength());
   return GetTile(floor_div(aTileOrigin.x, GetScaledTileLength()) - firstTileX,

@@ -23,6 +23,7 @@
 #include "xpcprivate.h"
 #include "XPCQuickStubs.h"
 #include "XrayWrapper.h"
+#include "nsPrintfCString.h"
 
 #include "mozilla/dom/HTMLObjectElement.h"
 #include "mozilla/dom/HTMLObjectElementBinding.h"
@@ -194,6 +195,17 @@ ErrorResult::StealJSException(JSContext* cx,
   value.set(mJSException);
   JS_RemoveValueRoot(cx, &mJSException);
   mResult = NS_OK;
+}
+
+void
+ErrorResult::ReportNotEnoughArgsError(JSContext* cx,
+                                      const char* ifaceName,
+                                      const char* memberName)
+{
+  MOZ_ASSERT(ErrorCode() == NS_ERROR_XPC_NOT_ENOUGH_ARGS);
+
+  nsPrintfCString errorMessage("%s.%s", ifaceName, memberName);
+  ThrowErrorMessage(cx, dom::MSG_MISSING_ARGUMENTS, errorMessage.get());
 }
 
 namespace dom {
@@ -1338,7 +1350,7 @@ GetXrayExpandoChain(JSObject* obj)
   JS::Value v;
   if (IsDOMClass(clasp) || IsDOMIfaceAndProtoClass(clasp)) {
     v = js::GetReservedSlot(obj, DOM_XRAY_EXPANDO_SLOT);
-  } else if (js::IsObjectProxyClass(clasp) || js::IsFunctionProxyClass(clasp)) {
+  } else if (js::IsProxyClass(clasp)) {
     MOZ_ASSERT(js::GetProxyHandler(obj)->family() == ProxyFamily());
     v = js::GetProxyExtra(obj, JSPROXYSLOT_XRAY_EXPANDO);
   } else {
@@ -1355,7 +1367,7 @@ SetXrayExpandoChain(JSObject* obj, JSObject* chain)
   js::Class* clasp = js::GetObjectClass(obj);
   if (IsDOMClass(clasp) || IsDOMIfaceAndProtoClass(clasp)) {
     js::SetReservedSlot(obj, DOM_XRAY_EXPANDO_SLOT, v);
-  } else if (js::IsObjectProxyClass(clasp) || js::IsFunctionProxyClass(clasp)) {
+  } else if (js::IsProxyClass(clasp)) {
     MOZ_ASSERT(js::GetProxyHandler(obj)->family() == ProxyFamily());
     js::SetProxyExtra(obj, JSPROXYSLOT_XRAY_EXPANDO, v);
   } else {
@@ -1780,17 +1792,6 @@ ReportLenientThisUnwrappingFailure(JSContext* cx, JS::Handle<JSObject*> obj)
   if (window && window->GetDoc()) {
     window->GetDoc()->WarnOnceAbout(nsIDocument::eLenientThis);
   }
-  return true;
-}
-
-bool
-RegisterForDeferredFinalization(DeferredFinalizeStartFunction start,
-                                DeferredFinalizeFunction run)
-{
-  XPCJSRuntime *rt = nsXPConnect::GetRuntimeInstance();
-  NS_ENSURE_TRUE(rt, false);
-
-  rt->RegisterDeferredFinalize(start, run);
   return true;
 }
 

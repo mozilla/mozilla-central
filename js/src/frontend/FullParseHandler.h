@@ -69,9 +69,10 @@ class FullParseHandler
     typedef ParseNode *Node;
     typedef Definition *DefinitionNode;
 
-    FullParseHandler(JSContext *cx, TokenStream &tokenStream, bool foldConstants,
+    FullParseHandler(ExclusiveContext *cx, LifoAlloc &alloc,
+                     TokenStream &tokenStream, bool foldConstants,
                      Parser<SyntaxParseHandler> *syntaxParser, LazyScript *lazyOuterFunction)
-      : allocator(cx),
+      : allocator(cx, alloc),
         tokenStream(tokenStream),
         foldConstants(foldConstants),
         lazyOuterFunction_(lazyOuterFunction),
@@ -85,17 +86,13 @@ class FullParseHandler
     void prepareNodeForMutation(ParseNode *pn) { return allocator.prepareNodeForMutation(pn); }
     const Token &currentToken() { return tokenStream.currentToken(); }
 
-    ParseNode *newName(PropertyName *name, InBlockBool inBlock, uint32_t blockid,
-                       const TokenPos &pos)
-    {
-        return new_<NameNode>(PNK_NAME, JSOP_NAME, name, inBlock, blockid, pos);
+    ParseNode *newName(PropertyName *name, uint32_t blockid, const TokenPos &pos) {
+        return new_<NameNode>(PNK_NAME, JSOP_NAME, name, blockid, pos);
     }
 
-    Definition *newPlaceholder(JSAtom *atom, InBlockBool inBlock, uint32_t blockid,
-                               const TokenPos &pos)
-    {
+    Definition *newPlaceholder(JSAtom *atom, uint32_t blockid, const TokenPos &pos) {
         Definition *dn =
-            (Definition *) new_<NameNode>(PNK_NAME, JSOP_NOP, atom, inBlock, blockid, pos);
+            (Definition *) new_<NameNode>(PNK_NAME, JSOP_NOP, atom, blockid, pos);
         if (!dn)
             return NULL;
         dn->setDefn(true);
@@ -317,57 +314,7 @@ class FullParseHandler
         return new_<PropertyAccess>(pn, name, pn->pn_pos.begin, end);
     }
 
-  private:
-    /*
-     * Examine the RHS of a MemberExpression obj[pn], to optimize expressions
-     * like obj["name"] or obj["0"].
-     *
-     * If pn is a number or string constant that's not an index, store the
-     * corresponding PropertyName in *namep. Otherwise store NULL in *namep.
-     *
-     * Also, if pn is a string constant whose value is the ToString of an
-     * index, morph it to a number.
-     *
-     * Return false on OOM.
-     */
-    bool foldConstantIndex(ParseNode *pn, PropertyName **namep) {
-        if (pn->isKind(PNK_STRING)) {
-            JSAtom *atom = pn->pn_atom;
-            uint32_t index;
-
-            if (atom->isIndex(&index)) {
-                pn->setKind(PNK_NUMBER);
-                pn->setOp(JSOP_DOUBLE);
-                pn->pn_dval = index;
-            } else {
-                *namep = atom->asPropertyName();
-                return true;
-            }
-        } else if (pn->isKind(PNK_NUMBER)) {
-            double number = pn->pn_dval;
-            if (number != ToUint32(number)) {
-                JSContext *cx = tokenStream.getContext();
-                JSAtom *atom = ToAtom<NoGC>(cx, DoubleValue(number));
-                if (!atom)
-                    return false;
-                *namep = atom->asPropertyName();
-                return true;
-            }
-        }
-
-        *namep = NULL;
-        return true;
-    }
-
-  public:
     ParseNode *newPropertyByValue(ParseNode *lhs, ParseNode *index, uint32_t end) {
-        if (foldConstants) {
-            PropertyName *name;
-            if (!foldConstantIndex(index, &name))
-                return null();
-            if (name)
-                return newPropertyAccess(lhs, name, end);
-        }
         return new_<PropertyByValue>(lhs, index, lhs->pn_pos.begin, end);
     }
 
@@ -382,6 +329,7 @@ class FullParseHandler
         pn->pn_body = kid;
     }
     void setFunctionBox(ParseNode *pn, FunctionBox *funbox) {
+        JS_ASSERT(pn->isKind(PNK_FUNCTION));
         pn->pn_funbox = funbox;
     }
     void addFunctionArgument(ParseNode *pn, ParseNode *argpn) {
@@ -433,6 +381,10 @@ class FullParseHandler
         pn->append(kid);
     }
 
+    bool isUnparenthesizedYield(ParseNode *pn) {
+        return pn->isKind(PNK_YIELD) && !pn->isInParens();
+    }
+
     void setOp(ParseNode *pn, JSOp op) {
         pn->setOp(op);
     }
@@ -464,7 +416,7 @@ class FullParseHandler
         return pn->isKind(PNK_CALL);
     }
     PropertyName *isGetProp(ParseNode *pn) {
-        return pn->isOp(JSOP_GETPROP) ? pn->pn_atom->asPropertyName() : NULL;
+        return pn->is<PropertyAccess>() ? &pn->as<PropertyAccess>().name() : NULL;
     }
     JSAtom *isStringExprStatement(ParseNode *pn, TokenPos *pos) {
         if (JSAtom *atom = pn->isStringExprStatement()) {

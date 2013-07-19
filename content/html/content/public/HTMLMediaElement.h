@@ -50,6 +50,7 @@ namespace mozilla {
 namespace dom {
 
 class MediaError;
+class MediaSource;
 
 class HTMLMediaElement : public nsGenericHTMLElement,
                          public nsIObserver,
@@ -319,6 +320,13 @@ public:
    * video or audio requests.
    */
   void SetRequestHeaders(nsIHttpChannel* aChannel);
+
+  /**
+   * Asynchronously awaits a stable state, whereupon aRunnable runs on the main
+   * thread. This adds an event which run aRunnable to the appshell's list of
+   * sections synchronous the next time control returns to the event loop.
+   */
+  void RunInStableState(nsIRunnable* aRunnable);
 
   /**
    * Fires a timeupdate event. If aPeriodic is true, the event will only
@@ -867,6 +875,9 @@ protected:
   // Holds a reference to the MediaStreamListener attached to mSrcStream.
   nsRefPtr<StreamListener> mSrcStreamListener;
 
+  // Holds a reference to the MediaSource supplying data for playback.
+  nsRefPtr<MediaSource> mMediaSource;
+
   // Holds a reference to the first channel we open to the media resource.
   // Once the decoder is created, control over the channel passes to the
   // decoder, and we null out this reference. We must store this in case
@@ -1118,9 +1129,6 @@ protected:
 
   // Is this media element playing?
   bool mPlayingThroughTheAudioChannel;
-
-  // Has this element been in a document?
-  bool mWasInDocument;
 
   // An agent used to join audio channel service.
   nsCOMPtr<nsIAudioChannelAgent> mAudioChannelAgent;

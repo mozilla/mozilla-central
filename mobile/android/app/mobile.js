@@ -41,8 +41,6 @@ pref("toolkit.zoomManager.zoomValues", ".2,.3,.5,.67,.8,.9,1,1.1,1.2,1.33,1.5,1.
 // Mobile will use faster, less durable mode.
 pref("toolkit.storage.synchronous", 0);
 
-// Device pixel to CSS px ratio, in percent. Set to -1 to calculate based on display density.
-pref("browser.viewport.scaleRatio", -1);
 pref("browser.viewport.desktopWidth", 980);
 // The default fallback zoom level to render pages at. Set to -1 to fit page; otherwise
 // the value is divided by 1000 and clamped to hard-coded min/max scale values.
@@ -149,12 +147,9 @@ pref("signon.expireMasterPassword", false);
 pref("signon.SignonFileName", "signons.txt");
 pref("signon.debug", false);
 
-/* form helper */
-// 0 = disabled, 1 = enabled, 2 = dynamic depending on screen size
-pref("formhelper.mode", 2);
+/* form helper (scroll to and optionally zoom into editable fields)  */
+pref("formhelper.mode", 2);  // 0 = disabled, 1 = enabled, 2 = dynamic depending on screen size
 pref("formhelper.autozoom", true);
-pref("formhelper.autozoom.caret", true);
-pref("formhelper.restore", false);
 
 /* find helper */
 pref("findhelper.autozoom", true);
@@ -360,6 +355,9 @@ pref("gfx.displayport.strategy_vb.danger_y_incr", -1); // additional danger zone
 // prediction bias strategy options
 pref("gfx.displayport.strategy_pb.threshold", -1); // velocity threshold in inches/frame
 
+// Allow 24-bit colour when the hardware supports it
+pref("gfx.android.rgb16.force", false);
+
 // don't allow JS to move and resize existing windows
 pref("dom.disable_window_move_resize", true);
 
@@ -469,7 +467,7 @@ pref("app.faqURL", "http://www.mozilla.com/%LOCALE%/mobile/beta/faq/");
 #else
 pref("app.faqURL", "http://www.mozilla.com/%LOCALE%/mobile/faq/");
 #endif
-pref("app.marketplaceURL", "https://marketplace.mozilla.org/");
+pref("app.marketplaceURL", "https://marketplace.firefox.com/");
 
 // Name of alternate about: page for certificate errors (when undefined, defaults to about:neterror)
 pref("security.alternate_certificate_error_page", "certerror");
@@ -654,11 +652,15 @@ pref("ui.scrolling.axis_lock_mode", "standard");
 
 // Enable accessibility mode if platform accessibility is enabled.
 pref("accessibility.accessfu.activate", 2);
-pref("accessibility.accessfu.quicknav_modes", "Link,Heading,FormElement,ListItem");
+pref("accessibility.accessfu.quicknav_modes", "Link,Heading,FormElement,Landmark,ListItem");
 // Setting for an utterance order (0 - description first, 1 - description last).
-pref("accessibility.accessfu.utterance", 0);
+pref("accessibility.accessfu.utterance", 1);
 // Whether to skip images with empty alt text
 pref("accessibility.accessfu.skip_empty_images", true);
+
+// Transmit UDP busy-work to the LAN when anticipating low latency
+// network reads and on wifi to mitigate 802.11 Power Save Polling delays
+pref("network.tickle-wifi.enabled", true);
 
 // Mobile manages state by autodetection
 pref("network.manage-offline-status", true);

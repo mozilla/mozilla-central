@@ -6,13 +6,12 @@
 
 interface nsIDOMEventListener;
 interface nsIDOMDOMRequest;
-interface nsIDOMMozMobileICCInfo;
 interface nsIDOMMozMobileConnectionInfo;
 interface nsIDOMMozMobileNetworkInfo;
 interface nsIDOMMozMobileCellInfo;
 interface nsIDOMMozMobileCFInfo;
 
-[scriptable, builtinclass, uuid(c7fdf0f0-a740-11e2-9e96-0800200c9a66)]
+[scriptable, builtinclass, uuid(7fd42b7e-8100-4f2b-bc85-858603d499c8)]
 interface nsIDOMMozMobileConnection : nsIDOMEventTarget
 {
   const long ICC_SERVICE_CLASS_VOICE = (1 << 0);
@@ -41,19 +40,24 @@ interface nsIDOMMozMobileConnection : nsIDOMEventTarget
   const long CALL_BARRING_PROGRAM_INCOMING_ROAMING                   = 4;
 
   /**
+   * Calling line identification restriction constants.
+   *
+   * @see 3GPP TS 27.007 7.7 Defined values
+   *
+   * (0) Uses subscription default value.
+   * (1) Restricts CLI presentation.
+   * (2) Allows CLI presentation.
+   */
+  const long CLIR_DEFAULT     = 0;
+  const long CLIR_INVOCATION  = 1;
+  const long CLIR_SUPPRESSION = 2;
+
+  /**
    * These two fields can be accessed by privileged applications with the
    * 'mobilenetwork' permission.
    */
   readonly attribute DOMString lastKnownNetwork;
   readonly attribute DOMString lastKnownHomeNetwork;
-
-  /**
-   * Indicates the state of the device's ICC card.
-   *
-   * Possible values: null, 'unknown', 'absent', 'pinRequired', 'pukRequired',
-   * 'networkLocked', 'corporateLocked', 'serviceProviderLocked', 'ready'.
-   */
-  readonly attribute DOMString cardState;
 
   /**
    * Indicates the number of retries remaining when cardState equals 'pinRequired'
@@ -62,11 +66,6 @@ interface nsIDOMMozMobileConnection : nsIDOMEventTarget
    * Value is undefined for other cardState values.
    */
   readonly attribute long retryCount;
-
-  /**
-   * Information stored in the device's ICC card.
-   */
-  readonly attribute nsIDOMMozMobileICCInfo iccInfo;
 
   /**
    * Information about the voice connection.
@@ -241,16 +240,31 @@ interface nsIDOMMozMobileConnection : nsIDOMEventTarget
   nsIDOMDOMRequest getCallWaitingOption();
 
   /**
-   * The 'cardstatechange' event is notified when the 'cardState' attribute
-   * changes value.
+   * Enables or disables the presentation of the calling line identity (CLI) to
+   * the called party when originating a call.
+   *
+   * @param clirMode
+   *        Is one of the CLIR_* constants.
+   *        
+   * If successful, the request's onsuccess will be called.
+   *
+   * Otherwise, the request's onerror will be called, and the request's error
+   * will be either 'RadioNotAvailable', 'RequestNotSupported',
    */
-  [implicit_jscontext] attribute jsval oncardstatechange;
+  nsIDOMDOMRequest setCallingLineIdRestriction(in unsigned short clirMode);
 
-   /**
-   * The 'iccinfochange' event is notified whenever the icc info object
-   * changes.
+  /**
+   * Queries current CLIR status.
+   *
+   * If successful, the request's onsuccess will be called, and the request's
+   * result will be a DOMCLIRStatus dictionary containing CLIR 'n' and 'm'
+   * parameter.
+   *
+   * Otherwise, the request's onerror will be called, and the request's error
+   * will be either 'RadioNotAvailable', 'RequestNotSupported',
+   * or 'GenericFailure'.
    */
-  [implicit_jscontext] attribute jsval oniccinfochange;
+  nsIDOMDOMRequest getCallingLineIdRestriction();
 
   /**
    * The 'voicechange' event is notified whenever the voice connection object
@@ -394,46 +408,6 @@ interface nsIDOMMozMobileCellInfo: nsISupports
   readonly attribute unsigned long gsmCellId;
 };
 
-[scriptable, uuid(10d5c5a2-d43f-4f94-8657-cf7ccabbab6e)]
-interface nsIDOMMozMobileICCInfo : nsISupports
-{
-   /**
-   * Integrated Circuit Card Identifier.
-   */
-  readonly attribute DOMString iccid;
-
-  /**
-   * Mobile Country Code (MCC) of the subscriber's home network.
-   */
-  readonly attribute DOMString mcc;
-
-  /**
-   * Mobile Network Code (MNC) of the subscriber's home network.
-   */
-  readonly attribute DOMString mnc;
-
-  /**
-   * Service Provider Name (SPN) of the subscriber's home network.
-   */
-  readonly attribute DOMString spn;
-
-  /**
-   * Network name must be a part of displayed carrier name.
-   */
-  readonly attribute boolean isDisplayNetworkNameRequired;
-
-  /**
-   * Service provider name must be a part of displayed carrier name.
-   */
-  readonly attribute boolean isDisplaySpnRequired;
-
-  /**
-   * Mobile Station ISDN Number (MSISDN) of the subscriber's, aka
-   * his phone number.
-   */
-  readonly attribute DOMString msisdn;
-};
-
 [scriptable, uuid(d1b35ad8-99aa-47cc-ab49-2e72b00e39df)]
 interface nsIDOMMozMobileCFInfo : nsISupports
 {
@@ -554,4 +528,29 @@ dictionary DOMMMIResult
    * information can be a number, a string key or an array of string keys.
    */
   jsval additionalInformation;
+};
+
+dictionary DOMCLIRStatus
+{
+  /**
+   * CLIR parameter 'n': parameter sets the adjustment for outgoing calls.
+   *
+   * 0 Presentation indicator is used according to the subscription of the
+   *   CLIR service (uses subscription default value).
+   * 1 CLIR invocation (restricts CLI presentation).
+   * 2 CLIR suppression (allows CLI presentation).
+   */
+  unsigned short n;
+
+  /**
+   * CLIR parameter 'm': parameter shows the subscriber CLIR service status in
+   *                     the network.
+   * 0 CLIR not provisioned.
+   * 1 CLIR provisioned in permanent mode.
+   * 2 unknown (e.g. no network, etc.).
+   * 3 CLIR temporary mode presentation restricted.
+   *
+   * @see 3GPP TS 27.007 7.7 Defined values
+   */
+  unsigned short m;
 };

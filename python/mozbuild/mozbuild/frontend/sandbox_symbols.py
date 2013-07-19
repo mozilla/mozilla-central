@@ -140,6 +140,12 @@ VARIABLES = {
         that exist. These generally have .cpp, .cc, or .cxx extensions.
         """),
 
+    'HOST_CPPSRCS': (StrictOrderingOnAppendList, list, [],
+        """C++ source files to compile with the host compiler.
+
+        This variable contains a list of C++ source files to compile.
+        """),
+
     'HOST_CSRCS': (StrictOrderingOnAppendList, list, [],
         """C source files to compile with the host compiler.
 
@@ -310,6 +316,13 @@ VARIABLES = {
         exist. These generally have .cpp, .cc, or .cxx extensions.
         """),
 
+    'NO_DIST_INSTALL': (bool, bool, False,
+        """Disable installing certain files into the distribution directory.
+
+        If present, some files defined by other variables won't be
+        distributed/shipped with the produced build.
+        """),
+
     # IDL Generation.
     'XPIDL_SOURCES': (StrictOrderingOnAppendList, list, [],
         """XPCOM Interface Definition Files (xpidl).
@@ -333,6 +346,12 @@ VARIABLES = {
         This is a list of extra flags that are passed to the IDL compiler.
         Typically this is a set of -I flags that denote extra include
         directories to search for included .idl files.
+        """),
+
+    'IPDL_SOURCES': (StrictOrderingOnAppendList, list, [],
+        """IPDL source files.
+
+        These are .ipdl files that will be parsed and converted to .cpp files.
         """),
 
     'XPCSHELL_TESTS_MANIFESTS': (StrictOrderingOnAppendList, list, [],

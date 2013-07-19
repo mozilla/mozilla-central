@@ -1957,35 +1957,31 @@ nsFlexContainerFrame::ComputeFlexContainerMainSize(
   const FlexboxAxisTracker& aAxisTracker,
   const nsTArray<FlexItem>& aItems)
 {
-  // If we've got a finite computed main-size, use that.
-  nscoord mainSize =
-    aAxisTracker.GetMainComponent(nsSize(aReflowState.ComputedWidth(),
-                                         aReflowState.ComputedHeight()));
-  if (mainSize != NS_UNCONSTRAINEDSIZE) {
-    return mainSize;
+  if (IsAxisHorizontal(aAxisTracker.GetMainAxis())) {
+    // Horizontal case is easy -- our main size is our computed width
+    // (which is already resolved).
+    return aReflowState.ComputedWidth();
   }
 
-  NS_WARN_IF_FALSE(!IsAxisHorizontal(aAxisTracker.GetMainAxis()),
-                   "Computed width should always be constrained, so horizontal "
-                   "flex containers should have a constrained main-size");
+  // Vertical case, with non-auto-height:
+  if (aReflowState.ComputedHeight() != NS_AUTOHEIGHT) {
+    return aReflowState.ComputedHeight();
+  }
 
-  // Otherwise, use the sum of our items' hypothetical main sizes, clamped
-  // to our computed min/max main-size properties.
-  mainSize = 0;
+  // Vertical case, with auto-height:
+  // Resolve auto-height to the sum of our items' hypothetical outer main
+  // sizes (their outer heights), clamped to our computed min/max main-size
+  // properties (min-height & max-height).
+  nscoord sumOfChildHeights = 0;
   for (uint32_t i = 0; i < aItems.Length(); ++i) {
-    mainSize +=
+    sumOfChildHeights +=
       aItems[i].GetMainSize() +
       aItems[i].GetMarginBorderPaddingSizeInAxis(aAxisTracker.GetMainAxis());
   }
 
-  nscoord minMainSize =
-    aAxisTracker.GetMainComponent(nsSize(aReflowState.mComputedMinWidth,
-                                         aReflowState.mComputedMinHeight));
-  nscoord maxMainSize =
-    aAxisTracker.GetMainComponent(nsSize(aReflowState.mComputedMaxWidth,
-                                         aReflowState.mComputedMaxHeight));
-
-  return NS_CSS_MINMAX(mainSize, minMainSize, maxMainSize);
+  return NS_CSS_MINMAX(sumOfChildHeights,
+                       aReflowState.mComputedMinHeight,
+                       aReflowState.mComputedMaxHeight);
 }
 
 void
@@ -2159,6 +2155,8 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
     return NS_OK;
   }
 
+  aStatus = NS_FRAME_COMPLETE;
+
   // We (and our children) can only depend on our ancestor's height if we have
   // a percent-height, or if we're positioned and we have "top" and "bottom"
   // set and have height:auto.  (There are actually other cases, too -- e.g. if
@@ -2206,21 +2204,18 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
   // This would produce an array of arrays, or a list of arrays,
   // or something like that. (one list/array per line)
 
-  nscoord flexContainerMainSize =
+  const nscoord contentBoxMainSize =
     ComputeFlexContainerMainSize(aReflowState, axisTracker, items);
 
-  ResolveFlexibleLengths(axisTracker, flexContainerMainSize, items);
+  ResolveFlexibleLengths(axisTracker, contentBoxMainSize, items);
 
   // Our frame's main-size is the content-box size plus border and padding.
-  nscoord frameMainSize = flexContainerMainSize +
+  const nscoord frameMainSize = contentBoxMainSize +
     axisTracker.GetMarginSizeInMainAxis(aReflowState.mComputedBorderPadding);
 
-  nscoord frameCrossSize;
-
-  MainAxisPositionTracker mainAxisPosnTracker(this, axisTracker,
-                                              aReflowState, items);
-
-  // First loop: Compute main axis position & cross-axis size of each item
+  // Cross Size Determination - Flexbox spec section 9.4
+  // ===================================================
+  // Calculate the hypothetical cross size of each item:
   for (uint32_t i = 0; i < items.Length(); ++i) {
     FlexItem& curItem = items[i];
 
@@ -2234,8 +2229,6 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
     } else {
       childReflowState.SetComputedHeight(curItem.GetMainSize());
     }
-
-    PositionItemInMainAxis(mainAxisPosnTracker, curItem);
 
     nsresult rv =
       SizeItemInCrossAxis(aPresContext, axisTracker,
@@ -2289,7 +2282,8 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
     // flex container's inner cross size."
     lineCrossAxisPosnTracker.SetLineCrossSize(contentBoxCrossSize);
   }
-  frameCrossSize = contentBoxCrossSize +
+
+  const nscoord frameCrossSize = contentBoxCrossSize +
     axisTracker.GetMarginSizeInCrossAxis(aReflowState.mComputedBorderPadding);
 
   // Set the flex container's baseline, from its baseline-aligned items.
@@ -2302,7 +2296,16 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
     flexContainerAscent += aReflowState.mComputedBorderPadding.top;
   }
 
-  // Position the items in cross axis, within their line
+  // Main-Axis Alignment - Flexbox spec section 9.5
+  // ==============================================
+  MainAxisPositionTracker mainAxisPosnTracker(this, axisTracker,
+                                              aReflowState, items);
+  for (uint32_t i = 0; i < items.Length(); ++i) {
+    PositionItemInMainAxis(mainAxisPosnTracker, items[i]);
+  }
+
+  // Cross-Axis Alignment - Flexbox spec section 9.6
+  // ===============================================
   for (uint32_t i = 0; i < items.Length(); ++i) {
     PositionItemInCrossAxis(crossAxisPosnTracker.GetPosition(),
                             lineCrossAxisPosnTracker, items[i]);
@@ -2397,12 +2400,7 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
                "We gave flex item unconstrained available height, so it "
                "should be complete");
 
-    // Apply CSS relative positioning
-    const nsStyleDisplay* styleDisp = curItem.Frame()->StyleDisplay();
-    if (NS_STYLE_POSITION_RELATIVE == styleDisp->mPosition) {
-      physicalPosn.x += childReflowState.mComputedOffsets.left;
-      physicalPosn.y += childReflowState.mComputedOffsets.top;
-    }
+    childReflowState.ApplyRelativePositioning(&physicalPosn);
 
     rv = FinishReflowChild(curItem.Frame(), aPresContext,
                            &childReflowState, childDesiredSize,
@@ -2451,13 +2449,10 @@ nsFlexContainerFrame::Reflow(nsPresContext*           aPresContext,
     ConsiderChildOverflow(aDesiredSize.mOverflowAreas, e.get());
   }
 
-  NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aDesiredSize)
-
-  aStatus = NS_FRAME_COMPLETE;
-
   FinishReflowWithAbsoluteFrames(aPresContext, aDesiredSize,
                                  aReflowState, aStatus);
 
+  NS_FRAME_SET_TRUNCATION(aStatus, aReflowState, aDesiredSize)
   return NS_OK;
 }
 

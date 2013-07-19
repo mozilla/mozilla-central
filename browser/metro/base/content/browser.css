@@ -95,11 +95,11 @@ setting[type="menulist"] {
 }
 
 #urlbar-edit {
-  -moz-binding: url("chrome://browser/content/bindings/autocomplete.xml#autocomplete");
+  -moz-binding: url("chrome://browser/content/bindings/urlbar.xml#urlbar");
 }
 
-#start-autocomplete {
-  -moz-binding: url("chrome://browser/content/bindings/autocomplete.xml#autocomplete-popup");
+#urlbar-autocomplete {
+  -moz-binding: url("chrome://browser/content/bindings/urlbar.xml#urlbar-autocomplete");
 }
 
 richgrid {
@@ -154,27 +154,6 @@ richlistbox[bindingType="contextmenu"] {
 
 richlistitem {
   -moz-binding: url("chrome://browser/content/bindings/bindings.xml#richlistitem");
-}
-
-richgriditem[typeName="download"][state="-1"] {
-  -moz-binding: url("chrome://browser/content/bindings/downloads.xml#download-not-started");
-}
-
-richgriditem[typeName="download"] {
-  -moz-binding: url("chrome://browser/content/bindings/downloads.xml#download-downloading");
-}
-
-richgriditem[typeName="download"][state="1"] {
-  -moz-binding: url("chrome://browser/content/bindings/downloads.xml#download-done");
-}
-
-richgriditem[typeName="download"][state="2"],
-richgriditem[typeName="download"][state="3"] {
-  -moz-binding: url("chrome://browser/content/bindings/downloads.xml#download-retry");
-}
-
-richgriditem[typeName="download"][state="4"] {
-  -moz-binding: url("chrome://browser/content/bindings/downloads.xml#download-paused");
 }
 
 richlistitem[type="error"],

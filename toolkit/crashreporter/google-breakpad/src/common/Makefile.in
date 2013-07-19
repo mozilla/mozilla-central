@@ -38,18 +38,12 @@ HOST_CPPSRCS = \
 endif
 endif
 
-ifeq ($(OS_ARCH),Darwin)
-DISABLED_CMMSRCS += \
-  mac/dump_syms.mm
-endif
-
 DISABLED_CSRCS = \
   convert_UTF.c \
   $(NULL)
 
 ifeq ($(OS_TARGET),Android)
 VPATH += $(srcdir)/android
-DISABLED_SSRCS := breakpad_getcontext.S
 TARGET_LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/crashreporter/google-breakpad/src/common/android/include/
 DEFINES += -DNO_STABS_SUPPORT
 endif

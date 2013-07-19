@@ -99,20 +99,20 @@ abstract public class BrowserApp extends GeckoApp
     private AboutHome mAboutHome;
     protected Telemetry.Timer mAboutHomeStartupTimer = null;
 
+    private static final int GECKO_TOOLS_MENU = -1;
     private static final int ADDON_MENU_OFFSET = 1000;
     private class MenuItemInfo {
         public int id;
         public String label;
         public String icon;
-        public boolean checkable;
-        public boolean checked;
-        public boolean enabled;
-        public boolean visible;
+        public boolean checkable = false;
+        public boolean checked = false;
+        public boolean enabled = true;
+        public boolean visible = true;
         public int parent;
     }
 
     private Vector<MenuItemInfo> mAddonMenuItemsCache;
-    private ButtonToast mToast;
     private PropertyAnimator mMainLayoutAnimator;
 
     private static final Interpolator sTabsInterpolator = new Interpolator() {
@@ -393,15 +393,6 @@ abstract public class BrowserApp extends GeckoApp
         super.onCreate(savedInstanceState);
 
         mBrowserToolbar = (BrowserToolbar) findViewById(R.id.browser_toolbar);
-
-        mToast = new ButtonToast(findViewById(R.id.toast), new ButtonToast.ToastListener() {
-            @Override
-            public void onButtonClicked(CharSequence token) {
-                if (ADD_SHORTCUT_TOAST.equals(token)) {
-                    showBookmarkDialog();
-                }
-            }
-        });
 
         ((GeckoApp.MainLayout) mMainLayout).setTouchEventInterceptor(new HideTabsTouchListener());
         ((GeckoApp.MainLayout) mMainLayout).setMotionEventInterceptor(new MotionEventInterceptor() {
@@ -814,7 +805,7 @@ abstract public class BrowserApp extends GeckoApp
 
         // If the page has shrunk so that the toolbar no longer scrolls, make
         // sure the toolbar is visible.
-        if (aMetrics.getPageHeight() < aMetrics.getHeight()) {
+        if (aMetrics.getPageHeight() <= aMetrics.getHeight()) {
             if (mDynamicToolbarCanScroll) {
                 mDynamicToolbarCanScroll = false;
                 if (!mBrowserToolbar.isVisible()) {
@@ -985,21 +976,13 @@ abstract public class BrowserApp extends GeckoApp
                 MenuItemInfo info = new MenuItemInfo();
                 info.label = message.getString("name");
                 info.id = message.getInt("id") + ADDON_MENU_OFFSET;
-                info.checkable = false;
-                info.checked = false;
-                info.enabled = true;
-                info.visible = true;
-                String iconRes = null;
-                try { // icon is optional
-                    iconRes = message.getString("icon");
-                } catch (Exception ex) { }
-                info.icon = iconRes;
-                try {
-                    info.checkable = message.getBoolean("checkable");
-                } catch (Exception ex) { }
-                try { // parent is optional
-                    info.parent = message.getInt("parent") + ADDON_MENU_OFFSET;
-                } catch (Exception ex) { }
+                info.icon = message.optString("icon", null);
+                info.checked = message.optBoolean("checked", false);
+                info.enabled = message.optBoolean("enabled", true);
+                info.visible = message.optBoolean("visible", true);
+                info.checkable = message.optBoolean("checkable", false);
+                int parent = message.optInt("parent", 0);
+                info.parent = parent <= 0 ? parent : parent + ADDON_MENU_OFFSET;
                 final MenuItemInfo menuItemInfo = info;
                 ThreadUtils.postToUiThread(new Runnable() {
                     @Override
@@ -1249,6 +1232,7 @@ abstract public class BrowserApp extends GeckoApp
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        mToast.onSaveInstanceState(outState);
         outState.putBoolean(STATE_DYNAMIC_TOOLBAR_ENABLED, mDynamicToolbarEnabled);
         outState.putInt(STATE_ABOUT_HOME_TOP_PADDING, mAboutHome.getTopPadding());
     }
@@ -1392,6 +1376,26 @@ abstract public class BrowserApp extends GeckoApp
         }
     }
 
+    private Menu findParentMenu(Menu menu, MenuItem item) {
+        final int itemId = item.getItemId();
+
+        final int count = (menu != null) ? menu.size() : 0;
+        for (int i = 0; i < count; i++) {
+            MenuItem menuItem = menu.getItem(i);
+            if (menuItem.getItemId() == itemId) {
+                return menu;
+            }
+            if (menuItem.hasSubMenu()) {
+                Menu parent = findParentMenu(menuItem.getSubMenu(), item);
+                if (parent != null) {
+                    return parent;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private void addAddonMenuItem(final MenuItemInfo info) {
         if (mMenu == null) {
             if (mAddonMenuItemsCache == null)
@@ -1404,14 +1408,19 @@ abstract public class BrowserApp extends GeckoApp
         Menu menu;
         if (info.parent == 0) {
             menu = mMenu;
+        } else if (info.parent == GECKO_TOOLS_MENU) {
+            MenuItem tools = mMenu.findItem(R.id.tools);
+            menu = tools != null ? tools.getSubMenu() : mMenu;
         } else {
             MenuItem parent = mMenu.findItem(info.parent);
             if (parent == null)
                 return;
 
+            Menu parentMenu = findParentMenu(mMenu, parent);
+
             if (!parent.hasSubMenu()) {
-                mMenu.removeItem(parent.getItemId());
-                menu = mMenu.addSubMenu(Menu.NONE, parent.getItemId(), Menu.NONE, parent.getTitle());
+                parentMenu.removeItem(parent.getItemId());
+                menu = parentMenu.addSubMenu(Menu.NONE, parent.getItemId(), Menu.NONE, parent.getTitle());
                 if (parent.getIcon() != null)
                     ((SubMenu) menu).getItem().setIcon(parent.getIcon());
             } else {
@@ -1430,31 +1439,17 @@ abstract public class BrowserApp extends GeckoApp
         });
 
         if (info.icon != null) {
-            if (info.icon.startsWith("data")) {
-                BitmapDrawable drawable = new BitmapDrawable(BitmapUtils.getBitmapFromDataURI(info.icon));
-                item.setIcon(drawable);
-            }
-            else if (info.icon.startsWith("jar:") || info.icon.startsWith("file://")) {
-                ThreadUtils.postToBackgroundThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            URL url = new URL(info.icon);
-                            InputStream is = (InputStream) url.getContent();
-                            try {
-                                Drawable drawable = Drawable.createFromStream(is, "src");
-                                item.setIcon(drawable);
-                            } finally {
-                                is.close();
-                            }
-                        } catch (Exception e) {
-                            Log.w(LOGTAG, "Unable to set icon", e);
-                        }
+            BitmapUtils.getDrawable(this, info.icon, new BitmapUtils.BitmapLoader() {
+                @Override
+                public void onBitmapFound(Drawable d) {
+                    if (d == null) {
+                        item.setIcon(R.drawable.ic_menu_addons_filler);
+                        return;
                     }
-                });
-            } else {
-                item.setIcon(R.drawable.ic_menu_addons_filler);
-            }
+
+                    item.setIcon(d);
+                }
+            });
         } else {
             item.setIcon(R.drawable.ic_menu_addons_filler);
         }
@@ -1489,21 +1484,10 @@ abstract public class BrowserApp extends GeckoApp
         if (mAddonMenuItemsCache != null && !mAddonMenuItemsCache.isEmpty()) {
             for (MenuItemInfo item : mAddonMenuItemsCache) {
                  if (item.id == id) {
-                     try {
-                        item.checkable = options.getBoolean("checkable");
-                     } catch (JSONException e) {}
-
-                     try {
-                        item.checked = options.getBoolean("checked");
-                     } catch (JSONException e) {}
-
-                     try {
-                        item.enabled = options.getBoolean("enabled");
-                     } catch (JSONException e) {}
-
-                     try {
-                        item.visible = options.getBoolean("visible");
-                     } catch (JSONException e) {}
+                     item.checkable = options.optBoolean("checkable", item.checkable);
+                     item.checked = options.optBoolean("checked", item.checked);
+                     item.enabled = options.optBoolean("enabled", item.enabled);
+                     item.visible = options.optBoolean("visible", item.visible);
                      break;
                  }
             }
@@ -1514,21 +1498,10 @@ abstract public class BrowserApp extends GeckoApp
 
         MenuItem menuItem = mMenu.findItem(id);
         if (menuItem != null) {
-            try {
-               menuItem.setCheckable(options.getBoolean("checkable"));
-            } catch (JSONException e) {}
-
-            try {
-               menuItem.setChecked(options.getBoolean("checked"));
-            } catch (JSONException e) {}
-
-            try {
-               menuItem.setEnabled(options.getBoolean("enabled"));
-            } catch (JSONException e) {}
-
-            try {
-               menuItem.setVisible(options.getBoolean("visible"));
-            } catch (JSONException e) {}
+            menuItem.setCheckable(options.optBoolean("checkable", menuItem.isCheckable()));
+            menuItem.setChecked(options.optBoolean("checked", menuItem.isChecked()));
+            menuItem.setEnabled(options.optBoolean("enabled", menuItem.isEnabled()));
+            menuItem.setVisible(options.optBoolean("visible", menuItem.isVisible()));
         }
     }
 
@@ -1590,10 +1563,19 @@ abstract public class BrowserApp extends GeckoApp
         ThreadUtils.postToUiThread(new Runnable() {
             @Override
             public void run() {
-                if (fullscreen)
+                if (fullscreen) {
                     mBrowserToolbar.hide();
-                else
+                    if (isDynamicToolbarEnabled()) {
+                        mLayerView.getLayerMarginsAnimator().hideMargins(true);
+                        mLayerView.getLayerMarginsAnimator().setMaxMargins(0, 0, 0, 0);
+                    }
+                } else {
                     mBrowserToolbar.show();
+                    if (isDynamicToolbarEnabled()) {
+                        mLayerView.getLayerMarginsAnimator().showMargins(true);
+                        mLayerView.getLayerMarginsAnimator().setMaxMargins(0, mToolbarHeight, 0, 0);
+                    }
+                }
             }
         });
     }
@@ -1693,10 +1675,18 @@ abstract public class BrowserApp extends GeckoApp
                     } else {
                         tab.addBookmark();
                         mToast.show(false,
-                                    getResources().getString(R.string.bookmark_added),
-                                    getResources().getString(R.string.bookmark_options),
-                                    0,
-                                    ADD_SHORTCUT_TOAST);
+                            getResources().getString(R.string.bookmark_added),
+                            getResources().getString(R.string.bookmark_options),
+                            null,
+                            new ButtonToast.ToastListener() {
+                                @Override
+                                public void onButtonClicked() {
+                                    showBookmarkDialog();
+                                }
+
+                                @Override
+                                public void onToastHidden(ButtonToast.ReasonHidden reason) { }
+                            });
                         item.setIcon(R.drawable.ic_menu_bookmark_remove);
                     }
                 }
@@ -1842,11 +1832,16 @@ abstract public class BrowserApp extends GeckoApp
             public synchronized String doInBackground(Void... params) {
                 // Get the most recent URL stored in browser history.
                 String url = "";
-                Cursor c = BrowserDB.getRecentHistory(getContentResolver(), 1);
-                if (c.moveToFirst()) {
-                    url = c.getString(c.getColumnIndexOrThrow(Combined.URL));
+                Cursor c = null;
+                try {
+                    c = BrowserDB.getRecentHistory(getContentResolver(), 1);
+                    if (c.moveToFirst()) {
+                        url = c.getString(c.getColumnIndexOrThrow(Combined.URL));
+                    }
+                } finally {
+                    if (c != null)
+                        c.close();
                 }
-                c.close();
                 return url;
             }
 

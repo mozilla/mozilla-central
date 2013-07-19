@@ -7,14 +7,15 @@
 
 #ifdef USE_CAIRO
 #include "DrawTargetCairo.h"
-#include "ScaledFontBase.h"
+#include "ScaledFontCairo.h"
 #endif
 
 #ifdef USE_SKIA
 #include "DrawTargetSkia.h"
 #include "ScaledFontBase.h"
 #ifdef MOZ_ENABLE_FREETYPE
-#include "ScaledFontFreetype.h"
+#define USE_SKIA_FREETYPE
+#include "ScaledFontCairo.h"
 #endif
 #endif
 
@@ -33,8 +34,12 @@
 
 #ifdef WIN32
 #include "DrawTargetD2D.h"
+#ifdef USE_D2D1_1
+#include "DrawTargetD2D1.h"
+#endif
 #include "ScaledFontDWrite.h"
 #include <d3d10_1.h>
+#include "HelpersD2D.h"
 #endif
 
 #include "DrawTargetDual.h"
@@ -150,6 +155,10 @@ int sGfxLogLevel = LOG_DEBUG;
 
 #ifdef WIN32
 ID3D10Device1 *Factory::mD3D10Device;
+#ifdef USE_D2D1_1
+ID3D11Device *Factory::mD3D11Device;
+ID2D1Device *Factory::mD2D1Device;
+#endif
 #endif
 
 DrawEventRecorder *Factory::mRecorder;
@@ -184,6 +193,17 @@ Factory::CreateDrawTarget(BackendType aBackend, const IntSize &aSize, SurfaceFor
       }
       break;
     }
+#ifdef USE_D2D1_1
+  case BACKEND_DIRECT2D1_1:
+    {
+      RefPtr<DrawTargetD2D1> newTarget;
+      newTarget = new DrawTargetD2D1();
+      if (newTarget->Init(aSize, aFormat)) {
+        retVal = newTarget;
+      }
+      break;
+    }
+#endif
 #elif defined XP_MACOSX
   case BACKEND_COREGRAPHICS:
   case BACKEND_COREGRAPHICS_ACCELERATED:
@@ -297,20 +317,10 @@ Factory::CreateScaledFontForNativeFont(const NativeFont &aNativeFont, Float aSiz
       return new ScaledFontMac(static_cast<CGFontRef>(aNativeFont.mFont), aSize);
     }
 #endif
-#ifdef USE_SKIA
-#ifdef MOZ_ENABLE_FREETYPE
-  case NATIVE_FONT_SKIA_FONT_FACE:
-    {
-      return new ScaledFontFreetype(static_cast<FontOptions*>(aNativeFont.mFont), aSize);
-    }
-#endif
-#endif
-#ifdef USE_CAIRO
+#if defined(USE_CAIRO) || defined(USE_SKIA_FREETYPE)
   case NATIVE_FONT_CAIRO_FONT_FACE:
     {
-      ScaledFontBase* fontBase = new ScaledFontBase(aSize);
-      fontBase->SetCairoScaledFont(static_cast<cairo_scaled_font_t*>(aNativeFont.mFont));
-      return fontBase;
+      return new ScaledFontCairo(static_cast<cairo_scaled_font_t*>(aNativeFont.mFont), aSize);
     }
 #endif
   default:
@@ -352,6 +362,22 @@ Factory::CreateScaledFontWithCairo(const NativeFont& aNativeFont, Float aSize, c
   return nullptr;
 #endif
 }
+
+TemporaryRef<DrawTarget>
+Factory::CreateDualDrawTarget(DrawTarget *targetA, DrawTarget *targetB)
+{
+  RefPtr<DrawTarget> newTarget =
+    new DrawTargetDual(targetA, targetB);
+
+  RefPtr<DrawTarget> retVal = newTarget;
+
+  if (mRecorder) {
+    retVal = new DrawTargetRecording(mRecorder, retVal);
+  }
+
+  return retVal;
+}
+
 
 #ifdef WIN32
 TemporaryRef<DrawTarget>
@@ -420,6 +446,32 @@ Factory::GetDirect3D10Device()
   return mD3D10Device;
 }
 
+#ifdef USE_D2D1_1
+void
+Factory::SetDirect3D11Device(ID3D11Device *aDevice)
+{
+  mD3D11Device = aDevice;
+
+  RefPtr<ID2D1Factory1> factory = D2DFactory1();
+
+  RefPtr<IDXGIDevice> device;
+  aDevice->QueryInterface((IDXGIDevice**)byRef(device));
+  factory->CreateDevice(device, &mD2D1Device);
+}
+
+ID3D11Device*
+Factory::GetDirect3D11Device()
+{
+  return mD3D11Device;
+}
+
+ID2D1Device*
+Factory::GetD2D1Device()
+{
+  return mD2D1Device;
+}
+#endif
+
 TemporaryRef<GlyphRenderingOptions>
 Factory::CreateDWriteGlyphRenderingOptions(IDWriteRenderingParams *aParams)
 {
@@ -451,13 +503,30 @@ Factory::D2DCleanup()
 
 #ifdef USE_SKIA_GPU
 TemporaryRef<DrawTarget>
-Factory::CreateSkiaDrawTargetForFBO(unsigned int aFBOID, GrContext *aGrContext, const IntSize &aSize, SurfaceFormat aFormat)
+Factory::CreateDrawTargetSkiaWithGLContextAndGrGLInterface(GenericRefCountedBase* aGLContext,
+                                                           GrGLInterface* aGrGLInterface,
+                                                           const IntSize &aSize,
+                                                           SurfaceFormat aFormat)
 {
-  RefPtr<DrawTargetSkia> newTarget = new DrawTargetSkia();
-  newTarget->InitWithFBO(aFBOID, aGrContext, aSize, aFormat);
+  DrawTargetSkia* newDrawTargetSkia = new DrawTargetSkia();
+  newDrawTargetSkia->InitWithGLContextAndGrGLInterface(aGLContext, aGrGLInterface, aSize, aFormat);
+  RefPtr<DrawTarget> newTarget = newDrawTargetSkia;
   return newTarget;
 }
 #endif // USE_SKIA_GPU
+
+#ifdef USE_SKIA_FREETYPE
+TemporaryRef<GlyphRenderingOptions>
+Factory::CreateCairoGlyphRenderingOptions(FontHinting aHinting, bool aAutoHinting)
+{
+  RefPtr<GlyphRenderingOptionsCairo> options =
+    new GlyphRenderingOptionsCairo();
+
+  options->SetHinting(aHinting);
+  options->SetAutoHinting(aAutoHinting);
+  return options;
+}
+#endif
 
 TemporaryRef<DrawTarget>
 Factory::CreateDrawTargetForCairoSurface(cairo_surface_t* aSurface, const IntSize& aSize)
@@ -478,6 +547,26 @@ Factory::CreateDrawTargetForCairoSurface(cairo_surface_t* aSurface, const IntSiz
 #endif
   return retVal;
 }
+
+#ifdef XP_MACOSX
+TemporaryRef<DrawTarget>
+Factory::CreateDrawTargetForCairoCGContext(CGContextRef cg, const IntSize& aSize)
+{
+  RefPtr<DrawTarget> retVal;
+
+  RefPtr<DrawTargetCG> newTarget = new DrawTargetCG();
+
+  if (newTarget->Init(cg, aSize)) {
+    retVal = newTarget;
+  }
+
+  if (mRecorder && retVal) {
+    RefPtr<DrawTarget> recordDT = new DrawTargetRecording(mRecorder, retVal);
+    return recordDT;
+  }
+  return retVal;
+}
+#endif
 
 TemporaryRef<DataSourceSurface>
 Factory::CreateWrappingDataSourceSurface(uint8_t *aData, int32_t aStride,

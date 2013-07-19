@@ -572,16 +572,20 @@ AutoGCRooter::trace(JSTracer *trc)
 /* static */ void
 AutoGCRooter::traceAll(JSTracer *trc)
 {
-    for (js::AutoGCRooter *gcr = trc->runtime->autoGCRooters; gcr; gcr = gcr->down)
-        gcr->trace(trc);
+    for (ContextIter cx(trc->runtime); !cx.done(); cx.next()) {
+        for (js::AutoGCRooter *gcr = cx->autoGCRooters; gcr; gcr = gcr->down)
+            gcr->trace(trc);
+    }
 }
 
 /* static */ void
 AutoGCRooter::traceAllWrappers(JSTracer *trc)
 {
-    for (js::AutoGCRooter *gcr = trc->runtime->autoGCRooters; gcr; gcr = gcr->down) {
-        if (gcr->tag_ == WRAPVECTOR || gcr->tag_ == WRAPPER)
-            gcr->trace(trc);
+    for (ContextIter cx(trc->runtime); !cx.done(); cx.next()) {
+        for (js::AutoGCRooter *gcr = cx->autoGCRooters; gcr; gcr = gcr->down) {
+            if (gcr->tag_ == WRAPVECTOR || gcr->tag_ == WRAPPER)
+                gcr->trace(trc);
+        }
     }
 }
 
@@ -713,7 +717,7 @@ js::gc::MarkRuntime(JSTracer *trc, bool useSavedRoots)
         }
 
         /* Do not discard scripts with counts while profiling. */
-        if (rt->profilingScripts) {
+        if (rt->profilingScripts && !rt->isHeapMinorCollecting()) {
             for (CellIterUnderGC i(zone, FINALIZE_SCRIPT); !i.done(); i.next()) {
                 JSScript *script = i.get<JSScript>();
                 if (script->hasScriptCounts) {
@@ -760,13 +764,15 @@ js::gc::MarkRuntime(JSTracer *trc, bool useSavedRoots)
     }
 
     /* The embedding can register additional roots here. */
-    if (JSTraceDataOp op = rt->gcBlackRootsTraceOp)
-        (*op)(trc, rt->gcBlackRootsData);
+    for (size_t i = 0; i < rt->gcBlackRootTracers.length(); i++) {
+        const JSRuntime::ExtraTracer &e = rt->gcBlackRootTracers[i];
+        (*e.op)(trc, e.data);
+    }
 
     /* During GC, we don't mark gray roots at this stage. */
-    if (JSTraceDataOp op = rt->gcGrayRootsTraceOp) {
+    if (JSTraceDataOp op = rt->gcGrayRootTracer.op) {
         if (!IS_GC_MARKING_TRACER(trc))
-            (*op)(trc, rt->gcGrayRootsData);
+            (*op)(trc, rt->gcGrayRootTracer.data);
     }
 }
 
@@ -774,9 +780,9 @@ void
 js::gc::BufferGrayRoots(GCMarker *gcmarker)
 {
     JSRuntime *rt = gcmarker->runtime;
-    if (JSTraceDataOp op = rt->gcGrayRootsTraceOp) {
+    if (JSTraceDataOp op = rt->gcGrayRootTracer.op) {
         gcmarker->startBufferingGrayRoots();
-        (*op)(gcmarker, rt->gcGrayRootsData);
+        (*op)(gcmarker, rt->gcGrayRootTracer.data);
         gcmarker->endBufferingGrayRoots();
     }
 }

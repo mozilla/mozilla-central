@@ -15,6 +15,7 @@
 #include "nsXULAppAPI.h"
 #include "mozilla/layers/TextureClient.h"
 #include "mozilla/layers/ImageClient.h"
+#include "ImageContainer.h"
 #include "mozilla/layers/LayersTypes.h"
 #include "ShadowLayers.h"
  
@@ -239,13 +240,13 @@ ImageBridgeChild::Connect(CompositableClient* aCompositable)
 }
 
 PCompositableChild*
-ImageBridgeChild::AllocPCompositable(const TextureInfo& aInfo, uint64_t* aID)
+ImageBridgeChild::AllocPCompositableChild(const TextureInfo& aInfo, uint64_t* aID)
 {
   return new CompositableChild();
 }
 
 bool
-ImageBridgeChild::DeallocPCompositable(PCompositableChild* aActor)
+ImageBridgeChild::DeallocPCompositableChild(PCompositableChild* aActor)
 {
   delete aActor;
   return true;
@@ -316,7 +317,10 @@ void ImageBridgeChild::DispatchImageClientUpdate(ImageClient* aClient,
   }
   sImageBridgeChildSingleton->GetMessageLoop()->PostTask(
     FROM_HERE,
-    NewRunnableFunction(&UpdateImageClientNow, aClient, aContainer));
+    NewRunnableFunction<
+      void (*)(ImageClient*, ImageContainer*),
+      ImageClient*,
+      nsRefPtr<ImageContainer> >(&UpdateImageClientNow, aClient, aContainer));
 }
 
 void
@@ -522,8 +526,8 @@ ImageBridgeChild::CreateImageClientNow(CompositableType aType)
 }
 
 PGrallocBufferChild*
-ImageBridgeChild::AllocPGrallocBuffer(const gfxIntSize&, const uint32_t&, const uint32_t&,
-                                      MaybeMagicGrallocBufferHandle*)
+ImageBridgeChild::AllocPGrallocBufferChild(const gfxIntSize&, const uint32_t&, const uint32_t&,
+                                           MaybeMagicGrallocBufferHandle*)
 {
 #ifdef MOZ_HAVE_SURFACEDESCRIPTORGRALLOC
   return GrallocBufferActor::Create();
@@ -534,7 +538,7 @@ ImageBridgeChild::AllocPGrallocBuffer(const gfxIntSize&, const uint32_t&, const 
 }
 
 bool
-ImageBridgeChild::DeallocPGrallocBuffer(PGrallocBufferChild* actor)
+ImageBridgeChild::DeallocPGrallocBufferChild(PGrallocBufferChild* actor)
 {
 #ifdef MOZ_HAVE_SURFACEDESCRIPTORGRALLOC
   delete actor;

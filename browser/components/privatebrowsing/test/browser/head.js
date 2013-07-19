@@ -1,9 +1,48 @@
 function whenNewWindowLoaded(aOptions, aCallback) {
   let win = OpenBrowserWindow(aOptions);
+  let gotLoad = false;
+  let gotActivate = (Cc["@mozilla.org/focus-manager;1"].getService(Ci.nsIFocusManager).activeWindow == win);
+
+  function maybeRunCallback() {
+    if (gotLoad && gotActivate) {
+      win.BrowserChromeTest.runWhenReady(function() {
+        executeSoon(function() { aCallback(win); });
+      });
+    }
+  }
+
+  if (!gotActivate) {
+    win.addEventListener("activate", function onActivate() {
+      info("Got activate.");
+      win.removeEventListener("activate", onActivate, false);
+      gotActivate = true;
+      maybeRunCallback();
+    }, false);
+  } else {
+    info("Was activated.");
+  }
+
+  win.addEventListener("load", function onLoad() {
+    info("Got load");
+    win.removeEventListener("load", onLoad, false);
+    gotLoad = true;
+    maybeRunCallback();
+  }, false);
+  return win;
+}
+
+function openWindow(aParent, aOptions, a3) {
+  let { Promise: { defer } } = Components.utils.import("resource://gre/modules/Promise.jsm", {});
+  let { promise, resolve } = defer();
+
+  let win = aParent.OpenBrowserWindow(aOptions);
+
   win.addEventListener("load", function onLoad() {
     win.removeEventListener("load", onLoad, false);
-    aCallback(win);
+    resolve(win);
   }, false);
+
+  return promise;
 }
 
 function newDirectory() {
@@ -37,4 +76,3 @@ function _initTest() {
 }
 
 _initTest();
-

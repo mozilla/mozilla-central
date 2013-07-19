@@ -44,6 +44,8 @@ public class GeckoAccessibility {
     private static JSONObject sEventMessage = null;
     private static AccessibilityNodeInfo sVirtualCursorNode = null;
 
+    // This is the number Brailleback uses to start indexing routing keys.
+    private static final int BRAILLE_CLICK_BASE_INDEX = -275000000;
     private static SelfBrailleClient sSelfBrailleClient = null;
 
     private static final HashSet<String> sServiceWhitelist =
@@ -198,9 +200,10 @@ public class GeckoAccessibility {
                 sVirtualCursorNode.setBoundsInScreen(screenBounds);
             }
 
-            final String brailleText = message.optString("brailleText");
-            if (!brailleText.isEmpty()) {
-                sendBrailleText(view, brailleText);
+            final JSONObject braille = message.optJSONObject("brailleOutput");
+            if (braille != null) {
+                sendBrailleText(view, braille.optString("text"),
+                                braille.optInt("selectionStart"), braille.optInt("selectionEnd"));
             }
 
             ThreadUtils.postToUiThread(new Runnable() {
@@ -232,13 +235,13 @@ public class GeckoAccessibility {
         }
     }
 
-    private static void sendBrailleText(final View view, final String text) {
+    private static void sendBrailleText(final View view, final String text, final int selectionStart, final int selectionEnd) {
         AccessibilityNodeInfo info = AccessibilityNodeInfo.obtain(view, VIRTUAL_CURSOR_POSITION);
         WriteData data = WriteData.forInfo(info);
         data.setText(text);
-        // Set the focus blink
-        data.setSelectionStart(0);
-        data.setSelectionEnd(0);
+        // Set either the focus blink or the current caret position/selection
+        data.setSelectionStart(selectionStart);
+        data.setSelectionEnd(selectionEnd);
         sSelfBrailleClient.write(data);
     }
 
@@ -339,11 +342,19 @@ public class GeckoAccessibility {
                                 return true;
                             } else if (action == AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY &&
                                        virtualViewId == VIRTUAL_CURSOR_POSITION) {
-                                // XXX: Self brailling gives this action with a bogus argument instead of an actual click action
+                                // XXX: Self brailling gives this action with a bogus argument instead of an actual click action;
+                                // the argument value is the BRAILLE_CLICK_BASE_INDEX - the index of the routing key that was hit
                                 int granularity = arguments.getInt(AccessibilityNodeInfo.ACTION_ARGUMENT_MOVEMENT_GRANULARITY_INT);
                                 if (granularity < 0) {
+                                    int keyIndex = BRAILLE_CLICK_BASE_INDEX - granularity;
+                                    JSONObject activationData = new JSONObject();
+                                    try {
+                                        activationData.put("keyIndex", keyIndex);
+                                    } catch (JSONException e) {
+                                        return true;
+                                    }
                                     GeckoAppShell.
-                                        sendEventToGecko(GeckoEvent.createBroadcastEvent("Accessibility:ActivateObject", null));
+                                        sendEventToGecko(GeckoEvent.createBroadcastEvent("Accessibility:ActivateObject", activationData.toString()));
                                 } else {
                                     JSONObject movementData = new JSONObject();
                                     try {

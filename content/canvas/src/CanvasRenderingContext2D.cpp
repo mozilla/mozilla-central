@@ -98,9 +98,14 @@
 #include "mozilla/dom/TextMetrics.h"
 
 #ifdef USE_SKIA_GPU
+#undef free // apparently defined by some windows header, clashing with a free()
+            // method in SkTypes.h
 #include "GLContext.h"
 #include "GLContextProvider.h"
+#include "GLContextSkia.h"
 #include "SurfaceTypes.h"
+using mozilla::gl::GLContext;
+using mozilla::gl::GLContextProvider;
 #endif
 
 #ifdef XP_WIN
@@ -440,15 +445,20 @@ public:
     CanvasRenderingContext2DUserData* self =
       static_cast<CanvasRenderingContext2DUserData*>(aData);
     CanvasRenderingContext2D* context = self->mContext;
-    if (self->mContext && context->mGLContext) {
-      if (self->mContext->mTarget != nullptr) {
-        // Since SkiaGL default to store drawing command until flush
-        // We will have to flush it before present.
-        self->mContext->mTarget->Flush();
-      }
-      context->mGLContext->MakeCurrent();
-      context->mGLContext->PublishFrame();
+    if (!context)
+      return;
+
+    GLContext* glContext = static_cast<GLContext*>(context->mTarget->GetGLContext());
+    if (!glContext)
+      return;
+
+    if (context->mTarget) {
+      // Since SkiaGL default to store drawing command until flush
+      // We will have to flush it before present.
+      context->mTarget->Flush();
     }
+    glContext->MakeCurrent();
+    glContext->PublishFrame();
   }
 #endif
 
@@ -547,6 +557,10 @@ CanvasRenderingContext2D::CanvasRenderingContext2D()
 {
   sNumLivingContexts++;
   SetIsDOMBinding();
+
+#if USE_SKIA_GPU
+  mForceSoftware = false;
+#endif
 }
 
 CanvasRenderingContext2D::~CanvasRenderingContext2D()
@@ -560,6 +574,12 @@ CanvasRenderingContext2D::~CanvasRenderingContext2D()
   if (!sNumLivingContexts) {
     NS_IF_RELEASE(sErrorTarget);
   }
+
+#if USE_SKIA_GPU
+  std::vector<CanvasRenderingContext2D*>::iterator iter = std::find(DemotableContexts().begin(), DemotableContexts().end(), this);
+  if (iter != DemotableContexts().end())
+    DemotableContexts().erase(iter);
+#endif
 }
 
 JSObject*
@@ -757,6 +777,62 @@ CanvasRenderingContext2D::RedrawUser(const gfxRect& r)
   Redraw(newr);
 }
 
+#if USE_SKIA_GPU
+
+void CanvasRenderingContext2D::Demote()
+{
+  if (!IsTargetValid() || mForceSoftware)
+    return;
+
+  RefPtr<SourceSurface> snapshot = mTarget->Snapshot();
+  RefPtr<DrawTarget> oldTarget = mTarget;
+  mTarget = nullptr;
+  mForceSoftware = true;
+
+  // Recreate target, now demoted to software only
+  EnsureTarget();
+  if (!IsTargetValid())
+    return;
+
+  // Put back the content from the old DrawTarget
+  mgfx::Rect r(0, 0, mWidth, mHeight);
+  mTarget->DrawSurface(snapshot, r, r);
+}
+
+std::vector<CanvasRenderingContext2D*>&
+CanvasRenderingContext2D::DemotableContexts()
+{
+  static std::vector<CanvasRenderingContext2D*> contexts;
+  return contexts;
+}
+
+void
+CanvasRenderingContext2D::DemoteOldestContextIfNecessary()
+{
+#ifdef MOZ_GFX_OPTIMIZE_MOBILE
+  const size_t kMaxContexts = 2;
+#else
+  const size_t kMaxContexts = 16;
+#endif
+
+  std::vector<CanvasRenderingContext2D*>& contexts = DemotableContexts();
+  if (contexts.size() < kMaxContexts)
+    return;
+
+  CanvasRenderingContext2D* oldest = contexts.front();
+  contexts.erase(contexts.begin());
+
+  oldest->Demote();
+}
+
+void
+CanvasRenderingContext2D::AddDemotableContext(CanvasRenderingContext2D* context)
+{
+  DemotableContexts().push_back(context);
+}
+
+#endif
+
 void
 CanvasRenderingContext2D::EnsureTarget()
 {
@@ -794,19 +870,25 @@ CanvasRenderingContext2D::EnsureTarget()
          }
 #endif
 
-         mGLContext = mozilla::gl::GLContextProvider::CreateOffscreen(gfxIntSize(size.width,
-                                                                                 size.height),
-                                                                      caps,
-                                                                      mozilla::gl::GLContext::ContextFlagsNone);
+         DemoteOldestContextIfNecessary();
 
-         if (mGLContext) {
-           mTarget = gfxPlatform::GetPlatform()->CreateDrawTargetForFBO(0, mGLContext, size, format);
+         nsRefPtr<GLContext> glContext;
+
+         if (!mForceSoftware) {
+           glContext = GLContextProvider::CreateOffscreen(gfxIntSize(size.width, size.height),
+                                                          caps, GLContext::ContextFlagsNone);
+         }
+
+         if (glContext) {
+           SkAutoTUnref<GrGLInterface> i(CreateGrGLInterfaceFromGLContext(glContext));
+           mTarget = Factory::CreateDrawTargetSkiaWithGLContextAndGrGLInterface(glContext, i, size, format);
+           AddDemotableContext(this);
          } else {
            mTarget = layerManager->CreateDrawTarget(size, format);
          }
        } else
 #endif
-         mTarget = layerManager->CreateDrawTarget(size, format);
+       mTarget = layerManager->CreateDrawTarget(size, format);
      } else {
        mTarget = gfxPlatform::GetPlatform()->CreateOffscreenDrawTarget(size, format);
      }
@@ -891,6 +973,7 @@ CanvasRenderingContext2D::InitializeWithSurface(nsIDocShell *shell,
   SetDimensions(width, height);
   mTarget = gfxPlatform::GetPlatform()->
     CreateDrawTargetForSurface(surface, IntSize(width, height));
+
   if (!mTarget) {
     EnsureErrorTarget();
     mTarget = sErrorTarget;
@@ -3213,6 +3296,8 @@ CanvasRenderingContext2D::DrawWindow(nsIDOMWindow* window, double x,
   // gfxContext-over-Azure may modify the DrawTarget's transform, so
   // save and restore it
   Matrix matrix = mTarget->GetTransform();
+  double sw = matrix._11 * w;
+  double sh = matrix._22 * h;
   nsRefPtr<gfxContext> thebes;
   nsRefPtr<gfxASurface> drawSurf;
   if (gfxPlatform::GetPlatform()->SupportsAzureContentForDrawTarget(mTarget)) {
@@ -3221,7 +3306,7 @@ CanvasRenderingContext2D::DrawWindow(nsIDOMWindow* window, double x,
                                 matrix._22, matrix._31, matrix._32));
   } else {
     drawSurf =
-      gfxPlatform::GetPlatform()->CreateOffscreenSurface(gfxIntSize(ceil(w), ceil(h)),
+      gfxPlatform::GetPlatform()->CreateOffscreenSurface(gfxIntSize(ceil(sw), ceil(sh)),
                                                          gfxASurface::CONTENT_COLOR_ALPHA);
     if (!drawSurf) {
       error.Throw(NS_ERROR_FAILURE);
@@ -3231,6 +3316,7 @@ CanvasRenderingContext2D::DrawWindow(nsIDOMWindow* window, double x,
     drawSurf->SetDeviceOffset(gfxPoint(-floor(x), -floor(y)));
     thebes = new gfxContext(drawSurf);
     thebes->Translate(gfxPoint(floor(x), floor(y)));
+    thebes->Scale(matrix._11, matrix._22);
   }
 
   nsCOMPtr<nsIPresShell> shell = presContext->PresShell();
@@ -3250,8 +3336,9 @@ CanvasRenderingContext2D::DrawWindow(nsIDOMWindow* window, double x,
                                            IntSize(size.width, size.height),
                                            img->Stride(),
                                            FORMAT_B8G8R8A8);
-    mgfx::Rect rect(0, 0, w, h);
-    mTarget->DrawSurface(data, rect, rect);
+    mgfx::Rect destRect(0, 0, w, h);
+    mgfx::Rect sourceRect(0, 0, sw, sh);
+    mTarget->DrawSurface(data, destRect, sourceRect);
     mTarget->Flush();
   } else {
     mTarget->SetTransform(matrix);
@@ -3823,10 +3910,11 @@ CanvasRenderingContext2D::GetCanvasLayer(nsDisplayListBuilder* aBuilder,
 
   CanvasLayer::Data data;
 #ifdef USE_SKIA_GPU
-  if (mGLContext) {
+  GLContext* glContext = static_cast<GLContext*>(mTarget->GetGLContext());
+  if (glContext) {
     canvasLayer->SetPreTransactionCallback(
             CanvasRenderingContext2DUserData::PreTransactionCallback, userData);
-    data.mGLContext = mGLContext;
+    data.mGLContext = glContext;
   } else
 #endif
   {
@@ -3864,6 +3952,3 @@ CanvasRenderingContext2D::ShouldForceInactiveLayer(LayerManager *aManager)
 
 }
 }
-
-DOMCI_DATA(CanvasRenderingContext2D, mozilla::dom::CanvasRenderingContext2D)
-

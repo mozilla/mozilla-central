@@ -10,12 +10,14 @@
 #include "mozilla/Attributes.h"
 #include "nsIDOMHTMLVideoElement.h"
 #include "mozilla/dom/HTMLMediaElement.h"
+#include "mozilla/dom/VideoPlaybackQuality.h"
+#include "nsPerformance.h"
 
 namespace mozilla {
 namespace dom {
 
-class HTMLVideoElement : public HTMLMediaElement,
-                         public nsIDOMHTMLVideoElement
+class HTMLVideoElement MOZ_FINAL : public HTMLMediaElement,
+                                   public nsIDOMHTMLVideoElement
 {
 public:
   HTMLVideoElement(already_AddRefed<nsINodeInfo> aNodeInfo);
@@ -113,6 +115,8 @@ public:
   bool MozHasAudio() const;
 
   void NotifyOwnerDocumentActivityChanged() MOZ_OVERRIDE;
+
+  already_AddRefed<VideoPlaybackQuality> GetVideoPlaybackQuality();
 
 protected:
   virtual JSObject* WrapNode(JSContext* aCx,

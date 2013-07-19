@@ -8,19 +8,18 @@
 #define mozilla_dom_HTMLAnchorElement_h
 
 #include "mozilla/Attributes.h"
+#include "mozilla/dom/Link.h"
 #include "nsGenericHTMLElement.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsILink.h"
-#include "Link.h"
-#include "base/compiler_specific.h"
 
 namespace mozilla {
 namespace dom {
 
-class HTMLAnchorElement : public nsGenericHTMLElement,
-                          public nsIDOMHTMLAnchorElement,
-                          public nsILink,
-                          public Link
+class HTMLAnchorElement MOZ_FINAL : public nsGenericHTMLElement,
+                                    public nsIDOMHTMLAnchorElement,
+                                    public nsILink,
+                                    public Link
 {
 public:
   using Element::GetText;
@@ -28,9 +27,8 @@ public:
 
   HTMLAnchorElement(already_AddRefed<nsINodeInfo> aNodeInfo)
     : nsGenericHTMLElement(aNodeInfo)
-    , ALLOW_THIS_IN_INITIALIZER_LIST(Link(this))
+    , Link(MOZ_THIS_IN_INITIALIZER_LIST())
   {
-    SetIsDOMBinding();
   }
   virtual ~HTMLAnchorElement();
 

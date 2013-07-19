@@ -278,11 +278,19 @@ class Label : public LabelBase
     }
 };
 
-// Wrapper around Label, on the heap, to avoid a bogus assert with OOM.
-struct HeapLabel
-  : public TempObject,
-    public Label
+// Label's destructor asserts that if it has been used it has also been bound.
+// In the case long-lived labels, however, failed compilation (e.g. OOM) will
+// trigger this failure innocuously. This Label silences the assertion.
+class NonAssertingLabel : public Label
 {
+  public:
+    ~NonAssertingLabel()
+    {
+#ifdef DEBUG
+        if (used())
+            bind(0);
+#endif
+    }
 };
 
 class RepatchLabel
@@ -433,14 +441,20 @@ class CodeLocationJump
 {
     uint8_t *raw_;
 #ifdef DEBUG
-    bool absolute_;
+    enum State { Uninitialized, Absolute, Relative };
+    State state_;
+    void setUninitialized() {
+        state_ = Uninitialized;
+    }
     void setAbsolute() {
-        absolute_ = true;
+        state_ = Absolute;
     }
     void setRelative() {
-        absolute_ = false;
+        state_ = Relative;
     }
 #else
+    void setUninitialized() const {
+    }
     void setAbsolute() const {
     }
     void setRelative() const {
@@ -453,8 +467,8 @@ class CodeLocationJump
 
   public:
     CodeLocationJump() {
-        raw_ = (uint8_t *) 0xdeadc0de;
-        setAbsolute();
+        raw_ = NULL;
+        setUninitialized();
 #ifdef JS_SMALL_BRANCH
         jumpTableEntry_ = (uint8_t *) 0xdeadab1e;
 #endif
@@ -474,22 +488,18 @@ class CodeLocationJump
 
     void repoint(IonCode *code, MacroAssembler* masm = NULL);
 
-    bool isSet() const {
-        return raw_ != (uint8_t *) 0xdeadc0de;
-    }
-
     uint8_t *raw() const {
-        JS_ASSERT(absolute_ && isSet());
+        JS_ASSERT(state_ == Absolute);
         return raw_;
     }
     uint8_t *offset() const {
-        JS_ASSERT(!absolute_ && isSet());
+        JS_ASSERT(state_ == Relative);
         return raw_;
     }
 
 #ifdef JS_SMALL_BRANCH
-    uint8_t *jumpTableEntry() {
-        JS_ASSERT(absolute_);
+    uint8_t *jumpTableEntry() const {
+        JS_ASSERT(state_ == Absolute);
         return jumpTableEntry_;
     }
 #endif
@@ -499,14 +509,20 @@ class CodeLocationLabel
 {
     uint8_t *raw_;
 #ifdef DEBUG
-    bool absolute_;
+    enum State { Uninitialized, Absolute, Relative };
+    State state_;
+    void setUninitialized() {
+        state_ = Uninitialized;
+    }
     void setAbsolute() {
-        absolute_ = true;
+        state_ = Absolute;
     }
     void setRelative() {
-        absolute_ = false;
+        state_ = Relative;
     }
 #else
+    void setUninitialized() const {
+    }
     void setAbsolute() const {
     }
     void setRelative() const {
@@ -515,8 +531,8 @@ class CodeLocationLabel
 
   public:
     CodeLocationLabel() {
-        raw_ = (uint8_t *) 0xdeadc0de;
-        setAbsolute();
+        raw_ = NULL;
+        setUninitialized();
     }
     CodeLocationLabel(IonCode *code, CodeOffsetLabel base) {
         *this = base;
@@ -541,16 +557,18 @@ class CodeLocationLabel
 
     void repoint(IonCode *code, MacroAssembler *masm = NULL);
 
-    bool isSet() {
-        return raw_ != (uint8_t *) 0xdeadc0de;
+#ifdef DEBUG
+    bool isSet() const {
+        return state_ != Uninitialized;
     }
+#endif
 
-    uint8_t *raw() {
-        JS_ASSERT(absolute_ && isSet());
+    uint8_t *raw() const {
+        JS_ASSERT(state_ == Absolute);
         return raw_;
     }
-    uint8_t *offset() {
-        JS_ASSERT(!absolute_ && isSet());
+    uint8_t *offset() const {
+        JS_ASSERT(state_ == Relative);
         return raw_;
     }
 };

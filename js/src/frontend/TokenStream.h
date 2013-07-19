@@ -28,8 +28,10 @@
 namespace js {
 namespace frontend {
 
+// Values of this type are used to index into arrays such as isExprEnding[],
+// so the first value must be zero.
 enum TokenKind {
-    TOK_ERROR = -1,                /* well-known as the only code < EOF */
+    TOK_ERROR = 0,                 /* well-known as the only code < EOF */
     TOK_EOF,                       /* end of file */
     TOK_EOL,                       /* end of line; only returned by peekTokenSameLine() */
     TOK_SEMI,                      /* semicolon */
@@ -244,18 +246,10 @@ struct Token {
     TokenKind           type;           /* char value or above enumerator */
     TokenPos            pos;            /* token position in file */
     union {
-        struct {                        /* name or string literal */
-            JSOp        op;             /* operator, for minimal parser */
-            union {
-              private:
-                friend struct Token;
-                PropertyName *name;     /* non-numeric atom */
-                JSAtom       *atom;     /* potentially-numeric atom */
-            } n;
-        } s;
-
       private:
         friend struct Token;
+        PropertyName *name;             /* non-numeric atom */
+        JSAtom       *atom;             /* potentially-numeric atom */
         struct {
             double       value;         /* floating point number */
             DecimalPoint decimalPoint;  /* literal contains . or exponent */
@@ -271,18 +265,14 @@ struct Token {
      *        type-safety.  See bug 697000.
      */
 
-    void setName(JSOp op, PropertyName *name) {
-        JS_ASSERT(op == JSOP_NAME);
+    void setName(PropertyName *name) {
         JS_ASSERT(!IsPoisonedPtr(name));
-        u.s.op = op;
-        u.s.n.name = name;
+        u.name = name;
     }
 
-    void setAtom(JSOp op, JSAtom *atom) {
-        JS_ASSERT(op == JSOP_STRING);
+    void setAtom(JSAtom *atom) {
         JS_ASSERT(!IsPoisonedPtr(atom));
-        u.s.op = op;
-        u.s.n.atom = atom;
+        u.atom = atom;
     }
 
     void setRegExpFlags(js::RegExpFlag flags) {
@@ -299,12 +289,12 @@ struct Token {
 
     PropertyName *name() const {
         JS_ASSERT(type == TOK_NAME);
-        return u.s.n.name->asPropertyName(); /* poor-man's type verification */
+        return u.name->asPropertyName(); /* poor-man's type verification */
     }
 
     JSAtom *atom() const {
         JS_ASSERT(type == TOK_STRING);
-        return u.s.n.atom;
+        return u.atom;
     }
 
     js::RegExpFlag regExpFlags() const {
@@ -323,8 +313,6 @@ struct Token {
         return u.number.decimalPoint;
     }
 };
-
-#define t_op            u.s.op
 
 enum TokenStreamFlags
 {
@@ -372,12 +360,6 @@ struct CompileError {
     ~CompileError();
     void throwError();
 };
-
-inline bool
-StrictModeFromContext(JSContext *cx)
-{
-    return cx->hasOption(JSOPTION_STRICT_MODE);
-}
 
 // Ideally, tokenizing would be entirely independent of context.  But the
 // strict mode flag, which is in SharedContext, affects tokenizing, and
@@ -447,14 +429,13 @@ class MOZ_STACK_CLASS TokenStream
   public:
     typedef Vector<jschar, 32> CharBuffer;
 
-    TokenStream(JSContext *cx, const CompileOptions &options,
+    TokenStream(ExclusiveContext *cx, const CompileOptions &options,
                 const jschar *base, size_t length, StrictModeGetter *smg,
                 AutoKeepAtoms& keepAtoms);
 
     ~TokenStream();
 
     /* Accessors. */
-    JSContext *getContext() const { return cx; }
     bool onCurrentLine(const TokenPos &pos) const { return srcCoords.isOnThisLine(pos.end, lineno); }
     const Token &currentToken() const { return tokens[cursor]; }
     bool isCurrentTokenType(TokenKind type) const {
@@ -468,8 +449,9 @@ class MOZ_STACK_CLASS TokenStream
     const char *getFilename() const { return filename; }
     unsigned getLineno() const { return lineno; }
     unsigned getColumn() const { return userbuf.addressOfNextRawChar() - linebase - 1; }
-    JSVersion versionNumber() const { return VersionNumber(version); }
-    JSVersion versionWithFlags() const { return version; }
+    JSPrincipals *getOriginPrincipals() const { return originPrincipals; }
+    JSVersion versionNumber() const { return VersionNumber(options().version); }
+    JSVersion versionWithFlags() const { return options().version; }
     bool hadError() const { return !!(flags & TSF_HAD_ERROR); }
 
     bool isCurrentTokenEquality() const {
@@ -519,7 +501,7 @@ class MOZ_STACK_CLASS TokenStream
     bool strictMode() const { return strictModeGetter && strictModeGetter->strictMode(); }
 
     void onError();
-    static JSAtom *atomize(JSContext *cx, CharBuffer &cb);
+    static JSAtom *atomize(ExclusiveContext *cx, CharBuffer &cb);
     bool putIdentInTokenbuf(const jschar *identStart);
 
     /*
@@ -638,6 +620,10 @@ class MOZ_STACK_CLASS TokenStream
         return false;
     }
 
+    bool nextTokenEndsExpr() {
+        return isExprEnding[peekToken()];
+    }
+
     class MOZ_STACK_CLASS Position {
       public:
         /*
@@ -688,19 +674,17 @@ class MOZ_STACK_CLASS TokenStream
 
     /*
      * If the name at s[0:length] is not a keyword in this version, return
-     * true with *ttp and *topp unchanged.
+     * true with *ttp unchanged.
      *
      * If it is a reserved word in this version and strictness mode, and thus
      * can't be present in correct code, report a SyntaxError and return false.
      *
-     * If it is a keyword, like "if", the behavior depends on ttp/topp. If ttp
-     * and topp are null, report a SyntaxError ("if is a reserved identifier")
-     * and return false. If ttp and topp are non-null, return true with the
-     * keyword's TokenKind in *ttp and its JSOp in *topp.
-     *
-     * ttp and topp must be either both null or both non-null.
+     * If it is a keyword, like "if", the behavior depends on ttp. If ttp is
+     * null, report a SyntaxError ("if is a reserved identifier") and return
+     * false. If ttp is non-null, return true with the keyword's TokenKind in
+     * *ttp.
      */
-    bool checkForKeyword(const jschar *s, size_t length, TokenKind *ttp, JSOp *topp);
+    bool checkForKeyword(const jschar *s, size_t length, TokenKind *ttp);
 
     // This class maps a userbuf offset (which is 0-indexed) to a line number
     // (which is 1-indexed) and a column index (which is 0-indexed).
@@ -753,7 +737,7 @@ class MOZ_STACK_CLASS TokenStream
         uint32_t lineNumToIndex(uint32_t lineNum)   const { return lineNum   - initialLineNum_; }
 
       public:
-        SourceCoords(JSContext *cx, uint32_t ln);
+        SourceCoords(ExclusiveContext *cx, uint32_t ln);
 
         void add(uint32_t lineNum, uint32_t lineStartOffset);
         void fill(const SourceCoords &other);
@@ -772,6 +756,18 @@ class MOZ_STACK_CLASS TokenStream
 
     SourceCoords srcCoords;
 
+    JSAtomState &names() const {
+        return cx->names();
+    }
+
+    ExclusiveContext *context() const {
+        return cx;
+    }
+
+    const CompileOptions &options() const {
+        return options_;
+    }
+
   private:
     /*
      * This is the low-level interface to the JS source code buffer.  It just
@@ -782,7 +778,7 @@ class MOZ_STACK_CLASS TokenStream
      */
     class TokenBuf {
       public:
-        TokenBuf(JSContext *cx, const jschar *buf, size_t length)
+        TokenBuf(ExclusiveContext *cx, const jschar *buf, size_t length)
           : base_(buf), limit_(buf + length), ptr(buf),
             skipBase(cx, &base_), skipLimit(cx, &limit_), skipPtr(cx, &ptr)
         { }
@@ -907,6 +903,9 @@ class MOZ_STACK_CLASS TokenStream
     void updateLineInfoForEOL();
     void updateFlagsForEOL();
 
+    // Options used for parsing/tokenizing.
+    const CompileOptions &options_;
+
     Token               tokens[ntokens];/* circular token buffer */
     unsigned            cursor;         /* index of last parsed token */
     unsigned            lookahead;      /* count of lookahead tokens */
@@ -917,13 +916,12 @@ class MOZ_STACK_CLASS TokenStream
     TokenBuf            userbuf;        /* user input buffer */
     const char          *filename;      /* input filename or null */
     jschar              *sourceMap;     /* source map's filename or null */
-    void                *listenerTSData;/* listener data for this TokenStream */
     CharBuffer          tokenbuf;       /* current token string buffer */
-    int8_t              oneCharTokens[128];  /* table of one-char tokens */
+    int8_t              oneCharTokens[128];  /* table of one-char tokens, indexed by 7-bit char */
     bool                maybeEOL[256];       /* probabilistic EOL lookup table */
     bool                maybeStrSpecial[256];/* speeds up string scanning */
-    JSVersion           version;        /* (i.e. to identify keywords) */
-    JSContext           *const cx;
+    uint8_t             isExprEnding[TOK_LIMIT]; /* which tokens definitely terminate exprs? */
+    ExclusiveContext    *const cx;
     JSPrincipals        *const originPrincipals;
     StrictModeGetter    *strictModeGetter; /* used to test for strict mode */
 

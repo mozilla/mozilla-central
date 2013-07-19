@@ -24,7 +24,7 @@ BoxInputsPolicy::boxAt(MInstruction *at, MDefinition *operand)
 bool
 BoxInputsPolicy::adjustInputs(MInstruction *ins)
 {
-    for (size_t i = 0; i < ins->numOperands(); i++) {
+    for (size_t i = 0, e = ins->numOperands(); i < e; i++) {
         MDefinition *in = ins->getOperand(i);
         if (in->type() == MIRType_Value)
             continue;
@@ -41,7 +41,7 @@ ArithPolicy::adjustInputs(MInstruction *ins)
 
     JS_ASSERT(ins->type() == MIRType_Double || ins->type() == MIRType_Int32);
 
-    for (size_t i = 0; i < ins->numOperands(); i++) {
+    for (size_t i = 0, e = ins->numOperands(); i < e; i++) {
         MDefinition *in = ins->getOperand(i);
         if (in->type() == ins->type())
             continue;
@@ -258,7 +258,7 @@ BitwisePolicy::adjustInputs(MInstruction *ins)
     JS_ASSERT(specialization_ == MIRType_Int32 || specialization_ == MIRType_Double);
 
     // This policy works for both unary and binary bitwise operations.
-    for (size_t i = 0; i < ins->numOperands(); i++) {
+    for (size_t i = 0, e = ins->numOperands(); i < e; i++) {
         MDefinition *in = ins->getOperand(i);
         if (in->type() == MIRType_Int32)
             continue;
@@ -442,7 +442,7 @@ CallSetElementPolicy::adjustInputs(MInstruction *ins)
     SingleObjectPolicy::adjustInputs(ins);
 
     // Box the index and value operands.
-    for (size_t i = 1; i < ins->numOperands(); i++) {
+    for (size_t i = 1, e = ins->numOperands(); i < e; i++) {
         MDefinition *in = ins->getOperand(i);
         if (in->type() == MIRType_Value)
             continue;
@@ -468,7 +468,7 @@ StoreTypedArrayPolicy::adjustValueInput(MInstruction *ins, int arrayType,
 {
     MDefinition *curValue = value;
     // First, ensure the value is int32, boolean, double or Value.
-    // The conversion is based on TypedArrayTemplate::setElementTail.
+    // The conversion is based on TypedArrayObjectTemplate::setElementTail.
     switch (value->type()) {
       case MIRType_Int32:
       case MIRType_Double:
@@ -504,23 +504,23 @@ StoreTypedArrayPolicy::adjustValueInput(MInstruction *ins, int arrayType,
               value->type() == MIRType_Value);
 
     switch (arrayType) {
-      case TypedArray::TYPE_INT8:
-      case TypedArray::TYPE_UINT8:
-      case TypedArray::TYPE_INT16:
-      case TypedArray::TYPE_UINT16:
-      case TypedArray::TYPE_INT32:
-      case TypedArray::TYPE_UINT32:
+      case TypedArrayObject::TYPE_INT8:
+      case TypedArrayObject::TYPE_UINT8:
+      case TypedArrayObject::TYPE_INT16:
+      case TypedArrayObject::TYPE_UINT16:
+      case TypedArrayObject::TYPE_INT32:
+      case TypedArrayObject::TYPE_UINT32:
         if (value->type() != MIRType_Int32) {
             value = MTruncateToInt32::New(value);
             ins->block()->insertBefore(ins, value->toInstruction());
         }
         break;
-      case TypedArray::TYPE_UINT8_CLAMPED:
+      case TypedArrayObject::TYPE_UINT8_CLAMPED:
         // IonBuilder should have inserted ClampToUint8.
         JS_ASSERT(value->type() == MIRType_Int32);
         break;
-      case TypedArray::TYPE_FLOAT32:
-      case TypedArray::TYPE_FLOAT64:
+      case TypedArrayObject::TYPE_FLOAT32:
+      case TypedArrayObject::TYPE_FLOAT64:
         if (value->type() != MIRType_Double) {
             value = MToDouble::New(value);
             ins->block()->insertBefore(ins, value->toInstruction());

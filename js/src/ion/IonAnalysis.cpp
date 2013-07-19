@@ -4,6 +4,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "jsanalyze.h"
+
 #include "ion/IonBuilder.h"
 #include "ion/MIRGraph.h"
 #include "ion/Ion.h"
@@ -321,7 +323,7 @@ ion::EliminatePhis(MIRGenerator *mir, MIRGraph &graph,
         }
 
         // The current phi is/was used, so all its operands are used.
-        for (size_t i = 0; i < phi->numOperands(); i++) {
+        for (size_t i = 0, e = phi->numOperands(); i < e; i++) {
             MDefinition *in = phi->getOperand(i);
             if (!in->isPhi() || !in->isUnused() || in->isInWorklist())
                 continue;
@@ -396,7 +398,7 @@ static MIRType
 GuessPhiType(MPhi *phi)
 {
     MIRType type = MIRType_None;
-    for (size_t i = 0; i < phi->numOperands(); i++) {
+    for (size_t i = 0, e = phi->numOperands(); i < e; i++) {
         MDefinition *in = phi->getOperand(i);
         if (in->isPhi()) {
             if (!in->toPhi()->triedToSpecialize())
@@ -510,7 +512,7 @@ TypeAnalyzer::adjustPhiInputs(MPhi *phi)
 
     if (phiType == MIRType_Double) {
         // Convert int32 operands to double.
-        for (size_t i = 0; i < phi->numOperands(); i++) {
+        for (size_t i = 0, e = phi->numOperands(); i < e; i++) {
             MDefinition *in = phi->getOperand(i);
 
             if (in->type() == MIRType_Int32) {
@@ -528,7 +530,7 @@ TypeAnalyzer::adjustPhiInputs(MPhi *phi)
         return;
 
     // Box every typed input.
-    for (size_t i = 0; i < phi->numOperands(); i++) {
+    for (size_t i = 0, e = phi->numOperands(); i < e; i++) {
         MDefinition *in = phi->getOperand(i);
         if (in->type() == MIRType_Value)
             continue;
@@ -924,7 +926,7 @@ ion::AssertBasicGraphCoherency(MIRGraph &graph)
 
         // Assert that use chains are valid for this instruction.
         for (MInstructionIterator ins = block->begin(); ins != block->end(); ins++) {
-            for (uint32_t i = 0; i < ins->numOperands(); i++)
+            for (uint32_t i = 0, e = ins->numOperands(); i < e; i++)
                 JS_ASSERT(CheckOperandImpliesUse(*ins, ins->getOperand(i)));
         }
         for (MInstructionIterator ins = block->begin(); ins != block->end(); ins++) {
@@ -1434,7 +1436,7 @@ ion::UnsplitEdges(LIRGraph *lir)
         // over-conservative, but we're attempting to keep everything in MIR
         // current as we modify the LIR, so only proceed if the MIR is simple.
         if (mirBlock->numPredecessors() == 0 || mirBlock->numSuccessors() != 1 ||
-            !mirBlock->resumePointsEmpty() || !mirBlock->begin()->isGoto())
+            !mirBlock->begin()->isGoto())
         {
             continue;
         }

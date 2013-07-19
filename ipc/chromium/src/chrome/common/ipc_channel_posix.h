@@ -40,6 +40,12 @@ class Channel::ChannelImpl : public MessageLoopForIO::Watcher {
     DCHECK(mode_ == MODE_SERVER);
     return pipe_;
   }
+  void CloseClientFileDescriptor();
+
+  // See the comment in ipc_channel.h for info on Unsound_IsClosed() and
+  // Unsound_NumQueuedMessages().
+  bool Unsound_IsClosed() const;
+  uint32_t Unsound_NumQueuedMessages() const;
 
  private:
   void Init(Mode mode, Listener* listener);
@@ -56,6 +62,9 @@ class Channel::ChannelImpl : public MessageLoopForIO::Watcher {
 #if defined(OS_MACOSX)
   void CloseDescriptors(uint32_t pending_fd_id);
 #endif
+
+  void OutputQueuePush(Message* msg);
+  void OutputQueuePop();
 
   Mode mode_;
 
@@ -142,6 +151,12 @@ class Channel::ChannelImpl : public MessageLoopForIO::Watcher {
   // A generation ID for RECEIVED_FD messages.
   uint32_t last_pending_fd_id_;
 #endif
+
+  // This variable is updated so it matches output_queue_.size(), except we can
+  // read output_queue_length_ from any thread (if we're OK getting an
+  // occasional out-of-date or bogus value).  We use output_queue_length_ to
+  // implement Unsound_NumQueuedMessages.
+  size_t output_queue_length_;
 
   ScopedRunnableMethodFactory<ChannelImpl> factory_;
 

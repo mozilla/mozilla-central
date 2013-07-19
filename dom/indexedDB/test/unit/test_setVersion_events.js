@@ -26,7 +26,7 @@ function testSteps()
 
   request.onerror = errorHandler;
   request.onsuccess = grabEventAndContinueHandler;
-  let event = yield;
+  let event = yield undefined;
 
   let versionChangeEventCount = 0;
   let db1, db2, db3;
@@ -55,7 +55,7 @@ function testSteps()
   else {
     todo(false, "Need to fix blocked events in child processes!");
   }
-  event = yield;
+  event = yield undefined;
 
   // Test the upgradeneeded event.
   ok(event instanceof IDBVersionChangeEvent, "Event is of the right type");
@@ -69,7 +69,7 @@ function testSteps()
 
   request.onupgradeneeded = errorHandler;
   request.onsuccess = grabEventAndContinueHandler;
-  event = yield;
+  event = yield undefined;
 
   db2.addEventListener("versionchange", function(event) {
     ok(true, "Got version change event");
@@ -92,7 +92,7 @@ function testSteps()
   else {
     todo(false, "Need to fix blocked events in child processes!");
   }
-  event = yield;
+  event = yield undefined;
 
   db3 = event.target.result;
 
@@ -103,7 +103,7 @@ function testSteps()
   request.onupgradeneeded = errorHandler;
   request.onblocked = grabEventAndContinueHandler;
 
-  event = yield;
+  event = yield undefined;
   ok(true, "Got version change blocked event");
   ok(event instanceof IDBVersionChangeEvent, "Event is of the right type");
   is(event.target.source, null, "Correct source");
@@ -119,8 +119,8 @@ function testSteps()
   request.onupgradeneeded = grabEventAndContinueHandler;
   request.onsuccess = grabEventAndContinueHandler;
 
-  event = yield;
-  event = yield;
+  event = yield undefined;
+  event = yield undefined;
 
   db3 = event.target.result;
   db3.close();
@@ -137,7 +137,7 @@ function testSteps()
     todo(false, "Need to fix blocked events in child processes!");
   }
 
-  event = yield;
+  event = yield undefined;
 
   ok(event instanceof IDBVersionChangeEvent, "Event is of the right type");
   ok(event.target.result instanceof IDBDatabase, "Good result");
@@ -148,7 +148,7 @@ function testSteps()
 
   request.onsuccess = grabEventAndContinueHandler;
 
-  event = yield;
+  event = yield undefined;
   ok(event.target.result instanceof IDBDatabase, "Expect a database here");
   is(event.target.result.version, 4, "Right version");
   is(db3.version, 3, "After closing the version should not change!");
@@ -157,7 +157,22 @@ function testSteps()
 
   is(versionChangeEventCount, 3, "Saw all expected events");
 
+  event = new IDBVersionChangeEvent("versionchange");
+  ok(event, "Should be able to create an event with just passing in the type");
+  event = new IDBVersionChangeEvent("versionchange", {oldVersion: 1});
+  ok(event, "Should be able to create an event with just the old version");
+  is(event.oldVersion, 1, "Correct old version");
+  is(event.newVersion, null, "Correct new version");
+  event = new IDBVersionChangeEvent("versionchange", {newVersion: 1});
+  ok(event, "Should be able to create an event with just the new version");
+  is(event.oldVersion, 0, "Correct old version");
+  is(event.newVersion, 1, "Correct new version");
+  event = new IDBVersionChangeEvent("versionchange", {oldVersion: 1, newVersion: 2});
+  ok(event, "Should be able to create an event with both versions");
+  is(event.oldVersion, 1, "Correct old version");
+  is(event.newVersion, 2, "Correct new version");
+
   finishTest();
-  yield;
+  yield undefined;
 }
 

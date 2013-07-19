@@ -22,15 +22,17 @@ namespace mozilla {
 namespace dom {
 namespace power {
 
-NS_INTERFACE_MAP_BEGIN(PowerManager)
+NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(PowerManager)
   NS_INTERFACE_MAP_ENTRY(nsIDOMMozPowerManager)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMMozPowerManager)
   NS_INTERFACE_MAP_ENTRY(nsIDOMMozWakeLockListener)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(MozPowerManager)
 NS_INTERFACE_MAP_END
 
-NS_IMPL_ADDREF(PowerManager)
-NS_IMPL_RELEASE(PowerManager)
+NS_IMPL_CYCLE_COLLECTION_1(PowerManager, mListeners)
+
+NS_IMPL_CYCLE_COLLECTING_ADDREF(PowerManager)
+NS_IMPL_CYCLE_COLLECTING_RELEASE(PowerManager)
 
 nsresult
 PowerManager::Init(nsIDOMWindow *aWindow)
@@ -179,22 +181,26 @@ PowerManager::SetCpuSleepAllowed(bool aAllowed)
   return NS_OK;
 }
 
-already_AddRefed<PowerManager>
-PowerManager::CheckPermissionAndCreateInstance(nsPIDOMWindow* aWindow)
+bool
+PowerManager::CheckPermission(nsPIDOMWindow* aWindow)
 {
   nsCOMPtr<nsIPermissionManager> permMgr =
     do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
-  NS_ENSURE_TRUE(permMgr, nullptr);
+  NS_ENSURE_TRUE(permMgr, false);
 
   uint32_t permission = nsIPermissionManager::DENY_ACTION;
   permMgr->TestPermissionFromWindow(aWindow, "power", &permission);
 
-  if (permission != nsIPermissionManager::ALLOW_ACTION) {
-    return nullptr;
-  }
+  return permission == nsIPermissionManager::ALLOW_ACTION;
+}
 
+already_AddRefed<PowerManager>
+PowerManager::CreateInstance(nsPIDOMWindow* aWindow)
+{
   nsRefPtr<PowerManager> powerManager = new PowerManager();
-  powerManager->Init(aWindow);
+  if (NS_FAILED(powerManager->Init(aWindow))) {
+    powerManager = nullptr;
+  }
 
   return powerManager.forget();
 }

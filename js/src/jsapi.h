@@ -54,6 +54,7 @@ class JS_PUBLIC_API(AutoCheckRequestDepth)
     JSContext *cx;
   public:
     AutoCheckRequestDepth(JSContext *cx);
+    AutoCheckRequestDepth(js::ContextFriendFields *cx);
     ~AutoCheckRequestDepth();
 };
 
@@ -84,6 +85,7 @@ inline void AssertArgumentsAreSane(JSContext *cx, const Value &v) {
 class JS_PUBLIC_API(AutoGCRooter) {
   public:
     AutoGCRooter(JSContext *cx, ptrdiff_t tag);
+    AutoGCRooter(js::ContextFriendFields *cx, ptrdiff_t tag);
 
     ~AutoGCRooter() {
         JS_ASSERT(this == *stackTop);
@@ -227,14 +229,21 @@ class AutoVectorRooter : protected AutoGCRooter
         MOZ_GUARD_OBJECT_NOTIFIER_INIT;
     }
 
+    explicit AutoVectorRooter(js::ContextFriendFields *cx, ptrdiff_t tag
+                              MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+      : AutoGCRooter(cx, tag), vector(cx), vectorRoot(cx, &vector)
+    {
+        MOZ_GUARD_OBJECT_NOTIFIER_INIT;
+    }
+
     typedef T ElementType;
 
     size_t length() const { return vector.length(); }
     bool empty() const { return vector.empty(); }
 
     bool append(const T &v) { return vector.append(v); }
-    bool append(const AutoVectorRooter<T> &other) {
-        return vector.append(other.vector);
+    bool appendAll(const AutoVectorRooter<T> &other) {
+        return vector.appendAll(other.vector);
     }
 
     bool insert(T *p, const T &val) { return vector.insert(p, val); }
@@ -578,7 +587,14 @@ class AutoFunctionVector : public AutoVectorRooter<JSFunction *>
 {
   public:
     explicit AutoFunctionVector(JSContext *cx
-                              MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+                                MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+        : AutoVectorRooter<JSFunction *>(cx, FUNVECTOR)
+    {
+        MOZ_GUARD_OBJECT_NOTIFIER_INIT;
+    }
+
+    explicit AutoFunctionVector(js::ContextFriendFields *cx
+                                MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
         : AutoVectorRooter<JSFunction *>(cx, FUNVECTOR)
     {
         MOZ_GUARD_OBJECT_NOTIFIER_INIT;
@@ -606,7 +622,8 @@ class AutoScriptVector : public AutoVectorRooter<JSScript *>
 class JS_PUBLIC_API(CustomAutoRooter) : private AutoGCRooter
 {
   public:
-    explicit CustomAutoRooter(JSContext *cx MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+    template <typename CX>
+    explicit CustomAutoRooter(CX *cx MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
       : AutoGCRooter(cx, CUSTOM)
     {
         MOZ_GUARD_OBJECT_NOTIFIER_INIT;
@@ -956,7 +973,7 @@ typedef enum JSGCStatus {
 } JSGCStatus;
 
 typedef void
-(* JSGCCallback)(JSRuntime *rt, JSGCStatus status);
+(* JSGCCallback)(JSRuntime *rt, JSGCStatus status, void *data);
 
 typedef enum JSFinalizeStatus {
     /*
@@ -1962,8 +1979,6 @@ JS_StringToVersion(const char *string);
 
 #define JSOPTION_BASELINE       JS_BIT(14)      /* Baseline compiler. */
 
-#define JSOPTION_PCCOUNT        JS_BIT(15)      /* Collect per-op execution counts */
-
 #define JSOPTION_TYPE_INFERENCE JS_BIT(16)      /* Perform type inference. */
 #define JSOPTION_STRICT_MODE    JS_BIT(17)      /* Provides a way to force
                                                    strict mode for all code
@@ -2373,8 +2388,12 @@ JS_AnchorPtr(void *p);
  *          JS_CallTracer whenever the root contains a traceable thing.
  * data:    the data argument to pass to each invocation of traceOp.
  */
+extern JS_PUBLIC_API(JSBool)
+JS_AddExtraGCRootsTracer(JSRuntime *rt, JSTraceDataOp traceOp, void *data);
+
+/* Undo a call to JS_AddExtraGCRootsTracer. */
 extern JS_PUBLIC_API(void)
-JS_SetExtraGCRootsTracer(JSRuntime *rt, JSTraceDataOp traceOp, void *data);
+JS_RemoveExtraGCRootsTracer(JSRuntime *rt, JSTraceDataOp traceOp, void *data);
 
 /*
  * JS_CallTracer API and related macros for implementors of JSTraceOp, to
@@ -2627,7 +2646,7 @@ extern JS_PUBLIC_API(void)
 JS_MaybeGC(JSContext *cx);
 
 extern JS_PUBLIC_API(void)
-JS_SetGCCallback(JSRuntime *rt, JSGCCallback cb);
+JS_SetGCCallback(JSRuntime *rt, JSGCCallback cb, void *data);
 
 extern JS_PUBLIC_API(void)
 JS_SetFinalizeCallback(JSRuntime *rt, JSFinalizeCallback cb);
@@ -3162,16 +3181,18 @@ SameZoneAs(JSObject *obj)
 
 struct JS_PUBLIC_API(CompartmentOptions) {
     ZoneSpecifier zoneSpec;
-    bool hasVersion;
     JSVersion version;
 
     explicit CompartmentOptions() : zoneSpec(JS::FreshZone)
-                                  , hasVersion(false)
                                   , version(JSVERSION_UNKNOWN)
     {}
 
     CompartmentOptions &setZone(ZoneSpecifier spec) { zoneSpec = spec; return *this; }
-    CompartmentOptions &setVersion(JSVersion version_) { hasVersion = true; version = version_; return *this; }
+    CompartmentOptions &setVersion(JSVersion version_) {
+        JS_ASSERT(version_ != JSVERSION_UNKNOWN);
+        version = version_;
+        return *this;
+    }
 };
 
 } /* namespace JS */
@@ -3214,6 +3235,9 @@ JS_DeepFreezeObject(JSContext *cx, JSObject *obj);
  */
 extern JS_PUBLIC_API(JSBool)
 JS_FreezeObject(JSContext *cx, JSObject *obj);
+
+extern JS_PUBLIC_API(JSBool)
+JS_PreventExtensions(JSContext *cx, JS::HandleObject obj);
 
 extern JS_PUBLIC_API(JSObject *)
 JS_New(JSContext *cx, JSObject *ctor, unsigned argc, jsval *argv);
@@ -3931,6 +3955,10 @@ struct JS_PUBLIC_API(CompileOptions) {
     bool noScriptRval;
     bool selfHostingMode;
     bool canLazilyParse;
+    bool strictOption;
+    bool extraWarningsOption;
+    bool werrorOption;
+    bool asmJSOption;
     enum SourcePolicy {
         NO_SOURCE,
         LAZY_SOURCE,
@@ -4461,6 +4489,8 @@ class JSAutoByteString
         mBytes = JS_EncodeString(cx, str);
         return mBytes;
     }
+
+    char *encodeLatin1(js::ContextFriendFields *cx, JSString *str);
 
     char *encodeUtf8(JSContext *cx, JSString *str) {
         JS_ASSERT(!mBytes);

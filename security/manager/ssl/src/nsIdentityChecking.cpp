@@ -110,6 +110,7 @@ static struct nsMyTrustedEVInfo myTrustedEVInfos[] = {
    * In other words, if you add another list, that uses the same dotted_oid
    * as an existing entry, then please use the same oid_name.
    */
+#ifdef DEBUG
   {
     // This is the testing EV signature.
     // C=US, ST=CA, L=Mountain View, O=Mozilla - EV debug test CA, OU=Security Engineering, CN=EV Testing (untrustworthy) CA/name=ev-test-ca/emailAddress=charlatan@testing.example.com
@@ -125,6 +126,7 @@ static struct nsMyTrustedEVInfo myTrustedEVInfos[] = {
     "AK/FPSJmJkky",
     nullptr
   },
+#endif
   {
     // OU=Security Communication EV RootCA1,O="SECOM Trust Systems CO.,LTD.",C=JP
     "1.2.392.200091.100.721.1",
@@ -721,27 +723,6 @@ static testEVArray *testEVInfos;
 static bool testEVInfosLoaded = false;
 #endif
 
-static bool isEVMatch(SECOidTag policyOIDTag, 
-                        CERTCertificate *rootCert, 
-                        const nsMyTrustedEVInfo &info)
-{
-  if (!rootCert)
-    return false;
-
-  NS_ConvertASCIItoUTF16 info_sha1(info.ev_root_sha1_fingerprint);
-
-  nsNSSCertificate c(rootCert);
-
-  nsAutoString fingerprint;
-  if (NS_FAILED(c.GetSha1Fingerprint(fingerprint)))
-    return false;
-
-  if (fingerprint != info_sha1)
-    return false;
-
-  return (policyOIDTag == info.oid_tag);
-}
-
 #ifdef PSM_ENABLE_TEST_EV_ROOTS
 static const char kTestEVRootsFileName[] = "test_ev_roots.txt";
 
@@ -962,35 +943,6 @@ getRootsForOidFromExternalRootsFile(CERTCertList* certList,
 
   return false;
 }
-
-static bool 
-isEVMatchInExternalDebugRootsFile(SECOidTag policyOIDTag, 
-                                  CERTCertificate *rootCert)
-{
-  if (!testEVInfos)
-    return false;
-
-  if (!rootCert)
-    return false;
-  
-  char *env_val = getenv("ENABLE_TEST_EV_ROOTS_FILE");
-  if (!env_val)
-    return false;
-    
-  int enabled_val = atoi(env_val);
-  if (!enabled_val)
-    return false;
-
-  for (size_t i=0; i<testEVInfos->Length(); ++i) {
-    nsMyTrustedEVInfoClass *ev = testEVInfos->ElementAt(i);
-    if (!ev)
-      continue;
-    if (isEVMatch(policyOIDTag, rootCert, *ev))
-      return true;
-  }
-
-  return false;
-}
 #endif
 
 static bool 
@@ -1039,30 +991,6 @@ getRootsForOid(SECOidTag oid_tag)
 
 } } // namespace mozilla::psm
 
-static bool 
-isApprovedForEV(SECOidTag policyOIDTag, CERTCertificate *rootCert)
-{
-  if (!rootCert)
-    return false;
-
-  for (size_t iEV=0; iEV < (sizeof(myTrustedEVInfos)/sizeof(nsMyTrustedEVInfo)); ++iEV) {
-    nsMyTrustedEVInfo &entry = myTrustedEVInfos[iEV];
-    if (!entry.oid_name) // invalid or placeholder list entry
-      continue;
-    if (isEVMatch(policyOIDTag, rootCert, entry)) {
-      return true;
-    }
-  }
-
-#ifdef PSM_ENABLE_TEST_EV_ROOTS
-  if (isEVMatchInExternalDebugRootsFile(policyOIDTag, rootCert)) {
-    return true;
-  }
-#endif
-
-  return false;
-}
-
 PRStatus
 nsNSSComponent::IdentityInfoInit()
 {
@@ -1082,10 +1010,12 @@ nsNSSComponent::IdentityInfoInit()
 
     entry.cert = CERT_FindCertByIssuerAndSN(nullptr, &ias);
 
+#ifdef DEBUG
     // The debug CA info is at position 0, and is NOT on the NSS root db
     if (iEV != 0) {
        NS_ASSERTION(entry.cert, "Could not find EV root in NSS storage");
     }
+#endif
 
     SECITEM_FreeItem(&ias.derIssuer, false);
     SECITEM_FreeItem(&ias.serialNumber, false);

@@ -35,8 +35,6 @@
 #include "json.h"
 #include "jsreflect.h"
 #include "jsscript.h"
-#include "jstypedarray.h"
-#include "jstypedarrayinlines.h"
 #include "jsworkers.h"
 #include "jswrapper.h"
 #include "perf/jsperf.h"
@@ -45,6 +43,7 @@
 #include "frontend/BytecodeEmitter.h"
 #include "frontend/Parser.h"
 #include "vm/Shape.h"
+#include "vm/TypedArrayObject.h"
 
 #include "prmjtime.h"
 
@@ -173,6 +172,7 @@ static bool compileOnly = false;
 static bool fuzzingSafe = false;
 
 #ifdef DEBUG
+static bool dumpEntrainedVariables = false;
 static bool OOM_printAllocationCount = false;
 #endif
 
@@ -429,6 +429,12 @@ RunFile(JSContext *cx, Handle<JSObject*> obj, const char *filename, FILE *file, 
 
     RootedScript script(cx);
     script = JS::Compile(cx, obj, options, file);
+
+#ifdef DEBUG
+    if (dumpEntrainedVariables)
+        AnalyzeEntrainedVariables(cx, script);
+#endif
+
     JS_SetOptions(cx, oldopts);
     JS_ASSERT_IF(!script, gGotError);
     if (script && !compileOnly) {
@@ -830,6 +836,7 @@ class AutoNewContext
     JSContext *oldcx;
     JSContext *newcx;
     Maybe<JSAutoRequest> newRequest;
+    Maybe<AutoCompartment> newCompartment;
 
     AutoNewContext(const AutoNewContext &) MOZ_DELETE;
 
@@ -846,6 +853,7 @@ class AutoNewContext
         JS_SetGlobalObject(newcx, JS_GetGlobalForScopeChain(cx));
 
         newRequest.construct(newcx);
+        newCompartment.construct(newcx, JS_GetGlobalForScopeChain(cx));
         return true;
     }
 
@@ -857,6 +865,7 @@ class AutoNewContext
             bool throwing = JS_IsExceptionPending(newcx);
             if (throwing)
                 JS_GetPendingException(newcx, exc.address());
+            newCompartment.destroy();
             newRequest.destroy();
             if (throwing)
                 JS_SetPendingException(oldcx, exc);
@@ -1064,7 +1073,7 @@ Evaluate(JSContext *cx, unsigned argc, jsval *vp)
             if (!smurl)
                 return false;
             jschar *smurl_copy = js_strdup(cx, smurl);
-            if (!smurl_copy || !script->scriptSource()->setSourceMap(cx, smurl_copy, script->filename()))
+            if (!smurl_copy || !script->scriptSource()->setSourceMap(cx, smurl_copy))
                 return false;
         }
         if (!JS_ExecuteScript(cx, global, script, vp)) {
@@ -1156,7 +1165,7 @@ FileAsTypedArray(JSContext *cx, const char *pathname)
             obj = JS_NewUint8Array(cx, len);
             if (!obj)
                 return NULL;
-            char *buf = (char *) TypedArray::viewData(obj);
+            char *buf = (char *) obj->as<TypedArrayObject>().viewData();
             size_t cc = fread(buf, 1, len, file);
             if (cc != len) {
                 JS_ReportError(cx, "can't read %s: %s", pathname,
@@ -2614,9 +2623,13 @@ EvalInFrame(JSContext *cx, unsigned argc, jsval *vp)
             break;
     }
 
-    bool saved = false;
-    if (saveCurrent)
-        saved = JS_SaveFrameChain(cx);
+    AutoSaveFrameChain sfc(cx);
+    mozilla::Maybe<AutoCompartment> ac;
+    if (saveCurrent) {
+        if (!sfc.save())
+            return false;
+        ac.construct(cx, GetDefaultGlobalForContext(cx));
+    }
 
     size_t length;
     const jschar *chars = JS_GetStringCharsAndLength(cx, str, &length);
@@ -2630,10 +2643,6 @@ EvalInFrame(JSContext *cx, unsigned argc, jsval *vp)
                                              JS_PCToLineNumber(cx, fpscript,
                                                                fi.pc()),
                                              MutableHandleValue::fromMarkedLocation(vp));
-
-    if (saved)
-        JS_RestoreFrameChain(cx);
-
     return ok;
 }
 
@@ -2686,7 +2695,7 @@ CopyProperty(JSContext *cx, HandleObject obj, HandleObject referent, HandleId id
             desc.setter = JS_StrictPropertyStub;
         desc.shortid = shape->shortid();
         propFlags = shape->getFlags();
-    } else if (IsProxy(referent)) {
+    } else if (referent->is<ProxyObject>()) {
         if (!Proxy::getOwnPropertyDescriptor(cx, referent, id, &desc, 0))
             return false;
         if (!desc.obj)
@@ -3161,7 +3170,7 @@ Parse(JSContext *cx, unsigned argc, jsval *vp)
     CompileOptions options(cx);
     options.setFileAndLine("<string>", 1)
            .setCompileAndGo(false);
-    Parser<FullParseHandler> parser(cx, options,
+    Parser<FullParseHandler> parser(cx, &cx->tempLifoAlloc(), options,
                                     JS_GetStringCharsZ(cx, scriptContents),
                                     JS_GetStringLength(scriptContents),
                                     /* foldConstants = */ true, NULL, NULL);
@@ -3202,7 +3211,8 @@ SyntaxParse(JSContext *cx, unsigned argc, jsval *vp)
 
     const jschar *chars = JS_GetStringCharsZ(cx, scriptContents);
     size_t length = JS_GetStringLength(scriptContents);
-    Parser<frontend::SyntaxParseHandler> parser(cx, options, chars, length, false, NULL, NULL);
+    Parser<frontend::SyntaxParseHandler> parser(cx, &cx->tempLifoAlloc(),
+                                                options, chars, length, false, NULL, NULL);
 
     bool succeeded = parser.parse(NULL);
     if (cx->isExceptionPending())
@@ -3438,16 +3448,17 @@ Serialize(JSContext *cx, unsigned argc, jsval *vp)
     if (!JS_WriteStructuredClone(cx, v, &datap, &nbytes, NULL, NULL, UndefinedValue()))
         return false;
 
-    JSObject *array = JS_NewUint8Array(cx, nbytes);
-    if (!array) {
+    JSObject *obj = JS_NewUint8Array(cx, nbytes);
+    if (!obj) {
         JS_free(cx, datap);
         return false;
     }
-    JS_ASSERT((uintptr_t(TypedArray::viewData(array)) & 7) == 0);
-    js_memcpy(TypedArray::viewData(array), datap, nbytes);
+    TypedArrayObject *tarr = &obj->as<TypedArrayObject>();
+    JS_ASSERT((uintptr_t(tarr->viewData()) & 7) == 0);
+    js_memcpy(tarr->viewData(), datap, nbytes);
 
     JS_ClearStructuredClone(datap, nbytes);
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(array));
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tarr));
     return true;
 }
 
@@ -3456,20 +3467,21 @@ Deserialize(JSContext *cx, unsigned argc, jsval *vp)
 {
     Rooted<jsval> v(cx, argc > 0 ? JS_ARGV(cx, vp)[0] : UndefinedValue());
     JSObject *obj;
-    if (JSVAL_IS_PRIMITIVE(v) || !(obj = JSVAL_TO_OBJECT(v))->isTypedArray()) {
+    if (JSVAL_IS_PRIMITIVE(v) || !(obj = JSVAL_TO_OBJECT(v))->is<TypedArrayObject>()) {
         JS_ReportErrorNumber(cx, my_GetErrorMessage, NULL, JSSMSG_INVALID_ARGS, "deserialize");
         return false;
     }
-    if ((TypedArray::byteLength(obj) & 7) != 0) {
+    TypedArrayObject *tarr = &obj->as<TypedArrayObject>();
+    if ((tarr->byteLength() & 7) != 0) {
         JS_ReportErrorNumber(cx, my_GetErrorMessage, NULL, JSSMSG_INVALID_ARGS, "deserialize");
         return false;
     }
-    if ((uintptr_t(TypedArray::viewData(obj)) & 7) != 0) {
+    if ((uintptr_t(tarr->viewData()) & 7) != 0) {
         JS_ReportErrorNumber(cx, my_GetErrorMessage, NULL, JSSMSG_BAD_ALIGNMENT);
         return false;
     }
 
-    if (!JS_ReadStructuredClone(cx, (uint64_t *) TypedArray::viewData(obj), TypedArray::byteLength(obj),
+    if (!JS_ReadStructuredClone(cx, (uint64_t *) tarr->viewData(), tarr->byteLength(),
                                 JS_STRUCTURED_CLONE_VERSION, v.address(), NULL, NULL)) {
         return false;
     }
@@ -4847,7 +4859,7 @@ NewGlobalObject(JSContext *cx, JSObject *sameZoneAs)
         if (!JS_DefineProperty(cx, glob, "customNative", UndefinedValue(),
                                (JSPropertyOp)its_get_customNative,
                                (JSStrictPropertyOp)its_set_customNative,
-                               JSPROP_NATIVE_ACCESSORS))
+                               JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS))
         {
             return NULL;
         }
@@ -4933,8 +4945,10 @@ ProcessArgs(JSContext *cx, JSObject *obj_, OptionParser *op)
     if (op->getBoolOption('b'))
         printTiming = true;
 
-    if (op->getBoolOption('D'))
+    if (op->getBoolOption('D')) {
+        cx->runtime()->profilingScripts = true;
         enableDisassemblyDumps = true;
+    }
 
 #ifdef JS_THREADSAFE
     int32_t threadCount = op->getIntOption("thread-count");
@@ -5065,6 +5079,11 @@ ProcessArgs(JSContext *cx, JSObject *obj_, OptionParser *op)
 
 #endif /* JS_ION */
 
+#ifdef DEBUG
+    if (op->getBoolOption("dump-entrained-variables"))
+        dumpEntrainedVariables = true;
+#endif
+
     /* |scriptArgs| gets bound on the global before any code is run. */
     if (!BindScriptArgs(cx, obj, op))
         return EXIT_FAILURE;
@@ -5130,6 +5149,7 @@ Shell(JSContext *cx, OptionParser *op, char **envp)
     if (!glob)
         return 1;
 
+    JSAutoCompartment ac(cx, glob);
     JS_SetGlobalObject(cx, glob);
 
     JSObject *envobj = JS_DefineObject(cx, glob, "environment", &env_class, NULL, 0);
@@ -5261,8 +5281,8 @@ main(int argc, char **argv, char **envp)
         || !op.addStringOption('\0', "ion-gvn", "[mode]",
                                "Specify Ion global value numbering:\n"
                                "  off: disable GVN\n"
-                               "  pessimistic: (default) use pessimistic GVN\n"
-                               "  optimistic: use optimistic GVN")
+                               "  pessimistic: use pessimistic GVN\n"
+                               "  optimistic: (default) use optimistic GVN")
         || !op.addStringOption('\0', "ion-licm", "on/off",
                                "Loop invariant code motion (default: on, off to disable)")
         || !op.addStringOption('\0', "ion-edgecase-analysis", "on/off",
@@ -5277,7 +5297,7 @@ main(int argc, char **argv, char **envp)
                                "Don't compile very large scripts (default: on, off to disable)")
         || !op.addIntOption('\0', "ion-uses-before-compile", "COUNT",
                             "Wait for COUNT calls or iterations before compiling "
-                            "(default: 10240)", -1)
+                            "(default: 1000)", -1)
         || !op.addStringOption('\0', "ion-regalloc", "[mode]",
                                "Specify Ion register allocation:\n"
                                "  lsra: Linear Scan register allocation (default)\n"
@@ -5298,6 +5318,10 @@ main(int argc, char **argv, char **envp)
                              "to test JIT codegen (no-op on platforms other than x86).")
         || !op.addBoolOption('\0', "fuzzing-safe", "Don't expose functions that aren't safe for "
                              "fuzzers to call")
+#ifdef DEBUG
+        || !op.addBoolOption('\0', "dump-entrained-variables", "Print variables which are "
+                             "unnecessarily entrained by inner functions")
+#endif
 #ifdef JSGC_GENERATIONAL
         || !op.addBoolOption('\0', "no-ggc", "Disable Generational GC")
 #endif
@@ -5368,10 +5392,6 @@ main(int argc, char **argv, char **envp)
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
     js::SetPreserveWrapperCallback(rt, DummyPreserveWrapperCallback);
-
-    /* Must be done before creating the global object */
-    if (op.getBoolOption('D'))
-        JS_ToggleOptions(cx, JSOPTION_PCCOUNT);
 
     result = Shell(cx, &op, envp);
 

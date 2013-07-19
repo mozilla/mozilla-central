@@ -118,18 +118,6 @@ JSObject::finalize(js::FreeOp *fop)
     finish(fop);
 }
 
-inline JSObject *
-JSObject::getParent() const
-{
-    return lastProperty()->getObjectParent();
-}
-
-inline JSObject *
-JSObject::getMetadata() const
-{
-    return lastProperty()->getObjectMetadata();
-}
-
 inline void
 JSObject::setLastPropertyInfallible(js::Shape *shape)
 {
@@ -143,7 +131,7 @@ JSObject::setLastPropertyInfallible(js::Shape *shape)
 }
 
 inline void
-JSObject::removeLastProperty(JSContext *cx)
+JSObject::removeLastProperty(js::ExclusiveContext *cx)
 {
     JS_ASSERT(canRemoveLastProperty());
     JS::RootedObject self(cx, this);
@@ -214,7 +202,7 @@ JSObject::setShouldConvertDoubleElements()
 }
 
 inline bool
-JSObject::ensureElements(JSContext *cx, uint32_t capacity)
+JSObject::ensureElements(js::ThreadSafeContext *cx, uint32_t capacity)
 {
     if (capacity > getDenseCapacity())
         return growElements(cx, capacity);
@@ -245,7 +233,7 @@ JSObject::initDenseElement(uint32_t index, const js::Value &val)
 }
 
 /* static */ inline void
-JSObject::setDenseElementWithType(JSContext *cx, js::HandleObject obj, uint32_t index,
+JSObject::setDenseElementWithType(js::ExclusiveContext *cx, js::HandleObject obj, uint32_t index,
                                   const js::Value &val)
 {
     js::types::AddTypePropertyId(cx, obj, JSID_VOID, val);
@@ -253,7 +241,7 @@ JSObject::setDenseElementWithType(JSContext *cx, js::HandleObject obj, uint32_t 
 }
 
 /* static */ inline void
-JSObject::initDenseElementWithType(JSContext *cx, js::HandleObject obj, uint32_t index,
+JSObject::initDenseElementWithType(js::ExclusiveContext *cx, js::HandleObject obj, uint32_t index,
                                    const js::Value &val)
 {
     JS_ASSERT(!obj->shouldConvertDoubleElements());
@@ -262,14 +250,15 @@ JSObject::initDenseElementWithType(JSContext *cx, js::HandleObject obj, uint32_t
 }
 
 /* static */ inline void
-JSObject::setDenseElementHole(JSContext *cx, js::HandleObject obj, uint32_t index)
+JSObject::setDenseElementHole(js::ExclusiveContext *cx, js::HandleObject obj, uint32_t index)
 {
     js::types::MarkTypeObjectFlags(cx, obj, js::types::OBJECT_FLAG_NON_PACKED);
     obj->setDenseElement(index, js::MagicValue(JS_ELEMENTS_HOLE));
 }
 
 /* static */ inline void
-JSObject::removeDenseElementForSparseIndex(JSContext *cx, js::HandleObject obj, uint32_t index)
+JSObject::removeDenseElementForSparseIndex(js::ExclusiveContext *cx,
+                                           js::HandleObject obj, uint32_t index)
 {
     js::types::MarkTypeObjectFlags(cx, obj,
                                    js::types::OBJECT_FLAG_NON_PACKED |
@@ -345,14 +334,14 @@ JSObject::moveDenseElementsUnbarriered(uint32_t dstStart, uint32_t srcStart, uin
 }
 
 inline void
-JSObject::markDenseElementsNotPacked(JSContext *cx)
+JSObject::markDenseElementsNotPacked(js::ExclusiveContext *cx)
 {
     JS_ASSERT(isNative());
     MarkTypeObjectFlags(cx, this, js::types::OBJECT_FLAG_NON_PACKED);
 }
 
 inline void
-JSObject::ensureDenseInitializedLength(JSContext *cx, uint32_t index, uint32_t extra)
+JSObject::ensureDenseInitializedLength(js::ExclusiveContext *cx, uint32_t index, uint32_t extra)
 {
     /*
      * Ensure that the array's contents have been initialized up to index, and
@@ -376,7 +365,7 @@ JSObject::ensureDenseInitializedLength(JSContext *cx, uint32_t index, uint32_t e
 }
 
 JSObject::EnsureDenseResult
-JSObject::extendDenseElements(js::ThreadSafeContext *tcx,
+JSObject::extendDenseElements(js::ThreadSafeContext *cx,
                               uint32_t requiredCapacity, uint32_t extra)
 {
     /*
@@ -406,14 +395,14 @@ JSObject::extendDenseElements(js::ThreadSafeContext *tcx,
         return ED_SPARSE;
     }
 
-    if (!growElements(tcx, requiredCapacity))
+    if (!growElements(cx, requiredCapacity))
         return ED_FAILED;
 
     return ED_OK;
 }
 
 inline JSObject::EnsureDenseResult
-JSObject::parExtendDenseElements(js::ThreadSafeContext *tcx, js::Value *v, uint32_t extra)
+JSObject::parExtendDenseElements(js::ThreadSafeContext *cx, js::Value *v, uint32_t extra)
 {
     JS_ASSERT(isNative());
     JS_ASSERT_IF(is<js::ArrayObject>(), as<js::ArrayObject>().lengthIsWritable());
@@ -425,7 +414,7 @@ JSObject::parExtendDenseElements(js::ThreadSafeContext *tcx, js::Value *v, uint3
         return ED_SPARSE; /* Overflow. */
 
     if (requiredCapacity > header->capacity) {
-        EnsureDenseResult edr = extendDenseElements(tcx, requiredCapacity, extra);
+        EnsureDenseResult edr = extendDenseElements(cx, requiredCapacity, extra);
         if (edr != ED_OK)
             return edr;
     }
@@ -451,7 +440,7 @@ JSObject::parExtendDenseElements(js::ThreadSafeContext *tcx, js::Value *v, uint3
 }
 
 inline JSObject::EnsureDenseResult
-JSObject::ensureDenseElements(JSContext *cx, uint32_t index, uint32_t extra)
+JSObject::ensureDenseElements(js::ExclusiveContext *cx, uint32_t index, uint32_t extra)
 {
     JS_ASSERT(isNative());
 
@@ -490,12 +479,14 @@ JSObject::ensureDenseElements(JSContext *cx, uint32_t index, uint32_t extra)
 }
 
 /* static */ inline bool
-JSObject::setSingletonType(JSContext *cx, js::HandleObject obj)
+JSObject::setSingletonType(js::ExclusiveContext *cxArg, js::HandleObject obj)
 {
-    JS_ASSERT(!IsInsideNursery(cx->runtime(), obj.get()));
-
-    if (!cx->typeInferenceEnabled())
+    if (!cxArg->typeInferenceEnabled())
         return true;
+
+    JSContext *cx = cxArg->asJSContext();
+
+    JS_ASSERT(!IsInsideNursery(cx->runtime(), obj.get()));
 
     js::types::TypeObject *type =
         cx->compartment()->getLazyType(cx, obj->getClass(), obj->getTaggedProto());
@@ -525,7 +516,7 @@ JSObject::clearType(JSContext *cx, js::HandleObject obj)
     JS_ASSERT(!obj->hasSingletonType());
     JS_ASSERT(cx->compartment() == obj->compartment());
 
-    js::types::TypeObject *type = cx->compartment()->getNewType(cx, obj->getClass(), NULL);
+    js::types::TypeObject *type = cx->getNewType(obj->getClass(), NULL);
     if (!type)
         return false;
 
@@ -547,22 +538,12 @@ JSObject::setType(js::types::TypeObject *newType)
 JSObject::getProto(JSContext *cx, js::HandleObject obj, js::MutableHandleObject protop)
 {
     if (obj->getTaggedProto().isLazy()) {
-        JS_ASSERT(obj->isProxy());
+        JS_ASSERT(obj->is<js::ProxyObject>());
         return js::Proxy::getPrototypeOf(cx, obj, protop);
     } else {
         protop.set(obj->js::ObjectImpl::getProto());
         return true;
     }
-}
-
-inline bool JSObject::setIteratedSingleton(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::ITERATED_SINGLETON);
-}
-
-inline bool JSObject::setDelegate(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::DELEGATE, GENERATE_SHAPE);
 }
 
 inline bool JSObject::isVarObj()
@@ -572,55 +553,8 @@ inline bool JSObject::isVarObj()
     return lastProperty()->hasObjectFlag(js::BaseShape::VAROBJ);
 }
 
-inline bool JSObject::setVarObj(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::VAROBJ);
-}
-
-inline bool JSObject::setWatched(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::WATCHED, GENERATE_SHAPE);
-}
-
-inline bool JSObject::hasUncacheableProto() const
-{
-    return lastProperty()->hasObjectFlag(js::BaseShape::UNCACHEABLE_PROTO);
-}
-
-inline bool JSObject::setUncacheableProto(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::UNCACHEABLE_PROTO, GENERATE_SHAPE);
-}
-
-inline bool JSObject::hadElementsAccess() const
-{
-    return lastProperty()->hasObjectFlag(js::BaseShape::HAD_ELEMENTS_ACCESS);
-}
-
-inline bool JSObject::setHadElementsAccess(JSContext *cx)
-{
-    return setFlag(cx, js::BaseShape::HAD_ELEMENTS_ACCESS);
-}
-
-inline bool JSObject::isBoundFunction() const
-{
-    return lastProperty()->hasObjectFlag(js::BaseShape::BOUND_FUNCTION);
-}
-
-inline bool JSObject::isIndexed() const
-{
-    return lastProperty()->hasObjectFlag(js::BaseShape::INDEXED);
-}
-
-inline bool JSObject::watched() const
-{
-    return lastProperty()->hasObjectFlag(js::BaseShape::WATCHED);
-}
-
-inline bool JSObject::isTypedArray() const { return IsTypedArrayClass(getClass()); }
-
 /* static */ inline JSObject *
-JSObject::create(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap,
+JSObject::create(js::ExclusiveContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap,
                  js::HandleShape shape, js::HandleTypeObject type,
                  js::HeapSlot *extantSlots /* = NULL */)
 {
@@ -655,7 +589,8 @@ JSObject::create(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap
     }
 
 #ifdef JSGC_GENERATIONAL
-    cx->runtime()->gcNursery.notifyInitialSlots(obj, slots);
+    if (heap != js::gc::TenuredHeap)
+        cx->asJSContext()->runtime()->gcNursery.notifyInitialSlots(obj, slots);
 #endif
 
     obj->shape_.init(shape);
@@ -674,8 +609,8 @@ JSObject::create(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap
     return obj;
 }
 
-/* static */ inline JSObject *
-JSObject::createArray(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap,
+/* static */ inline js::ArrayObject *
+JSObject::createArray(js::ExclusiveContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap heap,
                       js::HandleShape shape, js::HandleTypeObject type,
                       uint32_t length)
 {
@@ -700,10 +635,8 @@ JSObject::createArray(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap
     uint32_t capacity = js::gc::GetGCKindSlots(kind) - js::ObjectElements::VALUES_PER_HEADER;
 
     JSObject *obj = js_NewGCObject<js::CanGC>(cx, kind, heap);
-    if (!obj) {
-        js_ReportOutOfMemory(cx);
+    if (!obj)
         return NULL;
-    }
 
     obj->shape_.init(shape);
     obj->type_.init(type);
@@ -711,7 +644,7 @@ JSObject::createArray(JSContext *cx, js::gc::AllocKind kind, js::gc::InitialHeap
     obj->setFixedElements();
     new (obj->getElementsHeader()) js::ObjectElements(capacity, length);
 
-    return obj;
+    return &obj->as<js::ArrayObject>();
 }
 
 inline void
@@ -752,29 +685,11 @@ JSObject::nativeSetSlot(uint32_t slot, const js::Value &value)
 }
 
 /* static */ inline void
-JSObject::nativeSetSlotWithType(JSContext *cx, js::HandleObject obj, js::Shape *shape,
+JSObject::nativeSetSlotWithType(js::ExclusiveContext *cx, js::HandleObject obj, js::Shape *shape,
                                 const js::Value &value)
 {
     obj->nativeSetSlot(shape->slot(), value);
     js::types::AddTypePropertyId(cx, obj, shape->propid(), value);
-}
-
-inline bool
-JSObject::nativeEmpty() const
-{
-    return lastProperty()->isEmptyShape();
-}
-
-inline uint32_t
-JSObject::propertyCount() const
-{
-    return lastProperty()->entryCount();
-}
-
-inline bool
-JSObject::hasShapeTable() const
-{
-    return lastProperty()->hasTable();
 }
 
 /* static */ inline JSBool
@@ -935,7 +850,7 @@ IsNativeFunction(const js::Value &v, JSNative native)
 static JS_ALWAYS_INLINE bool
 ClassMethodIsNative(JSContext *cx, JSObject *obj, Class *clasp, jsid methodid, JSNative native)
 {
-    JS_ASSERT(!obj->isProxy());
+    JS_ASSERT(!obj->is<ProxyObject>());
     JS_ASSERT(obj->getClass() == clasp);
 
     Value v;
@@ -1064,11 +979,11 @@ class AutoPropertyDescriptorRooter : private AutoGCRooter, public PropertyDescri
  * default to the prototype's global if the prototype is non-null.
  */
 JSObject *
-NewObjectWithGivenProto(JSContext *cx, js::Class *clasp, TaggedProto proto, JSObject *parent,
+NewObjectWithGivenProto(ExclusiveContext *cx, js::Class *clasp, TaggedProto proto, JSObject *parent,
                         gc::AllocKind allocKind, NewObjectKind newKind);
 
 inline JSObject *
-NewObjectWithGivenProto(JSContext *cx, js::Class *clasp, TaggedProto proto, JSObject *parent,
+NewObjectWithGivenProto(ExclusiveContext *cx, js::Class *clasp, TaggedProto proto, JSObject *parent,
                         NewObjectKind newKind = GenericObject)
 {
     gc::AllocKind allocKind = gc::GetGCObjectKind(clasp);
@@ -1076,7 +991,7 @@ NewObjectWithGivenProto(JSContext *cx, js::Class *clasp, TaggedProto proto, JSOb
 }
 
 inline JSObject *
-NewObjectWithGivenProto(JSContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
+NewObjectWithGivenProto(ExclusiveContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
                         NewObjectKind newKind = GenericObject)
 {
     return NewObjectWithGivenProto(cx, clasp, TaggedProto(proto), parent, newKind);
@@ -1094,7 +1009,7 @@ GetClassProtoKey(js::Class *clasp)
 }
 
 inline bool
-FindProto(JSContext *cx, js::Class *clasp, MutableHandleObject proto)
+FindProto(ExclusiveContext *cx, js::Class *clasp, MutableHandleObject proto)
 {
     JSProtoKey protoKey = GetClassProtoKey(clasp);
     if (!js_GetClassPrototype(cx, protoKey, proto, clasp))
@@ -1122,18 +1037,18 @@ FindProto(JSContext *cx, js::Class *clasp, MutableHandleObject proto)
  * parent will be that global.
  */
 JSObject *
-NewObjectWithClassProtoCommon(JSContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
+NewObjectWithClassProtoCommon(ExclusiveContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
                               gc::AllocKind allocKind, NewObjectKind newKind);
 
 inline JSObject *
-NewObjectWithClassProto(JSContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
+NewObjectWithClassProto(ExclusiveContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
                         gc::AllocKind allocKind, NewObjectKind newKind = GenericObject)
 {
     return NewObjectWithClassProtoCommon(cx, clasp, proto, parent, allocKind, newKind);
 }
 
 inline JSObject *
-NewObjectWithClassProto(JSContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
+NewObjectWithClassProto(ExclusiveContext *cx, js::Class *clasp, JSObject *proto, JSObject *parent,
                         NewObjectKind newKind = GenericObject)
 {
     gc::AllocKind allocKind = gc::GetGCObjectKind(clasp);
@@ -1145,30 +1060,18 @@ NewObjectWithClassProto(JSContext *cx, js::Class *clasp, JSObject *proto, JSObje
  * according to the context's active global.
  */
 inline JSObject *
-NewBuiltinClassInstance(JSContext *cx, Class *clasp, gc::AllocKind allocKind,
+NewBuiltinClassInstance(ExclusiveContext *cx, Class *clasp, gc::AllocKind allocKind,
                         NewObjectKind newKind = GenericObject)
 {
     return NewObjectWithClassProto(cx, clasp, NULL, NULL, allocKind, newKind);
 }
 
 inline JSObject *
-NewBuiltinClassInstance(JSContext *cx, Class *clasp, NewObjectKind newKind = GenericObject)
+NewBuiltinClassInstance(ExclusiveContext *cx, Class *clasp, NewObjectKind newKind = GenericObject)
 {
     gc::AllocKind allocKind = gc::GetGCObjectKind(clasp);
     return NewBuiltinClassInstance(cx, clasp, allocKind, newKind);
 }
-
-bool
-FindClassPrototype(JSContext *cx, HandleObject scope, JSProtoKey protoKey,
-                   MutableHandleObject protop, Class *clasp);
-
-/*
- * Create a plain object with the specified type. This bypasses getNewType to
- * avoid losing creation site information for objects made by scripted 'new'.
- */
-JSObject *
-NewObjectWithType(JSContext *cx, HandleTypeObject type, JSObject *parent, gc::AllocKind allocKind,
-                  NewObjectKind newKind = GenericObject);
 
 // Used to optimize calls to (new Object())
 bool
@@ -1178,14 +1081,14 @@ NewObjectScriptedCall(JSContext *cx, MutableHandleObject obj);
 static inline JSObject *
 CopyInitializerObject(JSContext *cx, HandleObject baseobj, NewObjectKind newKind = GenericObject)
 {
-    JS_ASSERT(baseobj->getClass() == &ObjectClass);
+    JS_ASSERT(baseobj->getClass() == &JSObject::class_);
     JS_ASSERT(!baseobj->inDictionaryMode());
 
     gc::AllocKind allocKind = gc::GetGCObjectFixedSlotsKind(baseobj->numFixedSlots());
     allocKind = gc::GetBackgroundAllocKind(allocKind);
     JS_ASSERT_IF(baseobj->isTenured(), allocKind == baseobj->tenuredGetAllocKind());
     RootedObject obj(cx);
-    obj = NewBuiltinClassInstance(cx, &ObjectClass, allocKind, newKind);
+    obj = NewBuiltinClassInstance(cx, &JSObject::class_, allocKind, newKind);
     if (!obj)
         return NULL;
 
@@ -1254,7 +1157,7 @@ DefineConstructorAndPrototype(JSContext *cx, Handle<GlobalObject*> global,
 inline bool
 ObjectClassIs(HandleObject obj, ESClassValue classValue, JSContext *cx)
 {
-    if (JS_UNLIKELY(obj->isProxy()))
+    if (JS_UNLIKELY(obj->is<ProxyObject>()))
         return Proxy::objectClassIs(obj, classValue, cx);
 
     switch (classValue) {
@@ -1301,19 +1204,59 @@ DefineConstructorAndPrototype(JSContext *cx, HandleObject obj, JSProtoKey key, H
                               gc::AllocKind ctorKind = JSFunction::FinalizeKind);
 
 static JS_ALWAYS_INLINE bool
-NewObjectMetadata(JSContext *cx, JSObject **pmetadata)
+NewObjectMetadata(ExclusiveContext *cxArg, JSObject **pmetadata)
 {
     // The metadata callback is invoked before each created object, except when
     // analysis is active as the callback may reenter JS.
     JS_ASSERT(!*pmetadata);
-    if (JS_UNLIKELY((size_t)cx->compartment()->objectMetadataCallback) &&
-        !cx->compartment()->activeAnalysis)
-    {
-        gc::AutoSuppressGC suppress(cx);
-        return cx->compartment()->objectMetadataCallback(cx, pmetadata);
+    if (JSContext *cx = cxArg->maybeJSContext()) {
+        if (JS_UNLIKELY((size_t)cx->compartment()->objectMetadataCallback) &&
+            !cx->compartment()->activeAnalysis)
+        {
+            gc::AutoSuppressGC suppress(cx);
+            return cx->compartment()->objectMetadataCallback(cx, pmetadata);
+        }
     }
     return true;
 }
+
+inline bool
+DefineNativeProperty(ExclusiveContext *cx, HandleObject obj, PropertyName *name, HandleValue value,
+                     PropertyOp getter, StrictPropertyOp setter, unsigned attrs,
+                     unsigned flags, int shortid, unsigned defineHow = 0)
+{
+    Rooted<jsid> id(cx, NameToId(name));
+    return DefineNativeProperty(cx, obj, id, value, getter, setter, attrs, flags,
+                                shortid, defineHow);
+}
+
+inline bool
+LookupPropertyWithFlags(ExclusiveContext *cx, HandleObject obj, PropertyName *name, unsigned flags,
+                        js::MutableHandleObject objp, js::MutableHandleShape propp)
+{
+    Rooted<jsid> id(cx, NameToId(name));
+    return LookupPropertyWithFlags(cx, obj, id, flags, objp, propp);
+}
+
+namespace baseops {
+
+inline bool
+LookupProperty(ExclusiveContext *cx, HandleObject obj, PropertyName *name,
+               MutableHandleObject objp, MutableHandleShape propp)
+{
+    Rooted<jsid> id(cx, NameToId(name));
+    return LookupProperty<CanGC>(cx, obj, id, objp, propp);
+}
+
+inline JSBool
+DefineProperty(ExclusiveContext *cx, HandleObject obj, PropertyName *name, HandleValue value,
+               JSPropertyOp getter, JSStrictPropertyOp setter, unsigned attrs)
+{
+    Rooted<jsid> id(cx, NameToId(name));
+    return DefineGeneric(cx, obj, id, value, getter, setter, attrs);
+}
+
+} /* namespace baseops */
 
 } /* namespace js */
 
@@ -1324,22 +1267,5 @@ js_InitClass(JSContext *cx, js::HandleObject obj, JSObject *parent_proto,
              const JSPropertySpec *static_ps, const JSFunctionSpec *static_fs,
              JSObject **ctorp = NULL,
              js::gc::AllocKind ctorKind = JSFunction::FinalizeKind);
-
-/*
- * js_PurgeScopeChain does nothing if obj is not itself a prototype or parent
- * scope, else it reshapes the scope and prototype chains it links. It calls
- * js_PurgeScopeChainHelper, which asserts that obj is flagged as a delegate
- * (i.e., obj has ever been on a prototype or parent chain).
- */
-extern bool
-js_PurgeScopeChainHelper(JSContext *cx, JS::HandleObject obj, JS::HandleId id);
-
-inline bool
-js_PurgeScopeChain(JSContext *cx, JS::HandleObject obj, JS::HandleId id)
-{
-    if (obj->isDelegate())
-        return js_PurgeScopeChainHelper(cx, obj, id);
-    return true;
-}
 
 #endif /* jsobjinlines_h */

@@ -27,6 +27,7 @@ function RemoteWebProgress(browser)
 {
   this._browser = browser;
   this._isDocumentLoading = false;
+  this._DOMWindow = null;
   this._isTopLevel = true;
   this._progressListeners = [];
 }
@@ -60,7 +61,7 @@ RemoteWebProgress.prototype = {
   },
 
   get isLoadingDocument() { return this._isDocumentLoading },
-  get DOMWindow() { return null; },
+  get DOMWindow() { return this._DOMWindow; },
   get DOMWindowID() { return 0; },
   get isTopLevel() { return this._isTopLevel; },
 
@@ -81,7 +82,9 @@ RemoteWebProgress.prototype = {
   },
 
   receiveMessage: function WP_ReceiveMessage(aMessage) {
+    this._DOMWindow = aMessage.objects.DOMWindow;
     this._isTopLevel = aMessage.json.isTopLevel;
+    this._browser._contentWindow = aMessage.objects.contentWindow;
 
     let req = this._uriSpec(aMessage.json.requestURI);
     switch (aMessage.name) {
@@ -106,8 +109,16 @@ RemoteWebProgress.prototype = {
       break;
 
     case "Content:SecurityChange":
+      // Invoking this getter triggers the generation of the underlying object,
+      // which we need to access with ._securityUI, because .securityUI returns
+      // a wrapper that makes _update inaccessible.
+      void this._browser.securityUI;
+      this._browser._securityUI._update(aMessage.json.state, aMessage.json.status);
+
+      // The state passed might not be correct due to checks performed
+      // on the chrome side. _update fixes that.
       for each (let p in this._progressListeners) {
-        p.onSecurityChange(this, req, aMessage.json.state);
+        p.onSecurityChange(this, req, this._browser.securityUI.state);
       }
       break;
 

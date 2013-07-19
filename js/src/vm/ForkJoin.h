@@ -98,7 +98,7 @@
 //   get interesting.  In that case, the semantics of parallel
 //   execution guarantee us that no visible side effects have occurred
 //   (unless they were performed with the intrinsic
-//   |UnsafeSetElement()|, which can only be used in self-hosted
+//   |UnsafePutElements()|, which can only be used in self-hosted
 //   code).  We therefore reinvoke |func()| but with warmup set to
 //   true.  The idea here is that often parallel bailouts result from
 //   a failed type guard or other similar assumption, so rerunning the
@@ -219,13 +219,6 @@ struct IonLIRTraceData {
     jsbytecode *pc;
 };
 #endif
-
-// Parallel operations in general can have one of three states.  They may
-// succeed, fail, or "bail", where bail indicates that the code encountered an
-// unexpected condition and should be re-run sequentially.
-// Different subcategories of the "bail" state are encoded as variants of
-// TP_RETRY_*.
-enum ParallelResult { TP_SUCCESS, TP_RETRY_SEQUENTIALLY, TP_RETRY_AFTER_GC, TP_FATAL };
 
 ///////////////////////////////////////////////////////////////////////////
 // Bailout tracking

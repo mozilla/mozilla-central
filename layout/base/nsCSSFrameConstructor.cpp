@@ -70,7 +70,6 @@
 #include "nsRuleNode.h"
 #include "nsIDOMMutationEvent.h"
 #include "ChildIterator.h"
-#include "nsXBLChildrenElement.h"
 #include "nsCSSRendering.h"
 #include "nsError.h"
 #include "nsLayoutUtils.h"
@@ -3519,7 +3518,7 @@ nsCSSFrameConstructor::ConstructFrameFromItemInternal(FrameConstructionItem& aIt
   // descendants.
   nsIContent* parent = content->GetParent();
   bool pushInsertionPoint = aState.mTreeMatchContext.mAncestorFilter.HasFilter() &&
-    parent && parent->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL);
+    parent && parent->IsActiveChildrenElement();
   TreeMatchContext::AutoAncestorPusher
     insertionPointPusher(pushInsertionPoint,
                          aState.mTreeMatchContext,
@@ -6397,8 +6396,7 @@ nsCSSFrameConstructor::GetRangeInsertionPoint(nsIContent* aContainer,
     // XXXbz XBL2/sXBL issue
     nsIDocument* document = aStartChild->GetDocument();
     // XXXbz how would |document| be null here?
-    if (document &&
-        document->BindingManager()->GetInsertionParent(aStartChild)) {
+    if (document && aStartChild->GetXBLInsertionParent()) {
       hasInsertion = true;
     }
   }
@@ -6512,7 +6510,7 @@ nsCSSFrameConstructor::ContentAppended(nsIContent*     aContainer,
   nsIFrame* parentFrame = GetFrameFor(aContainer);
 
   // See comment in ContentRangeInserted for why this is necessary.
-  if (!parentFrame && !aContainer->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
+  if (!parentFrame && !aContainer->IsActiveChildrenElement()) {
     return NS_OK;
   }
 
@@ -6935,7 +6933,7 @@ nsCSSFrameConstructor::ContentRangeInserted(nsIContent*            aContainer,
   // The xbl:children element won't have a frame, but default content can have the children as
   // a parent. While its uncommon to change the structure of the default content itself, a label,
   // for example, can be reframed by having its value attribute set or removed.
-  if (!parentFrame && !aContainer->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
+  if (!parentFrame && !aContainer->IsActiveChildrenElement()) {
     return NS_OK;
   }
 
@@ -7615,15 +7613,24 @@ DoApplyRenderingChangeToTree(nsIFrame* aFrame,
                              nsChangeHint aChange);
 
 /**
- * This rect is relative to aFrame's parent
- */
+ * Sync views on aFrame and all of aFrame's descendants (following placeholders),
+ * if aChange has nsChangeHint_SyncFrameView.
+ * Calls DoApplyRenderingChangeToTree on all aFrame's out-of-flow descendants
+ * (following placeholders), if aChange has nsChangeHint_RepaintFrame.
+ * aFrame should be some combination of nsChangeHint_SyncFrameView and
+ * nsChangeHint_RepaintFrame and nsChangeHint_UpdateOpacityLayer, nothing else.
+*/
 static void
-UpdateViewsForTree(nsIFrame* aFrame,
-                   nsFrameManager* aFrameManager,
-                   nsChangeHint aChange)
+SyncViewsAndInvalidateDescendants(nsIFrame* aFrame,
+                                  nsFrameManager* aFrameManager,
+                                  nsChangeHint aChange)
 {
   NS_PRECONDITION(gInApplyRenderingChangeToTree,
                   "should only be called within ApplyRenderingChangeToTree");
+  NS_ASSERTION(aChange == (aChange & (nsChangeHint_RepaintFrame |
+                                      nsChangeHint_SyncFrameView |
+                                      nsChangeHint_UpdateOpacityLayer)),
+               "Invalid change flag");
 
   nsView* view = aFrame->GetView();
   if (view) {
@@ -7644,15 +7651,13 @@ UpdateViewsForTree(nsIFrame* aFrame,
           // do the out-of-flow frame and its continuations
           nsIFrame* outOfFlowFrame =
             nsPlaceholderFrame::GetRealFrameForPlaceholder(child);
-          do {
-            DoApplyRenderingChangeToTree(outOfFlowFrame, aFrameManager,
-                                         aChange);
-          } while ((outOfFlowFrame = outOfFlowFrame->GetNextContinuation()));
+          DoApplyRenderingChangeToTree(outOfFlowFrame, aFrameManager,
+                                       aChange);
         } else if (lists.CurrentID() == nsIFrame::kPopupList) {
           DoApplyRenderingChangeToTree(child, aFrameManager,
                                        aChange);
         } else {  // regular frame
-          UpdateViewsForTree(child, aFrameManager, aChange);
+          SyncViewsAndInvalidateDescendants(child, aFrameManager, aChange);
         }
       }
     }
@@ -7709,18 +7714,15 @@ DoApplyRenderingChangeToTree(nsIFrame* aFrame,
                   "should only be called within ApplyRenderingChangeToTree");
 
   for ( ; aFrame; aFrame = nsLayoutUtils::GetNextContinuationOrSpecialSibling(aFrame)) {
-    // Get view if this frame has one and trigger an update. If the
-    // frame doesn't have a view, find the nearest containing view
-    // (adjusting r's coordinate system to reflect the nesting) and
-    // update there.
-    // We don't need to update transforms in UpdateViewsForTree, because
+    // Invalidate and sync views on all descendant frames, following placeholders.
+    // We don't need to update transforms in SyncViewsAndInvalidateDescendants, because
     // there can't be any out-of-flows or popups that need to be transformed;
     // all out-of-flow descendants of the transformed element must also be
     // descendants of the transformed frame.
-    UpdateViewsForTree(aFrame, aFrameManager,
-                       nsChangeHint(aChange & (nsChangeHint_RepaintFrame |
-                                               nsChangeHint_SyncFrameView |
-                                               nsChangeHint_UpdateOpacityLayer)));
+    SyncViewsAndInvalidateDescendants(aFrame, aFrameManager,
+      nsChangeHint(aChange & (nsChangeHint_RepaintFrame |
+                              nsChangeHint_SyncFrameView |
+                              nsChangeHint_UpdateOpacityLayer)));
     // This must be set to true if the rendering change needs to
     // invalidate content.  If it's false, a composite-only paint
     // (empty transaction) will be scheduled.
@@ -8191,7 +8193,7 @@ nsCSSFrameConstructor::ProcessRestyledFrames(nsStyleChangeList& aChangeList)
       NS_ASSERTION(frame, "This shouldn't happen");
 
       if ((frame->GetStateBits() & NS_FRAME_SVG_LAYOUT) &&
-          (frame->GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD)) {
+          (frame->GetStateBits() & NS_FRAME_IS_NONDISPLAY)) {
         // frame does not maintain overflow rects, so avoid calling
         // FinishAndStoreOverflow on it:
         hint = NS_SubtractHint(hint,

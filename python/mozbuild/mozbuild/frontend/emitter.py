@@ -10,6 +10,7 @@ from .data import (
     ConfigFileSubstitution,
     DirectoryTraversal,
     Exports,
+    IPDLFile,
     Program,
     ReaderSummary,
     VariablePassthru,
@@ -90,6 +91,7 @@ class TreeMetadataEmitter(object):
             GTEST_CMMSRCS='GTEST_CMM_SOURCES',
             GTEST_CPPSRCS='GTEST_CPP_SOURCES',
             GTEST_CSRCS='GTEST_C_SOURCES',
+            HOST_CPPSRCS='HOST_CPPSRCS',
             HOST_CSRCS='HOST_CSRCS',
             HOST_LIBRARY_NAME='HOST_LIBRARY_NAME',
             JS_MODULES_PATH='JS_MODULES_PATH',
@@ -108,6 +110,9 @@ class TreeMetadataEmitter(object):
             if sandbox[moz]:
                 passthru.variables[mak] = sandbox[moz]
 
+        if sandbox['NO_DIST_INSTALL']:
+            passthru.variables['NO_DIST_INSTALL'] = '1'
+
         if passthru.variables:
             yield passthru
 
@@ -121,6 +126,9 @@ class TreeMetadataEmitter(object):
 
         for manifest in sandbox.get('XPCSHELL_TESTS_MANIFESTS', []):
             yield XpcshellManifests(sandbox, manifest)
+
+        for ipdl in sandbox.get('IPDL_SOURCES', []):
+            yield IPDLFile(sandbox, ipdl)
 
     def _emit_directory_traversal_from_sandbox(self, sandbox):
         o = DirectoryTraversal(sandbox)

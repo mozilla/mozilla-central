@@ -11,9 +11,7 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 EXPORT_LIBRARY	= 1
-IS_COMPONENT	= 1
 RESFILE		= widget.res
-MODULE_NAME	= nsWidgetOS2Module
 LIBXUL_LIBRARY = 1
 
 
@@ -24,8 +22,6 @@ SHARED_LIBRARY_LIBS = \
 include $(topsrcdir)/config/rules.mk
 
 CXXFLAGS += $(MOZ_CAIRO_CFLAGS) $(MOZ_PIXMAN_CFLAGS)
-
-DEFINES		+= -D_IMPL_NS_WIDGET
 
 DEFINES += -DUSE_OS2_TOOLKIT_HEADERS
 

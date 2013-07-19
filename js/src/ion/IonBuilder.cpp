@@ -19,13 +19,12 @@
 #include "ion/Lowering.h"
 #include "ion/MIRGraph.h"
 
-#include "jsanalyzeinlines.h"
+#include "jsinferinlines.h"
+#include "jsobjinlines.h"
 #include "jsscriptinlines.h"
-#include "jstypedarrayinlines.h"
 
 #include "ion/CompileInfo-inl.h"
 #include "ion/ExecutionModeInlines.h"
-#include "vm/ScopeObject-inl.h"
 
 using namespace js;
 using namespace js::ion;
@@ -322,6 +321,29 @@ IonBuilder::analyzeNewLoopTypes(MBasicBlock *entry, jsbytecode *start, jsbytecod
     // Over-approximating the types may lead to inefficient generated code, and
     // under-approximating the types will cause the loop body to be analyzed
     // multiple times as the correct types are deduced (see finishLoop).
+
+    // If we restarted processing of an outer loop then get loop header types
+    // directly from the last time we have previously processed this loop. This
+    // both avoids repeated work from the bytecode traverse below, and will
+    // also pick up types discovered while previously building the loop body.
+    for (size_t i = 0; i < loopHeaders_.length(); i++) {
+        if (loopHeaders_[i].pc == start) {
+            MBasicBlock *oldEntry = loopHeaders_[i].header;
+            for (MPhiIterator oldPhi = oldEntry->phisBegin();
+                 oldPhi != oldEntry->phisEnd();
+                 oldPhi++)
+            {
+                MPhi *newPhi = entry->getSlot(oldPhi->slot())->toPhi();
+                newPhi->addBackedgeType(oldPhi->type(), oldPhi->resultTypeSet());
+            }
+            // Update the most recent header for this loop encountered, in case
+            // new types flow to the phis and the loop is processed at least
+            // three times.
+            loopHeaders_[i].header = entry;
+            return;
+        }
+    }
+    loopHeaders_.append(LoopHeader(start, entry));
 
     jsbytecode *last = NULL, *earlier = NULL;
     for (jsbytecode *pc = start; pc != end; earlier = last, last = pc, pc += GetBytecodeLength(pc)) {
@@ -3592,6 +3614,10 @@ IonBuilder::makeInliningDecision(JSFunction *target, CallInfo &callInfo)
     // Heuristics!
     JSScript *targetScript = target->nonLazyScript();
 
+    // Skip heuristics if we have an explicit hint to inline.
+    if (targetScript->shouldInline)
+        return true;
+
     // Cap the inlining depth.
     if (IsSmallFunction(targetScript)) {
         if (inliningDepth_ >= js_IonOptions.smallFunctionMaxInlineDepth) {
@@ -4072,12 +4098,16 @@ IonBuilder::inlineCalls(CallInfo &callInfo, AutoObjectVector &targets,
     callInfo.pushFormals(dispatchBlock);
 
     // Patch any InlinePropertyTable to only contain functions that are inlineable.
-    // Also guarantee that the table uses functions from |targets| instead of |originals|.
+    //
+    // Note that we trim using originals, as callsite clones are not user
+    // visible. We don't patch the entries inside the table with the cloned
+    // targets, as the entries should only be used for comparison.
+    //
     // The InlinePropertyTable will also be patched at the end to exclude native functions
     // that vetoed inlining.
     if (maybeCache) {
         InlinePropertyTable *propTable = maybeCache->propTable();
-        propTable->trimToAndMaybePatchTargets(targets, originals);
+        propTable->trimToTargets(originals);
         if (propTable->numEntries() == 0)
             maybeCache = NULL;
     }
@@ -4127,6 +4157,10 @@ IonBuilder::inlineCalls(CallInfo &callInfo, AutoObjectVector &targets,
     // Inline each of the inlineable targets.
     JS_ASSERT(targets.length() == originals.length());
     for (uint32_t i = 0; i < targets.length(); i++) {
+        // When original != target, the target is a callsite clone. The
+        // original should be used for guards, and the target should be the
+        // actual function inlined.
+        JSFunction *original = &originals[i]->as<JSFunction>();
         JSFunction *target = &targets[i]->as<JSFunction>();
 
         // Target must be inlineable.
@@ -4134,7 +4168,7 @@ IonBuilder::inlineCalls(CallInfo &callInfo, AutoObjectVector &targets,
             continue;
 
         // Target must be reachable by the MDispatchInstruction.
-        if (maybeCache && !maybeCache->propTable()->hasFunction(target)) {
+        if (maybeCache && !maybeCache->propTable()->hasFunction(original)) {
             choiceSet[i] = false;
             continue;
         }
@@ -4425,7 +4459,7 @@ IonBuilder::createThisScriptedSingleton(HandleFunction target, MDefinition *call
 
     // Generate an inline path to create a new |this| object with
     // the given singleton prototype.
-    types::TypeObject *type = proto->getNewType(cx, &ObjectClass, target);
+    types::TypeObject *type = cx->getNewType(&JSObject::class_, proto.get(), target);
     if (!type)
         return NULL;
     if (!types::TypeScript::ThisTypes(target->nonLazyScript())->hasType(types::Type::ObjectType(type)))
@@ -5217,7 +5251,7 @@ IonBuilder::jsop_newobject(HandleObject baseObj)
         templateObject = CopyInitializerObject(cx, baseObj, newKind);
     } else {
         gc::AllocKind allocKind = GuessObjectGCKind(0);
-        templateObject = NewBuiltinClassInstance(cx, &ObjectClass, allocKind, newKind);
+        templateObject = NewBuiltinClassInstance(cx, &JSObject::class_, allocKind, newKind);
     }
 
     if (!templateObject)
@@ -6272,7 +6306,7 @@ IonBuilder::jsop_getelem()
             return jsop_getelem_dense();
     }
 
-    int arrayType = TypedArray::TYPE_MAX;
+    int arrayType = TypedArrayObject::TYPE_MAX;
     if (ElementAccessIsTypedArray(obj, index, &arrayType))
         return jsop_getelem_typed(arrayType);
 
@@ -6291,15 +6325,6 @@ IonBuilder::jsop_getelem()
 
     bool cacheable = obj->mightBeType(MIRType_Object) && !obj->mightBeType(MIRType_String) &&
         (index->mightBeType(MIRType_Int32) || index->mightBeType(MIRType_String));
-
-    bool nonNativeGetElement =
-        script()->analysis()->getCode(pc).nonNativeGetElement ||
-        inspector->hasSeenNonNativeGetElement(pc);
-
-    // Turn off cacheing if the element is int32 and we've seen non-native objects as the target
-    // of this getelem.
-    if (index->mightBeType(MIRType_Int32) && nonNativeGetElement)
-        cacheable = false;
 
     types::StackTypeSet *types = types::TypeScript::BytecodeTypes(script(), pc);
     bool barrier = PropertyReadNeedsTypeBarrier(cx, obj, NULL, types);
@@ -6371,6 +6396,12 @@ IonBuilder::jsop_getelem_dense()
     MInstruction *elements = MElements::New(obj);
     current->add(elements);
 
+    // Note: to help GVN, use the original MElements instruction and not
+    // MConvertElementsToDoubles as operand. This is fine because converting
+    // elements to double does not change the initialized length.
+    MInitializedLength *initLength = MInitializedLength::New(elements);
+    current->add(initLength);
+
     // If we can load the element as a definite double, make sure to check that
     // the array has been converted to homogenous doubles first.
     //
@@ -6390,9 +6421,6 @@ IonBuilder::jsop_getelem_dense()
         objTypes->convertDoubleElements(cx) == types::StackTypeSet::AlwaysConvertToDoubles;
     if (loadDouble)
         elements = addConvertElementsToDoubles(elements);
-
-    MInitializedLength *initLength = MInitializedLength::New(elements);
-    current->add(initLength);
 
     MInstruction *load;
 
@@ -6429,8 +6457,8 @@ MInstruction *
 IonBuilder::getTypedArrayLength(MDefinition *obj)
 {
     if (obj->isConstant() && obj->toConstant()->value().isObject()) {
-        JSObject *array = &obj->toConstant()->value().toObject();
-        int32_t length = (int32_t) TypedArray::length(array);
+        TypedArrayObject *tarr = &obj->toConstant()->value().toObject().as<TypedArrayObject>();
+        int32_t length = (int32_t) tarr->length();
         obj->setFoldedUnchecked();
         return MConstant::New(Int32Value(length));
     }
@@ -6441,12 +6469,12 @@ MInstruction *
 IonBuilder::getTypedArrayElements(MDefinition *obj)
 {
     if (obj->isConstant() && obj->toConstant()->value().isObject()) {
-        JSObject *array = &obj->toConstant()->value().toObject();
-        void *data = TypedArray::viewData(array);
+        TypedArrayObject *tarr = &obj->toConstant()->value().toObject().as<TypedArrayObject>();
+        void *data = tarr->viewData();
 
         // The 'data' pointer can change in rare circumstances
         // (ArrayBufferObject::changeContents).
-        types::HeapTypeSet::WatchObjectStateChange(cx, array->getType(cx));
+        types::HeapTypeSet::WatchObjectStateChange(cx, tarr->getType(cx));
 
         obj->setFoldedUnchecked();
         return MConstantElements::New(data);
@@ -6458,6 +6486,19 @@ MDefinition *
 IonBuilder::convertShiftToMaskForStaticTypedArray(MDefinition *id,
                                                   ArrayBufferView::ViewType viewType)
 {
+    // No shifting is necessary if the typed array has single byte elements.
+    if (TypedArrayShift(viewType) == 0)
+        return id;
+
+    // If the index is an already shifted constant, undo the shift to get the
+    // absolute offset being accessed.
+    if (id->isConstant() && id->toConstant()->value().isInt32()) {
+        int32_t index = id->toConstant()->value().toInt32();
+        MConstant *offset = MConstant::New(Int32Value(index << TypedArrayShift(viewType)));
+        current->add(offset);
+        return offset;
+    }
+
     if (!id->isRsh() || id->isEffectful())
         return NULL;
     if (!id->getOperand(1)->isConstant())
@@ -6494,12 +6535,16 @@ IonBuilder::jsop_getelem_typed_static(bool *psucceeded)
 
     if (!obj->resultTypeSet())
         return true;
-    JSObject *typedArray = obj->resultTypeSet()->getSingleton();
-    if (!typedArray)
+    JSObject *tarrObj = obj->resultTypeSet()->getSingleton();
+    if (!tarrObj)
         return true;
-    JS_ASSERT(typedArray->isTypedArray());
+    TypedArrayObject *tarr = &tarrObj->as<TypedArrayObject>();
 
-    ArrayBufferView::ViewType viewType = JS_GetArrayBufferViewType(typedArray);
+    ArrayBufferView::ViewType viewType = JS_GetArrayBufferViewType(tarr);
+
+    // LoadTypedArrayElementStatic currently treats uint32 arrays as int32.
+    if (viewType == ArrayBufferView::TYPE_UINT32)
+        return true;
 
     MDefinition *ptr = convertShiftToMaskForStaticTypedArray(id, viewType);
     if (!ptr)
@@ -6507,7 +6552,7 @@ IonBuilder::jsop_getelem_typed_static(bool *psucceeded)
 
     obj->setFoldedUnchecked();
 
-    MLoadTypedArrayElementStatic *load = MLoadTypedArrayElementStatic::New(typedArray, ptr);
+    MLoadTypedArrayElementStatic *load = MLoadTypedArrayElementStatic::New(tarr, ptr);
     current->add(load);
 
     // The load is infallible if an undefined result will be coerced to the
@@ -6568,19 +6613,19 @@ IonBuilder::jsop_getelem_typed(int arrayType)
         // uint32 reads that may produce either doubles or integers.
         MIRType knownType;
         switch (arrayType) {
-          case TypedArray::TYPE_INT8:
-          case TypedArray::TYPE_UINT8:
-          case TypedArray::TYPE_UINT8_CLAMPED:
-          case TypedArray::TYPE_INT16:
-          case TypedArray::TYPE_UINT16:
-          case TypedArray::TYPE_INT32:
+          case TypedArrayObject::TYPE_INT8:
+          case TypedArrayObject::TYPE_UINT8:
+          case TypedArrayObject::TYPE_UINT8_CLAMPED:
+          case TypedArrayObject::TYPE_INT16:
+          case TypedArrayObject::TYPE_UINT16:
+          case TypedArrayObject::TYPE_INT32:
             knownType = MIRType_Int32;
             break;
-          case TypedArray::TYPE_UINT32:
+          case TypedArrayObject::TYPE_UINT32:
             knownType = allowDouble ? MIRType_Double : MIRType_Int32;
             break;
-          case TypedArray::TYPE_FLOAT32:
-          case TypedArray::TYPE_FLOAT64:
+          case TypedArrayObject::TYPE_FLOAT32:
+          case TypedArrayObject::TYPE_FLOAT64:
             knownType = MIRType_Double;
             break;
           default:
@@ -6614,18 +6659,18 @@ IonBuilder::jsop_getelem_typed(int arrayType)
         // will bailout when we read a double.
         bool needsBarrier = true;
         switch (arrayType) {
-          case TypedArray::TYPE_INT8:
-          case TypedArray::TYPE_UINT8:
-          case TypedArray::TYPE_UINT8_CLAMPED:
-          case TypedArray::TYPE_INT16:
-          case TypedArray::TYPE_UINT16:
-          case TypedArray::TYPE_INT32:
-          case TypedArray::TYPE_UINT32:
+          case TypedArrayObject::TYPE_INT8:
+          case TypedArrayObject::TYPE_UINT8:
+          case TypedArrayObject::TYPE_UINT8_CLAMPED:
+          case TypedArrayObject::TYPE_INT16:
+          case TypedArrayObject::TYPE_UINT16:
+          case TypedArrayObject::TYPE_INT32:
+          case TypedArrayObject::TYPE_UINT32:
             if (types->hasType(types::Type::Int32Type()))
                 needsBarrier = false;
             break;
-          case TypedArray::TYPE_FLOAT32:
-          case TypedArray::TYPE_FLOAT64:
+          case TypedArrayObject::TYPE_FLOAT32:
+          case TypedArrayObject::TYPE_FLOAT64:
             if (allowDouble)
                 needsBarrier = false;
             break;
@@ -6641,7 +6686,7 @@ IonBuilder::jsop_getelem_typed(int arrayType)
         current->add(load);
         current->push(load);
 
-        return resumeAfter(load) && pushTypeBarrier(load, types, needsBarrier);
+        return pushTypeBarrier(load, types, needsBarrier);
     }
 }
 
@@ -6676,19 +6721,30 @@ IonBuilder::jsop_setelem()
     MDefinition *index = current->pop();
     MDefinition *object = current->pop();
 
-    int arrayType = TypedArray::TYPE_MAX;
+    int arrayType = TypedArrayObject::TYPE_MAX;
     if (ElementAccessIsTypedArray(object, index, &arrayType))
         return jsop_setelem_typed(arrayType, SetElem_Normal,
                                   object, index, value);
 
-    if (!PropertyWriteNeedsTypeBarrier(cx, current, &object, NULL, &value)) {
-        if (ElementAccessIsDenseNative(object, index)) {
+    if (ElementAccessIsDenseNative(object, index)) {
+        do {
+            if (PropertyWriteNeedsTypeBarrier(cx, current, &object, NULL, &value))
+                break;
+            if (!object->resultTypeSet())
+                break;
+
             types::StackTypeSet::DoubleConversion conversion =
                 object->resultTypeSet()->convertDoubleElements(cx);
-            if (conversion != types::StackTypeSet::AmbiguousDoubleConversion)
-                return jsop_setelem_dense(conversion, SetElem_Normal,
-                                          object, index, value);
-        }
+
+            // If AmbiguousDoubleConversion, only handle int32 values for now.
+            if (conversion == types::StackTypeSet::AmbiguousDoubleConversion &&
+                value->type() != MIRType_Int32)
+            {
+                break;
+            }
+
+            return jsop_setelem_dense(conversion, SetElem_Normal, object, index, value);
+        } while(false);
     }
 
     if (object->type() == MIRType_Magic)
@@ -6752,19 +6808,35 @@ IonBuilder::jsop_setelem_dense(types::StackTypeSet::DoubleConversion conversion,
     current->add(idInt32);
     id = idInt32;
 
-    // Ensure the value is a double, if double conversion might be needed.
-    MDefinition *newValue = value;
-    if (conversion == types::StackTypeSet::AlwaysConvertToDoubles ||
-        conversion == types::StackTypeSet::MaybeConvertToDoubles)
-    {
-        MInstruction *valueDouble = MToDouble::New(value);
-        current->add(valueDouble);
-        newValue = valueDouble;
-    }
-
     // Get the elements vector.
     MElements *elements = MElements::New(obj);
     current->add(elements);
+
+    // Ensure the value is a double, if double conversion might be needed.
+    MDefinition *newValue = value;
+    switch (conversion) {
+      case types::StackTypeSet::AlwaysConvertToDoubles:
+      case types::StackTypeSet::MaybeConvertToDoubles: {
+        MInstruction *valueDouble = MToDouble::New(value);
+        current->add(valueDouble);
+        newValue = valueDouble;
+        break;
+      }
+
+      case types::StackTypeSet::AmbiguousDoubleConversion: {
+        JS_ASSERT(value->type() == MIRType_Int32);
+        MInstruction *maybeDouble = MMaybeToDoubleElement::New(elements, value);
+        current->add(maybeDouble);
+        newValue = maybeDouble;
+        break;
+      }
+
+      case types::StackTypeSet::DontConvertToDoubles:
+        break;
+
+      default:
+        MOZ_ASSUME_UNREACHABLE("Unknown double conversion");
+    }
 
     bool writeHole;
     if (safety == SetElem_Normal) {
@@ -6839,12 +6911,12 @@ IonBuilder::jsop_setelem_typed_static(MDefinition *obj, MDefinition *id, MDefini
 
     if (!obj->resultTypeSet())
         return true;
-    JSObject *typedArray = obj->resultTypeSet()->getSingleton();
-    if (!typedArray)
+    JSObject *tarrObj = obj->resultTypeSet()->getSingleton();
+    if (!tarrObj)
         return true;
-    JS_ASSERT(typedArray->isTypedArray());
+    TypedArrayObject *tarr = &tarrObj->as<TypedArrayObject>();
 
-    ArrayBufferView::ViewType viewType = JS_GetArrayBufferViewType(typedArray);
+    ArrayBufferView::ViewType viewType = JS_GetArrayBufferViewType(tarr);
 
     MDefinition *ptr = convertShiftToMaskForStaticTypedArray(id, viewType);
     if (!ptr)
@@ -6859,7 +6931,7 @@ IonBuilder::jsop_setelem_typed_static(MDefinition *obj, MDefinition *id, MDefini
         current->add(toWrite->toInstruction());
     }
 
-    MInstruction *store = MStoreTypedArrayElementStatic::New(typedArray, ptr, toWrite);
+    MInstruction *store = MStoreTypedArrayElementStatic::New(tarr, ptr, toWrite);
     current->add(store);
     current->push(value);
 
@@ -6909,7 +6981,7 @@ IonBuilder::jsop_setelem_typed(int arrayType,
 
     // Clamp value to [0, 255] for Uint8ClampedArray.
     MDefinition *toWrite = value;
-    if (arrayType == TypedArray::TYPE_UINT8_CLAMPED) {
+    if (arrayType == TypedArrayObject::TYPE_UINT8_CLAMPED) {
         toWrite = MClampToUint8::New(value);
         current->add(toWrite->toInstruction());
     }
@@ -6982,7 +7054,7 @@ IonBuilder::jsop_length_fastPath()
             return true;
         }
 
-        if (objTypes && objTypes->getTypedArrayType() != TypedArray::TYPE_MAX) {
+        if (objTypes && objTypes->getTypedArrayType() != TypedArrayObject::TYPE_MAX) {
             current->pop();
             MInstruction *length = getTypedArrayLength(obj);
             current->add(length);
@@ -7837,18 +7909,20 @@ IonBuilder::getPropTryCache(bool *emitted, HandlePropertyName name, HandleId id,
             return true;
     }
 
-    MIRType rvalType = MIRTypeFromValueType(types->getKnownTypeTag());
-    if (barrier || IsNullOrUndefined(rvalType) || accessGetter)
-        rvalType = MIRType_Value;
-
     current->pop();
     MGetPropertyCache *load = MGetPropertyCache::New(obj, name);
-    load->setResultType(rvalType);
 
     // Try to mark the cache as idempotent. We only do this if JM is enabled
     // (its ICs are used to mark property reads as likely non-idempotent) or
     // if we are compiling eagerly (to improve test coverage).
-    if (obj->type() == MIRType_Object && !invalidatedIdempotentCache()) {
+    //
+    // In parallel execution, idempotency of caches is ignored, since we
+    // repeat the entire ForkJoin workload if we bail out. Note that it's
+    // overly restrictive to mark everything as idempotent, because we can
+    // treat non-idempotent caches in parallel as repeatable.
+    if (obj->type() == MIRType_Object && !invalidatedIdempotentCache() &&
+        info().executionMode() != ParallelExecution)
+    {
         if (PropertyReadIsIdempotent(cx, obj, name))
             load->setIdempotent();
     }
@@ -7870,6 +7944,21 @@ IonBuilder::getPropTryCache(bool *emitted, HandlePropertyName name, HandleId id,
 
     if (accessGetter)
         barrier = true;
+
+    // ParallelGetPropertyIC cannot safely call TypeScript::Monitor to ensure
+    // that the observed type set contains undefined. To account for possible
+    // missing properties, which property types do not track, we must always
+    // insert a type barrier.
+    if (info().executionMode() == ParallelExecution &&
+        !types->hasType(types::Type::UndefinedType()))
+    {
+        barrier = true;
+    }
+
+    MIRType rvalType = MIRTypeFromValueType(types->getKnownTypeTag());
+    if (barrier || IsNullOrUndefined(rvalType))
+        rvalType = MIRType_Value;
+    load->setResultType(rvalType);
 
     if (!pushTypeBarrier(load, types, barrier))
         return false;

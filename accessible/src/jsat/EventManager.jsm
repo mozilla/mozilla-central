@@ -140,7 +140,7 @@ this.EventManager.prototype = {
     // Don't bother with non-content events in firefox.
     if (Utils.MozBuildApp == 'browser' &&
         aEvent.eventType != EVENT_VIRTUALCURSOR_CHANGED &&
-        aEvent.accessibleDocument != Utils.CurrentContentDoc) {
+        aEvent.accessibleDocument.docType == 'window') {
       return;
     }
 
@@ -211,6 +211,9 @@ this.EventManager.prototype = {
             editState.atEnd != this.editState.atEnd ||
             editState.atStart != this.editState.atStart)
           this.sendMsgFunc("AccessFu:Input", editState);
+
+        this.present(Presentation.textSelectionChanged(acc.getText(0,-1),
+                     caretOffset, caretOffset, 0, 0, aEvent.isFromUserInput));
 
         this.editState = editState;
         break;

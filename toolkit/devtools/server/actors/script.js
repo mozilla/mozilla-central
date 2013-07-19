@@ -280,10 +280,7 @@ ThreadActor.prototype = {
       resolve(onPacket(packet)).then(this.conn.send.bind(this.conn));
       return this._nest();
     } catch(e) {
-      let msg = "Got an exception during TA__pauseAndRespond: " + e +
-                ": " + e.stack;
-      Cu.reportError(msg);
-      dumpn(msg);
+      reportError(e, "Got an exception during TA__pauseAndRespond: ");
       return undefined;
     }
   },
@@ -418,12 +415,22 @@ ThreadActor.prototype = {
       }
     }
 
-    if (aRequest && aRequest.pauseOnExceptions) {
-      this.dbg.onExceptionUnwind = this.onExceptionUnwind.bind(this);
+    if (aRequest) {
+      this._options.pauseOnExceptions = aRequest.pauseOnExceptions;
+      this.maybePauseOnExceptions();
     }
     let packet = this._resumed();
     DebuggerServer.xpcInspector.exitNestedEventLoop();
     return packet;
+  },
+
+  /**
+   * Set the debugging hook to pause on exceptions if configured to do so.
+   */
+  maybePauseOnExceptions: function() {
+    if (this._options.pauseOnExceptions) {
+      this.dbg.onExceptionUnwind = this.onExceptionUnwind.bind(this);
+    }
   },
 
   /**
@@ -1241,8 +1248,7 @@ ThreadActor.prototype = {
       this.conn.send(packet);
       return this._nest();
     } catch(e) {
-      Cu.reportError("Got an exception during TA_onExceptionUnwind: " + e +
-                     ": " + e.stack);
+      reportError(e, "Got an exception during TA_onExceptionUnwind: ");
       return undefined;
     }
   },
@@ -1490,10 +1496,7 @@ SourceActor.prototype = {
           source: aSourceGrip
         };
       }, (aError) => {
-        let msg = "Got an exception during SA_onSource: " + aError +
-          "\n" + aError.stack;
-        Cu.reportError(msg);
-        dumpn(msg);
+        reportError(aError, "Got an exception during SA_onSource: ");
         return {
           "from": this.actorID,
           "error": "loadSourceError",
@@ -2846,7 +2849,7 @@ function fetch(aURL, aOptions={ loadFromCache: true }) {
       try {
         NetUtil.asyncFetch(url, function onFetch(aStream, aStatus) {
           if (!Components.isSuccessCode(aStatus)) {
-            deferred.reject("Request failed: " + url);
+            deferred.reject(new Error("Request failed: " + url));
             return;
           }
 
@@ -2855,7 +2858,7 @@ function fetch(aURL, aOptions={ loadFromCache: true }) {
           aStream.close();
         });
       } catch (ex) {
-        deferred.reject("Request failed: " + url);
+        deferred.reject(new Error("Request failed: " + url));
       }
       break;
 
@@ -2873,7 +2876,7 @@ function fetch(aURL, aOptions={ loadFromCache: true }) {
       let streamListener = {
         onStartRequest: function(aRequest, aContext, aStatusCode) {
           if (!Components.isSuccessCode(aStatusCode)) {
-            deferred.reject("Request failed: " + url);
+            deferred.reject(new Error("Request failed: " + url));
           }
         },
         onDataAvailable: function(aRequest, aContext, aStream, aOffset, aCount) {
@@ -2881,7 +2884,7 @@ function fetch(aURL, aOptions={ loadFromCache: true }) {
         },
         onStopRequest: function(aRequest, aContext, aStatusCode) {
           if (!Components.isSuccessCode(aStatusCode)) {
-            deferred.reject("Request failed: " + url);
+            deferred.reject(new Error("Request failed: " + url));
             return;
           }
 
@@ -2924,8 +2927,15 @@ function convertToUnicode(aString, aCharset=null) {
 
 /**
  * Report the given error in the error console and to stdout.
+ *
+ * @param Error aError
+ *        The error object you wish to report.
+ * @param String aPrefix
+ *        An optional prefix for the reported error message.
  */
-function reportError(aError) {
-  Cu.reportError(aError);
-  dumpn(aError.message + ":\n" + aError.stack);
+function reportError(aError, aPrefix="") {
+  dbg_assert(aError instanceof Error, "Must pass Error objects to reportError");
+  let msg = aPrefix + aError.message + ":\n" + aError.stack;
+  Cu.reportError(msg);
+  dumpn(msg);
 }

@@ -793,9 +793,7 @@ class MacroAssemblerX86 : public MacroAssemblerX86Shared
     }
 
     void loadConstantDouble(double d, const FloatRegister &dest);
-    void loadStaticDouble(const double *dp, const FloatRegister &dest) {
-        movsd(dp, dest);
-    }
+    void loadStaticDouble(const double *dp, const FloatRegister &dest);
 
     void branchTruncateDouble(const FloatRegister &src, const Register &dest, Label *fail) {
         const uint32_t IndefiniteIntegerValue = 0x80000000;
@@ -942,6 +940,7 @@ class MacroAssemblerX86 : public MacroAssemblerX86Shared
 
     // Used from within an Exit frame to handle a pending exception.
     void handleFailureWithHandler(void *handler);
+    void handleFailureWithHandlerTail();
 
     void makeFrameDescriptor(Register frameSizeReg, FrameType type) {
         shll(Imm32(FRAMESIZE_SHIFT), frameSizeReg);

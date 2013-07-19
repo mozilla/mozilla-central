@@ -140,6 +140,35 @@ class FunctionContextFlags
 
 class GlobalSharedContext;
 
+// List of directives that may be encountered in a Directive Prologue (ES5 15.1).
+class Directives
+{
+    bool strict_;
+    bool asmJS_;
+
+  public:
+    explicit Directives(bool strict) : strict_(strict), asmJS_(false) {}
+    template <typename ParseHandler> explicit Directives(ParseContext<ParseHandler> *parent);
+
+    void setStrict() { strict_ = true; }
+    bool strict() const { return strict_; }
+
+    void setAsmJS() { asmJS_ = true; }
+    bool asmJS() const { return asmJS_; }
+
+    Directives &operator=(Directives rhs) {
+        strict_ = rhs.strict_;
+        asmJS_ = rhs.asmJS_;
+        return *this;
+    }
+    bool operator==(const Directives &rhs) const {
+        return strict_ == rhs.strict_ && asmJS_ == rhs.asmJS_;
+    }
+    bool operator!=(const Directives &rhs) const {
+        return !(*this == rhs);
+    }
+};
+
 /*
  * The struct SharedContext is part of the current parser context (see
  * ParseContext). It stores information that is reused between the parser and
@@ -149,13 +178,19 @@ class GlobalSharedContext;
 class SharedContext
 {
   public:
-    JSContext *const context;
+    ExclusiveContext *const context;
     AnyContextFlags anyCxFlags;
     bool strict;
+    bool extraWarnings;
 
     // If it's function code, funbox must be non-NULL and scopeChain must be NULL.
     // If it's global code, funbox must be NULL.
-    inline SharedContext(JSContext *cx, bool strict);
+    SharedContext(ExclusiveContext *cx, Directives directives, bool extraWarnings)
+      : context(cx),
+        anyCxFlags(),
+        strict(directives.strict()),
+        extraWarnings(extraWarnings)
+    {}
 
     virtual ObjectBox *toObjectBox() = 0;
     inline bool isGlobalSharedContext() { return toObjectBox() == NULL; }
@@ -174,7 +209,9 @@ class SharedContext
     void setHasDebuggerStatement()        { anyCxFlags.hasDebuggerStatement        = true; }
 
     // JSOPTION_EXTRA_WARNINGS warnings or strict mode errors.
-    inline bool needStrictChecks();
+    bool needStrictChecks() {
+        return strict || extraWarnings;
+    }
 };
 
 class GlobalSharedContext : public SharedContext
@@ -183,22 +220,40 @@ class GlobalSharedContext : public SharedContext
     const RootedObject scopeChain_; /* scope chain object for the script */
 
   public:
-    inline GlobalSharedContext(JSContext *cx, JSObject *scopeChain, bool strict);
+    GlobalSharedContext(ExclusiveContext *cx, JSObject *scopeChain,
+                        Directives directives, bool extraWarnings)
+      : SharedContext(cx, directives, extraWarnings),
+        scopeChain_(cx, scopeChain)
+    {}
 
     ObjectBox *toObjectBox() { return NULL; }
     JSObject *scopeChain() const { return scopeChain_; }
 };
+
+inline GlobalSharedContext *
+SharedContext::asGlobalSharedContext()
+{
+    JS_ASSERT(isGlobalSharedContext());
+    return static_cast<GlobalSharedContext*>(this);
+}
 
 class ModuleBox : public ObjectBox, public SharedContext
 {
   public:
     Bindings bindings;
 
-    ModuleBox(JSContext *cx, ObjectBox *traceListHead, Module *module,
-              ParseContext<FullParseHandler> *pc);
+    ModuleBox(ExclusiveContext *cx, ObjectBox *traceListHead, Module *module,
+              ParseContext<FullParseHandler> *pc, bool extraWarnings);
     ObjectBox *toObjectBox() { return this; }
     Module *module() const { return &object->as<Module>(); }
 };
+
+inline ModuleBox *
+SharedContext::asModuleBox()
+{
+    JS_ASSERT(isModuleBox());
+    return static_cast<ModuleBox*>(this);
+}
 
 class FunctionBox : public ObjectBox, public SharedContext
 {
@@ -208,10 +263,10 @@ class FunctionBox : public ObjectBox, public SharedContext
     uint32_t        bufEnd;
     uint32_t        startLine;
     uint32_t        startColumn;
-    uint32_t        asmStart;               /* offset of the "use asm" directive, if present */
     uint16_t        ndefaults;
     bool            inWith:1;               /* some enclosing scope is a with-statement */
     bool            inGenexpLambda:1;       /* lambda from generator expression */
+    bool            hasDestructuringArgs:1; /* arguments list contains destructuring expression */
     bool            useAsm:1;               /* function contains "use asm" directive */
     bool            insideUseAsm:1;         /* nested function of function of "use asm" directive */
 
@@ -222,8 +277,9 @@ class FunctionBox : public ObjectBox, public SharedContext
     FunctionContextFlags funCxFlags;
 
     template <typename ParseHandler>
-    FunctionBox(JSContext *cx, ObjectBox* traceListHead, JSFunction *fun, ParseContext<ParseHandler> *pc,
-                bool strict);
+    FunctionBox(ExclusiveContext *cx, ObjectBox* traceListHead, JSFunction *fun,
+                ParseContext<ParseHandler> *pc, Directives directives,
+                bool extraWarnings);
 
     ObjectBox *toObjectBox() { return this; }
     JSFunction *function() const { return &object->as<JSFunction>(); }
@@ -340,7 +396,7 @@ struct StmtInfoBase {
     RootedAtom      label;          /* name of LABEL */
     Rooted<StaticBlockObject *> blockObj; /* block scope object */
 
-    StmtInfoBase(JSContext *cx)
+    StmtInfoBase(ExclusiveContext *cx)
         : isBlockScope(false), isForLetBlock(false), label(cx), blockObj(cx)
     {}
 
@@ -364,18 +420,49 @@ struct StmtInfoBase {
 // Push the C-stack-allocated struct at stmt onto the StmtInfoPC stack.
 template <class ContextT>
 void
-PushStatement(ContextT *ct, typename ContextT::StmtInfo *stmt, StmtType type);
+PushStatement(ContextT *ct, typename ContextT::StmtInfo *stmt, StmtType type)
+{
+    stmt->type = type;
+    stmt->isBlockScope = false;
+    stmt->isForLetBlock = false;
+    stmt->label = NULL;
+    stmt->blockObj = NULL;
+    stmt->down = ct->topStmt;
+    ct->topStmt = stmt;
+    if (stmt->linksScope()) {
+        stmt->downScope = ct->topScopeStmt;
+        ct->topScopeStmt = stmt;
+    } else {
+        stmt->downScope = NULL;
+    }
+}
 
 template <class ContextT>
 void
-FinishPushBlockScope(ContextT *ct, typename ContextT::StmtInfo *stmt, StaticBlockObject &blockObj);
+FinishPushBlockScope(ContextT *ct, typename ContextT::StmtInfo *stmt, StaticBlockObject &blockObj)
+{
+    stmt->isBlockScope = true;
+    stmt->downScope = ct->topScopeStmt;
+    ct->topScopeStmt = stmt;
+    ct->blockChain = &blockObj;
+    stmt->blockObj = &blockObj;
+}
 
 // Pop pc->topStmt. If the top StmtInfoPC struct is not stack-allocated, it
 // is up to the caller to free it.  The dummy argument is just to make the
 // template matching work.
 template <class ContextT>
 void
-FinishPopStatement(ContextT *ct);
+FinishPopStatement(ContextT *ct)
+{
+    typename ContextT::StmtInfo *stmt = ct->topStmt;
+    ct->topStmt = stmt->down;
+    if (stmt->linksScope()) {
+        ct->topScopeStmt = stmt->downScope;
+        if (stmt->isBlockScope)
+            ct->blockChain = stmt->blockObj->enclosingBlock();
+    }
+}
 
 /*
  * Find a lexically scoped variable (one declared by let, catch, or an array

@@ -215,8 +215,18 @@ class Range : public TempObject {
     static Range * sub(const Range *lhs, const Range *rhs);
     static Range * mul(const Range *lhs, const Range *rhs);
     static Range * and_(const Range *lhs, const Range *rhs);
-    static Range * shl(const Range *lhs, int32_t c);
-    static Range * shr(const Range *lhs, int32_t c);
+    static Range * or_(const Range *lhs, const Range *rhs);
+    static Range * xor_(const Range *lhs, const Range *rhs);
+    static Range * not_(const Range *op);
+    static Range * lsh(const Range *lhs, int32_t c);
+    static Range * rsh(const Range *lhs, int32_t c);
+    static Range * ursh(const Range *lhs, int32_t c);
+    static Range * lsh(const Range *lhs, const Range *rhs);
+    static Range * rsh(const Range *lhs, const Range *rhs);
+    static Range * ursh(const Range *lhs, const Range *rhs);
+    static Range * abs(const Range *op);
+    static Range * min(const Range *lhs, const Range *rhs);
+    static Range * max(const Range *lhs, const Range *rhs);
 
     static bool negativeZeroMul(const Range *lhs, const Range *rhs);
 
@@ -247,6 +257,9 @@ class Range : public TempObject {
 
     inline bool isInt32() const {
         return !isLowerInfinite() && !isUpperInfinite();
+    }
+    inline bool isBoolean() const {
+        return lower() >= 0 && upper() <= 1;
     }
 
     inline bool hasRoundingErrors() const {
@@ -330,6 +343,9 @@ class Range : public TempObject {
     // Truncate the range to an Int32 range.
     void truncate();
 
+    // Truncate the range to a Boolean range.
+    void truncateToBoolean();
+
     // Set the exponent by using the precise range analysis on the full
     // range of Int32 values. This might shrink the exponent after some
     // operations.
@@ -347,7 +363,7 @@ class Range : public TempObject {
         JS_ASSERT_IF(lower() == JSVAL_INT_MIN, max == (uint32_t) JSVAL_INT_MIN);
         JS_ASSERT(max <= (uint32_t) JSVAL_INT_MIN);
         // The number of bits needed to encode |max| is the power of 2 plus one.
-        max_exponent_ = max ? js_FloorLog2wImpl(max) : max;
+        max_exponent_ = max ? mozilla::FloorLog2Size(max) : max;
     }
 
     const SymbolicBound *symbolicLower() const {

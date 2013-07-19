@@ -43,7 +43,8 @@
 
 @media (-moz-windows-default-theme) {
   #navigator-toolbox > toolbar:not(:-moz-lwtheme),
-  #browser-bottombox:not(:-moz-lwtheme) {
+  #browser-bottombox:not(:-moz-lwtheme),
+  .browserContainer > findbar {
     background-color: @customToolbarColor@;
   }
 
@@ -87,6 +88,18 @@
   #navigator-toolbox[tabsontop=true] #urlbar:not(:-moz-lwtheme)[focused],
   #navigator-toolbox[tabsontop=true] .searchbar-textbox:not(:-moz-lwtheme)[focused] {
     border-color: hsla(206,100%,60%,.65) hsla(206,100%,55%,.65) hsla(206,100%,50%,.65);
+  }
+
+  #sidebar-header {
+    -moz-appearance: none;
+    color: black;
+    background-color: #EEF3FA;
+    border-bottom: none;
+    text-shadow: none;
+  }
+
+  #sidebar-title {
+    font-weight: bold;
   }
 
   .sidebar-splitter {

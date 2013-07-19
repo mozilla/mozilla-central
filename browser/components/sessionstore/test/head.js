@@ -289,12 +289,32 @@ function closeAllButPrimaryWindow() {
   }
 }
 
-function whenNewWindowLoaded(aIsPrivate, aCallback) {
-  let win = OpenBrowserWindow({private: aIsPrivate});
-  win.addEventListener("load", function onLoad() {
-    win.removeEventListener("load", onLoad, false);
-    aCallback(win);
-  }, false);
+/**
+ * When opening a new window it is not sufficient to wait for its load event.
+ * We need to use whenDelayedStartupFinshed() here as the browser window's
+ * delayedStartup() routine is executed one tick after the window's load event
+ * has been dispatched. browser-delayed-startup-finished might be deferred even
+ * further if parts of the window's initialization process take more time than
+ * expected (e.g. reading a big session state from disk).
+ */
+function whenNewWindowLoaded(aOptions, aCallback) {
+  let win = OpenBrowserWindow(aOptions);
+  whenDelayedStartupFinished(win, () => aCallback(win));
+  return win;
+}
+
+/**
+ * This waits for the browser-delayed-startup-finished notification of a given
+ * window. It indicates that the windows has loaded completely and is ready to
+ * be used for testing.
+ */
+function whenDelayedStartupFinished(aWindow, aCallback) {
+  Services.obs.addObserver(function observer(aSubject, aTopic) {
+    if (aWindow == aSubject) {
+      Services.obs.removeObserver(observer, aTopic);
+      executeSoon(aCallback);
+    }
+  }, "browser-delayed-startup-finished", false);
 }
 
 /**

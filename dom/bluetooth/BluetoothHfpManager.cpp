@@ -21,6 +21,8 @@
 #include "mozilla/StaticPtr.h"
 #include "nsContentUtils.h"
 #include "nsIAudioManager.h"
+#include "nsIDOMIccInfo.h"
+#include "nsIIccProvider.h"
 #include "nsIObserverService.h"
 #include "nsISettingsService.h"
 #include "nsITelephonyProvider.h"
@@ -572,8 +574,8 @@ BluetoothHfpManager::HandleVoiceConnectionChanged()
     do_GetService(NS_RILCONTENTHELPER_CONTRACTID);
   NS_ENSURE_TRUE_VOID(connection);
 
-  nsIDOMMozMobileConnectionInfo* voiceInfo;
-  connection->GetVoiceConnectionInfo(&voiceInfo);
+  nsCOMPtr<nsIDOMMozMobileConnectionInfo> voiceInfo;
+  connection->GetVoiceConnectionInfo(getter_AddRefs(voiceInfo));
   NS_ENSURE_TRUE_VOID(voiceInfo);
 
   bool roaming;
@@ -612,8 +614,8 @@ BluetoothHfpManager::HandleVoiceConnectionChanged()
     mNetworkSelectionMode = 0;
   }
 
-  nsIDOMMozMobileNetworkInfo* network;
-  voiceInfo->GetNetwork(&network);
+  nsCOMPtr<nsIDOMMozMobileNetworkInfo> network;
+  voiceInfo->GetNetwork(getter_AddRefs(network));
   NS_ENSURE_TRUE_VOID(network);
   network->GetLongName(mOperatorName);
 
@@ -634,12 +636,12 @@ BluetoothHfpManager::HandleVoiceConnectionChanged()
 void
 BluetoothHfpManager::HandleIccInfoChanged()
 {
-  nsCOMPtr<nsIMobileConnectionProvider> connection =
+  nsCOMPtr<nsIIccProvider> icc =
     do_GetService(NS_RILCONTENTHELPER_CONTRACTID);
-  NS_ENSURE_TRUE_VOID(connection);
+  NS_ENSURE_TRUE_VOID(icc);
 
-  nsIDOMMozMobileICCInfo* iccInfo;
-  connection->GetIccInfo(&iccInfo);
+  nsCOMPtr<nsIDOMMozIccInfo> iccInfo;
+  icc->GetIccInfo(getter_AddRefs(iccInfo));
   NS_ENSURE_TRUE_VOID(iccInfo);
   iccInfo->GetMsisdn(mMsisdn);
 }
@@ -810,9 +812,9 @@ BluetoothHfpManager::ReceiveSocketData(BluetoothSocket* aSocket,
       // See bug 884190 for more information.
       NotifyDialer(NS_LITERAL_STRING("CHLD=0"));
     } else if (chld == '1') {
-      NotifyDialer(NS_LITERAL_STRING("CHUP+ATA"));
+      NotifyDialer(NS_LITERAL_STRING("CHLD=1"));
     } else if (chld == '2') {
-      NotifyDialer(NS_LITERAL_STRING("CHLD+ATA"));
+      NotifyDialer(NS_LITERAL_STRING("CHLD=2"));
     } else {
       NS_WARNING("Wrong value of command [AT+CHLD]");
       valid = false;
@@ -1005,8 +1007,14 @@ BluetoothHfpManager::Connect(const nsAString& aDeviceAddress,
   }
 
   if (mSocket) {
-    DispatchBluetoothReply(aRunnable, BluetoothValue(),
-                           NS_LITERAL_STRING(ERR_REACHED_CONNECTION_LIMIT));
+    if (mDeviceAddress == aDeviceAddress) {
+      DispatchBluetoothReply(aRunnable, BluetoothValue(),
+                             NS_LITERAL_STRING(ERR_ALREADY_CONNECTED));
+    } else {
+      DispatchBluetoothReply(aRunnable, BluetoothValue(),
+                             NS_LITERAL_STRING(ERR_REACHED_CONNECTION_LIMIT));
+    }
+
     return;
   }
 
@@ -1262,6 +1270,7 @@ BluetoothHfpManager::GetNumberOfCalls(uint16_t aState)
 void
 BluetoothHfpManager::HandleCallStateChanged(uint32_t aCallIndex,
                                             uint16_t aCallState,
+                                            const nsAString& aError,
                                             const nsAString& aNumber,
                                             const bool aIsOutgoing,
                                             bool aSend)
@@ -1383,7 +1392,6 @@ BluetoothHfpManager::HandleCallStateChanged(uint32_t aCallIndex,
     case nsITelephonyProvider::CALL_STATE_DISCONNECTED:
       switch (prevCallState) {
         case nsITelephonyProvider::CALL_STATE_INCOMING:
-        case nsITelephonyProvider::CALL_STATE_BUSY:
           // Incoming call, no break
           sStopSendingRingFlag = true;
         case nsITelephonyProvider::CALL_STATE_DIALING:
@@ -1416,7 +1424,7 @@ BluetoothHfpManager::HandleCallStateChanged(uint32_t aCallIndex,
           GetNumberOfCalls(nsITelephonyProvider::CALL_STATE_DISCONNECTED)) {
         // In order to let user hear busy tone via connected Bluetooth headset,
         // we postpone the timing of dropping SCO.
-        if (prevCallState != nsITelephonyProvider::CALL_STATE_BUSY) {
+        if (!(aError.Equals(NS_LITERAL_STRING("BusyError")))) {
           DisconnectSco();
         } else {
           // Close Sco later since Dialer is still playing busy tone via HF.

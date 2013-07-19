@@ -26,6 +26,8 @@ public class StringUtils {
      * wasSearchQuery is returned
     */
     public static boolean isSearchQuery(String text, boolean wasSearchQuery) {
+        // We remove leading and trailing white spaces when decoding URLs
+        text = text.trim();
         if (text.length() == 0)
             return wasSearchQuery;
 
@@ -46,24 +48,41 @@ public class StringUtils {
     }
 
     public static String stripScheme(String url) {
-        if (url == null)
+        if (url == null) {
             return url;
+        }
+
+        int start = 0;
+        int end = url.length();
 
         if (url.startsWith("http://")) {
-            return url.substring(7);
+            start = 7;
         }
-        return url;
+
+        if (url.endsWith("/")) {
+            end--;
+        }
+
+        return url.substring(start, end);
     }
 
     public static String stripCommonSubdomains(String host) {
-        if (host == null)
+        if (host == null) {
             return host;
+        }
+
         // In contrast to desktop, we also strip mobile subdomains,
         // since its unlikely users are intentionally typing them
-        if (host.startsWith("www.")) return host.substring(4);
-        else if (host.startsWith("mobile.")) return host.substring(7);
-        else if (host.startsWith("m.")) return host.substring(2);
-        return host;
-    }
+        int start = 0;
 
+        if (host.startsWith("www.")) {
+            start = 4;
+        } else if (host.startsWith("mobile.")) {
+            start = 7;
+        } else if (host.startsWith("m.")) {
+            start = 2;
+        }
+
+        return host.substring(start);
+    }
 }

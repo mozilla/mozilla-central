@@ -43,9 +43,41 @@ class RopeBuilder;
 
 template <AllowGC allowGC>
 extern JSString *
-ConcatStrings(ThreadSafeContext *cx,
+ConcatStrings(JSContext *cx,
               typename MaybeRooted<JSString*, allowGC>::HandleType left,
               typename MaybeRooted<JSString*, allowGC>::HandleType right);
+
+extern JSString *
+ConcatStringsPure(ThreadSafeContext *cx, JSString *left, JSString *right);
+
+// Return s advanced past any Unicode white space characters.
+static inline const jschar *
+SkipSpace(const jschar *s, const jschar *end)
+{
+    JS_ASSERT(s <= end);
+
+    while (s < end && unicode::IsSpace(*s))
+        s++;
+
+    return s;
+}
+
+// Return less than, equal to, or greater than zero depending on whether
+// s1 is less than, equal to, or greater than s2.
+inline bool
+CompareChars(const jschar *s1, size_t l1, const jschar *s2, size_t l2, int32_t *result)
+{
+    size_t n = Min(l1, l2);
+    for (size_t i = 0; i < n; i++) {
+        if (int32_t cmp = s1[i] - s2[i]) {
+            *result = cmp;
+            return true;
+        }
+    }
+
+    *result = (int32_t)(l1 - l2);
+    return true;
+}
 
 }  /* namespace js */
 
@@ -88,7 +120,7 @@ extern const char js_encodeURIComponent_str[];
 /* GC-allocate a string descriptor for the given malloc-allocated chars. */
 template <js::AllowGC allowGC>
 extern JSStableString *
-js_NewString(js::ThreadSafeContext *tcx, jschar *chars, size_t length);
+js_NewString(js::ThreadSafeContext *cx, jschar *chars, size_t length);
 
 extern JSLinearString *
 js_NewDependentString(JSContext *cx, JSString *base, size_t start, size_t length);
@@ -96,20 +128,20 @@ js_NewDependentString(JSContext *cx, JSString *base, size_t start, size_t length
 /* Copy a counted string and GC-allocate a descriptor for it. */
 template <js::AllowGC allowGC>
 extern JSFlatString *
-js_NewStringCopyN(JSContext *cx, const jschar *s, size_t n);
+js_NewStringCopyN(js::ExclusiveContext *cx, const jschar *s, size_t n);
 
 template <js::AllowGC allowGC>
 extern JSFlatString *
-js_NewStringCopyN(js::ThreadSafeContext *tcx, const char *s, size_t n);
+js_NewStringCopyN(js::ThreadSafeContext *cx, const char *s, size_t n);
 
 /* Copy a C string and GC-allocate a descriptor for it. */
 template <js::AllowGC allowGC>
 extern JSFlatString *
-js_NewStringCopyZ(JSContext *cx, const jschar *s);
+js_NewStringCopyZ(js::ExclusiveContext *cx, const jschar *s);
 
 template <js::AllowGC allowGC>
 extern JSFlatString *
-js_NewStringCopyZ(js::ThreadSafeContext *tcx, const char *s);
+js_NewStringCopyZ(js::ThreadSafeContext *cx, const char *s);
 
 /*
  * Convert a value to a printable C string.
@@ -126,7 +158,7 @@ namespace js {
  */
 template <AllowGC allowGC>
 extern JSString *
-ToStringSlow(JSContext *cx, typename MaybeRooted<Value, allowGC>::HandleType arg);
+ToStringSlow(ExclusiveContext *cx, typename MaybeRooted<Value, allowGC>::HandleType arg);
 
 /*
  * Convert the given value to a string.  This method includes an inline
@@ -157,9 +189,6 @@ ToString(JSContext *cx, JS::HandleValue v)
 inline bool
 ValueToStringBuffer(JSContext *cx, const Value &v, StringBuffer &sb);
 
-} /* namespace js */
-
-namespace js {
 /*
  * Convert a value to its source expression, returning null after reporting
  * an error, otherwise returning a new string reference.
@@ -254,7 +283,7 @@ InflateUTF8String(JSContext *cx, const char *bytes, size_t *length);
  * return, will contain on return the number of copied chars.
  */
 extern bool
-InflateStringToBuffer(JSContext *cx, const char *bytes, size_t length,
+InflateStringToBuffer(JSContext *maybecx, const char *bytes, size_t length,
                       jschar *chars, size_t *charsLength);
 
 extern bool

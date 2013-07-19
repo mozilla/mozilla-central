@@ -301,6 +301,9 @@ void mozilla_sampler_init(void* stackTop)
 #if defined(XP_WIN) || defined(XP_MACOSX)
                          , "stackwalk"
 #endif
+#if defined(SPS_OS_android) && !defined(MOZ_WIDGET_GONK)
+                         , "java"
+#endif
                          };
   profiler_start(PROFILE_DEFAULT_ENTRY, PROFILE_DEFAULT_INTERVAL,
                          features, sizeof(features)/sizeof(const char*),
@@ -584,14 +587,19 @@ void mozilla_sampler_unlock()
 
 bool mozilla_sampler_register_thread(const char* aName, void* stackTop)
 {
+#ifndef MOZ_WIDGET_GONK
   PseudoStack* stack = new PseudoStack();
   tlsPseudoStack.set(stack);
 
   return Sampler::RegisterCurrentThread(aName, stack, false, stackTop);
+#else
+  return false;
+#endif
 }
 
 void mozilla_sampler_unregister_thread()
 {
+#ifndef MOZ_WIDGET_GONK
   Sampler::UnregisterCurrentThread();
 
   PseudoStack *stack = tlsPseudoStack.get();
@@ -601,10 +609,14 @@ void mozilla_sampler_unregister_thread()
   }
   delete stack;
   tlsPseudoStack.set(nullptr);
+#endif
 }
 
 double mozilla_sampler_time()
 {
+  if (!mozilla_sampler_is_active()) {
+    return 0.0;
+  }
   TimeDuration delta = TimeStamp::Now() - sStartTime;
   return delta.ToMilliseconds();
 }

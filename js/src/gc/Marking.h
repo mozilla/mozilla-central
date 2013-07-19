@@ -8,12 +8,10 @@
 #define gc_Marking_h
 
 #include "jsgc.h"
-#include "jscntxt.h"
 #include "jslock.h"
 
 #include "gc/Barrier.h"
 #include "gc/Nursery.h"
-#include "js/TemplateLib.h"
 #include "ion/IonCode.h"
 
 extern "C" {
@@ -30,6 +28,7 @@ namespace js {
 
 class ArgumentsObject;
 class ArrayBufferObject;
+class ArrayBufferViewObject;
 class BaseShape;
 class GlobalObject;
 class UnownedBaseShape;
@@ -95,6 +94,7 @@ DeclMarker(BaseShape, UnownedBaseShape)
 DeclMarker(IonCode, ion::IonCode)
 DeclMarker(Object, ArgumentsObject)
 DeclMarker(Object, ArrayBufferObject)
+DeclMarker(Object, ArrayBufferViewObject)
 DeclMarker(Object, DebugScopeObject)
 DeclMarker(Object, GlobalObject)
 DeclMarker(Object, JSObject)

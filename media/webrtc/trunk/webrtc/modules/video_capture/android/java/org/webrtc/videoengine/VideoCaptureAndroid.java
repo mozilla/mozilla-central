@@ -56,6 +56,7 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
     private boolean isSurfaceReady = false;
     private SurfaceHolder surfaceHolder = null;
     private SurfaceTexture surfaceTexture = null;
+    private SurfaceTexture dummySurfaceTexture = null;
 
     private final int numCaptureBuffers = 3;
     private int expectedFrameSize = 0;
@@ -113,8 +114,10 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
         GeckoAppShell.getGeckoInterface().removeAppStateListener(captureAndroid.mAppStateListener);
 
         captureAndroid.StopCapture();
-        captureAndroid.camera.release();
-        captureAndroid.camera = null;
+        if (captureAndroid.camera != null) {
+            captureAndroid.camera.release();
+            captureAndroid.camera = null;
+        }
         captureAndroid.context = 0;
 
         View cameraView = GeckoAppShell.getGeckoInterface().getCameraView();
@@ -177,8 +180,10 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
             @Override
             public void onPause() {
                 StopCapture();
-                camera.release();
-                camera = null;
+                if (camera != null) {
+                    camera.release();
+                    camera = null;
+                }
             }
             @Override
             public void onResume() {
@@ -197,7 +202,7 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
                 captureLock.unlock();
             }
             @Override
-            public void onConfigurationChanged() {
+            public void onOrientationChanged() {
                 mCaptureRotation = GetRotateAmount();
             }
         };
@@ -206,9 +211,6 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
     }
 
     public int GetRotateAmount() {
-        android.hardware.Camera.CameraInfo info =
-            new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
         int rotation = GeckoAppShell.getGeckoInterface().getActivity().getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
@@ -217,15 +219,24 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
             case Surface.ROTATION_180: degrees = 180; break;
             case Surface.ROTATION_270: degrees = 270; break;
         }
-
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
+        if(android.os.Build.VERSION.SDK_INT>8) {
+            android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
+            android.hardware.Camera.getCameraInfo(cameraId, info);
+            int result;
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                result = (info.orientation + degrees) % 360;
+            } else {  // back-facing
+                result = (info.orientation - degrees + 360) % 360;
+            }
+            return result;
+        } else {
+            // Assume 90deg orientation for Froyo devices.
+            // Only back-facing cameras are supported in Froyo.
+            int orientation = 90;
+            int result = (orientation - degrees + 360) % 360;
+            return result;
         }
-
-        return result;
     }
 
     private int tryStartCapture(int width, int height, int frameRate) {
@@ -249,6 +260,18 @@ public class VideoCaptureAndroid implements PreviewCallback, Callback {
                 camera.setPreviewDisplay(surfaceHolder);
             if (surfaceTexture != null)
                 camera.setPreviewTexture(surfaceTexture);
+            if (surfaceHolder == null && surfaceTexture == null) {
+                // No local renderer.  Camera won't capture without
+                // setPreview{Texture,Display}, so we create a dummy SurfaceTexture
+                // and hand it over to Camera, but never listen for frame-ready
+                // callbacks, and never call updateTexImage on it.
+                try {
+                    dummySurfaceTexture = new SurfaceTexture(42);
+                    camera.setPreviewTexture(dummySurfaceTexture);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
             CaptureCapabilityAndroid currentCapability =
                     new CaptureCapabilityAndroid();

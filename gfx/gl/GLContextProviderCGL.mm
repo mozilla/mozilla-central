@@ -136,7 +136,12 @@ public:
 
         if (mContext) {
             [mContext makeCurrentContext];
-            GLint swapInt = 1;
+            // Use blocking swap only with the default frame rate.
+            // If swapInt is 1, then glSwapBuffers will block and wait for a vblank signal.
+            // While this is fine for the default refresh rate, if the user chooses some
+            // other rate, and specifically if this rate is higher than the screen refresh rate,
+            // then we want a non-blocking glSwapBuffers, which will happen when swapInt==0.
+            GLint swapInt = gfxPlatform::GetPrefLayoutFrameRate() == -1 ? 1 : 0;
             [mContext setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
         }
         return true;
@@ -145,6 +150,8 @@ public:
     virtual bool IsCurrent() {
         return [NSOpenGLContext currentContext] == mContext;
     }
+
+    virtual GLenum GetPreferredARGB32Format() MOZ_OVERRIDE { return LOCAL_GL_BGRA; }
 
     bool SetupLookupFunction()
     {
@@ -200,8 +207,9 @@ public:
                                         SharedTextureHandle sharedHandle,
                                         SharedHandleDetails& details)
     {
+        MacIOSurface* surf = reinterpret_cast<MacIOSurface*>(sharedHandle);
         details.mTarget = LOCAL_GL_TEXTURE_RECTANGLE_ARB;
-        details.mProgramType = RGBARectLayerProgramType;
+        details.mTextureFormat = surf->HasAlpha() ? FORMAT_R8G8B8A8 : FORMAT_R8G8B8X8;
         return true;
     }
 
@@ -209,8 +217,7 @@ public:
                                     SharedTextureHandle sharedHandle)
     {
         MacIOSurface* surf = reinterpret_cast<MacIOSurface*>(sharedHandle);
-        surf->CGLTexImageIOSurface2D(mContext, LOCAL_GL_RGBA, LOCAL_GL_BGRA,
-                                     LOCAL_GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+        surf->CGLTexImageIOSurface2D(mContext);
         return true;
     }
 

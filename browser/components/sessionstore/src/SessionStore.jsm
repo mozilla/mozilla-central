@@ -125,12 +125,6 @@ function debug(aMsg) {
   Services.console.logStringMessage(aMsg);
 }
 
-function notifyAsync(aTopic) {
-  Services.tm.mainThread.dispatch(() => {
-    Services.obs.notifyObservers(null, aTopic, "");
-  }, Ci.nsIThread.DISPATCH_NORMAL);
-}
-
 this.SessionStore = {
   get promiseInitialized() {
     return SessionStoreInternal.promiseInitialized.promise;
@@ -174,6 +168,14 @@ this.SessionStore = {
 
   duplicateTab: function ss_duplicateTab(aWindow, aTab, aDelta) {
     return SessionStoreInternal.duplicateTab(aWindow, aTab, aDelta);
+  },
+
+  getNumberOfTabsClosedLast: function ss_getNumberOfTabsClosedLast(aWindow) {
+    return SessionStoreInternal.getNumberOfTabsClosedLast(aWindow);
+  },
+
+  setNumberOfTabsClosedLast: function ss_setNumberOfTabsClosedLast(aWindow, aNumber) {
+    return SessionStoreInternal.setNumberOfTabsClosedLast(aWindow, aNumber);
   },
 
   getClosedTabCount: function ss_getClosedTabCount(aWindow) {
@@ -466,7 +468,11 @@ let SessionStoreInternal = {
 
     // A Lazy getter for the sessionstore.js backup promise.
     XPCOMUtils.defineLazyGetter(this, "_backupSessionFileOnce", function () {
-      return _SessionFile.createBackupCopy();
+      // We're creating a backup of sessionstore.js by moving it to .bak
+      // because that's a lot faster than creating a copy. sessionstore.js
+      // would be overwritten shortly afterwards anyway so we can save time
+      // and just move instead of copy.
+      return _SessionFile.moveToBackupPath();
     });
 
     // at this point, we've as good as resumed the session, so we can
@@ -510,12 +516,12 @@ let SessionStoreInternal = {
     return Task.spawn(function task() {
       try {
         // Perform background backup
-        yield _SessionFile.createUpgradeBackupCopy("-" + buildID);
+        yield _SessionFile.createBackupCopy("-" + buildID);
 
         this._prefBranch.setCharPref(PREF_UPGRADE, buildID);
 
         // In case of success, remove previous backup.
-        yield _SessionFile.removeUpgradeBackup("-" + latestBackup);
+        yield _SessionFile.removeBackupCopy("-" + latestBackup);
       } catch (ex) {
         debug("Could not perform upgrade backup " + ex);
         debug(ex.stack);
@@ -770,7 +776,7 @@ let SessionStoreInternal = {
           this._initialState = null;
 
           // Nothing to restore now, notify observers things are complete.
-          notifyAsync(NOTIFY_WINDOWS_RESTORED);
+          Services.obs.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
         } else {
           TelemetryTimestamps.add("sessionRestoreRestoring");
           // make sure that the restored tabs are first in the window
@@ -778,17 +784,17 @@ let SessionStoreInternal = {
           this._restoreCount = this._initialState.windows ? this._initialState.windows.length : 0;
           this.restoreWindow(aWindow, this._initialState,
                              this._isCmdLineEmpty(aWindow, this._initialState));
-
-          // _loadState changed from "stopped" to "running"
-          // force a save operation so that crashes happening during startup are correctly counted
-          this._initialState.session.state = STATE_RUNNING_STR;
-          this._saveStateObject(this._initialState);
           this._initialState = null;
+
+          // _loadState changed from "stopped" to "running". Save the session's
+          // load state immediately so that crashes happening during startup
+          // are correctly counted.
+          _SessionFile.writeLoadStateOnceAfterStartup(STATE_RUNNING_STR);
         }
       }
       else {
         // Nothing to restore, notify observers things are complete.
-        notifyAsync(NOTIFY_WINDOWS_RESTORED);
+        Services.obs.notifyObservers(null, NOTIFY_WINDOWS_RESTORED, "");
 
         // the next delayed save request should execute immediately
         this._lastSaveTime -= this._interval;
@@ -1529,6 +1535,28 @@ let SessionStoreInternal = {
                                  true /* Load this tab right away. */);
 
     return newTab;
+  },
+
+  setNumberOfTabsClosedLast: function ssi_setNumberOfTabsClosedLast(aWindow, aNumber) {
+    if ("__SSi" in aWindow) {
+      return NumberOfTabsClosedLastPerWindow.set(aWindow, aNumber);
+    }
+
+    throw (Components.returnCode = Cr.NS_ERROR_INVALID_ARG);
+  },
+
+  /* Used to undo batch tab-close operations. Defaults to 1. */
+  getNumberOfTabsClosedLast: function ssi_getNumberOfTabsClosedLast(aWindow) {
+    if ("__SSi" in aWindow) {
+      // Blank tabs cannot be undo-closed, so the number returned by
+      // the NumberOfTabsClosedLastPerWindow can be greater than the
+      // return value of getClosedTabCount. We won't restore blank
+      // tabs, so we return the minimum of these two values.
+      return Math.min(NumberOfTabsClosedLastPerWindow.get(aWindow) || 1,
+                      this.getClosedTabCount(aWindow));
+    }
+
+    throw (Components.returnCode = Cr.NS_ERROR_INVALID_ARG);
   },
 
   getClosedTabCount: function ssi_getClosedTabCount(aWindow) {
@@ -4323,8 +4351,9 @@ let SessionStoreInternal = {
       return;
 
     // This was the last window restored at startup, notify observers.
-    notifyAsync(this._browserSetState ? NOTIFY_BROWSER_STATE_RESTORED :
-                                        NOTIFY_WINDOWS_RESTORED);
+    Services.obs.notifyObservers(null,
+      this._browserSetState ? NOTIFY_BROWSER_STATE_RESTORED : NOTIFY_WINDOWS_RESTORED,
+      "");
 
     this._browserSetState = false;
     this._restoreCount = -1;
@@ -4694,6 +4723,11 @@ let DyingWindowCache = {
     this._data.delete(window);
   }
 };
+
+// A map storing the number of tabs last closed per windoow. This only
+// stores the most recent tab-close operation, and is used to undo
+// batch tab-closing operations.
+let NumberOfTabsClosedLastPerWindow = new WeakMap();
 
 // A set of tab attributes to persist. We will read a given list of tab
 // attributes when collecting tab data and will re-set those attributes when

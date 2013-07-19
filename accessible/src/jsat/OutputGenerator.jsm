@@ -31,9 +31,6 @@ XPCOMUtils.defineLazyModuleGetter(this, 'Logger',
 XPCOMUtils.defineLazyModuleGetter(this, 'PluralForm',
   'resource://gre/modules/PluralForm.jsm');
 
-
-let gUtteranceOrder = new PrefCache('accessibility.accessfu.utterance');
-
 var gStringBundle = Cc['@mozilla.org/intl/stringbundle;1'].
   getService(Ci.nsIStringBundleService).
   createBundle('chrome://global/locale/AccessFu.properties');
@@ -42,14 +39,19 @@ this.EXPORTED_SYMBOLS = ['UtteranceGenerator', 'BrailleGenerator'];
 
 this.OutputGenerator = {
 
+  defaultOutputOrder: OUTPUT_DESC_LAST,
+
   /**
    * Generates output for a PivotContext.
    * @param {PivotContext} aContext object that generates and caches
    *    context information for a given accessible and its relationship with
    *    another accessible.
-   * @return {Array} An array of strings. Depending on the utterance order,
+   * @return {Object} An object that neccessarily has an output property which
+   *    is an array of strings. Depending on the utterance order,
    *    the strings describe the context for an accessible object either
    *    starting from the accessible's ancestry or accessible's subtree.
+   *    The object may also have properties specific to the type of output
+   *    generated.
    */
   genForContext: function genForContext(aContext) {
     let output = [];
@@ -65,11 +67,10 @@ this.OutputGenerator = {
       return (nameRule & NAME_FROM_SUBTREE_RULE) &&
         (Utils.getAttributes(aAccessible)['explicit-name'] === 'true');
     };
-    let outputOrder = typeof gUtteranceOrder.value == 'number' ?
-                      gUtteranceOrder.value : this.defaultOutputOrder;
+
     let contextStart = this._getContextStart(aContext);
 
-    if (outputOrder === OUTPUT_DESC_FIRST) {
+    if (this.outputOrder === OUTPUT_DESC_FIRST) {
       contextStart.forEach(addOutput);
       addOutput(aContext.accessible);
       [addOutput(node) for
@@ -84,13 +85,13 @@ this.OutputGenerator = {
     // Clean up the white space.
     let trimmed;
     output = [trimmed for (word of output) if (trimmed = word.trim())];
-    return output;
+    return {output: output};
   },
 
 
   /**
    * Generates output for an object.
-   * @param {nsIAccessible} aAccessible accessible object to generate utterance
+   * @param {nsIAccessible} aAccessible accessible object to generate output
    *    for.
    * @param {PivotContext} aContext object that generates and caches
    *    context information for a given accessible and its relationship with
@@ -164,11 +165,37 @@ this.OutputGenerator = {
     }
 
     if (name) {
-      let outputOrder = typeof gUtteranceOrder.value == 'number' ?
-                        gUtteranceOrder.value : this.defaultOutputOrder;
-      aOutput[outputOrder === OUTPUT_DESC_FIRST ?
+      aOutput[this.outputOrder === OUTPUT_DESC_FIRST ?
         'push' : 'unshift'](name);
     }
+  },
+
+  /**
+   * Adds a landmark role to the output if available.
+   * @param {Array} aOutput Output array.
+   * @param {nsIAccessible} aAccessible current accessible object.
+   */
+  _addLandmark: function _addLandmark(aOutput, aAccessible) {
+    let landmarkName = Utils.getLandmarkName(aAccessible);
+    if (!landmarkName) {
+      return;
+    }
+
+    let landmark = gStringBundle.GetStringFromName(landmarkName);
+    if (!landmark) {
+      return;
+    }
+
+    aOutput[this.outputOrder === OUTPUT_DESC_FIRST ? 'unshift' : 'push'](
+      landmark);
+  },
+
+  get outputOrder() {
+    if (!this._utteranceOrder) {
+      this._utteranceOrder = new PrefCache('accessibility.accessfu.utterance');
+    }
+    return typeof this._utteranceOrder.value === 'number' ?
+      this._utteranceOrder.value : this.defaultOutputOrder;
   },
 
   _getOutputName: function _getOutputName(aName) {
@@ -271,6 +298,7 @@ this.OutputGenerator = {
       }
 
       this._addName(output, aAccessible, aFlags);
+      this._addLandmark(output, aAccessible);
 
       return output;
     },
@@ -285,6 +313,7 @@ this.OutputGenerator = {
       output.push(desc.join(' '));
 
       this._addName(output, aAccessible, aFlags);
+      this._addLandmark(output, aAccessible);
 
       return output;
     },
@@ -311,6 +340,7 @@ this.OutputGenerator = {
           this._getOutputName('tableInfo'), [this._getLocalizedRole(aRoleStr),
             tableColumnInfo, tableRowInfo], 3));
         this._addName(output, aAccessible, aFlags);
+        this._addLandmark(output, aAccessible);
         return output;
       }
     }
@@ -335,8 +365,6 @@ this.OutputGenerator = {
  */
 this.UtteranceGenerator = {
   __proto__: OutputGenerator,
-
-  defaultOutputOrder: OUTPUT_DESC_FIRST,
 
   gActionMap: {
     jump: 'jumpAction',
@@ -405,6 +433,7 @@ this.UtteranceGenerator = {
         [gStringBundle.formatStringFromName('headingLevel', [level.value], 1)];
 
       this._addName(utterance, aAccessible, aFlags);
+      this._addLandmark(utterance, aAccessible);
 
       return utterance;
     },
@@ -420,6 +449,7 @@ this.UtteranceGenerator = {
         utterance.push(gStringBundle.GetStringFromName('listEnd'));
 
       this._addName(utterance, aAccessible, aFlags);
+      this._addLandmark(utterance, aAccessible);
 
       return utterance;
     },
@@ -479,6 +509,8 @@ this.UtteranceGenerator = {
       }
 
       this._addName(utterance, aAccessible, aFlags);
+      this._addLandmark(utterance, aAccessible);
+
       return utterance;
     },
 
@@ -544,13 +576,14 @@ this.UtteranceGenerator = {
   _getListUtterance: function _getListUtterance(aAccessible, aRoleStr, aFlags, aItemCount) {
     let desc = [];
     let roleStr = this._getLocalizedRole(aRoleStr);
-    if (roleStr)
+    if (roleStr) {
       desc.push(roleStr);
-    desc.push
-      (gStringBundle.formatStringFromName('listItemCount', [aItemCount], 1));
+    }
+    desc.push(this._getPluralFormString('listItemsCount', aItemCount));
     let utterance = [desc.join(' ')];
 
     this._addName(utterance, aAccessible, aFlags);
+    this._addLandmark(utterance, aAccessible);
 
     return utterance;
   }
@@ -560,7 +593,18 @@ this.UtteranceGenerator = {
 this.BrailleGenerator = {
   __proto__: OutputGenerator,
 
-  defaultOutputOrder: OUTPUT_DESC_LAST,
+  genForContext: function genForContext(aContext) {
+    let output = OutputGenerator.genForContext.apply(this, arguments);
+
+    let acc = aContext.accessible;
+    if (acc instanceof Ci.nsIAccessibleText) {
+      output.endOffset = this.outputOrder === OUTPUT_DESC_FIRST ?
+                         output.output.join(' ').length : acc.characterCount;
+      output.startOffset = output.endOffset - acc.characterCount;
+    }
+
+    return output;
+  },
 
   objectOutputFunctions: {
 
@@ -587,6 +631,7 @@ this.BrailleGenerator = {
       let braille = [];
 
       this._addName(braille, aAccessible, aFlags);
+      this._addLandmark(braille, aAccessible);
 
       return braille;
     },
@@ -612,6 +657,7 @@ this.BrailleGenerator = {
       }
 
       this._addName(braille, aAccessible, aFlags);
+      this._addLandmark(braille, aAccessible);
       return braille;
     },
 
@@ -640,6 +686,7 @@ this.BrailleGenerator = {
       braille.push(desc.join(' '));
 
       this._addName(braille, aAccessible, aFlags);
+      this._addLandmark(braille, aAccessible);
 
       return braille;
     },

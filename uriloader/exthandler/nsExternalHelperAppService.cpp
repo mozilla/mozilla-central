@@ -465,6 +465,7 @@ static nsExtraMimeTypeEntry extraMimeEntries [] =
   { "application/x-arj", "arj", "ARJ file" },
   { "application/rtf", "rtf", "Rich Text Format File" },
   { APPLICATION_XPINSTALL, "xpi", "XPInstall Install" },
+  { APPLICATION_PDF, "pdf", "Portable Document Format" },
   { APPLICATION_POSTSCRIPT, "ps,eps,ai", "Postscript File" },
   { APPLICATION_XJAVASCRIPT, "js", "Javascript Source File" },
   { APPLICATION_XJAVASCRIPT, "jsm", "Javascript Module Source File" },
@@ -2440,6 +2441,10 @@ NS_IMETHODIMP nsExternalHelperAppService::GetTypeFromExtension(const nsACString&
   // 4. our "extras" array
   // 5. Information from plugins
   // 6. The "ext-to-type-mapping" category
+
+  // Early return if called with an empty extension parameter
+  if (aFileExt.IsEmpty())
+    return NS_ERROR_NOT_AVAILABLE;
 
   nsresult rv = NS_OK;
   // First of all, check our default entries

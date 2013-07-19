@@ -240,8 +240,6 @@ private:
 
 namespace xpc {
 
-bool DeferredRelease(nsISupports *obj);
-
 // If these functions return false, then an exception will be set on cx.
 NS_EXPORT_(bool) Base64Encode(JSContext *cx, JS::Value val, JS::Value *out);
 NS_EXPORT_(bool) Base64Decode(JSContext *cx, JS::Value val, JS::Value *out);
@@ -415,6 +413,27 @@ GetNativeForGlobal(JSObject *global);
  */
 JSObject *
 GetJunkScope();
+
+/**
+ * Returns the native global of the junk scope. See comment of GetJunkScope
+ * about the conditions of using it.
+ */
+nsIGlobalObject *
+GetJunkScopeGlobal();
+
+// Error reporter used when there is no associated DOM window on to which to
+// report errors and warnings.
+void
+SystemErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep);
+
+// We have a separate version that's exported with external linkage for use by
+// xpcshell, since external linkage on windows changes the signature to make it
+// incompatible with the JSErrorReporter type, causing JS_SetErrorReporter calls
+// to fail to compile.
+NS_EXPORT_(void)
+SystemErrorReporterExternal(JSContext *cx, const char *message,
+                            JSErrorReport *rep);
+
 } // namespace xpc
 
 namespace mozilla {
@@ -458,15 +477,5 @@ Register(nsScriptNameSpaceManager* aNameSpaceManager);
 
 } // namespace dom
 } // namespace mozilla
-
-// Called once before the deferred finalization starts. Should hand off the
-// buffer with things to finalize in the return value.
-typedef void* (*DeferredFinalizeStartFunction)();
-
-// Called to finalize a number of objects. Slice is the number of objects
-// to finalize, or if it's UINT32_MAX, all objects should be finalized.
-// data is the pointer returned by DeferredFinalizeStartFunction.
-// Return value indicates whether it finalized all objects in the buffer.
-typedef bool (*DeferredFinalizeFunction)(uint32_t slice, void* data);
 
 #endif

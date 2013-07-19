@@ -6,6 +6,8 @@
 
 PARALLEL_DIRS += ['encoder']
 
+PARALLEL_DIRS += ['mediasource']
+
 PARALLEL_DIRS += ['webaudio']
 
 if CONFIG['MOZ_RAW']:
@@ -58,6 +60,7 @@ EXPORTS += [
     'BufferMediaResource.h',
     'DOMMediaStream.h',
     'DecoderTraits.h',
+    'EncodedBufferCache.h',
     'FileBlockCache.h',
     'MediaCache.h',
     'MediaDecoder.h',
@@ -65,6 +68,7 @@ EXPORTS += [
     'MediaDecoderReader.h',
     'MediaDecoderStateMachine.h',
     'MediaMetadataManager.h',
+    'MediaRecorder.h',
     'MediaResource.h',
     'MediaSegment.h',
     'MediaStreamGraph.h',
@@ -85,6 +89,7 @@ EXPORTS.mozilla.dom += [
     'TextTrackCue.h',
     'TextTrackCueList.h',
     'TextTrackList.h',
+    'VideoPlaybackQuality.h',
     'VideoStreamTrack.h',
 ]
 
@@ -98,11 +103,13 @@ CPP_SOURCES += [
     'AudioStreamTrack.cpp',
     'DOMMediaStream.cpp',
     'DecoderTraits.cpp',
+    'EncodedBufferCache.cpp',
     'FileBlockCache.cpp',
     'MediaCache.cpp',
     'MediaDecoder.cpp',
     'MediaDecoderReader.cpp',
     'MediaDecoderStateMachine.cpp',
+    'MediaRecorder.cpp',
     'MediaResource.cpp',
     'MediaStreamGraph.cpp',
     'MediaStreamTrack.cpp',
@@ -112,6 +119,7 @@ CPP_SOURCES += [
     'TextTrackCueList.cpp',
     'TextTrackList.cpp',
     'VideoFrameContainer.cpp',
+    'VideoPlaybackQuality.cpp',
     'VideoSegment.cpp',
     'VideoStreamTrack.cpp',
     'VideoUtils.cpp',

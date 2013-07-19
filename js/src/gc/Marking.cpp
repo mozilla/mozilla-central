@@ -8,10 +8,9 @@
 
 #include "mozilla/DebugOnly.h"
 
-#include "jstypedarray.h"
-
 #include "ion/IonCode.h"
 #include "vm/Shape.h"
+#include "vm/TypedArrayObject.h"
 
 #include "jscompartmentinlines.h"
 #include "jsinferinlines.h"
@@ -367,6 +366,7 @@ DeclMarkerImpl(BaseShape, UnownedBaseShape)
 DeclMarkerImpl(IonCode, ion::IonCode)
 DeclMarkerImpl(Object, ArgumentsObject)
 DeclMarkerImpl(Object, ArrayBufferObject)
+DeclMarkerImpl(Object, ArrayBufferViewObject)
 DeclMarkerImpl(Object, DebugScopeObject)
 DeclMarkerImpl(Object, GlobalObject)
 DeclMarkerImpl(Object, JSObject)

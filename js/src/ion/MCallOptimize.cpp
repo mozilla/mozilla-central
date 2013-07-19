@@ -72,6 +72,32 @@ IonBuilder::inlineNativeCall(CallInfo &callInfo, JSNative native)
         return inlineMathFunction(callInfo, MMathFunction::ASin);
     if (native == js::math_acos)
         return inlineMathFunction(callInfo, MMathFunction::ACos);
+    if (native == js::math_log10)
+        return inlineMathFunction(callInfo, MMathFunction::Log10);
+    if (native == js::math_log2)
+        return inlineMathFunction(callInfo, MMathFunction::Log2);
+    if (native == js::math_log1p)
+        return inlineMathFunction(callInfo, MMathFunction::Log1P);
+    if (native == js::math_expm1)
+        return inlineMathFunction(callInfo, MMathFunction::ExpM1);
+    if (native == js::math_cosh)
+        return inlineMathFunction(callInfo, MMathFunction::CosH);
+    if (native == js::math_sin)
+        return inlineMathFunction(callInfo, MMathFunction::SinH);
+    if (native == js::math_tan)
+        return inlineMathFunction(callInfo, MMathFunction::TanH);
+    if (native == js::math_acosh)
+        return inlineMathFunction(callInfo, MMathFunction::ACosH);
+    if (native == js::math_asin)
+        return inlineMathFunction(callInfo, MMathFunction::ASinH);
+    if (native == js::math_atan)
+        return inlineMathFunction(callInfo, MMathFunction::ATanH);
+    if (native == js::math_sign)
+        return inlineMathFunction(callInfo, MMathFunction::Sign);
+    if (native == js::math_trunc)
+        return inlineMathFunction(callInfo, MMathFunction::Trunc);
+    if (native == js::math_cbrt)
+        return inlineMathFunction(callInfo, MMathFunction::Cbrt);
 
     // String natives.
     if (native == js_String)
@@ -90,8 +116,8 @@ IonBuilder::inlineNativeCall(CallInfo &callInfo, JSNative native)
         return inlineRegExpTest(callInfo);
 
     // Array intrinsics.
-    if (native == intrinsic_UnsafeSetElement)
-        return inlineUnsafeSetElement(callInfo);
+    if (native == intrinsic_UnsafePutElements)
+        return inlineUnsafePutElements(callInfo);
     if (native == intrinsic_NewDenseArray)
         return inlineNewDenseArray(callInfo);
 
@@ -954,7 +980,7 @@ IonBuilder::inlineRegExpTest(CallInfo &callInfo)
 }
 
 IonBuilder::InliningStatus
-IonBuilder::inlineUnsafeSetElement(CallInfo &callInfo)
+IonBuilder::inlineUnsafePutElements(CallInfo &callInfo)
 {
     uint32_t argc = callInfo.argc();
     if (argc < 3 || (argc % 3) != 0 || callInfo.constructing())
@@ -963,7 +989,7 @@ IonBuilder::inlineUnsafeSetElement(CallInfo &callInfo)
     /* Important:
      *
      * Here we inline each of the stores resulting from a call to
-     * %UnsafeSetElement().  It is essential that these stores occur
+     * UnsafePutElements().  It is essential that these stores occur
      * atomically and cannot be interrupted by a stack or recursion
      * check.  If this is not true, race conditions can occur.
      */
@@ -1027,10 +1053,10 @@ bool
 IonBuilder::inlineUnsafeSetDenseArrayElement(CallInfo &callInfo, uint32_t base)
 {
     // Note: we do not check the conditions that are asserted as true
-    // in intrinsic_UnsafeSetElement():
+    // in intrinsic_UnsafePutElements():
     // - arr is a dense array
     // - idx < initialized length
-    // Furthermore, note that inlineUnsafeSetElement ensures the type of the
+    // Furthermore, note that inlineUnsafePutElements ensures the type of the
     // value is reflected in the JSID_VOID property of the array.
 
     MDefinition *obj = callInfo.getArg(base + 0);
@@ -1050,7 +1076,7 @@ IonBuilder::inlineUnsafeSetTypedArrayElement(CallInfo &callInfo,
                                              int arrayType)
 {
     // Note: we do not check the conditions that are asserted as true
-    // in intrinsic_UnsafeSetElement():
+    // in intrinsic_UnsafePutElements():
     // - arr is a typed array
     // - idx < length
 
@@ -1172,7 +1198,7 @@ IonBuilder::inlineParallelArrayTail(CallInfo &callInfo,
     if (returnTypes->unknownObject() || returnTypes->getObjectCount() != 1)
         return InliningStatus_NotInlined;
     types::TypeObject *typeObject = returnTypes->getTypeObject(0);
-    if (typeObject->clasp != &ParallelArrayObject::class_)
+    if (!typeObject || typeObject->clasp != &ParallelArrayObject::class_)
         return InliningStatus_NotInlined;
 
     // Create the call and add in the non-this arguments.

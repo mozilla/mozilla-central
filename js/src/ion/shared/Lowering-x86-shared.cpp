@@ -4,12 +4,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/MathAlgorithms.h"
+
 #include "ion/MIR.h"
 #include "ion/Lowering.h"
 #include "ion/shared/Lowering-x86-shared.h"
 #include "ion/shared/Lowering-shared-inl.h"
+
 using namespace js;
 using namespace js::ion;
+
+using mozilla::FloorLog2;
 
 LTableSwitch *
 LIRGeneratorX86Shared::newLTableSwitch(const LAllocation &in, const LDefinition &inputCopy,
@@ -125,6 +130,9 @@ LIRGeneratorX86Shared::lowerMulI(MMul *mul, MDefinition *lhs, MDefinition *rhs)
 bool
 LIRGeneratorX86Shared::lowerDivI(MDiv *div)
 {
+    if (div->isUnsigned())
+        return lowerUDiv(div);
+
     // Division instructions are slow. Division by constant denominators can be
     // rewritten to use other instructions.
     if (div->rhs()->isConstant()) {
@@ -135,8 +143,7 @@ LIRGeneratorX86Shared::lowerDivI(MDiv *div)
         // possible; division by negative powers of two can be optimized in a
         // similar manner as positive powers of two, and division by other
         // constants can be optimized by a reciprocal multiplication technique.
-        int32_t shift;
-        JS_FLOOR_LOG2(shift, rhs);
+        int32_t shift = FloorLog2(rhs);
         if (rhs > 0 && 1 << shift == rhs) {
             LDivPowTwoI *lir = new LDivPowTwoI(useRegisterAtStart(div->lhs()), useRegister(div->lhs()), shift);
             if (div->fallible() && !assignSnapshot(lir))
@@ -154,10 +161,12 @@ LIRGeneratorX86Shared::lowerDivI(MDiv *div)
 bool
 LIRGeneratorX86Shared::lowerModI(MMod *mod)
 {
+    if (mod->isUnsigned())
+        return lowerUMod(mod);
+
     if (mod->rhs()->isConstant()) {
         int32_t rhs = mod->rhs()->toConstant()->value().toInt32();
-        int32_t shift;
-        JS_FLOOR_LOG2(shift, rhs);
+        int32_t shift = FloorLog2(rhs);
         if (rhs > 0 && 1 << shift == rhs) {
             LModPowTwoI *lir = new LModPowTwoI(useRegisterAtStart(mod->lhs()), shift);
             if (mod->fallible() && !assignSnapshot(lir))
@@ -182,21 +191,33 @@ LIRGeneratorX86Shared::visitAsmJSNeg(MAsmJSNeg *ins)
 }
 
 bool
+LIRGeneratorX86Shared::lowerUDiv(MInstruction *div)
+{
+    LUDivOrMod *lir = new LUDivOrMod(useFixed(div->getOperand(0), eax),
+                                     useRegister(div->getOperand(1)),
+                                     tempFixed(edx));
+    return defineFixed(lir, div, LAllocation(AnyRegister(eax)));
+}
+
+bool
 LIRGeneratorX86Shared::visitAsmJSUDiv(MAsmJSUDiv *div)
 {
-    LAsmJSDivOrMod *lir = new LAsmJSDivOrMod(useFixed(div->lhs(), eax),
-                                             useRegister(div->rhs()),
-                                             tempFixed(edx));
-    return defineFixed(lir, div, LAllocation(AnyRegister(eax)));
+    return lowerUDiv(div);
+}
+
+bool
+LIRGeneratorX86Shared::lowerUMod(MInstruction *mod)
+{
+    LUDivOrMod *lir = new LUDivOrMod(useFixed(mod->getOperand(0), eax),
+                                     useRegister(mod->getOperand(1)),
+                                     LDefinition::BogusTemp());
+    return defineFixed(lir, mod, LAllocation(AnyRegister(edx)));
 }
 
 bool
 LIRGeneratorX86Shared::visitAsmJSUMod(MAsmJSUMod *mod)
 {
-    LAsmJSDivOrMod *lir = new LAsmJSDivOrMod(useFixed(mod->lhs(), eax),
-                                             useRegister(mod->rhs()),
-                                             LDefinition::BogusTemp());
-    return defineFixed(lir, mod, LAllocation(AnyRegister(edx)));
+    return lowerUMod(mod);
 }
 
 bool

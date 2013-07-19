@@ -41,6 +41,22 @@ AtomToId(JSAtom *atom)
     return JSID_FROM_BITS(size_t(atom));
 }
 
+inline bool
+ValueToIdPure(const Value &v, jsid *id)
+{
+    int32_t i;
+    if (ValueFitsInInt32(v, &i) && INT_FITS_IN_JSID(i)) {
+        *id = INT_TO_JSID(i);
+        return true;
+    }
+
+    if (!v.isString() || !v.toString()->isAtom())
+        return false;
+
+    *id = AtomToId(&v.toString()->asAtom());
+    return true;
+}
+
 template <AllowGC allowGC>
 inline bool
 ValueToId(JSContext* cx, typename MaybeRooted<Value, allowGC>::HandleType v,
@@ -91,11 +107,11 @@ BackfillIndexInCharBuffer(uint32_t index, mozilla::RangedPtr<T> end)
 
 template <AllowGC allowGC>
 bool
-IndexToIdSlow(JSContext *cx, uint32_t index,
+IndexToIdSlow(ExclusiveContext *cx, uint32_t index,
               typename MaybeRooted<jsid, allowGC>::MutableHandleType idp);
 
 inline bool
-IndexToId(JSContext *cx, uint32_t index, MutableHandleId idp)
+IndexToId(ExclusiveContext *cx, uint32_t index, MutableHandleId idp)
 {
     MaybeCheckStackRoots(cx);
 
@@ -108,12 +124,21 @@ IndexToId(JSContext *cx, uint32_t index, MutableHandleId idp)
 }
 
 inline bool
-IndexToIdNoGC(JSContext *cx, uint32_t index, jsid *idp)
+IndexToIdPure(uint32_t index, jsid *idp)
 {
     if (index <= JSID_INT_MAX) {
         *idp = INT_TO_JSID(index);
         return true;
     }
+
+    return false;
+}
+
+inline bool
+IndexToIdNoGC(JSContext *cx, uint32_t index, jsid *idp)
+{
+    if (IndexToIdPure(index, idp))
+        return true;
 
     return IndexToIdSlow<NoGC>(cx, index, idp);
 }
@@ -169,14 +194,14 @@ TypeName(JSType type, JSContext *cx)
 }
 
 inline Handle<PropertyName*>
-ClassName(JSProtoKey key, JSContext *cx)
+ClassName(JSProtoKey key, ExclusiveContext *cx)
 {
     JS_ASSERT(key < JSProto_LIMIT);
     JS_STATIC_ASSERT(offsetof(JSAtomState, Null) +
                      JSProto_LIMIT * sizeof(FixedHeapPtr<PropertyName>) <=
                      sizeof(JSAtomState));
     JS_STATIC_ASSERT(JSProto_Null == 0);
-    return (&cx->runtime()->atomState.Null)[key];
+    return (&cx->names().Null)[key];
 }
 
 } // namespace js

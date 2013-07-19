@@ -173,6 +173,8 @@ public class GeckoEvent {
 
     private double mBandwidth;
     private boolean mCanBeMetered;
+    private boolean mIsWifi;
+    private int     mDHCPGateway;
 
     private int mNativeWindow;
 
@@ -426,6 +428,13 @@ public class GeckoEvent {
                 mPointRadii[index] = new Point((int)size,(int)size);
                 mOrientations[index] = 0;
             }
+            if (!keepInViewCoordinates) {
+                // If we are converting to gecko CSS pixels, then we should adjust the
+                // radii as well
+                float zoom = GeckoAppShell.getLayerView().getViewportMetrics().zoomFactor;
+                mPointRadii[index].x /= zoom;
+                mPointRadii[index].y /= zoom;
+            }
             mPressures[index] = event.getPressure(eventIndex);
         } catch (Exception ex) {
             Log.e(LOGTAG, "Error creating motion point " + index, ex);
@@ -640,10 +649,13 @@ public class GeckoEvent {
         return event;
     }
 
-    public static GeckoEvent createNetworkEvent(double bandwidth, boolean canBeMetered) {
+    public static GeckoEvent createNetworkEvent(double bandwidth, boolean canBeMetered,
+                                                boolean isWifi, int DHCPGateway) {
         GeckoEvent event = new GeckoEvent(NativeGeckoEvent.NETWORK_CHANGED);
         event.mBandwidth = bandwidth;
         event.mCanBeMetered = canBeMetered;
+        event.mIsWifi = isWifi;
+        event.mDHCPGateway = DHCPGateway;
         return event;
     }
 

@@ -18,8 +18,8 @@ namespace dom {
 
 class TableRowsCollection;
 
-class HTMLTableElement : public nsGenericHTMLElement,
-                         public nsIDOMHTMLTableElement
+class HTMLTableElement MOZ_FINAL : public nsGenericHTMLElement,
+                                   public nsIDOMHTMLTableElement
 {
 public:
   HTMLTableElement(already_AddRefed<nsINodeInfo> aNodeInfo);
@@ -93,6 +93,9 @@ public:
   already_AddRefed<nsGenericHTMLElement> CreateTFoot();
 
   nsIHTMLCollection* TBodies();
+
+  already_AddRefed<nsGenericHTMLElement> CreateTBody();
+
   nsIHTMLCollection* Rows();
 
   already_AddRefed<nsGenericHTMLElement> InsertRow(int32_t aIndex,

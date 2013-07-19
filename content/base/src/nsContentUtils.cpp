@@ -1748,8 +1748,7 @@ bool
 nsContentUtils::LookupBindingMember(JSContext* aCx, nsIContent *aContent,
                                     JS::HandleId aId, JSPropertyDescriptor* aDesc)
 {
-  nsXBLBinding* binding = aContent->OwnerDoc()->BindingManager()
-                                  ->GetBinding(aContent);
+  nsXBLBinding* binding = aContent->GetXBLBinding();
   if (!binding)
     return true;
   return binding->LookupMember(aCx, aId, aDesc);
@@ -3568,8 +3567,7 @@ nsContentUtils::HasMutationListeners(nsINode* aNode,
 
     if (aNode->IsNodeOfType(nsINode::eCONTENT)) {
       nsIContent* content = static_cast<nsIContent*>(aNode);
-      nsIContent* insertionParent =
-        doc->BindingManager()->GetInsertionParent(content);
+      nsIContent* insertionParent = content->GetXBLInsertionParent();
       if (insertionParent) {
         aNode = insertionParent;
         continue;
@@ -4360,6 +4358,13 @@ nsContentUtils::IsSystemPrincipal(nsIPrincipal* aPrincipal)
   return NS_SUCCEEDED(rv) && isSystem;
 }
 
+bool
+nsContentUtils::IsExpandedPrincipal(nsIPrincipal* aPrincipal)
+{
+  nsCOMPtr<nsIExpandedPrincipal> ep = do_QueryInterface(aPrincipal);
+  return !!ep;
+}
+
 nsIPrincipal*
 nsContentUtils::GetSystemPrincipal()
 {
@@ -4525,7 +4530,8 @@ nsContentUtils::DOMEventToNativeKeyEvent(nsIDOMKeyEvent* aKeyEvent,
   aKeyEvent->GetShiftKey(&aNativeEvent->shiftKey);
   aKeyEvent->GetMetaKey(&aNativeEvent->metaKey);
 
-  aNativeEvent->nativeEvent = GetNativeEvent(aKeyEvent);
+  aNativeEvent->mGeckoEvent =
+    static_cast<nsKeyEvent*>(GetNativeEvent(aKeyEvent));
 
   return true;
 }
@@ -4836,30 +4842,6 @@ nsContentUtils::GetViewportInfo(nsIDocument *aDocument,
 {
   return aDocument->GetViewportInfo(aDisplayWidth, aDisplayHeight);
 }
-
-#ifdef MOZ_WIDGET_ANDROID
-/* static */
-double
-nsContentUtils::GetDevicePixelsPerMetaViewportPixel(nsIWidget* aWidget)
-{
-  int32_t prefValue = Preferences::GetInt("browser.viewport.scaleRatio", 0);
-  if (prefValue > 0) {
-    return double(prefValue) / 100.0;
-  }
-
-  float dpi = aWidget->GetDPI();
-  if (dpi < 200.0) {
-    // Includes desktop displays, LDPI and MDPI Android devices
-    return 1.0;
-  }
-  if (dpi < 300.0) {
-    // Includes Nokia N900, and HDPI Android devices
-    return 1.5;
-  }
-  // For very high-density displays like the iPhone 4, use an integer ratio.
-  return floor(dpi / 150.0);
-}
-#endif
 
 /* static */
 nsresult
@@ -5771,6 +5753,22 @@ nsContentUtils::AllocClassMatchingInfo(nsINode* aRootNode,
     aRootNode->OwnerDoc()->GetCompatibilityMode() == eCompatibility_NavQuirks ?
     eIgnoreCase : eCaseMatters;
   return info;
+}
+
+// static
+void
+nsContentUtils::DeferredFinalize(nsISupports* aSupports)
+{
+  cyclecollector::DeferredFinalize(aSupports);
+}
+
+// static
+void
+nsContentUtils::DeferredFinalize(mozilla::DeferredFinalizeAppendFunction aAppendFunc,
+                                 mozilla::DeferredFinalizeFunction aFunc,
+                                 void* aThing)
+{
+  cyclecollector::DeferredFinalize(aAppendFunc, aFunc, aThing);
 }
 
 // static

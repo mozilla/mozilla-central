@@ -84,8 +84,8 @@ Throw(JSContext* cx, nsresult rv)
 template<bool mainThread>
 inline bool
 ThrowMethodFailedWithDetails(JSContext* cx, ErrorResult& rv,
-                             const char* /* ifaceName */,
-                             const char* /* memberName */)
+                             const char* ifaceName,
+                             const char* memberName)
 {
   if (rv.IsTypeError()) {
     rv.ReportTypeError(cx);
@@ -94,6 +94,9 @@ ThrowMethodFailedWithDetails(JSContext* cx, ErrorResult& rv,
   if (rv.IsJSException()) {
     rv.ReportJSException(cx);
     return false;
+  }
+  if (rv.IsNotEnoughArgsError()) {
+    rv.ReportNotEnoughArgsError(cx, ifaceName, memberName);
   }
   return Throw<mainThread>(cx, rv.ErrorCode());
 }
@@ -125,8 +128,8 @@ IsDOMIfaceAndProtoClass(const js::Class* clasp)
   return IsDOMIfaceAndProtoClass(Jsvalify(clasp));
 }
 
-MOZ_STATIC_ASSERT(DOM_OBJECT_SLOT == js::JSSLOT_PROXY_PRIVATE,
-                  "JSSLOT_PROXY_PRIVATE doesn't match DOM_OBJECT_SLOT.  "
+MOZ_STATIC_ASSERT(DOM_OBJECT_SLOT == js::PROXY_PRIVATE_SLOT,
+                  "js::PROXY_PRIVATE_SLOT doesn't match DOM_OBJECT_SLOT.  "
                   "Expect bad things");
 template <class T>
 inline T*
@@ -147,7 +150,7 @@ GetDOMClass(JSObject* obj)
     return &DOMJSClass::FromJSClass(clasp)->mClass;
   }
 
-  if (js::IsObjectProxyClass(clasp) || js::IsFunctionProxyClass(clasp)) {
+  if (js::IsProxyClass(clasp)) {
     js::BaseProxyHandler* handler = js::GetProxyHandler(obj);
     if (handler->family() == ProxyFamily()) {
       return &static_cast<DOMProxyHandler*>(handler)->mClass;
@@ -525,23 +528,27 @@ SetSystemOnlyWrapper(JSObject* obj, nsWrapperCache* cache, JSObject& wrapper)
   cache->SetHasSystemOnlyWrapper();
 }
 
-// If rval is a gcthing and is not in the compartment of cx, wrap rval
-// into the compartment of cx (typically by replacing it with an Xray or
-// cross-compartment wrapper around the original object).
-MOZ_ALWAYS_INLINE bool
-MaybeWrapValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+// Make sure to wrap the given string value into the right compartment, as
+// needed.
+MOZ_ALWAYS_INLINE
+bool
+MaybeWrapStringValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
 {
-  if (rval.isString()) {
-    JSString* str = rval.toString();
-    if (JS::GetGCThingZone(str) != js::GetContextZone(cx)) {
-      return JS_WrapValue(cx, rval.address());
-    }
-    return true;
+  MOZ_ASSERT(rval.isString());
+  JSString* str = rval.toString();
+  if (JS::GetGCThingZone(str) != js::GetContextZone(cx)) {
+    return JS_WrapValue(cx, rval.address());
   }
+  return true;
+}
 
-  if (!rval.isObject()) {
-    return true;
-  }
+// Make sure to wrap the given object value into the right compartment as
+// needed.  This will work correctly, but possibly slowly, on all objects.
+MOZ_ALWAYS_INLINE
+bool
+MaybeWrapObjectValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+{
+  MOZ_ASSERT(rval.isObject());
 
   JSObject* obj = &rval.toObject();
   if (js::GetObjectCompartment(obj) != js::GetContextCompartment(cx)) {
@@ -556,7 +563,67 @@ MaybeWrapValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
     return true;
   }
 
+  // It's not a WebIDL object.  But it might be an XPConnect one, in which case
+  // we may need to outerize here, so make sure to call JS_WrapValue.
   return JS_WrapValue(cx, rval.address());
+}
+
+// Like MaybeWrapObjectValue, but also allows null
+MOZ_ALWAYS_INLINE
+bool
+MaybeWrapObjectOrNullValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+{
+  MOZ_ASSERT(rval.isObjectOrNull());
+  if (rval.isNull()) {
+    return true;
+  }
+  return MaybeWrapObjectValue(cx, rval);
+}
+
+// Wrapping for objects that are known to not be DOM or XPConnect objects
+MOZ_ALWAYS_INLINE
+bool
+MaybeWrapNonDOMObjectValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+{
+  MOZ_ASSERT(rval.isObject());
+  MOZ_ASSERT(!GetDOMClass(&rval.toObject()));
+  MOZ_ASSERT(!(js::GetObjectClass(&rval.toObject())->flags &
+               JSCLASS_PRIVATE_IS_NSISUPPORTS));
+
+  JSObject* obj = &rval.toObject();
+  if (js::GetObjectCompartment(obj) == js::GetContextCompartment(cx)) {
+    return true;
+  }
+  return JS_WrapValue(cx, rval.address());
+}
+
+// Like MaybeWrapNonDOMObjectValue but allows null
+MOZ_ALWAYS_INLINE
+bool
+MaybeWrapNonDOMObjectOrNullValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+{
+  MOZ_ASSERT(rval.isObjectOrNull());
+  if (rval.isNull()) {
+    return true;
+  }
+  return MaybeWrapNonDOMObjectValue(cx, rval);
+}
+
+// If rval is a gcthing and is not in the compartment of cx, wrap rval
+// into the compartment of cx (typically by replacing it with an Xray or
+// cross-compartment wrapper around the original object).
+MOZ_ALWAYS_INLINE bool
+MaybeWrapValue(JSContext* cx, JS::MutableHandle<JS::Value> rval)
+{
+  if (rval.isString()) {
+    return MaybeWrapStringValue(cx, rval);
+  }
+
+  if (!rval.isObject()) {
+    return true;
+  }
+
+  return MaybeWrapObjectValue(cx, rval);
 }
 
 static inline void
@@ -1999,10 +2066,6 @@ ConstructJSImplementation(JSContext* aCx, const char* aContractId,
                           const GlobalObject& aGlobal,
                           JS::MutableHandle<JSObject*> aObject,
                           ErrorResult& aRv);
-
-bool
-RegisterForDeferredFinalization(DeferredFinalizeStartFunction start,
-                                DeferredFinalizeFunction run);
 
 /**
  * Convert an nsCString to jsval, returning true on success.

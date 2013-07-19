@@ -7,6 +7,8 @@
 #ifndef ion_Registers_h
 #define ion_Registers_h
 
+#include "mozilla/Array.h"
+
 #include "jsutil.h"
 #include "ion/IonTypes.h"
 #if defined(JS_CPU_X86)
@@ -16,10 +18,9 @@
 #elif defined(JS_CPU_ARM)
 # include "ion/arm/Architecture-arm.h"
 #endif
-#include "ion/FixedArityList.h"
 
 // ARM defines the RegisterID within Architecture-arm.h
-#if !defined(JS_CPU_ARM) && defined(JS_METHODJIT)
+#if !defined(JS_CPU_ARM)
 #include "assembler/assembler/MacroAssembler.h"
 #endif
 
@@ -87,8 +88,8 @@ struct FloatRegister {
 // Information needed to recover machine register state.
 class MachineState
 {
-    FixedArityList<uintptr_t *, Registers::Total> regs_;
-    FixedArityList<double *, FloatRegisters::Total> fpregs_;
+    mozilla::Array<uintptr_t *, Registers::Total> regs_;
+    mozilla::Array<double *, FloatRegisters::Total> fpregs_;
 
   public:
     static MachineState FromBailout(uintptr_t regs[Registers::Total],

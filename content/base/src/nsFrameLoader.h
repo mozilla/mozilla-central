@@ -37,6 +37,7 @@ class mozIApplication;
 
 namespace mozilla {
 namespace dom {
+class ContentParent;
 class PBrowserParent;
 class TabParent;
 struct StructuredCloneData;
@@ -154,13 +155,7 @@ protected:
   nsFrameLoader(mozilla::dom::Element* aOwner, bool aNetworkCreated);
 
 public:
-  ~nsFrameLoader() {
-    mNeedsAsyncDestroy = true;
-    if (mMessageManager) {
-      mMessageManager->Disconnect();
-    }
-    nsFrameLoader::Destroy();
-  }
+  ~nsFrameLoader();
 
   bool AsyncScrollEnabled() const
   {
@@ -186,8 +181,10 @@ public:
    * MessageManagerCallback methods that we override.
    */
   virtual bool DoLoadFrameScript(const nsAString& aURL) MOZ_OVERRIDE;
-  virtual bool DoSendAsyncMessage(const nsAString& aMessage,
-                                  const mozilla::dom::StructuredCloneData& aData) MOZ_OVERRIDE;
+  virtual bool DoSendAsyncMessage(JSContext* aCx,
+                                  const nsAString& aMessage,
+                                  const mozilla::dom::StructuredCloneData& aData,
+                                  JS::Handle<JSObject *> aCpows);
   virtual bool CheckPermission(const nsAString& aPermission) MOZ_OVERRIDE;
   virtual bool CheckManifestURL(const nsAString& aManifestURL) MOZ_OVERRIDE;
   virtual bool CheckAppHasPermission(const nsAString& aPermission) MOZ_OVERRIDE;
@@ -433,8 +430,9 @@ private:
   // doesn't necessarily correlate with docshell/document visibility.
   bool mVisible : 1;
 
-  // XXX leaking
-  nsCOMPtr<nsIObserver> mChildHost;
+  // The ContentParent associated with mRemoteBrowser.  This was added as a
+  // strong ref in bug 545237, and we're not sure if we can get rid of it.
+  nsRefPtr<mozilla::dom::ContentParent> mContentParent;
   RenderFrameParent* mCurrentRemoteFrame;
   TabParent* mRemoteBrowser;
 

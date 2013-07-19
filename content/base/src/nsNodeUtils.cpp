@@ -218,7 +218,8 @@ nsNodeUtils::LastRelease(nsINode* aNode)
       static_cast<nsGenericHTMLFormElement*>(aNode)->ClearForm(true);
     }
 
-    if (aNode->IsElement() && aNode->AsElement()->IsHTML(nsGkAtoms::img)) {
+    if (aNode->IsElement() && aNode->AsElement()->IsHTML(nsGkAtoms::img) &&
+        aNode->HasFlag(ADDED_TO_FORM)) {
       HTMLImageElement* imageElem = static_cast<HTMLImageElement*>(aNode);
       imageElem->ClearForm(true);
     }
@@ -248,8 +249,7 @@ nsNodeUtils::LastRelease(nsINode* aNode)
     ownerDoc->ClearBoxObjectFor(elem);
     
     NS_ASSERTION(aNode->HasFlag(NODE_FORCE_XBL_BINDINGS) ||
-                 !ownerDoc->BindingManager() ||
-                 !ownerDoc->BindingManager()->GetBinding(elem),
+                 !elem->GetXBLBinding(),
                  "Non-forced node has binding on destruction");
 
     // if NODE_FORCE_XBL_BINDINGS is set, the node might still have a binding
@@ -261,8 +261,6 @@ nsNodeUtils::LastRelease(nsINode* aNode)
   }
 
   nsContentUtils::ReleaseWrapper(aNode, aNode);
-
-  delete aNode;
 }
 
 struct MOZ_STACK_CLASS nsHandlerData

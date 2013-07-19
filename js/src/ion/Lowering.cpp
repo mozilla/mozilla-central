@@ -16,6 +16,8 @@
 #include "ion/shared/Lowering-shared-inl.h"
 #include "mozilla/DebugOnly.h"
 
+#include "jsinferinlines.h"
+
 using namespace js;
 using namespace ion;
 
@@ -1224,11 +1226,7 @@ LIRGenerator::visitMul(MMul *ins)
         JS_ASSERT(lhs->type() == MIRType_Double);
         ReorderCommutative(&lhs, &rhs);
 
-        // If our LHS is a constant -1.0, we can optimize to an LNegD.
-        if (lhs->isConstant() && lhs->toConstant()->value() == DoubleValue(-1.0))
-            return defineReuseInput(new LNegD(useRegisterAtStart(rhs)), ins, 0);
-
-        // We can do the same for the RHS, if we just swap the operands.
+        // If our RHS is a constant -1.0, we can optimize to an LNegD.
         if (rhs->isConstant() && rhs->toConstant()->value() == DoubleValue(-1.0))
             return defineReuseInput(new LNegD(useRegisterAtStart(lhs)), ins, 0);
 
@@ -1644,6 +1642,18 @@ LIRGenerator::visitConvertElementsToDoubles(MConvertElementsToDoubles *ins)
 {
     LInstruction *check = new LConvertElementsToDoubles(useRegister(ins->elements()));
     return add(check, ins) && assignSafepoint(check, ins);
+}
+
+bool
+LIRGenerator::visitMaybeToDoubleElement(MMaybeToDoubleElement *ins)
+{
+    JS_ASSERT(ins->elements()->type() == MIRType_Elements);
+    JS_ASSERT(ins->value()->type() == MIRType_Int32);
+
+    LMaybeToDoubleElement *lir = new LMaybeToDoubleElement(useRegisterAtStart(ins->elements()),
+                                                           useRegisterAtStart(ins->value()),
+                                                           tempFloat());
+    return defineBox(lir, ins);
 }
 
 bool
@@ -2136,7 +2146,7 @@ LIRGenerator::visitLoadTypedArrayElement(MLoadTypedArrayElement *ins)
 
     // We need a temp register for Uint32Array with known double result.
     LDefinition tempDef = LDefinition::BogusTemp();
-    if (ins->arrayType() == TypedArray::TYPE_UINT32 && ins->type() == MIRType_Double)
+    if (ins->arrayType() == TypedArrayObject::TYPE_UINT32 && ins->type() == MIRType_Double)
         tempDef = temp();
 
     LLoadTypedArrayElement *lir = new LLoadTypedArrayElement(elements, index, tempDef);
@@ -2289,7 +2299,7 @@ LIRGenerator::visitGetPropertyPolymorphic(MGetPropertyPolymorphic *ins)
 
     if (ins->type() == MIRType_Value) {
         LGetPropertyPolymorphicV *lir = new LGetPropertyPolymorphicV(useRegister(ins->obj()));
-        return assignSnapshot(lir) && defineBox(lir, ins);
+        return assignSnapshot(lir, Bailout_CachedShapeGuard) && defineBox(lir, ins);
     }
 
     LDefinition maybeTemp = (ins->type() == MIRType_Double) ? temp() : LDefinition::BogusTemp();
@@ -2312,7 +2322,7 @@ LIRGenerator::visitSetPropertyPolymorphic(MSetPropertyPolymorphic *ins)
     LAllocation value = useRegisterOrConstant(ins->value());
     LSetPropertyPolymorphicT *lir =
         new LSetPropertyPolymorphicT(useRegister(ins->obj()), value, ins->value()->type(), temp());
-    return assignSnapshot(lir) && add(lir, ins);
+    return assignSnapshot(lir, Bailout_CachedShapeGuard) && add(lir, ins);
 }
 
 bool
@@ -2329,8 +2339,7 @@ LIRGenerator::visitGetElementCache(MGetElementCache *ins)
     }
 
     JS_ASSERT(ins->index()->type() == MIRType_Int32);
-    LGetElementCacheT *lir = new LGetElementCacheT(useRegister(ins->object()),
-                                                   useRegister(ins->index()));
+    LGetElementCacheT *lir = newLGetElementCacheT(ins);
     return define(lir, ins) && assignSafepoint(lir, ins);
 }
 
@@ -2445,7 +2454,7 @@ LIRGenerator::visitSetElementCache(MSetElementCache *ins)
 
     LInstruction *lir;
     if (ins->value()->type() == MIRType_Value) {
-        lir = new LSetElementCacheV(useRegister(ins->object()), temp());
+        lir = new LSetElementCacheV(useRegister(ins->object()), temp(), temp());
 
         if (!useBox(lir, LSetElementCacheV::Index, ins->index()))
             return false;
@@ -2455,7 +2464,7 @@ LIRGenerator::visitSetElementCache(MSetElementCache *ins)
         lir = new LSetElementCacheT(
             useRegister(ins->object()),
             useRegisterOrConstant(ins->value()),
-            temp());
+            temp(), temp());
 
         if (!useBox(lir, LSetElementCacheT::Index, ins->index()))
             return false;
@@ -2827,7 +2836,7 @@ SpewResumePoint(MBasicBlock *block, MInstruction *ins, MResumePoint *resumePoint
             (void *)resumePoint->block()->info().script(),
             int(resumePoint->pc() - resumePoint->block()->info().script()->code));
 
-    for (size_t i = 0; i < resumePoint->numOperands(); i++) {
+    for (size_t i = 0, e = resumePoint->numOperands(); i < e; i++) {
         MDefinition *in = resumePoint->getOperand(i);
         fprintf(IonSpewFile, "    slot%u: ", (unsigned)i);
         in->printName(IonSpewFile);

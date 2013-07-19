@@ -98,6 +98,7 @@ void MediaCacheFlusher::Init()
     mozilla::services::GetObserverService();
   if (observerService) {
     observerService->AddObserver(gMediaCacheFlusher, "last-pb-context-exited", true);
+    observerService->AddObserver(gMediaCacheFlusher, "network-clear-cache-stored-anywhere", true);
   }
 }
 
@@ -351,6 +352,9 @@ NS_IMETHODIMP
 MediaCacheFlusher::Observe(nsISupports *aSubject, char const *aTopic, PRUnichar const *aData)
 {
   if (strcmp(aTopic, "last-pb-context-exited") == 0) {
+    MediaCache::Flush();
+  }
+  if (strcmp(aTopic, "network-clear-cache-stored-anywhere") == 0) {
     MediaCache::Flush();
   }
   return NS_OK;
@@ -2185,6 +2189,18 @@ MediaCacheStream::Read(char* aBuffer, uint32_t aCount, uint32_t* aBytes)
       ("Stream %p Read at %lld count=%d", this, (long long)(mStreamOffset-count), count));
   *aBytes = count;
   return NS_OK;
+}
+
+nsresult
+MediaCacheStream::ReadAt(int64_t aOffset, char* aBuffer,
+                         uint32_t aCount, uint32_t* aBytes)
+{
+  NS_ASSERTION(!NS_IsMainThread(), "Don't call on main thread");
+
+  ReentrantMonitorAutoEnter mon(gMediaCache->GetReentrantMonitor());
+  nsresult rv = Seek(nsISeekableStream::NS_SEEK_SET, aOffset);
+  if (NS_FAILED(rv)) return rv;
+  return Read(aBuffer, aCount, aBytes);
 }
 
 nsresult

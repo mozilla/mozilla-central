@@ -997,6 +997,7 @@ nsDOMWindowUtils::SendKeyEvent(const nsAString& aType,
 
   event.refPoint.x = event.refPoint.y = 0;
   event.time = PR_IntervalNow();
+  event.mFlags.mIsSynthesizedForTests = true;
 
   if (aAdditionalFlags & KEY_FLAG_PREVENT_DEFAULT) {
     event.mFlags.mDefaultPrevented = true;
@@ -1745,6 +1746,8 @@ nsDOMWindowUtils::DispatchDOMEventViaPresShell(nsIDOMNode* aTarget,
   NS_ENSURE_STATE(targetDoc);
   nsRefPtr<nsIPresShell> targetShell = targetDoc->GetShell();
   NS_ENSURE_STATE(targetShell);
+
+  targetDoc->FlushPendingNotifications(Flush_Layout);
 
   nsEventStatus status = nsEventStatus_eIgnore;
   targetShell->HandleEventWithTarget(internalEvent, nullptr, content, &status);

@@ -8,7 +8,6 @@
 
 #include "nsIDOMFile.h"
 #include "nsIDOMEvent.h"
-#include "nsIIDBVersionChangeEvent.h"
 #include "nsIXPConnect.h"
 
 #include "mozilla/AppProcessChecker.h"
@@ -208,27 +207,27 @@ IndexedDBParent::RecvPIndexedDBDeleteDatabaseRequestConstructor(
 }
 
 PIndexedDBDatabaseParent*
-IndexedDBParent::AllocPIndexedDBDatabase(const nsString& aName,
-                                         const uint64_t& aVersion)
+IndexedDBParent::AllocPIndexedDBDatabaseParent(const nsString& aName,
+                                               const uint64_t& aVersion)
 {
   return new IndexedDBDatabaseParent();
 }
 
 bool
-IndexedDBParent::DeallocPIndexedDBDatabase(PIndexedDBDatabaseParent* aActor)
+IndexedDBParent::DeallocPIndexedDBDatabaseParent(PIndexedDBDatabaseParent* aActor)
 {
   delete aActor;
   return true;
 }
 
 PIndexedDBDeleteDatabaseRequestParent*
-IndexedDBParent::AllocPIndexedDBDeleteDatabaseRequest(const nsString& aName)
+IndexedDBParent::AllocPIndexedDBDeleteDatabaseRequestParent(const nsString& aName)
 {
   return new IndexedDBDeleteDatabaseRequestParent(mFactory);
 }
 
 bool
-IndexedDBParent::DeallocPIndexedDBDeleteDatabaseRequest(
+IndexedDBParent::DeallocPIndexedDBDeleteDatabaseRequestParent(
                                   PIndexedDBDeleteDatabaseRequestParent* aActor)
 {
   delete aActor;
@@ -369,12 +368,10 @@ IndexedDBDatabaseParent::HandleRequestEvent(nsIDOMEvent* aEvent,
   if (aType.EqualsLiteral(BLOCKED_EVT_STR)) {
     MOZ_ASSERT(!mDatabase);
 
-    nsCOMPtr<nsIIDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
+    nsCOMPtr<IDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
     NS_ENSURE_TRUE(changeEvent, NS_ERROR_FAILURE);
 
-    uint64_t oldVersion;
-    rv = changeEvent->GetOldVersion(&oldVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
+    uint64_t oldVersion = changeEvent->OldVersion();
 
     if (!SendBlocked(oldVersion)) {
       return NS_ERROR_FAILURE;
@@ -480,12 +477,10 @@ IndexedDBDatabaseParent::HandleRequestEvent(nsIDOMEvent* aEvent,
       return NS_ERROR_FAILURE;
     }
 
-    nsCOMPtr<nsIIDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
+    nsCOMPtr<IDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
     NS_ENSURE_TRUE(changeEvent, NS_ERROR_FAILURE);
 
-    uint64_t oldVersion;
-    rv = changeEvent->GetOldVersion(&oldVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
+    uint64_t oldVersion = changeEvent->OldVersion();
 
     nsAutoPtr<IndexedDBVersionChangeTransactionParent> actor(
       new IndexedDBVersionChangeTransactionParent());
@@ -521,30 +516,23 @@ IndexedDBDatabaseParent::HandleDatabaseEvent(nsIDOMEvent* aEvent,
              "Should never get error events in the parent process!");
   MOZ_ASSERT(!IsDisconnected());
 
-  nsresult rv;
-
   if (aType.EqualsLiteral(VERSIONCHANGE_EVT_STR)) {
     AutoSafeJSContext cx;
     NS_ENSURE_TRUE(cx, NS_ERROR_FAILURE);
 
-    nsCOMPtr<nsIIDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
+    nsCOMPtr<IDBVersionChangeEvent> changeEvent = do_QueryInterface(aEvent);
     NS_ENSURE_TRUE(changeEvent, NS_ERROR_FAILURE);
 
-    uint64_t oldVersion;
-    rv = changeEvent->GetOldVersion(&oldVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
+    uint64_t oldVersion = changeEvent->OldVersion();
 
-    JS::Rooted<JS::Value> newVersionVal(cx);
-    rv = changeEvent->GetNewVersion(cx, newVersionVal.address());
-    NS_ENSURE_SUCCESS(rv, rv);
+    Nullable<uint64_t> newVersionVal = changeEvent->GetNewVersion();
 
     uint64_t newVersion;
-    if (newVersionVal.isNull()) {
+    if (newVersionVal.IsNull()) {
       newVersion = 0;
     }
     else {
-      MOZ_ASSERT(newVersionVal.isNumber());
-      newVersion = static_cast<uint64_t>(newVersionVal.toNumber());
+      newVersion = newVersionVal.Value();
     }
 
     if (!SendVersionChange(oldVersion, newVersion)) {
@@ -627,7 +615,7 @@ IndexedDBDatabaseParent::RecvPIndexedDBTransactionConstructor(
 }
 
 PIndexedDBTransactionParent*
-IndexedDBDatabaseParent::AllocPIndexedDBTransaction(
+IndexedDBDatabaseParent::AllocPIndexedDBTransactionParent(
                                                const TransactionParams& aParams)
 {
   MOZ_ASSERT(aParams.type() ==
@@ -636,7 +624,7 @@ IndexedDBDatabaseParent::AllocPIndexedDBTransaction(
 }
 
 bool
-IndexedDBDatabaseParent::DeallocPIndexedDBTransaction(
+IndexedDBDatabaseParent::DeallocPIndexedDBTransactionParent(
                                             PIndexedDBTransactionParent* aActor)
 {
   delete aActor;
@@ -827,14 +815,14 @@ IndexedDBTransactionParent::RecvPIndexedDBObjectStoreConstructor(
 }
 
 PIndexedDBObjectStoreParent*
-IndexedDBTransactionParent::AllocPIndexedDBObjectStore(
+IndexedDBTransactionParent::AllocPIndexedDBObjectStoreParent(
                                     const ObjectStoreConstructorParams& aParams)
 {
   return new IndexedDBObjectStoreParent();
 }
 
 bool
-IndexedDBTransactionParent::DeallocPIndexedDBObjectStore(
+IndexedDBTransactionParent::DeallocPIndexedDBObjectStoreParent(
                                             PIndexedDBObjectStoreParent* aActor)
 {
   delete aActor;
@@ -954,7 +942,7 @@ IndexedDBVersionChangeTransactionParent::RecvPIndexedDBObjectStoreConstructor(
 }
 
 PIndexedDBObjectStoreParent*
-IndexedDBVersionChangeTransactionParent::AllocPIndexedDBObjectStore(
+IndexedDBVersionChangeTransactionParent::AllocPIndexedDBObjectStoreParent(
                                     const ObjectStoreConstructorParams& aParams)
 {
   if (aParams.type() ==
@@ -963,7 +951,7 @@ IndexedDBVersionChangeTransactionParent::AllocPIndexedDBObjectStore(
     return new IndexedDBVersionChangeObjectStoreParent();
   }
 
-  return IndexedDBTransactionParent::AllocPIndexedDBObjectStore(aParams);
+  return IndexedDBTransactionParent::AllocPIndexedDBObjectStoreParent(aParams);
 }
 
 /*******************************************************************************
@@ -1030,7 +1018,7 @@ IndexedDBCursorParent::RecvPIndexedDBRequestConstructor(
 }
 
 PIndexedDBRequestParent*
-IndexedDBCursorParent::AllocPIndexedDBRequest(
+IndexedDBCursorParent::AllocPIndexedDBRequestParent(
                                              const CursorRequestParams& aParams)
 {
   MOZ_ASSERT(mCursor);
@@ -1038,7 +1026,7 @@ IndexedDBCursorParent::AllocPIndexedDBRequest(
 }
 
 bool
-IndexedDBCursorParent::DeallocPIndexedDBRequest(PIndexedDBRequestParent* aActor)
+IndexedDBCursorParent::DeallocPIndexedDBRequestParent(PIndexedDBRequestParent* aActor)
 {
   delete aActor;
   return true;
@@ -1179,14 +1167,14 @@ IndexedDBObjectStoreParent::RecvPIndexedDBIndexConstructor(
 }
 
 PIndexedDBRequestParent*
-IndexedDBObjectStoreParent::AllocPIndexedDBRequest(
+IndexedDBObjectStoreParent::AllocPIndexedDBRequestParent(
                                         const ObjectStoreRequestParams& aParams)
 {
   return new IndexedDBObjectStoreRequestParent(mObjectStore, aParams.type());
 }
 
 bool
-IndexedDBObjectStoreParent::DeallocPIndexedDBRequest(
+IndexedDBObjectStoreParent::DeallocPIndexedDBRequestParent(
                                                 PIndexedDBRequestParent* aActor)
 {
   delete aActor;
@@ -1194,14 +1182,14 @@ IndexedDBObjectStoreParent::DeallocPIndexedDBRequest(
 }
 
 PIndexedDBIndexParent*
-IndexedDBObjectStoreParent::AllocPIndexedDBIndex(
+IndexedDBObjectStoreParent::AllocPIndexedDBIndexParent(
                                           const IndexConstructorParams& aParams)
 {
   return new IndexedDBIndexParent();
 }
 
 bool
-IndexedDBObjectStoreParent::DeallocPIndexedDBIndex(
+IndexedDBObjectStoreParent::DeallocPIndexedDBIndexParent(
                                                   PIndexedDBIndexParent* aActor)
 {
   delete aActor;
@@ -1209,14 +1197,14 @@ IndexedDBObjectStoreParent::DeallocPIndexedDBIndex(
 }
 
 PIndexedDBCursorParent*
-IndexedDBObjectStoreParent::AllocPIndexedDBCursor(
+IndexedDBObjectStoreParent::AllocPIndexedDBCursorParent(
                               const ObjectStoreCursorConstructorParams& aParams)
 {
   MOZ_CRASH("Caller is supposed to manually construct a cursor!");
 }
 
 bool
-IndexedDBObjectStoreParent::DeallocPIndexedDBCursor(
+IndexedDBObjectStoreParent::DeallocPIndexedDBCursorParent(
                                                  PIndexedDBCursorParent* aActor)
 {
   delete aActor;
@@ -1408,27 +1396,27 @@ IndexedDBIndexParent::RecvPIndexedDBRequestConstructor(
 }
 
 PIndexedDBRequestParent*
-IndexedDBIndexParent::AllocPIndexedDBRequest(const IndexRequestParams& aParams)
+IndexedDBIndexParent::AllocPIndexedDBRequestParent(const IndexRequestParams& aParams)
 {
   return new IndexedDBIndexRequestParent(mIndex, aParams.type());
 }
 
 bool
-IndexedDBIndexParent::DeallocPIndexedDBRequest(PIndexedDBRequestParent* aActor)
+IndexedDBIndexParent::DeallocPIndexedDBRequestParent(PIndexedDBRequestParent* aActor)
 {
   delete aActor;
   return true;
 }
 
 PIndexedDBCursorParent*
-IndexedDBIndexParent::AllocPIndexedDBCursor(
+IndexedDBIndexParent::AllocPIndexedDBCursorParent(
                                     const IndexCursorConstructorParams& aParams)
 {
   MOZ_CRASH("Caller is supposed to manually construct a cursor!");
 }
 
 bool
-IndexedDBIndexParent::DeallocPIndexedDBCursor(PIndexedDBCursorParent* aActor)
+IndexedDBIndexParent::DeallocPIndexedDBCursorParent(PIndexedDBCursorParent* aActor)
 {
   delete aActor;
   return true;
@@ -2112,12 +2100,10 @@ IndexedDBDeleteDatabaseRequestParent::HandleEvent(nsIDOMEvent* aEvent)
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (type.EqualsASCII(BLOCKED_EVT_STR)) {
-    nsCOMPtr<nsIIDBVersionChangeEvent> event = do_QueryInterface(aEvent);
+    nsCOMPtr<IDBVersionChangeEvent> event = do_QueryInterface(aEvent);
     MOZ_ASSERT(event);
 
-    uint64_t currentVersion;
-    rv = event->GetOldVersion(&currentVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
+    uint64_t currentVersion = event->OldVersion();
 
     if (!SendBlocked(currentVersion)) {
       return NS_ERROR_FAILURE;

@@ -21,10 +21,6 @@ EXPORT_LIBRARY = 1
 
 MOZILLA_INTERNAL_API = 1
 
-ifeq ($(OS_ARCH),Linux)
-DEFINES += -DXP_LINUX
-endif
-
 ifeq (Darwin, $(OS_ARCH))
 CSRCS = mach_override.c
 endif
@@ -71,14 +67,11 @@ DISABLED_SDK_HEADERS =  \
 GARBAGE         += $(XPCOM_GLUE_SRC_LCPPSRCS) $(XPCOM_GLUENS_SRC_LCPPSRCS)
 
 include $(topsrcdir)/config/config.mk
-include $(topsrcdir)/ipc/chromium/chromium-config.mk
 include $(topsrcdir)/config/rules.mk
+include $(topsrcdir)/ipc/chromium/chromium-config.mk
 
 DEFINES		+= \
-		-D_IMPL_NS_COM \
 		-D_IMPL_NS_STRINGAPI \
-		-DEXPORT_XPT_API \
-		-DEXPORT_XPTC_API \
 		-DOMNIJAR_NAME="$(OMNIJAR_NAME)" \
 		$(NULL)
 

@@ -11,8 +11,6 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 EXPORT_LIBRARY	= 1
-IS_COMPONENT	= 1
-MODULE_NAME	= nsWidgetMacModule
 LIBXUL_LIBRARY = 1
 
 
@@ -54,6 +52,7 @@ CMMSRCS = \
   nsMacWebAppUtils.mm \
   GfxInfo.mm \
   WidgetTraceEvent.mm \
+  NativeKeyBindings.mm \
   $(NULL)
 
 ifeq (x86_64,$(TARGET_CPU))

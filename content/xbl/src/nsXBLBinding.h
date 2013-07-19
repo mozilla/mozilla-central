@@ -22,7 +22,15 @@ class nsIContent;
 class nsIAtom;
 class nsIDocument;
 class nsIScriptContext;
-class nsXBLChildrenElement;
+
+namespace mozilla {
+namespace dom {
+
+class XBLChildrenElement;
+
+}
+}
+
 class nsAnonymousContentList;
 struct JSContext;
 class JSObject;
@@ -64,9 +72,6 @@ public:
     MOZ_ASSERT(!mJSClass && aClass);
     mJSClass = aClass;
   }
-
-  bool IsStyleBinding() const { return mIsStyleBinding; }
-  void SetIsStyleBinding(bool aIsStyle) { mIsStyleBinding = aIsStyle; }
 
   /*
    * Does a lookup for a method or attribute provided by one of the bindings'
@@ -114,7 +119,6 @@ public:
 
   nsIAtom* GetBaseTag(int32_t* aNameSpaceID);
   nsXBLBinding* RootBinding();
-  nsXBLBinding* GetFirstStyleBinding();
 
   // Resolve all the fields for this binding and all ancestor bindings on the
   // object |obj|.  False return means a JS exception was set.
@@ -136,14 +140,14 @@ public:
 
   bool AllowScripts();  // XXX make const
 
-  nsXBLChildrenElement* FindInsertionPointFor(nsIContent* aChild);
+  mozilla::dom::XBLChildrenElement* FindInsertionPointFor(nsIContent* aChild);
 
   bool HasFilteredInsertionPoints()
   {
     return !mInsertionPoints.IsEmpty();
   }
 
-  nsXBLChildrenElement* GetDefaultInsertionPoint()
+  mozilla::dom::XBLChildrenElement* GetDefaultInsertionPoint()
   {
     return mDefaultInsertionPoint;
   }
@@ -158,7 +162,6 @@ public:
 // MEMBER VARIABLES
 protected:
 
-  bool mIsStyleBinding;
   bool mMarkedForDeath;
 
   nsXBLPrototypeBinding* mPrototypeBinding; // Weak, but we're holding a ref to the docinfo
@@ -176,11 +179,11 @@ protected:
   // attribute. These points must be up-to-date with respect to their parent's
   // children, even if their parent has another binding attached to it,
   // preventing us from rendering their contents directly.
-  nsRefPtr<nsXBLChildrenElement> mDefaultInsertionPoint;
-  nsTArray<nsRefPtr<nsXBLChildrenElement> > mInsertionPoints;
+  nsRefPtr<mozilla::dom::XBLChildrenElement> mDefaultInsertionPoint;
+  nsTArray<nsRefPtr<mozilla::dom::XBLChildrenElement> > mInsertionPoints;
   nsRefPtr<nsAnonymousContentList> mAnonymousContentList;
 
-  nsXBLChildrenElement* FindInsertionPointForInternal(nsIContent* aChild);
+  mozilla::dom::XBLChildrenElement* FindInsertionPointForInternal(nsIContent* aChild);
 };
 
 #endif // nsXBLBinding_h_

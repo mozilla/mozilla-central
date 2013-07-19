@@ -7,7 +7,7 @@ from copy import deepcopy
 
 import ipdl.ast
 from ipdl.cxx.ast import *
-from ipdl.type import ActorType, ProcessGraph, TypeVisitor
+from ipdl.type import Actor, ActorType, ProcessGraph, TypeVisitor
 
 # FIXME/cjones: the chromium Message logging code doesn't work on
 # gcc/POSIX, because it wprintf()s across the chromium/mozilla
@@ -542,11 +542,11 @@ def _cxxConstPtrToType(ipdltype, side):
     t.ptrconst = 1
     return t
 
-def _allocMethod(ptype):
-    return ExprVar('Alloc'+ ptype.name())
+def _allocMethod(ptype, side):
+    return ExprVar('Alloc'+ str(Actor(ptype, side)))
 
-def _deallocMethod(ptype):
-    return ExprVar('Dealloc'+ ptype.name())
+def _deallocMethod(ptype, side):
+    return ExprVar('Dealloc'+ str(Actor(ptype, side)))
 
 ##
 ## A _HybridDecl straddles IPDL and C++ decls.  It knows which C++
@@ -1554,14 +1554,14 @@ class _GenerateProtocolCode(ipdl.ast.Visitor):
         typedefs = self.protocol.decl.cxxtypedefs
         for md in p.messageDecls:
             ns.addstmts([
-                _generateMessageClass(md.msgClass(), md.msgId(),
+                _generateMessageClass(md, md.msgClass(), md.msgId(),
                                       typedefs, md.prettyMsgName(p.name+'::'),
                                       md.decl.type.compress),
                 Whitespace.NL ])
             if md.hasReply():
                 ns.addstmts([
                     _generateMessageClass(
-                        md.replyClass(), md.replyId(),
+                        md, md.replyClass(), md.replyId(),
                         typedefs, md.prettyReplyName(p.name+'::'),
                         md.decl.type.compress),
                     Whitespace.NL ])
@@ -1751,7 +1751,7 @@ class _GenerateProtocolCode(ipdl.ast.Visitor):
 
 ##--------------------------------------------------
 
-def _generateMessageClass(clsname, msgid, typedefs, prettyName, compress):
+def _generateMessageClass(md, clsname, msgid, typedefs, prettyName, compress):
     cls = Class(name=clsname, inherits=[ Inherit(Type('IPC::Message')) ])
     cls.addstmt(Label.PRIVATE)
     cls.addstmts(typedefs)
@@ -1768,12 +1768,16 @@ def _generateMessageClass(clsname, msgid, typedefs, prettyName, compress):
         compression = ExprVar('COMPRESSION_ENABLED')
     else:
         compression = ExprVar('COMPRESSION_NONE')
+    if md.decl.type.isUrgent():
+        priority = 'PRIORITY_HIGH'
+    else:
+        priority = 'PRIORITY_NORMAL'
     ctor = ConstructorDefn(
         ConstructorDecl(clsname),
         memberinits=[ ExprMemberInit(ExprVar('IPC::Message'),
                                      [ ExprVar('MSG_ROUTING_NONE'),
                                        ExprVar('ID'),
-                                       ExprVar('PRIORITY_NORMAL'),
+                                       ExprVar(priority),
                                        compression,
                                        ExprLiteral.String(prettyName) ]) ])
     cls.addstmts([ ctor, Whitespace.NL ])
@@ -2683,13 +2687,13 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             actortype = md.actorDecl().bareType(self.side)
             
             self.cls.addstmt(StmtDecl(MethodDecl(
-                _allocMethod(managed).name,
+                _allocMethod(managed, self.side).name,
                 params=md.makeCxxParams(side=self.side, implicit=0),
                 ret=actortype,
                 virtual=1, pure=1)))
 
             self.cls.addstmt(StmtDecl(MethodDecl(
-                _deallocMethod(managed).name,
+                _deallocMethod(managed, self.side).name,
                 params=[ Decl(actortype, 'actor') ],
                 ret=Type.BOOL,
                 virtual=1, pure=1)))
@@ -2699,7 +2703,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             # new channel is opened
             actortype = _cxxBareType(actor.asType(), actor.side)
             self.cls.addstmt(StmtDecl(MethodDecl(
-                _allocMethod(actor.ptype).name,
+                _allocMethod(actor.ptype, actor.side).name,
                 params=[ Decl(Type('Transport', ptr=1), 'transport'),
                          Decl(Type('ProcessId'), 'otherProcess') ],
                 ret=actortype,
@@ -3191,22 +3195,6 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             self.cls.addstmts([ otherpid, Whitespace.NL,
                                 getdump, Whitespace.NL ])
 
-        if (ptype.isToplevel() and self.side is 'parent'
-            and ptype.talksRpc()):
-            # offer BlockChild() and UnblockChild().
-            # See ipc/glue/RPCChannel.h
-            blockchild = MethodDefn(MethodDecl(
-                'BlockChild', ret=Type.BOOL))
-            blockchild.addstmt(StmtReturn(ExprCall(
-                ExprSelect(p.channelVar(), '.', 'BlockChild'))))
-
-            unblockchild = MethodDefn(MethodDecl(
-                'UnblockChild', ret=Type.BOOL))
-            unblockchild.addstmt(StmtReturn(ExprCall(
-                ExprSelect(p.channelVar(), '.', 'UnblockChild'))))
-
-            self.cls.addstmts([ blockchild, unblockchild, Whitespace.NL ])
-
         ## private methods
         self.cls.addstmt(Label.PRIVATE)
 
@@ -3337,7 +3325,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
                 cond=ExprBinary(ivar, '<', _callCxxArrayLength(kidsvar)),
                 update=ExprPrefixUnop(ivar, '++'))
             foreachdealloc.addstmts([
-                StmtExpr(ExprCall(_deallocMethod(managed),
+                StmtExpr(ExprCall(_deallocMethod(managed, self.side),
                                   args=[ ithkid ]))
             ])
 
@@ -3735,7 +3723,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
                         "actor not managed by this!"),
                     Whitespace.NL,
                     StmtExpr(_callCxxArrayRemoveSorted(manageearray, actorvar)),
-                    StmtExpr(ExprCall(_deallocMethod(manageeipdltype),
+                    StmtExpr(ExprCall(_deallocMethod(manageeipdltype, self.side),
                                       args=[ actorvar ])),
                     StmtReturn()
                 ])
@@ -3992,7 +3980,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             iffailopen.addifstmt(StmtReturn(_Result.ValuError))
 
             iffailalloc = StmtIf(ExprNot(ExprCall(
-                _allocMethod(actor.ptype),
+                _allocMethod(actor.ptype, actor.side),
                 args=[ tvar, pidvar ])))
             iffailalloc.addifstmt(StmtReturn(_Result.ProcessingError))
 
@@ -4528,7 +4516,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
                 self.asyncSwitch.addcase(lbl, case)
             elif sems is ipdl.ast.SYNC:
                 self.syncSwitch.addcase(lbl, case)
-            elif sems is ipdl.ast.RPC:
+            elif sems is ipdl.ast.RPC or sems is ipdl.ast.URGENT:
                 self.rpcSwitch.addcase(lbl, case)
             else: assert 0
 
@@ -4669,7 +4657,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
         helperdecl.params = helperdecl.params[1:]
         helper = MethodDefn(helperdecl)
 
-        callctor = self.callAllocActor(md, retsems='out')
+        callctor = self.callAllocActor(md, retsems='out', side=self.side)
         helper.addstmt(StmtReturn(ExprCall(
             ExprVar(helperdecl.name), args=[ callctor ] + callctor.args)))
         return helper
@@ -4809,7 +4797,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             # alloc the actor, register it under the foreign ID
             + [ StmtExpr(ExprAssn(
                 actorvar,
-                self.callAllocActor(md, retsems='in'))) ]
+                self.callAllocActor(md, retsems='in', side=self.side))) ]
             + self.ctorPrologue(md, errfn=_Result.ValuError,
                                 idexpr=_actorHId(actorhandle))
             + [ Whitespace.NL ]
@@ -5040,9 +5028,9 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             ])
         )
 
-    def callAllocActor(self, md, retsems):
+    def callAllocActor(self, md, retsems, side):
         return ExprCall(
-            _allocMethod(md.decl.type.constructedType()),
+            _allocMethod(md.decl.type.constructedType(), side),
             args=md.makeCxxArgs(params=1, retsems=retsems, retcallsems='out',
                                 implicit=0))
 

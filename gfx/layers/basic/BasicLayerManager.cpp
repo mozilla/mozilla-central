@@ -629,16 +629,7 @@ BasicLayerManager::EndTransactionInternal(DrawThebesLayerCallback aCallback,
 void
 BasicLayerManager::FlashWidgetUpdateArea(gfxContext *aContext)
 {
-  static bool sWidgetFlashingEnabled;
-  static bool sWidgetFlashingPrefCached = false;
-
-  if (!sWidgetFlashingPrefCached) {
-    sWidgetFlashingPrefCached = true;
-    mozilla::Preferences::AddBoolVarCache(&sWidgetFlashingEnabled,
-                                          "nglayout.debug.widget_update_flashing");
-  }
-
-  if (sWidgetFlashingEnabled) {
+  if (gfxPlatform::GetPlatform()->WidgetUpdateFlashing()) {
     float r = float(rand()) / RAND_MAX;
     float g = float(rand()) / RAND_MAX;
     float b = float(rand()) / RAND_MAX;
@@ -919,7 +910,7 @@ BasicLayerManager::PaintLayer(gfxContext* aTarget,
 
     if (clipRect) {
       aTarget->NewPath();
-      aTarget->Rectangle(gfxRect(clipRect->x, clipRect->y, clipRect->width, clipRect->height), true);
+      aTarget->SnappedRectangle(gfxRect(clipRect->x, clipRect->y, clipRect->width, clipRect->height));
       aTarget->Clip();
     }
   }
@@ -997,7 +988,7 @@ BasicLayerManager::PaintLayer(gfxContext* aTarget,
       // of the source surface out to the current clip region, clip to
       // the rectangle of the result surface now.
       aTarget->NewPath();
-      aTarget->Rectangle(destRect, true);
+      aTarget->SnappedRectangle(destRect);
       aTarget->Clip();
       FlushGroup(paintLayerContext, needsClipToVisibleRegion);
     }

@@ -87,7 +87,7 @@ try { // nsIXULRuntime is not available in some configurations.
           Components.classes["@mozilla.org/toolkit/crash-reporter;1"]
           .getService(Components.interfaces.nsICrashReporter)) {
       crashReporter.enabled = true;
-      crashReporter.minidumpPath = do_get_cwd();
+      crashReporter.minidumpPath = do_get_tempdir();
     }
   }
 }
@@ -915,6 +915,23 @@ function do_parse_document(aPath, aType) {
 function do_register_cleanup(aFunction)
 {
   _cleanupFunctions.push(aFunction);
+}
+
+/**
+ * Returns the directory for a temp dir, which is created by the
+ * test harness. Every test gets its own temp dir.
+ *
+ * @return nsILocalFile of the temporary directory
+ */
+function do_get_tempdir() {
+  let env = Components.classes["@mozilla.org/process/environment;1"]
+                      .getService(Components.interfaces.nsIEnvironment);
+  // the python harness sets this in the environment for us
+  let path = env.get("XPCSHELL_TEST_TEMP_DIR");
+  let file = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
+  file.initWithPath(path);
+  return file;
 }
 
 /**

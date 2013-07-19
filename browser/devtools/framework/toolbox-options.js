@@ -6,7 +6,7 @@
 
 const {Cu, Cc, Ci} = require("chrome");
 
-let Promise = require("sdk/core/promise");
+let promise = require("sdk/core/promise");
 let EventEmitter = require("devtools/shared/event-emitter");
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
@@ -53,7 +53,7 @@ OptionsPanel.prototype = {
   },
 
   open: function() {
-    let deferred = Promise.defer();
+    let deferred = promise.defer();
 
     this.setupToolsList();
     this.populatePreferences();
@@ -181,19 +181,15 @@ OptionsPanel.prototype = {
   },
 
   /**
-   * Hides any label in a box with class "hidden-labels-box" at page load. The
-   * labels are shown again when the user click on the checkbox in the box.
+   * Handles checkbox click inside hbox with class "hidden-labels-box". The
+   * labels inside the hbox are shown again when the user click on the checkbox
+   * in the box.
    */
   prepareRestartPreferences: function() {
-    let labels = this.panelDoc.querySelectorAll(".hidden-labels-box > label");
-    for (let label of labels) {
-      label.style.display = "none";
-    }
     let checkboxes = this.panelDoc.querySelectorAll(".hidden-labels-box > checkbox");
     for (let checkbox of checkboxes) {
       checkbox.addEventListener("command", function(target) {
-        target.nextSibling.style.display = "";
-        target.nextSibling.nextSibling.style.display = "";
+        target.parentNode.classList.toggle("visible");
       }.bind(null, checkbox));
     }
   },

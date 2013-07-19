@@ -18,6 +18,7 @@
 
 #include <hardware/hardware.h>
 #include <hardware/hwcomposer.h>
+#include <hardware/power.h>
 #include <suspend/autosuspend.h>
 
 #include "GraphicBufferAlloc.h"
@@ -36,6 +37,7 @@ GonkDisplayJB::GonkDisplayJB()
     , mHwc(nullptr)
     , mFBDevice(nullptr)
     , mEnabledCallback(nullptr)
+    , mPowerModule(nullptr)
 {
     int err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &mFBModule);
     ALOGW_IF(err, "%s module not found", GRALLOC_HARDWARE_MODULE_ID);
@@ -61,7 +63,13 @@ GonkDisplayJB::GonkDisplayJB()
                  HWC_HARDWARE_COMPOSER, strerror(-err));
     }
 
-    if (!err) {
+    /* Fallback on the FB rendering path instead of trying to support HWC 1.0 */
+    if (!err && mHwc->common.version == HWC_DEVICE_API_VERSION_1_0) {
+        hwc_close_1(mHwc);
+        mHwc = nullptr;
+    }
+
+    if (!err && mHwc) {
         if (mFBDevice) {
             framebuffer_close(mFBDevice);
             mFBDevice = nullptr;
@@ -78,9 +86,15 @@ GonkDisplayJB::GonkDisplayJB()
 
         mWidth = values[0];
         mHeight = values[1];
-        xdpi = values[2];
+        xdpi = values[2] / 1000.0f;
         surfaceformat = HAL_PIXEL_FORMAT_RGBA_8888;
     }
+
+    err = hw_get_module(POWER_HARDWARE_MODULE_ID,
+                                           (hw_module_t const**)&mPowerModule);
+    if (!err)
+        mPowerModule->init(mPowerModule);
+    ALOGW_IF(err, "Couldn't load %s module (%s)", POWER_HARDWARE_MODULE_ID, strerror(-err));
 
     mAlloc = new GraphicBufferAlloc();
     mFBSurface = new FramebufferSurface(0, mWidth, mHeight, surfaceformat, mAlloc);
@@ -115,8 +129,10 @@ GonkDisplayJB::GetNativeWindow()
 void
 GonkDisplayJB::SetEnabled(bool enabled)
 {
-    if (enabled)
+    if (enabled) {
         autosuspend_disable();
+        mPowerModule->setInteractive(mPowerModule, true);
+    }
 
     if (mHwc)
         mHwc->blank(mHwc, HWC_DISPLAY_PRIMARY, !enabled);
@@ -126,8 +142,10 @@ GonkDisplayJB::SetEnabled(bool enabled)
     if (mEnabledCallback)
         mEnabledCallback(enabled);
 
-    if (!enabled)
+    if (!enabled) {
         autosuspend_enable();
+        mPowerModule->setInteractive(mPowerModule, false);
+    }
 }
 
 void

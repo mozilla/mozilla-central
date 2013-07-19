@@ -134,6 +134,14 @@ let reference_dir_contents = function reference_dir_contents(path) {
   return result;
 };
 
+// Set/Unset OS.Shared.DEBUG, OS.Shared.TEST and a console listener.
+function toggleDebugTest (pref, consoleListener) {
+  Services.prefs.setBoolPref("toolkit.osfile.log", pref);
+  Services.prefs.setBoolPref("toolkit.osfile.log.redirect", pref);
+  Services.console[pref ? "registerListener" : "unregisterListener"](
+    consoleListener);
+}
+
 let test = maketest("Main", function main(test) {
   return Task.spawn(function() {
     SimpleTest.waitForExplicitFinish();
@@ -341,7 +349,7 @@ let test_read_write = maketest("read_write", function read_write(test) {
 });
 
 /**
- * Test OS.File.prototype.{writeAtomic}
+ * Test OS.File.writeAtomic
  */
 let test_read_write_all = maketest("read_write_all", function read_write_all(test) {
   return Task.spawn(function() {
@@ -349,157 +357,81 @@ let test_read_write_all = maketest("read_write_all", function read_write_all(tes
       "osfile async test read writeAtomic.tmp");
     let tmpPath = pathDest + ".tmp";
 
-    // Check that read + writeAtomic performs a correct copy
-    let currentDir = yield OS.File.getCurrentDirectory();
-    let pathSource = OS.Path.join(currentDir, EXISTING_FILE);
-    let contents = yield OS.File.read(pathSource);
-    test.ok(contents, "Obtained contents");
-    let options = {tmpPath: tmpPath};
-    let optionsBackup = {tmpPath: tmpPath};
-    let bytesWritten = yield OS.File.writeAtomic(pathDest, contents, options);
-    test.is(contents.byteLength, bytesWritten, "Wrote the correct number of bytes");
+    let test_with_options = function(options, suffix) {
+      return Task.spawn(function() {
+        let optionsBackup = JSON.parse(JSON.stringify(options));
 
-    // Check that options are not altered
-    test.is(Object.keys(options).length, Object.keys(optionsBackup).length,
-            "The number of options was not changed");
-    for (let k in options) {
-      test.is(options[k], optionsBackup[k], "Option was not changed");
-    }
-    yield reference_compare_files(pathSource, pathDest, test);
+        // Check that read + writeAtomic performs a correct copy
+        let currentDir = yield OS.File.getCurrentDirectory();
+        let pathSource = OS.Path.join(currentDir, EXISTING_FILE);
+        let contents = yield OS.File.read(pathSource);
+        test.ok(contents, "Obtained contents");
+        let bytesWritten = yield OS.File.writeAtomic(pathDest, contents, options);
+        test.is(contents.byteLength, bytesWritten, "Wrote the correct number of bytes (" + suffix + ")");
 
-    // Check that temporary file was removed
-    test.info("Compare complete");
-    test.ok(!(new FileUtils.File(tmpPath).exists()), "Temporary file was removed");
+        // Check that options are not altered
+        test.is(Object.keys(options).length, Object.keys(optionsBackup).length,
+          "The number of options was not changed");
+        for (let k in options) {
+          test.is(options[k], optionsBackup[k], "Option was not changed (" + suffix + ")");
+        }
+        yield reference_compare_files(pathSource, pathDest, test);
 
-    // Check that writeAtomic fails if noOverwrite is true and the destination
-    // file already exists!
-    let view = new Uint8Array(contents.buffer, 10, 200);
-    try {
-      options = {tmpPath: tmpPath, noOverwrite: true};
-      yield OS.File.writeAtomic(pathDest, view, options);
-      test.fail("With noOverwrite, writeAtomic should have refused to overwrite file");
-    } catch (err) {
-      test.info("With noOverwrite, writeAtomic correctly failed");
-      test.ok(err instanceof OS.File.Error, "writeAtomic correctly failed with a file error");
-      test.ok(err.becauseExists, "writeAtomic file error confirmed that the file already exists");
-    }
-    yield reference_compare_files(pathSource, pathDest, test);
-    test.ok(!(new FileUtils.File(tmpPath).exists()), "Temporary file was removed");
+        // Check that temporary file was removed or doesn't exist
+        test.info("Compare complete");
+        test.ok(!(new FileUtils.File(tmpPath).exists()), "No temporary file at the end of the run (" + suffix + ")");
 
-    // Now write a subset
-    let START = 10;
-    let LENGTH = 100;
-    view = new Uint8Array(contents.buffer, START, LENGTH);
-    bytesWritten = yield OS.File.writeAtomic(pathDest, view, {tmpPath: tmpPath});
-    test.is(bytesWritten, LENGTH, "Partial write wrote the correct number of bytes");
-    let array2 = yield OS.File.read(pathDest);
-    let view1 = new Uint8Array(contents.buffer, START, LENGTH);
-    test.is(view1.length, array2.length, "Re-read partial write with the correct number of bytes");
-    for (let i = 0; i < LENGTH; ++i) {
-      if (view1[i] != array2[i]) {
-        test.is(view1[i], array2[i], "Offset " + i + " is correct");
-      }
-      test.ok(true, "Compared re-read of partial write");
-    }
+        // Check that writeAtomic fails if noOverwrite is true and the destination
+        // file already exists!
+        let view = new Uint8Array(contents.buffer, 10, 200);
+        try {
+          let opt = JSON.parse(JSON.stringify(options));
+          opt.noOverwrite = true;
+          yield OS.File.writeAtomic(pathDest, view, opt);
+          test.fail("With noOverwrite, writeAtomic should have refused to overwrite file (" + suffix + ")");
+        } catch (err) {
+          test.info("With noOverwrite, writeAtomic correctly failed (" + suffix + ")");
+          test.ok(err instanceof OS.File.Error, "writeAtomic correctly failed with a file error (" + suffix + ")");
+          test.ok(err.becauseExists, "writeAtomic file error confirmed that the file already exists (" + suffix + ")");
+        }
+        yield reference_compare_files(pathSource, pathDest, test);
+        test.ok(!(new FileUtils.File(tmpPath).exists()), "Temporary file was removed");
 
-    // Check that writeAtomic fails if there is no tmpPath.
-    // FIXME: Remove this as part of bug 793660
-    try {
-      yield OS.File.writeAtomic(pathDest, contents, {flush: true});
-      test.fail("Without a tmpPath, writeAtomic should have failed");
-    } catch (err) {
-      test.ok(true, "Without a tmpPath, writeAtomic has failed as expected");
-    }
+        // Now write a subset
+        let START = 10;
+        let LENGTH = 100;
+        view = new Uint8Array(contents.buffer, START, LENGTH);
+        bytesWritten = yield OS.File.writeAtomic(pathDest, view, options);
+        test.is(bytesWritten, LENGTH, "Partial write wrote the correct number of bytes (" + suffix + ")");
+        let array2 = yield OS.File.read(pathDest);
+        let view1 = new Uint8Array(contents.buffer, START, LENGTH);
+        test.is(view1.length, array2.length, "Re-read partial write with the correct number of bytes (" + suffix + ")");
+        let decoder = new TextDecoder();
+        test.is(decoder.decode(view1), decoder.decode(array2), "Comparing re-read of partial write (" + suffix + ")");
 
-    // Write strings, default encoding
-    let ARBITRARY_STRING = "aeiouyâêîôûçß•";
-    yield OS.File.writeAtomic(pathDest, ARBITRARY_STRING, {tmpPath: tmpPath});
-    let array = yield OS.File.read(pathDest);
-    let IN_STRING = (new TextDecoder()).decode(array);
-    test.is(ARBITRARY_STRING, IN_STRING, "String write + read with default encoding works");
+        // Write strings, default encoding
+        let ARBITRARY_STRING = "aeiouyâêîôûçß•";
+        yield OS.File.writeAtomic(pathDest, ARBITRARY_STRING, options);
+        let array = yield OS.File.read(pathDest);
+        let IN_STRING = decoder.decode(array);
+        test.is(ARBITRARY_STRING, IN_STRING, "String write + read with default encoding works (" + suffix + ")");
 
-    yield OS.File.writeAtomic(pathDest, ARBITRARY_STRING, {tmpPath: tmpPath, encoding: "utf-16"});
-    array = yield OS.File.read(pathDest);
-    IN_STRING = (new TextDecoder("utf-16")).decode(array);
-    test.is(ARBITRARY_STRING, IN_STRING, "String write + read with utf-16 encoding works");
+        let opt16 = JSON.parse(JSON.stringify(options));
+        opt16.encoding = "utf-16";
+        yield OS.File.writeAtomic(pathDest, ARBITRARY_STRING, opt16);
+        array = yield OS.File.read(pathDest);
+        IN_STRING = (new TextDecoder("utf-16")).decode(array);
+        test.is(ARBITRARY_STRING, IN_STRING, "String write + read with utf-16 encoding works (" + suffix + ")");
 
-    // Cleanup.
-    OS.File.remove(pathDest);
+        // Cleanup.
+        OS.File.remove(pathDest);
+      });
+    };
 
-    // Same tests with |flush: false|
-    // Check that read + writeAtomic performs a correct copy
-    options = {tmpPath: tmpPath, flush: false};
-    optionsBackup = {tmpPath: tmpPath, flush: false};
-    bytesWritten = yield OS.File.writeAtomic(pathDest, contents, options);
-    test.is(contents.byteLength, bytesWritten, "Wrote the correct number of bytes (without flush)");
-
-    // Check that options are not altered
-    test.is(Object.keys(options).length, Object.keys(optionsBackup).length,
-            "The number of options was not changed (without flush)");
-    for (let k in options) {
-      test.is(options[k], optionsBackup[k], "Option was not changed (without flush)");
-    }
-    yield reference_compare_files(pathSource, pathDest, test);
-
-    // Check that temporary file was removed
-    test.info("Compare complete (without flush)");
-    test.ok(!(new FileUtils.File(tmpPath).exists()), "Temporary file was removed (without flush)");
-
-    // Check that writeAtomic fails if noOverwrite is true and the destination
-    // file already exists!
-    view = new Uint8Array(contents.buffer, 10, 200);
-    try {
-      options = {tmpPath: tmpPath, noOverwrite: true, flush: false};
-      yield OS.File.writeAtomic(pathDest, view, options);
-      test.fail("With noOverwrite, writeAtomic should have refused to overwrite file (without flush)");
-    } catch (err) {
-      test.info("With noOverwrite, writeAtomic correctly failed (without flush)");
-      test.ok(err instanceof OS.File.Error, "writeAtomic correctly failed with a file error (without flush)");
-      test.ok(err.becauseExists, "writeAtomic file error confirmed that the file already exists (without flush)");
-    }
-    yield reference_compare_files(pathSource, pathDest, test);
-    test.ok(!(new FileUtils.File(tmpPath).exists()), "Temporary file was removed (without flush)");
-
-    // Now write a subset
-    START = 10;
-    LENGTH = 100;
-    view = new Uint8Array(contents.buffer, START, LENGTH);
-    bytesWritten = yield OS.File.writeAtomic(pathDest, view, {tmpPath: tmpPath, flush: false});
-    test.is(bytesWritten, LENGTH, "Partial write wrote the correct number of bytes (without flush)");
-    array2 = yield OS.File.read(pathDest);
-    view1 = new Uint8Array(contents.buffer, START, LENGTH);
-    test.is(view1.length, array2.length, "Re-read partial write with the correct number of bytes (without flush)");
-    for (let i = 0; i < LENGTH; ++i) {
-      if (view1[i] != array2[i]) {
-        test.is(view1[i], array2[i], "Offset " + i + " is correct (without flush)");
-      }
-      test.ok(true, "Compared re-read of partial write (without flush)");
-    }
-
-    // Cleanup.
-    OS.File.remove(pathDest);
-
-    // Check that writeAtomic fails when destination path is undefined
-    try {
-      let path = undefined;
-      let options = {tmpPath: tmpPath};
-      yield OS.File.writeAtomic(path, contents, options);
-      test.fail("With file path undefined, writeAtomic should have failed");
-    } catch (err) {
-      test.ok(err.message == "TypeError: File path should be a (non-empty) string",
-              "With file path undefined, writeAtomic correctly failed");
-    }
-
-    // Check that writeAtomic fails when destination path is an empty string
-    try {
-      let path = "";
-      let options = {tmpPath: tmpPath};
-      yield OS.File.writeAtomic(path, contents, options);
-      test.fail("With file path an empty string, writeAtomic should have failed");
-    } catch (err) {
-      test.ok(err.message == "TypeError: File path should be a (non-empty) string",
-              "With file path an empty string, writeAtomic correctly failed");
-    }
+    yield test_with_options({tmpPath: tmpPath}, "Renaming, not flushing");
+    yield test_with_options({tmpPath: tmpPath, flush: true}, "Renaming, flushing");
+    yield test_with_options({}, "Not renaming, not flushing");
+    yield test_with_options({flush: true}, "Not renaming, flushing");
   });
 });
 
@@ -813,24 +745,13 @@ let test_debug_test = maketest("debug_test", function debug_test(test) {
         if (aMessage.message.indexOf("TEST OS") < 0) {
           return;
         }
-        test.ok(true, "DEBUG TEST messages are logged correctly.")
+        test.ok(true, "DEBUG TEST messages are logged correctly.");
       }
     };
-    // Set/Unset OS.Shared.DEBUG, OS.Shared.TEST and the console listener.
-    function toggleDebugTest (pref) {
-      OS.Shared.DEBUG = pref;
-      OS.Shared.TEST = pref;
-      Services.console[pref ? "registerListener" : "unregisterListener"](
-        consoleListener);
-    }
-    // Save original DEBUG value.
-    let originalPref = OS.Shared.DEBUG;
-    toggleDebugTest(true);
+    toggleDebugTest(true, consoleListener);
     // Execution of OS.File.exist method will trigger OS.File.LOG several times.
     let fileExists = yield OS.File.exists(EXISTING_FILE);
-    toggleDebugTest(false);
-    // Restore DEBUG to its original.
-    OS.Shared.DEBUG = originalPref;
+    toggleDebugTest(false, consoleListener);
   });
 });
 
@@ -839,8 +760,6 @@ let test_debug_test = maketest("debug_test", function debug_test(test) {
  */
 let test_system_shutdown = maketest("system_shutdown", function system_shutdown(test) {
   return Task.spawn(function () {
-    // Save original DEBUG value.
-    let originalDebug = OS.Shared.DEBUG;
     // Count the number of times the leaks are logged.
     let logCounter = 0;
     // Create a console listener.
@@ -854,10 +773,7 @@ let test_system_shutdown = maketest("system_shutdown", function system_shutdown(
         // Unregister a listener, reset DEBUG and TEST both when the promise is
         // resolved or rejected.
         let cleanUp = function cleanUp() {
-          Services.console.unregisterListener(listener);
-          OS.Shared.DEBUG = originalDebug;
-          OS.Shared.TEST = false;
-          test.info("Unregistered listener for resource " + resource);
+          toggleDebugTest(false, listener);
         };
         waitObservation.promise.then(cleanUp, cleanUp);
 
@@ -893,7 +809,7 @@ let test_system_shutdown = maketest("system_shutdown", function system_shutdown(
             }
           }
         };
-        Services.console.registerListener(listener);
+        toggleDebugTest(true, listener);
         logStart = Date.now();
         f();
         // If listener does not resolve webObservation in timely manner (1000MS),

@@ -238,6 +238,9 @@ class MacroAssemblerARM : public Assembler
     // implicitly assumes that we can overwrite dest at the beginning of the sequence
     void ma_mod_mask(Register src, Register dest, Register hold, int32_t shift);
 
+    // mod, depends on sdiv being supported
+    void ma_smod(Register num, Register div, Register dest);
+
     // division
     void ma_sdiv(Register num, Register div, Register dest, Condition cond = Always);
 
@@ -420,7 +423,12 @@ class MacroAssemblerARMCompat : public MacroAssemblerARM
     bool dynamicAlignment_;
 
     bool enoughMemory_;
-    VFPRegister floatArgsInGPR[2];
+
+    // Used to work around the move resolver's lack of support for
+    // moving into register pairs, which the softfp ABI needs.
+    MoveResolver::MoveOperand floatArgsInGPR[2];
+    bool floatArgsInGPRValid[2];
+
     // Compute space needed for the function call and set the properties of the
     // callee.  It returns the space which has to be allocated for calling the
     // function.
@@ -1016,6 +1024,7 @@ class MacroAssemblerARMCompat : public MacroAssemblerARM
     void linkExitFrame();
     void linkParallelExitFrame(const Register &pt);
     void handleFailureWithHandler(void *handler);
+    void handleFailureWithHandlerTail();
 
     /////////////////////////////////////////////////////////////////
     // Common interface.

@@ -264,46 +264,78 @@ protected:
   }
 
   /**
+   * Adjust an offset the caret stays at to get a text by line boundary.
+   */
+  int32_t AdjustCaretOffset(int32_t aOffset)
+  {
+    // It is the same character offset when the caret is visually at the very
+    // end of a line or the start of a new line (soft line break). Getting text
+    // at the line should provide the line with the visual caret, otherwise
+    // screen readers will announce the wrong line as the user presses up or
+    // down arrow and land at the end of a line.
+    if (aOffset > 0) {
+      nsRefPtr<nsFrameSelection> frameSelection = FrameSelection();
+      if (frameSelection &&
+          frameSelection->GetHint() == nsFrameSelection::HINTLEFT) {
+        return aOffset - 1;
+      }
+    }
+    return aOffset;
+  }
+
+  /**
+   * Return true if the given offset points to terminal empty line if any.
+   */
+  bool IsEmptyLastLineOffset(int32_t aOffset)
+  {
+    if (aOffset != static_cast<int32_t>(CharacterCount()))
+      return false;
+
+    nsAutoString lastChar;
+    GetText(aOffset -1, -1, lastChar);
+    return lastChar.EqualsLiteral("\n");
+  }
+
+  /**
    * Return an offset of the found word boundary.
    */
   int32_t FindWordBoundary(int32_t aOffset, nsDirection aDirection,
                            EWordMovementType aWordMovementType)
   {
-    return FindBoundary(aOffset, aDirection, eSelectWord, aWordMovementType);
+    return FindOffset(aOffset, aDirection, eSelectWord, aWordMovementType);
   }
 
   /**
-   * Return an offset of the found line boundary.
+   * Used to get begin/end of previous/this/next line. Note: end of line
+   * is an offset right before '\n' character if any, the offset is right after
+   * '\n' character is begin of line. In case of wrap word breaks these offsets
+   * are equal.
    */
-  int32_t FindLineBoundary(int32_t aOffset, nsDirection aDirection,
-                           nsSelectionAmount aAmount)
-  {
-    return FindBoundary(aOffset, aDirection, aAmount, eDefaultBehavior);
-  }
+  enum EWhichLineBoundary {
+    ePrevLineBegin,
+    ePrevLineEnd,
+    eThisLineBegin,
+    eThisLineEnd,
+    eNextLineBegin,
+    eNextLineEnd
+  };
 
   /**
-   * Return an offset of the found word or line boundary. Helper.
+   * Return an offset for requested line boundary. See constants above.
    */
-  int32_t FindBoundary(int32_t aOffset, nsDirection aDirection,
-                       nsSelectionAmount aAmount,
-                       EWordMovementType aWordMovementType = eDefaultBehavior);
-
-  /*
-   * This does the work for nsIAccessibleText::GetText[At|Before|After]Offset
-   * @param aType, eGetBefore, eGetAt, eGetAfter
-   * @param aBoundaryType, char/word-start/word-end/line-start/line-end/paragraph/attribute
-   * @param aOffset, offset into the hypertext to start from
-   * @param *aStartOffset, the resulting start offset for the returned substring
-   * @param *aEndOffset, the resulting end offset for the returned substring
-   * @param aText, the resulting substring
-   * @return success/failure code
-   */
-  nsresult GetTextHelper(EGetTextType aType, AccessibleTextBoundary aBoundaryType,
-                         int32_t aOffset, int32_t *aStartOffset, int32_t *aEndOffset,
-                         nsAString & aText);
+  int32_t FindLineBoundary(int32_t aOffset,
+                           EWhichLineBoundary aWhichLineBoundary);
 
   /**
-    * Used by GetTextHelper() to move backward/forward from a given point
+   * Return an offset corresponding to the given direction and selection amount
+   * relative the given offset. A helper used to find word or line boundaries.
+   */
+  int32_t FindOffset(int32_t aOffset, nsDirection aDirection,
+                     nsSelectionAmount aAmount,
+                     EWordMovementType aWordMovementType = eDefaultBehavior);
+
+  /**
+    * Used by FindOffset() to move backward/forward from a given point
     * by word/line/etc.
     *
     * @param  aPresShell       the current presshell we're moving in

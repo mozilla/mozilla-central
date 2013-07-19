@@ -5,7 +5,7 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "ChildIterator.h"
-#include "nsXBLChildrenElement.h"
+#include "mozilla/dom/XBLChildrenElement.h"
 
 namespace mozilla {
 namespace dom {
@@ -16,10 +16,10 @@ ExplicitChildIterator::GetNextChild()
   // If we're already in the inserted-children array, look there first
   if (mIndexInInserted) {
     MOZ_ASSERT(mChild);
-    MOZ_ASSERT(mChild->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL));
+    MOZ_ASSERT(mChild->IsActiveChildrenElement());
     MOZ_ASSERT(!mDefaultChild);
 
-    nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(mChild);
+    XBLChildrenElement* point = static_cast<XBLChildrenElement*>(mChild);
     if (mIndexInInserted < point->mInsertedChildren.Length()) {
       return point->mInsertedChildren[mIndexInInserted++];
     }
@@ -28,7 +28,7 @@ ExplicitChildIterator::GetNextChild()
   } else if (mDefaultChild) {
     // If we're already in default content, check if there are more nodes there
     MOZ_ASSERT(mChild);
-    MOZ_ASSERT(mChild->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL));
+    MOZ_ASSERT(mChild->IsActiveChildrenElement());
 
     mDefaultChild = mDefaultChild->GetNextSibling();
     if (mDefaultChild) {
@@ -44,9 +44,8 @@ ExplicitChildIterator::GetNextChild()
   }
 
   // Iterate until we find a non-<children>, or a <children> with content.
-  while (mChild &&
-         mChild->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
-    nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(mChild);
+  while (mChild && mChild->IsActiveChildrenElement()) {
+    XBLChildrenElement* point = static_cast<XBLChildrenElement*>(mChild);
     if (!point->mInsertedChildren.IsEmpty()) {
       mIndexInInserted = 1;
       return point->mInsertedChildren[0];
@@ -85,6 +84,7 @@ FlattenedChildIterator::FlattenedChildIterator(nsIContent* aParent)
          child;
          child = child->GetNextSibling()) {
       if (child->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
+        MOZ_ASSERT(child->GetBindingParent());
         mXBLInvolved = true;
         break;
       }
@@ -97,7 +97,7 @@ nsIContent* FlattenedChildIterator::Get()
   MOZ_ASSERT(!mIsFirst);
 
   if (mIndexInInserted) {
-    nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(mChild);
+    XBLChildrenElement* point = static_cast<XBLChildrenElement*>(mChild);
     return point->mInsertedChildren[mIndexInInserted - 1];
   }
   return mDefaultChild ? mDefaultChild : mChild;
@@ -109,7 +109,7 @@ nsIContent* FlattenedChildIterator::GetPreviousChild()
   if (mIndexInInserted) {
     // NB: mIndexInInserted points one past the last returned child so we need
     // to look *two* indices back in order to return the previous child.
-    nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(mChild);
+    XBLChildrenElement* point = static_cast<XBLChildrenElement*>(mChild);
     if (--mIndexInInserted) {
       return point->mInsertedChildren[mIndexInInserted - 1];
     }
@@ -131,9 +131,8 @@ nsIContent* FlattenedChildIterator::GetPreviousChild()
   }
 
   // Iterate until we find a non-<children>, or a <children> with content.
-  while (mChild &&
-         mChild->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
-    nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(mChild);
+  while (mChild && mChild->IsActiveChildrenElement()) {
+    XBLChildrenElement* point = static_cast<XBLChildrenElement*>(mChild);
     if (!point->mInsertedChildren.IsEmpty()) {
       mIndexInInserted = point->InsertedChildrenLength();
       return point->mInsertedChildren[mIndexInInserted - 1];

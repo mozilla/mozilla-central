@@ -35,6 +35,7 @@
 #include "nsSVGEnum.h"
 #include "nsSVGViewBox.h"
 #include "nsSVGString.h"
+#include "mozilla/dom/SVGAnimatedEnumeration.h"
 #include "SVGAnimatedNumberList.h"
 #include "SVGAnimatedLengthList.h"
 #include "SVGAnimatedPointList.h"
@@ -82,7 +83,6 @@ nsSVGEnumMapping nsSVGElement::sSVGUnitTypesMap[] = {
 nsSVGElement::nsSVGElement(already_AddRefed<nsINodeInfo> aNodeInfo)
   : nsSVGElementBase(aNodeInfo)
 {
-  SetIsDOMBinding();
 }
 
 JSObject*

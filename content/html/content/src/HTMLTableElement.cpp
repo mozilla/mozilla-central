@@ -297,7 +297,6 @@ HTMLTableElement::HTMLTableElement(already_AddRefed<nsINodeInfo> aNodeInfo)
   : nsGenericHTMLElement(aNodeInfo),
     mTableInheritedAttributes(TABLE_ATTRS_DIRTY)
 {
-  SetIsDOMBinding();
 }
 
 HTMLTableElement::~HTMLTableElement()
@@ -709,6 +708,35 @@ HTMLTableElement::DeleteCaption()
   }
 
   return NS_OK;
+}
+
+already_AddRefed<nsGenericHTMLElement>
+HTMLTableElement::CreateTBody()
+{
+  nsCOMPtr<nsINodeInfo> nodeInfo =
+    OwnerDoc()->NodeInfoManager()->GetNodeInfo(nsGkAtoms::tbody, nullptr,
+                                               kNameSpaceID_XHTML,
+                                               nsIDOMNode::ELEMENT_NODE);
+  MOZ_ASSERT(nodeInfo);
+
+  nsCOMPtr<nsGenericHTMLElement> newBody =
+    NS_NewHTMLTableSectionElement(nodeInfo.forget());
+  MOZ_ASSERT(newBody);
+
+  nsIContent* referenceNode = nullptr;
+  for (nsIContent* child = nsINode::GetLastChild();
+       child;
+       child = child->GetPreviousSibling()) {
+    if (child->IsHTML(nsGkAtoms::tbody)) {
+      referenceNode = child->GetNextSibling();
+      break;
+    }
+  }
+
+  ErrorResult rv;
+  nsINode::InsertBefore(*newBody, referenceNode, rv);
+
+  return newBody.forget();
 }
 
 already_AddRefed<nsGenericHTMLElement>

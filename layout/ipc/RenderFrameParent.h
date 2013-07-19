@@ -98,7 +98,7 @@ public:
 
   void NotifyDimensionsChanged(ScreenIntSize size);
 
-  void ZoomToRect(const gfxRect& aRect);
+  void ZoomToRect(const CSSRect& aRect);
 
   void ContentReceivedTouch(bool aPreventDefault);
 
@@ -112,8 +112,8 @@ protected:
   virtual bool RecvCancelDefaultPanZoom() MOZ_OVERRIDE;
   virtual bool RecvDetectScrollableSubframe() MOZ_OVERRIDE;
 
-  virtual PLayerTransactionParent* AllocPLayerTransaction() MOZ_OVERRIDE;
-  virtual bool DeallocPLayerTransaction(PLayerTransactionParent* aLayers) MOZ_OVERRIDE;
+  virtual PLayerTransactionParent* AllocPLayerTransactionParent() MOZ_OVERRIDE;
+  virtual bool DeallocPLayerTransactionParent(PLayerTransactionParent* aLayers) MOZ_OVERRIDE;
 
 private:
   void BuildViewMap();

@@ -131,6 +131,7 @@ AndroidBridge::Init(JNIEnv *jEnv,
     jAlertsProgressListener_OnProgress = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "alertsProgressListener_OnProgress", "(Ljava/lang/String;JJLjava/lang/String;)V");
     jCloseNotification = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "closeNotification", "(Ljava/lang/String;)V");
     jGetDpi = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "getDpi", "()I");
+    jGetScreenDepth = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "getScreenDepth", "()I");
     jSetFullScreen = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "setFullScreen", "(Z)V");
     jShowInputMethodPicker = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "showInputMethodPicker", "()V");
     jNotifyDefaultPrevented = (jmethodID) jEnv->GetStaticMethodID(jGeckoAppShellClass, "notifyDefaultPrevented", "(Z)V");
@@ -773,6 +774,29 @@ AndroidBridge::GetDPI()
     }
 
     return sDPI;
+}
+
+int
+AndroidBridge::GetScreenDepth()
+{
+    static int sDepth = 0;
+    if (sDepth)
+        return sDepth;
+
+    ALOG_BRIDGE("AndroidBridge::GetScreenDepth");
+    const int DEFAULT_DEPTH = 16;
+    JNIEnv *env = GetJNIEnv();
+    if (!env)
+        return DEFAULT_DEPTH;
+    AutoLocalJNIFrame jniFrame(env);
+
+    sDepth = (int)env->CallStaticIntMethod(mGeckoAppShellClass, jGetScreenDepth);
+    if (jniFrame.CheckForException()) {
+        sDepth = 0;
+        return DEFAULT_DEPTH;
+    }
+
+    return sDepth;
 }
 
 void
@@ -1834,13 +1858,13 @@ AndroidBridge::GetCurrentNetworkInformation(hal::NetworkInformation* aNetworkInf
     AutoLocalJNIFrame jniFrame(env);
 
     // To prevent calling too many methods through JNI, the Java method returns
-    // an array of double even if we actually want a double and a boolean.
+    // an array of double even if we actually want a double, two booleans, and an integer.
     jobject obj = env->CallStaticObjectMethod(mGeckoAppShellClass, jGetCurrentNetworkInformation);
     if (jniFrame.CheckForException())
         return;
 
     jdoubleArray arr = static_cast<jdoubleArray>(obj);
-    if (!arr || env->GetArrayLength(arr) != 2) {
+    if (!arr || env->GetArrayLength(arr) != 4) {
         return;
     }
 
@@ -1848,6 +1872,8 @@ AndroidBridge::GetCurrentNetworkInformation(hal::NetworkInformation* aNetworkInf
 
     aNetworkInfo->bandwidth() = info[0];
     aNetworkInfo->canBeMetered() = info[1] == 1.0f;
+    aNetworkInfo->isWifi() = info[2] == 1.0f;
+    aNetworkInfo->dhcpGateway() = info[3];
 
     env->ReleaseDoubleArrayElements(arr, info, 0);
 }
@@ -2682,13 +2708,17 @@ nsresult AndroidBridge::CaptureThumbnail(nsIDOMWindow *window, int32_t bufW, int
              nsPresContext::CSSPixelsToAppUnits(srcW / scale),
              nsPresContext::CSSPixelsToAppUnits(srcH / scale));
 
-    uint32_t stride = bufW * 2 /* 16 bpp */;
+    bool is24bit = (GetScreenDepth() == 24);
+    uint32_t stride = bufW * (is24bit ? 4 : 2);
 
     void* data = env->GetDirectBufferAddress(buffer);
     if (!data)
         return NS_ERROR_FAILURE;
 
-    nsRefPtr<gfxImageSurface> surf = new gfxImageSurface(static_cast<unsigned char*>(data), nsIntSize(bufW, bufH), stride, gfxASurface::ImageFormatRGB16_565);
+    nsRefPtr<gfxImageSurface> surf =
+        new gfxImageSurface(static_cast<unsigned char*>(data), nsIntSize(bufW, bufH), stride,
+                            is24bit ? gfxASurface::ImageFormatRGB24 :
+                                      gfxASurface::ImageFormatRGB16_565);
     if (surf->CairoStatus() != 0) {
         ALOG_BRIDGE("Error creating gfxImageSurface");
         return NS_ERROR_FAILURE;

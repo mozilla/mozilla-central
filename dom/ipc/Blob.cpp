@@ -840,7 +840,7 @@ private:
       typename ActorType::ConstructorParamsType params;
       ActorType::BaseType::SetBlobConstructorParams(params, normalParams);
 
-      ActorType* newActor = ActorType::Create(params);
+      ActorType* newActor = ActorType::Create(mActor->Manager(), params);
       MOZ_ASSERT(newActor);
 
       SlicedBlobConstructorParams slicedParams;
@@ -1011,11 +1011,13 @@ RemoteBlob<Child>::GetInternalStream(nsIInputStream** aStream)
 }
 
 template <ActorFlavorEnum ActorFlavor>
-Blob<ActorFlavor>::Blob(nsIDOMBlob* aBlob)
-: mBlob(aBlob), mRemoteBlob(nullptr), mOwnsBlob(true), mBlobIsFile(false)
+Blob<ActorFlavor>::Blob(ContentManager* aManager, nsIDOMBlob* aBlob)
+: mBlob(aBlob), mRemoteBlob(nullptr), mOwnsBlob(true)
+, mBlobIsFile(false), mManager(aManager)
 {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(aBlob);
+  MOZ_ASSERT(aManager);
   aBlob->AddRef();
 
   nsCOMPtr<nsIDOMFile> file = do_QueryInterface(aBlob);
@@ -1023,10 +1025,13 @@ Blob<ActorFlavor>::Blob(nsIDOMBlob* aBlob)
 }
 
 template <ActorFlavorEnum ActorFlavor>
-Blob<ActorFlavor>::Blob(const ConstructorParamsType& aParams)
-: mBlob(nullptr), mRemoteBlob(nullptr), mOwnsBlob(false), mBlobIsFile(false)
+Blob<ActorFlavor>::Blob(ContentManager* aManager,
+                        const ConstructorParamsType& aParams)
+: mBlob(nullptr), mRemoteBlob(nullptr), mOwnsBlob(false)
+, mBlobIsFile(false), mManager(aManager)
 {
   MOZ_ASSERT(NS_IsMainThread());
+  MOZ_ASSERT(aManager);
 
   ChildBlobConstructorParams::Type paramType =
     BaseType::GetBlobConstructorParams(aParams).type();
@@ -1048,7 +1053,8 @@ Blob<ActorFlavor>::Blob(const ConstructorParamsType& aParams)
 
 template <ActorFlavorEnum ActorFlavor>
 Blob<ActorFlavor>*
-Blob<ActorFlavor>::Create(const ConstructorParamsType& aParams)
+Blob<ActorFlavor>::Create(ContentManager* aManager,
+                          const ConstructorParamsType& aParams)
 {
   MOZ_ASSERT(NS_IsMainThread());
 
@@ -1059,7 +1065,7 @@ Blob<ActorFlavor>::Create(const ConstructorParamsType& aParams)
     case ChildBlobConstructorParams::TNormalBlobConstructorParams:
     case ChildBlobConstructorParams::TFileBlobConstructorParams:
     case ChildBlobConstructorParams::TMysteryBlobConstructorParams:
-      return new Blob<ActorFlavor>(aParams);
+      return new Blob<ActorFlavor>(aManager, aParams);
 
     case ChildBlobConstructorParams::TSlicedBlobConstructorParams: {
       const SlicedBlobConstructorParams& params =
@@ -1074,7 +1080,7 @@ Blob<ActorFlavor>::Create(const ConstructorParamsType& aParams)
                       getter_AddRefs(slice));
       NS_ENSURE_SUCCESS(rv, nullptr);
 
-      return new Blob<ActorFlavor>(slice);
+      return new Blob<ActorFlavor>(aManager, slice);
     }
 
     default:
@@ -1367,17 +1373,30 @@ Blob<Child>::RecvPBlobStreamConstructor(StreamType* aActor)
   return aActor->Send__delete__(aActor, params);
 }
 
-template <ActorFlavorEnum ActorFlavor>
-typename Blob<ActorFlavor>::StreamType*
-Blob<ActorFlavor>::AllocPBlobStream()
+BlobTraits<Parent>::StreamType*
+BlobTraits<Parent>::BaseType::AllocPBlobStreamParent()
 {
   MOZ_ASSERT(NS_IsMainThread());
-  return new InputStreamActor<ActorFlavor>();
+  return new InputStreamActor<Parent>();
 }
 
-template <ActorFlavorEnum ActorFlavor>
+BlobTraits<Child>::StreamType*
+BlobTraits<Child>::BaseType::AllocPBlobStreamChild()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  return new InputStreamActor<Child>();
+}
+
 bool
-Blob<ActorFlavor>::DeallocPBlobStream(StreamType* aActor)
+BlobTraits<Parent>::BaseType::DeallocPBlobStreamParent(BlobTraits<Parent>::StreamType* aActor)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  delete aActor;
+  return true;
+}
+
+bool
+BlobTraits<Child>::BaseType::DeallocPBlobStreamChild(BlobTraits<Child>::StreamType* aActor)
 {
   MOZ_ASSERT(NS_IsMainThread());
   delete aActor;

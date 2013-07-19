@@ -9,7 +9,6 @@
 
 #ifdef JS_ION
 
-#include "jstypedarray.h"
 #include "jscompartment.h"
 
 #if defined(JS_CPU_X86)
@@ -25,7 +24,9 @@
 #include "ion/ParallelFunctions.h"
 #include "ion/VMFunctions.h"
 #include "vm/ForkJoin.h"
+#include "vm/ProxyObject.h"
 #include "vm/Shape.h"
+#include "vm/TypedArrayObject.h"
 
 namespace js {
 namespace ion {
@@ -106,6 +107,19 @@ class MacroAssembler : public MacroAssemblerSpecific
 #ifdef JS_CPU_ARM
         initWithAllocator();
         m_buffer.id = GetIonContext()->getNextAssemblerId();
+#endif
+    }
+
+    // asm.js compilation handles its own IonContet-pushing
+    struct AsmJSToken {};
+    MacroAssembler(AsmJSToken)
+      : enoughMemory_(true),
+        embedsNurseryPointers_(false),
+        sps_(NULL)
+    {
+#ifdef JS_CPU_ARM
+        initWithAllocator();
+        m_buffer.id = 0;
 #endif
     }
 
@@ -532,17 +546,17 @@ class MacroAssembler : public MacroAssemblerSpecific
     template<typename S, typename T>
     void storeToTypedIntArray(int arrayType, const S &value, const T &dest) {
         switch (arrayType) {
-          case TypedArray::TYPE_INT8:
-          case TypedArray::TYPE_UINT8:
-          case TypedArray::TYPE_UINT8_CLAMPED:
+          case TypedArrayObject::TYPE_INT8:
+          case TypedArrayObject::TYPE_UINT8:
+          case TypedArrayObject::TYPE_UINT8_CLAMPED:
             store8(value, dest);
             break;
-          case TypedArray::TYPE_INT16:
-          case TypedArray::TYPE_UINT16:
+          case TypedArrayObject::TYPE_INT16:
+          case TypedArrayObject::TYPE_UINT16:
             store16(value, dest);
             break;
-          case TypedArray::TYPE_INT32:
-          case TypedArray::TYPE_UINT32:
+          case TypedArrayObject::TYPE_INT32:
+          case TypedArrayObject::TYPE_UINT32:
             store32(value, dest);
             break;
           default:
@@ -553,11 +567,11 @@ class MacroAssembler : public MacroAssemblerSpecific
     template<typename S, typename T>
     void storeToTypedFloatArray(int arrayType, const S &value, const T &dest) {
         switch (arrayType) {
-          case TypedArray::TYPE_FLOAT32:
+          case TypedArrayObject::TYPE_FLOAT32:
             convertDoubleToFloat(value, ScratchFloatReg);
             storeFloat(ScratchFloatReg, dest);
             break;
-          case TypedArray::TYPE_FLOAT64:
+          case TypedArrayObject::TYPE_FLOAT64:
             storeDouble(value, dest);
             break;
           default:
@@ -652,11 +666,21 @@ class MacroAssembler : public MacroAssemblerSpecific
         Push(ImmWord(uintptr_t(NULL)));
     }
 
+    void loadForkJoinSlice(Register slice, Register scratch);
+    void loadContext(Register cxReg, Register scratch, ExecutionMode executionMode);
+
     void enterParallelExitFrameAndLoadSlice(const VMFunction *f, Register slice,
                                             Register scratch);
 
     void enterExitFrameAndLoadContext(const VMFunction *f, Register cxReg, Register scratch,
                                       ExecutionMode executionMode);
+
+    void enterFakeParallelExitFrame(Register slice, Register scratch,
+                                    IonCode *codeVal = NULL);
+
+    void enterFakeExitFrame(Register cxReg, Register scratch,
+                            ExecutionMode executionMode,
+                            IonCode *codeVal = NULL);
 
     void leaveExitFrame() {
         freeStack(IonExitFooterFrame::Size());
@@ -743,14 +767,16 @@ class MacroAssembler : public MacroAssemblerSpecific
         // of the JSObject::isWrapper test performed in EmulatesUndefined.  If none
         // of the branches are taken, we can check class flags directly.
         loadObjClass(objReg, scratch);
-        branchPtr(Assembler::Equal, scratch, ImmWord(&ObjectProxyClass), slowCheck);
-        branchPtr(Assembler::Equal, scratch, ImmWord(&OuterWindowProxyClass), slowCheck);
-        branchPtr(Assembler::Equal, scratch, ImmWord(&FunctionProxyClass), slowCheck);
+        branchPtr(Assembler::Equal, scratch, ImmWord(&ObjectProxyObject::class_), slowCheck);
+        branchPtr(Assembler::Equal, scratch, ImmWord(&OuterWindowProxyObject::class_), slowCheck);
+        branchPtr(Assembler::Equal, scratch, ImmWord(&FunctionProxyObject::class_), slowCheck);
 
         test32(Address(scratch, Class::offsetOfFlags()), Imm32(JSCLASS_EMULATES_UNDEFINED));
         return truthy ? Assembler::Zero : Assembler::NonZero;
     }
 
+    void pushCalleeToken(Register callee, ExecutionMode mode);
+    void PushCalleeToken(Register callee, ExecutionMode mode);
     void tagCallee(Register callee, ExecutionMode mode);
     void clearCalleeTag(Register callee, ExecutionMode mode);
 
@@ -918,8 +944,6 @@ class MacroAssembler : public MacroAssemblerSpecific
     void printf(const char *output);
     void printf(const char *output, Register value);
 
-    void copyMem(Register copyFrom, Register copyEnd, Register copyTo, Register temp);
-
     void convertInt32ValueToDouble(const Address &address, Register scratch, Label *done);
     void convertValueToDouble(ValueOperand value, FloatRegister output, Label *fail);
     void convertValueToInt32(ValueOperand value, FloatRegister temp, Register output, Label *fail);
@@ -994,28 +1018,6 @@ JSOpToCondition(JSOp op, bool isSigned)
         }
     }
 }
-
-typedef Vector<MIRType, 8> MIRTypeVector;
-
-class ABIArgIter
-{
-    ABIArgGenerator gen_;
-    const MIRTypeVector &types_;
-    unsigned i_;
-
-  public:
-    ABIArgIter(const MIRTypeVector &argTypes);
-
-    void operator++(int);
-    bool done() const { return i_ == types_.length(); }
-
-    ABIArg *operator->() { JS_ASSERT(!done()); return &gen_.current(); }
-    ABIArg &operator*() { JS_ASSERT(!done()); return gen_.current(); }
-
-    unsigned index() const { JS_ASSERT(!done()); return i_; }
-    MIRType mirType() const { JS_ASSERT(!done()); return types_[i_]; }
-    uint32_t stackBytesConsumedSoFar() const { return gen_.stackBytesConsumedSoFar(); }
-};
 
 } // namespace ion
 } // namespace js

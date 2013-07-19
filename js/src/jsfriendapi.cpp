@@ -52,8 +52,8 @@ JS_SetSourceHook(JSRuntime *rt, JS_SourceHook hook)
 JS_FRIEND_API(void)
 JS_SetGrayGCRootsTracer(JSRuntime *rt, JSTraceDataOp traceOp, void *data)
 {
-    rt->gcGrayRootsTraceOp = traceOp;
-    rt->gcGrayRootsData = data;
+    rt->gcGrayRootTracer.op = traceOp;
+    rt->gcGrayRootTracer.data = data;
 }
 
 JS_FRIEND_API(JSString *)
@@ -302,26 +302,16 @@ JS_DefineFunctionsWithHelp(JSContext *cx, JSObject *objArg, const JSFunctionSpec
     return true;
 }
 
-AutoSwitchCompartment::AutoSwitchCompartment(JSContext *cx, JSCompartment *newCompartment
-                                             MOZ_GUARD_OBJECT_NOTIFIER_PARAM_IN_IMPL)
-  : cx(cx), oldCompartment(cx->compartment())
+JS_FRIEND_API(bool)
+js_ObjectClassIs(JSContext *cx, HandleObject obj, ESClassValue classValue)
 {
-    MOZ_GUARD_OBJECT_NOTIFIER_INIT;
-    cx->setCompartment(newCompartment);
+    return ObjectClassIs(obj, classValue, cx);
 }
 
-AutoSwitchCompartment::AutoSwitchCompartment(JSContext *cx, HandleObject target
-                                             MOZ_GUARD_OBJECT_NOTIFIER_PARAM_IN_IMPL)
-  : cx(cx), oldCompartment(cx->compartment())
+JS_FRIEND_API(const char *)
+js_ObjectClassName(JSContext *cx, HandleObject obj)
 {
-    MOZ_GUARD_OBJECT_NOTIFIER_INIT;
-    cx->setCompartment(target->compartment());
-}
-
-AutoSwitchCompartment::~AutoSwitchCompartment()
-{
-    /* The old compartment may have been destroyed, so we can't use cx->setCompartment. */
-    cx->setCompartment(oldCompartment);
+    return JSObject::className(cx, obj);
 }
 
 JS_FRIEND_API(JS::Zone *)
@@ -562,12 +552,11 @@ JS_GetCustomIteratorCount(JSContext *cx)
 JS_FRIEND_API(JSBool)
 JS_IsDeadWrapper(JSObject *obj)
 {
-    if (!IsProxy(obj)) {
+    if (!obj->is<ProxyObject>()) {
         return false;
     }
 
-    BaseProxyHandler *handler = GetProxyHandler(obj);
-    return handler->family() == &DeadObjectProxy::sDeadObjectFamily;
+    return obj->as<ProxyObject>().handler()->family() == &DeadObjectProxy::sDeadObjectFamily;
 }
 
 void
@@ -711,7 +700,7 @@ DumpHeapVisitCell(JSRuntime *rt, void *data, void *thing,
                   JSGCTraceKind traceKind, size_t thingSize)
 {
     JSDumpHeapTracer *dtrc = static_cast<JSDumpHeapTracer *>(data);
-    char cellDesc[1024];
+    char cellDesc[1024 * 32];
     JS_GetTraceThingInfo(cellDesc, sizeof(cellDesc), dtrc, thing, traceKind, true);
     fprintf(dtrc->output, "%p %c %s\n", thing, MarkDescriptor(thing), cellDesc);
     JS_TraceChildren(dtrc, thing, traceKind);
@@ -1116,11 +1105,15 @@ js_ReportIsNotFunction(JSContext *cx, const JS::Value& v)
     return ReportIsNotFunction(cx, v);
 }
 
-#if defined(DEBUG) && defined(JS_THREADSAFE)
+#ifdef DEBUG
 JS_PUBLIC_API(bool)
 js::IsInRequest(JSContext *cx)
 {
+#ifdef JS_THREADSAFE
     return !!cx->runtime()->requestDepth;
+#else
+    return true;
+#endif
 }
 #endif
 

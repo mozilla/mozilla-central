@@ -148,8 +148,9 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     void TeardownProtoChain();
 
     // Helper for WebIDL newResolve
-    bool DoNewResolve(JSContext* aCx, JS::Handle<JSObject*> aObject, JS::Handle<jsid> aId,
-                      unsigned aFlags, JS::MutableHandle<JSObject*> aObjp);
+    bool DoNewResolve(JSContext* aCx, JS::Handle<JSObject*> aObject,
+                      JS::Handle<jsid> aId,
+                      JS::MutableHandle<JS::Value> aValue);
 
     // WebIDL API
     nsIDocument* GetContentDocument();
@@ -377,6 +378,11 @@ class nsObjectLoadingContent : public nsImageLoadingContent
      * NOTE This ignores the current activated state. The caller should check this if appropriate.
      */
     bool ShouldPlay(FallbackType &aReason, bool aIgnoreCurrentType);
+
+    /*
+     * Helper to check if mBaseURI can be used by java as a codebase
+     */
+    bool CheckJavaCodebase();
 
     /**
      * Helper to check if our current URI passes policy

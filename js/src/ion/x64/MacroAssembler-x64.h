@@ -45,6 +45,19 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
     bool dynamicAlignment_;
     bool enoughMemory_;
 
+    // These use SystemAllocPolicy since asm.js releases memory after each
+    // function is compiled, and these need to live until after all functions
+    // are compiled.
+    struct Double {
+        double value;
+        NonAssertingLabel uses;
+        Double(double value) : value(value) {}
+    };
+    Vector<Double, 0, SystemAllocPolicy> doubles_;
+
+    typedef HashMap<double, size_t, DefaultHasher<double>, SystemAllocPolicy> DoubleMap;
+    DoubleMap doubleMap_;
+
     void setupABICall(uint32_t arg);
 
   protected:
@@ -70,6 +83,10 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
         enoughMemory_(true)
     {
     }
+
+    // The buffer is about to be linked, make sure any constant pools or excess
+    // bookkeeping has been flushed to the instruction stream.
+    void finish();
 
     bool oom() const {
         return MacroAssemblerX86Shared::oom() || !enoughMemory_;
@@ -144,9 +161,12 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
     template <typename T>
     void storeValue(const Value &val, const T &dest) {
         jsval_layout jv = JSVAL_TO_IMPL(val);
-        movq(ImmWord(jv.asBits), ScratchReg);
-        if (val.isMarkable())
+        if (val.isMarkable()) {
+            movWithPatch(ImmWord(jv.asBits), ScratchReg);
             writeDataRelocation(val);
+        } else {
+            mov(ImmWord(jv.asBits), ScratchReg);
+        }
         movq(ScratchReg, Operand(dest));
     }
     void storeValue(ValueOperand val, BaseIndex dest) {
@@ -196,7 +216,7 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
 
     void moveValue(const Value &val, const Register &dest) {
         jsval_layout jv = JSVAL_TO_IMPL(val);
-        movq(ImmWord(jv.asPtr), dest);
+        movWithPatch(ImmWord(jv.asPtr), dest);
         writeDataRelocation(val);
     }
     void moveValue(const Value &src, const ValueOperand &dest) {
@@ -938,17 +958,7 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
         cvtsi2sd(operand.valueReg(), dest);
     }
 
-    void loadConstantDouble(double d, const FloatRegister &dest) {
-        union DoublePun {
-            uint64_t u;
-            double d;
-        } pun;
-        pun.d = d;
-        if (!maybeInlineDouble(pun.u, dest)) {
-            mov(ImmWord(pun.u), ScratchReg);
-            movqsd(ScratchReg, dest);
-        }
-    }
+    void loadConstantDouble(double d, const FloatRegister &dest);
     void loadStaticDouble(const double *dp, const FloatRegister &dest) {
         loadConstantDouble(*dp, dest);
     }
@@ -1067,6 +1077,7 @@ class MacroAssemblerX64 : public MacroAssemblerX86Shared
     void callWithABI(Address fun, Result result = GENERAL);
 
     void handleFailureWithHandler(void *handler);
+    void handleFailureWithHandlerTail();
 
     void makeFrameDescriptor(Register frameSizeReg, FrameType type) {
         shlq(Imm32(FRAMESIZE_SHIFT), frameSizeReg);

@@ -48,7 +48,7 @@
 #include "nsIPrincipal.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsGUIEvent.h"
-#include "nsXBLChildrenElement.h"
+#include "mozilla/dom/XBLChildrenElement.h"
 
 #include "prprf.h"
 #include "nsNodeUtils.h"
@@ -74,7 +74,7 @@ XBLFinalize(JSFreeOp *fop, JSObject *obj)
 {
   nsXBLDocumentInfo* docInfo =
     static_cast<nsXBLDocumentInfo*>(::JS_GetPrivate(obj));
-  xpc::DeferredRelease(static_cast<nsIScriptGlobalObjectOwner*>(docInfo));
+  nsContentUtils::DeferredFinalize(static_cast<nsIScriptGlobalObjectOwner*>(docInfo));
   
   nsXBLJSClass* c = static_cast<nsXBLJSClass*>(::JS_GetClass(obj));
   c->Drop();
@@ -142,8 +142,7 @@ nsXBLJSClass::Destroy()
 
 // Constructors/Destructors
 nsXBLBinding::nsXBLBinding(nsXBLPrototypeBinding* aBinding)
-  : mIsStyleBinding(true),
-    mMarkedForDeath(false),
+  : mMarkedForDeath(false),
     mPrototypeBinding(aBinding)
 {
   NS_ASSERTION(mPrototypeBinding, "Must have a prototype binding!");
@@ -324,8 +323,6 @@ nsXBLBinding::GenerateAnonymousContent()
   bool hasContent = (contentCount > 0);
   if (hasContent) {
     nsIDocument* doc = mBoundElement->OwnerDoc();
-    
-    nsBindingManager *bindingManager = doc->BindingManager();
 
     nsCOMPtr<nsINode> clonedNode;
     nsCOMArray<nsINode> nodesWithProperties;
@@ -338,7 +335,7 @@ nsXBLBinding::GenerateAnonymousContent()
     // order.
     for (nsIContent* child = mContent; child; child = child->GetNextNode(mContent)) {
       if (child->NodeInfo()->Equals(nsGkAtoms::children, kNameSpaceID_XBL)) {
-        nsXBLChildrenElement* point = static_cast<nsXBLChildrenElement*>(child);
+        XBLChildrenElement* point = static_cast<XBLChildrenElement*>(child);
         if (point->IsDefaultInsertion()) {
           mDefaultInsertionPoint = point;
         } else {
@@ -356,24 +353,47 @@ nsXBLBinding::GenerateAnonymousContent()
     if (mDefaultInsertionPoint && mInsertionPoints.IsEmpty()) {
       ExplicitChildIterator iter(mBoundElement);
       for (nsIContent* child = iter.GetNextChild(); child; child = iter.GetNextChild()) {
-        mDefaultInsertionPoint->AppendInsertedChild(child, bindingManager);
+        mDefaultInsertionPoint->AppendInsertedChild(child);
       }
-    } else if (!mInsertionPoints.IsEmpty()) {
+    } else {
+      // It is odd to come into this code if mInsertionPoints is not empty, but
+      // we need to make sure to do the compatibility hack below if the bound
+      // node has any non <xul:template> or <xul:observes> children.
       ExplicitChildIterator iter(mBoundElement);
       for (nsIContent* child = iter.GetNextChild(); child; child = iter.GetNextChild()) {
-        nsXBLChildrenElement* point = FindInsertionPointForInternal(child);
+        XBLChildrenElement* point = FindInsertionPointForInternal(child);
         if (point) {
-          point->AppendInsertedChild(child, bindingManager);
+          point->AppendInsertedChild(child);
+        } else {
+          nsINodeInfo *ni = child->NodeInfo();
+          if (ni->NamespaceID() != kNameSpaceID_XUL ||
+              (!ni->Equals(nsGkAtoms::_template) &&
+               !ni->Equals(nsGkAtoms::observes))) {
+            // Compatibility hack. For some reason the original XBL
+            // implementation dropped the content of a binding if any child of
+            // the bound element didn't match any of the <children> in the
+            // binding. This became a pseudo-API that we have to maintain.
+
+            // Undo InstallAnonymousContent
+            UninstallAnonymousContent(doc, mContent);
+
+            // Clear out our children elements to avoid dangling references.
+            ClearInsertionPoints();
+
+            // Pretend as though there was no content in the binding.
+            mContent = nullptr;
+            return;
+          }
         }
       }
     }
 
     // Set binding parent on default content if need
     if (mDefaultInsertionPoint) {
-      mDefaultInsertionPoint->MaybeSetupDefaultContent(bindingManager);
+      mDefaultInsertionPoint->MaybeSetupDefaultContent();
     }
     for (uint32_t i = 0; i < mInsertionPoints.Length(); ++i) {
-      mInsertionPoints[i]->MaybeSetupDefaultContent(bindingManager);
+      mInsertionPoints[i]->MaybeSetupDefaultContent();
     }
 
     mPrototypeBinding->SetInitialAttributes(mBoundElement, mContent);
@@ -404,7 +424,7 @@ nsXBLBinding::GenerateAnonymousContent()
   }
 }
 
-nsXBLChildrenElement*
+XBLChildrenElement*
 nsXBLBinding::FindInsertionPointFor(nsIContent* aChild)
 {
   // XXX We should get rid of this function as it causes us to traverse the
@@ -417,11 +437,11 @@ nsXBLBinding::FindInsertionPointFor(nsIContent* aChild)
                       : nullptr;
 }
 
-nsXBLChildrenElement*
+XBLChildrenElement*
 nsXBLBinding::FindInsertionPointForInternal(nsIContent* aChild)
 {
   for (uint32_t i = 0; i < mInsertionPoints.Length(); ++i) {
-    nsXBLChildrenElement* point = mInsertionPoints[i];
+    XBLChildrenElement* point = mInsertionPoints[i];
     if (point->Includes(aChild)) {
       return point;
     }
@@ -680,8 +700,7 @@ nsXBLBinding::UnhookEventHandlers()
 }
 
 static void
-UpdateInsertionParent(nsBindingManager* aBindingManager,
-                      nsXBLChildrenElement* aPoint,
+UpdateInsertionParent(XBLChildrenElement* aPoint,
                       nsIContent* aOldBoundElement)
 {
   if (aPoint->IsDefaultInsertion()) {
@@ -701,9 +720,9 @@ UpdateInsertionParent(nsBindingManager* aBindingManager,
     // latter case, the child is now inserted into |aOldBoundElement| from some
     // binding above us, so we set its insertion parent to aOldBoundElement.
     if (child->GetParentNode() == aOldBoundElement) {
-      aBindingManager->SetInsertionParent(child, nullptr);
+      child->SetXBLInsertionParent(nullptr);
     } else {
-      aBindingManager->SetInsertionParent(child, aOldBoundElement);
+      child->SetXBLInsertionParent(aOldBoundElement);
     }
   }
 }
@@ -714,94 +733,91 @@ nsXBLBinding::ChangeDocument(nsIDocument* aOldDocument, nsIDocument* aNewDocumen
   if (aOldDocument == aNewDocument)
     return;
 
-  // Only style bindings get their prototypes unhooked.  First do ourselves.
-  if (mIsStyleBinding) {
-    // Now the binding dies.  Unhook our prototypes.
-    if (mPrototypeBinding->HasImplementation()) {
-      nsCOMPtr<nsIScriptGlobalObject> global =  do_QueryInterface(
-        aOldDocument->GetScopeObject());
-      if (global) {
-        nsCOMPtr<nsIScriptContext> context = global->GetContext();
-        if (context) {
-          JSContext *cx = context->GetNativeContext();
+  // Now the binding dies.  Unhook our prototypes.
+  if (mPrototypeBinding->HasImplementation()) {
+    nsCOMPtr<nsIScriptGlobalObject> global =  do_QueryInterface(
+                                                                aOldDocument->GetScopeObject());
+    if (global) {
+      nsCOMPtr<nsIScriptContext> context = global->GetContext();
+      if (context) {
+        JSContext *cx = context->GetNativeContext();
 
-          nsCxPusher pusher;
-          pusher.Push(cx);
+        nsCxPusher pusher;
+        pusher.Push(cx);
 
-          // scope might be null if we've cycle-collected the global
-          // object, since the Unlink phase of cycle collection happens
-          // after JS GC finalization.  But in that case, we don't care
-          // about fixing the prototype chain, since everything's going
-          // away immediately.
-          JS::Rooted<JSObject*> scope(cx, global->GetGlobalJSObject());
-          JS::Rooted<JSObject*> scriptObject(cx, mBoundElement->GetWrapper());
-          if (scope && scriptObject) {
-            // XXX Stay in sync! What if a layered binding has an
-            // <interface>?!
-            // XXXbz what does that comment mean, really?  It seems to date
-            // back to when there was such a thing as an <interface>, whever
-            // that was...
+        // scope might be null if we've cycle-collected the global
+        // object, since the Unlink phase of cycle collection happens
+        // after JS GC finalization.  But in that case, we don't care
+        // about fixing the prototype chain, since everything's going
+        // away immediately.
+        JS::Rooted<JSObject*> scope(cx, global->GetGlobalJSObject());
+        JS::Rooted<JSObject*> scriptObject(cx, mBoundElement->GetWrapper());
+        if (scope && scriptObject) {
+          // XXX Stay in sync! What if a layered binding has an
+          // <interface>?!
+          // XXXbz what does that comment mean, really?  It seems to date
+          // back to when there was such a thing as an <interface>, whever
+          // that was...
 
-            // Find the right prototype.
-            JSAutoCompartment ac(cx, scriptObject);
+          // Find the right prototype.
+          JSAutoCompartment ac(cx, scriptObject);
 
-            JS::Rooted<JSObject*> base(cx, scriptObject);
-            JS::Rooted<JSObject*> proto(cx);
-            for ( ; true; base = proto) { // Will break out on null proto
-              if (!JS_GetPrototype(cx, base, proto.address())) {
-                return;
-              }
-              if (!proto) {
-                break;
-              }
-
-              JSClass* clazz = ::JS_GetClass(proto);
-              if (!clazz ||
-                  (~clazz->flags &
-                   (JSCLASS_HAS_PRIVATE | JSCLASS_PRIVATE_IS_NSISUPPORTS)) ||
-                  JSCLASS_RESERVED_SLOTS(clazz) != 1 ||
-                  clazz->finalize != XBLFinalize) {
-                // Clearly not the right class
-                continue;
-              }
-
-              nsRefPtr<nsXBLDocumentInfo> docInfo =
-                static_cast<nsXBLDocumentInfo*>(::JS_GetPrivate(proto));
-              if (!docInfo) {
-                // Not the proto we seek
-                continue;
-              }
-
-              JS::Value protoBinding = ::JS_GetReservedSlot(proto, 0);
-
-              if (JSVAL_TO_PRIVATE(protoBinding) != mPrototypeBinding) {
-                // Not the right binding
-                continue;
-              }
-
-              // Alright!  This is the right prototype.  Pull it out of the
-              // proto chain.
-              JS::Rooted<JSObject*> grandProto(cx);
-              if (!JS_GetPrototype(cx, proto, grandProto.address())) {
-                return;
-              }
-              ::JS_SetPrototype(cx, base, grandProto);
+          JS::Rooted<JSObject*> base(cx, scriptObject);
+          JS::Rooted<JSObject*> proto(cx);
+          for ( ; true; base = proto) { // Will break out on null proto
+            if (!JS_GetPrototype(cx, base, proto.address())) {
+              return;
+            }
+            if (!proto) {
               break;
             }
 
-            mPrototypeBinding->UndefineFields(cx, scriptObject);
+            JSClass* clazz = ::JS_GetClass(proto);
+            if (!clazz ||
+                (~clazz->flags &
+                 (JSCLASS_HAS_PRIVATE | JSCLASS_PRIVATE_IS_NSISUPPORTS)) ||
+                JSCLASS_RESERVED_SLOTS(clazz) != 1 ||
+                clazz->finalize != XBLFinalize) {
+              // Clearly not the right class
+              continue;
+            }
 
-            // Don't remove the reference from the document to the
-            // wrapper here since it'll be removed by the element
-            // itself when that's taken out of the document.
+            nsRefPtr<nsXBLDocumentInfo> docInfo =
+              static_cast<nsXBLDocumentInfo*>(::JS_GetPrivate(proto));
+            if (!docInfo) {
+              // Not the proto we seek
+              continue;
+            }
+
+            JS::Value protoBinding = ::JS_GetReservedSlot(proto, 0);
+
+            if (JSVAL_TO_PRIVATE(protoBinding) != mPrototypeBinding) {
+              // Not the right binding
+              continue;
+            }
+
+            // Alright!  This is the right prototype.  Pull it out of the
+            // proto chain.
+            JS::Rooted<JSObject*> grandProto(cx);
+            if (!JS_GetPrototype(cx, proto, grandProto.address())) {
+              return;
+            }
+            ::JS_SetPrototype(cx, base, grandProto);
+            break;
           }
+
+          mPrototypeBinding->UndefineFields(cx, scriptObject);
+
+          // Don't remove the reference from the document to the
+          // wrapper here since it'll be removed by the element
+          // itself when that's taken out of the document.
         }
       }
     }
-
-    // Remove our event handlers
-    UnhookEventHandlers();
   }
+
+  // Remove our event handlers
+  UnhookEventHandlers();
 
   {
     nsAutoScriptBlocker scriptBlocker;
@@ -818,19 +834,15 @@ nsXBLBinding::ChangeDocument(nsIDocument* aOldDocument, nsIDocument* aNewDocumen
       nsXBLBinding::UninstallAnonymousContent(aOldDocument, mContent);
     }
 
-    nsBindingManager* bindingManager = aOldDocument->BindingManager();
-
     // Now that we've unbound our anonymous content from the tree and updated
     // its binding parent, update the insertion parent for content inserted
     // into our <children> elements.
     if (mDefaultInsertionPoint) {
-      UpdateInsertionParent(bindingManager, mDefaultInsertionPoint,
-                            mBoundElement);
+      UpdateInsertionParent(mDefaultInsertionPoint, mBoundElement);
     }
 
     for (size_t i = 0; i < mInsertionPoints.Length(); ++i) {
-      UpdateInsertionParent(bindingManager, mInsertionPoints[i],
-                            mBoundElement);
+      UpdateInsertionParent(mInsertionPoints[i], mBoundElement);
     }
 
     // Now that our inserted children no longer think they're inserted
@@ -1076,15 +1088,6 @@ nsXBLBinding::RootBinding()
   return this;
 }
 
-nsXBLBinding*
-nsXBLBinding::GetFirstStyleBinding()
-{
-  if (mIsStyleBinding)
-    return this;
-
-  return mNextBinding ? mNextBinding->GetFirstStyleBinding() : nullptr;
-}
-
 bool
 nsXBLBinding::ResolveAllFields(JSContext *cx, JS::Handle<JSObject*> obj) const
 {
@@ -1163,6 +1166,15 @@ nsXBLBinding::LookupMemberInternal(JSContext* aCx, nsString& aName,
   if (!JS_GetProperty(aCx, aXBLScope, mJSClass->name, classObject.address())) {
     return false;
   }
+
+  // The bound element may have been adoped by a document and have a different
+  // wrapper (and different xbl scope) than when the binding was applied, in
+  // this case getting the class object will fail. Behave as if the class
+  // object did not exist.
+  if (classObject.isUndefined()) {
+    return true;
+  }
+
   MOZ_ASSERT(classObject.isObject());
 
   // Look for the property on this binding. If it's not there, try the next

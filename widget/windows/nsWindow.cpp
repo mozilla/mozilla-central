@@ -599,8 +599,9 @@ nsWindow::Create(nsIWidget *aParent,
 
   // Query for command button metric data for rendering the titlebar. We
   // only do this once on the first window.
-  if (!nsUXThemeData::sTitlebarInfoPopulatedThemed ||
-      !nsUXThemeData::sTitlebarInfoPopulatedAero) {
+  if (mWindowType == eWindowType_toplevel &&
+      (!nsUXThemeData::sTitlebarInfoPopulatedThemed ||
+       !nsUXThemeData::sTitlebarInfoPopulatedAero)) {
     nsUXThemeData::UpdateTitlebarInfo(mWnd);
   }
   return NS_OK;
@@ -650,8 +651,8 @@ NS_METHOD nsWindow::Destroy()
   // Our windows can be subclassed which may prevent us receiving WM_DESTROY. If OnDestroy()
   // didn't get called, call it now.
   if (false == mOnDestroyCalled) {
-    LRESULT result;
-    mWindowHook.Notify(mWnd, WM_DESTROY, 0, 0, &result);
+    MSGResult msgResult;
+    mWindowHook.Notify(mWnd, WM_DESTROY, 0, 0, msgResult);
     OnDestroy();
   }
 
@@ -3747,7 +3748,7 @@ bool nsWindow::DispatchPluginEvent(UINT aMessage,
 {
   bool ret = nsWindowBase::DispatchPluginEvent(
                WinUtils::InitMSG(aMessage, aWParam, aLParam, mWnd));
-  if (aDispatchPendingEvents) {
+  if (aDispatchPendingEvents && !Destroyed()) {
     DispatchPendingEvents();
   }
   return ret;
@@ -4348,28 +4349,26 @@ LRESULT CALLBACK nsWindow::WindowProcInternal(HWND hWnd, UINT msg, WPARAM wParam
 // processed by the caller self.
 bool
 nsWindow::ProcessMessageForPlugin(const MSG &aMsg,
-                                  LRESULT *aResult,
-                                  bool &aCallDefWndProc)
+                                  MSGResult& aResult)
 {
-  NS_PRECONDITION(aResult, "aResult must be non-null.");
-  *aResult = 0;
+  aResult.mResult = 0;
+  aResult.mConsumed = true;
 
-  aCallDefWndProc = false;
   bool eventDispatched = false;
   switch (aMsg.message) {
     case WM_CHAR:
     case WM_SYSCHAR:
-      *aResult = ProcessCharMessage(aMsg, &eventDispatched);
+      aResult.mResult = ProcessCharMessage(aMsg, &eventDispatched);
       break;
 
     case WM_KEYUP:
     case WM_SYSKEYUP:
-      *aResult = ProcessKeyUpMessage(aMsg, &eventDispatched);
+      aResult.mResult = ProcessKeyUpMessage(aMsg, &eventDispatched);
       break;
 
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
-      *aResult = ProcessKeyDownMessage(aMsg, &eventDispatched);
+      aResult.mResult = ProcessKeyDownMessage(aMsg, &eventDispatched);
       break;
 
     case WM_DEADCHAR:
@@ -4386,9 +4385,12 @@ nsWindow::ProcessMessageForPlugin(const MSG &aMsg,
       return false;
   }
 
-  if (!eventDispatched)
-    aCallDefWndProc = !nsWindowBase::DispatchPluginEvent(aMsg);
-  DispatchPendingEvents();
+  if (!eventDispatched) {
+    aResult.mConsumed = nsWindowBase::DispatchPluginEvent(aMsg);
+  }
+  if (!Destroyed()) {
+    DispatchPendingEvents();
+  }
   return true;
 }
 
@@ -4421,37 +4423,49 @@ static bool CleartypeSettingChanged()
   return true;
 }
 
-// The main windows message processing method.
-bool nsWindow::ProcessMessage(UINT msg, WPARAM &wParam, LPARAM &lParam,
-                                LRESULT *aRetValue)
+bool
+nsWindow::ExternalHandlerProcessMessage(UINT aMessage,
+                                        WPARAM& aWParam,
+                                        LPARAM& aLParam,
+                                        MSGResult& aResult)
 {
-  // (Large blocks of code should be broken out into OnEvent handlers.)
-  if (mWindowHook.Notify(mWnd, msg, wParam, lParam, aRetValue))
+  if (mWindowHook.Notify(mWnd, aMessage, aWParam, aLParam, aResult)) {
     return true;
+  }
 
+  if (IMEHandler::ProcessMessage(this, aMessage, aWParam, aLParam, aResult)) {
+    return true;
+  }
+
+  if (MouseScrollHandler::ProcessMessage(this, aMessage, aWParam, aLParam,
+                                         aResult)) {
+    return true;
+  }
+
+  if (PluginHasFocus()) {
+    MSG nativeMsg = WinUtils::InitMSG(aMessage, aWParam, aLParam, mWnd);
+    if (ProcessMessageForPlugin(nativeMsg, aResult)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// The main windows message processing method.
+bool
+nsWindow::ProcessMessage(UINT msg, WPARAM& wParam, LPARAM& lParam,
+                         LRESULT *aRetValue)
+{
 #if defined(EVENT_DEBUG_OUTPUT)
   // First param shows all events, second param indicates whether
   // to show mouse move events. See nsWindowDbg for details.
   PrintEvent(msg, SHOW_REPEAT_EVENTS, SHOW_MOUSEMOVE_EVENTS);
 #endif
 
-  bool eatMessage;
-  if (IMEHandler::ProcessMessage(this, msg, wParam, lParam, aRetValue,
-                                 eatMessage)) {
-    return mWnd ? eatMessage : true;
-  }
-
-  if (MouseScrollHandler::ProcessMessage(this, msg, wParam, lParam, aRetValue,
-                                         eatMessage)) {
-    return mWnd ? eatMessage : true;
-  }
-
-  if (PluginHasFocus()) {
-    bool callDefaultWndProc;
-    MSG nativeMsg = WinUtils::InitMSG(msg, wParam, lParam, mWnd);
-    if (ProcessMessageForPlugin(nativeMsg, aRetValue, callDefaultWndProc)) {
-      return mWnd ? !callDefaultWndProc : true;
-    }
+  MSGResult msgResult(aRetValue);
+  if (ExternalHandlerProcessMessage(msg, wParam, lParam, msgResult)) {
+    return (msgResult.mConsumed || !mWnd);
   }
 
   bool result = false;    // call the default nsWindow proc
@@ -4466,6 +4480,7 @@ bool nsWindow::ProcessMessage(UINT msg, WPARAM &wParam, LPARAM &lParam,
     return true;
   }
 
+  // (Large blocks of code should be broken out into OnEvent handlers.)
   switch (msg) {
     // WM_QUERYENDSESSION must be handled by all windows.
     // Otherwise Windows thinks the window can just be killed at will.

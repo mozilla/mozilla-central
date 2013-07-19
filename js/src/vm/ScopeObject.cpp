@@ -10,6 +10,7 @@
 #include "jsiter.h"
 
 #include "vm/GlobalObject.h"
+#include "vm/ProxyObject.h"
 #include "vm/ScopeObject.h"
 #include "vm/Shape.h"
 #include "vm/Xdr.h"
@@ -30,7 +31,7 @@ typedef Rooted<ArgumentsObject *> RootedArgumentsObject;
 
 /*****************************************************************************/
 
-StaticScopeIter::StaticScopeIter(JSContext *cx, JSObject *objArg)
+StaticScopeIter::StaticScopeIter(ExclusiveContext *cx, JSObject *objArg)
   : obj(cx, objArg), onNamedLambda(false)
 {
     JS_ASSERT_IF(obj, obj->is<StaticBlockObject>() || obj->is<JSFunction>());
@@ -200,7 +201,7 @@ CallObject::createTemplateObject(JSContext *cx, HandleScript script, gc::Initial
     RootedShape shape(cx, script->bindings.callObjShape());
     JS_ASSERT(shape->getObjectClass() == &class_);
 
-    RootedTypeObject type(cx, cx->compartment()->getNewType(cx, &class_, NULL));
+    RootedTypeObject type(cx, cx->getNewType(&class_, NULL));
     if (!type)
         return NULL;
 
@@ -330,7 +331,7 @@ Class DeclEnvObject::class_ = {
 DeclEnvObject *
 DeclEnvObject::createTemplateObject(JSContext *cx, HandleFunction fun, gc::InitialHeap heap)
 {
-    RootedTypeObject type(cx, cx->compartment()->getNewType(cx, &class_, NULL));
+    RootedTypeObject type(cx, cx->getNewType(&class_, NULL));
     if (!type)
         return NULL;
 
@@ -374,7 +375,7 @@ DeclEnvObject::create(JSContext *cx, HandleObject enclosing, HandleFunction call
 WithObject *
 WithObject::create(JSContext *cx, HandleObject proto, HandleObject enclosing, uint32_t depth)
 {
-    RootedTypeObject type(cx, proto->getNewType(cx, &class_));
+    RootedTypeObject type(cx, cx->getNewType(&class_, proto.get()));
     if (!type)
         return NULL;
 
@@ -653,7 +654,7 @@ ClonedBlockObject::create(JSContext *cx, Handle<StaticBlockObject *> block, Abst
     assertSameCompartment(cx, frame);
     JS_ASSERT(block->getClass() == &BlockObject::class_);
 
-    RootedTypeObject type(cx, block->getNewType(cx, &BlockObject::class_));
+    RootedTypeObject type(cx, cx->getNewType(&BlockObject::class_, block.get()));
     if (!type)
         return NULL;
 
@@ -705,9 +706,9 @@ ClonedBlockObject::copyUnaliasedValues(AbstractFramePtr frame)
 }
 
 StaticBlockObject *
-StaticBlockObject::create(JSContext *cx)
+StaticBlockObject::create(ExclusiveContext *cx)
 {
-    RootedTypeObject type(cx, cx->compartment()->getNewType(cx, &BlockObject::class_, NULL));
+    RootedTypeObject type(cx, cx->getNewType(&BlockObject::class_, NULL));
     if (!type)
         return NULL;
 
@@ -725,7 +726,7 @@ StaticBlockObject::create(JSContext *cx)
 }
 
 /* static */ Shape *
-StaticBlockObject::addVar(JSContext *cx, Handle<StaticBlockObject*> block, HandleId id,
+StaticBlockObject::addVar(ExclusiveContext *cx, Handle<StaticBlockObject*> block, HandleId id,
                           int index, bool *redeclared)
 {
     JS_ASSERT(JSID_IS_ATOM(id) || (JSID_IS_INT(id) && JSID_TO_INT(id) == index));
@@ -1548,36 +1549,38 @@ DebugScopeObject::create(JSContext *cx, ScopeObject &scope, HandleObject enclosi
         return NULL;
 
     JS_ASSERT(!enclosing->is<ScopeObject>());
-    SetProxyExtra(obj, ENCLOSING_EXTRA, ObjectValue(*enclosing));
-    SetProxyExtra(obj, SNAPSHOT_EXTRA, NullValue());
 
-    return &obj->as<DebugScopeObject>();
+    DebugScopeObject *debugScope = &obj->as<DebugScopeObject>();
+    debugScope->setExtra(ENCLOSING_EXTRA, ObjectValue(*enclosing));
+    debugScope->setExtra(SNAPSHOT_EXTRA, NullValue());
+
+    return debugScope;
 }
 
 ScopeObject &
 DebugScopeObject::scope() const
 {
-    return GetProxyTargetObject(const_cast<DebugScopeObject*>(this))->as<ScopeObject>();
+    return target()->as<ScopeObject>();
 }
 
 JSObject &
 DebugScopeObject::enclosingScope() const
 {
-    return GetProxyExtra(const_cast<DebugScopeObject*>(this), ENCLOSING_EXTRA).toObject();
+    return extra(ENCLOSING_EXTRA).toObject();
 }
 
 JSObject *
 DebugScopeObject::maybeSnapshot() const
 {
     JS_ASSERT(!scope().as<CallObject>().isForEval());
-    return GetProxyExtra(const_cast<DebugScopeObject*>(this), SNAPSHOT_EXTRA).toObjectOrNull();
+    return extra(SNAPSHOT_EXTRA).toObjectOrNull();
 }
 
 void
 DebugScopeObject::initSnapshot(JSObject &o)
 {
     JS_ASSERT(maybeSnapshot() == NULL);
-    SetProxyExtra(this, SNAPSHOT_EXTRA, ObjectValue(o));
+    setExtra(SNAPSHOT_EXTRA, ObjectValue(o));
 }
 
 bool
@@ -1588,18 +1591,18 @@ DebugScopeObject::isForDeclarative() const
 }
 
 bool
-js_IsDebugScopeSlow(JSObject *obj)
+js_IsDebugScopeSlow(ObjectProxyObject *proxy)
 {
-    return obj->getClass() == &ObjectProxyClass &&
-           GetProxyHandler(obj) == &DebugScopeProxy::singleton;
+    JS_ASSERT(proxy->hasClass(&ObjectProxyObject::class_));
+    return proxy->handler() == &DebugScopeProxy::singleton;
 }
 
 /*****************************************************************************/
 
 DebugScopes::DebugScopes(JSContext *cx)
  : proxiedScopes(cx),
-   missingScopes(cx),
-   liveScopes(cx)
+   missingScopes(cx->runtime()),
+   liveScopes(cx->runtime())
 {}
 
 DebugScopes::~DebugScopes()
@@ -2189,3 +2192,175 @@ js::GetDebugScopeForFrame(JSContext *cx, AbstractFramePtr frame)
     ScopeIter si(frame, cx);
     return GetDebugScope(cx, si);
 }
+
+#ifdef DEBUG
+
+typedef HashSet<PropertyName *> PropertyNameSet;
+
+static bool
+RemoveReferencedNames(JSContext *cx, HandleScript script, PropertyNameSet &remainingNames)
+{
+    // Remove from remainingNames --- the closure variables in some outer
+    // script --- any free variables in this script. This analysis isn't perfect:
+    //
+    // - It will not account for free variables in an inner script which are
+    //   actually accessing some name in an intermediate script between the
+    //   inner and outer scripts. This can cause remainingNames to be an
+    //   underapproximation.
+    //
+    // - It will not account for new names introduced via eval. This can cause
+    //   remainingNames to be an overapproximation. This would be easy to fix
+    //   but is nice to have as the eval will probably not access these
+    //   these names and putting eval in an inner script is bad news if you
+    //   care about entraining variables unnecessarily.
+
+    for (jsbytecode *pc = script->code;
+         pc != script->code + script->length;
+         pc += GetBytecodeLength(pc))
+    {
+        PropertyName *name;
+
+        switch (JSOp(*pc)) {
+          case JSOP_NAME:
+          case JSOP_CALLNAME:
+          case JSOP_SETNAME:
+            name = script->getName(pc);
+            break;
+
+          case JSOP_GETALIASEDVAR:
+          case JSOP_CALLALIASEDVAR:
+          case JSOP_SETALIASEDVAR:
+            name = ScopeCoordinateName(cx, script, pc);
+            break;
+
+          default:
+            name = NULL;
+            break;
+        }
+
+        if (name)
+            remainingNames.remove(name);
+    }
+
+    if (script->hasObjects()) {
+        ObjectArray *objects = script->objects();
+        for (size_t i = 0; i < objects->length; i++) {
+            JSObject *obj = objects->vector[i];
+            if (obj->is<JSFunction>() && obj->as<JSFunction>().isInterpreted()) {
+                JSFunction *fun = &obj->as<JSFunction>();
+                RootedScript innerScript(cx, fun->getOrCreateScript(cx));
+                if (!innerScript)
+                    return false;
+
+                if (!RemoveReferencedNames(cx, innerScript, remainingNames))
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+static bool
+AnalyzeEntrainedVariablesInScript(JSContext *cx, HandleScript script, HandleScript innerScript)
+{
+    PropertyNameSet remainingNames(cx);
+    if (!remainingNames.init())
+        return false;
+
+    for (BindingIter bi(script); bi; bi++) {
+        if (bi->aliased()) {
+            PropertyNameSet::AddPtr p = remainingNames.lookupForAdd(bi->name());
+            if (!p && !remainingNames.add(p, bi->name()))
+                return false;
+        }
+    }
+
+    if (!RemoveReferencedNames(cx, innerScript, remainingNames))
+        return false;
+
+    if (!remainingNames.empty()) {
+        Sprinter buf(cx);
+        if (!buf.init())
+            return false;
+
+        buf.printf("Script ");
+
+        if (JSAtom *name = script->function()->displayAtom()) {
+            buf.putString(name);
+            buf.printf(" ");
+        }
+
+        buf.printf("(%s:%d) has variables entrained by ", script->filename(), script->lineno);
+
+        if (JSAtom *name = innerScript->function()->displayAtom()) {
+            buf.putString(name);
+            buf.printf(" ");
+        }
+
+        buf.printf("(%s:%d) ::", innerScript->filename(), innerScript->lineno);
+
+        for (PropertyNameSet::Range r = remainingNames.all(); !r.empty(); r.popFront()) {
+            buf.printf(" ");
+            buf.putString(r.front());
+        }
+
+        printf("%s\n", buf.string());
+    }
+
+    if (innerScript->hasObjects()) {
+        ObjectArray *objects = innerScript->objects();
+        for (size_t i = 0; i < objects->length; i++) {
+            JSObject *obj = objects->vector[i];
+            if (obj->is<JSFunction>() && obj->as<JSFunction>().isInterpreted()) {
+                JSFunction *fun = &obj->as<JSFunction>();
+                RootedScript innerInnerScript(cx, fun->nonLazyScript());
+                if (!AnalyzeEntrainedVariablesInScript(cx, script, innerInnerScript))
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+// Look for local variables in script or any other script inner to it, which are
+// part of the script's call object and are unnecessarily entrained by their own
+// inner scripts which do not refer to those variables. An example is:
+//
+// function foo() {
+//   var a, b;
+//   function bar() { return a; }
+//   function baz() { return b; }
+// }
+//
+// |bar| unnecessarily entrains |b|, and |baz| unnecessarily entrains |a|.
+bool
+js::AnalyzeEntrainedVariables(JSContext *cx, HandleScript script)
+{
+    if (!script->hasObjects())
+        return true;
+
+    ObjectArray *objects = script->objects();
+    for (size_t i = 0; i < objects->length; i++) {
+        JSObject *obj = objects->vector[i];
+        if (obj->is<JSFunction>() && obj->as<JSFunction>().isInterpreted()) {
+            JSFunction *fun = &obj->as<JSFunction>();
+            RootedScript innerScript(cx, fun->getOrCreateScript(cx));
+            if (!innerScript)
+                return false;
+
+            if (script->function() && script->function()->isHeavyweight()) {
+                if (!AnalyzeEntrainedVariablesInScript(cx, script, innerScript))
+                    return false;
+            }
+
+            if (!AnalyzeEntrainedVariables(cx, innerScript))
+                return false;
+        }
+    }
+
+    return true;
+}
+
+#endif

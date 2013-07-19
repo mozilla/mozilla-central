@@ -54,6 +54,8 @@ jfieldID AndroidGeckoEvent::jRangeLineColorField = 0;
 jfieldID AndroidGeckoEvent::jLocationField = 0;
 jfieldID AndroidGeckoEvent::jBandwidthField = 0;
 jfieldID AndroidGeckoEvent::jCanBeMeteredField = 0;
+jfieldID AndroidGeckoEvent::jIsWifiField = 0;
+jfieldID AndroidGeckoEvent::jDHCPGatewayField = 0;
 jfieldID AndroidGeckoEvent::jScreenOrientationField = 0;
 jfieldID AndroidGeckoEvent::jByteBufferField = 0;
 jfieldID AndroidGeckoEvent::jWidthField = 0;
@@ -258,6 +260,8 @@ AndroidGeckoEvent::InitGeckoEventClass(JNIEnv *jEnv)
     jLocationField = getField("mLocation", "Landroid/location/Location;");
     jBandwidthField = getField("mBandwidth", "D");
     jCanBeMeteredField = getField("mCanBeMetered", "Z");
+    jIsWifiField = getField("mIsWifi", "Z");
+    jDHCPGatewayField = getField("mDHCPGateway", "I");
     jScreenOrientationField = getField("mScreenOrientation", "S");
     jByteBufferField = getField("mBuffer", "Ljava/nio/ByteBuffer;");
     jWidthField = getField("mWidth", "I");
@@ -657,6 +661,8 @@ AndroidGeckoEvent::Init(JNIEnv *jenv, jobject jobj)
         case NETWORK_CHANGED: {
             mBandwidth = jenv->GetDoubleField(jobj, jBandwidthField);
             mCanBeMetered = jenv->GetBooleanField(jobj, jCanBeMeteredField);
+            mIsWifi = jenv->GetBooleanField(jobj, jIsWifiField);
+            mDHCPGateway = jenv->GetIntField(jobj, jDHCPGatewayField);
             break;
         }
 
@@ -781,9 +787,19 @@ AndroidGeckoEvent::MakeTouchEvent(nsIWidget* widget)
     const nsIntPoint& offset = widget->WidgetToScreenOffset();
     event.touches.SetCapacity(endIndex - startIndex);
     for (int i = startIndex; i < endIndex; i++) {
+        // In this code branch, we are dispatching this event directly
+        // into Gecko (as opposed to going through the AsyncPanZoomController),
+        // and the Points() array has points in CSS pixels, which we need
+        // to convert.
+        nsIntPoint pt(
+            (Points()[i].x * widget->GetDefaultScale()) - offset.x,
+            (Points()[i].y * widget->GetDefaultScale()) - offset.y);
+        nsIntPoint radii(
+            PointRadii()[i].x * widget->GetDefaultScale(),
+            PointRadii()[i].y * widget->GetDefaultScale());
         nsRefPtr<Touch> t = new Touch(PointIndicies()[i],
-                                      Points()[i] - offset,
-                                      PointRadii()[i],
+                                      pt,
+                                      radii,
                                       Orientations()[i],
                                       Pressures()[i]);
         event.touches.AppendElement(t);

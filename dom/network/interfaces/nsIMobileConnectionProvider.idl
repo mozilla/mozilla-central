@@ -4,20 +4,17 @@
 
 #include "nsISupports.idl"
 
-interface nsIDOMMozMobileICCInfo;
+interface nsIDOMDOMRequest;
+interface nsIDOMMozMobileCFInfo;
 interface nsIDOMMozMobileConnectionInfo;
 interface nsIDOMMozMobileNetworkInfo;
-interface nsIDOMMozMobileCFInfo;
-interface nsIDOMDOMRequest;
 interface nsIDOMWindow;
 
-[scriptable, uuid(d09099b0-a25a-11e2-9e96-0800200c9a66)]
+[scriptable, uuid(74361840-c913-11e2-8b8b-0800200c9a66)]
 interface nsIMobileConnectionListener : nsISupports
 {
   void notifyVoiceChanged();
   void notifyDataChanged();
-  void notifyCardStateChanged();
-  void notifyIccInfoChanged();
   void notifyUssdReceived(in DOMString message,
                           in boolean sessionEnded);
   void notifyDataError(in DOMString message);
@@ -33,7 +30,7 @@ interface nsIMobileConnectionListener : nsISupports
  * XPCOM component (in the content process) that provides the mobile
  * network information.
  */
-[scriptable, uuid(b9605230-a25a-11e2-9e96-0800200c9a66)]
+[scriptable, uuid(477d93f0-c913-11e2-8b8b-0800200c9a66)]
 interface nsIMobileConnectionProvider : nsISupports
 {
   /**
@@ -44,9 +41,7 @@ interface nsIMobileConnectionProvider : nsISupports
   void registerMobileConnectionMsg(in nsIMobileConnectionListener listener);
   void unregisterMobileConnectionMsg(in nsIMobileConnectionListener listener);
 
-  readonly attribute DOMString cardState;
   readonly attribute long retryCount;
-  readonly attribute nsIDOMMozMobileICCInfo iccInfo;
   readonly attribute nsIDOMMozMobileConnectionInfo voiceConnectionInfo;
   readonly attribute nsIDOMMozMobileConnectionInfo dataConnectionInfo;
   readonly attribute DOMString networkSelectionMode;
@@ -71,4 +66,8 @@ interface nsIMobileConnectionProvider : nsISupports
   nsIDOMDOMRequest setCallWaitingOption(in nsIDOMWindow   window,
                                         in bool enabled);
   nsIDOMDOMRequest getCallWaitingOption(in nsIDOMWindow   window);
+
+  nsIDOMDOMRequest setCallingLineIdRestriction(in nsIDOMWindow   window,
+                                               in unsigned short clirMode);
+  nsIDOMDOMRequest getCallingLineIdRestriction(in nsIDOMWindow   window);
 };

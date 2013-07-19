@@ -142,6 +142,9 @@ class JSFunction : public JSObject
     bool isNamedLambda() const {
         return isLambda() && atom_ && !hasGuessedAtom();
     }
+    bool hasParallelNative() const {
+        return isNative() && jitInfo() && !!jitInfo()->parallelNative;
+    }
 
     bool isBuiltinFunctionConstructor();
 
@@ -292,6 +295,15 @@ class JSFunction : public JSObject
         return isInterpreted() ? NULL : native();
     }
 
+    JSParallelNative parallelNative() const {
+        JS_ASSERT(hasParallelNative());
+        return jitInfo()->parallelNative;
+    }
+
+    JSParallelNative maybeParallelNative() const {
+        return hasParallelNative() ? parallelNative() : NULL;
+    }
+
     void initNative(js::Native native, const JSJitInfo *jitinfo) {
         JS_ASSERT(native);
         u.n.native = native;
@@ -356,7 +368,7 @@ class JSFunction : public JSObject
     inline const js::Value &getExtendedSlot(size_t which) const;
 
     /* Constructs a new type for the function if necessary. */
-    static bool setTypeForScriptedFunction(JSContext *cx, js::HandleFunction fun,
+    static bool setTypeForScriptedFunction(js::ExclusiveContext *cx, js::HandleFunction fun,
                                            bool singleton = false);
 
     /* GC support. */
@@ -382,33 +394,11 @@ JSAPIToJSFunctionFlags(unsigned flags)
 
 namespace js {
 
-/* Valueified JS_IsConstructing. */
-static JS_ALWAYS_INLINE bool
-IsConstructing(const Value *vp)
-{
-#ifdef DEBUG
-    JSObject *callee = &JS_CALLEE(cx, vp).toObject();
-    if (callee->is<JSFunction>()) {
-        JSFunction *fun = &callee->as<JSFunction>();
-        JS_ASSERT(fun->isNativeConstructor());
-    } else {
-        JS_ASSERT(callee->getClass()->construct != NULL);
-    }
-#endif
-    return vp[1].isMagic();
-}
-
-inline bool
-IsConstructing(CallReceiver call)
-{
-    return IsConstructing(call.base());
-}
-
 extern JSBool
 Function(JSContext *cx, unsigned argc, Value *vp);
 
 extern JSFunction *
-NewFunction(JSContext *cx, HandleObject funobj, JSNative native, unsigned nargs,
+NewFunction(ExclusiveContext *cx, HandleObject funobj, JSNative native, unsigned nargs,
             JSFunction::Flags flags, HandleObject parent, HandleAtom atom,
             gc::AllocKind allocKind = JSFunction::FinalizeKind,
             NewObjectKind newKind = GenericObject);
@@ -418,6 +408,9 @@ DefineFunction(JSContext *cx, HandleObject obj, HandleId id, JSNative native,
                unsigned nargs, unsigned flags,
                gc::AllocKind allocKind = JSFunction::FinalizeKind,
                NewObjectKind newKind = GenericObject);
+
+// ES6 9.2.5 IsConstructor
+bool IsConstructor(const Value &v);
 
 /*
  * Function extended with reserved slots for use by various kinds of functions.
@@ -507,5 +500,16 @@ js_fun_call(JSContext *cx, unsigned argc, js::Value *vp);
 extern JSObject*
 js_fun_bind(JSContext *cx, js::HandleObject target, js::HandleValue thisArg,
             js::Value *boundArgs, unsigned argslen);
+
+#ifdef DEBUG
+namespace JS {
+namespace detail {
+
+JS_PUBLIC_API(void)
+CheckIsValidConstructible(Value calleev);
+
+} // namespace detail
+} // namespace JS
+#endif
 
 #endif /* jsfun_h */

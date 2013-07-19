@@ -411,7 +411,7 @@ IonRuntime::generateArgumentsRectifier(JSContext *cx, ExecutionMode mode, void *
 
     // Construct IonJSFrameLayout.
     masm.ma_push(r0); // actual arguments.
-    masm.ma_push(r1); // calleeToken.
+    masm.pushCalleeToken(r1, mode);
     masm.ma_push(r6); // frame descriptor.
 
     // Call the target function.
@@ -820,6 +820,17 @@ IonRuntime::generateDebugTrapHandler(JSContext *cx)
     masm.mov(r11, sp);
     masm.pop(r11);
     masm.ret();
+
+    Linker linker(masm);
+    return linker.newCode(cx, JSC::OTHER_CODE);
+}
+
+IonCode *
+IonRuntime::generateExceptionTailStub(JSContext *cx)
+{
+    MacroAssembler masm;
+
+    masm.handleFailureWithHandlerTail();
 
     Linker linker(masm);
     return linker.newCode(cx, JSC::OTHER_CODE);

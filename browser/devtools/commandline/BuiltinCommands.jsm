@@ -13,7 +13,7 @@ this.EXPORTED_SYMBOLS = [ "CmdAddonFlags", "CmdCommands", "DEFAULT_DEBUG_PORT", 
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import("resource://gre/modules/commonjs/sdk/core/promise.js");
+let promise = Cu.import("resource://gre/modules/commonjs/sdk/core/promise.js").Promise;
 Cu.import("resource://gre/modules/osfile.jsm");
 
 Cu.import("resource://gre/modules/devtools/gcli.jsm");
@@ -646,8 +646,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "AppCacheUtils",
         dirName = homeDir + dirName;
       }
 
-      let promise = OS.File.stat(dirName);
-      promise = promise.then(
+      let statPromise = OS.File.stat(dirName);
+      statPromise = statPromise.then(
         function onSuccess(stat) {
           if (!stat.isDir) {
             throw new Error('\'' + dirName + '\' is not a directory.');
@@ -664,7 +664,7 @@ XPCOMUtils.defineLazyModuleGetter(this, "AppCacheUtils",
         }
       );
 
-      promise.then(
+      statPromise.then(
         function onSuccess() {
           let iterator = new OS.File.DirectoryIterator(dirName);
           let iterPromise = iterator.forEach(
@@ -697,8 +697,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "AppCacheUtils",
    * we eval the script from the .mozcmd file. This should be a chrome window.
    */
   function loadCommandFile(aFileEntry, aSandboxPrincipal) {
-    let promise = OS.File.read(aFileEntry.path);
-    promise = promise.then(
+    let readPromise = OS.File.read(aFileEntry.path);
+    readPromise = readPromise.then(
       function onSuccess(array) {
         let decoder = new TextDecoder();
         let source = decoder.decode(array);
@@ -2164,6 +2164,52 @@ gcli.addCommand({
     exec: function(args, context) {
       let utils = new AppCacheUtils();
       return utils.viewEntry(args.key);
+    }
+  });
+}(this));
+
+/* CmdMedia ------------------------------------------------------- */
+
+(function(module) {
+  /**
+   * 'media' command
+   */
+
+  gcli.addCommand({
+    name: "media",
+    description: gcli.lookup("mediaDesc")
+  });
+
+  gcli.addCommand({
+    name: "media emulate",
+    description: gcli.lookup("mediaEmulateDesc"),
+    manual: gcli.lookup("mediaEmulateManual"),
+    params: [
+      {
+        name: "type",
+        description: gcli.lookup("mediaEmulateType"),
+        type: {
+               name: "selection",
+               data: ["braille", "embossed", "handheld", "print", "projection",
+                      "screen", "speech", "tty", "tv"]
+              }
+      }
+    ],
+    exec: function(args, context) {
+      let markupDocumentViewer = context.environment.chromeWindow
+                                        .gBrowser.markupDocumentViewer;
+      markupDocumentViewer.emulateMedium(args.type);
+    }
+  });
+
+  gcli.addCommand({
+    name: "media reset",
+    description: gcli.lookup("mediaResetDesc"),
+    manual: gcli.lookup("mediaEmulateManual"),
+    exec: function(args, context) {
+      let markupDocumentViewer = context.environment.chromeWindow
+                                        .gBrowser.markupDocumentViewer;
+      markupDocumentViewer.stopEmulatingMedium();
     }
   });
 }(this));

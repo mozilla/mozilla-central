@@ -51,7 +51,7 @@ _SUBDIR_CONFIG_ARGS="$ac_configure_args"
 dnl Set the version number of the libs included with mozilla
 dnl ========================================================
 MOZJPEG=62
-MOZPNG=10516
+MOZPNG=10517
 NSPR_VERSION=4
 NSS_VERSION=3
 
@@ -190,8 +190,11 @@ if test -n "$gonkdir" ; then
     STRIP="$gonk_toolchain_prefix"strip
     OBJCOPY="$gonk_toolchain_prefix"objcopy
 
-    STLPORT_CPPFLAGS="-I$gonkdir/ndk/sources/cxx-stl/stlport/stlport/ -I$gonkdir/external/stlport/stlport/"
-    STLPORT_LIBS="-lstlport"
+    if ! test -e "$gonkdir/ndk/sources/cxx-stl/stlport/src/iostream.cpp"; then
+        AC_MSG_ERROR([Couldn't find path to stlport sources in the gonk tree])
+    fi
+    STLPORT_CPPFLAGS="-I$_topsrcdir/build/stlport/stlport -I$gonkdir/ndk/sources/cxx-stl/system/include"
+    STLPORT_LIBS="$_objdir/build/stlport/libstlport_static.a -static-libstdc++"
 
     case "$target_cpu" in
     arm)
@@ -222,7 +225,7 @@ if test -n "$gonkdir" ; then
     CFLAGS="-mandroid -fno-short-enums -fno-exceptions $CFLAGS"
     CXXFLAGS="-mandroid -fno-short-enums -fno-exceptions -Wno-psabi $CXXFLAGS $STLPORT_CPPFLAGS"
     dnl Add -llog by default, since we use it all over the place.
-    LIBS="$LIBS -llog $STLPORT_LIBS"
+    LIBS="$LIBS -llog"
 
     LDFLAGS="-mandroid -L$gonkdir/out/target/product/$GONK_PRODUCT/obj/lib -Wl,-rpath-link=$gonkdir/out/target/product/$GONK_PRODUCT/obj/lib --sysroot=$gonkdir/out/target/product/$GONK_PRODUCT/obj/ $LDFLAGS"
 
@@ -487,16 +490,18 @@ case "$target" in
             AC_MSG_ERROR([The major versions of \$CC and \$CXX do not match.])
         fi
 
+        AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
+        AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
+
         if test "$_CC_MAJOR_VERSION" = "16"; then
             _CC_SUITE=10
             _MSVS_VERSION=2010
-            AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
-            AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
         elif test "$_CC_MAJOR_VERSION" = "17"; then
             _CC_SUITE=11
             _MSVS_VERSION=2012
-            AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
-            AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
+        elif test "$_CC_MAJOR_VERSION" = "18"; then
+            _CC_SUITE=12
+            _MSVS_VERSION=2013
         else
             AC_MSG_ERROR([This version ($CC_VERSION) of the MSVC compiler is unsupported. See https://developer.mozilla.org/en/Windows_Build_Prerequisites.])
         fi
@@ -1339,6 +1344,15 @@ if test "$GNU_CC"; then
     AC_TRY_LINK(,,AC_MSG_RESULT([yes]),
                   AC_MSG_RESULT([no])
                   LDFLAGS=$_SAVE_LDFLAGS)
+
+    AC_MSG_CHECKING([for -z text option to ld])
+    _SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS -Wl,-z,text"
+    AC_TRY_LINK(,,AC_MSG_RESULT([yes])
+                  [NSPR_LDFLAGS="$NSPR_LDFLAGS -Wl,-z,text"],
+                  AC_MSG_RESULT([no])
+                  LDFLAGS=$_SAVE_LDFLAGS)
+
     AC_MSG_CHECKING([for --build-id option to ld])
     _SAVE_LDFLAGS=$LDFLAGS
     LDFLAGS="$LDFLAGS -Wl,--build-id"
@@ -2015,7 +2029,6 @@ ia64*-hpux*)
         # -Os has been broken on Intel's C/C++ compilers for quite a
         # while; Intel recommends against using it.
         MOZ_OPTIMIZE_FLAGS="-O2"
-        MOZ_DEBUG_FLAGS="-g"
     elif test "$GNU_CC" -o "$GNU_CXX"; then
         case $GCC_VERSION in
         4.5.*)
@@ -2024,7 +2037,6 @@ ia64*-hpux*)
         esac
         MOZ_PGO_OPTIMIZE_FLAGS="-O3"
         MOZ_OPTIMIZE_FLAGS="-Os -freorder-blocks $MOZ_OPTIMIZE_SIZE_TWEAK"
-        MOZ_DEBUG_FLAGS="-g"
     fi
 
     TARGET_NSPR_MDCPUCFG='\"md/_linux.cfg\"'
@@ -2038,9 +2050,6 @@ ia64*-hpux*)
     ;;
     i*86)
     	USE_ELF_DYNSTR_GC=1
-    ;;
-    mips*)
-        MOZ_DEBUG_FLAGS="-g" # We want inlining
     ;;
     esac
 
@@ -2177,7 +2186,6 @@ ia64*-hpux*)
     AC_DEFINE(XP_WIN32)
     AC_DEFINE(HW_THREADS)
     AC_DEFINE(STDC_HEADERS)
-    AC_DEFINE(NEW_H, <new>)
     AC_DEFINE(WIN32_LEAN_AND_MEAN)
     TARGET_MD_ARCH=win32
     _PLATFORM_DEFAULT_TOOLKIT='cairo-windows'
@@ -2233,7 +2241,6 @@ ia64*-hpux*)
             CXXFLAGS="$CXXFLAGS -mstackrealign -fno-keep-inline-dllexport"
             LDFLAGS="$LDFLAGS -Wl,--enable-stdcall-fixup -Wl,--large-address-aware"
         else
-            AC_DEFINE(HAVE_STDCALL)
             DSO_LDOPTS="$DSO_LDOPTS -MACHINE:X86"
             LDFLAGS="$LDFLAGS -SAFESEH"
         fi
@@ -2458,6 +2465,13 @@ ia64*-hpux*)
 
 esac
 
+case "$target" in
+*-*linux*)
+    # Includes linux-android
+    AC_DEFINE(XP_LINUX)
+    ;;
+esac
+
 AC_SUBST(MOZ_LINKER)
 if test -n "$MOZ_LINKER"; then
   AC_DEFINE(MOZ_LINKER)
@@ -2529,6 +2543,88 @@ if test -z "$COMPILE_ENVIRONMENT"; then
     SKIP_LIBRARY_CHECKS=1
 fi
 
+dnl ========================================================
+dnl =
+dnl = Debugging Options
+dnl =
+dnl = These must come before MOZ_COMPILER_OPTS so that MOZ_COMPILER_OPTS
+dnl = sees any debug flags set by the user.
+dnl =
+dnl ========================================================
+MOZ_ARG_HEADER(Debugging)
+
+dnl ========================================================
+dnl = Debug info is ON by default.
+dnl ========================================================
+if test -z "$MOZ_DEBUG_FLAGS"; then
+  MOZ_DEBUG_FLAGS="-g"
+fi
+
+MOZ_ARG_ENABLE_STRING(debug,
+[  --enable-debug[=DBG]    Enable building with developer debug info
+                           (using compiler flags DBG)],
+[ if test "$enableval" != "no"; then
+    MOZ_DEBUG=1
+    if test -n "$enableval" -a "$enableval" != "yes"; then
+        MOZ_DEBUG_FLAGS=`echo $enableval | sed -e 's|\\\ | |g'`
+        _MOZ_DEBUG_FLAGS_SET=1
+    fi
+  else
+    MOZ_DEBUG=
+  fi ],
+  MOZ_DEBUG=)
+
+MOZ_DEBUG_ENABLE_DEFS="-DDEBUG -D_DEBUG -DTRACING"
+MOZ_ARG_WITH_STRING(debug-label,
+[  --with-debug-label=LABELS
+                          Define DEBUG_<value> for each comma-separated
+                          value given.],
+[ for option in `echo $withval | sed 's/,/ /g'`; do
+    MOZ_DEBUG_ENABLE_DEFS="$MOZ_DEBUG_ENABLE_DEFS -DDEBUG_${option}"
+done])
+
+MOZ_DEBUG_DISABLE_DEFS="-DNDEBUG -DTRIMMED"
+
+if test -n "$MOZ_DEBUG"; then
+    AC_MSG_CHECKING([for valid debug flags])
+    _SAVE_CFLAGS=$CFLAGS
+    CFLAGS="$CFLAGS $MOZ_DEBUG_FLAGS"
+    AC_TRY_COMPILE([#include <stdio.h>],
+        [printf("Hello World\n");],
+        _results=yes,
+        _results=no)
+    AC_MSG_RESULT([$_results])
+    if test "$_results" = "no"; then
+        AC_MSG_ERROR([These compiler flags are invalid: $MOZ_DEBUG_FLAGS])
+    fi
+    CFLAGS=$_SAVE_CFLAGS
+fi
+
+dnl ========================================================
+dnl = Enable generation of debug symbols
+dnl ========================================================
+MOZ_ARG_ENABLE_STRING(debug-symbols,
+[  --enable-debug-symbols[=DBG]
+                          Enable debugging symbols (using compiler flags DBG)],
+[ if test "$enableval" != "no"; then
+      MOZ_DEBUG_SYMBOLS=1
+      if test -n "$enableval" -a "$enableval" != "yes"; then
+          if test -z "$_MOZ_DEBUG_FLAGS_SET"; then
+              MOZ_DEBUG_FLAGS=`echo $enableval | sed -e 's|\\\ | |g'`
+          else
+              AC_MSG_ERROR([--enable-debug-symbols flags cannot be used with --enable-debug flags])
+          fi
+      fi
+  else
+      MOZ_DEBUG_SYMBOLS=
+  fi ],
+  MOZ_DEBUG_SYMBOLS=1)
+
+if test -n "$MOZ_DEBUG" -o -n "$MOZ_DEBUG_SYMBOLS"; then
+    AC_DEFINE(MOZ_DEBUG_SYMBOLS)
+    export MOZ_DEBUG_SYMBOLS
+fi
+
 MOZ_COMPILER_OPTS
 if test -z "$SKIP_COMPILER_CHECKS"; then
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -2540,20 +2636,6 @@ AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_LANG_CPLUSPLUS
-AC_MSG_CHECKING(for __stdcall)
-AC_CACHE_VAL(ac_cv___stdcall,
- [AC_TRY_COMPILE([template <typename Method> struct foo;
-                  template <> struct foo<void (*)()> {};
-                  template <> struct foo<void (__stdcall*)()> {};],
-                 [],
-                 [ac_cv___stdcall=true],
-                 [ac_cv___stdcall=false])])
-if test "$ac_cv___stdcall" = true ; then
-  AC_DEFINE(HAVE_STDCALL)
-  AC_MSG_RESULT(yes)
-else
-  AC_MSG_RESULT(no)
-fi
 AC_LANG_C
 AC_MSG_CHECKING(for ssize_t)
 AC_CACHE_VAL(ac_cv_type_ssize_t,
@@ -2660,11 +2742,10 @@ else
     AC_MSG_RESULT(no)
 fi
 
-dnl Check whether we can use gcc's c++0x mode
+dnl Check whether gcc's c++0x mode works
 AC_LANG_CPLUSPLUS
 
 if test "$GNU_CXX"; then
-    _SAVE_CXXFLAGS=$CXXFLAGS
     CXXFLAGS="$CXXFLAGS -std=gnu++0x"
 
     AC_CACHE_CHECK(for gcc c++0x headers bug without rtti,
@@ -2682,10 +2763,10 @@ if test "$GNU_CXX"; then
                             ac_cv_cxx0x_clang_workaround="no")])
 
         if test "ac_cv_cxx0x_clang_workaround" = "no"; then
-            CXXFLAGS="$_SAVE_CXXFLAGS"
+            AC_MSG_ERROR([Your toolchain does not support C++0x/C++11 mode properly. Please upgrade your toolchain])
         fi
     elif test "$ac_cv_cxx0x_headers_bug" = "yes"; then
-        CXXFLAGS="$_SAVE_CXXFLAGS"
+        AC_MSG_ERROR([Your toolchain does not support C++0x/C++11 mode properly. Please upgrade your toolchain])
     fi
 fi
 
@@ -2980,14 +3061,6 @@ AC_CACHE_CHECK(for sockaddr.sa_len,
 if test "$ac_cv_sockaddr_sa_len" = true ; then
   AC_DEFINE(HAVE_SA_LEN)
 fi
-
-dnl Check whether the compiler supports the new-style C++ standard
-dnl library headers (i.e. <new>) or needs the old "new.h"
-AC_LANG_CPLUSPLUS
-NEW_H=new.h
-MOZ_CHECK_HEADER(new, [NEW_H=new])
-AC_DEFINE_UNQUOTED(NEW_H, <$NEW_H>)
-AC_LANG_C
 
 AC_ARG_ENABLE(dtrace,
               [  --enable-dtrace         build with dtrace support if available (default=no)],
@@ -4105,6 +4178,12 @@ if test "${PNG_DIR}" -a -d "${PNG_DIR}" -a "$MOZ_NATIVE_PNG" = 1; then
     MOZ_PNG_LIBS="-L${PNG_DIR}/lib ${MOZ_PNG_LIBS}"
 fi
 
+MOZ_PNG_ARM_NEON=
+if test "$MOZ_NATIVE_PNG" != 1 -a "$CPU_ARCH" = "arm" ; then
+    MOZ_PNG_ARM_NEON=1
+fi
+AC_SUBST(MOZ_PNG_ARM_NEON)
+
 fi # SKIP_LIBRARY_CHECKS
 
 dnl system HunSpell Support
@@ -4210,7 +4289,6 @@ MOZ_PLACES=1
 MOZ_SOCIAL=1
 MOZ_PREF_EXTENSIONS=1
 MOZ_PROFILELOCKING=1
-MOZ_PSM=1
 MOZ_REFLOW_PERF=
 MOZ_SAFE_BROWSING=
 MOZ_HELP_VIEWER=
@@ -4227,7 +4305,6 @@ NS_PRINTING=1
 MOZ_PDF_PRINTING=
 MOZ_DISABLE_CRYPTOLEGACY=
 NSS_DISABLE_DBM=
-NECKO_WIFI=1
 NECKO_COOKIES=1
 NECKO_PROTOCOLS_DEFAULT="about data file ftp http res viewsource websocket wyciwyg device"
 USE_ARM_KUSER=
@@ -4257,11 +4334,6 @@ case "${target}" in
         fi
 
         NSS_DISABLE_DBM=1
-        if test -z "$gonkdir"; then
-          NECKO_WIFI=
-        else
-          NECKO_WIFI=1
-        fi
         MOZ_THEME_FASTSTRIPE=1
         MOZ_TREE_FREETYPE=1
         MOZ_MEMORY=1
@@ -4441,6 +4513,14 @@ if test -z "$gonkdir" ; then
     case "$MOZ_BUILD_APP" in
     mobile/android)
         android_min_api_level=16
+        case "$target" in
+        *-android*|*-linuxandroid*)
+            :
+            ;;
+        *)
+            AC_MSG_ERROR([You must specify --target=arm-linux-androideabi (or some other valid android target) when building with --enable-application=mobile/android. See https://wiki.mozilla.org/Mobile/Fennec/Android#Setup_Fennec_mozconfig for more information about the necessary options])
+            ;;
+        esac
         ;;
     esac
 
@@ -4724,7 +4804,7 @@ then
     else
         HOST_QMAKE="$QTDIR/bin/qmake"
     fi
-    QT_VERSION=`$HOST_QMAKE -v | grep 'Using Qt version' | grep -oP '\d+\.\d+\.\d+'`
+    QT_VERSION=`$HOST_QMAKE -v | grep 'Using Qt version' | egrep -o '[[0-9]]+\.[[0-9]]+\.[[0-9]]+'`
 
     if test -z "$QTDIR"; then
         case $QT_VERSION in
@@ -5204,14 +5284,6 @@ dnl ========================================================
 if test -n "$MOZ_ANDROID_BEAM"; then
     AC_DEFINE(MOZ_ANDROID_BEAM)
 fi
-
-dnl ========================================================
-dnl = Build Personal Security Manager
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(crypto,
-[  --disable-crypto        Disable crypto support (Personal Security Manager)],
-    MOZ_PSM=,
-    MOZ_PSM=1 )
 
 dnl ========================================================
 dnl = JS Debugger XPCOM component (js/jsd)
@@ -5931,6 +6003,10 @@ MOZ_ARG_DISABLE_BOOL(webgl,
 if test -n "$MOZ_WEBGL_DISABLED"; then
   MOZ_WEBGL=
   MOZ_ANGLE_RENDERER=
+fi
+
+if test -n "$MOZ_WEBGL_CONFORMANT"; then
+  AC_DEFINE(MOZ_WEBGL_CONFORMANT)
 fi
 
 # Locate a DirectX SDK here so we can use it for both ANGLE and
@@ -6927,58 +7003,10 @@ dnl MOZ_ARG_HEADER(Features that require extra sources)
 
 dnl ========================================================
 dnl =
-dnl = Debugging Options
+dnl = Runtime debugging and Optimization Options
 dnl =
 dnl ========================================================
-MOZ_ARG_HEADER(Debugging and Optimizations)
-
-dnl ========================================================
-dnl = Disable building with debug info.
-dnl = Debugging is OFF by default
-dnl ========================================================
-if test -z "$MOZ_DEBUG_FLAGS"; then
-  MOZ_DEBUG_FLAGS="-g"
-fi
-
-MOZ_ARG_ENABLE_STRING(debug,
-[  --enable-debug[=DBG]    Enable building with developer debug info
-                           (using compiler flags DBG)],
-[ if test "$enableval" != "no"; then
-    MOZ_DEBUG=1
-    if test -n "$enableval" -a "$enableval" != "yes"; then
-        MOZ_DEBUG_FLAGS=`echo $enableval | sed -e 's|\\\ | |g'`
-        _MOZ_DEBUG_FLAGS_SET=1
-    fi
-  else
-    MOZ_DEBUG=
-  fi ],
-  MOZ_DEBUG=)
-
-MOZ_DEBUG_ENABLE_DEFS="-DDEBUG -D_DEBUG -DTRACING"
-MOZ_ARG_WITH_STRING(debug-label,
-[  --with-debug-label=LABELS
-                          Define DEBUG_<value> for each comma-separated
-                          value given.],
-[ for option in `echo $withval | sed 's/,/ /g'`; do
-    MOZ_DEBUG_ENABLE_DEFS="$MOZ_DEBUG_ENABLE_DEFS -DDEBUG_${option}"
-done])
-
-MOZ_DEBUG_DISABLE_DEFS="-DNDEBUG -DTRIMMED"
-
-if test -n "$MOZ_DEBUG"; then
-    AC_MSG_CHECKING([for valid debug flags])
-    _SAVE_CFLAGS=$CFLAGS
-    CFLAGS="$CFLAGS $MOZ_DEBUG_FLAGS"
-    AC_TRY_COMPILE([#include <stdio.h>],
-        [printf("Hello World\n");],
-        _results=yes,
-        _results=no)
-    AC_MSG_RESULT([$_results])
-    if test "$_results" = "no"; then
-        AC_MSG_ERROR([These compiler flags are invalid: $MOZ_DEBUG_FLAGS])
-    fi
-    CFLAGS=$_SAVE_CFLAGS
-fi
+MOZ_ARG_HEADER(Runtime debugging and Optimizations)
 
 dnl ========================================================
 dnl enable mobile optimizations
@@ -7040,31 +7068,6 @@ AC_SUBST(MOZ_OPTIMIZE_LDFLAGS)
 AC_SUBST(MOZ_ALLOW_HEAP_EXECUTE_FLAGS)
 AC_SUBST(MOZ_OPTIMIZE_SIZE_TWEAK)
 AC_SUBST(MOZ_PGO_OPTIMIZE_FLAGS)
-
-dnl ========================================================
-dnl = Enable generation of debug symbols
-dnl ========================================================
-MOZ_ARG_ENABLE_STRING(debug-symbols,
-[  --enable-debug-symbols[=DBG]
-                          Enable debugging symbols (using compiler flags DBG)],
-[ if test "$enableval" != "no"; then
-      MOZ_DEBUG_SYMBOLS=1
-      if test -n "$enableval" -a "$enableval" != "yes"; then
-          if test -z "$_MOZ_DEBUG_FLAGS_SET"; then
-              MOZ_DEBUG_FLAGS=`echo $enableval | sed -e 's|\\\ | |g'`
-          else
-              AC_MSG_ERROR([--enable-debug-symbols flags cannot be used with --enable-debug flags])
-          fi
-      fi
-  else
-      MOZ_DEBUG_SYMBOLS=
-  fi ],
-  MOZ_DEBUG_SYMBOLS=1)
-
-if test -n "$MOZ_DEBUG" -o -n "$MOZ_DEBUG_SYMBOLS"; then
-    AC_DEFINE(MOZ_DEBUG_SYMBOLS)
-    export MOZ_DEBUG_SYMBOLS
-fi
 
 dnl ========================================================
 dnl = Enable any treating of compile warnings as errors
@@ -7547,13 +7550,16 @@ dnl ========================================================
 USE_ELF_HACK=1
 MOZ_ARG_DISABLE_BOOL(elf-hack,
 [  --disable-elf-hack      Disable elf hacks],
-    USE_ELF_HACK=,
-    USE_ELF_HACK=1)
+    [USE_ELF_HACK=],
+    [USE_ELF_HACK=F # Force enable elf-hack])
 
 # Disable elf hack for profiling because the built in profiler
 # doesn't read the segments properly with elf hack. This is
 # temporary and should be fixed soon in the profiler.
 if test "$MOZ_PROFILING" = 1; then
+  if test "$USE_ELF_HACK" = F; then
+    AC_ERROR([--enable-elf-hack is not compatible with --enable-profiling])
+  fi
   USE_ELF_HACK=
 fi
 
@@ -7576,7 +7582,7 @@ if test "$USE_ELF_HACK" = 1; then
     esac
 fi
 
-if test "$USE_ELF_HACK" = 1; then
+if test -n "$USE_ELF_HACK"; then
     dnl PT_GNU_RELRO segment makes the dynamic linker set a read-only flag on
     dnl memory addresses it maps to. The result is that by the time elfhack
     dnl kicks in, it is not possible to apply relocations because of that,
@@ -7584,7 +7590,8 @@ if test "$USE_ELF_HACK" = 1; then
     dnl segment. It makes elfhack mostly useless, so considering the problems
     dnl we have we PT_GNU_RELRO (e.g. bug 664366), and until elfhack can deal
     dnl with PT_GNU_RELRO segments, it's just simpler to disable elfhack when
-    dnl the linker creates PT_GNU_RELRO segments.
+    dnl the linker creates PT_GNU_RELRO segments. However, when we do want
+    dnl elfhack enabled, disable PT_GNU_RELRO instead.
     AC_CACHE_CHECK([whether linker creates PT_GNU_RELRO segments],
         LINK_WITH_PT_GNU_RELRO,
         [echo "int main() {return 0;}" > conftest.${ac_ext}
@@ -7601,8 +7608,18 @@ if test "$USE_ELF_HACK" = 1; then
          fi
          rm -rf conftest*])
     if test "$LINK_WITH_PT_GNU_RELRO" = yes; then
-        AC_MSG_WARN([Disabling elfhack])
-        USE_ELF_HACK=
+        if test "$USE_ELF_HACK" = F; then
+            AC_MSG_CHECKING([for -z norelro option to ld])
+            _SAVE_LDFLAGS=$LDFLAGS
+            LDFLAGS="$LDFLAGS -Wl,-z,norelro"
+            AC_TRY_LINK(,,AC_MSG_RESULT([yes])
+                        [NSPR_LDFLAGS="$NSPR_LDFLAGS -Wl,-z,norelro"],
+                        AC_ERROR([--enable-elf-hack is not compatible with a linker creating a PT_GNU_RELRO segment and that doesn't support the "-z norelro" option.]))
+            USE_ELF_HACK=1
+        else
+            AC_MSG_WARN([Disabling elfhack])
+            USE_ELF_HACK=
+        fi
     fi
 fi
 
@@ -8121,8 +8138,22 @@ dnl ========================================================
 dnl Graphics checks.
 dnl ========================================================
 
+if test "${OS_TARGET}" = "WINNT"; then
+  if $PERL -e "exit($MOZ_WINSDK_MAXVER < 0x06020000)"; then
+    MOZ_ENABLE_DIRECT2D1_1=1
+    AC_SUBST(MOZ_ENABLE_DIRECT2D1_1)
+  fi
+fi
+
 if test "${OS_TARGET}" = "WINNT" -o "${OS_ARCH}" = "Darwin" -o "${MOZ_WIDGET_TOOLKIT}" = "android" -o "${MOZ_WIDGET_TOOLKIT}" = "gtk2"; then
-MOZ_ENABLE_SKIA=1
+    case "${target_cpu}" in
+    i*86*|x86_64|arm)
+        MOZ_ENABLE_SKIA=1
+        ;;
+    *)
+        MOZ_ENABLE_SKIA=
+        ;;
+    esac
 else
 MOZ_ENABLE_SKIA=
 fi
@@ -8461,28 +8492,36 @@ done
 dnl
 dnl option to disable necko's wifi scanner
 dnl
+
+case "$OS_TARGET" in
+  Android)
+    if test -n "$gonkdir"; then
+      NECKO_WIFI=1
+    fi
+    ;;
+  Darwin|SunOS|WINNT)
+    NECKO_WIFI=1
+    ;;
+  Linux)
+    if test -z "$MOZ_ENABLE_DBUS"; then
+      AC_MSG_ERROR([Necko WiFi scanning needs DBus on your platform, remove --disable-dbus or use --disable-necko-wifi])
+    fi
+    NECKO_WIFI=1
+    NECKO_WIFI_DBUS=1
+    ;;
+esac
+
 MOZ_ARG_DISABLE_BOOL(necko-wifi,
 [  --disable-necko-wifi    Disable necko wifi scanner],
     NECKO_WIFI=,
     NECKO_WIFI=1)
-
-if test "$OS_ARCH" = "OS2"; then
-  dnl OS/2 implementation of Necko-WiFi support will be added in bug 506566
-  NECKO_WIFI=
-fi
-if test "$NECKO_WIFI" -a \
-        "$OS_ARCH" != "Linux" -a \
-        "$OS_ARCH" != "Darwin" -a \
-        "$OS_ARCH" != "SunOS" -a \
-        "$OS_ARCH" != "WINNT"; then
-  AC_MSG_ERROR([Necko WiFi scanning not supported on your platform, use --disable-necko-wifi])
-fi
 
 if test "$NECKO_WIFI"; then
   AC_DEFINE(NECKO_WIFI)
   _NON_GLOBAL_ACDEFINES="$_NON_GLOBAL_ACDEFINES NECKO_WIFI"
 fi
 AC_SUBST(NECKO_WIFI)
+AC_SUBST(NECKO_WIFI_DBUS)
 
 dnl
 dnl option to disable cookies
@@ -8609,7 +8648,6 @@ AC_SUBST(MOZ_AUTH_EXTENSION)
 AC_SUBST(MOZ_PERMISSIONS)
 AC_SUBST(MOZ_PREF_EXTENSIONS)
 AC_SUBST(MOZ_JS_LIBS)
-AC_SUBST(MOZ_PSM)
 AC_SUBST(MOZ_DEBUG)
 AC_SUBST(MOZ_DEBUG_SYMBOLS)
 AC_SUBST(MOZ_DEBUG_ENABLE_DEFS)
@@ -8829,9 +8867,8 @@ if test "$MOZ_TELEMETRY_REPORTING"; then
     AC_DEFINE(MOZ_TELEMETRY_REPORTING)
 
     # Enable Telemetry by default for nightly and aurora channels
-    if test "$MOZ_UPDATE_CHANNEL" = "nightly" -o \
-        "$MOZ_UPDATE_CHANNEL" = "aurora"; then
-        AC_DEFINE(MOZ_TELEMETRY_ON_BY_DEFAULT)
+    if test -z "$RELEASE_BUILD"; then
+      AC_DEFINE(MOZ_TELEMETRY_ON_BY_DEFAULT)
     fi
 fi
 
@@ -9099,7 +9136,6 @@ HAVE_CPP_DYNAMIC_CAST_TO_VOID_PTR
 HAVE_CPP_PARTIAL_SPECIALIZATION
 HAVE_CPP_TROUBLE_COMPARING_TO_ZERO
 NEED_CPP_UNUSED_IMPLEMENTATIONS
-NEW_H
 HAVE_GETPAGESIZE
 HAVE_ICONV
 HAVE_ICONV_WITH_CONST_INPUT
@@ -9121,6 +9157,8 @@ netwerk/necko-config.h
 xpcom/xpcom-config.h
 xpcom/xpcom-private.h
 )
+
+AC_SUBST(STLPORT_LIBS)
 
 AC_OUTPUT([mozilla-config.h])
 
@@ -9184,8 +9222,10 @@ else
 fi
 
 # Don't try to compile ssse3/sse4.1 code if toolchain doesn't support
-if test -z "$HAVE_TOOLCHAIN_SUPPORT_SSSE3" || test -z "$HAVE_TOOLCHAIN_SUPPORT_MSSE4_1"; then
-  EXTRA_GYP_DEFINES="$EXTRA_GYP_DEFINES -D yuv_disable_asm=1"
+if test -n "$INTEL_ARCHITECTURE"; then
+  if test -z "$HAVE_TOOLCHAIN_SUPPORT_MSSSE3" -o -z "$HAVE_TOOLCHAIN_SUPPORT_MSSE4_1"; then
+    EXTRA_GYP_DEFINES="$EXTRA_GYP_DEFINES -D yuv_disable_asm=1"
+  fi
 fi
 
 if test -n "$MOZ_WEBRTC"; then

@@ -73,7 +73,7 @@ fuzzy-if(/^Windows\x20NT\x206\.[12]/.test(http.oscpu),1,5) == clipPath-and-shape
 == dynamic-conditions-11.svg pass.svg
 == dynamic-conditions-12.svg pass.svg
 == dynamic-conditions-13.svg about:blank
-fuzzy-if(Android,4,44) skip-if(B2G) == dynamic-clipPath-01.svg pass.svg
+fuzzy-if(Android,4,87) skip-if(B2G) == dynamic-clipPath-01.svg pass.svg
 == dynamic-clipPath-02.svg pass.svg
 == dynamic-feFlood-01.svg pass.svg
 == dynamic-feImage-01.svg pass.svg
@@ -184,6 +184,7 @@ fuzzy-if(Android,9,980) == gradient-live-01d.svg gradient-live-01-ref.svg
 == marker-attribute-01.svg pass.svg
 == marker-viewBox-01.svg marker-viewBox-01-ref.svg
 == marker-orientation-01.svg marker-orientation-01-ref.svg
+pref(svg.marker-improvements.enabled,true) == marker-orientation-02.svg marker-orientation-02-ref.svg
 == mask-basic-01.svg pass.svg
 == mask-basic-02.svg mask-basic-02-ref.svg
 == mask-basic-03.svg pass.svg
@@ -198,7 +199,7 @@ pref(layout.css.masking.enabled,true) fuzzy-if(d2d,1,6400) == mask-type-04.svg m
 == nested-viewBox-01.svg pass.svg
 == nesting-invalid-01.svg nesting-invalid-01-ref.svg
 == non-scaling-stroke-01.svg non-scaling-stroke-01-ref.svg 
-fuzzy-if(Android,9,61) fuzzy-if(!contentSameGfxBackendAsCanvas,1,99) == non-scaling-stroke-02.svg non-scaling-stroke-02-ref.svg 
+fuzzy-if(Android,1,99) fuzzy-if(!contentSameGfxBackendAsCanvas,1,99) == non-scaling-stroke-02.svg non-scaling-stroke-02-ref.svg 
 == non-scaling-stroke-03.svg non-scaling-stroke-03-ref.svg 
 == objectBoundingBox-and-clipPath.svg pass.svg
 # Bug 588684

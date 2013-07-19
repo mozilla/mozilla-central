@@ -47,14 +47,13 @@ public class GeckoView extends LayerView
         GeckoAppShell.setContextGetter(this);
         if (context instanceof Activity) {
             Tabs tabs = Tabs.getInstance();
-            tabs.attachToActivity((Activity) context);
+            tabs.attachToContext(context);
         }
         GeckoProfile profile = GeckoProfile.get(context);
         BrowserDB.initialize(profile.getName());
         GeckoAppShell.registerEventListener("Gecko:Ready", this);
 
         sGeckoThread = new GeckoThread(intent, url);
-        ThreadUtils.setGeckoThread(sGeckoThread);
         ThreadUtils.setUiThread(Thread.currentThread(), new Handler());
         initializeView(GeckoAppShell.getEventDispatcher());
         if (GeckoThread.checkAndSetLaunchState(GeckoThread.LaunchState.Launching, GeckoThread.LaunchState.Launched)) {

@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "mozilla/DebugOnly.h"
+#include "mozilla/MathAlgorithms.h"
 
 #include "jscntxt.h"
 #include "jscompartment.h"
@@ -18,12 +19,13 @@
 using namespace js;
 using namespace js::ion;
 
+using mozilla::FloorLog2;
+
 namespace js {
 namespace ion {
 
 CodeGeneratorX86Shared::CodeGeneratorX86Shared(MIRGenerator *gen, LIRGraph *graph, MacroAssembler *masm)
-  : CodeGeneratorShared(gen, graph, masm),
-    deoptLabel_(NULL)
+  : CodeGeneratorShared(gen, graph, masm)
 {
 }
 
@@ -39,17 +41,13 @@ CodeGeneratorX86Shared::generatePrologue()
     // Note that this automatically sets MacroAssembler::framePushed().
     masm.reserveStack(frameSize());
 
-    // Allocate returnLabel_ on the heap, so we don't run its destructor and
-    // assert-not-bound in debug mode on compilation failure.
-    returnLabel_ = new HeapLabel();
-
     return true;
 }
 
 bool
 CodeGeneratorX86Shared::generateEpilogue()
 {
-    masm.bind(returnLabel_);
+    masm.bind(&returnLabel_);
 
     // Pop the stack we allocated at the start of the function.
     masm.freeStack(frameSize());
@@ -228,9 +226,9 @@ CodeGeneratorX86Shared::generateOutOfLineCode()
     if (!CodeGeneratorShared::generateOutOfLineCode())
         return false;
 
-    if (deoptLabel_) {
+    if (deoptLabel_.used()) {
         // All non-table-based bailouts will go here.
-        masm.bind(deoptLabel_);
+        masm.bind(&deoptLabel_);
 
         // Push the frame size, so the handler can recover the IonScript.
         masm.push(Imm32(frameSize()));
@@ -332,6 +330,13 @@ CodeGeneratorX86Shared::bailoutIf(Assembler::Condition condition, LSnapshot *sna
 }
 
 bool
+CodeGeneratorX86Shared::bailoutIf(Assembler::DoubleCondition condition, LSnapshot *snapshot)
+{
+    JS_ASSERT(Assembler::NaNCondFromDoubleCondition(condition) == Assembler::NaN_HandledByCond);
+    return bailoutIf(Assembler::ConditionFromDoubleCondition(condition), snapshot);
+}
+
+bool
 CodeGeneratorX86Shared::bailoutFrom(Label *label, LSnapshot *snapshot)
 {
     JS_ASSERT(label->used() && !label->bound());
@@ -349,11 +354,8 @@ CodeGeneratorX86Shared::bailout(LSnapshot *snapshot)
 bool
 CodeGeneratorX86Shared::visitOutOfLineBailout(OutOfLineBailout *ool)
 {
-    if (!deoptLabel_)
-        deoptLabel_ = new HeapLabel();
-
     masm.push(Imm32(ool->snapshot()->snapshotOffset()));
-    masm.jmp(deoptLabel_);
+    masm.jmp(&deoptLabel_);
     return true;
 }
 
@@ -597,8 +599,7 @@ CodeGeneratorX86Shared::visitMulI(LMulI *ins)
           default:
             if (!mul->canOverflow() && constant > 0) {
                 // Use shift if cannot overflow and constant is power of 2
-                int32_t shift;
-                JS_FLOOR_LOG2(shift, constant);
+                int32_t shift = FloorLog2(constant);
                 if ((1 << shift) == constant) {
                     masm.shll(Imm32(shift), ToRegister(lhs));
                     return true;
@@ -633,7 +634,7 @@ CodeGeneratorX86Shared::visitMulI(LMulI *ins)
 }
 
 bool
-CodeGeneratorX86Shared::visitAsmJSDivOrMod(LAsmJSDivOrMod *ins)
+CodeGeneratorX86Shared::visitUDivOrMod(LUDivOrMod *ins)
 {
     JS_ASSERT(ToRegister(ins->lhs()) == eax);
     Register rhs = ToRegister(ins->rhs());
@@ -843,33 +844,59 @@ CodeGeneratorX86Shared::visitModI(LModI *ins)
 
     Label done;
 
-    // Prevent divide by zero
-    masm.testl(rhs, rhs);
-    if (ins->mir()->isTruncated()) {
-        Label notzero;
-        masm.j(Assembler::NonZero, &notzero);
-        masm.xorl(edx, edx);
-        masm.jmp(&done);
-        masm.bind(&notzero);
-    } else {
-        if (!bailoutIf(Assembler::Zero, ins->snapshot()))
-            return false;
+    // Prevent divide by zero.
+    if (ins->mir()->canBeDivideByZero()) {
+        masm.testl(rhs, rhs);
+        if (ins->mir()->isTruncated()) {
+            Label notzero;
+            masm.j(Assembler::NonZero, &notzero);
+            masm.xorl(edx, edx);
+            masm.jmp(&done);
+            masm.bind(&notzero);
+        } else {
+            if (!bailoutIf(Assembler::Zero, ins->snapshot()))
+                return false;
+        }
     }
 
     Label negative;
 
     // Switch based on sign of the lhs.
-    masm.branchTest32(Assembler::Signed, lhs, lhs, &negative);
+    if (ins->mir()->canBeNegativeDividend())
+        masm.branchTest32(Assembler::Signed, lhs, lhs, &negative);
+
     // If lhs >= 0 then remainder = lhs % rhs. The remainder must be positive.
     {
+        // Check if rhs is a power-of-two.
+        if (ins->mir()->canBePowerOfTwoDivisor()) {
+            JS_ASSERT(rhs != remainder);
+
+            // Rhs y is a power-of-two if (y & (y-1)) == 0. Note that if
+            // y is any negative number other than INT32_MIN, both y and
+            // y-1 will have the sign bit set so these are never optimized
+            // as powers-of-two. If y is INT32_MIN, y-1 will be INT32_MAX
+            // and because lhs >= 0 at this point, lhs & INT32_MAX returns
+            // the correct value.
+            Label notPowerOfTwo;
+            masm.mov(rhs, remainder);
+            masm.subl(Imm32(1), remainder);
+            masm.branchTest32(Assembler::NonZero, remainder, rhs, &notPowerOfTwo);
+            {
+                masm.andl(lhs, remainder);
+                masm.jmp(&done);
+            }
+            masm.bind(&notPowerOfTwo);
+        }
+
         // Since lhs >= 0, the sign-extension will be 0
         masm.xorl(edx, edx);
         masm.idiv(rhs);
-        masm.jump(&done);
     }
 
     // Otherwise, we have to beware of two special cases:
-    {
+    if (ins->mir()->canBeNegativeDividend()) {
+        masm.jump(&done);
+
         masm.bind(&negative);
 
         // Prevent an integer overflow exception from -2147483648 % -1
@@ -1271,8 +1298,12 @@ CodeGeneratorX86Shared::visitRound(LRound *lir)
         masm.addsd(input, temp);
 
         // Round toward -Infinity without the benefit of ROUNDSD.
-        Label testZero;
         {
+            // If input + 0.5 >= 0, input is a negative number >= -0.5 and the result is -0.
+            masm.compareDouble(Assembler::DoubleGreaterThanOrEqual, temp, scratch);
+            if (!bailoutIf(Assembler::DoubleGreaterThanOrEqual, lir->snapshot()))
+                return false;
+
             // Truncate and round toward zero.
             // This is off-by-one for everything but integer-valued inputs.
             masm.cvttsd2si(temp, output);
@@ -1282,19 +1313,13 @@ CodeGeneratorX86Shared::visitRound(LRound *lir)
 
             // Test whether the truncated double was integer-valued.
             masm.cvtsi2sd(output, scratch);
-            masm.branchDouble(Assembler::DoubleEqualOrUnordered, temp, scratch, &testZero);
+            masm.branchDouble(Assembler::DoubleEqualOrUnordered, temp, scratch, &end);
 
             // Input is not integer-valued, so we rounded off-by-one in the
             // wrong direction. Correct by subtraction.
             masm.subl(Imm32(1), output);
             // Cannot overflow: output was already checked against INT_MIN.
-
-            // Fall through to testZero.
         }
-
-        masm.bind(&testZero);
-        if (!bailoutIf(Assembler::Zero, lir->snapshot()))
-            return false;
     }
 
     masm.bind(&end);

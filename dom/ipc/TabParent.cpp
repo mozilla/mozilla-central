@@ -52,6 +52,7 @@
 #include "nsThreadUtils.h"
 #include "private/pprio.h"
 #include "StructuredCloneUtils.h"
+#include "JavaScriptParent.h"
 #include "TabChild.h"
 #include <algorithm>
 
@@ -62,6 +63,7 @@ using namespace mozilla::layout;
 using namespace mozilla::services;
 using namespace mozilla::widget;
 using namespace mozilla::dom::indexedDB;
+using namespace mozilla::jsipc;
 
 // The flags passed by the webProgress notifications are 16 bits shifted
 // from the ones registered by webProgressListeners.
@@ -186,7 +188,7 @@ TabParent *TabParent::mIMETabParent = nullptr;
 
 NS_IMPL_ISUPPORTS3(TabParent, nsITabParent, nsIAuthPromptProvider, nsISecureBrowserUI)
 
-TabParent::TabParent(const TabContext& aContext)
+TabParent::TabParent(ContentParent* aManager, const TabContext& aContext)
   : TabContext(aContext)
   , mFrameElement(NULL)
   , mIMESelectionAnchor(0)
@@ -203,6 +205,7 @@ TabParent::TabParent(const TabContext& aContext)
   , mDefaultScale(0)
   , mShown(false)
   , mUpdatedDimensions(false)
+  , mManager(aManager)
   , mMarkedDestroying(false)
   , mIsDestroyed(false)
   , mAppPackageFileDescriptorSent(false)
@@ -268,16 +271,14 @@ TabParent::Destroy()
   }
   mIsDestroyed = true;
 
-  ContentParent* cp = static_cast<ContentParent*>(Manager());
-  cp->NotifyTabDestroying(this);
+  Manager()->NotifyTabDestroying(this);
   mMarkedDestroying = true;
 }
 
 bool
 TabParent::Recv__delete__()
 {
-  ContentParent* cp = static_cast<ContentParent*>(Manager());
-  cp->NotifyTabDestroyed(this, mMarkedDestroying);
+  Manager()->NotifyTabDestroyed(this, mMarkedDestroying);
   return true;
 }
 
@@ -539,31 +540,31 @@ TabParent::SetDocShell(nsIDocShell *aDocShell)
 }
 
 PDocumentRendererParent*
-TabParent::AllocPDocumentRenderer(const nsRect& documentRect,
-                                  const gfxMatrix& transform,
-                                  const nsString& bgcolor,
-                                  const uint32_t& renderFlags,
-                                  const bool& flushLayout,
-                                  const nsIntSize& renderSize)
+TabParent::AllocPDocumentRendererParent(const nsRect& documentRect,
+                                        const gfxMatrix& transform,
+                                        const nsString& bgcolor,
+                                        const uint32_t& renderFlags,
+                                        const bool& flushLayout,
+                                        const nsIntSize& renderSize)
 {
     return new DocumentRendererParent();
 }
 
 bool
-TabParent::DeallocPDocumentRenderer(PDocumentRendererParent* actor)
+TabParent::DeallocPDocumentRendererParent(PDocumentRendererParent* actor)
 {
     delete actor;
     return true;
 }
 
 PContentPermissionRequestParent*
-TabParent::AllocPContentPermissionRequest(const nsCString& type, const nsCString& access, const IPC::Principal& principal)
+TabParent::AllocPContentPermissionRequestParent(const nsCString& type, const nsCString& access, const IPC::Principal& principal)
 {
   return new ContentPermissionRequestParent(type, access, mFrameElement, principal);
 }
 
 bool
-TabParent::DeallocPContentPermissionRequest(PContentPermissionRequestParent* actor)
+TabParent::DeallocPContentPermissionRequestParent(PContentPermissionRequestParent* actor)
 {
   delete actor;
   return true;
@@ -709,18 +710,22 @@ TabParent::TryCapture(const nsGUIEvent& aEvent)
 bool
 TabParent::RecvSyncMessage(const nsString& aMessage,
                            const ClonedMessageData& aData,
+                           const InfallibleTArray<CpowEntry>& aCpows,
                            InfallibleTArray<nsString>* aJSONRetVal)
 {
   StructuredCloneData cloneData = ipc::UnpackClonedMessageDataForParent(aData);
-  return ReceiveMessage(aMessage, true, &cloneData, aJSONRetVal);
+  CpowIdHolder cpows(static_cast<ContentParent*>(Manager())->GetCPOWManager(), aCpows);
+  return ReceiveMessage(aMessage, true, &cloneData, &cpows, aJSONRetVal);
 }
 
 bool
 TabParent::RecvAsyncMessage(const nsString& aMessage,
-                                  const ClonedMessageData& aData)
+                            const ClonedMessageData& aData,
+                            const InfallibleTArray<CpowEntry>& aCpows)
 {
   StructuredCloneData cloneData = ipc::UnpackClonedMessageDataForParent(aData);
-  return ReceiveMessage(aMessage, false, &cloneData, nullptr);
+  CpowIdHolder cpows(static_cast<ContentParent*>(Manager())->GetCPOWManager(), aCpows);
+  return ReceiveMessage(aMessage, false, &cloneData, &cpows, nullptr);
 }
 
 bool
@@ -749,7 +754,7 @@ TabParent::RecvNotifyIMEFocus(const bool& aFocus,
 {
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (!widget) {
-    aPreference->mWantUpdates = false;
+    aPreference->mWantUpdates = nsIMEUpdatePreference::NOTIFY_NOTHING;
     aPreference->mWantHints = false;
     return true;
   }
@@ -1085,39 +1090,32 @@ bool
 TabParent::ReceiveMessage(const nsString& aMessage,
                           bool aSync,
                           const StructuredCloneData* aCloneData,
+                          CpowHolder* aCpows,
                           InfallibleTArray<nsString>* aJSONRetVal)
 {
   nsRefPtr<nsFrameLoader> frameLoader = GetFrameLoader();
   if (frameLoader && frameLoader->GetFrameMessageManager()) {
     nsRefPtr<nsFrameMessageManager> manager =
       frameLoader->GetFrameMessageManager();
-    AutoSafeJSContext ctx;
-    uint32_t len = 0; //TODO: obtain a real value in bug 572685
-    // Because we want JS messages to have always the same properties,
-    // create array even if len == 0.
-    JS::Rooted<JSObject*> objectsArray(ctx, JS_NewArrayObject(ctx, len, NULL));
-    if (!objectsArray) {
-      return false;
-    }
 
     manager->ReceiveMessage(mFrameElement,
                             aMessage,
                             aSync,
                             aCloneData,
-                            objectsArray,
+                            aCpows,
                             aJSONRetVal);
   }
   return true;
 }
 
 PIndexedDBParent*
-TabParent::AllocPIndexedDB(const nsCString& aASCIIOrigin, bool* /* aAllowed */)
+TabParent::AllocPIndexedDBParent(const nsCString& aASCIIOrigin, bool* /* aAllowed */)
 {
   return new IndexedDBParent(this);
 }
 
 bool
-TabParent::DeallocPIndexedDB(PIndexedDBParent* aActor)
+TabParent::DeallocPIndexedDBParent(PIndexedDBParent* aActor)
 {
   delete aActor;
   return true;
@@ -1175,7 +1173,7 @@ TabParent::RecvPIndexedDBConstructor(PIndexedDBParent* aActor,
     return true;
   }
 
-  ContentParent* contentParent = static_cast<ContentParent*>(Manager());
+  ContentParent* contentParent = Manager();
   NS_ASSERTION(contentParent, "Null manager?!");
 
   nsRefPtr<IDBFactory> factory;
@@ -1221,11 +1219,11 @@ TabParent::GetAuthPrompt(uint32_t aPromptReason, const nsIID& iid,
 }
 
 PContentDialogParent*
-TabParent::AllocPContentDialog(const uint32_t& aType,
-                               const nsCString& aName,
-                               const nsCString& aFeatures,
-                               const InfallibleTArray<int>& aIntParams,
-                               const InfallibleTArray<nsString>& aStringParams)
+TabParent::AllocPContentDialogParent(const uint32_t& aType,
+                                     const nsCString& aName,
+                                     const nsCString& aFeatures,
+                                     const InfallibleTArray<int>& aIntParams,
+                                     const InfallibleTArray<nsString>& aStringParams)
 {
   ContentDialogParent* parent = new ContentDialogParent();
   nsCOMPtr<nsIDialogParamBlock> params =
@@ -1295,9 +1293,9 @@ TabParent::HandleDelayedDialogs()
 }
 
 PRenderFrameParent*
-TabParent::AllocPRenderFrame(ScrollingBehavior* aScrolling,
-                             TextureFactoryIdentifier* aTextureFactoryIdentifier,
-                             uint64_t* aLayersId)
+TabParent::AllocPRenderFrameParent(ScrollingBehavior* aScrolling,
+                                   TextureFactoryIdentifier* aTextureFactoryIdentifier,
+                                   uint64_t* aLayersId)
 {
   MOZ_ASSERT(ManagedPRenderFrameParent().IsEmpty());
 
@@ -1314,16 +1312,16 @@ TabParent::AllocPRenderFrame(ScrollingBehavior* aScrolling,
 }
 
 bool
-TabParent::DeallocPRenderFrame(PRenderFrameParent* aFrame)
+TabParent::DeallocPRenderFrameParent(PRenderFrameParent* aFrame)
 {
   delete aFrame;
   return true;
 }
 
 mozilla::docshell::POfflineCacheUpdateParent*
-TabParent::AllocPOfflineCacheUpdate(const URIParams& aManifestURI,
-                                    const URIParams& aDocumentURI,
-                                    const bool& stickDocument)
+TabParent::AllocPOfflineCacheUpdateParent(const URIParams& aManifestURI,
+                                          const URIParams& aDocumentURI,
+                                          const bool& stickDocument)
 {
   nsRefPtr<mozilla::docshell::OfflineCacheUpdateParent> update =
     new mozilla::docshell::OfflineCacheUpdateParent(OwnOrContainingAppId(),
@@ -1339,7 +1337,7 @@ TabParent::AllocPOfflineCacheUpdate(const URIParams& aManifestURI,
 }
 
 bool
-TabParent::DeallocPOfflineCacheUpdate(mozilla::docshell::POfflineCacheUpdateParent* actor)
+TabParent::DeallocPOfflineCacheUpdateParent(mozilla::docshell::POfflineCacheUpdateParent* actor)
 {
   mozilla::docshell::OfflineCacheUpdateParent* update =
     static_cast<mozilla::docshell::OfflineCacheUpdateParent*>(actor);
@@ -1466,7 +1464,7 @@ TabParent::RecvPRenderFrameConstructor(PRenderFrameParent* actor,
 }
 
 bool
-TabParent::RecvZoomToRect(const gfxRect& aRect)
+TabParent::RecvZoomToRect(const CSSRect& aRect)
 {
   if (RenderFrameParent* rfp = GetRenderFrame()) {
     rfp->ZoomToRect(aRect);

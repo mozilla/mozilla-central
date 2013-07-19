@@ -13,6 +13,8 @@
 # error "Generational GC requires exact rooting."
 #endif
 
+#include "mozilla/ReentrancyGuard.h"
+
 #include "jsalloc.h"
 #include "jsgc.h"
 #include "jsobj.h"
@@ -37,18 +39,14 @@ class BufferableRef
 };
 
 /*
- * HashKeyRef represents a reference to a HashTable key. Manual HashTable
- * barriers should should instantiate this template with their own table/key
- * type to insert into the generic buffer with putGeneric.
+ * HashKeyRef represents a reference to a HashMap key. This should normally
+ * be used through the HashTableWriteBarrierPost function.
  */
 template <typename Map, typename Key>
 class HashKeyRef : public BufferableRef
 {
     Map *map;
     Key key;
-
-    typedef typename Map::Entry::ValueType ValueType;
-    typedef typename Map::Ptr Ptr;
 
   public:
     HashKeyRef(Map *m, const Key &k) : map(m), key(k) {}
@@ -58,13 +56,9 @@ class HashKeyRef : public BufferableRef
         typename Map::Ptr p = map->lookup(key);
         if (!p)
             return;
-        ValueType value = p->value;
-        JS_SET_TRACING_LOCATION(trc, (void*)&p->key);
+        JS_SET_TRACING_LOCATION(trc, (void*)&*p);
         Mark(trc, &key, "HashKeyRef");
-        if (prior != key) {
-            map->remove(prior);
-            map->put(key, value);
-        }
+        map->rekey(prior, key);
     }
 };
 
@@ -85,6 +79,7 @@ class StoreBuffer
     class MonoTypeBuffer
     {
         friend class StoreBuffer;
+        friend class mozilla::ReentrancyGuard;
 
         StoreBuffer *owner;
 
@@ -105,8 +100,10 @@ class StoreBuffer
          */
         EdgeSet duplicates;
 
+        bool entered;
+
         MonoTypeBuffer(StoreBuffer *owner)
-          : owner(owner), base(NULL), pos(NULL), top(NULL)
+          : owner(owner), base(NULL), pos(NULL), top(NULL), entered(false)
         {
             duplicates.init();
         }
@@ -133,6 +130,7 @@ class StoreBuffer
 
         /* Add one item to the buffer. */
         void put(const T &v) {
+            mozilla::ReentrancyGuard g(*this);
             JS_ASSERT(!owner->inParallelSection());
 
             /* Check if we have been enabled. */
@@ -188,6 +186,7 @@ class StoreBuffer
     class GenericBuffer
     {
         friend class StoreBuffer;
+        friend class mozilla::ReentrancyGuard;
 
         StoreBuffer *owner;
 
@@ -195,8 +194,10 @@ class StoreBuffer
         uint8_t *pos;  /* Pointer to current buffer position. */
         uint8_t *top;  /* Pointer to one past the last entry. */
 
+        bool entered;
+
         GenericBuffer(StoreBuffer *owner)
-          : owner(owner)
+          : owner(owner), base(NULL), pos(NULL), top(NULL), entered(false)
         {}
 
         GenericBuffer &operator=(const GenericBuffer& other) MOZ_DELETE;
@@ -210,6 +211,7 @@ class StoreBuffer
 
         template <typename T>
         void put(const T &t) {
+            mozilla::ReentrancyGuard g(*this);
             JS_ASSERT(!owner->inParallelSection());
 
             /* Ensure T is derived from BufferableRef. */
@@ -385,7 +387,7 @@ class StoreBuffer
 
     /* TODO: profile to find the ideal size for these. */
     static const size_t ValueBufferSize = 1 * 1024 * sizeof(ValueEdge);
-    static const size_t CellBufferSize = 2 * 1024 * sizeof(CellPtrEdge);
+    static const size_t CellBufferSize = 8 * 1024 * sizeof(CellPtrEdge);
     static const size_t SlotBufferSize = 2 * 1024 * sizeof(SlotEdge);
     static const size_t WholeCellBufferSize = 2 * 1024 * sizeof(WholeCellEdges);
     static const size_t RelocValueBufferSize = 1 * 1024 * sizeof(ValueEdge);

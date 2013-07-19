@@ -221,9 +221,63 @@ this.Utils = {
     return doc.QueryInterface(Ci.nsIAccessibleDocument).virtualCursor;
   },
 
-  getPixelsPerCSSPixel: function getPixelsPerCSSPixel(aWindow) {
-    return aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
-      .getInterface(Ci.nsIDOMWindowUtils).screenPixelsPerCSSPixel;
+  getBounds: function getBounds(aAccessible) {
+      let objX = {}, objY = {}, objW = {}, objH = {};
+      aAccessible.getBounds(objX, objY, objW, objH);
+      return new Rect(objX.value, objY.value, objW.value, objH.value);
+  },
+
+  inHiddenSubtree: function inHiddenSubtree(aAccessible) {
+    for (let acc=aAccessible; acc; acc=acc.parent) {
+      let hidden = Utils.getAttributes(acc).hidden;
+      if (hidden && JSON.parse(hidden)) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  isAliveAndVisible: function isAliveAndVisible(aAccessible) {
+    if (!aAccessible) {
+      return false;
+    }
+
+    try {
+      let extstate = {};
+      let state = {};
+      aAccessible.getState(state, extstate);
+      if (extstate.value & Ci.nsIAccessibleStates.EXT_STATE_DEFUNCT ||
+          state.value & Ci.nsIAccessibleStates.STATE_INVISIBLE ||
+          Utils.inHiddenSubtree(aAccessible)) {
+        return false;
+      }
+    } catch (x) {
+      return false;
+    }
+
+    return true;
+  },
+
+  getLandmarkName: function getLandmarkName(aAccessible) {
+    const landmarks = [
+      'banner',
+      'complementary',
+      'contentinfo',
+      'main',
+      'navigation',
+      'search'
+    ];
+    let roles = this.getAttributes(aAccessible)['xml-roles'];
+    if (!roles) {
+      return;
+    }
+
+    // Looking up a role that would match a landmark.
+    for (let landmark of landmarks) {
+      if (roles.indexOf(landmark) > -1) {
+        return landmark;
+      }
+    }
   }
 };
 
@@ -559,11 +613,7 @@ PivotContext.prototype = {
 
   get bounds() {
     if (!this._bounds) {
-      let objX = {}, objY = {}, objW = {}, objH = {};
-
-      this._accessible.getBounds(objX, objY, objW, objH);
-
-      this._bounds = new Rect(objX.value, objY.value, objW.value, objH.value);
+      this._bounds = Utils.getBounds(this._accessible);
     }
 
     return this._bounds.clone();
@@ -573,7 +623,7 @@ PivotContext.prototype = {
     try {
       let extstate = {};
       aAccessible.getState({}, extstate);
-      return !!(aAccessible.value & Ci.nsIAccessibleStates.EXT_STATE_DEFUNCT);
+      return !!(extstate.value & Ci.nsIAccessibleStates.EXT_STATE_DEFUNCT);
     } catch (x) {
       return true;
     }

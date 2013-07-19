@@ -10,6 +10,7 @@ var Cc = Components.classes;
 var Cu = Components.utils;
 
 Cu.import("resource://specialpowers/MockFilePicker.jsm");
+Cu.import("resource://specialpowers/MockColorPicker.jsm");
 Cu.import("resource://specialpowers/MockPermissionPrompt.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/PrivateBrowsingUtils.jsm");
@@ -483,6 +484,10 @@ SpecialPowersAPI.prototype = {
 
   get MockFilePicker() {
     return MockFilePicker
+  },
+
+  get MockColorPicker() {
+    return MockColorPicker
   },
 
   get MockPermissionPrompt() {
@@ -1106,6 +1111,13 @@ SpecialPowersAPI.prototype = {
   },
   setTextZoom: function(window, zoom) {
     this._getMUDV(window).textZoom = zoom;
+  },
+
+  emulateMedium: function(window, mediaType) {
+    this._getMUDV(window).emulateMedium(mediaType);
+  },
+  stopEmulatingMedium: function(window) {
+    this._getMUDV(window).stopEmulatingMedium();
   },
 
   createSystemXHR: function() {

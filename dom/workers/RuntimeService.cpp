@@ -299,9 +299,6 @@ LoadJSContextOptions(const char* aPrefName, void* /* aClosure */)
 
   // Content options.
   uint32_t contentOptions = commonOptions;
-  if (GetWorkerPref<bool>(NS_LITERAL_CSTRING("pccounts.content"))) {
-    contentOptions |= JSOPTION_PCCOUNT;
-  }
   if (GetWorkerPref<bool>(NS_LITERAL_CSTRING("baselinejit.content"))) {
     contentOptions |= JSOPTION_BASELINE;
   }
@@ -311,9 +308,6 @@ LoadJSContextOptions(const char* aPrefName, void* /* aClosure */)
 
   // Chrome options.
   uint32_t chromeOptions = commonOptions;
-  if (GetWorkerPref<bool>(NS_LITERAL_CSTRING("pccounts.chrome"))) {
-    chromeOptions |= JSOPTION_PCCOUNT;
-  }
   if (GetWorkerPref<bool>(NS_LITERAL_CSTRING("baselinejit.chrome"))) {
     chromeOptions |= JSOPTION_BASELINE;
   }
@@ -1164,8 +1158,8 @@ RuntimeService::RegisterWorker(JSContext* aCx, WorkerPrivate* aWorkerPrivate)
   }
   else {
     if (!mNavigatorStringsLoaded) {
-      if (NS_FAILED(NS_GetNavigatorAppName(mNavigatorStrings.mAppName)) ||
-          NS_FAILED(NS_GetNavigatorAppVersion(mNavigatorStrings.mAppVersion)) ||
+      NS_GetNavigatorAppName(mNavigatorStrings.mAppName);
+      if (NS_FAILED(NS_GetNavigatorAppVersion(mNavigatorStrings.mAppVersion)) ||
           NS_FAILED(NS_GetNavigatorPlatform(mNavigatorStrings.mPlatform)) ||
           NS_FAILED(NS_GetNavigatorUserAgent(mNavigatorStrings.mUserAgent))) {
         JS_ReportError(aCx, "Failed to load navigator strings!");

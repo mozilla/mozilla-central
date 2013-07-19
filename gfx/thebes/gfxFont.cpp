@@ -1364,7 +1364,6 @@ gfxFontCache::gfxFontCache()
         obs->AddObserver(new MemoryPressureObserver, "memory-pressure", false);
     }
 
-#if 0 // disabled due to crashiness, see bug 717175
     mWordCacheExpirationTimer = do_CreateInstance("@mozilla.org/timer;1");
     if (mWordCacheExpirationTimer) {
         mWordCacheExpirationTimer->
@@ -1372,7 +1371,6 @@ gfxFontCache::gfxFontCache()
                                  SHAPED_WORD_TIMEOUT_SECONDS * 1000,
                                  nsITimer::TYPE_REPEATING_SLACK);
     }
-#endif
 }
 
 gfxFontCache::~gfxFontCache()
@@ -5750,10 +5748,18 @@ gfxTextRun::Draw(gfxContext *aContext, gfxPoint aPt, gfxFont::DrawMode aDrawMode
                  "GLYPH_PATH cannot be used with GLYPH_FILL, GLYPH_STROKE or GLYPH_STROKE_UNDERNEATH");
     NS_ASSERTION(aDrawMode == gfxFont::GLYPH_PATH || !aCallbacks, "callback must not be specified unless using GLYPH_PATH");
 
+    bool skipDrawing = mSkipDrawing;
+    if (aDrawMode == gfxFont::GLYPH_FILL) {
+        gfxRGBA currentColor;
+        if (aContext->GetDeviceColor(currentColor) && currentColor.a == 0) {
+            skipDrawing = true;
+        }
+    }
+
     gfxFloat direction = GetDirection();
 
-    if (mSkipDrawing) {
-        // We're waiting for a user font to finish downloading;
+    if (skipDrawing) {
+        // We don't need to draw anything;
         // but if the caller wants advance width, we need to compute it here
         if (aAdvanceWidth) {
             gfxTextRun::Metrics metrics = MeasureText(aStart, aLength,

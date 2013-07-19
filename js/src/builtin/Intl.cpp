@@ -427,7 +427,7 @@ static bool
 intl_availableLocales(JSContext *cx, CountAvailable countAvailable,
                       GetAvailable getAvailable, MutableHandleValue result)
 {
-    RootedObject locales(cx, NewObjectWithGivenProto(cx, &ObjectClass, NULL, NULL));
+    RootedObject locales(cx, NewObjectWithGivenProto(cx, &JSObject::class_, NULL, NULL));
     if (!locales)
         return false;
 
@@ -642,7 +642,7 @@ static JSBool
 Collator(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    return Collator(cx, args, IsConstructing(args));
+    return Collator(cx, args, args.isConstructing());
 }
 
 JSBool
@@ -650,6 +650,8 @@ js::intl_Collator(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     JS_ASSERT(args.length() == 2);
+    // intl_Collator is an intrinsic for self-hosted JavaScript, so it cannot
+    // be used with "new", but it still has to be treated as a constructor.
     return Collator(cx, args, true);
 }
 
@@ -1123,7 +1125,7 @@ static JSBool
 NumberFormat(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    return NumberFormat(cx, args, IsConstructing(args));
+    return NumberFormat(cx, args, args.isConstructing());
 }
 
 JSBool
@@ -1131,6 +1133,9 @@ js::intl_NumberFormat(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     JS_ASSERT(args.length() == 2);
+    // intl_NumberFormat is an intrinsic for self-hosted JavaScript, so it
+    // cannot be used with "new", but it still has to be treated as a
+    // constructor.
     return NumberFormat(cx, args, true);
 }
 
@@ -1576,7 +1581,7 @@ static JSBool
 DateTimeFormat(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    return DateTimeFormat(cx, args, IsConstructing(args));
+    return DateTimeFormat(cx, args, args.isConstructing());
 }
 
 JSBool
@@ -1584,6 +1589,9 @@ js::intl_DateTimeFormat(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     JS_ASSERT(args.length() == 2);
+    // intl_DateTimeFormat is an intrinsic for self-hosted JavaScript, so it
+    // cannot be used with "new", but it still has to be treated as a
+    // constructor.
     return DateTimeFormat(cx, args, true);
 }
 

@@ -13,15 +13,14 @@
 namespace mozilla {
 namespace dom {
 
-class Comment : public nsGenericDOMDataNode,
-                public nsIDOMComment
+class Comment MOZ_FINAL : public nsGenericDOMDataNode,
+                          public nsIDOMComment
 {
 private:
   void Init()
   {
     NS_ABORT_IF_FALSE(mNodeInfo->NodeType() == nsIDOMNode::COMMENT_NODE,
                       "Bad NodeType in aNodeInfo");
-    SetIsDOMBinding();
   }
 
 public:
@@ -47,6 +46,7 @@ public:
 
   // nsIDOMCharacterData
   NS_FORWARD_NSIDOMCHARACTERDATA(nsGenericDOMDataNode::)
+  using nsGenericDOMDataNode::SetData; // Prevent hiding overloaded virtual function.
 
   // nsIDOMComment
   // Empty interface

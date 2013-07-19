@@ -122,7 +122,6 @@
 #include "xpccomponents.h"
 #include "xpcexception.h"
 #include "xpcjsid.h"
-#include "prlong.h"
 #include "prenv.h"
 #include "prclist.h"
 #include "prcvar.h"
@@ -169,6 +168,7 @@
 
 #include "SandboxPrivate.h"
 #include "BackstagePass.h"
+#include "nsCxPusher.h"
 
 #ifdef XP_WIN
 // Nasty MS defines
@@ -595,7 +595,6 @@ public:
 // So, xpconnect can only be used on one JSRuntime within the process.
 
 class XPCJSContextStack;
-class XPCIncrementalReleaseRunnable;
 class XPCJSRuntime : public mozilla::CycleCollectedJSRuntime
 {
 public:
@@ -662,37 +661,13 @@ public:
     NoteCustomGCThingXPCOMChildren(js::Class* aClasp, JSObject* aObj,
                                    nsCycleCollectionTraversalCallback& aCb) const;
 
-    bool DeferredRelease(nsISupports* obj);
-
-
     /**
      * Infrastructure for classes that need to defer part of the finalization
      * until after the GC has run, for example for objects that we don't want to
      * destroy during the GC.
      */
 
-private:
-    struct DeferredFinalizeFunctions
-    {
-        DeferredFinalizeStartFunction start;
-        DeferredFinalizeFunction run;
-    };
-    nsAutoTArray<DeferredFinalizeFunctions, 16> mDeferredFinalizeFunctions;
-
 public:
-    // Register deferred finalization functions. Should only be called once per
-    // pair of start and run.
-    bool RegisterDeferredFinalize(DeferredFinalizeStartFunction start,
-                                  DeferredFinalizeFunction run)
-    {
-        DeferredFinalizeFunctions* item =
-            mDeferredFinalizeFunctions.AppendElement();
-        item->start = start;
-        item->run = run;
-        return true;
-    }
-
-
     JSBool GetDoingFinalization() const {return mDoingFinalization;}
 
     // Mapping of often used strings to jsid atoms that live 'forever'.
@@ -743,7 +718,7 @@ public:
     void PrepareForForgetSkippable() MOZ_OVERRIDE;
     void PrepareForCollection() MOZ_OVERRIDE;
 
-    static void GCCallback(JSRuntime *rt, JSGCStatus status);
+    void CustomGCCallback(JSGCStatus status) MOZ_OVERRIDE;
     static void GCSliceCallback(JSRuntime *rt,
                                 JS::GCProgress progress,
                                 const JS::GCDescription &desc);
@@ -828,8 +803,8 @@ private:
 public:
 #endif
 
-    void AddGCCallback(JSGCCallback cb);
-    void RemoveGCCallback(JSGCCallback cb);
+    void AddGCCallback(xpcGCCallback cb);
+    void RemoveGCCallback(xpcGCCallback cb);
 
     static void ActivityCallback(void *arg, JSBool active);
     static void CTypesActivityCallback(JSContext *cx,
@@ -883,11 +858,10 @@ private:
     PRLock *mWatchdogLock;
     PRCondVar *mWatchdogWakeup;
     PRThread *mWatchdogThread;
-    nsTArray<JSGCCallback> extraGCCallbacks;
+    nsTArray<xpcGCCallback> extraGCCallbacks;
     bool mWatchdogHibernating;
     enum { RUNTIME_ACTIVE, RUNTIME_INACTIVE } mRuntimeState;
     PRTime mTimeAtLastRuntimeStateChange;
-    nsRefPtr<XPCIncrementalReleaseRunnable> mReleaseRunnable;
     JS::GCSliceCallback mPrevGCSliceCallback;
     JSObject* mJunkScope;
 
@@ -1023,17 +997,6 @@ private:
 //
 // Note that most accessors are inlined.
 
-// This is a dumb little thing to ensure that the XPCCallContext destructor
-// calls JS_DestroyContext after the JSAutoRequest is destroyed (if at all).
-// This will go away in a few days when bug 860085 removes this machinery.
-class AutoJSContextDestroyer
-{
-    JSContext *mCx;
-  public:
-    AutoJSContextDestroyer(JSContext *aCx) : mCx(aCx) {}
-    ~AutoJSContextDestroyer() { JS_DestroyContext(mCx); }
-};
-
 class MOZ_STACK_CLASS XPCCallContext : public nsAXPCNativeCallContext
 {
 public:
@@ -1097,8 +1060,6 @@ public:
     inline uint16_t                     GetMethodIndex() const ;
     inline void                         SetMethodIndex(uint16_t index) ;
 
-    inline void     SetDestroyJSContextInDestructor();
-
     inline jsid GetResolveName() const;
     inline jsid SetResolveName(JS::HandleId name);
 
@@ -1147,16 +1108,13 @@ inline void CHECK_STATE(int s) const {NS_ASSERTION(mState >= s, "bad state");}
 #endif
 
 private:
-    mozilla::Maybe<AutoJSContextDestroyer>   mCxDestroyer;
-
-    JSAutoRequest                   mAr;
+    mozilla::AutoPushJSContext      mPusher;
     State                           mState;
 
-    nsXPConnect*                    mXPC;
+    nsRefPtr<nsXPConnect>           mXPC;
 
     XPCContext*                     mXPCContext;
     JSContext*                      mJSContext;
-    JSBool                          mContextPopRequired;
 
     XPCContext::LangType            mCallerLanguage;
 
@@ -2296,7 +2254,7 @@ public:
                                  &participant);
       }
     };
-    NS_DECL_CYCLE_COLLECTION_UNMARK_PURPLE_STUB(XPCWrappedNative)
+    void DeleteCycleCollectable() {}
 
     nsIPrincipal* GetObjectPrincipal() const;
 
@@ -2708,8 +2666,6 @@ private:
     nsXPCWrappedJSClass(JSContext* cx, REFNSIID aIID,
                         nsIInterfaceInfo* aInfo);
 
-    JSObject*  NewOutObject(JSContext* cx, JSObject* scope);
-
     JSBool IsReflectable(uint16_t i) const
         {return (JSBool)(mDescriptors[i/32] & (1 << (i%32)));}
     void SetReflectable(uint16_t i, JSBool b)
@@ -2766,7 +2722,7 @@ public:
     NS_DECL_NSIPROPERTYBAG
 
     NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsXPCWrappedJS, nsIXPConnectWrappedJS)
-    NS_DECL_CYCLE_COLLECTION_UNMARK_PURPLE_STUB(nsXPCWrappedJS)
+    void DeleteCycleCollectable() {}
 
     NS_IMETHOD CallMethod(uint16_t methodIndex,
                           const XPTMethodDescriptor *info,
@@ -3227,6 +3183,18 @@ struct XPCJSContextInfo {
     bool savedFrameChain;
 };
 
+namespace xpc {
+
+// These functions are used in a few places where a callback model makes it
+// impossible to push a JSContext using one of our stack-scoped classes. We
+// depend on those stack-scoped classes to maintain nsIScriptContext
+// invariants, so these functions may only be used of the context is not
+// associated with an nsJSContext/nsIScriptContext.
+bool PushJSContextNoScriptContext(JSContext *aCx);
+void PopJSContextNoScriptContext();
+
+} /* namespace xpc */
+
 class XPCJSContextStack
 {
 public:
@@ -3247,8 +3215,6 @@ public:
         return mStack.IsEmpty() ? NULL : mStack[mStack.Length() - 1].cx;
     }
 
-    JSContext *Pop();
-    bool Push(JSContext *cx);
     JSContext *GetSafeJSContext();
     bool HasJSContext(JSContext *cx);
 
@@ -3256,6 +3222,15 @@ public:
     { return &mStack; }
 
 private:
+    friend class mozilla::AutoCxPusher;
+    friend bool xpc::PushJSContextNoScriptContext(JSContext *aCx);;
+    friend void xpc::PopJSContextNoScriptContext();
+
+    // We make these private so that stack manipulation can only happen
+    // through one of the above friends.
+    JSContext *Pop();
+    bool Push(JSContext *cx);
+
     AutoInfallibleTArray<XPCJSContextInfo, 16> mStack;
     JSContext*  mSafeJSContext;
     JSContext*  mOwnSafeJSContext;
@@ -3867,10 +3842,10 @@ GetObjectScope(JSObject *obj)
 extern JSBool gDebugMode;
 extern JSBool gDesiredDebugMode;
 
-// Internal use only.
-bool PushJSContext(JSContext *aCx);
-void PopJSContext();
-bool IsJSContextOnStack(JSContext *aCx);
+JSObject* NewOutObject(JSContext* cx, JSObject* scope);
+bool IsOutObject(JSContext* cx, JSObject* obj);
+
+nsresult HasInstance(JSContext *cx, JS::HandleObject objArg, const nsID *iid, bool *bp);
 
 } // namespace xpc
 

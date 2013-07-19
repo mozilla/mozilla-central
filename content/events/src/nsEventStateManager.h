@@ -23,6 +23,7 @@
 #include "nsEventStates.h"
 #include "mozilla/TimeStamp.h"
 #include "nsIFrame.h"
+#include "Units.h"
 
 class nsIPresShell;
 class nsIContent;
@@ -53,6 +54,7 @@ public:
 
   typedef mozilla::TimeStamp TimeStamp;
   typedef mozilla::TimeDuration TimeDuration;
+  typedef mozilla::LayoutDeviceIntPoint LayoutDeviceIntPoint;
 
   nsEventStateManager();
   virtual ~nsEventStateManager();
@@ -192,13 +194,13 @@ public:
   static void SetFullScreenState(mozilla::dom::Element* aElement, bool aIsFullScreen);
 
   static bool IsRemoteTarget(nsIContent* aTarget);
-  static nsIntPoint GetChildProcessOffset(nsFrameLoader* aFrameLoader,
-                                          const nsEvent& aEvent);
+  static LayoutDeviceIntPoint GetChildProcessOffset(nsFrameLoader* aFrameLoader,
+                                                    const nsEvent& aEvent);
 
   static void MapEventCoordinatesForChildProcess(nsFrameLoader* aFrameLoader,
                                                  nsEvent* aEvent);
 
-  static void MapEventCoordinatesForChildProcess(const nsIntPoint& aOffset,
+  static void MapEventCoordinatesForChildProcess(const LayoutDeviceIntPoint& aOffset,
                                                  nsEvent* aEvent);
 
   // Holds the point in screen coords that a mouse event was dispatched to,
@@ -212,7 +214,7 @@ public:
   // Holds the point in client coords of the last mouse event. Used by
   // nsDOMEvent::GetClientCoords() to make mouse events' client coords appear
   // frozen at the last mouse position while the pointer is locked.
-  static nsIntPoint sLastClientPoint;
+  static mozilla::CSSIntPoint sLastClientPoint;
 
   static bool sIsPointerLocked;
   static nsWeakPtr sPointerLockedElement;

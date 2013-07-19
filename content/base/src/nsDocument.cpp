@@ -1616,11 +1616,15 @@ nsDocument::Release()
       return mRefCnt.get();
     }
     NS_ASSERT_OWNINGTHREAD(nsDocument);
-    mRefCnt.stabilizeForDeletion();
     nsNodeUtils::LastRelease(this);
-    return 0;
   }
   return count;
+}
+
+NS_IMETHODIMP_(void)
+nsDocument::DeleteCycleCollectable()
+{
+  delete this;
 }
 
 NS_IMPL_CYCLE_COLLECTION_CAN_SKIP_BEGIN(nsDocument)
@@ -1950,7 +1954,9 @@ nsDocument::Init()
   // we use the default compartment for this document, instead of creating
   // wrapper in some random compartment when the document is exposed to js
   // via some events.
-  mScopeObject = do_GetWeakReference(xpc::GetNativeForGlobal(xpc::GetJunkScope()));
+  nsCOMPtr<nsIGlobalObject> global = xpc::GetJunkScopeGlobal();
+  NS_ENSURE_TRUE(global, NS_ERROR_FAILURE);
+  mScopeObject = do_GetWeakReference(global);
   MOZ_ASSERT(mScopeObject);
 
   // Force initialization.
@@ -2746,8 +2752,11 @@ nsDocument::SetDocumentURI(nsIURI* aURI)
   nsIURI* newBase = GetDocBaseURI();
 
   bool equalBases = false;
+  // Changing just the ref of a URI does not change how relative URIs would
+  // resolve wrt to it, so we can treat the bases as equal as long as they're
+  // equal ignoring the ref.
   if (oldBase && newBase) {
-    oldBase->Equals(newBase, &equalBases);
+    oldBase->EqualsExceptRef(newBase, &equalBases);
   }
   else {
     equalBases = !oldBase && !newBase;
@@ -5409,10 +5418,7 @@ nsIDocument::GetSelectedStyleSheetSet(nsAString& aSheetSet)
 
     if (aSheetSet.IsEmpty()) {
       aSheetSet = title;
-      return;
-    }
-
-    if (!title.IsEmpty() && !aSheetSet.Equals(title)) {
+    } else if (!title.IsEmpty() && !aSheetSet.Equals(title)) {
       // Sheets from multiple sets enabled; return null string, per spec.
       SetDOMStringToNull(aSheetSet);
       return;
@@ -6906,12 +6912,7 @@ nsDocument::GetViewportInfo(uint32_t aDisplayWidth,
     }
     // Now convert the scale into device pixels per CSS pixel.
     nsIWidget *widget = nsContentUtils::WidgetForDocument(this);
-#ifdef MOZ_WIDGET_ANDROID
-    // Temporarily use special Android code until bug 803207 is fixed
-    double pixelRatio = widget ? nsContentUtils::GetDevicePixelsPerMetaViewportPixel(widget) : 1.0;
-#else
     double pixelRatio = widget ? widget->GetDefaultScale() : 1.0;
-#endif
     float scaleFloat = mScaleFloat * pixelRatio;
     float scaleMinFloat= mScaleMinFloat * pixelRatio;
     float scaleMaxFloat = mScaleMaxFloat * pixelRatio;
@@ -9302,7 +9303,7 @@ NS_IMETHODIMP
 nsDocument::CreateTouchList(nsIVariant* aPoints,
                             nsIDOMTouchList** aRetVal)
 {
-  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList();
+  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList(ToSupports(this));
   if (aPoints) {
     uint16_t type;
     aPoints->GetDataType(&type);
@@ -9339,18 +9340,18 @@ nsDocument::CreateTouchList(nsIVariant* aPoints,
   return NS_OK;
 }
 
-already_AddRefed<nsIDOMTouchList>
+already_AddRefed<nsDOMTouchList>
 nsIDocument::CreateTouchList()
 {
-  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList();
+  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList(ToSupports(this));
   return retval.forget();
 }
 
-already_AddRefed<nsIDOMTouchList>
+already_AddRefed<nsDOMTouchList>
 nsIDocument::CreateTouchList(Touch& aTouch,
                              const Sequence<OwningNonNull<Touch> >& aTouches)
 {
-  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList();
+  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList(ToSupports(this));
   retval->Append(&aTouch);
   for (uint32_t i = 0; i < aTouches.Length(); ++i) {
     retval->Append(aTouches[i].get());
@@ -9358,10 +9359,10 @@ nsIDocument::CreateTouchList(Touch& aTouch,
   return retval.forget();
 }
 
-already_AddRefed<nsIDOMTouchList>
+already_AddRefed<nsDOMTouchList>
 nsIDocument::CreateTouchList(const Sequence<OwningNonNull<Touch> >& aTouches)
 {
-  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList();
+  nsRefPtr<nsDOMTouchList> retval = new nsDOMTouchList(ToSupports(this));
   for (uint32_t i = 0; i < aTouches.Length(); ++i) {
     retval->Append(aTouches[i].get());
   }
@@ -9448,6 +9449,30 @@ nsDocument::CaretPositionFromPoint(float aX, float aY, nsISupports** aCaretPos)
   NS_ENSURE_ARG_POINTER(aCaretPos);
   *aCaretPos = nsIDocument::CaretPositionFromPoint(aX, aY).get();
   return NS_OK;
+}
+
+void
+nsIDocument::ObsoleteSheet(nsIURI *aSheetURI, ErrorResult& rv)
+{
+  nsresult res = CSSLoader()->ObsoleteSheet(aSheetURI);
+  if (NS_FAILED(res)) {
+    rv.Throw(res);
+  }
+}
+
+void
+nsIDocument::ObsoleteSheet(const nsAString& aSheetURI, ErrorResult& rv)
+{
+  nsCOMPtr<nsIURI> uri;
+  nsresult res = NS_NewURI(getter_AddRefs(uri), aSheetURI);
+  if (NS_FAILED(res)) {
+    rv.Throw(res);
+    return;
+  }
+  res = CSSLoader()->ObsoleteSheet(uri);
+  if (NS_FAILED(res)) {
+    rv.Throw(res);
+  }
 }
 
 namespace mozilla {
@@ -11234,6 +11259,18 @@ nsDocument::DocSizeOfExcludingThis(nsWindowSizes* aWindowSizes) const
   // Measurement of the following members may be added later if DMD finds it
   // is worthwhile:
   // - many!
+}
+
+NS_IMETHODIMP
+nsDocument::QuerySelector(const nsAString& aSelector, nsIDOMElement **aReturn)
+{
+  return nsINode::QuerySelector(aSelector, aReturn);
+}
+
+NS_IMETHODIMP
+nsDocument::QuerySelectorAll(const nsAString& aSelector, nsIDOMNodeList **aReturn)
+{
+  return nsINode::QuerySelectorAll(aSelector, aReturn);
 }
 
 already_AddRefed<nsIDocument>

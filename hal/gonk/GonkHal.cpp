@@ -435,7 +435,7 @@ GetCurrentBatteryInformation(hal::BatteryInformation* aBatteryInfo)
     aBatteryInfo->charging() = true;
   }
 
-  if (aBatteryInfo->charging() && (aBatteryInfo->level() < 1.0)) {
+  if (!aBatteryInfo->charging() || (aBatteryInfo->level() < 1.0)) {
     aBatteryInfo->remainingTime() = dom::battery::kUnknownRemainingTime;
   } else {
     aBatteryInfo->remainingTime() = dom::battery::kDefaultRemainingTime;
@@ -734,7 +734,6 @@ AdjustSystemClock(int64_t aDeltaMilliseconds)
 
   if (ioctl(fd, ANDROID_ALARM_SET_RTC, &now) < 0) {
     HAL_LOG(("ANDROID_ALARM_SET_RTC failed: %s", strerror(errno)));
-    return;
   }
 
   hal::NotifySystemClockChange(aDeltaMilliseconds);
