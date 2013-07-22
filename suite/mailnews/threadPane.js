@@ -115,6 +115,7 @@ function HandleColumnClick(columnID)
                      receivedCol: 'byReceived',
                      senderCol: 'byAuthor',
                      recipientCol: 'byRecipient',
+                     toCol: 'byTo',
                      subjectCol: 'bySubject',
                      locationCol: 'byLocation',
                      accountCol: 'byAccount',
@@ -280,8 +281,8 @@ function MsgGroupBySort()
          || sortType == nsMsgViewSortType.byDate || sortType == nsMsgViewSortType.byReceived || sortType == nsMsgViewSortType.byPriority
          || sortType == nsMsgViewSortType.bySubject || sortType == nsMsgViewSortType.byTags
          || sortType == nsMsgViewSortType.byStatus  || sortType == nsMsgViewSortType.byRecipient
-         || sortType == nsMsgViewSortType.byAccount || sortType == nsMsgViewSortType.byFlagged
-         || sortType == nsMsgViewSortType.byAttachments);
+         || sortType == nsMsgViewSortType.byTo || sortType == nsMsgViewSortType.byAccount
+         || sortType == nsMsgViewSortType.byFlagged || sortType == nsMsgViewSortType.byAttachments);
 
   if (!sortTypeSupportsGrouping)
     return; // we shouldn't be trying to group something we don't support grouping for...

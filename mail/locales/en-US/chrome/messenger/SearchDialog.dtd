@@ -39,7 +39,8 @@
 <!-- Thread Pane -->
 <!ENTITY threadColumn.label "Thread">
 <!ENTITY fromColumn.label "From">
-<!ENTITY recipientColumn.label "Recipient">
+<!ENTITY recipientsColumn.label "Recipients">
+<!ENTITY toColumn.label "To">
 <!ENTITY subjectColumn.label "Subject">
 <!ENTITY dateColumn.label "Date">
 <!ENTITY priorityColumn.label "Priority">
@@ -60,7 +61,8 @@
 <!ENTITY columnChooser.tooltip "Click to select columns to display">
 <!ENTITY threadColumn.tooltip "Click to display message threads"> 
 <!ENTITY fromColumn.tooltip "Click to sort by from">
-<!ENTITY recipientColumn.tooltip "Click to sort by recipient">
+<!ENTITY recipientsColumn.tooltip "Click to sort by recipients">
+<!ENTITY toColumn.tooltip "Click to sort by to">
 <!ENTITY subjectColumn.tooltip "Click to sort by subject">
 <!ENTITY dateColumn.tooltip "Click to sort by date">
 <!ENTITY priorityColumn.tooltip "Click to sort by priority">

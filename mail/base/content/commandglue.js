@@ -205,6 +205,9 @@ function ConvertSortTypeToColumnID(sortKey)
     case nsMsgViewSortType.byRecipient:
       columnID = "recipientCol";
       break;
+    case nsMsgViewSortType.byTo:
+      columnID = "toCol";
+      break;
     case nsMsgViewSortType.bySubject:
       columnID = "subjectCol";
       break;

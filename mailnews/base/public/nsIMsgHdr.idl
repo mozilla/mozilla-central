@@ -10,7 +10,7 @@
 interface nsIMsgFolder;
 interface nsIUTF8StringEnumerator;
 
-[scriptable, uuid(36adf826-73f4-48e7-a444-318242ea8a8e)]
+[scriptable, uuid(04f2ba1c-d9cd-418b-91bb-78511d4115f5)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -83,7 +83,12 @@ interface nsIMsgDBHdr : nsISupports
 
     readonly attribute AString mime2DecodedAuthor;
     readonly attribute AString mime2DecodedSubject;
-    readonly attribute AString mime2DecodedRecipients;
+    /// MIME decoded recipients from the To header.
+    readonly attribute AString mime2DecodedTo;
+    /// MIME decoded recipients from the CC header.
+    readonly attribute AString mime2DecodedCC;
+    /// MIME decoded recipients from the BCC header.
+    readonly attribute AString mime2DecodedBCC;
 
     void getAuthorCollationKey(out unsigned long aCount,
                               [array, size_is(aCount)] out octet aKey);

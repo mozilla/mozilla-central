@@ -399,6 +399,9 @@ FolderDisplayWidget.prototype = {
     recipientCol: function (viewWrapper) {
       return viewWrapper.isOutgoingFolder;
     },
+    toCol: function(viewWrapper) {
+      return viewWrapper.isOutgoingFolder;
+    },
     // Only show the location column for non-single-folder results
     locationCol: function(viewWrapper) {
       return !viewWrapper.isSingleFolder;

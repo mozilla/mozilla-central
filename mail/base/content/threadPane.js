@@ -63,6 +63,7 @@ function HandleColumnClick(columnID)
                      receivedCol: 'byReceived',
                      senderCol: 'byAuthor',
                      recipientCol: 'byRecipient',
+                     toCol: 'byTo',
                      subjectCol: 'bySubject',
                      locationCol: 'byLocation',
                      accountCol: 'byAccount',

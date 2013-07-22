@@ -440,7 +440,11 @@
                         <splitter class="tree-splitter"/>
                         <treecol id="recipientCol" persist="width" flex="4"
                                  hidden="true" swappedhidden="false"
-                                 label="&recipientColumn.label;" tooltiptext="&recipientColumn.tooltip;"/>
+                                 label="&recipientsColumn.label;" tooltiptext="&recipientsColumn.tooltip;"/>
+                        <splitter class="tree-splitter"/>
+                        <treecol id="toCol" persist="width" flex="4"
+                                 hidden="true" swappedhidden="false"
+                                 label="&toColumn.label;" tooltiptext="&toColumn.tooltip;"/>
                         <splitter class="tree-splitter"/>
                         <treecol id="junkStatusCol" persist="width" fixed="true" cycler="true"
                                  class="treecol-image junkStatusHeader"

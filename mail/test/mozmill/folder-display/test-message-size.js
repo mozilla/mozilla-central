@@ -40,7 +40,7 @@ function _help_test_message_size(index, unit) {
   let curMessage = select_click_row(index);
   // Look at the size column's data
   let tree = mc.folderDisplay.tree;
-  let sizeCol = tree.columns[11];
+  let sizeCol = tree.columns.getNamedColumn("sizeCol");
   let sizeStr = tree.view.getCellText(index, sizeCol);
 
   // Note: this assumes that the numeric part of the size string is first

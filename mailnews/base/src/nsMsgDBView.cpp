@@ -485,19 +485,20 @@ nsresult nsMsgDBView::FetchAccount(nsIMsgDBHdr * aHdr, nsAString& aAccount)
   return NS_OK;
 }
 
-nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString)
+nsresult nsMsgDBView::commonFetchRecipients(nsIMsgDBHdr * aHdr, char * column,
+                                            nsresult (NS_STDCALL nsIMsgDBHdr::*mimeDecoder)
+                                                       (nsAString&),
+                                            nsAString &aRecipientsString)
 {
-  nsString unparsedRecipients;
-  nsCString recipients;
   int32_t currentDisplayNameVersion = 0;
   bool showCondensedAddresses = false;
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
-
+  nsCString recipients;
+  nsString unparsedRecipients, parsedRecipients;
   prefs->GetIntPref("mail.displayname.version", &currentDisplayNameVersion);
   prefs->GetBoolPref("mail.showCondensedAddresses", &showCondensedAddresses);
 
-  aHdr->GetStringProperty("recipient_names", getter_Copies(recipients));
-
+  aHdr->GetStringProperty(column, getter_Copies(recipients));
   if (!recipients.IsEmpty())
   {
     nsCString cachedRecipients;
@@ -508,14 +509,19 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipients
     // was changed after cache.
     if (!cachedRecipients.IsEmpty())
     {
-      CopyUTF8toUTF16(cachedRecipients, aRecipientsString);
+      CopyUTF8toUTF16(cachedRecipients, parsedRecipients);
+
+      if (!aRecipientsString.IsEmpty())
+        aRecipientsString.AppendLiteral(",");
+
+      aRecipientsString.Append(parsedRecipients);
       return NS_OK;
     }
   }
 
   mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-  nsresult rv = aHdr->GetMime2DecodedRecipients(unparsedRecipients);
+  nsresult rv = (aHdr->*mimeDecoder)(unparsedRecipients);
 
   // *sigh* how sad, we need to convert our beautiful unicode string to utf8
   // so we can extract the name part of the address...then convert it back to
@@ -566,20 +572,46 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipients
 
         // add ',' and end of each recipient
         if (i != 0)
-          aRecipientsString.Append(NS_LITERAL_STRING(","));
+          parsedRecipients.AppendLiteral(", ");
 
-        aRecipientsString.Append(recipient);
+        parsedRecipients.Append(recipient);
       }
     }
     PR_FREEIF(names);
     PR_FREEIF(emailAddresses);
   }
   else
-    aRecipientsString = unparsedRecipients;
+  {
+    parsedRecipients = unparsedRecipients;
+  }
+  UpdateCachedName(aHdr, column, parsedRecipients);
 
-  UpdateCachedName(aHdr, "recipient_names", aRecipientsString);
+  if (!aRecipientsString.IsEmpty() && !parsedRecipients.IsEmpty())
+    aRecipientsString.AppendLiteral(", ");
 
+  aRecipientsString.Append(parsedRecipients);
   return NS_OK;
+}
+
+
+nsresult nsMsgDBView::FetchToRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString)
+{
+  return commonFetchRecipients(aHdr, "torecipient_names",
+                               &nsIMsgDBHdr::GetMime2DecodedTo,
+                               aRecipientsString);
+}
+
+nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString)
+{
+  nsresult rv = FetchToRecipients(aHdr, aRecipientsString);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = commonFetchRecipients(aHdr, "ccRecipient_names",
+                             &nsIMsgDBHdr::GetMime2DecodedCC,
+                             aRecipientsString);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return commonFetchRecipients(aHdr, "bccRecipient_names",
+                               &nsIMsgDBHdr::GetMime2DecodedBCC,
+                               aRecipientsString);
 }
 
 nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, uint32_t aFlags, nsAString &aValue)
@@ -2014,7 +2046,8 @@ NS_IMETHODIMP nsMsgDBView::CellTextForColumn(int32_t aRow,
     break;
   case 't':
     // total msgs in thread column
-    if (aColumnName[1] == 'o' && (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
+    if (aColumnName[2] == 't' &&
+       (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
       if (m_flags[aRow] & MSG_VIEW_FLAG_ISTHREAD)
       {
@@ -2028,6 +2061,10 @@ NS_IMETHODIMP nsMsgDBView::CellTextForColumn(int32_t aRow,
           aValue.Assign(formattedCountString);
         }
       }
+    }
+    else if (aColumnName[1] == 'o' && aColumnName[2] == 'C') // To column
+    {
+      rv = FetchToRecipients(msgHdr, aValue);
     }
     else if (aColumnName[1] == 'a') // tags
     {
@@ -3824,6 +3861,10 @@ nsresult nsMsgDBView::GetFieldTypeAndLenForSort(nsMsgViewSortTypeValue sortType,
             *pFieldType = kCollationKey;
             *pMaxLen = kMaxRecipientKey;
             break;
+        case nsMsgViewSortType::byTo:
+            *pFieldType = kCollationKey;
+            *pMaxLen = kMaxRecipientKey;
+            break;
         case nsMsgViewSortType::byAuthor:
             *pFieldType = kCollationKey;
             *pMaxLen = kMaxAuthorKey;
@@ -4122,6 +4163,22 @@ nsMsgDBView::GetCollationKey(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue sortTyp
             NS_ENSURE_SUCCESS(rv,rv);
           }
           rv = dbToUse->CreateCollationKey(recipients, len, result);
+        }
+      }
+      break;
+    case nsMsgViewSortType::byTo:
+      {
+        nsString toRecipients;
+        rv = FetchToRecipients(msgHdr, toRecipients);
+        if (NS_SUCCEEDED(rv))
+        {
+          nsCOMPtr <nsIMsgDatabase> dbToUse = m_db;
+          if (!dbToUse)
+          {
+            rv = GetDBForHeader(msgHdr, getter_AddRefs(dbToUse));
+            NS_ENSURE_SUCCESS(rv, rv);
+          }
+          rv = dbToUse->CreateCollationKey(toRecipients, len, result);
         }
       }
       break;
