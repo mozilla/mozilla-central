@@ -120,6 +120,28 @@ var MailUtils =
   },
 
   /**
+   * Display the warning if the number of messages to be displayed is greater than
+   * the limit set in preferences.
+   * @param aNumMessages: number of messages to be displayed
+   * @param aConfirmTitle: title ID
+   * @param aConfirmMsg: message ID
+   * @param aLiitingPref: the name of the pref to retrieve the limit from
+   */
+  confirmAction: function (aNumMessages, aConfirmTitle, aConfirmMsg, aLimitingPref) {
+    let openWarning = Services.prefs.getIntPref(aLimitingPref);
+    if ((openWarning > 1) && (aNumMessages >= openWarning)) {
+      let bundle = Services.strings.createBundle(
+        "chrome://messenger/locale/messenger.properties");
+      let title = bundle.GetStringFromName(aConfirmTitle);
+      let message = PluralForm.get(aNumMessages,
+        bundle.GetStringFromName(aConfirmMsg))
+                .replace("#1", aNumMessages);
+      if (!Services.prompt.confirm(null, title, message))
+        return true;
+    }
+    return false;
+  },
+  /**
    * Display these message headers in new tabs, new windows or existing
    * windows, depending on the preference, the number of messages, and whether
    * a 3pane or standalone window is already open. This function should be
@@ -163,6 +185,10 @@ var MailUtils =
       }
 
       if (aTabmail) {
+        if (this.confirmAction(aMsgHdrs.length, "openTabWarningTitle",
+                               "openTabWarningConfirmation",
+                               "mailnews.open_tab_warning"))
+          return;
         for each (let [i, msgHdr] in Iterator(aMsgHdrs))
           // Open all the tabs in the background, except for the last one
           aTabmail.openTab("message", {msgHdr: msgHdr,
@@ -231,21 +257,10 @@ var MailUtils =
    openMessagesInNewWindows:
        function MailUtils_openMessagesInNewWindows(aMsgHdrs,
                                                    aViewWrapperToClone) {
-    let openWindowWarning = Services.prefs.getIntPref(
-                                "mailnews.open_window_warning");
-    let numMessages = aMsgHdrs.length;
-
-    if ((openWindowWarning > 1) && (numMessages >= openWindowWarning)) {
-      let bundle = Services.strings.createBundle(
-        "chrome://messenger/locale/messenger.properties");
-
-      let title = bundle.GetStringFromName("openWindowWarningTitle");
-      let message = PluralForm.get(numMessages,
-        bundle.GetStringFromName("openWindowWarningConfirmation"))
-                              .replace("#1", numMessages);
-      if (!Services.prompt.confirm(null, title, message))
-        return;
-    }
+    if (this.confirmAction(aMsgHdrs.length, "openWindowWarningTitle",
+                           "openWindowWarningConfirmation",
+                           "mailnews.open_window_warning"))
+      return;
 
     for each (let [, msgHdr] in Iterator(aMsgHdrs))
       this.openMessageInNewWindow(msgHdr, aViewWrapperToClone);
