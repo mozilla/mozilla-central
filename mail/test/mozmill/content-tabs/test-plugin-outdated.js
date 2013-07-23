@@ -59,8 +59,13 @@ function test_outdated_plugin_notification() {
   mc.waitFor(function () { return testDone; }, "Plugin test taking too long",
              100000, 1000);
 
+  let finishedReset = false;
+
+  resetBlocklist(mc, function() { finishedReset = true; });
+
+  mc.waitFor(function () finishedReset, "Reset blocklist took too long");
+
   Services.prefs.clearUserPref("extensions.blocklist.suppressUI");
-  resetBlocklist();
 }
 
 function subtest_outdated_plugin_notification() {

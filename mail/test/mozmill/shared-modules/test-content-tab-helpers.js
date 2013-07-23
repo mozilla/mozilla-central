@@ -435,6 +435,7 @@ function setAndUpdateBlocklist(aController, aURL, aCallback) {
   updateBlocklist(aController, aCallback);
 }
 
-function resetBlocklist(aCallback) {
+function resetBlocklist(aController, aCallback) {
   Services.prefs.setCharPref("extensions.blocklist.url", _originalBlocklistURL);
+  updateBlocklist(aController, aCallback);
 }

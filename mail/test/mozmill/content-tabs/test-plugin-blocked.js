@@ -73,9 +73,15 @@ function test_blocklisted_plugin_notification() {
   mc.waitFor(function () { return testDone; }, "Plugin test taking too long",
              100000, 1000);
 
-  Services.prefs.clearUserPref("extensions.blocklist.suppressUI");
-  resetBlocklist();
+  let finishedReset = false;
+
+  resetBlocklist(mc, function() { finishedReset = true; });
+
+  mc.waitFor(function () finishedReset, "Reset blocklist took too long");
+
   plugin.enabledState = pluginState;
+
+  Services.prefs.clearUserPref("extensions.blocklist.suppressUI");
 }
 
 function subtest_blocklisted_plugin_notification() {
