@@ -177,6 +177,7 @@ check-one:
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
 	  --test-path=$(SOLO_FILE) \
+	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
 	  --profile-name=$(MOZ_APP_NAME) \
 	  --verbose \
 	  $(EXTRA_TEST_ARGS) \

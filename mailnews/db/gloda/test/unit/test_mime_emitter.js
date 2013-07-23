@@ -17,7 +17,6 @@
  *  adds a lot of runtime overhead which makes certain debugging strategies like
  *  using chronicle-recorder impractical.
  */
-load("../../../../resources/mailDirService.js");
 load("../../../../resources/mailTestUtils.js");
 load("../../../../resources/logHelper.js");
 load("../../../../resources/asyncTestUtils.js");

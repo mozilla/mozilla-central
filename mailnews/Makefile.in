@@ -17,6 +17,14 @@ DEFINES += -DOS_ARCH=$(OS_ARCH) \
            -DNO_NSPR_10_SUPPORT \
            $(NULL)
 
+ifdef ENABLE_TESTS
+RESDIR = $(srcdir)/test/resources
+TESTING_JS_MODULE_DIR = mailnews
+TESTING_JS_MODULES += \
+	$(RESDIR)/mailDirService.js \
+	$(NULL)
+endif
+
 include $(topsrcdir)/config/rules.mk
 
 ifdef ENABLE_TESTS

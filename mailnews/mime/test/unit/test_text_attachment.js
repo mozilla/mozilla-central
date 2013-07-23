@@ -6,7 +6,6 @@
  * This test verifies that we don't display text attachments inline
  * when mail.inline_attachments is false.
  */
-load("../../../resources/mailDirService.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");

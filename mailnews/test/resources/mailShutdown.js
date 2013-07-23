@@ -24,7 +24,7 @@ function postShutdownNotifications()
                        "profile-change-teardown",
                        "profile-before-change"];
   notifications.forEach(function(notification) {
-                          Services.obs.notifyObservers(null, notification, null)
+                          Services.obs.notifyObservers(null, notification, null);
                         });
 
   // finally, the xpcom-shutdown notification is handled by XPCOM itself.
@@ -35,9 +35,3 @@ gc();
 
 // Now shut everything down.
 postShutdownNotifications();
-
-gProfileDir = null;
-if (gProfileDirProvider) {
-  Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
-                 .unregisterProvider(gProfileDirProvider);
- }

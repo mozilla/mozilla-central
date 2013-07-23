@@ -12,7 +12,6 @@
  * We do use the rest of the test infrastructure though.
  */
 
-load("../../../../resources/mailDirService.js");
 load("../../../../resources/mailTestUtils.js");
 load("../../../../resources/logHelper.js");
 load("../../../../resources/asyncTestUtils.js");

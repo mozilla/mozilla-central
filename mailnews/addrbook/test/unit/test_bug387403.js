@@ -3,8 +3,6 @@
  * Test for bug 387403 crash when opening e-mail with broken vcard.
  */
 
-load("../../../resources/mailTestUtils.js");
-
 function run_test() {
   // Before bug 387403 this would hang, eating up all the memory until it
   // crashed.

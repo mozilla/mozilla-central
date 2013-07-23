@@ -7,7 +7,6 @@
  */
 
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 // javascript mime emitter functions

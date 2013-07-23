@@ -7,10 +7,7 @@
  * For xpcshell tests, the "profile" directory will be <profile_dir>/mailtest/
  */
 
-// Make sure we execute this file exactly once
-var gMailDirService_js__;
-if (!gMailDirService_js__) {
-gMailDirService_js__ = true;
+const EXPORTED_SYMBOLS = ["ProfileDir"];
 
 // Services
 Components.utils.import("resource://gre/modules/Services.jsm");
@@ -25,75 +22,88 @@ var Ci = Components.interfaces;
 var Cr = Components.results;
 var CC = Components.Constructor;
 
-var gProfileDirProvider = null;
+let ProfileDir = {
+  // keep things out of global scope where possible.
+  initialize: function initializeDirServer(aProfileDir) {
+    const NS_APP_USER_PROFILE_50_DIR = "ProfD";
 
-// keep things out of global scope where possible.
-function initializeDirServer() {
-  const NS_APP_USER_PROFILE_50_DIR = "ProfD";
+    // Various functions common to the tests.
+    const MailTestDirServer = {
+      /*
+       * makeDirectoryService
+       */
+      makeDirectoryService : function () {
+        // Register our own provider for the profile directory.
+        // It will simply return the current directory.
+        const provider = {
+           getFile : function(prop, persistent) {
+           persistent.value = true;
+           if (prop == NS_APP_USER_PROFILE_50_DIR) {
+              // Then this is the directory we want
+              aProfileDir.append("mailtest");
 
-  // Various functions common to the tests.
-  const MailTestDirServer = {
-    /*
-     * makeDirectoryService
-     *
-     */
-    makeDirectoryService : function () {
-      // Register our own provider for the profile directory.
-      // It will simply return the current directory.
-      const provider = {
-        getFile : function(prop, persistent) {
-          persistent.value = true;
-          if (prop == NS_APP_USER_PROFILE_50_DIR) {
-            var profileDir = do_get_profile();
+              return aProfileDir;
+            }
+            if (prop == "resource:app") {
+              // app should return the same as gre...
+              return Services.dirsvc.get("GreD", Ci.nsIFile);
+            }
+            if (prop == "TmpD") {
+              throw Components.results.NS_ERROR_FAILURE;
+            }
 
-            // Then this is the directory we want
-            profileDir.append("mailtest");
-
-            return profileDir;
-          }
-          if (prop == "resource:app") {
-            // app should return the same as gre...
-            return Services.dirsvc.get("GreD", Ci.nsIFile);
-          }
-          if (prop == "TmpD") {
+            dump("Directory request for: " + prop + " that we (mailDirService.js)" +
+                 " are not handling, leaving it to another handler.\n");
             throw Components.results.NS_ERROR_FAILURE;
-          }
+          },
 
-          dump("Directory request for: " + prop + " that we (mailDirService.js)" +
-               " are not handling, leaving it to another handler.\n");
-          throw Components.results.NS_ERROR_FAILURE;
-        },
+          QueryInterface:
+            XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
+        };
+        gProfileDirProvider = provider;
+        Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
+                       .registerProvider(gProfileDirProvider);
+      }
+    };
 
-        QueryInterface:
-          XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
-      };
-      gProfileDirProvider = provider;
-      Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
-                     .registerProvider(gProfileDirProvider);
+    // If there's no location registered for the profile directory, register one
+    var dir;
+    try {
+      dir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
+    } catch (e) { }
+
+    if (!dir) {
+      MailTestDirServer.makeDirectoryService();
+      dir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
     }
-  };
 
-  // If there's no location registered for the profile directory, register one
-  var profileDir;
-  try {
-    profileDir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
-  } catch (e) { }
+    // Ensure we start with a clean profile directory for all tests
+    try {
+      if (dir.exists()) {
+        this._recursiveRemove(dir);
+        dir.remove(false);
+      }
+    }
+    catch (e) {
+      dump("Couldn't recursive remove directory: " + e);
+      dump("Trying automatically\n");
 
-  if (!profileDir) {
-    MailTestDirServer.makeDirectoryService();
-    profileDir = Services.dirsvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
-  }
-  return profileDir;
-}
+      if (dir.exists())
+        dir.remove(true);
 
-// Left as a global to make things like copying files easy.
-var gProfileDir = initializeDirServer();
+      // This throw is so that we know if this bug happens
+      throw Cr.NS_ERROR_FAILURE;
+    }
 
-// Ensure we start with a clean profile directory for all tests
-try {
+    // Always ensure the profile directory exists before we start the tests
+    dir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt("0700", 8));
+
+    return dir;
+  },
+
   // XXX We have Bug 473385 - nsIFile.remove(true) intermittently fails on Mac
   // So we have to do it manually to keep the tinderboxes stable.
-  function recursiveRemove(aDirectory) {
+  _recursiveRemove: function(aDirectory) {
     let entries = aDirectory.directoryEntries;
 
     while (entries.hasMoreElements()) {
@@ -102,30 +112,12 @@ try {
       if (entry instanceof Ci.nsIFile) {
         if (entry.isDirectory() &&
             !entry.equals(aDirectory)) {
-          recursiveRemove(entry);
+          this._recursiveRemove(entry);
         }
 
         entry.remove(false);
       }
     }
   }
+};
 
-  if (gProfileDir.exists()) {
-    recursiveRemove(gProfileDir);
-    gProfileDir.remove(false);
-  }
-}
-catch (e) {
-  print("Couldn't recursive remove directory: " + e);
-  print("Trying automatically\n");
-
-  if (gProfileDir.exists())
-    gProfileDir.remove(true);
-
-  // This throw is so that we know if this bug happens
-  throw Cr.NS_ERROR_FAILURE;
-}
-// Always ensure the profile directory exists before we start the tests
-gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt("0700", 8));
-
-} // gMailDirService_js__

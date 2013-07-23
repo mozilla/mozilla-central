@@ -3,13 +3,24 @@
 if (typeof gDEPTH == "undefined")
   var gDEPTH = "../../../../";
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource://testing-common/mailnews/mailDirService.js");
+
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cr = Components.results;
+var CC = Components.Constructor;
+
+var gProfileDir = ProfileDir.initialize(do_get_profile());
+
 // Import fakeserver
 load(gDEPTH + "mailnews/fakeserver/maild.js");
 load(gDEPTH + "mailnews/fakeserver/auth.js");
 load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
 // And mailnews scripts
-load(gDEPTH + "mailnews/resources/mailDirService.js");
 load(gDEPTH + "mailnews/resources/mailTestUtils.js");
 
 const IMAP_PORT = 1024 + 143;

@@ -14,9 +14,6 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-// we need the directory service
-load("../../../../resources/mailDirService.js");
-
 /**
  * The DB version to use.  We set this as a non-const variable so that
  * test_nuke_migration_from_future.js can change it.
