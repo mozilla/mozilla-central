@@ -89,7 +89,7 @@ var UrlListener =
 function searchTest()
 {
   // Get the IMAP inbox...
-  emptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
+  var emptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
 
   let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
                         .createInstance(Ci.nsIMsgSearchSession);

@@ -1,7 +1,7 @@
 // We can be executed from multiple depths
 // Provide gDEPTH if not already defined
 if (typeof gDEPTH == "undefined")
-  gDEPTH = "../../../../";
+  var gDEPTH = "../../../../";
 
 // Import fakeserver
 load(gDEPTH + "mailnews/fakeserver/maild.js");

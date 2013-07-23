@@ -11,7 +11,7 @@ load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 // javascript mime emitter functions
-mimeMsg = {};
+var mimeMsg = {};
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 

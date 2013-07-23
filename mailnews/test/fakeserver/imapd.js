@@ -764,9 +764,6 @@ IMAP_RFC3501_handler.prototype = {
     // If we're here, we have a command with arguments. Dispatch!
     return this._dispatchCommand(command, args);
   },
-  onServerFault: function (e) {
-    return this._tag + " BAD internal server error: " + e;
-  },
   onMultiline : function (line) {
     // A multiline arising form a literal being passed
     if (this._partial) {
@@ -1389,8 +1386,8 @@ IMAP_RFC3501_handler.prototype = {
     if (this._lastCommand == reader.watchWord)
       reader.stopTest();
   },
-  onServerFault : function () {
-    return ("_tag" in this ? this._tag : '*') + ' BAD Internal server fault.';
+  onServerFault : function (e) {
+    return ("_tag" in this ? this._tag : '*') + ' BAD Internal server error: ' + e;
   },
 
   ////////////////////////////////////

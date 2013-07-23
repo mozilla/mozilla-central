@@ -63,7 +63,7 @@ msll.prototype = {
 
   // nsIMsgSendLaterListener
   onStartSending: function (aTotalMessageCount) {
-    do_check_eq(aTotal, gMsgOrder.length);
+    do_check_eq(aTotalMessageCount, gMsgOrder.length);
     do_check_eq(msgSendLater.sendingMessages, true);
   },
   onMessageStartSending: function (aCurrentMessage, aTotalMessageCount,

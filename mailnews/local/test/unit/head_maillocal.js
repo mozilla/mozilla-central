@@ -1,13 +1,13 @@
-gDEPTH = "../../../../";
+var gDEPTH = "../../../../";
 
 // Import the main scripts that mailnews tests need to set up and tear down
 load("../../../resources/mailDirService.js");
 load("../../../resources/mailTestUtils.js");
 
 // Import the pop3 server scripts
-load("../../../fakeserver/maild.js")
-load("../../../fakeserver/auth.js")
-load("../../../fakeserver/pop3d.js")
+load("../../../fakeserver/maild.js");
+load("../../../fakeserver/auth.js");
+load("../../../fakeserver/pop3d.js");
 
 Components.utils.import("resource:///modules/mailServices.js");
 

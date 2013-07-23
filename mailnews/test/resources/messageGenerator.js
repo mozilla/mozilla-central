@@ -115,7 +115,7 @@ SyntheticPart.prototype = {
     return this._encoding;
   },
   get hasDisposition() {
-    return this._forceDisposition || this._filename;
+    return this._forceDisposition || this._filename || false;
   },
   get contentDispositionHeaderValue() {
     let s = '';
@@ -126,16 +126,16 @@ SyntheticPart.prototype = {
     return s;
   },
   get hasContentId() {
-    return this._contentId;
+    return this._contentId || false;
   },
   get contentIdHeaderValue() {
     return '<' + this._contentId + '>';
   },
   get hasExtraHeaders() {
-    return this._extraHeaders;
+    return this._extraHeaders || false;
   },
   get extraHeaders() {
-    return this._extraHeaders;
+    return this._extraHeaders || false;
   },
 };
 
@@ -1138,14 +1138,12 @@ function bindMethods(aObj) {
   for (let [name, ubfunc] in Iterator(aObj)) {
     // the variable binding needs to get captured...
     let realFunc = ubfunc;
-    function getterFunc() {
-      // 'this' is magic and not from the enclosing scope.  we are assuming the
-      //  getter will receive a valid 'this', and so
-      let realThis = this;
-      return function() { return realFunc.apply(realThis, arguments); };
-    }
     delete aObj[name];
-    aObj.__defineGetter__(name, getterFunc);
+    Object.defineProperty(aObj, name, {
+      get: function getterFunc() {
+	return realFunc.bind(this);
+      }
+    });
   }
 }
 

@@ -87,7 +87,7 @@ nsMsgTraitService.prototype =
 
   getId: function(aIndex)
   {
-    for (id in _traits)
+    for (let id in _traits)
       if (_traits[id].index == aIndex)
         return id;
     return null;
@@ -95,7 +95,7 @@ nsMsgTraitService.prototype =
 
   setEnabled: function(aId, aEnabled)
   {
-    traitsBranch.setBoolPref("enabled." + _traits[aId].index, aEnabled)
+    traitsBranch.setBoolPref("enabled." + _traits[aId].index, aEnabled);
     _traits[aId].enabled = aEnabled;
   },
 
@@ -119,7 +119,7 @@ nsMsgTraitService.prototype =
   {
     let proIndices = [];
     let antiIndices = [];
-    for (id in _traits)
+    for (let id in _traits)
       if (_traits[id].enabled)
       {
         proIndices.push(_traits[id].index);
@@ -206,7 +206,7 @@ function _init()
   for (var i = 0; i < ids.length; i++)
   {
     var id = idBranch.getCharPref(ids[i]);
-    index = parseInt(ids[i]);
+    var index = parseInt(ids[i]);
     _registerTrait(id, index, false);
 
     // Read in values, ignore errors since that usually means the

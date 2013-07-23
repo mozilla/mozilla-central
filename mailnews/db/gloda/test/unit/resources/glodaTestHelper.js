@@ -664,8 +664,10 @@ var _indexMessageState = {
   onIndexNotification: function(aStatus, aPrettyName, aJobIndex,
                                 aJobItemIndex, aJobItemGoal) {
     let ims = _indexMessageState;
+    let waiting = ims.waitingForIndexingCompletion ?
+                  ims.waitingForIndexingCompletion : false;
     LOG.debug("((( Index listener notified! aStatus = " + aStatus +
-              " waiting: " + ims.waitingForIndexingCompletion + "\n");
+              " waiting: " + waiting + "\n");
 
     // we only care if indexing has just completed and we're waiting
     if (aStatus == Gloda.kIndexerIdle && !GlodaIndexer.indexing &&
