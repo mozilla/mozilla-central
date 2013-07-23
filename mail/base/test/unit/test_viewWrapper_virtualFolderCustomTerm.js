@@ -23,7 +23,7 @@ initViewWrapperTestUtils({mode: "imap", offline: false});
 /**
  * A custom search term, that just does Subject Contains
  */
-gCustomSearchTermSubject = {
+var gCustomSearchTermSubject = {
   id: "mailnews@mozilla.org#test",
   name: "Test-mailbase Subject",
   getEnabled: function subject_getEnabled(scope, op) {
