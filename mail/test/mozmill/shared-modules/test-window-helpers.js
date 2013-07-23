@@ -947,8 +947,12 @@ var AugmentEverybodyWith = {
      *     attribute with a single value.  We pick the menu option whose DOM
      *     node has an attribute with that name and value.  We click whatever we
      *     find.  We throw if we don't find what you were asking for.
+     * @param aKeepOpen  If set to true the popups are not closed after last click.
+     *
+     * @return  An array of popup elements that were left open. It will be
+     *          an empty array if aKeepOpen was set to true.
      */
-    click_menus_in_sequence: function _click_menus(aRootPopup, aActions) {
+    click_menus_in_sequence: function _click_menus(aRootPopup, aActions, aKeepOpen) {
       if (aRootPopup.state == "closed")
         aRootPopup.openPopup(null, "", 0, 0, true, true);
       if (aRootPopup.state != "open") { // handle "showing"
@@ -957,7 +961,7 @@ var AugmentEverybodyWith = {
                       ", state=" + aRootPopup.state, 5000, 50);
       }
       // These popups sadly do not close themselves, so we need to keep track
-      //  of them so we can make sure they end up closed.
+      // of them so we can make sure they end up closed.
       let closeStack = [aRootPopup];
 
       let curPopup = aRootPopup;
@@ -997,8 +1001,24 @@ var AugmentEverybodyWith = {
         }
       }
 
-      while (closeStack.length) {
-        curPopup = closeStack.pop();
+      if (!aKeepOpen) {
+        this.close_popup_sequence(closeStack);
+        return [];
+      } else {
+        return closeStack;
+      }
+    },
+
+    /**
+     * Close given menupopups.
+     *
+     * @param aCloseStack  An array of menupopup elements that are to be closed.
+     *                     The elements are processed from the end of the array
+     *                     to the front (a stack).
+     */
+    close_popup_sequence: function _close_popup_sequence(aCloseStack) {
+      while (aCloseStack.length) {
+        let curPopup = aCloseStack.pop();
         this.keypress(new elib.Elem(curPopup), "VK_ESCAPE", {});
         utils.waitFor(function() { return curPopup.state == "closed"; },
                       "Popup did not close! id=" + curPopup.id +
