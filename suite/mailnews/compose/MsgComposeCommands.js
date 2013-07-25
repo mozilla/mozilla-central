@@ -1734,7 +1734,21 @@ function addRecipientsToIgnoreList(aAddressesToAdd)
         tokenizedNames = tokenizedNames.concat(splitNames);
     }
 
-    InlineSpellCheckerUI.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
+    if (InlineSpellCheckerUI.mInlineSpellChecker.spellCheckPending)
+    {
+      // spellchecker is enabled, but we must wait for its init to complete
+      Services.obs.addObserver(function observe(subject, topic, data) {
+        if (subject == gMsgCompose.editor)
+        {
+          Services.obs.removeObserver(observe, topic);
+          InlineSpellCheckerUI.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
+        }
+      }, "inlineSpellChecker-spellCheck-ended", false);
+    }
+    else
+    {
+      InlineSpellCheckerUI.mInlineSpellChecker.ignoreWords(tokenizedNames, tokenizedNames.length);
+    }
   }
 }
 
