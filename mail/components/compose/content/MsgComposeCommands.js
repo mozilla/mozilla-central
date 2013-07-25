@@ -178,6 +178,13 @@ var gComposeRecyclingListener = {
     // It will be rebuilt later in ComposeStartup
     ClearIdentityListPopup(document.getElementById("msgIdentityPopup"));
 
+    // Stop gSpellChecker so personal dictionary is saved.
+    // We need to do this before disabling the editor.
+    enableInlineSpellCheck(false);
+    // clear any suggestions in the context menu
+    gSpellChecker.clearSuggestionsFromMenu();
+    gSpellChecker.clearDictionaryListFromMenu();
+
     //Clear the subject
     GetMsgSubjectElement().value = "";
     // be sure to clear the transaction manager for the subject
@@ -214,12 +221,6 @@ var gComposeRecyclingListener = {
     if (getMailToolbox().customizing && gCustomizeSheet)
       document.getElementById("customizeToolbarSheetIFrame")
               .contentWindow.finishToolbarCustomization();
-
-    // Stop gSpellChecker so personal dictionary is saved
-    enableInlineSpellCheck(false);
-    // clear any suggestions in the context menu
-    gSpellChecker.clearSuggestionsFromMenu();
-    gSpellChecker.clearDictionaryListFromMenu();
 
     //Reset editor
     EditorResetFontAndColorAttributes();

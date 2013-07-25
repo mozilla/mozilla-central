@@ -150,6 +150,13 @@ var gComposeRecyclingListener = {
     // We need to clear the identity popup menu in case the user will change them. It will be rebuilded later in ComposeStartup
     ClearIdentityListPopup(document.getElementById("msgIdentityPopup"));
 
+    // Stop InlineSpellCheckerUI so personal dictionary is saved.
+    // We need to do this before disabling the editor.
+    EnableInlineSpellCheck(false);
+    // clear any suggestions in the context menu
+    InlineSpellCheckerUI.clearSuggestionsFromMenu();
+    InlineSpellCheckerUI.clearDictionaryListFromMenu();
+
     //Clear the subject
     GetMsgSubjectElement().value = "";
     SetComposeWindowTitle();
@@ -184,12 +191,6 @@ var gComposeRecyclingListener = {
     if (getMailToolbox().customizing && gCustomizeSheet)
       document.getElementById("customizeToolbarSheetIFrame")
               .contentWindow.finishToolbarCustomization();
-
-    // Stop InlineSpellCheckerUI so personal dictionary is saved
-    EnableInlineSpellCheck(false);
-    // clear any suggestions in the context menu
-    InlineSpellCheckerUI.clearSuggestionsFromMenu();
-    InlineSpellCheckerUI.clearDictionaryListFromMenu();
 
     //Reset editor
     EditorResetFontAndColorAttributes();
