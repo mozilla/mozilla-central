@@ -1559,9 +1559,9 @@
             this._browsers = null;
 
             var savedData = this.savedBrowsers.splice(aIndex, 1)[0];
-            var t = savedData._tab;
-            var b = savedData._browser;
-            var hist = savedData._history;
+            var t = savedData.browserData.tab;
+            var b = savedData.browserData.browser;
+            var hist = savedData.browserData.history;
 
             this.tabContainer.appendChild(t);
             if (t.previousSibling.selected)
@@ -1750,9 +1750,12 @@
             //    into bfcache - allows for saving of JS modifications
             //    and also saves RAM by allowing bfcache to evict the full page
 
-            tabData._tab = aTab;
-            tabData._browser = oldBrowser;
-            tabData._history = oldSH;
+            tabData.browserData = {
+              tab: aTab,
+              browser: oldBrowser,
+              history: oldSH,
+              toJSON: function() {} // hides this object from JSON.stringify
+            };
             this.savedBrowsers.unshift(tabData);
 
             var newSH = Components.classes["@mozilla.org/browser/shistory;1"]
@@ -1771,10 +1774,8 @@
             // remove overflow from the undo stack
             if (this.savedBrowsers.length > maxUndoDepth) {
               tabData = this.savedBrowsers.pop();
-              var deadBrowser = tabData._browser;
-              delete tabData._tab;
-              delete tabData._browser;
-              delete tabData._history;
+              var deadBrowser = tabData.browserData.browser;
+              delete tabData.browserData;
               deadBrowser.parentNode.destroy();
               deadBrowser.destroy();
 
@@ -1795,10 +1796,8 @@
               return false;
 
             var tabData = this.savedBrowsers.splice(aIndex, 1)[0];
-            var deadBrowser = tabData._browser;
-            delete tabData._tab;
-            delete tabData._browser;
-            delete tabData._history;
+            var deadBrowser = tabData.browserData.browser;
+            delete tabData.browserData;
             deadBrowser.parentNode.destroy();
             deadBrowser.destroy();
 
@@ -2636,10 +2635,8 @@
             // Wipe out savedBrowsers since history is gone
             while (this.savedBrowsers.length > maxUndoDepth) {
               var tabData = this.savedBrowsers.pop();
-              var deadBrowser = tabData._browser;
-              delete tabData._tab;
-              delete tabData._browser;
-              delete tabData._history;
+              var deadBrowser = tabData.browserData.browser;
+              delete tabData.browserData;
               deadBrowser.parentNode.destroy();
               deadBrowser.destroy();
 
@@ -2752,9 +2749,7 @@
           os.removeObserver(this, "browser:purge-session-history");
           this.mPrefs.removeObserver("browser.tabs.max_tabs_undo", this);
           this.savedBrowsers.forEach(function(aTabData) {
-            delete aTabData._tab;
-            delete aTabData._browser;
-            delete aTabData._history;
+            delete aTabData.browserData;
           });
         ]]>
       </destructor>
