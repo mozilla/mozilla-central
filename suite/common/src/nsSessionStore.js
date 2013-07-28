@@ -74,11 +74,6 @@ const CAPABILITIES = [
   "DNSPrefetch", "Auth", "WindowControl"
 ];
 
-// These keys are for internal use only - they shouldn't be part of the JSON
-// that gets saved to disk nor part of the strings returned by the API.
-const INTERNAL_KEYS = ["_tabStillLoading", "_hosts", "_formDataSaved",
-                       "_tab", "_browser", "_history", "_host", "_scheme"];
-
 // These are tab events that we listen to.
 const TAB_EVENTS = ["TabOpen", "TabClose", "TabSelect", "TabShow", "TabHide"];
 
@@ -3712,18 +3707,7 @@ SessionStoreService.prototype = {
    * @returns the object's JSON representation
    */
   _toJSONString: function sss_toJSONString(aJSObject) {
-    // We never want to save __lastSessionWindowID across sessions, but we do
-    // want it exported to consumers when running (eg. Private Browsing).
-    let internalKeys = INTERNAL_KEYS;
-    if (this._loadState == STATE_QUITTING) {
-      internalKeys = internalKeys.slice();
-      internalKeys.push("__lastSessionWindowID");
-    }
-    function exclude(key, value) {
-      // returning undefined results in the exclusion of that key
-      return (INTERNAL_KEYS.indexOf(key) != -1) ? undefined : value;
-    }
-    return JSON.stringify(aJSObject, exclude);
+    return JSON.stringify(aJSObject);
   },
 
   _sendRestoreCompletedNotifications: function sss_sendRestoreCompletedNotifications() {
