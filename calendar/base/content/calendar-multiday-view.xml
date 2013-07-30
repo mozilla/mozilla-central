@@ -2430,12 +2430,12 @@
                    class="multiday-view-label-day-box"
                    flex="1"
                    equalsize="always"/>
-          <xul:box anonid="labelscrollbarspacer"/>
+          <xul:box anonid="labelscrollbarspacer" class="multiday-labelscrollbarspacer"/>
         </xul:box>
         <xul:box anonid="headerbox" class="multiday-view-header-box">
           <xul:box anonid="headertimespacer" class="multiday-view-header-time-spacer"/>
           <xul:box anonid="headerdaybox" class="multiday-view-header-day-box" flex="1" equalsize="always" />
-          <xul:box anonid="headerscrollbarspacer"/>
+          <xul:box anonid="headerscrollbarspacer" class="multiday-headerscrollbarspacer"/>
         </xul:box>
         <xul:scrollbox anonid="scrollbox" flex="1">
           <!-- the orient of the calendar-time-bar needs to be the opposite of the parent -->
