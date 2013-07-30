@@ -463,8 +463,8 @@ Account.prototype = {
     let options = {
       headers: (aHeaders || []).concat([["Authorization", authorization]]),
       postData: aPOSTData,
-      onLoad: aOnLoad.bind(this),
-      onError: aOnError.bind(this),
+      onLoad: aOnLoad ? aOnLoad.bind(aThis) : null,
+      onError: aOnError ? aOnError.bind(aThis) : null,
       logger: {log: this.LOG.bind(this),
                debug: this.DEBUG.bind(this)}
     }
