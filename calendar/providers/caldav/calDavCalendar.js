@@ -1644,17 +1644,23 @@ calDavCalendar.prototype = {
                 return;
             }
 
-            if (request.responseStatus >= 500 && request.responseStatus < 600) {
-                // Calendar not available
-                cal.LOG("CalDAV: Server not available " + request.responseStatus + ", abort sync for calendar " + thisCalendar.name);
+            let responseStatusCategory = Math.floor(request.responseStatus / 100);
+
+            // 4xx codes, which is either an authentication failure or
+            // something like method not allowed. This is a failure worth
+            // disabling the calendar.
+            if (responseStatusCategory == 4) {
+                thisCalendar.setProperty("disabled", "true");
+                thisCalendar.setProperty("auto-enabled", "true");
                 thisCalendar.completeCheckServerInfo(aChangeLogListener, Components.results.NS_ERROR_ABORT);
                 return;
             }
 
-            if (request.responseStatus == 401 || request.responseStatus == 403) {
-                // Auth was cancelled, disable this calendar with auto-enable
-                thisCalendar.setProperty("disabled", "true");
-                thisCalendar.setProperty("auto-enabled", "true");
+            // 5xx codes, a server error. This could be a temporary failure,
+            // i.e a backend server being disabled.
+            if (responseStatusCategory == 5) {
+                cal.LOG("CalDAV: Server not available " + request.responseStatus +
+                        ", abort sync for calendar " + thisCalendar.name);
                 thisCalendar.completeCheckServerInfo(aChangeLogListener, Components.results.NS_ERROR_ABORT);
                 return;
             }
