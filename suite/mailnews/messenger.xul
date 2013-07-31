@@ -108,6 +108,7 @@
     <tooltip id="aHTMLTooltip"
              onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
     <panel id="customizeToolbarSheetPopup"/>
+    <menupopup id="networkProperties"/>
   </popupset>
 
   <vbox id="titlebar"/>
