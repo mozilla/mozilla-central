@@ -15,6 +15,8 @@ include $(DEPTH)/config/autoconf.mk
 LIBRARY_NAME	= mailcomps
 SHORT_LIBNAME	= mailcmp
 EXPORT_LIBRARY	= 1
+IS_COMPONENT	= 1
+MODULE_NAME	= nsMailCompsModule
 LIBXUL_LIBRARY = 1
 MOZILLA_INTERNAL_API = 1
 FORCE_USE_PIC = 1
