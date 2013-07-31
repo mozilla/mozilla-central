@@ -5,7 +5,7 @@
 #ifndef _rebuffer_h_
 #define _rebuffer_h_
 
-#include "mozilla/StandardInteger.h"
+#include <stdint.h>
 #include "nsStringGlue.h"
 
 //////////////////////////////////////////////////////////////

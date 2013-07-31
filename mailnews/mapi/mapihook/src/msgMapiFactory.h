@@ -9,7 +9,7 @@
 #include <objbase.h>
 #include "nspr.h"
 #include "nsISupportsImpl.h" // ThreadSafeAutoRefCnt
-#include "mozilla/StandardInteger.h"
+#include <stdint.h>
 
 
 class CMapiFactory : public IClassFactory

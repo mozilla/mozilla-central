@@ -9,7 +9,7 @@
 #ifndef _MIMECOM_H_
 #define _MIMECOM_H_
 
-#include "mozilla/StandardInteger.h"
+#include <stdint.h>
 
 /*
  * These functions are exposed by libmime to be used by content type
