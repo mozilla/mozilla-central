@@ -76,7 +76,8 @@ const expectedCTList1 = {
 }
 
 function checkAttachment(expectedCD, expectedCT) {
-  let msgData = loadMessageToString(gDraftFolder, firstMsgHdr(gDraftFolder));
+  let msgData = mailTestUtils.loadMessageToString(gDraftFolder,
+                                                  firstMsgHdr(gDraftFolder));
   let pos = msgData.indexOf("Content-Disposition:");
   do_check_neq(pos, -1);
   let contentDisposition = msgData.substr(pos);

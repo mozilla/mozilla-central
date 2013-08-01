@@ -105,7 +105,8 @@ function OnStopCopy(aStatus) {
     do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
 
     // Now do a comparison of what is in the sent mail folder
-    let msgData = loadMessageToString(folder, firstMsgHdr(folder));
+    let msgData = mailTestUtils.loadMessageToString(folder,
+                                                    firstMsgHdr(folder));
     // Skip the headers etc that mailnews adds
     var pos = msgData.indexOf("From:");
     do_check_neq(pos, -1);
@@ -172,7 +173,7 @@ function sendMessageLater()
 
 function run_test() {
   // Test file - for bug 429891
-  originalData = loadFileToString(testFile);
+  originalData = IOUtils.loadFileToString(testFile);
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.

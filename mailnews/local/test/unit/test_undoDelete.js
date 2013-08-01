@@ -35,7 +35,7 @@ const gTestArray =
   },
   function verifyFolders() {
     let msgRestored = gTestFolder.msgDatabase.getMsgHdrForMessageID(gMsgId1);
-    let msg = loadMessageToString(gTestFolder, msgRestored);
+    let msg = mailTestUtils.loadMessageToString(gTestFolder, msgRestored);
     do_check_eq(msg, gMsg1.toMboxString());
     doTest(++gCurTestNum);
   },
@@ -131,7 +131,6 @@ function endTest()
   gMessages.clear();
   gMsgWindow.closeWindow();
   gMsgWindow = null;
-  gRootFolder = null;
   gLocalInboxFolder = null;
   gLocalIncomingServer = null;
 

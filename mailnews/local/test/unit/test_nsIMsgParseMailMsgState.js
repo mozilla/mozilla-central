@@ -21,7 +21,7 @@ function test_parse_headers_without_crash(eml) {
   parser.SetMailDB(gLocalInboxFolder.getDatabaseWOReparse());
   parser.state = Ci.nsIMsgParseMailMsgState.ParseHeadersState;
 
-  let mailData = loadFileToString(file);
+  let mailData = IOUtils.loadFileToString(file);
   let lines = mailData.split(MSG_LINEBREAK);
 
   for (let line = 0; line < lines.length; line++) {

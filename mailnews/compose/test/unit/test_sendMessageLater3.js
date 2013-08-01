@@ -89,7 +89,8 @@ function OnStopCopy(aStatus) {
 
   
   // Now do a comparison of what is in the unsent mail folder
-  let msgData = loadMessageToString(folder, firstMsgHdr(folder));
+  let msgData = mailTestUtils.loadMessageToString(folder,
+                                                  firstMsgHdr(folder));
 
   // Skip the headers etc that mailnews adds
   var pos = msgData.indexOf("From:");
@@ -119,7 +120,7 @@ function run_test() {
   registerAlertTestUtils();
 
   // Test file - for bug 429891
-  originalData = loadFileToString(testFile);
+  originalData = IOUtils.loadFileToString(testFile);
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.

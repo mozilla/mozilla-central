@@ -61,7 +61,8 @@ function setup() {
 }
 
 function checkSavedMessage() {
-  do_check_eq(loadFileToString(gMsgFile), loadFileToString(gSavedMsgFile));
+  do_check_eq(IOUtils.loadFileToString(gMsgFile),
+	      IOUtils.loadFileToString(gSavedMsgFile));
 }
 
 function teardown() {

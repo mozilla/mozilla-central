@@ -215,7 +215,7 @@ function actually_run_test() {
 function run_test() {
   // Load in the test files so we have a record of length and their data.
   for (var i = 0; i < gMsgFile.length; ++i) {
-    gMsgFileData[i] = loadFileToString(gMsgFile[i]);
+    gMsgFileData[i] = IOUtils.loadFileToString(gMsgFile[i]);
   }
 
   // Ensure we have a local mail account, an normal account and appropriate

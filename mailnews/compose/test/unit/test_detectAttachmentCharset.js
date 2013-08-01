@@ -10,7 +10,8 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 function checkAttachmentCharset(expectedCharset) {
-  let msgData = loadMessageToString(gDraftFolder, firstMsgHdr(gDraftFolder));
+  let msgData = mailTestUtils.loadMessageToString(gDraftFolder,
+                                                  firstMsgHdr(gDraftFolder));
   let attachmentData = getAttachmentFromContent(msgData);
 
   do_check_eq(expectedCharset, getContentCharset(attachmentData));

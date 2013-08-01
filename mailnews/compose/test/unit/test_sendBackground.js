@@ -94,7 +94,7 @@ function run_test() {
                     .getService(Ci.nsIMsgSendLater);
 
   // Test file - for bug 429891
-  originalData = loadFileToString(testFile1);
+  originalData = IOUtils.loadFileToString(testFile1);
 
   // Check that the send later service thinks we don't have messages to send
   do_check_eq(gMsgSendLater.hasUnsentMessages(identity), false);

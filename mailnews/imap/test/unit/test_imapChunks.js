@@ -107,7 +107,8 @@ var UrlListener =
     do_check_eq(rc, 0);
 
     // File contents were not modified
-    do_check_eq(loadFileToString(gMsgFile), loadFileToString(gSavedMsgFile));
+    do_check_eq(IOUtils.loadFileToString(gMsgFile),
+		IOUtils.loadFileToString(gSavedMsgFile));
 
     // The file doesn't get closed straight away, but does after a little bit.
     // So wait, and then remove it. We need to test this to ensure we don't

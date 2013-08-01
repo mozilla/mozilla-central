@@ -86,7 +86,8 @@ msgListener.prototype =
     try
     {
       // Now do a comparison of what is in the sent mail folder
-      let msgData = loadMessageToString(sentFolder, firstMsgHdr(sentFolder));
+      let msgData = mailTestUtils.loadMessageToString(sentFolder,
+                                                      firstMsgHdr(sentFolder));
       // Skip the headers etc that mailnews adds
       var pos = msgData.indexOf("From:");
       do_check_neq(pos, -1);
@@ -124,7 +125,7 @@ function DoSendTest(aRecipient, aRecipientExpected, aExceptionExpected)
 
   // Random test file with data we don't actually care about. ;-)
   var testFile = do_get_file("data/message1.eml");
-  originalData = loadFileToString(testFile);
+  originalData = IOUtils.loadFileToString(testFile);
 
   // Handle the server in a try/catch/finally loop so that we always will stop
   // the server if something fails.

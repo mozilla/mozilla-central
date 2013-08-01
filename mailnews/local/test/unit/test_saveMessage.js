@@ -46,7 +46,8 @@ var UrlListener = {
   },
   OnStopRunningUrl: function(aUrl, aExitCode) {
     do_check_eq(aExitCode, 0);
-    check_each_line(loadFileToString(dot), loadFileToString(saveFile));
+    check_each_line(IOUtils.loadFileToString(dot),
+		    IOUtils.loadFileToString(saveFile));
     do_test_finished();
   }
 };

@@ -73,7 +73,8 @@ msl.prototype = {
     do_check_eq(aStatus, 0);
     try {
       // Now do a comparison of what is in the sent mail folder
-      let msgData = loadMessageToString(sentFolder, firstMsgHdr(sentFolder));
+      let msgData = mailTestUtils.loadMessageToString(sentFolder,
+                                                      firstMsgHdr(sentFolder));
 
       // Skip the headers etc that mailnews adds
       var pos = msgData.indexOf("From:");
@@ -108,7 +109,7 @@ function run_test() {
 
   // Test file - for bug 429891
   var testFile = do_get_file("data/429891_testcase.eml");
-  originalData = loadFileToString(testFile);
+  originalData = IOUtils.loadFileToString(testFile);
 
   // Ensure we have at least one mail account
   loadLocalMailAccount();

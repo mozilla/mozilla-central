@@ -124,107 +124,96 @@ function associate_servers(aIncoming, aOutgoingServer, aSetAsDefault) {
     aIncoming.defaultIdentity = identity;
 }
 
-/**
- * atob() = base64 decode
- * Converts a base64-encoded string to a string with the octet data.
- * @see RFC 4648
- *
- * The extra parameters are optional arguments that are used to override the
- * official base64 characters for values 62 and 63. If not specified, they
- * default to '+' and '/'.
- *
- * No unicode translation is performed during the conversion.
- *
- * @param str    A string argument representing the encoded data
- * @param c62    The (optional) character for the value 62
- * @param c63    The (optional) character for the value 63
- * @return       An string with the data
- */
-function atob(str, c62, c63) {
-  var result = [];
-  var bits = [];
-  c62 = c62 ? c62.charCodeAt(0) : 43;
-  c63 = c63 ? c63.charCodeAt(0) : 47;
-  for (var i=0;i<str.length;i++) {
-    let c = str.charCodeAt(i);
-    let val = 0;
-    if (65 <= c && c <= 90) // A-Z
-      val = c-65;
-    else if (97 <= c && c <= 122) // a-z
-      val = c-97+26;
-    else if (48 <= c && c <= 57) // 0-9
-      val = c-48+52;
-    else if (c == c62)
-      val = 62;
-    else if (c == c63)
-      val = 63;
-    else if (c == 61) {
-      for (var q=i+1;q<str.length;q++)
-        if (str[q] != '=')
-          throw "Character after =: "+str[q];
-      break;
-    } else
-      throw "Illegal character in input: "+c;
-    bits.push((val >> 5) & 1);
-    bits.push((val >> 4) & 1);
-    bits.push((val >> 3) & 1);
-    bits.push((val >> 2) & 1);
-    bits.push((val >> 1) & 1);
-    bits.push((val >> 0) & 1);
-    if (bits.length >= 8)
-      result.push(bits.splice(0, 8).reduce(function (form, bit) {
-        return (form << 1) | bit;
-      }, 0));
-  }
-  return result.reduce(function (str, c) { return str + String.fromCharCode(c); }, "");
-}
+var mailTestUtils = {
+  // Loads a file to a string
+  // If aCharset is specified, treats the file as being of that charset
+  loadFileToString: function(aFile, aCharset) {
+    var data = "";
+    var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
+                    .createInstance(Ci.nsIFileInputStream);
+    fstream.init(aFile, -1, 0, 0);
 
-/*
- * We used to implement btoa here, but we don't need to as it's provided by
- * the JS loader and theirs is ridiculously faster!.  We have IOUtils expose it
- * for us so we can get at it.
- */
-var btoa = IOUtils.btoa;
+    if (aCharset)
+    {
+      var cstream = Cc["@mozilla.org/intl/converter-input-stream;1"]
+                      .createInstance(Ci.nsIConverterInputStream);
+      cstream.init(fstream, aCharset, 4096, 0x0000);
+      var str = {};
+      while (cstream.readString(4096, str) != 0)
+        data += str.value;
 
-// Loads a file to a string
-// If aCharset is specified, treats the file as being of that charset
-function loadFileToString(aFile, aCharset) {
-  var data = "";
-  var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
-                  .createInstance(Ci.nsIFileInputStream);
-  fstream.init(aFile, -1, 0, 0);
+      cstream.close();
+    }
+    else
+    {
+      var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                      .createInstance(Ci.nsIScriptableInputStream);
 
-  if (aCharset)
-  {
-    var cstream = Cc["@mozilla.org/intl/converter-input-stream;1"]
-                    .createInstance(Ci.nsIConverterInputStream);
-    cstream.init(fstream, aCharset, 4096, 0x0000);
-    var str = {};
-    while (cstream.readString(4096, str) != 0)
-      data += str.value;
+      sstream.init(fstream);
 
-    cstream.close();
-  }
-  else
-  {
-    var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
-                    .createInstance(Ci.nsIScriptableInputStream);
+      var str = sstream.read(4096);
+      while (str.length > 0) {
+        data += str;
+        str = sstream.read(4096);
+      }
 
-    sstream.init(fstream);
-
-    var str = sstream.read(4096);
-    while (str.length > 0) {
-      data += str;
-      str = sstream.read(4096);
+      sstream.close();
     }
 
-    sstream.close();
+    fstream.close();
+
+    return data;
+  },
+
+  // Loads a message to a string
+  // If aCharset is specified, treats the file as being of that charset
+  loadMessageToString: function(aFolder, aMsgHdr, aCharset)
+  {
+    var data = "";
+    let reusable = new Object;
+    let bytesLeft = aMsgHdr.messageSize;
+    let stream = aFolder.getMsgInputStream(aMsgHdr, reusable);
+    if (aCharset)
+    {
+      let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"]
+                      .createInstance(Ci.nsIConverterInputStream);
+      cstream.init(stream, aCharset, 4096, 0x0000);
+      let str = {};
+      let bytesToRead = Math.min(bytesLeft, 4096);
+      while (cstream.readString(bytesToRead, str) != 0) {
+        data += str.value;
+        bytesLeft -= bytesToRead;
+        if (bytesLeft <= 0)
+          break;
+        bytesToRead = Math.min(bytesLeft, 4096);
+      }
+      cstream.close();
+    }
+    else
+    {
+      var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
+                      .createInstance(Ci.nsIScriptableInputStream);
+
+      sstream.init(stream);
+
+      let bytesToRead = Math.min(bytesLeft, 4096);
+      var str = sstream.read(bytesToRead);
+      bytesLeft -= bytesToRead;
+      while (str.length > 0) {
+        data += str;
+        if (bytesLeft <= 0)
+          break;
+        bytesToRead = Math.min(bytesLeft, 4096);
+        str = sstream.read(bytesToRead);
+        bytesLeft -= bytesToRead;
+      }
+      sstream.close();
+    }
+    stream.close();
+
+    return data;
   }
-
-  fstream.close();
-
-  return data;
-}
+};
 
 // Gets the first message header in a folder.
 function firstMsgHdr(folder)
@@ -233,55 +222,6 @@ function firstMsgHdr(folder)
   if (enumerator.hasMoreElements())
     return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
   return null;
-}
-
-// Loads a message to a string
-// If aCharset is specified, treats the file as being of that charset
-function loadMessageToString(aFolder, aMsgHdr, aCharset)
-{
-  var data = "";
-  let reusable = new Object;
-  let bytesLeft = aMsgHdr.messageSize;
-  let stream = aFolder.getMsgInputStream(aMsgHdr, reusable);
-  if (aCharset)
-  {
-    let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"]
-                    .createInstance(Ci.nsIConverterInputStream);
-    cstream.init(stream, aCharset, 4096, 0x0000);
-    let str = {};
-    let bytesToRead = Math.min(bytesLeft, 4096);
-    while (cstream.readString(bytesToRead, str) != 0) {
-      data += str.value;
-      bytesLeft -= bytesToRead;
-      if (bytesLeft <= 0)
-        break;
-      bytesToRead = Math.min(bytesLeft, 4096);
-    }
-    cstream.close();
-  }
-  else
-  {
-    var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
-                    .createInstance(Ci.nsIScriptableInputStream);
-
-    sstream.init(stream);
-
-    let bytesToRead = Math.min(bytesLeft, 4096);
-    var str = sstream.read(bytesToRead);
-    bytesLeft -= bytesToRead;
-    while (str.length > 0) {
-      data += str;
-      if (bytesLeft <= 0)
-        break;
-      bytesToRead = Math.min(bytesLeft, 4096);
-      str = sstream.read(bytesToRead);
-      bytesLeft -= bytesToRead;
-    }
-    sstream.close();
-  }
-  stream.close();
-
-  return data;
 }
 
 /**

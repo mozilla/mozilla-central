@@ -80,7 +80,7 @@ function verifyContentLength()
   yield false;
   // Now check whether our stream listener got the right bytes
   // First, clean up line endings to avoid CRLF vs. LF differences
-  let origData = loadFileToString(gFile).replace(/\r\n/g, "\n");
+  let origData = IOUtils.loadFileToString(gFile).replace(/\r\n/g, "\n");
   let streamData = gStreamListener._data.replace(/\r\n/g, "\n");
   do_check_eq(origData.length, streamData.length);
   do_check_eq(origData, streamData);
