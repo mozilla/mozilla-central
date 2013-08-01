@@ -10,7 +10,7 @@ var MODULE_NAME = "test-message-filters";
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
                        "nntp-helpers", "address-book-helpers",
-                       "prompt-helpers"];
+                       "prompt-helpers", "customization-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -88,31 +88,24 @@ function test_customize_toolbar_doesnt_double_get_mail_menu()
    * Get the getAllNewMessages menu and check the number of items.
    */
   function check_getAllNewMsgMenu() {
-    mc.click(mc.eid("menu_File"), 5, 5);
-    wait_for_popup_to_open(mc.e("menu_FilePopup"));
+    let popups = mc.click_menus_in_sequence(mc.e("appmenu-popup"),
+                                            [{ id: "appmenu_File" },
+                                             { id: "appmenu_getNewMsgFor" }], true);
 
-    let menu = mc.eid("menu_getAllNewMsg");
-    mc.click(menu, 5, 5);
-    wait_for_popup_to_open(mc.e("menu_getAllNewMsgPopup"));
-
-    assert_equals(menu.node.itemCount, 5,
+    let menu = mc.e("appmenu_getNewMsgFor");
+    assert_equals(menu.itemCount, 5,
                   "Incorrect number of items for GetNewMessages before customization");
 
-    close_popup(mc, mc.eid("menu_getAllNewMsgPopup"));
-    close_popup(mc, mc.eid("menu_FilePopup"));
+    mc.close_popup_sequence(popups);
   }
 
   check_getAllNewMsgMenu();
 
-  plan_for_new_window("mailnews:customizeToolbar");
-  // Open the customization dialog.
-  mc.rightClick(mc.eid("mail-bar3"));
-  mc.click(mc.eid("CustomizeMailToolbar"));
+  let gCDHelper = new CustomizeDialogHelper("mail-bar3",
+    "CustomizeMailToolbar", "mailnews:customizeToolbar");
 
-  let customc = wait_for_new_window("mailnews:customizeToolbar");
-  plan_for_window_close(customc);
-  customc.click(customc.eid("donebutton"));
-  wait_for_window_close();
+  let customc = gCDHelper.open(mc);
+  gCDHelper.close(customc);
 
   check_getAllNewMsgMenu();
 }

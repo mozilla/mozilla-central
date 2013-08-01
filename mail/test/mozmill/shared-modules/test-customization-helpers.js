@@ -60,6 +60,8 @@ CustomizeDialogHelper.prototype = {
    */
   open: function CustomizeDialogHelper_open(aController) {
     let ctc;
+    this._parentController = aController;
+    aController.rightClick(aController.eid(this._toolbarId));
     aController.click(aController.eid(this._openElementId));
     // Depending on preferences the customization dialog is
     // either a normal window or embedded into a sheet.
@@ -75,20 +77,27 @@ CustomizeDialogHelper.prototype = {
 
   /**
    * Close the customization dialog.
-   * @param {} aCtc
-   *   the controller object of the customization dialog which should be closed
+   * @param aCtc  The controller object of the customization dialog
+   *              which should be closed.
    */
   close: function CustomizeDialogHelper_close(aCtc) {
     if (this._openInWindow)
       wh.plan_for_window_close(aCtc);
 
     aCtc.click(aCtc.eid("donebutton"));
-    // XXX There should be an equivalent for testing the closure of
-    // XXX the dialog embedded in a sheet, but I do not know how.
     if (this._openInWindow) {
       wh.wait_for_window_close();
       fdh.assert_true(aCtc.window.closed, "The customization dialog is not closed.");
+    } else {
+      let customizeSheetIFrame =
+        this._parentController.e("customizeToolbarSheetIFrame");
+      aCtc.waitFor(function () { return customizeSheetIFrame.hidden; },
+                   "The customize sheet is not closed", 10000, 500);
     }
+    // After the dialog/sheet is closed, there is still code run in
+    // MailToolboxCustomizeDone() that we need to wait on.
+    // There is no event for that yet, so try to sleep a bit here.
+    aCtc.sleep(2000);
   },
 
   /**
