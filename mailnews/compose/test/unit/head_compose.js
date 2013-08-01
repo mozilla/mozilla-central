@@ -166,14 +166,6 @@ function createMessage(aAttachment) {
   return false;
 }
 
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}
-
 function getAttachmentFromContent(aContent) {
   function getBoundaryStringFromContent(aContent) {
     let found = aContent.match(/Content-Type: multipart\/mixed;\s+boundary="(.*?)"/);

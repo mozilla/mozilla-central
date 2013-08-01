@@ -41,7 +41,7 @@ function run_test()
 
   var msgWindow = {};
  
-  var msgHdr = firstMsgHdr(gLocalInboxFolder);
+  var msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
 
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]

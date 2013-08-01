@@ -53,7 +53,7 @@ function loadImapMessage()
 // not in a parenthesis group - Bug 750012
 function testFetchCustomValue()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let uri = gIMAPInbox.fetchCustomMsgAttribute("X-CUSTOM-VALUE", msgHdr.messageKey, gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
   uri.RegisterListener(fetchCustomValueListener);
@@ -74,7 +74,7 @@ var fetchCustomValueListener = {
 // Used to verify that nsIServerResponseParser.msg_fetch() can handle a parenthesis group - Bug 735542
 function testFetchCustomList()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let uri = gIMAPInbox.fetchCustomMsgAttribute("X-CUSTOM-LIST", msgHdr.messageKey, gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
   uri.RegisterListener(fetchCustomListListener);

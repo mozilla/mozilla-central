@@ -51,7 +51,7 @@ function loadImapMessage()
   dl('wait for msgAdded notification');
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   // set an arbitrary property
@@ -62,7 +62,7 @@ function loadImapMessage()
 // move the message to a subfolder
 function moveMessageToSubfolder()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
 
   // Now move this message to the subfolder.
   var messages = Cc["@mozilla.org/array;1"]
@@ -91,7 +91,7 @@ function testPropertyOnMove()
   yield false; // wait for msgAdded notification
   dl('wait for OnStopRunningURL');
   yield false; // wait for OnStopRunningUrl
-  let msgHdr = firstMsgHdr(gSubfolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(gSubfolder);
   do_check_eq(msgHdr.getStringProperty("testprop"), "somevalue");
   yield true;
 }

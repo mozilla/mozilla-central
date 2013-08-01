@@ -265,7 +265,8 @@ function testSearch()
     {
       //  test of a custom db header
       dump("testing dbHeader " + test.dbHeader + "\n");
-      customValue = firstMsgHdr(gIMAPInbox).getProperty(test.dbHeader);
+      let customValue = mailTestUtils.firstMsgHdr(gIMAPInbox)
+                                     .getProperty(test.dbHeader);
       do_check_eq(customValue, test.testString);
     }
     else if (test)

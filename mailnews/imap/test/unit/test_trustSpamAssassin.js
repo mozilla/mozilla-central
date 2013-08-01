@@ -86,7 +86,7 @@ function markMessageAsGood()
    *  filters. So I will simply simulate the operations that would typically
    *  be done by a manual marking of the messages.
    */
-  let msgHdr = firstMsgHdr(gJunkFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(gJunkFolder);
   msgHdr.setStringProperty("junkscoreorigin", "user");
   msgHdr.setStringProperty("junkpercent", "0"); // good percent
   msgHdr.setStringProperty("junkscore", "0");   // good score

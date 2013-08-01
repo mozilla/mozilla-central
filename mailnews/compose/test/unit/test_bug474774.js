@@ -94,8 +94,8 @@ function OnStopCopy(aStatus)
     do_check_eq(folder.getTotalMessages(false), 1);
 
     // Now do a comparison of what is in the sent mail folder
-    let msgData = mailTestUtils.loadMessageToString(folder,
-                                                    firstMsgHdr(folder));
+    let msgData = mailTestUtils
+      .loadMessageToString(folder, mailTestUtils.firstMsgHdr(folder));
 
     // Skip the headers etc that mailnews adds
     var pos = msgData.indexOf("From:");

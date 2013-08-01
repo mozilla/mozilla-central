@@ -33,7 +33,7 @@ function startCopy()
 // process the message through mime
 function startMime()
 {
-  let msgHdr = firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, gCallbackObject, gCallbackObject.callback,
                               true /* allowDownload */);
@@ -43,7 +43,7 @@ function startMime()
 // detach any found attachments
 function startDetach()
 {
-  let msgHdr = firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
   let msgURI = msgHdr.folder.generateMessageURI(msgHdr.messageKey);
 
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
@@ -71,7 +71,7 @@ function testDetach()
   //  and search for "AttachmentDetached" which is added on detachment.
 
   // Get the message header
-  let msgHdr = firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
 
   let messageContent = getContentFromMessage(msgHdr);
   do_check_true(messageContent.contains("AttachmentDetached"));

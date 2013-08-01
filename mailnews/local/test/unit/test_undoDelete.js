@@ -22,7 +22,7 @@ load("../../../resources/messageInjection.js");
 const gTestArray =
 [
   function deleteMessage() {
-    let msgToDelete = firstMsgHdr(gTestFolder);
+    let msgToDelete = mailTestUtils.firstMsgHdr(gTestFolder);
     gMsgId1 = msgToDelete.messageId;
     gMessages.appendElement(msgToDelete, false);
     gTestFolder.deleteMessages(gMessages, gMsgWindow, false, true, CopyListener,

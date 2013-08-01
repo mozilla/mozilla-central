@@ -64,7 +64,7 @@ function setupTest() {
 }
 
 function checkFilterResults() {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr.isRead);
   yield true;
 }

@@ -65,21 +65,21 @@ function loadImapMessage()
 
 function testFetchXGmMsgid()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let val = msgHdr.getStringProperty("X-GM-MSGID");
   do_check_eq(val, gXGmMsgid);
 }
 
 function testFetchXGmThrid()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let val = msgHdr.getStringProperty("X-GM-THRID");
   do_check_eq(val, gXGmThrid);
 }
 
 function testFetchXGmLabels()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let val = msgHdr.getStringProperty("X-GM-LABELS");
    // We need to remove the starting "(" and ending ")" from gXGmLabels while comparing
   do_check_eq(val, gXGmLabels.substring(1 ,gXGmLabels.length - 1));

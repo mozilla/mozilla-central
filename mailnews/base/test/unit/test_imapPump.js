@@ -37,7 +37,7 @@ function loadImapMessage()
   gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
   yield true;
 }

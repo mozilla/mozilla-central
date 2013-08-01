@@ -55,13 +55,13 @@ function loadImapMessage()
     Services.io.newURI("data:text/plain;base64," +
                        btoa(smsg.toMessageString()),
                        null, null);
-  let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
+  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(message);
   gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   yield true;
@@ -70,7 +70,7 @@ function loadImapMessage()
 // process the message through mime
 function startMime()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, gCallbackObject, gCallbackObject.callback,
                               true /* allowDownload */);
@@ -80,7 +80,7 @@ function startMime()
 // detach any found attachments
 function startDetach()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let msgURI = msgHdr.folder.generateMessageURI(msgHdr.messageKey);
 
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);

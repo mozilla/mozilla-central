@@ -263,7 +263,8 @@ function testSearch()
   {
     //  test of a custom db header
     dump("testing dbHeader " + test.dbHeader + "\n");
-    customValue = firstMsgHdr(gLocalInboxFolder).getProperty(test.dbHeader);
+    customValue = mailTestUtils.firstMsgHdr(gLocalInboxFolder)
+                               .getProperty(test.dbHeader);
     do_check_eq(customValue, test.testString);
     do_timeout(0, testSearch);
   }

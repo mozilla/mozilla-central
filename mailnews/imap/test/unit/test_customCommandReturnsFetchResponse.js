@@ -52,7 +52,7 @@ function loadImapMessage()
 
 function testStoreCustomList()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   gExpectedLength = gCustomList.length;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     " X-CUSTOM-LIST (" + gCustomList.join(" ") + ")", gMsgWindow);
@@ -76,7 +76,7 @@ var storeCustomListSetListener = {
 
 function testStoreMinusCustomList()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   gExpectedLength--;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     " -X-CUSTOM-LIST (" + gCustomList[0] + ")", gMsgWindow);
@@ -100,7 +100,7 @@ var storeCustomListRemovedListener = {
 
 function testStorePlusCustomList()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   gExpectedLength++;
   let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     ' +X-CUSTOM-LIST ("Custom4")', gMsgWindow);

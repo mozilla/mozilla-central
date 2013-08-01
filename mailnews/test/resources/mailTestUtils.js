@@ -212,17 +212,17 @@ var mailTestUtils = {
     stream.close();
 
     return data;
+  },
+
+  // Gets the first message header in a folder.
+  firstMsgHdr: function(folder)
+  {
+    let enumerator = folder.msgDatabase.EnumerateMessages();
+    if (enumerator.hasMoreElements())
+      return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+    return null;
   }
 };
-
-// Gets the first message header in a folder.
-function firstMsgHdr(folder)
-{
-  let enumerator = folder.msgDatabase.EnumerateMessages();
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}
 
 /**
  * Returns the file system a particular file is on.

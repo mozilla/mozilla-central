@@ -74,13 +74,13 @@ function loadImapMessage()
     Services.io.newURI("data:text/plain;base64," +
                        btoa(messages[0].toMessageString()),
                        null, null);
-  let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
+  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
   gMessage = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(gMessage);
   gIMAPInbox.updateFolder(null);
   yield false;
   do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   yield true;
@@ -89,7 +89,7 @@ function loadImapMessage()
 // move the message to a diffent folder
 function moveMessageToTargetFolder()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
 
   // Now move this message to the target folder.
   var messages = Cc["@mozilla.org/array;1"]

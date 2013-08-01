@@ -73,8 +73,8 @@ msl.prototype = {
     do_check_eq(aStatus, 0);
     try {
       // Now do a comparison of what is in the sent mail folder
-      let msgData = mailTestUtils.loadMessageToString(sentFolder,
-                                                      firstMsgHdr(sentFolder));
+      let msgData = mailTestUtils
+        .loadMessageToString(sentFolder, mailTestUtils.firstMsgHdr(sentFolder));
 
       // Skip the headers etc that mailnews adds
       var pos = msgData.indexOf("From:");

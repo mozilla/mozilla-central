@@ -72,7 +72,7 @@ saveAsUrlListener.prototype = {
 // This is similar to the method in mailCommands.js, to test the way that
 // it creates a new templates folder before saving the message as a template.
 function saveAsTemplate() {
-  let hdr = firstMsgHdr(gIMAPInbox);
+  let hdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   let uri = gIMAPInbox.getUriForMsg(hdr);
   const Ci = Components.interfaces;
   let identity = MailServices.accounts

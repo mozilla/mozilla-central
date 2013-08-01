@@ -55,7 +55,7 @@ function loadImapMessage()
   let file = do_get_file("../../../data/bodystructuretest1");
   let msgURI = Services.io.newFileURI(file).QueryInterface(Ci.nsIFileURL);
 
-  let imapInbox =  gIMAPDaemon.getMailbox("INBOX")
+  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
   gIMAPMailbox.addMessage(message);
   // add a second message with no external parts. We want to make
@@ -69,7 +69,7 @@ function loadImapMessage()
   yield false;
 
   do_check_eq(2, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
   yield true;
 }
@@ -77,7 +77,7 @@ function loadImapMessage()
 // process the message through mime
 function startMime()
 {
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, this, function (aMsgHdr, aMimeMessage) {
     let url = aMimeMessage.allUserAttachments[0].url;

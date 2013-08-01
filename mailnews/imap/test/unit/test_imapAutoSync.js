@@ -102,7 +102,7 @@ function test_moveMessageToTargetFolder()
 {
   let observer = gAutoSyncManager.QueryInterface(Ci.nsIObserver);
   observer.observe(null, "mail:appIdle", "back");
-  let msgHdr = firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
   do_check_neq(msgHdr, null);
 
   // Now move this message to the target folder.
