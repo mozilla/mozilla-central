@@ -2,11 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# Additional mailnews targets to call automated test suites
-include $(topsrcdir)/mailnews/testsuite-targets.mk
-
-# Instructions below this line are for mail/ specific tests.
-
 MOZMILLDIR=$(DEPTH)/mozilla/_tests/mozmill
 ifeq ($(OS_ARCH),WINNT)
 VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/Scripts

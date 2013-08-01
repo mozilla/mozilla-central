@@ -41,7 +41,6 @@ if CONFIG['OS_ARCH'] == 'WINNT':
         ]
 
 TEST_TOOL_DIRS += [
-    'test/performance/bloat',
     'imap/test',
     'import/test',
     'local/test',
