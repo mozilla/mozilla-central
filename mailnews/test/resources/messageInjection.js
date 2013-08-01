@@ -782,7 +782,7 @@ function add_sets_to_folders(aMsgFolders, aMessageSets, aDoNotForceUpdate) {
         let realFolder = mis.handleUriToRealFolder[aMsgFolders[iFolder]];
         mark_action("messageInjection", "forcing update of folder",
                     [realFolder]);
-        updateFolderAndNotify(realFolder, async_driver);
+        mailTestUtils.updateFolderAndNotify(realFolder, async_driver);
         yield false;
 
         // compel download of the messages if appropriate
@@ -904,14 +904,14 @@ function async_move_messages(aSynMessageSet, aDestFolder, aAllowUndo) {
                       "forcing update of folder so IMAP move issued",
                       [folder]);
           // update the source folder to force it to issue the move
-          updateFolderAndNotify(folder, async_driver);
+          mailTestUtils.updateFolderAndNotify(folder, async_driver);
           yield false;
 
           mark_action("messageInjection",
                       "forcing update of folder so IMAP moved header seen",
                       [realDestFolder]);
           // update the dest folder to see the new header.
-          updateFolderAndNotify(realDestFolder, async_driver);
+          mailTestUtils.updateFolderAndNotify(realDestFolder, async_driver);
           yield false;
 
           // compel download of messages in dest folder if appropriate
@@ -959,7 +959,7 @@ function async_trash_messages(aSynMessageSet) {
                       "forcing update of folder so IMAP move issued",
                       [folder]);
           // update the source folder to force it to issue the move
-          updateFolderAndNotify(folder, async_driver);
+          mailTestUtils.updateFolderAndNotify(folder, async_driver);
           yield false;
 
           // trash folder may not have existed at startup but the deletion
@@ -970,7 +970,7 @@ function async_trash_messages(aSynMessageSet) {
                       "forcing update of folder so IMAP moved header seen",
                       [trashFolder]);
           // update the dest folder to see the new header.
-          updateFolderAndNotify(trashFolder, async_driver);
+          mailTestUtils.updateFolderAndNotify(trashFolder, async_driver);
           yield false;
 
           // compel download of messages in dest folder if appropriate

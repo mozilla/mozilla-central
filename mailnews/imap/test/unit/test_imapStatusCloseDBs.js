@@ -33,7 +33,7 @@ function setup() {
   // don't know if this will work, but we'll try. Wait for
   // second status response
   gIMAPServer.performTest("STATUS");
-  do_timeout_function(1000, async_driver);
+  mailTestUtils.do_timeout_function(1000, async_driver);
   yield false;
 }
 

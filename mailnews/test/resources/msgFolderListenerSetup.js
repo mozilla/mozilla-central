@@ -237,7 +237,7 @@ function hasExactlyElements(array, elements)
         catch (e) {}
       }
       do_check_neq(currElement, undefined);
-      do_check_neq(non_strict_index_of(array, currElement), -1);
+      do_check_neq(mailTestUtils.non_strict_index_of(array, currElement), -1);
     }
   }
   // If a single header or a folder
@@ -247,7 +247,7 @@ function hasExactlyElements(array, elements)
     do_check_eq(array.length, 1);
 
     // Check: the element should be present
-    do_check_neq(non_strict_index_of(array, elements), -1);
+    do_check_neq(mailTestUtils.non_strict_index_of(array, elements), -1);
   }
   // This shouldn't happen
   else

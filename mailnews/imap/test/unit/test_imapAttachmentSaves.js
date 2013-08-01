@@ -97,7 +97,7 @@ function startDetach()
 function testDetach()
 {
   // This test seems to fail on Linux without the following delay.
-  do_timeout_function(200, async_driver);
+  mailTestUtils.do_timeout_function(200, async_driver);
   yield false;
   // Check that the file attached to the message now exists in the profile 
   // directory.

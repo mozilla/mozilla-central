@@ -66,7 +66,7 @@ function run_test()
   gCopySource = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("copySource");
   addMessagesToFolder(messages, gCopySource);
 
-  updateFolderAndNotify(gCopySource, doTest);
+  mailTestUtils.updateFolderAndNotify(gCopySource, doTest);
   return true;
 }
 

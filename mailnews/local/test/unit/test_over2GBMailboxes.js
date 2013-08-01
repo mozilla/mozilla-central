@@ -23,9 +23,9 @@ function run_test()
 
   let neededFreeSpace = 0x100000000;
   let freeDiskSpace = inboxFile.diskSpaceAvailable;
-  do_print("Free disk space = " + toMiBString(freeDiskSpace));
+  do_print("Free disk space = " + mailTestUtils.toMiBString(freeDiskSpace));
   if (freeDiskSpace < neededFreeSpace) {
-    do_print("This test needs " + toMiBString(neededFreeSpace) +
+    do_print("This test needs " + mailTestUtils.toMiBString(neededFreeSpace) +
              " free space to run. Aborting.");
     todo_check_true(false);
 

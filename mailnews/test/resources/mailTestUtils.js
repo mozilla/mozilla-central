@@ -319,8 +319,8 @@ var mailTestUtils = {
   mark_file_region_sparse: function(aFile, aRegionStart, aRegionBytes) {
     let fileSystem = this.get_file_system(aFile);
     do_print("[mark_file_region_sparse()] File system = " + (fileSystem || "(unknown)") +
-             ", file region = at " + toMiBString(aRegionStart) +
-             " for " + toMiBString(aRegionBytes));
+             ", file region = at " + this.toMiBString(aRegionStart) +
+             " for " + this.toMiBString(aRegionBytes));
 
     if ("@mozilla.org/windows-registry-key;1" in Cc) {
       // On Windows, check whether the drive is NTFS. If it is, proceed.
@@ -474,97 +474,97 @@ var mailTestUtils = {
       // files.
       return true;
     }
+  },
+
+  /**
+   * Converts a size in bytes into its mebibytes string representation.
+   * NB: 1 MiB = 1024 * 1024 = 1048576 B.
+   *
+   * @param aSize The size in bytes.
+   * @return A string representing the size in medibytes.
+   */
+  toMiBString: function(aSize) {
+    return (aSize / 1048576) + " MiB";
+  },
+
+  /**
+   * A variant of do_timeout that accepts an actual function instead of
+   *  requiring you to pass a string to evaluate.  If the function throws an
+   *  exception when invoked, we will use do_throw to ensure that the test fails.
+   *
+   * @param aDelayInMS The number of milliseconds to wait before firing the timer.
+   * @param aFunc The function to invoke when the timer fires.
+   * @param aFuncThis Optional 'this' pointer to use.
+   * @param aFuncArgs Optional list of arguments to pass to the function.
+   */
+  do_timeout_function: function(aDelayInMS, aFunc, aFuncThis, aFuncArgs) {
+    let timer = Components.classes["@mozilla.org/timer;1"]
+                          .createInstance(Components.interfaces.nsITimer);
+    let wrappedFunc = function() {
+      try {
+        aFunc.apply(aFuncThis, aFuncArgs);
+      }
+      catch (ex) {
+        // we want to make sure that if the thing we call throws an exception,
+        //  that this terminates the test.
+        do_throw(ex);
+      }
+    };
+    timer.initWithCallback(wrappedFunc, aDelayInMS,
+      Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+  },
+
+  /**
+   * Ensure the given nsIMsgFolder's database is up-to-date, calling the provided
+   *  callback once the folder has been loaded.  (This may be instantly or
+   *  after a re-parse.)
+   *
+   * @param aFolder The nsIMsgFolder whose database you want to ensure is
+   *     up-to-date.
+   * @param aCallback The callback function to invoke once the folder has been
+   *     loaded.
+   * @param aCallbackThis The 'this' to use when calling the callback.  Pass null
+   *     if your callback does not rely on 'this'.
+   * @param aCallbackArgs A list of arguments to pass to the callback via apply.
+   *     If you provide [1,2,3], we will effectively call:
+   *     aCallbackThis.aCallback(1,2,3);
+   * @param [aSomeoneElseWillTriggerTheUpdate=false] If this is true, we do not
+   *     trigger the updateFolder call and it is assumed someone else is taking
+   *     care of that.
+   */
+  updateFolderAndNotify: function(aFolder, aCallback, aCallbackThis,
+      aCallbackArgs, aSomeoneElseWillTriggerTheUpdate) {
+    // register for the folder loaded notification ahead of time... even though
+    //  we may not need it...
+    let atomService = Cc["@mozilla.org/atom-service;1"]
+                        .getService(Ci.nsIAtomService);
+    let kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
+
+    let folderListener = {
+      OnItemEvent: function (aEventFolder, aEvent) {
+        if (aEvent == kFolderLoadedAtom && aFolder.URI == aEventFolder.URI) {
+          MailServices.mailSession.RemoveFolderListener(this);
+          aCallback.apply(aCallbackThis, aCallbackArgs);
+        }
+      }
+    };
+
+    MailServices.mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
+
+    if (!aSomeoneElseWillTriggerTheUpdate)
+      aFolder.updateFolder(null);
+  },
+
+  /**
+   * For when you want to compare elements non-strictly.
+   */
+  non_strict_index_of: function(aArray, aElem) {
+    for (let [i, elem] in Iterator(aArray)) {
+      if (elem == aElem)
+        return i;
+    }
+    return -1;
   }
 };
-
-/**
- * Converts a size in bytes into its mebibytes string representation.
- * NB: 1 MiB = 1024 * 1024 = 1048576 B.
- *
- * @param aSize The size in bytes.
- * @return A string representing the size in medibytes.
- */
-function toMiBString(aSize) {
-  return (aSize / 1048576) + " MiB";
-}
-
-/**
- * A variant of do_timeout that accepts an actual function instead of
- *  requiring you to pass a string to evaluate.  If the function throws an
- *  exception when invoked, we will use do_throw to ensure that the test fails.
- *
- * @param aDelayInMS The number of milliseconds to wait before firing the timer.
- * @param aFunc The function to invoke when the timer fires.
- * @param aFuncThis Optional 'this' pointer to use.
- * @param aFuncArgs Optional list of arguments to pass to the function.
- */
-function do_timeout_function(aDelayInMS, aFunc, aFuncThis, aFuncArgs) {
-  let timer = Components.classes["@mozilla.org/timer;1"]
-                        .createInstance(Components.interfaces.nsITimer);
-  let wrappedFunc = function() {
-    try {
-      aFunc.apply(aFuncThis, aFuncArgs);
-    }
-    catch (ex) {
-      // we want to make sure that if the thing we call throws an exception,
-      //  that this terminates the test.
-      do_throw(ex);
-    }
-  }
-  timer.initWithCallback(wrappedFunc, aDelayInMS,
-    Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-}
-
-/**
- * Ensure the given nsIMsgFolder's database is up-to-date, calling the provided
- *  callback once the folder has been loaded.  (This may be instantly or
- *  after a re-parse.)
- *
- * @param aFolder The nsIMsgFolder whose database you want to ensure is
- *     up-to-date.
- * @param aCallback The callback function to invoke once the folder has been
- *     loaded.
- * @param aCallbackThis The 'this' to use when calling the callback.  Pass null
- *     if your callback does not rely on 'this'.
- * @param aCallbackArgs A list of arguments to pass to the callback via apply.
- *     If you provide [1,2,3], we will effectively call:
- *     aCallbackThis.aCallback(1,2,3);
- * @param [aSomeoneElseWillTriggerTheUpdate=false] If this is true, we do not
- *     trigger the updateFolder call and it is assumed someone else is taking
- *     care of that.
- */
-function updateFolderAndNotify(aFolder, aCallback, aCallbackThis,
-    aCallbackArgs, aSomeoneElseWillTriggerTheUpdate) {
-  // register for the folder loaded notification ahead of time... even though
-  //  we may not need it...
-  let atomService = Cc["@mozilla.org/atom-service;1"]
-                      .getService(Ci.nsIAtomService);
-  let kFolderLoadedAtom = atomService.getAtom("FolderLoaded");
-
-  let folderListener = {
-    OnItemEvent: function (aEventFolder, aEvent) {
-      if (aEvent == kFolderLoadedAtom && aFolder.URI == aEventFolder.URI) {
-        MailServices.mailSession.RemoveFolderListener(this);
-        aCallback.apply(aCallbackThis, aCallbackArgs);
-      }
-    }
-  };
-
-  MailServices.mailSession.AddFolderListener(folderListener, Ci.nsIFolderListener.event);
-
-  if (!aSomeoneElseWillTriggerTheUpdate)
-    aFolder.updateFolder(null);
-}
-
-/**
- * For when you want to compare elements non-strictly.
- */
-function non_strict_index_of(aArray, aElem) {
-  for (let [i, elem] in Iterator(aArray)) {
-    if (elem == aElem)
-      return i;
-  }
-  return -1;
-}
 
 } // gMailTestUtils_js__

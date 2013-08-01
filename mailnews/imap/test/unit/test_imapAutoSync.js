@@ -228,7 +228,7 @@ var gAutoSyncListener =
     try {
       dump("folder download completed" + folder.URI + "\n");
       if (folder instanceof Components.interfaces.nsIMsgFolder) {
-        let index = non_strict_index_of(this._waitingForUpdateList, folder);
+        let index = mailTestUtils.non_strict_index_of(this._waitingForUpdateList, folder);
         if (index != -1)
           this._waitingForUpdateList.splice(index, 1);
         if (this._waitingForUpdate && this._waitingForUpdateList.length == 0) {
@@ -250,7 +250,7 @@ var gAutoSyncListener =
 
   onDiscoveryQProcessed : function (folder, numOfHdrsProcessed, leftToProcess) {
     dump("onDiscoveryQProcessed: " + folder.prettiestName + "\n");
-    let index = non_strict_index_of(this._waitingForDiscoveryList, folder);
+    let index = mailTestUtils.non_strict_index_of(this._waitingForDiscoveryList, folder);
     if (index != -1)
       this._waitingForDiscoveryList.splice(index, 1);
     if (this._waitingForDiscovery && this._waitingForDiscoveryList.length == 0) {

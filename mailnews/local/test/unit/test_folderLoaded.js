@@ -59,7 +59,7 @@ var tests = [
     do_check_eq(msgCount, 2);
 
     // try an update
-    updateFolderAndNotify(gTargetFolder, function () {
+    mailTestUtils.updateFolderAndNotify(gTargetFolder, function () {
       dump("after FolderLoaded1\n");
       async_driver();
     });
@@ -71,7 +71,7 @@ var tests = [
     // If the following executes, the test hangs in bug 787557.
     gTargetFolder.msgDatabase = null;
     // try an update
-    updateFolderAndNotify(gTargetFolder, function () {
+    mailTestUtils.updateFolderAndNotify(gTargetFolder, function () {
       dump("after FolderLoaded2\n");
       async_driver();
     });

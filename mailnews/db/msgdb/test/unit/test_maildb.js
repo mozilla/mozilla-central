@@ -96,7 +96,7 @@ function openMore(db)
   let done = dbService.openMore(db, 1);
   dump("in openMore done = " + done + "\n");
   if (!done)
-    do_timeout_function(0, openMore, null, [db]);
+    mailTestUtils.do_timeout_function(0, openMore, null, [db]);
   else {
     // just check that we can get something out of the db.
     do_check_eq(db.dBFolderInfo.numMessages, kNumTestMessages);
@@ -121,7 +121,7 @@ function openMoreAsync(db)
     return;
   };
   if (!done)
-    do_timeout_function(0, openMoreAsync, null, [db]);
+    mailTestUtils.do_timeout_function(0, openMoreAsync, null, [db]);
   else
     throw "Should have got an exception opening out of date db";
 }
