@@ -6,39 +6,46 @@
 /* This file implements test POP3 servers
  */
 
+var EXPORTED_SYMBOLS = [
+  'pop3Daemon',
+  'POP3_RFC1939_handler',
+  'POP3_RFC2449_handler',
+  'POP3_RFC5034_handler'
+];
+
+Components.utils.import("resource://gre/modules/IOUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://testing-common/mailnews/auth.js");
+
+const Cc = Components.classes;
+const Ci = Components.interfaces;
 
 // Since we don't really need to worry about peristence, we can just
 // use a UIDL counter.
 var gUIDLCount = 1;
 
+/**
+ * Read the contents of a file to the string.
+ *
+ * @param fileName A path relative to the data/ or to the current working
+ *                 directory.
+ */
 function readFile(fileName) {
-  var file = do_get_file("data/" + fileName, true); // allow nonexistent
-  // also allow files from general locations
-  if (!file || !file.exists())
-    file = do_get_file(fileName);
+  let cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile);
 
-  // If these fail, there is a problem with the test
-  do_check_neq(file, null);
-  do_check_true(file.exists());
+  // Try to find the file relative to either the data directory or to the
+  // current working directory.
+  let file = cwd.clone();
+  file.appendRelativePath("data/" + fileName);
+  if (!file.exists()) {
+    file = cwd.clone();
+    file.appendRelativePath(fileName);
+  }
 
-  let fileURI = Services.io.newFileURI(file);
+  if (!file.exists())
+    throw new Error("Cannot find file named " + fileName);
 
-  let fileStream = Services.io.newChannelFromURI(fileURI).open();
-
-  var inputStream = Cc["@mozilla.org/scriptableinputstream;1"]
-                      .createInstance(Ci.nsIScriptableInputStream);
-  inputStream.init(fileStream);
-
-  var fileData = "";
-
-  do {
-    var chunk = inputStream.read(512);
-    if (chunk.length)
-      fileData += chunk;
-  } while (chunk.length != 0);
-
-  return fileData;
+  return IOUtils.loadFileToString(file);
 }
 
 function pop3Daemon(flags) {

@@ -19,7 +19,7 @@ load("../../../resources/localAccountUtils.js");
 // Import the pop3 server scripts
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/auth.js");
-load("../../../fakeserver/pop3d.js");
+Components.utils.import("resource://testing-common/mailnews/pop3d.js");
 
 Components.utils.import("resource:///modules/mailServices.js");
 
