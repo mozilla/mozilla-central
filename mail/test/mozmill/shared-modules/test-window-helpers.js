@@ -955,6 +955,7 @@ var AugmentEverybodyWith = {
     click_menus_in_sequence: function _click_menus(aRootPopup, aActions, aKeepOpen) {
       if (aRootPopup.state == "closed")
         aRootPopup.openPopup(null, "", 0, 0, true, true);
+      aRootPopup.focus(); // This is a hack that can be removed once the focus issues on Linux are solved.
       if (aRootPopup.state != "open") { // handle "showing"
         utils.waitFor(function() { return aRootPopup.state == "open"; },
                       "Popup never opened! id=" + aRootPopup.id +
@@ -991,6 +992,7 @@ var AugmentEverybodyWith = {
                           iAction);
 
         this.click(new elib.Elem(matchingNode));
+        matchingNode.focus(); // This is a hack that can be removed once the focus issues on Linux are solved.
         if ("menupopup" in matchingNode) {
           curPopup = matchingNode.menupopup;
           closeStack.push(curPopup);
