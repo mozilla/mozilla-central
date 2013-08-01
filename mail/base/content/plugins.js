@@ -212,7 +212,7 @@ var gPluginHandler = {
           let iconStatus = doc.getAnonymousElementByAttribute(plugin, "class", "icon");
           iconStatus.setAttribute("status", "ready");
 
-          let installLink = doc.getAnonymousElementByAttribute(plugin, "class", "installPluginLink");
+          let installLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "installPluginLink");
           self.addLinkClickCallback(installLink, "installSinglePlugin", plugin);
         }
         /* FALLTHRU */
@@ -226,7 +226,7 @@ var gPluginHandler = {
         break;
 
       case "PluginDisabled":
-        let manageLink = doc.getAnonymousElementByAttribute(plugin, "class", "managePluginsLink");
+        let manageLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "managePluginsLink");
         self.addLinkClickCallback(manageLink, "managePlugins");
         break;
     }
