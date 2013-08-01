@@ -41,6 +41,7 @@ classic.jar:
   skin/classic/communicator/search/searchbar-dropmarker.png             (mac/communicator/search/searchbar-dropmarker.png)
   skin/classic/communicator/search/searchbar-search.png                 (mac/communicator/search/searchbar-search.png)
   skin/classic/communicator/sidebar/sidebar.css                         (mac/communicator/sidebar/sidebar.css)
+  skin/classic/communicator/sync/syncSetup.css                          (mac/communicator/sync/syncSetup.css)
   skin/classic/communicator/icons/communicatoricons.png                 (mac/communicator/icons/communicatoricons.png)
   skin/classic/communicator/icons/communicatoricons-small.png           (mac/communicator/icons/communicatoricons-small.png)
   skin/classic/communicator/icons/feedIcon16-disabled.png               (mac/communicator/icons/feedIcon16-disabled.png)
@@ -81,6 +82,7 @@ classic.jar:
   skin/classic/communicator/search/mainwindow-dropdown-arrow.png        (communicator/search/mainwindow-dropdown-arrow.png)
   skin/classic/communicator/search/searchbar.css                        (communicator/search/searchbar.css)
   skin/classic/communicator/sidebar/sidebar.css                         (communicator/sidebar/sidebar.css)
+  skin/classic/communicator/sync/syncSetup.css                          (communicator/sync/syncSetup.css)
   skin/classic/communicator/icons/communicatoricons.png                 (communicator/icons/communicatoricons.png)
   skin/classic/communicator/icons/communicatoricons-small.png           (communicator/icons/communicatoricons-small.png)
   skin/classic/communicator/icons/geolocation-16.png                    (communicator/icons/geolocation-16.png)
@@ -180,7 +182,6 @@ classic.jar:
   skin/classic/communicator/sync/sync-bg.png                            (communicator/sync/sync-bg.png)
   skin/classic/communicator/sync/sync-desktopIcon.png                   (communicator/sync/sync-desktopIcon.png)
   skin/classic/communicator/sync/sync-mobileIcon.png                    (communicator/sync/sync-mobileIcon.png)
-  skin/classic/communicator/sync/syncSetup.css                          (communicator/sync/syncSetup.css)
   skin/classic/communicator/sync/syncCommon.css                         (communicator/sync/syncCommon.css)
   skin/classic/communicator/sync/syncQuota.css                          (communicator/sync/syncQuota.css)
 #ifdef XP_MACOSX
