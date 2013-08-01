@@ -17,7 +17,7 @@ var gDEPTH = "../../../../";
 load("../../../resources/localAccountUtils.js");
 
 // Import the pop3 server scripts
-load("../../../fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 load("../../../fakeserver/auth.js");
 load("../../../fakeserver/pop3d.js");
 

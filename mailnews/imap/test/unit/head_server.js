@@ -17,7 +17,7 @@ var CC = Components.Constructor;
 var gProfileDir = ProfileDir.initialize(do_get_profile());
 
 // Import fakeserver
-load(gDEPTH + "mailnews/fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 load(gDEPTH + "mailnews/fakeserver/auth.js");
 load(gDEPTH + "mailnews/fakeserver/imapd.js");
 

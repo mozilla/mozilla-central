@@ -24,8 +24,7 @@ if (typeof gDEPTH == "undefined")
 
 // add imap fake server methods if missing
 
-if (typeof gMaild_js__ == "undefined")
-  load(gDEPTH + "mailnews/fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 if (typeof AuthPLAIN == "undefined")
   load(gDEPTH + "mailnews/fakeserver/auth.js");
 if (typeof imapDaemon == "undefined")

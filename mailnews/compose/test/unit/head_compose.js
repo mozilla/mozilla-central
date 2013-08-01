@@ -18,7 +18,7 @@ load("../../../resources/localAccountUtils.js");
 load("../../../resources/abSetup.js");
 
 // Import the smtp server scripts
-load("../../../fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 load("../../../fakeserver/auth.js");
 load("../../../fakeserver/smtpd.js");
 

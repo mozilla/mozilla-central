@@ -11,7 +11,7 @@ var CC = Components.Constructor;
 var gProfileDir = ProfileDir.initialize(do_get_profile());
 
 // Import the servers
-load("../../../fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 load("../../../fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts

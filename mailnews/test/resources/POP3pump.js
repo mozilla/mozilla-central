@@ -23,8 +23,7 @@ if (typeof gDEPTH == "undefined")
   do_throw("gDEPTH must be defined when using IMAPpump.js");
 
 // Import the pop3 server scripts
-if (typeof nsMailServer == 'undefined')
-  load(gDEPTH + "mailnews/fakeserver/maild.js");
+Components.utils.import("resource://testing-common/mailnews/maild.js");
 if (typeof AuthPLAIN == 'undefined')
   load(gDEPTH + "mailnews/fakeserver/auth.js");
 if (typeof pop3Daemon == 'undefined')
@@ -63,7 +62,7 @@ POP3Pump.prototype._urlListener =
       // If we have an error, clean up nicely.
       gPOP3Pump._server.stop();
 
-      var thread = gThreadManager.currentThread;
+      var thread = Services.tm.currentThread;
       while (thread.hasPendingEvents())
         thread.processNextEvent(true);
     }
@@ -116,7 +115,7 @@ POP3Pump.prototype._checkBusy = function _checkBusy()
 
   if (this._finalCleanup)
   {
-    if (gThreadManager.currentThread.hasPendingEvents())
+    if (Services.tm.currentThread.hasPendingEvents())
       do_timeout(20, _checkPumpBusy);
     else
     {
@@ -176,7 +175,7 @@ POP3Pump.prototype._testNext = function _testNext()
     do_throw(e);
   } finally
   {
-    var thread = gThreadManager.currentThread;
+    var thread = Services.tm.currentThread;
     while (thread.hasPendingEvents())
       thread.processNextEvent(true);
   }
