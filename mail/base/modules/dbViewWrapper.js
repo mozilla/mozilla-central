@@ -265,10 +265,7 @@ var FolderNotificationHelper = {
       for each (let [, wrapper] in Iterator(wrappers.concat())) {
         wrapper._folderMoved(aOldFolder, aNewFolder);
       }
-      // if the folder is deleted, it's not going to get deleted again.
-      delete this._interestedWrappers[aFolder.URI];
     }
-
   },
 
   /**
