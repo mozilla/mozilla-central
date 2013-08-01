@@ -36,6 +36,10 @@ function setupModule(module)
 
   // Test - group subscribe listing
   test = "news:*";
+
+  if (mc.mozmillModule.isMac) {
+    test_customize_toolbar_doesnt_double_get_mail_menu.__force_skip__ = true;
+  }
 }
 
 /*
