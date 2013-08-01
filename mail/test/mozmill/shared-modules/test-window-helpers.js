@@ -968,12 +968,23 @@ var AugmentEverybodyWith = {
       let curPopup = aRootPopup;
       for each (let [iAction, actionObj] in Iterator(aActions)) {
         let matchingNode = null;
-        let name;
-        let value;
-        // There should always be only one iteration here (one property of the actionObj).
-        for each ([name, value] in Iterator(actionObj)) {
-          // This also looks into deeper-level children for complex menus (e.g. the appmenu).
-           matchingNode = curPopup.querySelector("[" + name + "='" + value + "']");
+
+        let kids = curPopup.children;
+        for (let iKid=0; iKid < kids.length; iKid++) {
+          let node = kids[iKid];
+          let matchedAll = true;
+          for each (let [name, value] in Iterator(actionObj)) {
+            if (!node.hasAttribute(name) ||
+                node.getAttribute(name) != value) {
+              matchedAll = false;
+              break;
+            }
+          }
+
+          if (matchedAll) {
+            matchingNode = node;
+            break;
+          }
         }
 
         if (!matchingNode)
@@ -987,9 +998,7 @@ var AugmentEverybodyWith = {
           closeStack.push(curPopup);
           utils.waitFor(function() { return curPopup.state == "open"; },
                         "Popup never opened at action depth " + iAction +
-                        "; id=" + curPopup.id + " in <" + matchingNode.tagName + " " +
-                        ((("id" in matchingNode) && (matchingNode.id)) ? "id=" + matchingNode.id : name + "=" +
-                         matchingNode.getAttribute(name)) + ">, state=" + curPopup.state,
+                        "; id=" + curPopup.id + ", state=" + curPopup.state,
                         5000, 50);
         }
       }
