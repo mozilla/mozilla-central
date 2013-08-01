@@ -28,7 +28,7 @@ var AuthPLAIN = {
   decodeLine: function(line) {
     dump("AUTH PLAIN line -" + line + "-\n");
     line = atob(line); // base64 decode
-    aap = line.split("\u0000"); // 0-charater is delimiter
+    let aap = line.split("\u0000"); // 0-charater is delimiter
     if (aap.length != 3)
       throw "Expected three parts";
     /* aap is: authorize-id, authenticate-id, password.

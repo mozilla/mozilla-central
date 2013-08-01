@@ -949,7 +949,7 @@ IMAP_RFC3501_handler.prototype = {
     var func = this._kAuthSchemeStartFunction[scheme];
     if (!func || typeof(func) != "function")
       return "BAD I just pretended to implement AUTH " + scheme + ", but I don't";
-    return func.call(this, args[1]);
+    return func.apply(this, args.slice(1));
   },
   LOGIN : function (args) {
     if (this.kCapabilities.some(function(c) { return c == "LOGINDISABLED"; } ))
@@ -1059,7 +1059,6 @@ IMAP_RFC3501_handler.prototype = {
     return "OK UNSUBSCRIBE completed";
   },
   LIST : function (args) {
-
     // even though this is the LIST function for RFC 3501, code for
     // LIST-EXTENDED (RFC 5258) is included here to keep things simple and
     // avoid duplication. We can get away with this because the _treatArgs
@@ -1079,7 +1078,7 @@ IMAP_RFC3501_handler.prototype = {
     }
     // check for optional list return options argument used by LIST-EXTENDED
     // and other related RFCs
-    if ((args[2] == "RETURN") ||
+    if ((args.length > 2 && args[2] == "RETURN") ||
         this.kCapabilities.indexOf("CHILDREN") >= 0) {
       listFunctionName += "_RETURN";
       let returnOptions = args[3] ? args[3].toString().split(' ') : [];
@@ -1263,8 +1262,8 @@ IMAP_RFC3501_handler.prototype = {
                   + ' ';
           continue;
         }
-        // Replace superfluous space with a ' '
-        prefix[prefix.length - 1] = ']';
+        // Replace superfluous space with a ']'.
+        prefix = prefix.substr(0, prefix.length - 1) + ']';
         item = prefix;
         prefix = undefined;
       }
