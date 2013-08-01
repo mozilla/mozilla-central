@@ -6,7 +6,6 @@
  * This test creates some messages with attachments of different types and
  * checks that libmime reports the expected size for each of them.
  */
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 

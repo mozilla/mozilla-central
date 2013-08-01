@@ -14,7 +14,7 @@ function run_test()
 
   var msgProps = Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
 
-  var expectedFolders = [ "Inbox" ]; // Inbox hard-coded in mailTestUtils.js
+  var expectedFolders = [ "Inbox" ]; // Inbox hard-coded in localAccountUtils.js
 
   // These two MailNews adds by default
   expectedFolders.push(msgProps.GetStringFromName("outboxFolderName"));

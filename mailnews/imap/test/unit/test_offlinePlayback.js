@@ -7,7 +7,6 @@
 Components.utils.import("resource:///modules/mailServices.js");
 
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 load("../../../resources/IMAPpump.js");

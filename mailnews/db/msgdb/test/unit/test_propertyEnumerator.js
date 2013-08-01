@@ -4,8 +4,6 @@
 
  // tests propertyEnumerator in nsIMsgDBHdr;
 
-load("../../../../resources/mailTestUtils.js");
-
 Components.utils.import("resource:///modules/mailServices.js");
 
 var gHdr;

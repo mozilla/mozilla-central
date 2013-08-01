@@ -6,7 +6,6 @@
  * This test creates some messages with attachments of different types and
  * checks that libmime emits (or doesn't emit) the attachments as appropriate.
  */
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 

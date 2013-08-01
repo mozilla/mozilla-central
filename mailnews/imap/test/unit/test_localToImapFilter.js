@@ -8,7 +8,6 @@
  */
 
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/POP3pump.js");
 load("../../../resources/IMAPpump.js");

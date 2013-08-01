@@ -2,6 +2,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://testing-common/mailnews/mailDirService.js");
+Components.utils.import("resource://testing-common/mailnews/mailTestUtils.js");
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -10,15 +11,15 @@ var CC = Components.Constructor;
 
 var gProfileDir = ProfileDir.initialize(do_get_profile());
 
-load("../../../resources/mailTestUtils.js");
+load("../../../resources/localAccountUtils.js");
 
 // Import the required setup scripts.
 load("../../../resources/abSetup.js");
 
 // Import the smtp server scripts
-load("../../../fakeserver/maild.js")
-load("../../../fakeserver/auth.js")
-load("../../../fakeserver/smtpd.js")
+load("../../../fakeserver/maild.js");
+load("../../../fakeserver/auth.js");
+load("../../../fakeserver/smtpd.js");
 
 Components.utils.import("resource:///modules/mailServices.js");
 
@@ -28,7 +29,7 @@ var gDraftFolder;
 // Setup the daemon and server
 function setupServerDaemon(handler) {
   if (!handler)
-    handler = function (d) { return new SMTP_RFC2821_handler(d); }
+    handler = function (d) { return new SMTP_RFC2821_handler(d); };
   var server = new nsMailServer(handler, new smtpDaemon());
   return server;
 }

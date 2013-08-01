@@ -3,8 +3,6 @@
  * Extra tests for forgetting newsgroup usernames and passwords.
  */
 
-load("../../../resources/mailTestUtils.js");
-
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 

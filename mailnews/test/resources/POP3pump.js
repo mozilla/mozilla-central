@@ -26,12 +26,12 @@ if (typeof gDEPTH == "undefined")
 if (typeof nsMailServer == 'undefined')
   load(gDEPTH + "mailnews/fakeserver/maild.js");
 if (typeof AuthPLAIN == 'undefined')
-  load(gDEPTH + "mailnews/fakeserver/auth.js")
+  load(gDEPTH + "mailnews/fakeserver/auth.js");
 if (typeof pop3Daemon == 'undefined')
   load(gDEPTH + "mailnews/fakeserver/pop3d.js");
 
-// Add mailTestUtils for create_incoming_server
-load(gDEPTH + "mailnews/resources/mailTestUtils.js");
+// Add localAccountUtils for create_incoming_server
+load(gDEPTH + "mailnews/resources/localAccountUtils.js");
 
 function POP3Pump()
 {

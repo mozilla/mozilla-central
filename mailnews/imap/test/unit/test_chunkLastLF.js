@@ -13,7 +13,6 @@
 
  // async support
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 const gFile = do_get_file("../../../data/bug92111b");

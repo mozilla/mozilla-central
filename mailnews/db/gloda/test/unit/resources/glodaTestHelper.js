@@ -26,7 +26,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 
 // Import the main scripts that mailnews tests need to set up and tear down
-load("../../../../resources/mailTestUtils.js");
 load("../../../../resources/abSetup.js");
 load("../../../../resources/logHelper.js");
 load("../../../../resources/asyncTestUtils.js");

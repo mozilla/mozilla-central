@@ -6,7 +6,6 @@
  * This test iterates over the test files in gTestFiles, and streams
  * each as a message and makes sure the streaming doesn't assert or crash.
  */
-load("../../../resources/mailTestUtils.js");
 Components.utils.import("resource:///modules/IOUtils.js");
 
 var gTestFiles =[ 

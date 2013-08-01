@@ -22,6 +22,7 @@ RESDIR = $(srcdir)/test/resources
 TESTING_JS_MODULE_DIR = mailnews
 TESTING_JS_MODULES += \
 	$(RESDIR)/mailDirService.js \
+	$(RESDIR)/mailTestUtils.js \
 	$(NULL)
 endif
 

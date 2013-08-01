@@ -9,7 +9,6 @@
 Services.prefs.setIntPref("mailnews.tcptimeout", 2);
 
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 load("../../../resources/messageGenerator.js");

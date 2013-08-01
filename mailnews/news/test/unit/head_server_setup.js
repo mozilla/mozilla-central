@@ -15,7 +15,7 @@ load("../../../fakeserver/maild.js");
 load("../../../fakeserver/nntpd.js");
 
 // Generic mailnews resource scripts
-load("../../../resources/mailTestUtils.js");
+load("../../../resources/localAccountUtils.js");
 
 Components.utils.import("resource:///modules/mailServices.js");
 

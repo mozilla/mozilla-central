@@ -7,6 +7,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://testing-common/mailnews/mailDirService.js");
+Components.utils.import("resource://testing-common/mailnews/mailTestUtils.js");
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -21,7 +22,7 @@ load(gDEPTH + "mailnews/fakeserver/auth.js");
 load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
 // And mailnews scripts
-load(gDEPTH + "mailnews/resources/mailTestUtils.js");
+load(gDEPTH + "mailnews/resources/localAccountUtils.js");
 
 const IMAP_PORT = 1024 + 143;
 

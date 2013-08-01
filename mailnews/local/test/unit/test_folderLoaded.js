@@ -12,7 +12,6 @@
  *
  */
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 var testSubjects = ["[Bug 397009] A filter will let me tag, but not untag",
@@ -20,7 +19,7 @@ var testSubjects = ["[Bug 397009] A filter will let me tag, but not untag",
 var gMsgFile1 = do_get_file("../../../data/bugmail1");
 var gMsgFile2 = do_get_file("../../../data/draft1");
 
-gTargetFolder = null;
+var gTargetFolder = null;
 
 var tests = [
   function setup()

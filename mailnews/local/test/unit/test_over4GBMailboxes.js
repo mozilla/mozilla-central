@@ -16,7 +16,6 @@
  * -  CompactListener2
  */
 
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 load("../../../resources/messageGenerator.js");

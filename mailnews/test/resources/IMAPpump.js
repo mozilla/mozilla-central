@@ -31,8 +31,8 @@ if (typeof AuthPLAIN == "undefined")
 if (typeof imapDaemon == "undefined")
   load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
-// Add mailTestUtils for create_incoming_server
-load(gDEPTH + "mailnews/resources/mailTestUtils.js");
+// Add localAccountUtils for create_incoming_server
+load(gDEPTH + "mailnews/resources/localAccountUtils.js");
 
 // define globals
 var gIMAPDaemon;         // the imap fake server daemon

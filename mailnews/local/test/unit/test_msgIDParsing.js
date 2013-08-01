@@ -3,8 +3,6 @@
  */
 
 
-load("../../../resources/mailTestUtils.js");
-
 Components.utils.import("resource:///modules/mailServices.js");
 
 var gMessenger = Cc["@mozilla.org/messenger;1"].

@@ -3,6 +3,8 @@
  * server lies about rfc822.size (known to happen for Exchange and gmail)
  */
 
+Components.utils.import("resource:///modules/IOUtils.js");
+
 var gIMAPDaemon, gServer, gIMAPIncomingServer, gSavedMsgFile;
 
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]

@@ -4,11 +4,11 @@
 var gServer, gImapServer;
 var gIMAPInbox, gIMAPFolder1, gIMAPFolder2;
 var gFolder2Mailbox;
+var gFolder1, gFolder2;
 
 load("../../../resources/messageGenerator.js");
 // async support
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 Components.utils.import("resource:///modules/mailServices.js");

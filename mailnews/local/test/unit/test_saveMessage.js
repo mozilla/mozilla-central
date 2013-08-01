@@ -2,6 +2,8 @@
  * Test bug 460636 - Saving message in local folder as .EML removes starting dot in all lines, and ignores line if single dot only line.
  */
 
+Components.utils.import("resource:///modules/IOUtils.js");
+
 const MSG_LINEBREAK = "\r\n";
 const dot = do_get_file("data/dot");
 let saveFile = Services.dirsvc.get("TmpD", Ci.nsIFile);

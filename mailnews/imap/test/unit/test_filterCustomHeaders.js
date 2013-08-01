@@ -9,7 +9,6 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 load("../../../resources/logHelper.js");
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
 // IMAP pump

@@ -7,7 +7,6 @@
  * type reported in bug 659355.
  * Adapted from test_attachment_size.js
  */
-load("../../../resources/mailTestUtils.js");
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 
