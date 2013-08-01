@@ -78,8 +78,9 @@ function growInbox(aWantedSize) {
     outputStream.write(mboxString, mboxString.length);
 
     // "Add" a new (empty) sparse block at the end of the file.
-    mark_file_region_sparse(gInboxFile, gInboxFile.fileSize + mboxString.length,
-                            nextOffset - (gInboxFile.fileSize + mboxString.length));
+    mailTestUtils.mark_file_region_sparse(gInboxFile,
+      gInboxFile.fileSize + mboxString.length,
+      nextOffset - (gInboxFile.fileSize + mboxString.length));
 
     // Skip to the wished end of the message.
     outputStream.seek(0, nextOffset);
@@ -112,7 +113,7 @@ function run_test()
   // sparse. If it isn't, then bail out now, because in all probability it is
   // FAT32, which doesn't support file sizes greater than 4 GiB.
   if ("@mozilla.org/windows-registry-key;1" in Cc &&
-      get_file_system(gInboxFile) != "NTFS")
+      mailTestUtils.get_file_system(gInboxFile) != "NTFS")
   {
     dump("On Windows, this test only works on NTFS volumes.\n");
 

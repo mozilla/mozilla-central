@@ -35,14 +35,14 @@ function run_test() {
   // sparse. If it isn't, then bail out now, because in all probability it is
   // FAT32, which doesn't support file sizes greater than 4 GB.
   if ("@mozilla.org/windows-registry-key;1" in Cc &&
-      get_file_system(inboxFile) != "NTFS")
+      mailTestUtils.get_file_system(inboxFile) != "NTFS")
   {
     dump("On Windows, this test only works on NTFS volumes.\n");
     teardown();
     return;
   }
 
-  let isFileSparse = mark_file_region_sparse(inboxFile, 0, 0x10000000f);
+  let isFileSparse = mailTestUtils.mark_file_region_sparse(inboxFile, 0, 0x10000000f);
   let freeDiskSpace = inboxFile.diskSpaceAvailable;
   do_print("Free disk space = " + toMiBString(freeDiskSpace));
   if (!isFileSparse && freeDiskSpace < neededFreeSpace) {
