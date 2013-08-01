@@ -74,7 +74,7 @@
   list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
   -moz-image-region: rect(0 306px 18px 288px);
 }
-#button-delete.cal-event-toolbarbutton:not([disabled]):active, {
+#button-delete.cal-event-toolbarbutton:not([disabled]):active,
 #button-delete.cal-event-toolbarbutton:not([disabled]):hover:active {
   -moz-image-region: rect(18px 306px 36px 288px);
 }
