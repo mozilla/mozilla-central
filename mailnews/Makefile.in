@@ -27,6 +27,7 @@ TESTING_JS_MODULES += \
 	$(FAKESERVER)/auth.js \
 	$(FAKESERVER)/maild.js \
 	$(FAKESERVER)/nntpd.js \
+	$(FAKESERVER)/smtpd.js \
 	$(NULL)
 endif
 
