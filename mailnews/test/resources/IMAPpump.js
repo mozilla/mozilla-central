@@ -26,8 +26,7 @@ if (typeof gDEPTH == "undefined")
 
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/auth.js");
-if (typeof imapDaemon == "undefined")
-  load(gDEPTH + "mailnews/fakeserver/imapd.js");
+Components.utils.import("resource://testing-common/mailnews/imapd.js");
 
 // Add localAccountUtils for create_incoming_server
 load(gDEPTH + "mailnews/resources/localAccountUtils.js");

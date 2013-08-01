@@ -1,4 +1,25 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 // This file implements test IMAP servers
+
+var EXPORTED_SYMBOLS = [
+  'imapDaemon',
+  'imapMailbox',
+  'imapMessage',
+  'IMAP_RFC3501_handler',
+  'configurations',
+  'mixinExtension',
+  'IMAP_GMAIL_extension',
+  'IMAP_MOVE_extension',
+  'IMAP_CUSTOM_extension',
+  'IMAP_RFC2197_extension',
+  'IMAP_RFC2342_extension',
+  'IMAP_RFC3348_extension',
+  'IMAP_RFC4315_extension',
+  'IMAP_RFC5258_extension',
+  'IMAP_RFC2195_extension'
+];
 
 ////////////////////////////////////////////////////////////////////////////////
 //                          IMAP DAEMON ORGANIZATION                          //
@@ -43,9 +64,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mimeParser.jsm");
+Components.utils.import("resource://testing-common/mailnews/auth.js");
 
-if (!("MimeParser" in this))
-  Components.utils.import("resource:///modules/mimeParser.jsm", this);
+const Cc = Components.classes;
+const Ci = Components.interfaces;
 
 function imapDaemon(flags, syncFunc) {
   this._flags = flags;
