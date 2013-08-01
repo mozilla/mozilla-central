@@ -511,6 +511,7 @@
 @BINPATH@/components/PlacesCategoriesStarter.js
 @BINPATH@/components/servicesComponents.manifest
 @BINPATH@/components/TCPSocket.js
+@BINPATH@/components/TCPServerSocket.js
 @BINPATH@/components/TCPSocketParentIntermediary.js
 @BINPATH@/components/TCPSocket.manifest
 #ifdef MOZ_WEBRTC
