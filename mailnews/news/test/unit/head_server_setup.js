@@ -12,7 +12,7 @@ var gProfileDir = ProfileDir.initialize(do_get_profile());
 
 // Import the servers
 Components.utils.import("resource://testing-common/mailnews/maild.js");
-load("../../../fakeserver/nntpd.js");
+Components.utils.import("resource://testing-common/mailnews/nntpd.js");
 
 // Generic mailnews resource scripts
 load("../../../resources/localAccountUtils.js");

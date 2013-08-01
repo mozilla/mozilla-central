@@ -25,6 +25,7 @@ TESTING_JS_MODULES += \
 	$(RESDIR)/mailDirService.js \
 	$(RESDIR)/mailTestUtils.js \
 	$(FAKESERVER)/maild.js \
+	$(FAKESERVER)/nntpd.js \
 	$(NULL)
 endif
 

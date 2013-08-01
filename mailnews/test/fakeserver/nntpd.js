@@ -3,6 +3,18 @@
 
 Components.utils.import("resource:///modules/mimeParser.jsm");
 
+var EXPORTED_SYMBOLS = [
+  'nntpDaemon',
+  'newsArticle',
+  'NNTP_POSTABLE',
+  'NNTP_REAL_LENGTH',
+  'NNTP_RFC977_handler',
+  'NNTP_RFC2980_handler',
+  'NNTP_RFC3977_handler',
+  'NNTP_Giganews_handler',
+  'NNTP_RFC4643_extension'
+];
+
 function nntpDaemon(flags) {
   this._groups = {};
   this._messages = {};
@@ -93,7 +105,7 @@ function newsArticle(text) {
 /**
  * This function converts an NNTP wildmat into a regular expression.
  *
- * I don't know how accurate it is wrt i18n characters, but it's primary usage
+ * I don't know how accurate it is wrt i18n characters, but its primary usage
  * right now is just XPAT, where i18n effects are utterly unspecified, so I am
  * not too concerned.
  *
@@ -105,8 +117,10 @@ function wildmat2regex(wildmat) {
       return "\\" + str;
   });
   wildmat = wildmat.replace(/(\\*)([*?])/, function (str, p1, p2) {
+    // TODO: This function appears to be wrong on closer inspection.
     if (p1.length % 2 == 0)
       return p2 == '*' ? '.*' : '.';
+    return str;
   });
   return new RegExp(wildmat);
 }
