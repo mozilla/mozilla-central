@@ -19,10 +19,12 @@ DEFINES += -DOS_ARCH=$(OS_ARCH) \
 
 ifdef ENABLE_TESTS
 RESDIR = $(srcdir)/test/resources
+FAKESERVER := $(srcdir)/test/fakeserver
 TESTING_JS_MODULE_DIR = mailnews
 TESTING_JS_MODULES += \
 	$(RESDIR)/mailDirService.js \
 	$(RESDIR)/mailTestUtils.js \
+	$(FAKESERVER)/maild.js \
 	$(NULL)
 endif
 
@@ -50,6 +52,7 @@ xpcshell-tests::
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
 	  --tests-root-dir=$(testxpcobjdir) \
+          --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
 	  --xunit-file=$(testxpcobjdir)/mailnews/results.xml \
 	  --xunit-suite-name=xpcshell \
 	  $(EXTRA_TEST_ARGS) \
