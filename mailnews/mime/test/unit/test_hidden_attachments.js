@@ -112,13 +112,11 @@ let gStreamListener = {
       if (expectedAttachments[i])
         do_check_eq(expectedAttachments[i], gMessageHeaderSink.attachments[i]);
     }
+    this._stream = null;
 
     async_driver();
   },
 
-  /* okay, our onDataAvailable should actually never be called.  the stream
-     converter is actually eating everything except the start and stop
-     notification. */
   // nsIStreamListener part
   _stream : null,
 

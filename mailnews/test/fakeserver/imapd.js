@@ -608,43 +608,6 @@ function formatArg(argument, spec) {
   return argument;
 }
 
-// used by RFC 5258 and GMail (labels)
-function parseMailboxList(aList) {
-
-  // strip enclosing parentheses
-  if (aList.startsWith('(')) {
-    aList = aList.substring(1, aList.length - 1);
-  }
-  let mailboxList = [];
-  for (let i = 0; i < aList.length; i++) {
-    // first, check for literals
-    if (aList[i] == '{') {
-      let endBracketPos = aList.indexOf('}', i);
-      let literalLen = parseInt(aList.substring(i + 1, endBracketPos));
-      // skip CRLF after '}'
-      mailboxList.push(aList.substr(endBracketPos + 3, literalLen));
-      i = endBracketPos + 3 + literalLen;
-    }
-    if (aList[i] == '"') {
-      let endQuotePos = i + aList.substring(i).search(/[^\\]"/);
-      mailboxList.push(aList.substring(i + 1, endQuotePos + 1)
-                       .replace(/\\"/g, '"').replace(/\\\\/g, '\\'));
-      i = endQuotePos + 2;
-    }
-    if (aList[i] != ' ') {
-      let nextSpace = aList.indexOf(' ', i);
-      if (nextSpace == -1) {
-        mailboxList.push(aList.substring(i));
-        i = aList.length;
-      } else {
-        mailboxList.push(aList.substring(i, nextSpace));
-        i = nextSpace;
-      }
-    }
-  }
-  return mailboxList;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //                              IMAP TEST SERVERS                             //
 ////////////////////////////////////////////////////////////////////////////////
@@ -1125,7 +1088,7 @@ IMAP_RFC3501_handler.prototype = {
     // check for multiple mailbox patterns used by LIST-EXTENDED
     // and other related RFCs
     if (args[1].startsWith("(")) {
-      requestedBoxes = parseMailboxList(args[1]);
+      requestedBoxes = parseCommand(args[1])[0];
     } else {
       requestedBoxes = [ args[1] ];
     }

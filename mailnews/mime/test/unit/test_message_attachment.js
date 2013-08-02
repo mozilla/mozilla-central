@@ -41,7 +41,7 @@ let messages = [
                     contentType: 'message/rfc822', },
                  ]},
   // no named email attachment with subject header
-  { attachments: [{ expectedFilename: 'testSubject.eml' }],
+  { attachments: [{ body: '', expectedFilename: 'testSubject.eml' }],
     bodyPart: new SyntheticPartMultiMixed([
       new SyntheticPartLeaf('plain body text'),
       msgGen.makeMessage({

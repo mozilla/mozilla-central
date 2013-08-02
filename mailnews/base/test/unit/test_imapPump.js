@@ -13,6 +13,7 @@ load("../../../resources/alertTestUtils.js");
 
 // IMAP pump
 Components.utils.import("resource://testing-common/mailnews/IMAPpump.js");
+Components.utils.import("resource://testing-common/mailnews/imapd.js");
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 

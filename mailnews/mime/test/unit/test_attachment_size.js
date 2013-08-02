@@ -190,12 +190,10 @@ let gStreamListener = {
   onStopRequest: function (aRequest, aContext, aStatusCode) {
     dump("*** Size is "+gMessageHeaderSink.size+" (expecting "+this.expectedSize+")\n\n");
     do_check_true(Math.abs(gMessageHeaderSink.size - this.expectedSize) <= epsilon);
+    this._stream = null;
     async_driver();
   },
 
-  /* okay, our onDataAvailable should actually never be called.  the stream
-     converter is actually eating everything except the start and stop
-     notification. */
   // nsIStreamListener part
   _stream : null,
 
