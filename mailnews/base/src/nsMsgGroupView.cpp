@@ -179,10 +179,6 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
       (void) msgHdr->GetRecipients(getter_Copies(cStringKey));
       CopyASCIItoUTF16(cStringKey, aHashKey);
       break;
-    case nsMsgViewSortType::byTo:
-      (void) msgHdr->GetRecipients(getter_Copies(cStringKey));
-      CopyASCIItoUTF16(cStringKey, aHashKey);
-      break;
     case nsMsgViewSortType::byAccount:
     case nsMsgViewSortType::byTags:
       {
@@ -818,9 +814,6 @@ NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(int32_t aRow,
         case nsMsgViewSortType::byRecipient:
           FetchRecipients(msgHdr, aValue);
           break;
-        case nsMsgViewSortType::byTo:
-          FetchToRecipients(msgHdr, aValue);
-          break;
         case nsMsgViewSortType::byAttachments:
           tmp_str.Adopt(GetString(flags & nsMsgMessageFlags::Attachment
             ? NS_LITERAL_STRING("attachments").get()
@@ -880,7 +873,7 @@ NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(int32_t aRow,
         aValue.Append(NS_LITERAL_STRING(")"));
       }
     }
-    else if (aColumnName[0] == 't' && aColumnName[2] == 't')
+    else if (aColumnName[0] == 't' && aColumnName[1] == 'o')
     {
       nsAutoString formattedCountString;
       uint32_t numChildren = (groupThread) ? groupThread->NumRealChildren() : 0;

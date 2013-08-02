@@ -186,14 +186,12 @@
 <!ENTITY sortBySubjectCmd.accesskey "b">
 <!ENTITY sortByFromCmd.label "From">
 <!ENTITY sortByFromCmd.accesskey "F">
-<!ENTITY sortByRecipientsCmd.label "Recipients">
-<!ENTITY sortByRecipientsCmd.accesskey "c">
-<!ENTITY sortByToCmd.label "To">
-<!ENTITY sortByToCmd.accesskey "o">
+<!ENTITY sortByRecipientCmd.label "Recipient">
+<!ENTITY sortByRecipientCmd.accesskey "c">
 <!ENTITY sortByUnreadCmd.label "Read">
 <!ENTITY sortByUnreadCmd.accesskey "R">
 <!ENTITY sortByOrderReceivedCmd.label "Order Received">
-<!ENTITY sortByOrderReceivedCmd.accesskey "i">
+<!ENTITY sortByOrderReceivedCmd.accesskey "O">
 <!ENTITY sortAscending.label "Ascending">
 <!ENTITY sortAscending.accesskey "A">
 <!ENTITY sortDescending.label "Descending">
@@ -644,8 +642,7 @@
 <!-- Thread Pane -->
 <!ENTITY threadColumn.label "Thread">
 <!ENTITY fromColumn.label "From">
-<!ENTITY recipientsColumn.label "Recipients">
-<!ENTITY toColumn.label "To">
+<!ENTITY recipientColumn.label "Recipient">
 <!ENTITY subjectColumn.label "Subject">
 <!ENTITY dateColumn.label "Date">
 <!ENTITY priorityColumn.label "Priority">
@@ -667,8 +664,7 @@
 <!ENTITY columnChooser.tooltip "Click to select columns to display">
 <!ENTITY threadColumn.tooltip "Click to display message threads">
 <!ENTITY fromColumn.tooltip "Click to sort by from">
-<!ENTITY recipientsColumn.tooltip "Click to sort by recipients">
-<!ENTITY toColumn.tooltip "Click to sort by to">
+<!ENTITY recipientColumn.tooltip "Click to sort by recipient">
 <!ENTITY subjectColumn.tooltip "Click to sort by subject">
 <!ENTITY dateColumn.tooltip "Click to sort by date">
 <!ENTITY priorityColumn.tooltip "Click to sort by priority">

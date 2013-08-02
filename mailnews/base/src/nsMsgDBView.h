@@ -146,7 +146,6 @@ protected:
   virtual const char * GetViewName(void) {return "MsgDBView"; }
   nsresult FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aAuthorString);
   nsresult FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString);
-  nsresult FetchToRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipientsString);
   nsresult FetchSubject(nsIMsgDBHdr * aMsgHdr, uint32_t aFlags, nsAString &aValue);
   nsresult FetchDate(nsIMsgDBHdr * aHdr, nsAString & aDateString, bool rcvDate = false);
   nsresult FetchStatus(uint32_t aFlags, nsAString &aStatusString);
@@ -469,10 +468,6 @@ private:
                                          bool &moveMessages,
                                          bool &changeReadState,
                                          nsIMsgFolder** targetFolder);
-  nsresult commonFetchRecipients(nsIMsgDBHdr * aHdr, char *,
-                                 nsresult (NS_STDCALL nsIMsgDBHdr::*mimeDecoder)
-                                            (nsAString&),
-                                 nsAString&);
 
   class nsMsgViewHdrEnumerator : public nsISimpleEnumerator 
   {

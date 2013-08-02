@@ -158,14 +158,12 @@
 <!ENTITY sortBySubjectCmd.accesskey "S">
 <!ENTITY sortByFromCmd.label "From">
 <!ENTITY sortByFromCmd.accesskey "F">
-<!ENTITY sortByRecipientsCmd.label "Recipients">
-<!ENTITY sortByRecipientsCmd.accesskey "c">
-<!ENTITY sortByToCmd.label "To">
-<!ENTITY sortByToCmd.accesskey "o">
+<!ENTITY sortByRecipientCmd.label "Recipient">
+<!ENTITY sortByRecipientCmd.accesskey "c">
 <!ENTITY sortByUnreadCmd.label "Read">
 <!ENTITY sortByUnreadCmd.accesskey "R">
 <!ENTITY sortByOrderReceivedCmd.label "Order Received">
-<!ENTITY sortByOrderReceivedCmd.accesskey "i">
+<!ENTITY sortByOrderReceivedCmd.accesskey "O">
 <!ENTITY sortByAttachmentsCmd.label "Attachments">
 <!ENTITY sortByAttachmentsCmd.accesskey "m">
 <!ENTITY sortAscending.label "Ascending">

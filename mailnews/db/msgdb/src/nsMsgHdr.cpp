@@ -678,20 +678,11 @@ NS_IMETHODIMP nsMsgHdr::GetMime2DecodedSubject(nsAString &resultSubject)
   return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_subjectColumnToken, resultSubject);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedTo(nsAString &resultRecipients)
+NS_IMETHODIMP nsMsgHdr::GetMime2DecodedRecipients(nsAString &resultRecipients)
 {
   return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_recipientsColumnToken, resultRecipients);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedCC(nsAString &resultRecipients)
-{
-  return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_ccListColumnToken, resultRecipients);
-}
-
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedBCC(nsAString &resultRecipients)
-{
-  return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_bccListColumnToken, resultRecipients);
-}
 
 NS_IMETHODIMP nsMsgHdr::GetAuthorCollationKey(uint32_t *len, uint8_t **resultAuthor)
 {

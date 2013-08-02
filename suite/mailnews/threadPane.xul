@@ -42,12 +42,8 @@
     <splitter class="tree-splitter"/>
     <treecol id="senderCol" persist="ordinal width hidden swappedhidden" flex="4" hidden="false" swappedhidden="true"
              label="&fromColumn.label;" tooltiptext="&fromColumn.tooltip;"/>
-    <splitter class="tree-splitter"/>
     <treecol id="recipientCol" persist="ordinal width hidden swappedhidden" flex="4" hidden="true" swappedhidden="false"
-             label="&recipientsColumn.label;" tooltiptext="&recipientsColumn.tooltip;"/>
-    <splitter class="tree-splitter"/>
-    <treecol id="toCol" persist="ordinal width hidden swappedhidden" flex="4" hidden="true" swappedhidden="true"
-             label="&toColumn.label;" tooltiptext="&toColumn.tooltip;"/>
+             label="&recipientColumn.label;" tooltiptext="&recipientColumn.tooltip;"/>
     <splitter class="tree-splitter"/>
     <treecol id="unreadButtonColHeader" persist="hidden ordinal" fixed="true" cycler="true" class="treecol-image readColumnHeader"
              label="&readColumn.label;" tooltiptext="&readColumn.tooltip;"/>

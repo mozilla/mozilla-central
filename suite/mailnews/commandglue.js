@@ -419,8 +419,7 @@ function SetSentFolderColumns(isSentFolder)
   {
     var senderColumn = document.getElementById("senderCol");
     var recipientColumn = document.getElementById("recipientCol");
-    var toColumn = document.getElementById("toCol");
- 
+    
     var saveHidden = senderColumn.getAttribute("hidden");
     senderColumn.setAttribute("hidden", senderColumn.getAttribute("swappedhidden"));
     senderColumn.setAttribute("swappedhidden", saveHidden);
@@ -428,10 +427,6 @@ function SetSentFolderColumns(isSentFolder)
     saveHidden = recipientColumn.getAttribute("hidden");
     recipientColumn.setAttribute("hidden", recipientColumn.getAttribute("swappedhidden"));
     recipientColumn.setAttribute("swappedhidden", saveHidden);
-
-    saveHidden = toColumn.getAttribute("hidden");
-    toColumn.setAttribute("hidden", toColumn.getAttribute("swappedhidden"));
-    toColumn.setAttribute("swappedhidden", saveHidden);
   }
 
   tree.setAttribute("lastfoldersent", isSentFolder ? "true" : "false");
@@ -547,9 +542,6 @@ function ConvertSortTypeToColumnID(sortKey)
       break;
     case nsMsgViewSortType.byRecipient:
       columnID = "recipientCol";
-      break;
-    case nsMsgViewSortType.byTo:
-      columnID = "toCol";
       break;
     case nsMsgViewSortType.bySubject:
       columnID = "subjectCol";

@@ -4,8 +4,7 @@
 
 <!ENTITY threadColumn.label "Thread">
 <!ENTITY fromColumn.label "From">
-<!ENTITY recipientsColumn.label "Recipients">
-<!ENTITY toColumn.label "To">
+<!ENTITY recipientColumn.label "Recipient">
 <!ENTITY attachmentColumn.label "Attachments">
 <!ENTITY subjectColumn.label "Subject">
 <!ENTITY dateColumn.label "Date">
@@ -27,8 +26,7 @@
 <!ENTITY columnChooser.tooltip "Click to select columns to display">
 <!ENTITY threadColumn.tooltip "Click to display message threads"> 
 <!ENTITY fromColumn.tooltip "Click to sort by from">
-<!ENTITY recipientsColumn.tooltip "Click to sort by recipients">
-<!ENTITY toColumn.tooltip "Click to sort by to">
+<!ENTITY recipientColumn.tooltip "Click to sort by recipient">
 <!ENTITY attachmentColumn.tooltip "Click to sort by attachments">
 <!ENTITY subjectColumn.tooltip "Click to sort by subject">
 <!ENTITY dateColumn.tooltip "Click to sort by date">

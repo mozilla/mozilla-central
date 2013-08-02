@@ -1417,13 +1417,8 @@
                 <menuitem id="appmenu_sortByRecipientMenuitem"
                           type="radio"
                           name="sortby"
-                          label="&sortByRecipientsCmd.label;"
+                          label="&sortByRecipientCmd.label;"
                           oncommand="MsgSortThreadPane('byRecipient')"/>
-                <menuitem id="appmenu_sortByToMenuitem"
-                          type="radio"
-                          name="sortby"
-                          label="&sortByToCmd.label;"
-                          oncommand="MsgSortThreadPane('byTo')"/>
                 <menuitem id="appmenu_sortBySizeMenuitem"
                           type="radio"
                           name="sortby"
@@ -2460,8 +2455,7 @@
             <menuitem id="sortByOrderReceivedMenuitem" type="radio" name="sortby" label="&sortByOrderReceivedCmd.label;"  accesskey="&sortByOrderReceivedCmd.accesskey;" oncommand="MsgSortThreadPane('byId')"/>
             <menuitem id="sortByPriorityMenuitem" type="radio" name="sortby" label="&sortByPriorityCmd.label;" accesskey="&sortByPriorityCmd.accesskey;" oncommand="MsgSortThreadPane('byPriority')"/>
             <menuitem id="sortByFromMenuitem" type="radio" name="sortby" label="&sortByFromCmd.label;" accesskey="&sortByFromCmd.accesskey;" oncommand="MsgSortThreadPane('byAuthor')"/>
-            <menuitem id="sortByRecipientMenuitem" type="radio" name="sortby" label="&sortByRecipientsCmd.label;" accesskey="&sortByRecipientsCmd.accesskey;" oncommand="MsgSortThreadPane('byRecipient')"/>
-            <menuitem id="sortByToMenuitem" type="radio" name="sortby" label="&sortByToCmd.label;" accesskey="&sortByToCmd.accesskey;" oncommand="MsgSortThreadPane('byTo')"/>
+            <menuitem id="sortByRecipientMenuitem" type="radio" name="sortby" label="&sortByRecipientCmd.label;" accesskey="&sortByRecipientCmd.accesskey;" oncommand="MsgSortThreadPane('byRecipient')"/>
             <menuitem id="sortBySizeMenuitem" type="radio" name="sortby" label="&sortBySizeCmd.label;" accesskey="&sortBySizeCmd.accesskey;" oncommand="MsgSortThreadPane('bySize')"/>
             <menuitem id="sortByStatusMenuitem" type="radio" name="sortby" label="&sortByStatusCmd.label;" accesskey="&sortByStatusCmd.accesskey;" oncommand="MsgSortThreadPane('byStatus')"/>
             <menuitem id="sortBySubjectMenuitem" type="radio" name="sortby" label="&sortBySubjectCmd.label;" accesskey="&sortBySubjectCmd.accesskey;" oncommand="MsgSortThreadPane('bySubject')"/>
