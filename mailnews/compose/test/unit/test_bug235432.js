@@ -112,7 +112,7 @@ function send_message_later(aMessageHeaderKeys, aStatus) {
                  .createInstance(Ci.nsIMsgComposeParams);
   params.composeFields = compFields;
   let msgCompose = MailServices.compose.initCompose(params);
-  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   rootFolder.createLocalSubfolder("Drafts");
 
   let smtpServer = getBasicSmtpServer();

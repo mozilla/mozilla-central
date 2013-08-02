@@ -10,7 +10,7 @@ function run_test()
 {
   localAccountUtils.loadLocalMailAccount();
 
-  var rootFolder = gLocalIncomingServer.rootFolder;
+  var rootFolder = localAccountUtils.incomingServer.rootFolder;
 
   var msgProps = Services.strings.createBundle("chrome://messenger/locale/messenger.properties");
 

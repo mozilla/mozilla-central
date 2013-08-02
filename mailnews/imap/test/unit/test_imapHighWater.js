@@ -48,7 +48,7 @@ function run_test()
   let identity = MailServices.accounts.createIdentity();
   localAccount.addIdentity(identity);
   localAccount.defaultIdentity = identity;
-  localAccount.incomingServer = gLocalIncomingServer;
+  localAccount.incomingServer = localAccountUtils.incomingServer;
   MailServices.accounts.defaultAccount = localAccount;
 
   // Let's also have another account, using the same identity

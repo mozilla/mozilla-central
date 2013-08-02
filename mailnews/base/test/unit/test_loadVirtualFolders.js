@@ -28,10 +28,12 @@ function run_test()
   localMailDir.create(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0644", 8));
 
   MailServices.accounts.loadVirtualFolders();
-  let unreadLocal = gLocalIncomingServer.rootMsgFolder.getChildNamed("unread-local");
+  let unreadLocal = localAccountUtils.incomingServer
+                                     .rootMsgFolder.getChildNamed("unread-local");
   let searchScope = unreadLocal.msgDatabase.dBFolderInfo.getCharProperty("searchFolderUri");
   do_check_eq(searchScope, "mailbox://nobody@Local%20Folders/Inbox|mailbox://nobody@Local%20Folders/Trash");
-  let invalidServer = gLocalIncomingServer.rootMsgFolder.getChildNamed("invalidserver-local");
-  let searchScope = invalidServer.msgDatabase.dBFolderInfo.getCharProperty("searchFolderUri");
+  let invalidServer = localAccountUtils.incomingServer
+                                       .rootMsgFolder.getChildNamed("invalidserver-local");
+  searchScope = invalidServer.msgDatabase.dBFolderInfo.getCharProperty("searchFolderUri");
   do_check_eq(searchScope, "mailbox://nobody@Local%20Folders/Inbox");
 }

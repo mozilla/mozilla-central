@@ -100,10 +100,14 @@ var tests = [
 function setup() {
   setupIMAPPump();
 
-  gEmptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
-  gEmptyLocal2 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 2");
-  gEmptyLocal3 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 3");
-  gNotEmptyLocal4 = gLocalIncomingServer.rootFolder.createLocalSubfolder("not empty 4");
+  gEmptyLocal1 = localAccountUtils.incomingServer
+                                  .rootFolder.createLocalSubfolder("empty 1");
+  gEmptyLocal2 = localAccountUtils.incomingServer
+                                  .rootFolder.createLocalSubfolder("empty 2");
+  gEmptyLocal3 = localAccountUtils.incomingServer
+                                  .rootFolder.createLocalSubfolder("empty 3");
+  gNotEmptyLocal4 = localAccountUtils.incomingServer
+                                     .rootFolder.createLocalSubfolder("not empty 4");
 
   let messageGenerator = new MessageGenerator();
   let message = messageGenerator.makeMessage();

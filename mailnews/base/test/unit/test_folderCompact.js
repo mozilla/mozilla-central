@@ -209,10 +209,10 @@ function run_test()
   gMsgFile3 = do_get_file("../../../data/draft1");
 
   // Create another folder to move and copy messages around, and force initialization.
-  gLocalFolder2 = gLocalRootFolder.createLocalSubfolder("folder2");
+  gLocalFolder2 = localAccountUtils.rootFolder.createLocalSubfolder("folder2");
   let folderName = gLocalFolder2.prettiestName;
   // Create a third folder for more testing.
-  gLocalFolder3 = gLocalRootFolder.createLocalSubfolder("folder3");
+  gLocalFolder3 = localAccountUtils.rootFolder.createLocalSubfolder("folder3");
   folderName = gLocalFolder3.prettiestName;
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of all the operations.

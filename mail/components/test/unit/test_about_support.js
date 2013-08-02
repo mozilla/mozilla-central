@@ -162,7 +162,7 @@ function test_get_account_details() {
   for (let [, details] in Iterator(accountDetails)) {
     // We're going to make one exception: for the local folders server. We don't
     // care too much about its details.
-    if (details.key == gLocalMsgAccount.key)
+    if (details.key == localAccountUtils.msgAccount.key)
       continue;
 
     // Check that we're expecting to see this server

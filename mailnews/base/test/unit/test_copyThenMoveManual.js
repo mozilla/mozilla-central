@@ -19,7 +19,7 @@ const gTestArray =
 [
   function createFilters() {
     // setup manual copy then move mail filters on the inbox
-    gFilterList = gLocalIncomingServer.getFilterList(null);
+    gFilterList = localAccountUtils.incomingServer.getFilterList(null);
     gFilter = gFilterList.createFilter("copyThenMoveAll");
     let searchTerm = gFilter.createTerm();
     searchTerm.matchAll = true;
@@ -108,8 +108,10 @@ function run_test()
   if (!gLocalInboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
-  gCopyFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("CopyFolder");
-  gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");
+  gCopyFolder = localAccountUtils.incomingServer
+                                 .rootFolder.createLocalSubfolder("CopyFolder");
+  gMoveFolder = localAccountUtils.incomingServer
+                                 .rootFolder.createLocalSubfolder("MoveFolder");
 
   MailServices.mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |
                                                              Ci.nsIFolderListener.added |

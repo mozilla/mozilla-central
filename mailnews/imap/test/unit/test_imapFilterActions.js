@@ -337,7 +337,7 @@ function run_test()
   let identity = MailServices.accounts.createIdentity();
   localAccount.addIdentity(identity);
   localAccount.defaultIdentity = identity;
-  localAccount.incomingServer = gLocalIncomingServer;
+  localAccount.incomingServer = localAccountUtils.incomingServer;
   MailServices.accounts.defaultAccount = localAccount;
 
   // Let's also have another account, using the same identity
@@ -355,7 +355,8 @@ function run_test()
   Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
   Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
-  gSubfolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("Subfolder");
+  gSubfolder = localAccountUtils.incomingServer
+                                .rootFolder.createLocalSubfolder("Subfolder");
   gIMAPIncomingServer.performExpand(null);
 
   gRootFolder = gIMAPIncomingServer.rootFolder;

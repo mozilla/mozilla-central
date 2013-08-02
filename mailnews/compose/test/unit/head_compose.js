@@ -132,7 +132,7 @@ function createMessage(aAttachment) {
   let msgCompose = MailServices.compose.initCompose(params);
   let identity = getSmtpIdentity(null, getBasicSmtpServer());
 
-  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   gDraftFolder = null;
   // Make sure the drafts folder is empty
   try {

@@ -16,7 +16,7 @@ const gTestArray =
     dbService = Components.classes["@mozilla.org/msgDatabase/msgDBService;1"]
                             .getService(Components.interfaces.nsIMsgDBService);
     // Get the root folder
-    let root = gLocalIncomingServer.rootFolder;
+    let root = localAccountUtils.incomingServer.rootFolder;
     root.createSubfolder("dbTest", null);
     gTestFolder = root.getChildNamed("dbTest");
     let db = dbService.openFolderDB(gTestFolder, true);

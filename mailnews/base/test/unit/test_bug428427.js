@@ -89,7 +89,7 @@ function setupVirtualFolder()
     Ci.nsMsgSearchAttrib.Keywords, Ci.nsMsgSearchOp.Contains);
     
   dump("creating virtual folder\n");
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
+  var rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   virtualFolder = CreateVirtualFolder("VfTest", rootFolder, gLocalInboxFolder.URI, searchTerm, false);
   var count= new Object;
   // Setup search session. Execution continues with testVirtualFolder()

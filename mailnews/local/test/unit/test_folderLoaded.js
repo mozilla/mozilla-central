@@ -31,8 +31,8 @@ var tests = [
  
     if (typeof gLocalInboxFolder == 'undefined')
       localAccountUtils.loadLocalMailAccount();
-    gLocalRootFolder.createSubfolder("target", null);
-    gTargetFolder = gLocalRootFolder.getChildNamed("target");
+    localAccountUtils.rootFolder.createSubfolder("target", null);
+    gTargetFolder = localAccountUtils.rootFolder.getChildNamed("target");
 
     MailServices.copy.CopyFileMessage(gMsgFile1, gTargetFolder, null, false, 0,
                                       "", asyncCopyListener, null);

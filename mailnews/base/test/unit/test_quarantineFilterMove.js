@@ -115,9 +115,9 @@ function run_test()
   if (!gLocalInboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
-  gMoveFolder = gLocalIncomingServer.rootMsgFolder
+  gMoveFolder = localAccountUtils.incomingServer.rootMsgFolder
                   .createLocalSubfolder("MoveFolder");
-  gMoveFolder2 = gLocalIncomingServer.rootMsgFolder
+  gMoveFolder2 = localAccountUtils.incomingServer.rootMsgFolder
                   .createLocalSubfolder("MoveFolder2");
 
   MailServices.mailSession.AddFolderListener(FolderListener, Ci.nsIFolderListener.event |

@@ -34,7 +34,8 @@ function run_test()
   }
 
   // "Trash" folder
-  gLocalTrashFolder = gLocalIncomingServer.rootMsgFolder.getChildNamed("Trash");
+  gLocalTrashFolder = localAccountUtils.incomingServer
+                                       .rootMsgFolder.getChildNamed("Trash");
 
   // Extend local folder to over 2 GiB.
   let outputStream = Cc["@mozilla.org/network/file-output-stream;1"]

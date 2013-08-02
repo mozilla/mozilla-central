@@ -132,7 +132,7 @@ function endTest()
   gMsgWindow.closeWindow();
   gMsgWindow = null;
   gLocalInboxFolder = null;
-  gLocalIncomingServer = null;
+  localAccountUtils.incomingServer = null;
 
   do_test_finished(); // for the one in run_test()
 }

@@ -51,12 +51,12 @@ function run_test() {
   // This basically says to ignore the time stamp in the .msf file
   Services.prefs.setIntPref("mail.db_timestamp_leeway", 0x7FFFFFFF);
   
-  gLocalIncomingServer = MailServices.accounts.localFoldersServer;
+  localAccountUtils.incomingServer = MailServices.accounts.localFoldersServer;
   // force load of accounts.
   let defaultAccount = MailServices.accounts.defaultAccount;
 
   let pop3Server = MailServices.accounts.FindServer("user", "poptest", "pop3");
-  var rootFolder = gLocalIncomingServer.rootMsgFolder
+  var rootFolder = localAccountUtils.incomingServer.rootMsgFolder
     .QueryInterface(Ci.nsIMsgLocalMailFolder);
   let pop3Root = pop3Server.rootMsgFolder;
   
@@ -66,7 +66,7 @@ function run_test() {
   // a local inbox should have a Mail flag!
   gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
   
-  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   let bugmail = rootFolder.getChildNamed("bugmail:1");
   do_check_eq(bugmail.getTotalMessages(false), 1);
   bugmail = pop3Root.getChildNamed("bugmail:1");

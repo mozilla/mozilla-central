@@ -141,7 +141,8 @@ function run_test() {
   account.defaultIdentity = identity;
   account.incomingServer = incomingServer;
 
-  sentFolder = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("Sent");
+  sentFolder = localAccountUtils.incomingServer
+                                .rootMsgFolder.createLocalSubfolder("Sent");
 
   identity.doFcc = false;
 

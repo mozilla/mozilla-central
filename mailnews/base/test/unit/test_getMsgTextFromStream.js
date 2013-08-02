@@ -54,7 +54,7 @@ const gTestFiles =
 function run_test()
 {
   localAccountUtils.loadLocalMailAccount();
-  var folder = gLocalIncomingServer.rootMsgFolder;
+  var folder = localAccountUtils.incomingServer.rootMsgFolder;
 
   gTestFiles.forEach(function (test)
   {

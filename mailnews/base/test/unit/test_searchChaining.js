@@ -36,7 +36,7 @@ function run_test()
   let identity = MailServices.accounts.createIdentity();
   localAccount.addIdentity(identity);
   localAccount.defaultIdentity = identity;
-  localAccount.incomingServer = gLocalIncomingServer;
+  localAccount.incomingServer = localAccountUtils.incomingServer;
   MailServices.accounts.defaultAccount = localAccount;
   
   // Let's also have another account, using the same identity
@@ -89,7 +89,8 @@ var UrlListener =
 function searchTest()
 {
   // Get the IMAP inbox...
-  var emptyLocal1 = gLocalIncomingServer.rootFolder.createLocalSubfolder("empty 1");
+  var emptyLocal1 = localAccountUtils.incomingServer
+                                     .rootFolder.createLocalSubfolder("empty 1");
 
   let searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
                         .createInstance(Ci.nsIMsgSearchSession);

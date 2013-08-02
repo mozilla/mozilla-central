@@ -63,7 +63,7 @@ function continueTest()
     hdrs.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
 
   // check with spam properties set on the local server
-  doChecks(gLocalIncomingServer);
+  doChecks(localAccountUtils.incomingServer);
 
   // Free our globals
   hdrs = null;

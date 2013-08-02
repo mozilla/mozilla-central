@@ -164,9 +164,10 @@ function run_test() {
 
   MailServices.accounts.LoadAccounts();
 
-  gLocalIncomingServer = MailServices.accounts.localFoldersServer;
+  localAccountUtils.incomingServer = MailServices.accounts.localFoldersServer;
 
-  var rootFolder = gLocalIncomingServer.rootMsgFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  var rootFolder = localAccountUtils.incomingServer
+                                    .rootMsgFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.

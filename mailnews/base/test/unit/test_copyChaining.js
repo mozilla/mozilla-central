@@ -62,7 +62,8 @@ function run_test()
   // build up a diverse list of messages
   let messages = [];
   messages = messages.concat(scenarioFactory.directReply(10));
-  gCopySource = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("copySource");
+  gCopySource = localAccountUtils.incomingServer
+                                 .rootMsgFolder.createLocalSubfolder("copySource");
   addMessagesToFolder(messages, gCopySource);
 
   mailTestUtils.updateFolderAndNotify(gCopySource, doTest);

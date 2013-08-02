@@ -187,7 +187,7 @@ function run_test() {
   account.defaultIdentity = identity;
   account.incomingServer = incomingServer;
 
-  sentFolder = gLocalRootFolder.createLocalSubfolder("Sent");
+  sentFolder = localAccountUtils.rootFolder.createLocalSubfolder("Sent");
 
   identity.doFcc = false;
 

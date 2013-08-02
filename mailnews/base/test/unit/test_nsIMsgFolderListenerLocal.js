@@ -290,7 +290,7 @@ function run_test()
   gMsgFile3 = do_get_file("../../../data/draft1");
 
   // "Trash" folder
-  gRootFolder = gLocalIncomingServer.rootMsgFolder;
+  gRootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   gLocalTrashFolder = gRootFolder.getChildNamed("Trash");
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of all the operations.

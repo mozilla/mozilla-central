@@ -101,7 +101,7 @@ const gTestArray =
   },
   function emptyTrash()
   {
-    gRootFolder = gLocalIncomingServer.rootMsgFolder;
+    gRootFolder = localAccountUtils.incomingServer.rootMsgFolder;
     gLocalTrashFolder = gRootFolder.getChildNamed("Trash");
     // hold onto a db to make sure that empty trash deals with the case
     // of someone holding onto the db, but the trash folder has a null db.

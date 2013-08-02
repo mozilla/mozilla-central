@@ -153,7 +153,7 @@ function run_test()
   gMsgFile3 = do_get_file("../../../data/draft1");
 
   // Create another folder to move and copy messages around, and force initialization.
-  gLocalFolder2 = gLocalRootFolder.createLocalSubfolder("folder2");
+  gLocalFolder2 = localAccountUtils.rootFolder.createLocalSubfolder("folder2");
   let folderName = gLocalFolder2.prettiestName;
   setColumnStates(gLocalFolder2);
 

@@ -95,7 +95,7 @@ function run_test() {
 
   let identity = getSmtpIdentity(null, getBasicSmtpServer());
 
-  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   let draftFolder = rootFolder.createLocalSubfolder("Drafts");
 
   let progress = Cc["@mozilla.org/messenger/progress;1"]

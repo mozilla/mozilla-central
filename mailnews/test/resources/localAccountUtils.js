@@ -9,30 +9,32 @@ gLocalAccountUtils_js__ = true;
 
 // Local Mail Folders. Requires prior setup of profile directory
 
-var gLocalIncomingServer;
-var gLocalRootFolder;
-var gLocalMsgAccount;
 var gLocalInboxFolder;
-var _localAccountInitialized = false;
 
 var localAccountUtils = {
+  incomingServer: undefined,
+  rootFolder: undefined,
+  msgAccount: undefined,
+
+  _localAccountInitialized: false,
+
   loadLocalMailAccount: function() {
     // This function is idempotent
-    if (_localAccountInitialized)
+    if (this._localAccountInitialized)
       return;
 
     MailServices.accounts.createLocalMailAccount();
 
-    gLocalIncomingServer = MailServices.accounts.localFoldersServer;
-    gLocalMsgAccount = MailServices.accounts.FindAccountForServer(
-      gLocalIncomingServer);
+    this.incomingServer = MailServices.accounts.localFoldersServer;
+    this.msgAccount = MailServices.accounts.FindAccountForServer(
+      this.incomingServer);
 
-    gLocalRootFolder = gLocalIncomingServer.rootMsgFolder
-                       .QueryInterface(Ci.nsIMsgLocalMailFolder);
+    this.rootFolder = this.incomingServer.rootMsgFolder
+                        .QueryInterface(Ci.nsIMsgLocalMailFolder);
 
     // Note: Inbox is not created automatically when there is no deferred server,
     // so we need to create it.
-    gLocalInboxFolder = gLocalRootFolder.createLocalSubfolder("Inbox")
+    gLocalInboxFolder = this.rootFolder.createLocalSubfolder("Inbox")
                          .QueryInterface(Ci.nsIMsgLocalMailFolder);
     // a local inbox should have a Mail flag!
     gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
@@ -40,7 +42,7 @@ var localAccountUtils = {
     // Force an initialization of the Inbox folder database.
     var folderName = gLocalInboxFolder.prettiestName;
 
-    _localAccountInitialized = true;
+    this._localAccountInitialized = true;
   },
 
   /**
@@ -70,7 +72,7 @@ var localAccountUtils = {
       // so do that.
       this.loadLocalMailAccount();
       server.QueryInterface(Ci.nsIPop3IncomingServer);
-      server.deferredToAccount = gLocalMsgAccount.key;
+      server.deferredToAccount = this.msgAccount.key;
     }
     server.valid = true;
 

@@ -66,7 +66,7 @@ function run_test()
   // Setup some incoming filters, setting junk priority low, and good high.
 
   // Can't use the fake server, must use the deferredTo local server!
-  let filterList = gLocalIncomingServer.getFilterList(null);
+  let filterList = localAccountUtils.incomingServer.getFilterList(null);
 
   // junkIsLow filter
   let filter = filterList.createFilter("junkIsLow");
