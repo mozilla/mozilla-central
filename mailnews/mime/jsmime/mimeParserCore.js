@@ -110,6 +110,7 @@ function Parser(emitter, options) {
   this._options = {
     pruneat: "",
     bodyformat: "nodecode",
+    strformat: "binarystring",
     stripcontinuations: true,
     onerror: function swallow(error) {}
   };

@@ -35,7 +35,7 @@ const gXGmLabels11 = '( \"\\\\Sent\" foo bar)'; // for message in Inbox
 const gXGmLabels12 = '(\"\\\\Inbox\" \"\\\\Sent\" bar)'; // for message in fooFolder
 const gMsgId1 = "200806061706.m56H6RWT004933@mrapp54.mozilla.org";
 
-const gMessage2 = "bugmail11" // message file used as the test message for fooFolder
+const gMessage2 = "bugmail11"; // message file used as the test message for fooFolder
 const gMsgId2 = "200804111417.m3BEHTk4030129@mrapp51.mozilla.org";
 const gXGmMsgid2 = "1278455345230334555";
 const gXGmThrid2 = "1266894639832287111";
@@ -87,7 +87,7 @@ function setup() {
   fooBox = gIMAPDaemon.getMailbox("foo");
 
   // Add message1 to inbox.
-  message = new imapMessage(specForFileName(gMessage1),
+  let message = new imapMessage(specForFileName(gMessage1),
                             gIMAPMailbox.uidnext++, []);
   message.messageId = gMsgId1;
   message.xGmMsgid = gXGmMsgid1;
@@ -241,7 +241,7 @@ var streamListener =
   }
 };
 
- gStreamListener = {
+let gStreamListener = {
   QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
   _stream : null,
   _data : null,

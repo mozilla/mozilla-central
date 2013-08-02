@@ -99,7 +99,7 @@ function streamMessages() {
   yield true;
 }
 
-gStreamListener = {
+let gStreamListener = {
   QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
   _stream : null,
   _data : null,

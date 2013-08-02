@@ -68,10 +68,10 @@ function goodStreaming()
 function badStreaming()
 {
   // try to stream the headers of the last message
-  let folder = gHdr.folder
+  let folder = gHdr.folder;
   let uri = folder.getUriForMsg(gHdr);
 
-  dbFile = folder.msgStore.getSummaryFile(folder);
+  let dbFile = folder.msgStore.getSummaryFile(folder);
   // force invalid database
   folder.msgDatabase.ForceClosed();
   dbFile.remove(false);

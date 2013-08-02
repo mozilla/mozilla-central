@@ -92,6 +92,8 @@ function SyntheticPart(aProperties) {
 }
 SyntheticPart.prototype = {
   _forceDisposition: null,
+  _encoding: null,
+
   get contentTypeHeaderValue() {
     let s = this._contentType;
     if (this._charset)

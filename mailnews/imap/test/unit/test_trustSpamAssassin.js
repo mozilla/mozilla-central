@@ -159,7 +159,7 @@ function run_test()
   async_run_tests(tests);
 }
 
-mfnListener =
+let mfnListener =
 {
   msgsMoveCopyCompleted: function (aMove, aSrcMsgs, aDestFolder, aDestMsgs)
   {
@@ -177,7 +177,7 @@ mfnListener =
 
   msgAdded: function msgAdded(aMsg)
   {
-    dl('msgAdded with subject <' + aMsg.subject + '>')
+    dl('msgAdded with subject <' + aMsg.subject + '>');
   }
 };
 

@@ -224,7 +224,7 @@ var tests = [
   teardown
 ]
 
-gStreamListener = {
+let gStreamListener = {
   QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
   _stream : null,
   _data : null,

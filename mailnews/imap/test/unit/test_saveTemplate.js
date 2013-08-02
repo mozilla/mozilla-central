@@ -86,7 +86,7 @@ function saveAsTemplate() {
 }
 
 // listener for saveAsTemplate adding a message to the templates folder.
-mfnListener =
+let mfnListener =
 {
   msgAdded: function msgAdded(aMsg)
   {

@@ -124,7 +124,7 @@ var mailTestUtils = {
    */
   get_file_system: function(aFile) {
     if (!("@mozilla.org/windows-registry-key;1" in Cc)) {
-      do_print("get_file_system() is supported on Windows only.");
+      dump("get_file_system() is supported on Windows only.\n");
       return null;
     }
 
@@ -210,9 +210,9 @@ var mailTestUtils = {
    */
   mark_file_region_sparse: function(aFile, aRegionStart, aRegionBytes) {
     let fileSystem = this.get_file_system(aFile);
-    do_print("[mark_file_region_sparse()] File system = " + (fileSystem || "(unknown)") +
-             ", file region = at " + this.toMiBString(aRegionStart) +
-             " for " + this.toMiBString(aRegionBytes));
+    dump("[mark_file_region_sparse()] File system = " + (fileSystem || "(unknown)") +
+           ", file region = at " + this.toMiBString(aRegionStart) +
+           " for " + this.toMiBString(aRegionBytes) + "\n");
 
     if ("@mozilla.org/windows-registry-key;1" in Cc) {
       // On Windows, check whether the drive is NTFS. If it is, proceed.

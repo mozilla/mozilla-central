@@ -356,7 +356,7 @@ function imapMessage(URI, uid, flags) {
   this.uid = uid;
   this.size = 0;
   this.flags = new Array;
-  for each (flag in flags)
+  for (let flag in flags)
     this.flags.push(flag);
   this.recent = false;
 }

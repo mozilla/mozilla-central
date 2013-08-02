@@ -35,6 +35,7 @@ let messages = [
 ];
 
 let gStreamListener = {
+  stream: null,
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIStreamListener]),
 
   // nsIRequestObserver part
@@ -53,7 +54,7 @@ let gStreamListener = {
                     createInstance(Ci.nsIScriptableInputStream);
       this.stream.init(aInputStream);
     }
-  },
+  }
 };
 
 let gMessageHeaderSink = {

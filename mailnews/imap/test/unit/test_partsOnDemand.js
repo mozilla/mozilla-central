@@ -14,7 +14,7 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 
 // javascript mime emitter functions
-mimeMsg = {};
+var mimeMsg = {};
 Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 
 var gSecondMsg;

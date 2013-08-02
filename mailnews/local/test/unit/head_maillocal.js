@@ -123,7 +123,7 @@ function do_check_transaction(real, expected) {
 function create_temporary_directory() {
   let directory = Services.dirsvc.get("TmpD", Ci.nsIFile);
   directory.append("mailFolder");
-  directory.createUnique(Ci.nsIFile.DIRECTORY_TYPE, 0700);
+  directory.createUnique(Ci.nsIFile.DIRECTORY_TYPE, parseInt("0700", 8));
   return directory;
 }
 
