@@ -18,7 +18,9 @@ function run_test()
   {
     OnStartCopy: function() {},
     OnProgress: function(aProgress, aProgressMax) {},
-    SetMessageKey: function(aKey) { hdr = gLocalInboxFolder.GetMessageHeader(aKey);},
+    SetMessageKey: function(aKey) {
+      hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
+    },
     SetMessageId: function(aMessageId) {},
     OnStopCopy: function(aStatus) { continueTest();}
   };
@@ -26,7 +28,7 @@ function run_test()
   // Get a message into the local filestore.
   var draft = do_get_file("../../../data/draft1");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(draft, gLocalInboxFolder, null, false, 0,
+  MailServices.copy.CopyFileMessage(draft, localAccountUtils.inboxFolder, null, false, 0,
                                     "", copyListener, null);
 }
 

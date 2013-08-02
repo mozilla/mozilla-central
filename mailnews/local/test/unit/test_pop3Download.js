@@ -32,7 +32,7 @@ function run_test()
 function continueTest()
 {
   // get message headers for the inbox folder
-  let enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  let enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
   var msgCount = 0;
   let hdr;
   while (enumerator.hasMoreElements())

@@ -58,7 +58,7 @@ function run_test()
   // all the operations.
   do_test_pending();
 
-  gCopyDest = gLocalInboxFolder.createLocalSubfolder("copyDest");
+  gCopyDest = localAccountUtils.inboxFolder.createLocalSubfolder("copyDest");
   // build up a diverse list of messages
   let messages = [];
   messages = messages.concat(scenarioFactory.directReply(10));

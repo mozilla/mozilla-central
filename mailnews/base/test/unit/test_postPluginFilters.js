@@ -109,7 +109,7 @@ function run_test()
   // setup a db listener to grab the message headers. There's probably an
   // easier way, but this works.
   gInboxListener = new DBListener();
-  gDbService.registerPendingListener(gLocalInboxFolder, gInboxListener);
+  gDbService.registerPendingListener(localAccountUtils.inboxFolder, gInboxListener);
 
   do_test_pending();
 

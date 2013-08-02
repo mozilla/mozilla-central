@@ -23,7 +23,7 @@ let gUrlListener = {
   OnStartRunningUrl: function (aUrl) {
   },
   OnStopRunningUrl: function (aUrl, aExitCode) {
-    do_test_finished()
+    do_test_finished();
   },
 };
 
@@ -33,17 +33,17 @@ localAccountUtils.loadLocalMailAccount();
 function run_test()
 {
   do_test_pending();
-  gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localAccountUtils.inboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
   for each(let fileName in gTestFiles) {
-    gLocalInboxFolder.addMessage(IOUtils.loadFileToString(do_get_file(fileName)));
+    localAccountUtils.inboxFolder.addMessage(IOUtils.loadFileToString(do_get_file(fileName)));
   };
-  gMsgEnumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  gMsgEnumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
   doNextTest();
 }
 
 function streamMsg(msgHdr)
 {
-  let msgURI = gLocalInboxFolder.getUriForMsg(msgHdr);
+  let msgURI = localAccountUtils.inboxFolder.getUriForMsg(msgHdr);
   let msgService = gMessenger.messageServiceFromURI(msgURI);
   let streamURI = msgService.streamMessage(
     msgURI,

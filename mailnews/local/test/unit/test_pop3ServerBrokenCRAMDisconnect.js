@@ -110,7 +110,7 @@ function run_test() {
     // check that login works after we fell back.
     msgServer.authMethod = Ci.nsMsgAuthMethod.anything;
 
-    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+    MailServices.pop3.GetNewMail(null, urlListener, localAccountUtils.inboxFolder,
                                  incomingServer);
     server.performTest();
   } catch (e) {

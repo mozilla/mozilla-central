@@ -63,7 +63,7 @@ function copyFileMessageInLocalFolder(aMessageFile,
   gCopyListener.callbackFunction = aCallback;
   // Copy a message into the local folder
   MailServices.copy.CopyFileMessage(aMessageFile,
-                                    gLocalInboxFolder,
+                                    localAccountUtils.inboxFolder,
                                     null, false,
                                     aMessageFlags,
                                     aMessageKeywords,
@@ -121,8 +121,8 @@ function send_message_later(aMessageHeaderKeys, aStatus) {
   compFields.from = identity.email;
   compFields.to = kTo;
 
-  let msgHdr = gLocalInboxFolder.GetMessageHeader(aMessageHeaderKeys[0]);
-  let messageUri = gLocalInboxFolder.getUriForMsg(msgHdr);
+  let msgHdr = localAccountUtils.inboxFolder.GetMessageHeader(aMessageHeaderKeys[0]);
+  let messageUri = localAccountUtils.inboxFolder.getUriForMsg(msgHdr);
 
   let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
                      .createInstance(Ci.nsIMsgAttachment);

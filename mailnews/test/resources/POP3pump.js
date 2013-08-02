@@ -88,7 +88,7 @@ POP3Pump.prototype._setupServerDaemon = function _setupServerDaemon(aDebugOption
 POP3Pump.prototype._createPop3ServerAndLocalFolders =
   function _createPop3ServerAndLocalFolders()
 {
-  if (typeof gLocalInboxFolder == 'undefined')
+  if (typeof localAccountUtils.inboxFolder == 'undefined')
     localAccountUtils.loadLocalMailAccount();
 
   if (!this.fakeServer)
@@ -162,7 +162,7 @@ POP3Pump.prototype._testNext = function _testNext()
     this._daemon.setMessages(thisFiles);
 
     // Now get the mail
-    this._pop3Service.GetNewMail(null, this._urlListener, gLocalInboxFolder,
+    this._pop3Service.GetNewMail(null, this._urlListener, localAccountUtils.inboxFolder,
                                  this._incomingServer);
 
     this._server.performTest();

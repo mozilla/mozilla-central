@@ -104,9 +104,9 @@ function updateSubfolderAndTest() {
 
   // test
   listMessages(gSubfolder);
-  listMessages(gLocalInboxFolder);
+  listMessages(localAccountUtils.inboxFolder);
   do_check_eq(folderCount(gSubfolder), 1);
-  do_check_eq(folderCount(gLocalInboxFolder), 1);
+  do_check_eq(folderCount(localAccountUtils.inboxFolder), 1);
 }
 
 function get2Messages()
@@ -137,9 +137,9 @@ function updateSubfolderAndTest2() {
 
   //test
   listMessages(gSubfolder);
-  listMessages(gLocalInboxFolder);
+  listMessages(localAccountUtils.inboxFolder);
   do_check_eq(folderCount(gSubfolder), 3);
-  do_check_eq(folderCount(gLocalInboxFolder), 3);
+  do_check_eq(folderCount(localAccountUtils.inboxFolder), 3);
 }
 
 function endTest()

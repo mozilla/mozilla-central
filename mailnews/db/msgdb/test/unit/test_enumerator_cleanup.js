@@ -10,10 +10,10 @@ const anyOldMessage = do_get_file("../../../../data/bugmail1");
  * Test closing a db with an outstanding enumerator.
  */
 function test_enumerator_cleanup() {
-  let db = gLocalInboxFolder.msgDatabase;
+  let db = localAccountUtils.inboxFolder.msgDatabase;
   let enumerator = db.EnumerateMessages();
-  db.forceFolderDBClosed(gLocalInboxFolder);
-  gLocalInboxFolder.msgDatabase = null;
+  db.forceFolderDBClosed(localAccountUtils.inboxFolder);
+  localAccountUtils.inboxFolder.msgDatabase = null;
   db = null;
   gc();
   while (enumerator.hasMoreElements())
@@ -30,8 +30,8 @@ function test_enumerator_cleanup() {
 function run_test() {
   localAccountUtils.loadLocalMailAccount();
   do_test_pending();
-  MailServices.copy.CopyFileMessage(anyOldMessage, gLocalInboxFolder, null, false, 0,
-                                    "", messageHeaderGetterListener, null);
+  MailServices.copy.CopyFileMessage(anyOldMessage, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", messageHeaderGetterListener, null);
   return true;
 }
 

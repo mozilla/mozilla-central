@@ -24,8 +24,8 @@ function verifyContentLength(aMessageHeaderKeys, aStatus)
 {
   do_check_neq(aMessageHeaderKeys, null);
   // First get the message URI
-  let msgHdr = gLocalInboxFolder.GetMessageHeader(aMessageHeaderKeys[0]);
-  let messageUri = gLocalInboxFolder.getUriForMsg(msgHdr);
+  let msgHdr = localAccountUtils.inboxFolder.GetMessageHeader(aMessageHeaderKeys[0]);
+  let messageUri = localAccountUtils.inboxFolder.getUriForMsg(msgHdr);
   // Convert this to a URI that necko can run
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
   let neckoURL = {};

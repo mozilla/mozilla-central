@@ -55,7 +55,7 @@ const gTestArray =
   function verifyFolders2() {
     do_check_eq(folderCount(gMoveFolder), 1);
     // the local inbox folder should gave one message.
-    do_check_eq(folderCount(gLocalInboxFolder), 1);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 1);
     ++gCurTestNum;
     doTest();
 
@@ -74,11 +74,12 @@ const gTestArray =
     hdrs = [];
     keys = [];
     let asyncResults = new Object;
-    enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+    enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
     let hdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     keys.push(hdr.messageKey);
     hdrs.push(hdr);
-    gLocalInboxFolder.fetchMsgPreviewText(keys, keys.length, false, null, asyncResults);
+    localAccountUtils.inboxFolder.fetchMsgPreviewText(keys, keys.length, false,
+                                                      null, asyncResults);
     do_check_eq(hdrs[0].getStringProperty('preview'), basic1_preview);
     ++gCurTestNum;
     doTest();
@@ -101,7 +102,7 @@ function run_test()
 {
   // Make sure we're not quarantining messages
   Services.prefs.setBoolPref("mailnews.downloadToTempFile", false);
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   gMoveFolder = localAccountUtils.incomingServer

@@ -25,15 +25,15 @@ function startCopy()
 {
   // Get a message into the local filestore.
   var mailFile = do_get_file("../../../data/external-attach-test");
-  MailServices.copy.CopyFileMessage(mailFile, gLocalInboxFolder, null, false, 0,
-                                    "", asyncCopyListener, null);
+  MailServices.copy.CopyFileMessage(mailFile, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", asyncCopyListener, null);
   yield false;
 }
 
 // process the message through mime
 function startMime()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(localAccountUtils.inboxFolder);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, gCallbackObject, gCallbackObject.callback,
                               true /* allowDownload */);
@@ -43,7 +43,7 @@ function startMime()
 // detach any found attachments
 function startDetach()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(localAccountUtils.inboxFolder);
   let msgURI = msgHdr.folder.generateMessageURI(msgHdr.messageKey);
 
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
@@ -71,7 +71,7 @@ function testDetach()
   //  and search for "AttachmentDetached" which is added on detachment.
 
   // Get the message header
-  let msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
+  let msgHdr = mailTestUtils.firstMsgHdr(localAccountUtils.inboxFolder);
 
   let messageContent = getContentFromMessage(msgHdr);
   do_check_true(messageContent.contains("AttachmentDetached"));
@@ -91,7 +91,7 @@ let gCallbackObject = new SaveAttachmentCallback();
 
 function run_test()
 {
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
   async_run_tests(tests);
 }

@@ -329,7 +329,7 @@ function run_test()
 
   gIMAPIncomingServer = createLocalIMAPServer();
 
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail

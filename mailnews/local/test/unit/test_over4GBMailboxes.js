@@ -57,10 +57,10 @@ function growInbox(aWantedSize) {
   let message = messageGenerator.makeMessage();
 
   // Refresh 'gInboxFile'.
-  gInboxFile = gLocalInboxFolder.filePath;
+  gInboxFile = localAccountUtils.inboxFolder.filePath;
 
   let mboxString = message.toMboxString();
-  let plugStore = gLocalInboxFolder.msgStore;
+  let plugStore = localAccountUtils.inboxFolder.msgStore;
   // Grow local inbox to our wished size that is below the max limit.
   do {
     let nextOffset = gInboxFile.fileSize +
@@ -70,7 +70,7 @@ function growInbox(aWantedSize) {
     // Get stream to write a new message.
     let reusable = new Object;
     let newMsgHdr = new Object;
-    let outputStream = plugStore.getNewMsgOutputStream(gLocalInboxFolder,
+    let outputStream = plugStore.getNewMsgOutputStream(localAccountUtils.inboxFolder,
                                                        newMsgHdr, reusable)
                                 .QueryInterface(Ci.nsISeekableStream);
     // Write message header.
@@ -89,7 +89,7 @@ function growInbox(aWantedSize) {
     plugStore.finishNewMessage(outputStream, newMsgHdr);
 
     // Refresh 'gInboxFile'.
-    gInboxFile = gLocalInboxFolder.filePath;
+    gInboxFile = localAccountUtils.inboxFolder.filePath;
   }
   while (gInboxFile.fileSize < aWantedSize);
 
@@ -105,7 +105,7 @@ function run_test()
   // all the operations.
   do_test_pending();
 
-  gInboxFile = gLocalInboxFolder.filePath;
+  gInboxFile = localAccountUtils.inboxFolder.filePath;
 
   let neededFreeSpace = kSizeLimit + 0x10000000; // +256MiB
   // On Windows, check whether the drive is NTFS. If it is, mark the file as
@@ -136,10 +136,10 @@ function run_test()
 
   // Force the db closed, so that getDatabaseWithReparse will notice
   // that it's out of date.
-  gLocalInboxFolder.msgDatabase.ForceClosed();
-  gLocalInboxFolder.msgDatabase = null;
+  localAccountUtils.inboxFolder.msgDatabase.ForceClosed();
+  localAccountUtils.inboxFolder.msgDatabase = null;
   try {
-    gLocalInboxFolder.getDatabaseWithReparse(ParseListener1, gDummyMsgWindow);
+    localAccountUtils.inboxFolder.getDatabaseWithReparse(ParseListener1, gDummyMsgWindow);
   } catch (ex) {
     do_check_eq(ex.result, Cr.NS_ERROR_NOT_INITIALIZED);
   }
@@ -204,10 +204,10 @@ function growOver4GiB()
 
   // Force the db closed, so that getDatabaseWithReparse will notice
   // that it's out of date.
-  gLocalInboxFolder.msgDatabase.ForceClosed();
-  gLocalInboxFolder.msgDatabase = null;
+  localAccountUtils.inboxFolder.msgDatabase.ForceClosed();
+  localAccountUtils.inboxFolder.msgDatabase = null;
   try {
-    gLocalInboxFolder.getDatabaseWithReparse(ParseListener2, gDummyMsgWindow);
+    localAccountUtils.inboxFolder.getDatabaseWithReparse(ParseListener2, gDummyMsgWindow);
   } catch (ex) {
     do_check_eq(ex.result, Cr.NS_ERROR_NOT_INITIALIZED);
   }
@@ -235,7 +235,7 @@ function copyIntoOver4GiB()
   do_check_true(gGotAlert);
 
   // Make sure inbox file did not grow (i.e., no data were appended).
-  let newLocalInboxSize = gLocalInboxFolder.filePath.fileSize;
+  let newLocalInboxSize = localAccountUtils.inboxFolder.filePath.fileSize;
   do_print("Local inbox size (after copyFileMessageInLocalFolder()) = " +
            newLocalInboxSize);
   do_check_eq(newLocalInboxSize, localInboxSize);
@@ -252,7 +252,7 @@ function compactUnder4GiB()
   do_check_true(gInboxFile.fileSize > kSizeLimit);
   // Very first header in msgDB is retained,
   // then all other headers are marked as deleted.
-  let msgDB = gLocalInboxFolder.msgDatabase;
+  let msgDB = localAccountUtils.inboxFolder.msgDatabase;
   let enumerator = msgDB.EnumerateMessages();
   let firstHdr = true;
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
@@ -262,11 +262,11 @@ function compactUnder4GiB()
       messages.appendElement(header, false);
     firstHdr = false;
   }
-  gLocalInboxFolder.deleteMessages(messages, null, true, false, null, false);
+  localAccountUtils.inboxFolder.deleteMessages(messages, null, true, false, null, false);
 
   // Note: compact() will also add 'X-Mozilla-Status' and 'X-Mozilla-Status2'
   // lines to message(s).
-  gLocalInboxFolder.compact(CompactListener2, null);
+  localAccountUtils.inboxFolder.compact(CompactListener2, null);
   // Test ends after compaction is done.
 }
 
@@ -276,8 +276,8 @@ var ParseListener1 =
   OnStopRunningUrl: function (aUrl, aExitCode) {
     // Check: reparse successful
     do_check_eq(aExitCode, 0);
-    do_check_neq(gLocalInboxFolder.msgDatabase, null);
-    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
+    do_check_neq(localAccountUtils.inboxFolder.msgDatabase, null);
+    do_check_true(localAccountUtils.inboxFolder.msgDatabase.summaryValid);
 
     downloadUnder4GiB();
   }
@@ -289,8 +289,8 @@ var ParseListener2 =
   OnStopRunningUrl: function (aUrl, aExitCode) {
     // Check: reparse successful
     do_check_eq(aExitCode, 0);
-    do_check_neq(gLocalInboxFolder.msgDatabase, null);
-    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
+    do_check_neq(localAccountUtils.inboxFolder.msgDatabase, null);
+    do_check_true(localAccountUtils.inboxFolder.msgDatabase.summaryValid);
 
     copyIntoOver4GiB();
   }
@@ -302,14 +302,14 @@ var CompactListener2 =
   OnStopRunningUrl: function (aUrl, aExitCode) {
     // Check: message successfully copied.
     do_check_eq(aExitCode, 0);
-    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
+    do_check_true(localAccountUtils.inboxFolder.msgDatabase.summaryValid);
 
     // Check that folder size isn't much bigger than our sparse block size, ...
-    let localInboxSize = gLocalInboxFolder.filePath.fileSize;
+    let localInboxSize = localAccountUtils.inboxFolder.filePath.fileSize;
     do_print("Local inbox size (after compact()) = " + localInboxSize);
     do_check_true(localInboxSize < kSparseBlockSize + 1000);
     // ... i.e., that we just have one message.
-    do_check_eq(gLocalInboxFolder.getTotalMessages(false), 1);
+    do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 1);
 
     endTest();
   }
@@ -319,7 +319,7 @@ function endTest()
 {
   // Free up disk space - if you want to look at the file after running
   // this test, comment out this line.
-  gLocalInboxFolder.filePath.remove(false);
+  localAccountUtils.inboxFolder.filePath.remove(false);
 
   do_test_finished();
 }

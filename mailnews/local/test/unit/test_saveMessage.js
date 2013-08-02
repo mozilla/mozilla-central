@@ -25,8 +25,8 @@ function save_message(aMessageHeaderKeys, aStatus) {
   let headerKeys = aMessageHeaderKeys;
   do_check_neq(headerKeys, null);
 
-  let message = gLocalInboxFolder.GetMessageHeader(headerKeys[0]);
-  let msgURI = gLocalInboxFolder.getUriForMsg(message);
+  let message = localAccountUtils.inboxFolder.GetMessageHeader(headerKeys[0]);
+  let msgURI = localAccountUtils.inboxFolder.getUriForMsg(message);
   let messageService = Cc["@mozilla.org/messenger/messageservice;1?type=mailbox-message"]
                        .getService(Ci.nsIMsgMessageService);
   messageService.SaveMessageToDisk(msgURI, saveFile,

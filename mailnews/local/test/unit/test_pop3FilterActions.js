@@ -53,15 +53,15 @@ const gTestArray =
     gPOP3Pump.run();
   },
   function verifyFolders2() {
-    do_check_eq(folderCount(gLocalInboxFolder), 2);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 2);
 
     // invalidate the inbox summary file, to be sure that we wrote the keywords
     // into the mailbox.
-    gLocalInboxFolder.msgDatabase.summaryValid = false;
-    gLocalInboxFolder.msgDatabase = null;
-    gLocalInboxFolder.ForceDBClosed();
+    localAccountUtils.inboxFolder.msgDatabase.summaryValid = false;
+    localAccountUtils.inboxFolder.msgDatabase = null;
+    localAccountUtils.inboxFolder.ForceDBClosed();
     try {
-      gLocalInboxFolder.getDatabaseWithReparse(ParseListener, null);
+      localAccountUtils.inboxFolder.getDatabaseWithReparse(ParseListener, null);
     } catch (ex) {
       do_check_true(ex.result == Cr.NS_ERROR_NOT_INITIALIZED);
     }
@@ -70,14 +70,14 @@ const gTestArray =
     let hdrs = [];
     let keys = [];
     let asyncResults = new Object;
-    let enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+    let enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
     while (enumerator.hasMoreElements())
     {
       let hdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
       keys.push(hdr.messageKey);
       hdrs.push(hdr);
     }
-    gLocalInboxFolder.fetchMsgPreviewText(keys, keys.length, false, null, asyncResults);
+    localAccountUtils.inboxFolder.fetchMsgPreviewText(keys, keys.length, false, null, asyncResults);
     do_check_eq(hdrs[0].getStringProperty('preview'), bugmail10_preview);
     do_check_eq(hdrs[1].getStringProperty('preview'), bugmail11_preview);
     do_check_eq(hdrs[0].getStringProperty('keywords'), "TheTag");
@@ -97,8 +97,8 @@ var ParseListener =
   },
   OnStopRunningUrl: function (aUrl, aExitCode) {
     do_check_eq(aExitCode, 0);
-    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
-    do_check_eq(folderCount(gLocalInboxFolder), 2);
+    do_check_true(localAccountUtils.inboxFolder.msgDatabase.summaryValid);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 2);
     ++gCurTestNum;
     doTest();
   }
@@ -120,7 +120,7 @@ function run_test()
 {
   // Make sure we're not quarantining messages
   Services.prefs.setBoolPref("mailnews.downloadToTempFile", false);
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   gMoveFolder = localAccountUtils.incomingServer

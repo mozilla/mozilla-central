@@ -29,8 +29,8 @@ function run_test()
   do_test_pending();
 
   // function setupVirtualFolder() continues the testing after CopyFileMessage.
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null, false,
+                                    0, "", copyListener, null);
   return true;
 }
 
@@ -41,14 +41,14 @@ var copyListener =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
-    hdrs.push(gLocalInboxFolder.GetMessageHeader(aKey));
+    hdrs.push(localAccountUtils.inboxFolder.GetMessageHeader(aKey));
   },
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
   {
     if (--messageCount)
-      MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                  "", copyListener, null);
+      MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
+                                  false, 0, "", copyListener, null);
     else {
       try {
       setupVirtualFolder();
@@ -71,33 +71,35 @@ function setupVirtualFolder()
   var messages0to3 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   for (var i = 0; i <= 3; i++)
     messages0to3.appendElement(hdrs[i], false);
-  gLocalInboxFolder.addKeywordsToMessages(messages0to3, tag1);
+  localAccountUtils.inboxFolder.addKeywordsToMessages(messages0to3, tag1);
 
   // set 3 messages unread, 2 messages read
   var messages0to2 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   for (i = 0; i <= 2; i++)
     messages0to2.appendElement(hdrs[i], false);
-  gLocalInboxFolder.markMessagesRead(messages0to2, false);
+  localAccountUtils.inboxFolder.markMessagesRead(messages0to2, false);
 
   var messages3to4 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   for (i = 3; i <= 4; i++)
     messages3to4.appendElement(hdrs[i], false);
-  gLocalInboxFolder.markMessagesRead(messages3to4, true);
+  localAccountUtils.inboxFolder.markMessagesRead(messages3to4, true);
 
   // search will look for tag tag1 in the inbox folder
-  var searchTerm = makeSearchTerm(gLocalInboxFolder, tag1, 
+  var searchTerm = makeSearchTerm(localAccountUtils.inboxFolder, tag1,
     Ci.nsMsgSearchAttrib.Keywords, Ci.nsMsgSearchOp.Contains);
     
   dump("creating virtual folder\n");
   var rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
-  virtualFolder = CreateVirtualFolder("VfTest", rootFolder, gLocalInboxFolder.URI, searchTerm, false);
+  virtualFolder = CreateVirtualFolder("VfTest", rootFolder,
+                                      localAccountUtils.inboxFolder.URI, searchTerm, false);
   var count= new Object;
   // Setup search session. Execution continues with testVirtualFolder()
   // after search is done.
   
   var searchSession = Cc["@mozilla.org/messenger/searchSession;1"]
                         .createInstance(Ci.nsIMsgSearchSession);
-  searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail, gLocalInboxFolder);
+  searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail,
+                             localAccountUtils.inboxFolder);
   searchSession.appendTerm(searchTerm, false);
   searchSession.registerListener(searchListener);
   dump("starting search of vf\n");
@@ -147,7 +149,7 @@ function testVirtualFolder()
   // change unread of one item in search to decrease count
   var message0 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   message0.appendElement(hdrs[0], false);
-  gLocalInboxFolder.markMessagesRead(message0, true);
+  localAccountUtils.inboxFolder.markMessagesRead(message0, true);
   virtualFolder.updateSummaryTotals(true);
 
   do_check_eq(2, virtualFolder.getNumUnread(false));
@@ -158,7 +160,7 @@ function testVirtualFolder()
   var message1 = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   message1.appendElement(hdrs[1], false);
 
-  gLocalInboxFolder.removeKeywordsFromMessages(message1, tag1);
+  localAccountUtils.inboxFolder.removeKeywordsFromMessages(message1, tag1);
   virtualFolder.updateSummaryTotals(true);
   do_check_eq(3, virtualFolder.getTotalMessages(false));
   do_check_eq(1, virtualFolder.getNumUnread(false));

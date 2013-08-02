@@ -62,9 +62,9 @@ function run_test() {
   
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.
-  gLocalInboxFolder = rootFolder.createLocalSubfolder("Inbox");
+  localAccountUtils.inboxFolder = rootFolder.createLocalSubfolder("Inbox");
   // a local inbox should have a Mail flag!
-  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
+  localAccountUtils.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
   
   let rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
   let bugmail = rootFolder.getChildNamed("bugmail:1");

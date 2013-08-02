@@ -12,9 +12,9 @@ function run_test()
   var rootFolder = localAccountUtils.incomingServer.rootMsgFolder;
 
   // add subfolders to the inbox
-  const subFolder11 = gLocalInboxFolder.createLocalSubfolder("subfolder11")
+  const subFolder11 = localAccountUtils.inboxFolder.createLocalSubfolder("subfolder11")
                          .QueryInterface(Ci.nsIMsgLocalMailFolder);
-  const subFolder12 = gLocalInboxFolder.createLocalSubfolder("subfolder12")
+  const subFolder12 = localAccountUtils.inboxFolder.createLocalSubfolder("subfolder12")
                          .QueryInterface(Ci.nsIMsgLocalMailFolder);
   const subFolder21 = subFolder11.createLocalSubfolder("subfolder21");
   const subFolder22 = subFolder12.createLocalSubfolder("subfolder22");

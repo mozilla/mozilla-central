@@ -98,7 +98,7 @@ function copyFileMessageInLocalFolder(aMessageFile,
   gCopyListener.callbackFunction = aCallback;
   // Copy a message into the local folder
   MailServices.copy.CopyFileMessage(aMessageFile,
-                                    gLocalInboxFolder,
+                                    localAccountUtils.inboxFolder,
                                     null, false,
                                     aMessageFlags,
                                     aMessageKeywords,

@@ -20,7 +20,7 @@ function test_parse_headers_without_crash(eml) {
   let parser = Cc["@mozilla.org/messenger/messagestateparser;1"]
                  .createInstance(Ci.nsIMsgParseMailMsgState);
 
-  parser.SetMailDB(gLocalInboxFolder.getDatabaseWOReparse());
+  parser.SetMailDB(localAccountUtils.inboxFolder.getDatabaseWOReparse());
   parser.state = Ci.nsIMsgParseMailMsgState.ParseHeadersState;
 
   let mailData = IOUtils.loadFileToString(file);

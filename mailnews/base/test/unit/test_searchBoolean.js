@@ -140,7 +140,8 @@ function run_test()
     gSearchSession.appendTerm(searchTerm);
   }
 
-  gSearchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail, gLocalInboxFolder);
+  gSearchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail,
+                              localAccountUtils.inboxFolder);
   gSearchSession.registerListener(searchListener);
   // I tried using capital "A" but something makes it lower case internally, so it failed
   addSearchTerm("a", true, false, true);  // "(A"
@@ -152,7 +153,9 @@ function run_test()
   {
     OnStartCopy: function() {},
     OnProgress: function(aProgress, aProgressMax) {},
-    SetMessageKey: function(aKey) { gHdr = gLocalInboxFolder.GetMessageHeader(aKey);},
+    SetMessageKey: function(aKey) {
+      gHdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
+    },
     SetMessageId: function(aMessageId) {},
     OnStopCopy: function(aStatus) { testSearch();}
   };
@@ -161,8 +164,8 @@ function run_test()
   // the testing after the copy.
   var bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", copyListener, null);
 }
 
 let gTest = null;

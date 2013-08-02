@@ -40,27 +40,31 @@ var tests = [
   function getLocalMessage1() {
     dump("getLocalMessage\n");
     var file = do_get_file("../../../data/bugmail1");
-    gCopyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+    gCopyService.CopyFileMessage(file, localAccountUtils.inboxFolder, null, false, 0,
                                 "", CopyListener, null);
     yield false;
   },
   function getLocalMessage2() {
-    gMessages.appendElement(gLocalInboxFolder.GetMessageHeader(gLastKey), false);
+    gMessages.appendElement(localAccountUtils.inboxFolder.GetMessageHeader(gLastKey),
+                            false);
     dump("getLocalMessage\n");
     var file = do_get_file("../../../data/draft1");
-    gCopyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+    gCopyService.CopyFileMessage(file, localAccountUtils.inboxFolder, null, false, 0,
                                 "", CopyListener, null);
     yield false;
   },
   function copyMessages() {
-    gMessages.appendElement(gLocalInboxFolder.GetMessageHeader(gLastKey), false);
+    gMessages.appendElement(localAccountUtils.inboxFolder.GetMessageHeader(gLastKey),
+                            false);
     let folder1 = gIMAPInbox.getChildNamed("empty 1");
-    gCopyService.CopyMessages(gLocalInboxFolder, gMessages, folder1, false, CopyListener, null, false);
+    gCopyService.CopyMessages(localAccountUtils.inboxFolder, gMessages, folder1, false,
+                              CopyListener, null, false);
     yield false;
   },
   function moveMessages() {
     let folder2 = gIMAPInbox.getChildNamed("empty 2");
-    gCopyService.CopyMessages(gLocalInboxFolder, gMessages, folder2, true, CopyListener, null, false);
+      gCopyService.CopyMessages(localAccountUtils.inboxFolder, gMessages, folder2, true,
+                                CopyListener, null, false);
     yield false;
   },
   function update1() {
@@ -83,7 +87,7 @@ var tests = [
     do_check_eq(folderCount(folder2), 2);
     // The local inbox folder should now be empty, since the second
     // operation was a move.
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
   },
   teardown
 ];

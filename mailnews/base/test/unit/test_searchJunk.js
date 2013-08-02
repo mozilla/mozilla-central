@@ -229,7 +229,7 @@ function run_test()
   // Get a message into the local filestore. function testJunkSearch() continues the testing after the copy.
   do_test_pending();
   var file = do_get_file(fileName);
-  MailServices.copy.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
+  MailServices.copy.CopyFileMessage(file, localAccountUtils.inboxFolder, null, false, 0,
                                     "", copyListener, null);
   return true;
 }
@@ -239,7 +239,7 @@ var copyListener =
 {
   OnStartCopy: function() {},
   OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey) { hdr = gLocalInboxFolder.GetMessageHeader(aKey);},
+  SetMessageKey: function(aKey) { hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);},
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus) { testJunkSearch();}
 };
@@ -259,7 +259,7 @@ function testJunkSearch()
       hdr.setStringProperty("junkscore", test.junkScore);
     }
 
-    testObject = new TestSearch(gLocalInboxFolder,
+    testObject = new TestSearch(localAccountUtils.inboxFolder,
                          test.testValue,
                          test.attrib,
                          test.op,

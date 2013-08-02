@@ -129,7 +129,7 @@ function testNext() {
     msgServer.QueryInterface(Ci.nsIMsgIncomingServer);
     msgServer.authMethod = thisTest.clientAuthMethod;
 
-    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+    MailServices.pop3.GetNewMail(null, urlListener, localAccountUtils.inboxFolder,
                                  incomingServer);
     server.performTest();
   } catch (e) {

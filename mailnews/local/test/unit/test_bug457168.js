@@ -29,8 +29,8 @@ var urlListener =
 
       do_check_transaction(transaction, thisTest.transaction);
 
-      do_check_eq(gLocalInboxFolder.getTotalMessages(false), 2);
-      do_check_eq(gLocalInboxFolder.getNumUnread(false), 1);
+      do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 2);
+      do_check_eq(localAccountUtils.inboxFolder.getNumUnread(false), 1);
 
       do_check_eq(result, 0);
     }
@@ -97,7 +97,7 @@ function testNext() {
     daemon.setMessages(thisTest.messages);
 
     // Now get the mail
-    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+    MailServices.pop3.GetNewMail(null, urlListener, localAccountUtils.inboxFolder,
                                  incomingServer);
 
     server.performTest();
@@ -153,7 +153,7 @@ function run_test() {
 
   // Check that we haven't got any messages in the folder, if we have its a test
   // setup issue.
-  do_check_eq(gLocalInboxFolder.getTotalMessages(false), 0);
+  do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 0);
 
   do_test_pending();
 

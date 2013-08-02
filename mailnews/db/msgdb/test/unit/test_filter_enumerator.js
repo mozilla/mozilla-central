@@ -15,7 +15,7 @@ function setupGlobals()
   localAccountUtils.loadLocalMailAccount();
   // Create a message generator
   let messageGenerator = new MessageGenerator();
-  let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  let localInbox = localAccountUtils.inboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
 
   for (let i = 0; i < kSetCount; i++) {
     let message = messageGenerator.makeMessage();
@@ -27,7 +27,7 @@ function setupGlobals()
 function run_test() {
   setupGlobals();
   do_test_pending();
-  let inboxDB = gLocalInboxFolder.msgDatabase;
+  let inboxDB = localAccountUtils.inboxFolder.msgDatabase;
 
   // give messages 1,3,5 gloda-ids. These won't end up in our search hits.
   let msgHdr1 = inboxDB.getMsgHdrForMessageID(gMessages[0].messageId);
@@ -42,7 +42,8 @@ function run_test() {
                         .createInstance(Ci.nsIMsgSearchSession);
   let searchTerms = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 
-  searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail, gLocalInboxFolder);
+  searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail,
+                             localAccountUtils.inboxFolder);
   let searchTerm = searchSession.createTerm();
 
   // Create the following search term:

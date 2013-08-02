@@ -9,9 +9,8 @@ gLocalAccountUtils_js__ = true;
 
 // Local Mail Folders. Requires prior setup of profile directory
 
-var gLocalInboxFolder;
-
 var localAccountUtils = {
+  inboxFolder: undefined,
   incomingServer: undefined,
   rootFolder: undefined,
   msgAccount: undefined,
@@ -34,13 +33,13 @@ var localAccountUtils = {
 
     // Note: Inbox is not created automatically when there is no deferred server,
     // so we need to create it.
-    gLocalInboxFolder = this.rootFolder.createLocalSubfolder("Inbox")
+    this.inboxFolder = this.rootFolder.createLocalSubfolder("Inbox")
                          .QueryInterface(Ci.nsIMsgLocalMailFolder);
     // a local inbox should have a Mail flag!
-    gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
+    this.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 
     // Force an initialization of the Inbox folder database.
-    var folderName = gLocalInboxFolder.prettiestName;
+    var folderName = this.inboxFolder.prettiestName;
 
     this._localAccountInitialized = true;
   },

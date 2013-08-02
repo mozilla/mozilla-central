@@ -342,7 +342,9 @@ function run_test()
   {
     OnStartCopy: function() {},
     OnProgress: function(aProgress, aProgressMax) {},
-    SetMessageKey: function(aKey) { hdr = gLocalInboxFolder.GetMessageHeader(aKey);},
+    SetMessageKey: function(aKey) {
+      hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
+    },
     SetMessageId: function(aMessageId) {},
     OnStopCopy: function(aStatus) { testKeywordSearch();}
   };
@@ -350,8 +352,8 @@ function run_test()
   // Get a message into the local filestore. function testKeywordSearch() continues the testing after the copy.
   var bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", copyListener, null);
 }
 
 // process each test from queue, calls itself upon completion of each search
@@ -362,7 +364,7 @@ function testKeywordSearch()
   if (test)
   {
     hdr.setStringProperty("keywords", test.msgTag);
-    testObject = new TestSearch(gLocalInboxFolder,
+    testObject = new TestSearch(localAccountUtils.inboxFolder,
                          test.testTag,
                          nsMsgSearchAttrib.Keywords,
                          test.op,

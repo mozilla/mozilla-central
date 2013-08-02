@@ -190,7 +190,7 @@ var CopyListener =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
-    let hdr = gLocalInboxFolder.GetMessageHeader(aKey);
+    let hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
     gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
   },
   SetMessageId: function(aMessageId) {},

@@ -24,8 +24,8 @@ function run_test()
     "to: bob@t2.example.net\r\n" + 
     "message-id:   \r\n   <abcmessageid>\r\n";
 
-  let localFolder = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
-  gLocalInboxFolder.addMessage("From \r\n"+ headers + "\r\nhello\r\n");
-  var msgHdr = gLocalInboxFolder.GetMessageHeader(0);
+  let localFolder = localAccountUtils.inboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localAccountUtils.inboxFolder.addMessage("From \r\n"+ headers + "\r\nhello\r\n");
+  var msgHdr = localAccountUtils.inboxFolder.GetMessageHeader(0);
   do_check_eq(msgHdr.messageId, "abcmessageid");
 }

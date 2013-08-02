@@ -23,5 +23,5 @@ function run_test()
   do_check_eq(rootFolder.numSubFolders, expectedFolders.length);
   for (var i = 0; i < expectedFolders.length; ++i)
     do_check_true(rootFolder.containsChildNamed(expectedFolders[i]));
-  do_check_true(rootFolder.isAncestorOf(gLocalInboxFolder));
+  do_check_true(rootFolder.isAncestorOf(localAccountUtils.inboxFolder));
 }

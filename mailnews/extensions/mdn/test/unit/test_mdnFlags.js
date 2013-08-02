@@ -30,19 +30,19 @@ function run_test()
   mimeHdr.initialize(headers);
   let receivedHeader = mimeHdr.extractHeader("To", false);
 
-  let localFolder = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
-  gLocalInboxFolder.addMessage("From \r\n"+ headers + "\r\nhello\r\n");
+  let localFolder = localAccountUtils.inboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  localAccountUtils.inboxFolder.addMessage("From \r\n"+ headers + "\r\nhello\r\n");
   // Need to setup some prefs  
   Services.prefs.setBoolPref("mail.mdn.report.enabled", true);
   Services.prefs.setIntPref("mail.mdn.report.not_in_to_cc", 2);
   Services.prefs.setIntPref("mail.mdn.report.other", 2);
   Services.prefs.setIntPref("mail.mdn.report.outside_domain", 2);
   
-  var msgFolder = gLocalInboxFolder;
+  var msgFolder = localAccountUtils.inboxFolder;
 
   var msgWindow = {};
  
-  var msgHdr = mailTestUtils.firstMsgHdr(gLocalInboxFolder);
+  var msgHdr = mailTestUtils.firstMsgHdr(localAccountUtils.inboxFolder);
 
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]

@@ -19,7 +19,7 @@ function run_test()
   // all the operations.
   do_test_pending();
 
-  let inboxFile = gLocalInboxFolder.filePath;
+  let inboxFile = localAccountUtils.inboxFolder.filePath;
 
   let neededFreeSpace = 0x100000000;
   let freeDiskSpace = inboxFile.diskSpaceAvailable;
@@ -50,7 +50,7 @@ function run_test()
   outputStream.close();
 
   // Save initial file size.
-  gLocalInboxSize = gLocalInboxFolder.filePath.fileSize;
+  gLocalInboxSize = localAccountUtils.inboxFolder.filePath.fileSize;
   do_print("Local inbox size (before copyFileMessageInLocalFolder()) = " +
            gLocalInboxSize);
 
@@ -61,7 +61,7 @@ function run_test()
 // Get message whose msg key is over 2 GiB.
 function getMessageHdr()
 {
-  let msgEnum = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  let msgEnum = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
   while (msgEnum.hasMoreElements()) {
     let header = msgEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     if (header.messageKey >= 0x80000000) {
@@ -75,7 +75,7 @@ function getMessageHdr()
 function copyMessages()
 {
   // Make sure inbox file grew (i.e., we were not writing over data).
-  let localInboxSize = gLocalInboxFolder.filePath.fileSize;
+  let localInboxSize = localAccountUtils.inboxFolder.filePath.fileSize;
   do_print("Local inbox size (after copyFileMessageInLocalFolder()) = " +
            localInboxSize);
   do_check_true(localInboxSize > gLocalInboxSize);
@@ -83,7 +83,8 @@ function copyMessages()
   // Copy the message into the subfolder.
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   messages.appendElement(getMessageHdr(), false);
-  MailServices.copy.CopyMessages(gLocalInboxFolder, messages, gLocalTrashFolder,
+  MailServices.copy.CopyMessages(localAccountUtils.inboxFolder, messages,
+                                 gLocalTrashFolder,
                                  false, copyListener2, null, false);
 }
 
@@ -140,7 +141,7 @@ gStreamListener = {
 function endTest() {
   // Free up disk space - if you want to look at the file after running
   // this test, comment out this line.
-  gLocalInboxFolder.filePath.remove(false);
+  localAccountUtils.inboxFolder.filePath.remove(false);
 
   do_test_finished();
 }

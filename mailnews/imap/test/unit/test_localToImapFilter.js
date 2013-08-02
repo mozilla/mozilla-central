@@ -78,7 +78,7 @@ var tests = [
     listMessages(folder1);
     let folder2 = gIMAPInbox.getChildNamed("empty 2");
     listMessages(folder2);
-    listMessages(gLocalInboxFolder);
+    listMessages(localAccountUtils.inboxFolder);
     do_check_neq(folder1, null);
     do_check_neq(folder2, null);
     // folder 1 and 2 should each now have 2 messages in them.
@@ -86,7 +86,7 @@ var tests = [
     do_check_eq(folderCount(folder2), 2);
     // the local inbox folder should now be empty, since the second
     // operation was a move
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
   },
   teardown
 ];

@@ -82,7 +82,7 @@ function setupIMAPPump(extensions)
 
   gIMAPIncomingServer = createLocalIMAPServer();
 
-  if (!this.gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail

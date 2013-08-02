@@ -34,7 +34,7 @@ var copyListener =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
-    let hdr = gLocalInboxFolder.GetMessageHeader(aKey);
+    let hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
     gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
   },
   SetMessageId: function(aMessageId) {},
@@ -88,16 +88,18 @@ function deleteMessages(srcFolder, items)
 const gTestArray =
 [
   // Copying message from file
-  function testCopyFileMessage1() { copyFileMessage(gMsgFile1, gLocalInboxFolder, false); },
+  function testCopyFileMessage1() {
+    copyFileMessage(gMsgFile1, localAccountUtils.inboxFolder, false);
+  },
 
   // Delete message
   function testDeleteMessage() { // delete to trash
     // Let's take a moment to re-initialize stuff that got moved
-    let inboxDB = gLocalInboxFolder.msgDatabase;
+    let inboxDB = localAccountUtils.inboxFolder.msgDatabase;
     gMsgHdrs[0].hdr = inboxDB.getMsgHdrForMessageID(gMsgHdrs[0].ID);
 
     // Now delete the message
-    deleteMessages(gLocalInboxFolder, [gMsgHdrs[0].hdr], false, false);
+    deleteMessages(localAccountUtils.inboxFolder, [gMsgHdrs[0].hdr], false, false);
   },
   function emptyTrash()
   {

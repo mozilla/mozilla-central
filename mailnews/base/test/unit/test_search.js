@@ -250,8 +250,8 @@ function run_test()
   // the testing after the copy.
   var bugmail12 = do_get_file("../../../data/bugmail12");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(bugmail12, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail12, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", copyListener, null);
 }
 
 // process each test from queue, calls itself upon completion of each search
@@ -263,7 +263,7 @@ function testSearch()
   {
     //  test of a custom db header
     dump("testing dbHeader " + test.dbHeader + "\n");
-    customValue = mailTestUtils.firstMsgHdr(gLocalInboxFolder)
+    customValue = mailTestUtils.firstMsgHdr(localAccountUtils.inboxFolder)
                                .getProperty(test.dbHeader);
     do_check_eq(customValue, test.testString);
     do_timeout(0, testSearch);
@@ -271,7 +271,7 @@ function testSearch()
   else if (test)
   {
     dump("testing for string '" + test.testString + "'\n");
-    testObject = new TestSearch(gLocalInboxFolder,
+    testObject = new TestSearch(localAccountUtils.inboxFolder,
                          test.testString,
                          test.testAttribute,
                          test.op,

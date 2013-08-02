@@ -33,7 +33,7 @@ var Tests =
     count: 1 },
   // add a property and test its value
   { setup: function setupProperty() {
-      let enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+      let enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
       while(enumerator.hasMoreElements())
         enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr).setUint32Property("iam23", 23);
     },
@@ -88,8 +88,8 @@ function run_test()
   // the testing after the copy.
   var bugmail1 = do_get_file("../../../data/bugmail1");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", copyListener, null);
 }
 
 // process each test from queue, calls itself upon completion of each search
@@ -101,7 +101,7 @@ function testSearch()
   {
     if (test.setup)
       test.setup();
-    testObject = new TestSearch(gLocalInboxFolder,
+    testObject = new TestSearch(localAccountUtils.inboxFolder,
                          test.value,
                          nsMsgSearchAttrib.Uint32HdrProperty,
                          test.op,

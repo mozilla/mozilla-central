@@ -131,7 +131,7 @@ function endTest()
   gMessages.clear();
   gMsgWindow.closeWindow();
   gMsgWindow = null;
-  gLocalInboxFolder = null;
+  localAccountUtils.inboxFolder = null;
   localAccountUtils.incomingServer = null;
 
   do_test_finished(); // for the one in run_test()

@@ -29,7 +29,7 @@ var tests = [
       do_check_true(false);
     });
  
-    if (typeof gLocalInboxFolder == 'undefined')
+    if (typeof localAccountUtils.inboxFolder == 'undefined')
       localAccountUtils.loadLocalMailAccount();
     localAccountUtils.rootFolder.createSubfolder("target", null);
     gTargetFolder = localAccountUtils.rootFolder.getChildNamed("target");

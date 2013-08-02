@@ -49,10 +49,10 @@ const gTestArray =
   function applyFilters() {
     let messages = Cc["@mozilla.org/array;1"]
                      .createInstance(Ci.nsIMutableArray);
-    messages.appendElement(gLocalInboxFolder.firstNewMessage, false);
+    messages.appendElement(localAccountUtils.inboxFolder.firstNewMessage, false);
     ++gCurTestNum;
     MailServices.filters.applyFilters(Ci.nsMsgFilterType.Manual,
-                                      messages, gLocalInboxFolder, null);
+                                      messages, localAccountUtils.inboxFolder, null);
   },
   function verifyFolders1() {
     // Copy and Move should each now have 1 message in them.
@@ -60,7 +60,7 @@ const gTestArray =
     do_check_eq(folderCount(gMoveFolder), 1);
     // the local inbox folder should now be empty, since the second
     // operation was a move
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
     ++gCurTestNum;
     doTest();
   },
@@ -75,7 +75,7 @@ const gTestArray =
   function applyFiltersToFolders() {
     let folders = Cc["@mozilla.org/array;1"]
                     .createInstance(Ci.nsIMutableArray);
-    folders.appendElement(gLocalInboxFolder, false);
+    folders.appendElement(localAccountUtils.inboxFolder, false);
     ++gCurTestNum;
     MailServices.filters.applyFiltersToFolders(gFilterList, folders, null);
   },
@@ -85,7 +85,7 @@ const gTestArray =
     do_check_eq(folderCount(gMoveFolder), 2);
     // the local inbox folder should now be empty, since the second
     // operation was a move
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
     ++gCurTestNum;
     doTest();
   }
@@ -105,7 +105,7 @@ function folderCount(folder)
 
 function run_test()
 {
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   gCopyFolder = localAccountUtils.incomingServer

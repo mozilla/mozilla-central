@@ -41,7 +41,7 @@ var copyListener =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
-    let hdr = gLocalInboxFolder.GetMessageHeader(aKey);
+    let hdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
     gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
   },
   SetMessageId: function(aMessageId) {},
@@ -138,14 +138,26 @@ function verifyMsgOffsets(folder)
 const gTestArray =
 [
   // Copying messages from files
-  function testCopyFileMessage1() { copyFileMessage(gMsgFile1, gLocalInboxFolder, false); },
-  function testCopyFileMessage2() { copyFileMessage(gMsgFile2, gLocalInboxFolder, false); },
-  function testCopyFileMessage3() { copyFileMessage(gMsgFile3, gLocalInboxFolder, true); },
+  function testCopyFileMessage1() {
+    copyFileMessage(gMsgFile1, localAccountUtils.inboxFolder, false);
+  },
+  function testCopyFileMessage2() {
+    copyFileMessage(gMsgFile2, localAccountUtils.inboxFolder, false);
+  },
+  function testCopyFileMessage3() {
+    copyFileMessage(gMsgFile3, localAccountUtils.inboxFolder, true);
+  },
 
   // Moving/copying messages
-  function testCopyMessages1() { copyMessages([gMsgHdrs[0].hdr], false, gLocalInboxFolder, gLocalFolder2); },
-  function testCopyMessages2() { copyMessages([gMsgHdrs[1].hdr, gMsgHdrs[2].hdr], false, gLocalInboxFolder, gLocalFolder2); },
-  function testMoveMessages1() { copyMessages([gMsgHdrs[0].hdr, gMsgHdrs[1].hdr], true, gLocalInboxFolder, gLocalFolder3); },
+  function testCopyMessages1() {
+    copyMessages([gMsgHdrs[0].hdr], false, localAccountUtils.inboxFolder, gLocalFolder2);
+  },
+  function testCopyMessages2() {
+    copyMessages([gMsgHdrs[1].hdr, gMsgHdrs[2].hdr], false, localAccountUtils.inboxFolder, gLocalFolder2);
+  },
+  function testMoveMessages1() {
+    copyMessages([gMsgHdrs[0].hdr, gMsgHdrs[1].hdr], true, localAccountUtils.inboxFolder, gLocalFolder3);
+  },
 
   // Deleting messages
   function testDeleteMessages1() { // delete to trash
@@ -173,7 +185,7 @@ const gTestArray =
   },
   function compactAllFolders()
   {
-    gExpectedInboxSize = calculateFolderSize(gLocalInboxFolder);
+    gExpectedInboxSize = calculateFolderSize(localAccountUtils.inboxFolder);
     gExpectedFolder2Size = calculateFolderSize(gLocalFolder2);
     gExpectedFolder3Size = calculateFolderSize(gLocalFolder3);
     // force expunged bytes count to get cached.
@@ -186,16 +198,16 @@ const gTestArray =
     let dbPath = gLocalFolder2.filePath;
     dbPath.leafName = dbPath.leafName + ".msf";
     dbPath.remove(false);
-    gLocalInboxFolder.compactAll(urlListener, null, true);
+    localAccountUtils.inboxFolder.compactAll(urlListener, null, true);
   },
   function lastTestCheck()
   {
-    do_check_eq(gExpectedInboxSize, gLocalInboxFolder.filePath.fileSize);
+    do_check_eq(gExpectedInboxSize, localAccountUtils.inboxFolder.filePath.fileSize);
     do_check_eq(gExpectedFolder2Size, gLocalFolder2.filePath.fileSize);
     do_check_eq(gExpectedFolder3Size, gLocalFolder3.filePath.fileSize);
     verifyMsgOffsets(gLocalFolder2);
     verifyMsgOffsets(gLocalFolder3);
-    verifyMsgOffsets(gLocalInboxFolder);
+    verifyMsgOffsets(localAccountUtils.inboxFolder);
     urlListener.OnStopRunningUrl(null, 0);
   }
 ];

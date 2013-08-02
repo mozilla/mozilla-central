@@ -51,15 +51,15 @@ const gTestArray =
   function verifyFolders2() {
     do_check_eq(folderCount(gMoveFolder), 2);
     // the local inbox folder should now be empty, since we moved incoming mail.
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
 
     // invalidate the inbox summary file, to be sure that we really moved
     // the mail.
-    gLocalInboxFolder.msgDatabase.summaryValid = false;
-    gLocalInboxFolder.msgDatabase = null;
-    gLocalInboxFolder.ForceDBClosed();
+    localAccountUtils.inboxFolder.msgDatabase.summaryValid = false;
+    localAccountUtils.inboxFolder.msgDatabase = null;
+    localAccountUtils.inboxFolder.ForceDBClosed();
     try {
-      gLocalInboxFolder.getDatabaseWithReparse(ParseListener, null);
+      localAccountUtils.inboxFolder.getDatabaseWithReparse(ParseListener, null);
     } catch (ex) {
       do_check_true(ex.result == Cr.NS_ERROR_NOT_INITIALIZED);
     }
@@ -89,8 +89,8 @@ var ParseListener =
   },
   OnStopRunningUrl: function (aUrl, aExitCode) {
     do_check_eq(aExitCode, 0);
-    do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_true(localAccountUtils.inboxFolder.msgDatabase.summaryValid);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
     ++gCurTestNum;
     doTest();
   }
@@ -112,7 +112,7 @@ function run_test()
 {
   // Make sure we're not quarantining messages
   Services.prefs.setBoolPref("mailnews.downloadToTempFile", false);
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   gMoveFolder = localAccountUtils.incomingServer

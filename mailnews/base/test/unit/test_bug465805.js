@@ -59,8 +59,8 @@ var copyListener =
     if (fileName)
     { 
       let file = do_get_file(fileName);
-      MailServices.copy.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                                        "", copyListener, null);
+      MailServices.copy.CopyFileMessage(file, localAccountUtils.inboxFolder, null,
+                                        false, 0, "", copyListener, null);
     }
     else
       testBodySearch();
@@ -77,7 +77,7 @@ function testBodySearch()
   var test = Tests.shift();
   if (test)
   {
-    testObject = new TestSearch(gLocalInboxFolder,
+    testObject = new TestSearch(localAccountUtils.inboxFolder,
                          test.value,
                          test.attrib,
                          test.op,

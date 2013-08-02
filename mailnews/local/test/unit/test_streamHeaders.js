@@ -36,7 +36,7 @@ function loadMessages()
   yield false;
 
   // get message headers for the inbox folder
-  let enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  let enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
   var msgCount = 0;
   while(enumerator.hasMoreElements())
   {

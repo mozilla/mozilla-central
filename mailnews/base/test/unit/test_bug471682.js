@@ -15,7 +15,7 @@ var gHdr; // header of test message in local folder
 
 localAccountUtils.loadLocalMailAccount();
 // create a subfolder as a target for copies
-var gSubfolder = gLocalInboxFolder.createLocalSubfolder("subfolder");
+var gSubfolder = localAccountUtils.inboxFolder.createLocalSubfolder("subfolder");
 
 function run_test()
 {
@@ -27,7 +27,7 @@ function run_test()
 
   do_test_pending();
   // step 1: copy a message into the local inbox
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null,
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
                                     false, 0, "", step2, null);
   return;
 }
@@ -42,7 +42,7 @@ var step2 =
   SetMessageKey: function(aKey)
   {
     dump("in set message key\n");
-    gHdr = gLocalInboxFolder.GetMessageHeader(aKey);
+    gHdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);
   },
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
@@ -51,7 +51,7 @@ var step2 =
     // copy the message into the subfolder
     var messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     messages.appendElement(gHdr, false);
-    MailServices.copy.CopyMessages(gLocalInboxFolder, messages, gSubfolder,
+    MailServices.copy.CopyMessages(localAccountUtils.inboxFolder, messages, gSubfolder,
                                    false, step3, null, false);
   }
 };
@@ -76,7 +76,7 @@ function step4()
 {
   var messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   messages.appendElement(gHdr, false);
-  MailServices.copy.CopyMessages(gLocalInboxFolder, messages, gSubfolder,
+  MailServices.copy.CopyMessages(localAccountUtils.inboxFolder, messages, gSubfolder,
                                  false, step5, null, false);
 }
 

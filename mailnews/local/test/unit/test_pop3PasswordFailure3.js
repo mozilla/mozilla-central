@@ -76,7 +76,7 @@ function promptPasswordPS(aParent, aDialogTitle, aText, aPassword, aCheckMsg,
 }
 
 function getPopMail() {
-  MailServices.pop3.GetNewMail(gDummyMsgWindow, urlListener, gLocalInboxFolder,
+  MailServices.pop3.GetNewMail(gDummyMsgWindow, urlListener, localAccountUtils.inboxFolder,
                                incomingServer);
 }
 
@@ -87,7 +87,7 @@ var urlListener =
   OnStopRunningUrl: function (url, result) {
     try {
       // On the last attempt, we should have successfully got one mail.
-      do_check_eq(gLocalInboxFolder.getTotalMessages(false),
+      do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false),
                   attempt == 4 ? 1 : 0);
 
       // If we've just cancelled, expect failure rather than success
@@ -207,7 +207,7 @@ function run_test()
 
   // Check that we haven't got any messages in the folder, if we have its a test
   // setup issue.
-  do_check_eq(gLocalInboxFolder.getTotalMessages(false), 0);
+  do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 0);
 
   actually_run_test();
 }

@@ -31,7 +31,8 @@ var urlListener =
 
       do_check_transaction(transaction, thisTest.transaction);
 
-      do_check_eq(gLocalInboxFolder.getTotalMessages(false), thisTest.messages.length);
+      do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false),
+                  thisTest.messages.length);
 
       do_check_eq(result, 0);
     }
@@ -97,7 +98,7 @@ function testNext() {
     daemon.setMessages(thisTest.messages);
 
     // Now get the mail
-    MailServices.pop3.GetNewMail(null, urlListener, gLocalInboxFolder,
+    MailServices.pop3.GetNewMail(null, urlListener, localAccountUtils.inboxFolder,
                                  incomingServer);
 
     server.performTest();
@@ -171,16 +172,16 @@ function run_test() {
 
   // Note: Inbox is not created automatically when there is no deferred server,
   // so we need to create it.
-  gLocalInboxFolder = rootFolder.createLocalSubfolder("Inbox");
+  localAccountUtils.inboxFolder = rootFolder.createLocalSubfolder("Inbox");
   // a local inbox should have a Mail flag!
-  gLocalInboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
+  localAccountUtils.inboxFolder.setFlag(Ci.nsMsgFolderFlags.Mail);
 
   // Create the incoming server with "original" details.
   incomingServer = MailServices.accounts.getIncomingServer("server2");
 
   // Check that we haven't got any messages in the folder, if we have its a test
   // setup issue.
-  do_check_eq(gLocalInboxFolder.getTotalMessages(false), 0);
+  do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 0);
 
   do_test_pending();
 

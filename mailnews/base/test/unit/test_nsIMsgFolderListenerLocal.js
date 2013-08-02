@@ -178,15 +178,29 @@ const gTestArray =
   // folder3
 
   // Copying messages from files
-  function testCopyFileMessage1() { copyFileMessage(gMsgFile1, gLocalInboxFolder, false); },
-  function testCopyFileMessage2() { copyFileMessage(gMsgFile2, gLocalInboxFolder, false); },
-  function testCopyFileMessage3() { copyFileMessage(gMsgFile3, gLocalInboxFolder, true); },
+  function testCopyFileMessage1() {
+    copyFileMessage(gMsgFile1, localAccountUtils.inboxFolder, false);
+  },
+  function testCopyFileMessage2() {
+    copyFileMessage(gMsgFile2, localAccountUtils.inboxFolder, false);
+  },
+  function testCopyFileMessage3() {
+    copyFileMessage(gMsgFile3, localAccountUtils.inboxFolder, true);
+  },
 
   // Moving/copying messages
-  function testCopyMessages1() { copyMessages([gMsgHdrs[0].hdr], false, gLocalInboxFolder, gLocalFolder2); },
-  function testCopyMessages2() { copyMessages([gMsgHdrs[1].hdr, gMsgHdrs[2].hdr], false, gLocalInboxFolder, gLocalFolder2); },
-  function testMoveMessages1() { copyMessages([gMsgHdrs[0].hdr, gMsgHdrs[1].hdr], true, gLocalInboxFolder, gLocalFolder3); },
-  function testMoveMessages2() { copyMessages([gMsgHdrs[2].hdr], true, gLocalInboxFolder, gLocalTrashFolder); },
+  function testCopyMessages1() {
+    copyMessages([gMsgHdrs[0].hdr], false, localAccountUtils.inboxFolder, gLocalFolder2);
+  },
+  function testCopyMessages2() {
+    copyMessages([gMsgHdrs[1].hdr, gMsgHdrs[2].hdr], false, localAccountUtils.inboxFolder, gLocalFolder2);
+  },
+  function testMoveMessages1() {
+    copyMessages([gMsgHdrs[0].hdr, gMsgHdrs[1].hdr], true, localAccountUtils.inboxFolder, gLocalFolder3);
+  },
+  function testMoveMessages2() {
+    copyMessages([gMsgHdrs[2].hdr], true, localAccountUtils.inboxFolder, gLocalTrashFolder);
+  },
   function testMoveMessages3() {
     // This is to test whether the notification is correct for moving from trash
     gMsgHdrs[2].hdr = gLocalTrashFolder.msgDatabase
@@ -196,8 +210,12 @@ const gTestArray =
 
   // Moving/copying folders
   function testCopyFolder1() { copyFolders([gLocalFolder3], false, gLocalFolder2); },
-  function testMoveFolder1() { copyFolders([gLocalFolder3], true, gLocalInboxFolder); },
-  function testMoveFolder2() { copyFolders([gLocalFolder2], true, gLocalInboxFolder); },
+  function testMoveFolder1() {
+    copyFolders([gLocalFolder3], true, localAccountUtils.inboxFolder);
+  },
+  function testMoveFolder2() {
+    copyFolders([gLocalFolder2], true, localAccountUtils.inboxFolder);
+  },
   // Folder structure should now be
   // Inbox
   // -folder2
@@ -208,7 +226,7 @@ const gTestArray =
   // Deleting messages
   function testDeleteMessages1() { // delete to trash
     // Let's take a moment to re-initialize stuff that got moved
-    gLocalFolder2 = gLocalInboxFolder.getChildNamed("folder2");
+    gLocalFolder2 = localAccountUtils.inboxFolder.getChildNamed("folder2");
     gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
     var folder3DB = gLocalFolder3.msgDatabase;
     for (var i = 0; i < gMsgHdrs.length; i++)
@@ -232,7 +250,10 @@ const gTestArray =
   function testRename1() { renameFolder(gLocalFolder3, "folder4"); },
   function testRename2() { renameFolder(gLocalFolder2.getChildNamed("folder4"), "folder3"); },
   function testRename3() { renameFolder(gLocalFolder2, "folder4"); },
-  function testRename4() { renameFolder(gLocalInboxFolder.getChildNamed("folder4"), "folder2"); },
+  function testRename4() {
+    renameFolder(localAccountUtils.inboxFolder.getChildNamed("folder4"), "folder2");
+  },
+
   // Folder structure should still be
   // Inbox
   // -folder2
@@ -241,21 +262,27 @@ const gTestArray =
   // Trash
 
   // Deleting folders (currently only one folder delete is supported through the UI)
-  function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3"), null); },
+  function deleteFolder1() {
+    deleteFolder(localAccountUtils.inboxFolder.getChildNamed("folder3"), null);
+  },
   // Folder structure should now be
   // Inbox
   // -folder2
   // --folder3
   // Trash
   // -folder3
-  function deleteFolder2() { deleteFolder(gLocalInboxFolder.getChildNamed("folder2"), null); },
+  function deleteFolder2() {
+    deleteFolder(localAccountUtils.inboxFolder.getChildNamed("folder2"), null);
+  },
   // Folder structure should now be
   // Inbox
   // Trash
   // -folder2
   // --folder3
   // -folder3
-  function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3"), null); },
+  function deleteFolder3() {
+    deleteFolder(gLocalTrashFolder.getChildNamed("folder3"), null);
+  },
   // Folder structure should now be
   // Inbox
   // Trash
@@ -267,8 +294,8 @@ const gTestArray =
     gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
     deleteFolder(gLocalFolder2, gLocalFolder3); },
   function compactInbox() {
-    if (gLocalInboxFolder.msgStore.supportsCompaction)
-      compactFolder(gLocalInboxFolder);
+    if (localAccountUtils.inboxFolder.msgStore.supportsCompaction)
+      compactFolder(localAccountUtils.inboxFolder);
     else
       doTest(++gTest);
   }

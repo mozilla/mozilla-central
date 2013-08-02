@@ -49,7 +49,7 @@ const gTestArray =
     do_check_eq(folderCount(gMoveFolder), 2);
     // the local inbox folder should now be empty, since the second
     // operation was a move
-    do_check_eq(folderCount(gLocalInboxFolder), 0);
+    do_check_eq(folderCount(localAccountUtils.inboxFolder), 0);
 
     let enumerator = gMoveFolder.msgDatabase.EnumerateMessages();
     let firstMsgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
@@ -112,7 +112,7 @@ function run_test()
 
   // quarantine messages
   Services.prefs.setBoolPref("mailnews.downloadToTempFile", true);
-  if (!gLocalInboxFolder)
+  if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
   gMoveFolder = localAccountUtils.incomingServer.rootMsgFolder

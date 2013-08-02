@@ -60,14 +60,14 @@ function move_messages() {
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
   let msg = gIMAPInbox.msgDatabase.GetMsgHdrForKey(gIMAPMailbox.uidnext - 1);
   messages.appendElement(msg, false);
-  MailServices.copy.CopyMessages(gIMAPInbox, messages, gLocalInboxFolder,
+  MailServices.copy.CopyMessages(gIMAPInbox, messages, localAccountUtils.inboxFolder,
                                  true, asyncCopyListener, null, false);
   yield false;
 }
 
 function check_messages() {
   do_check_eq(gIMAPInbox.getTotalMessages(false), 1);
-  do_check_eq(gLocalInboxFolder.getTotalMessages(false), 0);
+  do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 0);
   yield true;
 }
 

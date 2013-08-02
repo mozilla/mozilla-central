@@ -14,15 +14,15 @@ function run_test() {
   // Function continue_test() continues the testing after the copy.
   var bugmail1 = do_get_file("../../../../data/bugmail1");
   do_test_pending();
-  MailServices.copy.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
-                                    "", copyListener, null);
+  MailServices.copy.CopyFileMessage(bugmail1, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", copyListener, null);
 }
 
 var copyListener =
 {
   OnStartCopy: function() {},
   OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey) { gHdr = gLocalInboxFolder.GetMessageHeader(aKey);},
+  SetMessageKey: function(aKey) { gHdr = localAccountUtils.inboxFolder.GetMessageHeader(aKey);},
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus) { continue_test();}
 };

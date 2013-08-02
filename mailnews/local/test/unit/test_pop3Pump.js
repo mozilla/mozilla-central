@@ -10,7 +10,7 @@ var testSubjects = ["[Bug 397009] A filter will let me tag, but not untag",
 function run_test()
 {
   // demonstration of access to the local inbox folder
-  dump("local inbox folder " + gLocalInboxFolder.URI + " is loaded\n");
+  dump("local inbox folder " + localAccountUtils.inboxFolder.URI + " is loaded\n");
   // demonstration of access to the fake server
   dump("Server " + gPOP3Pump.fakeServer.prettyName + " is loaded\n");
 
@@ -24,7 +24,7 @@ function run_test()
 function continueTest()
 {
   // get message headers for the inbox folder
-  let enumerator = gLocalInboxFolder.msgDatabase.EnumerateMessages();
+  let enumerator = localAccountUtils.inboxFolder.msgDatabase.EnumerateMessages();
   var msgCount = 0;
   while(enumerator.hasMoreElements())
   {

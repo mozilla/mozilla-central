@@ -87,8 +87,8 @@ function test_references_header_parsing(aMsgHdr) {
 function run_test() {
   localAccountUtils.loadLocalMailAccount();
   do_test_pending();
-  MailServices.copy.CopyFileMessage(anyOldMessage, gLocalInboxFolder, null, false, 0,
-                                    "", messageHeaderGetterListener, null);
+  MailServices.copy.CopyFileMessage(anyOldMessage, localAccountUtils.inboxFolder, null,
+                                    false, 0, "", messageHeaderGetterListener, null);
   return true;
 }
 
@@ -103,6 +103,6 @@ var messageHeaderGetterListener = {
   },
   OnStopCopy: function(aStatus) {
     test_references_header_parsing(
-      gLocalInboxFolder.GetMessageHeader(this.msgKey));
+      localAccountUtils.inboxFolder.GetMessageHeader(this.msgKey));
   },
 }

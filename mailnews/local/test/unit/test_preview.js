@@ -17,11 +17,11 @@ function test_preview(aMessageHeaderKeys, aStatus) {
   do_check_neq(headerKeys, null);
   do_check_eq(headerKeys.length, 2);
   try {
-    gLocalInboxFolder.fetchMsgPreviewText(headerKeys,
+    localAccountUtils.inboxFolder.fetchMsgPreviewText(headerKeys,
                                           headerKeys.length, false, null);
-    do_check_eq(gLocalInboxFolder.GetMessageHeader(headerKeys[0]).getStringProperty('preview'),
+    do_check_eq(localAccountUtils.inboxFolder.GetMessageHeader(headerKeys[0]).getStringProperty('preview'),
                 bugmail10_preview);
-    do_check_eq(gLocalInboxFolder.GetMessageHeader(headerKeys[1]).getStringProperty('preview'),
+    do_check_eq(localAccountUtils.inboxFolder.GetMessageHeader(headerKeys[1]).getStringProperty('preview'),
                 bugmail11_preview);
   } catch(ex) {dump(ex); do_throw(ex) }
   do_test_finished();
