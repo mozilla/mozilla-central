@@ -9,7 +9,6 @@
 
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
-load("../../../resources/IMAPpump.js");
 
 const gFileName = "draft1";
 const gMsgFile = do_get_file("../../../data/" + gFileName);

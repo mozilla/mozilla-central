@@ -23,7 +23,6 @@ Services.prefs.setCharPref("mailnews.customHeaders",
                            "x-uidl: x-bugzilla-watch-reason: x-bugzilla-component: received: x-spam-checker-version");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 // Globals
 

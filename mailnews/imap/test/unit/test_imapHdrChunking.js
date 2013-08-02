@@ -15,7 +15,6 @@ Components.utils.import("resource:///modules/mailServices.js");
 // javascript mime emitter functions
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 

@@ -15,7 +15,6 @@ load("../../../resources/messageModifier.js");
 load("../../../resources/messageInjection.js");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 

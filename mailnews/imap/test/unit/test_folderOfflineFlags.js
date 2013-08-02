@@ -15,7 +15,6 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/alertTestUtils.js");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 

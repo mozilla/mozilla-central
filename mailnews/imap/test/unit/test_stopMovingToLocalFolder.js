@@ -12,7 +12,6 @@ load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 
-load("../../../resources/IMAPpump.js");
 setupIMAPPump();
 
 function stop_server() {

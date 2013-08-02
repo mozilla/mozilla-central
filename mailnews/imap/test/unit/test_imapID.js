@@ -5,7 +5,6 @@
 
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
-load("../../../resources/IMAPpump.js");
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 

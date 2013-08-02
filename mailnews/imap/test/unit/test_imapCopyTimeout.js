@@ -14,7 +14,6 @@ load("../../../resources/alertTestUtils.js");
 load("../../../resources/messageGenerator.js");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 // Globals
 Components.utils.import("resource:///modules/mailServices.js");

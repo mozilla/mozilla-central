@@ -14,7 +14,6 @@ load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 setupIMAPPump("CUSTOM1");
 
 var gFolder1;

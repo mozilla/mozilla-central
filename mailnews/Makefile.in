@@ -22,6 +22,7 @@ RESDIR = $(srcdir)/test/resources
 FAKESERVER := $(srcdir)/test/fakeserver
 TESTING_JS_MODULE_DIR = mailnews
 TESTING_JS_MODULES += \
+	$(RESDIR)/IMAPpump.js \
 	$(RESDIR)/localAccountUtils.js \
 	$(RESDIR)/mailDirService.js \
 	$(RESDIR)/mailTestUtils.js \

@@ -3,7 +3,6 @@
 
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
-load("../../../resources/IMAPpump.js");
 
 var gFolder1, gFolder2;
 

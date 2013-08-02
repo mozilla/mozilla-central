@@ -7,7 +7,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 

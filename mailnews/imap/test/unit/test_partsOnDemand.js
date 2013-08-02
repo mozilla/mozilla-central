@@ -20,7 +20,6 @@ Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 var gSecondMsg;
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 setupIMAPPump();
 

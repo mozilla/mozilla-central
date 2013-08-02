@@ -16,7 +16,6 @@ Components.utils.import("resource:///modules/gloda/mimemsg.js", mimeMsg);
 Components.utils.import("resource:///modules/mailServices.js");
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 
 const kAttachFileName = 'bob.txt';
 

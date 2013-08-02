@@ -11,20 +11,16 @@
  *  then.
  */
 
+var EXPORTED_SYMBOLS = [
+  'IMAPPump',
+  'setupIMAPPump',
+  'teardownIMAPPump'
+];
+
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/Services.jsm");
+Components.utils.import("resource:///modules/XPCOMUtils.jsm");
 Components.utils.import("resource://testing-common/mailnews/localAccountUtils.js");
-
-// Make sure we execute this file exactly once
-if (typeof gIMAPpump_js__ == "undefined") {
-var gIMAPpump_js__ = true;
-
-// We can be executed from multiple depths
-// Provide understandable error message
-if (typeof gDEPTH == "undefined")
-  do_throw("gDEPTH must be defined when using IMAPpump.js");
-
-// add imap fake server methods if missing
-
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/auth.js");
 Components.utils.import("resource://testing-common/mailnews/imapd.js");
@@ -38,6 +34,7 @@ var IMAPPump = {
   mailbox: null         // imap fake server mailbox
 };
 var gAppInfo;            // application info
+var Ci = Components.interfaces;
 
 function setupIMAPPump(extensions)
 {
@@ -163,5 +160,3 @@ function createAppInfo(id, name, version, platformVersion) {
                             XULAPPINFO_CONTRACTID, XULAppInfoFactory);
 
 }
-
-} // end run only once

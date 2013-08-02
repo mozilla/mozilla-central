@@ -22,7 +22,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 
-load("../../../resources/IMAPpump.js");
 
 
 // Messages to load must have CRLF line endings, that is Windows style

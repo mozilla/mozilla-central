@@ -9,6 +9,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://testing-common/mailnews/mailDirService.js");
 Components.utils.import("resource://testing-common/mailnews/mailTestUtils.js");
 Components.utils.import("resource://testing-common/mailnews/localAccountUtils.js");
+Components.utils.import("resource://testing-common/mailnews/IMAPpump.js");
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;

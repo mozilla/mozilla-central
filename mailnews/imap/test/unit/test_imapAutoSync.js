@@ -18,7 +18,6 @@
 // get put in the front of the queue.
 
 // IMAP pump
-load("../../../resources/IMAPpump.js");
 load("../../../resources/logHelper.js");
 
 load("../../../resources/asyncTestUtils.js");

@@ -7,7 +7,6 @@
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
-load("../../../resources/IMAPpump.js");
 
 const gFileName = "bug460636";
 const gMsgFile = do_get_file("../../../data/" + gFileName);
