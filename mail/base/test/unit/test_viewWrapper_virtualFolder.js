@@ -33,7 +33,7 @@ function test_virtual_folder_single_load_no_pred() {
   let virtFolder = make_virtual_folder([folderOne], {});
   yield async_view_open(viewWrapper, virtFolder);
 
-  do_check_true(viewWrapper.isVirtual, true);
+  do_check_true(viewWrapper.isVirtual);
 
   assert_equals(gMockViewWrapperListener.allMessagesLoadedEventCount, 1,
                 "Should only have received a single all messages loaded" +
