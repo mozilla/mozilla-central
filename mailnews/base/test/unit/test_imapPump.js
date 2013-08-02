@@ -32,12 +32,12 @@ var tests = [
 // load and update a message in the imap fake server
 function loadImapMessage()
 {
-  gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
-                          gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(new imapMessage(specForFileName(gMessage),
+                          IMAPPump.mailbox.uidnext++, []));
+  IMAPPump.inbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
   yield false;
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
   yield true;
 }

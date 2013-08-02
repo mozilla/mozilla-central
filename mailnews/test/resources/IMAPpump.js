@@ -30,11 +30,13 @@ Components.utils.import("resource://testing-common/mailnews/auth.js");
 Components.utils.import("resource://testing-common/mailnews/imapd.js");
 
 // define globals
-var gIMAPDaemon;         // the imap fake server daemon
-var gIMAPServer;         // the imap fake server
-var gIMAPIncomingServer; // nsIMsgIncomingServer for the imap server
-var gIMAPInbox;          // nsIMsgFolder/nsIMsgImapMailFolder for imap inbox
-var gIMAPMailbox;        // imap fake server mailbox
+var IMAPPump = {
+  daemon: null,         // the imap fake server daemon
+  server: null,         // the imap fake server
+  incomingServer: null, // nsIMsgIncomingServer for the imap server
+  inbox: null,          // nsIMsgFolder/nsIMsgImapMailFolder for imap inbox
+  mailbox: null         // imap fake server mailbox
+};
 var gAppInfo;            // application info
 
 function setupIMAPPump(extensions)
@@ -75,10 +77,10 @@ function setupIMAPPump(extensions)
 
   // end copy from head_server.js
 
-  gIMAPDaemon = new imapDaemon();
-  gIMAPServer = makeServer(gIMAPDaemon, extensions);
+  IMAPPump.daemon = new imapDaemon();
+  IMAPPump.server = makeServer(IMAPPump.daemon, extensions);
 
-  gIMAPIncomingServer = createLocalIMAPServer();
+  IMAPPump.incomingServer = createLocalIMAPServer();
 
   if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
@@ -95,7 +97,7 @@ function setupIMAPPump(extensions)
   let imapAccount = MailServices.accounts.createAccount();
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
-  imapAccount.incomingServer = gIMAPIncomingServer;
+  imapAccount.incomingServer = IMAPPump.incomingServer;
 
   // The server doesn't support more than one connection
   Services.prefs.setIntPref("mail.server.default.max_cached_connections", 1);
@@ -107,24 +109,24 @@ function setupIMAPPump(extensions)
   Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
   Services.prefs.setBoolPref("mail.biff.alert.show_preview", false);
 
-  gIMAPIncomingServer.performExpand(null);
+  IMAPPump.incomingServer.performExpand(null);
 
-  gIMAPInbox = gIMAPIncomingServer.rootFolder.getChildNamed("INBOX");
-  gIMAPMailbox = gIMAPDaemon.getMailbox("INBOX");
-  gIMAPInbox instanceof Ci.nsIMsgImapMailFolder;
+  IMAPPump.inbox = IMAPPump.incomingServer.rootFolder.getChildNamed("INBOX");
+  IMAPPump.mailbox = IMAPPump.daemon.getMailbox("INBOX");
+  IMAPPump.inbox instanceof Ci.nsIMsgImapMailFolder;
 }
 
 function teardownIMAPPump()
 {
-  gIMAPInbox = null;
-  gIMAPServer.resetTest();
+  IMAPPump.inbox = null;
+  IMAPPump.server.resetTest();
   try {
-    gIMAPIncomingServer.closeCachedConnections();
-    let serverSink = gIMAPIncomingServer.QueryInterface(Ci.nsIImapServerSink);
+    IMAPPump.incomingServer.closeCachedConnections();
+    let serverSink = IMAPPump.incomingServer.QueryInterface(Ci.nsIImapServerSink);
     serverSink.abortQueuedUrls();
   } catch (ex) {dump(ex);}
-  gIMAPServer.performTest();
-  gIMAPServer.stop();
+  IMAPPump.server.performTest();
+  IMAPPump.server.stop();
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);

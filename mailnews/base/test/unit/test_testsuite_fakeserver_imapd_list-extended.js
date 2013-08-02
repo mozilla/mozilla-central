@@ -38,23 +38,23 @@ var tests = [
 // be one test case.
 function setupMailboxes()
 {
-  gIMAPMailbox.flags = ["\\Marked", "\\NoInferiors"];
-  gIMAPMailbox.subscribed = true;
-  gIMAPDaemon.createMailbox("Fruit", {});
-  gIMAPDaemon.createMailbox("Fruit/Apple", {});
-  gIMAPDaemon.createMailbox("Fruit/Banana", {subscribed : true});
-  gIMAPDaemon.createMailbox("Fruit/Peach", {nonExistent : true,
+  IMAPPump.mailbox.flags = ["\\Marked", "\\NoInferiors"];
+  IMAPPump.mailbox.subscribed = true;
+  IMAPPump.daemon.createMailbox("Fruit", {});
+  IMAPPump.daemon.createMailbox("Fruit/Apple", {});
+  IMAPPump.daemon.createMailbox("Fruit/Banana", {subscribed : true});
+  IMAPPump.daemon.createMailbox("Fruit/Peach", {nonExistent : true,
                                             subscribed : true});
-  gIMAPDaemon.createMailbox("Tofu", {});
-  gIMAPDaemon.createMailbox("Vegetable", {subscribed : true});
-  gIMAPDaemon.createMailbox("Vegetable/Broccoli", {subscribed : true});
-  gIMAPDaemon.createMailbox("Vegetable/Corn", {});
+  IMAPPump.daemon.createMailbox("Tofu", {});
+  IMAPPump.daemon.createMailbox("Vegetable", {subscribed : true});
+  IMAPPump.daemon.createMailbox("Vegetable/Broccoli", {subscribed : true});
+  IMAPPump.daemon.createMailbox("Vegetable/Corn", {});
 
-  handler = gIMAPServer._handlerCreator(gIMAPDaemon);
+  handler = IMAPPump.server._handlerCreator(IMAPPump.daemon);
   let response = handler.onError('1', 'LOGIN user password');
   do_check_true(response.contains('OK'));
   // wait for imap pump to do it's thing or else we get memory leaks
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -168,5 +168,5 @@ function recursiveDeleteMailboxes(aMailbox)
   for each (var child in aMailbox.allChildren) {
     recursiveDeleteMailboxes(child);
   }
-  gIMAPDaemon.deleteMailbox(aMailbox);
+  IMAPPump.daemon.deleteMailbox(aMailbox);
 }

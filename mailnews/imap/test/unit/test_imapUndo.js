@@ -68,21 +68,21 @@ alertListener.prototype = {
 var tests = [
   setup,
   function updateFolder() {
-    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
   function deleteMessage() {
-    let msgToDelete = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
+    let msgToDelete = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     gMessages.appendElement(msgToDelete, false);
-    gIMAPInbox.deleteMessages(gMessages, gMsgWindow, false, true, asyncCopyListener, true);
+    IMAPPump.inbox.deleteMessages(gMessages, gMsgWindow, false, true, asyncCopyListener, true);
     yield false;
   },
   function expunge() {
-    gIMAPInbox.expunge(asyncUrlListener, gMsgWindow);
+    IMAPPump.inbox.expunge(asyncUrlListener, gMsgWindow);
     yield false;
 
     // Ensure that the message has been surely deleted.
-    do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 3);
+    do_check_eq(IMAPPump.inbox.msgDatabase.dBFolderInfo.numMessages, 3);
   },
   function undoDelete() {
     gMsgWindow.transactionManager.undoTransaction();
@@ -95,13 +95,13 @@ var tests = [
     yield false;
   },
   function goBackToInbox() {
-    gIMAPInbox.updateFolderWithListener(gMsgWindow, asyncUrlListener);
+    IMAPPump.inbox.updateFolderWithListener(gMsgWindow, asyncUrlListener);
     yield false;
   },
   function verifyFolders() {
-    let msgRestored = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
+    let msgRestored = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     do_check_neq(msgRestored, null);
-    do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 4);
+    do_check_eq(IMAPPump.inbox.msgDatabase.dBFolderInfo.numMessages, 4);
   },
   teardown
 ];
@@ -119,13 +119,13 @@ function setup() {
   gMsgWindow = Cc["@mozilla.org/messenger/msgwindow;1"]
                   .createInstance(Components.interfaces.nsIMsgWindow);
 
-  gRootFolder = gIMAPIncomingServer.rootFolder;
+  gRootFolder = IMAPPump.incomingServer.rootFolder;
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  gIMAPInbox.hierarchyDelimiter = '/';
-  gIMAPInbox.verifiedAsOnlineFolder = true;
+  IMAPPump.inbox.hierarchyDelimiter = '/';
+  IMAPPump.inbox.verifiedAsOnlineFolder = true;
 
 
   // Add a couple of messages to the INBOX
@@ -134,7 +134,7 @@ function setup() {
                        {file: gMsgFile4, messageId: gMsgId4},
                        {file: gMsgFile5, messageId: gMsgId5},
                        {file: gMsgFile2, messageId: gMsgId2}],
-                      gIMAPMailbox, gIMAPInbox);
+                      IMAPPump.mailbox, IMAPPump.inbox);
 }
 
 asyncUrlListener.callback = function(aUrl, aExitCode) {

@@ -32,9 +32,9 @@ var tests = [
 // Adds some messages directly to a mailbox (eg new mail)
 function addMessageToServer() {
   let URI = Services.io.newFileURI(gFile).QueryInterface(Ci.nsIFileURL);
-  gIMAPMailbox.addMessage(new imapMessage(URI.spec, gIMAPMailbox.uidnext++, []));
+  IMAPPump.mailbox.addMessage(new imapMessage(URI.spec, IMAPPump.mailbox.uidnext++, []));
 
-  gIMAPInbox.updateFolder(null);
+  IMAPPump.inbox.updateFolder(null);
   yield false;
 }
 
@@ -51,11 +51,11 @@ function setup() {
   // Set up nsIMsgFolderListener to get the header when it's received
   MailServices.mfn.addListener(msgFolderListener, MailServices.mfn.msgAdded);
 
-  gIMAPInbox.flags &= ~Ci.nsMsgFolderFlags.Offline;
+  IMAPPump.inbox.flags &= ~Ci.nsMsgFolderFlags.Offline;
 }
 
 function verifyContentLength() {
-  let messageUri = gIMAPInbox.getUriForMsg(gMsgHdr);
+  let messageUri = IMAPPump.inbox.getUriForMsg(gMsgHdr);
   // Convert this to a URI that necko can run
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
   let neckoURL = {};

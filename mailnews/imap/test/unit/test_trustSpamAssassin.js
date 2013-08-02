@@ -39,10 +39,10 @@ var tests = [
 let gJunkFolder;
 function createJunkFolder()
 {
-  gIMAPIncomingServer.rootFolder.createSubfolder("Junk", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("Junk", null);
   dl('wait for folderAdded');
   yield false;
-  gJunkFolder = gIMAPIncomingServer.rootFolder.getChildNamed("Junk");
+  gJunkFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("Junk");
   do_check_true(gJunkFolder instanceof Ci.nsIMsgImapMailFolder);
   gJunkFolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
@@ -55,13 +55,13 @@ function createJunkFolder()
  */
 function loadImapMessage()
 {
-  gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
-                          gIMAPMailbox.uidnext++, []));
+  IMAPPump.mailbox.addMessage(new imapMessage(specForFileName(gMessage),
+                          IMAPPump.mailbox.uidnext++, []));
   /*
    * The message matched the SpamAssassin header, so it moved
    *  to the junk folder
    */
-  gIMAPInbox.updateFolder(null);
+  IMAPPump.inbox.updateFolder(null);
   dl('wait for msgsMoveCopyCompleted');
   yield false;
   gJunkFolder.updateFolderWithListener(null, asyncUrlListener);
@@ -71,7 +71,7 @@ function loadImapMessage()
 
 function testMessageInJunk()
 {
-  do_check_eq(0, gIMAPInbox.getTotalMessages(false));
+  do_check_eq(0, IMAPPump.inbox.getTotalMessages(false));
   do_check_eq(1, gJunkFolder.getTotalMessages(false));
   yield true;
 }
@@ -108,7 +108,7 @@ function markMessageAsGood()
                     in boolean allowUndo);
   */
 
-  MailServices.copy.CopyMessages(gJunkFolder, messages, gIMAPInbox, true,
+  MailServices.copy.CopyMessages(gJunkFolder, messages, IMAPPump.inbox, true,
                                  null, null, false);
   dl('wait for msgsMoveCopyCompleted');
   yield false;
@@ -116,14 +116,14 @@ function markMessageAsGood()
 
 function updateFoldersAndCheck()
 {
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
   yield false;
   gJunkFolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
   yield false;
   // bug 540385 causes this test to fail
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
   do_check_eq(0, gJunkFolder.getTotalMessages(false));
   yield true;
 }
@@ -135,7 +135,7 @@ function endTest()
 
 function run_test()
 {
-  let server = gIMAPIncomingServer;
+  let server = IMAPPump.incomingServer;
   let spamSettings = server.spamSettings;
   server.setBoolValue("useServerFilter", true);
   server.setCharValue("serverFilterName", "SpamAssassin");

@@ -30,8 +30,8 @@ function setup() {
   var msgfileuri =
     Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
-  gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec, gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(new imapMessage(msgfileuri.spec, IMAPPump.mailbox.uidnext++, []));
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 
   /*
@@ -54,7 +54,7 @@ function setup() {
    * test also runs successfully on platforms not using CRLF by default.
    */
   gIMAPService.SaveMessageToDisk("imap-message://user@localhost/INBOX#"
-                                 + (gIMAPMailbox.uidnext-1), gSavedMsgFile,
+                                 + (IMAPPump.mailbox.uidnext-1), gSavedMsgFile,
                                  false, asyncUrlListener, {}, true, null);
   yield false;
 }

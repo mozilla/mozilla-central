@@ -14,23 +14,23 @@ const kIDResponse = "(\"name\" \"GImap\" \"vendor\" \"Google, Inc.\" \"support-u
 var tests = [
   setup,
   function updateInbox() {
-    let rootFolder = gIMAPIncomingServer.rootFolder;
-    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    let rootFolder = IMAPPump.incomingServer.rootFolder;
+    IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
   function checkIDHandling() {
-    do_check_eq(gIMAPDaemon.clientID, "(\"name\" \"XPCShell\" \"version\" \"5\")");
-    do_check_eq(gIMAPIncomingServer.serverIDPref, kIDResponse);
+    do_check_eq(IMAPPump.daemon.clientID, "(\"name\" \"XPCShell\" \"version\" \"5\")");
+    do_check_eq(IMAPPump.incomingServer.serverIDPref, kIDResponse);
   },
   teardown
 ]
 
 function setup() {
   setupIMAPPump("GMail");
-  gIMAPDaemon.idResponse = kIDResponse;
+  IMAPPump.daemon.idResponse = kIDResponse;
 
   // update folder to kick start tests.
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 

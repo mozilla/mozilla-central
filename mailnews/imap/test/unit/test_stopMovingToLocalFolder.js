@@ -16,8 +16,8 @@ load("../../../resources/IMAPpump.js");
 setupIMAPPump();
 
 function stop_server() {
-  gIMAPIncomingServer.closeCachedConnections();
-  gIMAPServer.stop();
+  IMAPPump.incomingServer.closeCachedConnections();
+  IMAPPump.server.stop();
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
@@ -49,40 +49,40 @@ function setup_messages() {
   let messageString = messageGenerator.makeMessage().toMessageString();
   let dataUri = Services.io.newURI("data:text/plain;base64," + btoa(messageString),
                                    null, null);
-  let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
-  gIMAPMailbox.addMessage(imapMsg);
+  let imapMsg = new imapMessage(dataUri.spec, IMAPPump.mailbox.uidnext++, []);
+  IMAPPump.mailbox.addMessage(imapMsg);
 
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
 function move_messages() {
   let messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-  let msg = gIMAPInbox.msgDatabase.GetMsgHdrForKey(gIMAPMailbox.uidnext - 1);
+  let msg = IMAPPump.inbox.msgDatabase.GetMsgHdrForKey(IMAPPump.mailbox.uidnext - 1);
   messages.appendElement(msg, false);
-  MailServices.copy.CopyMessages(gIMAPInbox, messages, localAccountUtils.inboxFolder,
+  MailServices.copy.CopyMessages(IMAPPump.inbox, messages, localAccountUtils.inboxFolder,
                                  true, asyncCopyListener, null, false);
   yield false;
 }
 
 function check_messages() {
-  do_check_eq(gIMAPInbox.getTotalMessages(false), 1);
+  do_check_eq(IMAPPump.inbox.getTotalMessages(false), 1);
   do_check_eq(localAccountUtils.inboxFolder.getTotalMessages(false), 0);
   yield true;
 }
 
 function run_test() {
   do_register_cleanup(function() {
-    // gIMAPServer.performTest() brings this test to a halt,
-    // so we need teardownIMAPPump() without gIMAPServer.performTest().
-    gIMAPInbox = null;
-    gIMAPServer.resetTest();
+    // IMAPPump.server.performTest() brings this test to a halt,
+    // so we need teardownIMAPPump() without IMAPPump.server.performTest().
+    IMAPPump.inbox = null;
+    IMAPPump.server.resetTest();
     try {
-      gIMAPIncomingServer.closeCachedConnections();
-      let serverSink = gIMAPIncomingServer.QueryInterface(Ci.nsIImapServerSink);
+      IMAPPump.incomingServer.closeCachedConnections();
+      let serverSink = IMAPPump.incomingServer.QueryInterface(Ci.nsIImapServerSink);
       serverSink.abortQueuedUrls();
     } catch (ex) {dump(ex);}
-    gIMAPServer.stop();
+    IMAPPump.server.stop();
     let thread = gThreadManager.currentThread;
     while (thread.hasPendingEvents())
       thread.processNextEvent(true);

@@ -67,7 +67,7 @@ function checkOfflineStore(prevOfflineStoreSize) {
   dump("checking offline store\n");
   let offset = new Object;
   let size = new Object;
-  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
   if (enumerator)
   {
     while (enumerator.hasMoreElements())
@@ -77,12 +77,12 @@ function checkOfflineStore(prevOfflineStoreSize) {
       // starts with "From " - otherwise, it returns an error.
       if (header instanceof Components.interfaces.nsIMsgDBHdr &&
          (header.flags & Ci.nsMsgMessageFlags.Offline))
-        gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
+        IMAPPump.inbox.getOfflineFileStream(header.messageKey, offset, size).close();
     }
   }
   // check that the offline store shrunk by at least 100 bytes.
   // (exact calculation might be fragile).
-  do_check_true(prevOfflineStoreSize > gIMAPInbox.filePath.fileSize + 100);
+  do_check_true(prevOfflineStoreSize > IMAPPump.inbox.filePath.fileSize + 100);
 }
 
 var tests = [
@@ -90,25 +90,25 @@ var tests = [
   function downloadForOffline() {
     // ...and download for offline use.
     dump("Downloading for offline use\n");
-    gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+    IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
     yield false;
   },
   function markOneMsgDeleted() {
     // mark a message deleted, and then do a compact of just
     // that folder.
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId5);
+    let msgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId5);
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
     // store the deleted flag
-    gIMAPInbox.storeImapFlags(0x0008, true, [msgHdr.messageKey], 1, asyncUrlListener);
+    IMAPPump.inbox.storeImapFlags(0x0008, true, [msgHdr.messageKey], 1, asyncUrlListener);
     yield false;
   },
   function compactOneFolder() {
-    gIMAPIncomingServer.deleteModel = Ci.nsMsgImapDeleteModels.IMAPDelete;
+    IMAPPump.incomingServer.deleteModel = Ci.nsMsgImapDeleteModels.IMAPDelete;
     // asyncUrlListener will get called when both expunge and offline store
     // compaction are finished. dummyMsgWindow is required to make the backend
     // compact the offline store.
-    gIMAPInbox.compact(asyncUrlListener, gDummyMsgWindow);
+    IMAPPump.inbox.compact(asyncUrlListener, gDummyMsgWindow);
     yield false;
   },
   function deleteOneMessage() {
@@ -117,11 +117,11 @@ var tests = [
     tmpFile.append("nstmp");
     do_check_false(tmpFile.exists());
     dump("deleting one message\n");
-    gIMAPIncomingServer.deleteModel = Ci.nsMsgImapDeleteModels.MoveToTrash;
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
+    IMAPPump.incomingServer.deleteModel = Ci.nsMsgImapDeleteModels.MoveToTrash;
+    let msgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
-    gIMAPInbox.deleteMessages(array, null, false, true, CopyListener, false);
+    IMAPPump.inbox.deleteMessages(array, null, false, true, CopyListener, false);
     let trashFolder = gRootFolder.getChildNamed("Trash");
     // hack to force uid validity to get initialized for trash.
     trashFolder.updateFolder(null);
@@ -129,7 +129,7 @@ var tests = [
   },
   function compactOfflineStore() {
     dump("compacting offline store\n");
-    gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize;
+    gImapInboxOfflineStoreSize = IMAPPump.inbox.filePath.fileSize;
     gRootFolder.compactAll(asyncUrlListener, null, true);
     yield false;
   },
@@ -139,9 +139,9 @@ var tests = [
     yield false;
   },
   function testPendingRemoval() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
-    gIMAPInbox.markPendingRemoval(msgHdr, true);
-    gImapInboxOfflineStoreSize = gIMAPInbox.filePath.fileSize;
+    let msgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
+    IMAPPump.inbox.markPendingRemoval(msgHdr, true);
+    gImapInboxOfflineStoreSize = IMAPPump.inbox.filePath.fileSize;
     gRootFolder.compactAll(asyncUrlListener, null, true);
     yield false;
   },
@@ -152,7 +152,7 @@ var tests = [
     checkOfflineStore(gImapInboxOfflineStoreSize);
     asyncUrlListener.OnStopRunningUrl(null, 0);
     yield false;
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
+    let msgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId2);
     do_check_eq(msgHdr.flags & Ci.nsMsgMessageFlags.Offline, 0);
   },
   teardown
@@ -161,20 +161,20 @@ var tests = [
 function setup() {
   setupIMAPPump();
 
-  gRootFolder = gIMAPIncomingServer.rootFolder;
+  gRootFolder = IMAPPump.incomingServer.rootFolder;
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  gIMAPInbox.hierarchyDelimiter = '/';
-  gIMAPInbox.verifiedAsOnlineFolder = true;
+  IMAPPump.inbox.hierarchyDelimiter = '/';
+  IMAPPump.inbox.verifiedAsOnlineFolder = true;
 
   let messageGenerator = new MessageGenerator();
   let messages = [];
   for (let i = 0; i < 50; i++)
     messages = messages.concat(messageGenerator.makeMessage());
 
-  addGeneratedMessagesToServer(messages, gIMAPDaemon.getMailbox("INBOX"));
+  addGeneratedMessagesToServer(messages, IMAPPump.daemon.getMailbox("INBOX"));
 
   // Add a couple of messages to the INBOX
   // this is synchronous, afaik
@@ -182,7 +182,7 @@ function setup() {
                         {file: gMsgFile4, messageId: gMsgId4},
                         {file: gMsgFile2, messageId: gMsgId2},
                         {file: gMsgFile5, messageId: gMsgId5}],
-                        gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
+                        IMAPPump.daemon.getMailbox("INBOX"), IMAPPump.inbox);
 }
 
 // nsIMsgCopyServiceListener implementation - runs next test when copy

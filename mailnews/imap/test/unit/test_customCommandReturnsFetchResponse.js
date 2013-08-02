@@ -42,18 +42,18 @@ var tests = [
 function loadImapMessage()
 {
   gMessage = new imapMessage(specForFileName(gMessageFileName),
-    gIMAPMailbox.uidnext++, []);
+    IMAPPump.mailbox.uidnext++, []);
   gMessage.xCustomList = [];
-  gIMAPMailbox.addMessage(gMessage);
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(gMessage);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
 function testStoreCustomList()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   gExpectedLength = gCustomList.length;
-  let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
+  let uri = IMAPPump.inbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     " X-CUSTOM-LIST (" + gCustomList.join(" ") + ")", gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
   uri.RegisterListener(storeCustomListSetListener);
@@ -75,9 +75,9 @@ var storeCustomListSetListener = {
 
 function testStoreMinusCustomList()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   gExpectedLength--;
-  let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
+  let uri = IMAPPump.inbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     " -X-CUSTOM-LIST (" + gCustomList[0] + ")", gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
   uri.RegisterListener(storeCustomListRemovedListener);
@@ -99,9 +99,9 @@ var storeCustomListRemovedListener = {
 
 function testStorePlusCustomList()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   gExpectedLength++;
-  let uri = gIMAPInbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
+  let uri = IMAPPump.inbox.issueCommandOnMsgs("STORE", msgHdr.messageKey +
     ' +X-CUSTOM-LIST ("Custom4")', gMsgWindow);
   uri.QueryInterface(Ci.nsIMsgMailNewsUrl);
   uri.RegisterListener(storeCustomListAddedListener);

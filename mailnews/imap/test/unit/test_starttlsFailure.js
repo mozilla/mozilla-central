@@ -26,10 +26,10 @@ var tests = [
 
 function setup() {
   // set up IMAP fakeserver and incoming server
-  gIMAPDaemon = new imapDaemon();
-  gIMAPServer = makeServer(gIMAPDaemon, "", {dropOnStartTLS: true});
-  gIMAPIncomingServer = createLocalIMAPServer();
-  gIMAPIncomingServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
+  IMAPPump.daemon = new imapDaemon();
+  IMAPPump.server = makeServer(IMAPPump.daemon, "", {dropOnStartTLS: true});
+  IMAPPump.incomingServer = createLocalIMAPServer();
+  IMAPPump.incomingServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
 
   // we need a local account for the IMAP server to have its sent messages in
   localAccountUtils.loadLocalMailAccount();
@@ -39,7 +39,7 @@ function setup() {
   let identity = MailServices.accounts.createIdentity();
   imapAccount.addIdentity(identity);
   imapAccount.defaultIdentity = identity;
-  imapAccount.incomingServer = gIMAPIncomingServer;
+  imapAccount.incomingServer = IMAPPump.incomingServer;
   MailServices.accounts.defaultAccount = imapAccount;
 
   // The server doesn't support more than one connection
@@ -47,12 +47,12 @@ function setup() {
   // We aren't interested in downloading messages automatically
   Services.prefs.setBoolPref("mail.server.server1.download_on_biff", false);
 
-  gIMAPInbox = gIMAPIncomingServer.rootFolder.getChildNamed("Inbox")
+  IMAPPump.inbox = IMAPPump.incomingServer.rootFolder.getChildNamed("Inbox")
                                   .QueryInterface(Ci.nsIMsgImapMailFolder);
 
   registerAlertTestUtils();
 
-  gIMAPInbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(gDummyMsgWindow, asyncUrlListener);
   yield false;
 }
 
@@ -65,8 +65,8 @@ function check_alert() {
 }
 
 function teardown() {
-  gIMAPIncomingServer.closeCachedConnections();
-  gIMAPServer.stop();
+  IMAPPump.incomingServer.closeCachedConnections();
+  IMAPPump.server.stop();
 
   var thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())

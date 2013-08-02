@@ -53,10 +53,10 @@ var tests = [
 let gTargetFolder;
 function createTargetFolder()
 {
-  gIMAPDaemon.copySleep = 5000;
-  gIMAPIncomingServer.rootFolder.createSubfolder("targetFolder", null);
+  IMAPPump.daemon.copySleep = 5000;
+  IMAPPump.incomingServer.rootFolder.createSubfolder("targetFolder", null);
   yield false; 
-  gTargetFolder = gIMAPIncomingServer.rootFolder.getChildNamed("targetFolder");
+  gTargetFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("targetFolder");
   do_check_true(gTargetFolder instanceof Ci.nsIMsgImapMailFolder);
   gTargetFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
@@ -73,13 +73,13 @@ function loadImapMessage()
     Services.io.newURI("data:text/plain;base64," +
                        btoa(messages[0].toMessageString()),
                        null, null);
-  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
+  let imapInbox = IMAPPump.daemon.getMailbox("INBOX");
   gMessage = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
-  gIMAPMailbox.addMessage(gMessage);
-  gIMAPInbox.updateFolder(null);
+  IMAPPump.mailbox.addMessage(gMessage);
+  IMAPPump.inbox.updateFolder(null);
   yield false;
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   yield true;
@@ -88,7 +88,7 @@ function loadImapMessage()
 // move the message to a diffent folder
 function moveMessageToTargetFolder()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
 
   // Now move this message to the target folder.
   var messages = Cc["@mozilla.org/array;1"]
@@ -96,7 +96,7 @@ function moveMessageToTargetFolder()
   messages.appendElement(msgHdr, false);
   // This should cause the move to be done as an offline imap operation
   // that's played back immediately.
-  MailServices.copy.CopyMessages(gIMAPInbox, messages, gTargetFolder, true,
+  MailServices.copy.CopyMessages(IMAPPump.inbox, messages, gTargetFolder, true,
                                  CopyListener, gDummyMsgWindow, true);
   yield false;
 }
@@ -121,7 +121,7 @@ function endTest()
 {
   do_check_true(gGotAlert);
   // Make sure neither source nor target folder have offline events.
-  do_check_false(gIMAPInbox.getFlag(Ci.nsMsgFolderFlags.OfflineEvents));
+  do_check_false(IMAPPump.inbox.getFlag(Ci.nsMsgFolderFlags.OfflineEvents));
   do_check_false(gTargetFolder.getFlag(Ci.nsMsgFolderFlags.OfflineEvents));
 
   // fake server does the copy, but then times out, so make sure the target

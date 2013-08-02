@@ -54,21 +54,21 @@ function loadImapMessage()
   let file = do_get_file("../../../data/bodystructuretest1");
   let msgURI = Services.io.newFileURI(file).QueryInterface(Ci.nsIFileURL);
 
-  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
+  let imapInbox = IMAPPump.daemon.getMailbox("INBOX");
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
-  gIMAPMailbox.addMessage(message);
+  IMAPPump.mailbox.addMessage(message);
   // add a second message with no external parts. We want to make
   // sure that streaming this message doesn't mark it read, even
   // though we will fallback to fetching the whole message.
   file = do_get_file("../../../data/bodystructuretest3");
   msgURI = Services.io.newFileURI(file).QueryInterface(Ci.nsIFileURL);
   message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
-  gIMAPMailbox.addMessage(message);
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(message);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 
-  do_check_eq(2, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  do_check_eq(2, IMAPPump.inbox.getTotalMessages(false));
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
   yield true;
 }
@@ -76,7 +76,7 @@ function loadImapMessage()
 // process the message through mime
 function startMime()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, this, function (aMsgHdr, aMimeMessage) {
     let url = aMimeMessage.allUserAttachments[0].url;
@@ -91,7 +91,7 @@ function startMime()
 // test that we don't mark all inline messages as read.
 function testAllInlineMessage()
 {
-  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
 
   if (enumerator.hasMoreElements())
   {
@@ -107,17 +107,17 @@ function updateCounts()
 {
   // select the trash, then the inbox again, to force an update of the 
   // read state of messages.
-  let trash = gIMAPIncomingServer.rootFolder.getChildNamed("Trash");
+  let trash = IMAPPump.incomingServer.rootFolder.getChildNamed("Trash");
   do_check_true(trash instanceof Ci.nsIMsgImapMailFolder);
   trash.updateFolderWithListener(null, asyncUrlListener);
   yield false;
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
 function testNotRead()
 {
-  do_check_eq(2, gIMAPInbox.getNumUnread(false));
+  do_check_eq(2, IMAPPump.inbox.getNumUnread(false));
   yield true;
 }
 

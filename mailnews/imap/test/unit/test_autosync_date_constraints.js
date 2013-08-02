@@ -28,12 +28,12 @@ var tests = [
   function downloadForOffline() {
     // ...and download for offline use.
     // This downloads all messages, ignoring the autosync age constraints.
-    gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+    IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
     yield false;
   },
   function applyRetentionSettings() {
-    gIMAPInbox.applyRetentionSettings();
-    let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+    IMAPPump.inbox.applyRetentionSettings();
+    let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
     if (enumerator) {
       let now = new Date();
       let dateInSeconds = now.getSeconds();
@@ -57,8 +57,8 @@ function setup() {
 
   setupIMAPPump();
 
-  gRootFolder = gIMAPIncomingServer.rootFolder;
-  gMsgImapInboxFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  gRootFolder = IMAPPump.incomingServer.rootFolder;
+  gMsgImapInboxFolder = IMAPPump.inbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
@@ -79,7 +79,7 @@ function setup() {
   messages = messages.concat(messageGenerator.makeMessage({age: {days: 10, hours: 1}}));
 
   addMessagesToServer(messages,
-                      gIMAPDaemon.getMailbox("INBOX"), gIMAPInbox);
+                      IMAPPump.daemon.getMailbox("INBOX"), IMAPPump.inbox);
 }
 
 function teardown() {

@@ -42,7 +42,7 @@ function checkOfflineStore(prevOfflineStoreSize) {
   dump("checking offline store\n");
   let offset = new Object;
   let size = new Object;
-  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
   if (enumerator)
   {
     while (enumerator.hasMoreElements())
@@ -52,12 +52,12 @@ function checkOfflineStore(prevOfflineStoreSize) {
       // starts with "From " - otherwise, it returns an error.
       if (header instanceof Components.interfaces.nsIMsgDBHdr &&
          (header.flags & Ci.nsMsgMessageFlags.Offline))
-        gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
+        IMAPPump.inbox.getOfflineFileStream(header.messageKey, offset, size).close();
     }
   }
   // check that the offline store shrunk by at least 100 bytes.
   // (exact calculation might be fragile).
-  do_check_true(prevOfflineStoreSize > gIMAPInbox.filePath.fileSize + 100);
+  do_check_true(prevOfflineStoreSize > IMAPPump.inbox.filePath.fileSize + 100);
 }
 
 var tests = [
@@ -65,19 +65,19 @@ var tests = [
   function downloadForOffline() {
     // ...and download for offline use.
     dump("Downloading for offline use\n");
-    gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+    IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
     yield false;
   },
   function deleteOneMsg() {
-    let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+    let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
     let msgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
-    gIMAPInbox.deleteMessages(array, null, false, true, CopyListener, false);
+    IMAPPump.inbox.deleteMessages(array, null, false, true, CopyListener, false);
     yield false;
   },
   function compactOneFolder() {
-    let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+    let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
     let msgHdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     gStreamedHdr = msgHdr;
     // mark the message as not being offline, and then we'll make sure that
@@ -85,14 +85,14 @@ var tests = [
     // message being marked for offline use.
     // Luckily, compaction compacts the offline store first, so it should
     // lock the offline store.
-    gIMAPInbox.msgDatabase.MarkOffline(msgHdr.messageKey, false, null);
+    IMAPPump.inbox.msgDatabase.MarkOffline(msgHdr.messageKey, false, null);
     let msgURI = msgHdr.folder.getUriForMsg(msgHdr);
     let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
     let msgServ = messenger.messageServiceFromURI(msgURI);
     // UrlListener will get called when both expunge and offline store
     // compaction are finished. dummyMsgWindow is required to make the backend
     // compact the offline store.
-    gIMAPInbox.compact(asyncUrlListener, gDummyMsgWindow);
+    IMAPPump.inbox.compact(asyncUrlListener, gDummyMsgWindow);
     // Stream the message w/o a stream listener in an attempt to get the url
     // started more quickly, while the compact is still going on.
     msgServ.streamMessage(msgURI, null, null, asyncUrlListener, false, "", false);
@@ -105,15 +105,15 @@ var tests = [
     yield false;
   },
   function deleteAnOtherMsg() {
-    let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+    let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
     let msgHdr = enumerator.getNext();
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
-    gIMAPInbox.deleteMessages(array, null, false, true, CopyListener, false);
+    IMAPPump.inbox.deleteMessages(array, null, false, true, CopyListener, false);
     yield false;
   },
   function updateTrash() {
-    gIMAPTrashFolder = gIMAPIncomingServer.rootFolder.getChildNamed("Trash")
+    gIMAPTrashFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("Trash")
                          .QueryInterface(Ci.nsIMsgImapMailFolder);
     // hack to force uid validity to get initialized for trash.
     gIMAPTrashFolder.updateFolderWithListener(null, asyncUrlListener);
@@ -130,7 +130,7 @@ var tests = [
     // the body if the offline store is locked, we're going to go offline.
     // Thunderbird itself does move/copies pseudo-offline, but that's too
     // hard to test because of the half-second delay.
-    gIMAPServer.stop();
+    IMAPPump.server.stop();
     Services.io.offline = true;
     let trashHdr;
     let enumerator = gIMAPTrashFolder.msgDatabase.EnumerateMessages();
@@ -138,13 +138,13 @@ var tests = [
     gMovedMsgId = msgHdr.messageId;
     let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     array.appendElement(msgHdr, false);
-    gIMAPInbox.compact(asyncUrlListener, gDummyMsgWindow);
-    MailServices.copy.CopyMessages(gIMAPTrashFolder, array, gIMAPInbox, true,
+    IMAPPump.inbox.compact(asyncUrlListener, gDummyMsgWindow);
+    MailServices.copy.CopyMessages(gIMAPTrashFolder, array, IMAPPump.inbox, true,
                                    CopyListener, null, true);
   },
   function verifyNoOfflineMsg() {
     try {
-    let movedMsg = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMovedMsgId);
+    let movedMsg = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMovedMsgId);
     do_check_false(movedMsg.flags & Ci.nsMsgMessageFlags.Offline);
     } catch (ex) {dump(ex);}
     yield false;
@@ -162,7 +162,7 @@ function setup() {
 
   setupIMAPPump();
 
-  gMsgImapInboxFolder = gIMAPInbox.QueryInterface(Ci.nsIMsgImapMailFolder);
+  gMsgImapInboxFolder = IMAPPump.inbox.QueryInterface(Ci.nsIMsgImapMailFolder);
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
@@ -179,7 +179,7 @@ function setup() {
   for (let i = 0; i < 50; i++)
     messages = messages.concat(messageGenerator.makeMessage({body: {body: bodyString, contentType: "text/plain"}}));
 
-  addGeneratedMessagesToServer(messages, gIMAPDaemon.getMailbox("INBOX"));
+  addGeneratedMessagesToServer(messages, IMAPPump.daemon.getMailbox("INBOX"));
 }
 
 // nsIMsgCopyServiceListener implementation - runs next test when copy
@@ -206,11 +206,11 @@ function teardown() {
   gMsgImapInboxFolder = null;
   gIMAPTrashFolder = null;
 
-  // gIMAPServer has already stopped, we do not need to gIMAPServer.stop().
-  gIMAPInbox = null;
+  // IMAPPump.server has already stopped, we do not need to IMAPPump.server.stop().
+  IMAPPump.inbox = null;
   try {
-    gIMAPIncomingServer.closeCachedConnections();
-    let serverSink = gIMAPIncomingServer.QueryInterface(Ci.nsIImapServerSink);
+    IMAPPump.incomingServer.closeCachedConnections();
+    let serverSink = IMAPPump.incomingServer.QueryInterface(Ci.nsIImapServerSink);
     serverSink.abortQueuedUrls();
   } catch (ex) {dump(ex);}
   let thread = gThreadManager.currentThread;

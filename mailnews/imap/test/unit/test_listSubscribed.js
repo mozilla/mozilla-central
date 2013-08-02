@@ -40,14 +40,14 @@ var tests = [
 // setup the mailboxes that will be used for this test
 function setupMailboxes()
 {
-  gIMAPMailbox.subscribed = true;
-  gIMAPDaemon.createMailbox("folder1", {subscribed : true, flags : ["\\Noselect"]});
-  gIMAPDaemon.createMailbox("folder1/folder11", {subscribed : true, flags : ["\\Noinferiors"]});
-  gIMAPDaemon.createMailbox("folder2", {subscribed : true, nonExistent : true});
-  gIMAPDaemon.createMailbox("folder3", {});
+  IMAPPump.mailbox.subscribed = true;
+  IMAPPump.daemon.createMailbox("folder1", {subscribed : true, flags : ["\\Noselect"]});
+  IMAPPump.daemon.createMailbox("folder1/folder11", {subscribed : true, flags : ["\\Noinferiors"]});
+  IMAPPump.daemon.createMailbox("folder2", {subscribed : true, nonExistent : true});
+  IMAPPump.daemon.createMailbox("folder3", {});
 
   // select the inbox to force folder discovery, etc.
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -56,7 +56,7 @@ function testListSubscribed()
 {
   // check that we have \Noselect and \Noinferiors flags - these would not have
   // been returned if we had used LSUB instead of LIST(SUBSCRIBED)
-  let rootFolder = gIMAPIncomingServer.rootFolder;
+  let rootFolder = IMAPPump.incomingServer.rootFolder;
   let folder1 = rootFolder.getChildNamed("folder1");
   do_check_true(folder1.getFlag(nsMsgFolderFlags.ImapNoselect));
   do_check_false(folder1.getFlag(nsMsgFolderFlags.ImapNoinferiors));
@@ -93,18 +93,18 @@ function testZimbraServerVersions() {
                      { version : '9.0.0_GA_2790', expectedResult : true } ];
 
   for (let i = 0; i < testValues.length; i++) {
-    gIMAPDaemon.idResponse = '("NAME" "Zimbra" ' +
+    IMAPPump.daemon.idResponse = '("NAME" "Zimbra" ' +
                              '"VERSION" "' + testValues[i].version + '" ' +
                              '"RELEASE" "20120815212257" ' +
                              '"USER" "user@domain.com" ' +
                              '"SERVER" "14b63305-d002-4f1b-bcd9-23d402d4ef40")';
-    gIMAPIncomingServer.closeCachedConnections();
-    gIMAPIncomingServer.performExpand(null);
+    IMAPPump.incomingServer.closeCachedConnections();
+    IMAPPump.incomingServer.performExpand(null);
     // select inbox is just to wait on performExpand since performExpand does not have listener
-    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
     yield false;
     // if we send LSUB instead of LIST(SUBSCRIBED), then we should not have \NoSelect flag
-    let rootFolder = gIMAPIncomingServer.rootFolder;
+    let rootFolder = IMAPPump.incomingServer.rootFolder;
     let folder1 = rootFolder.getChildNamed("folder1");
     do_check_eq(folder1.getFlag(nsMsgFolderFlags.ImapNoselect), testValues[i].expectedResult);
   }
@@ -139,5 +139,5 @@ function recursiveDeleteMailboxes(aMailbox)
   for each (var child in aMailbox.allChildren) {
     recursiveDeleteMailboxes(child);
   }
-  gIMAPDaemon.deleteMailbox(aMailbox);
+  IMAPPump.daemon.deleteMailbox(aMailbox);
 }

@@ -175,7 +175,7 @@ DBListener.prototype =
       if (gInboxListener)
       {
         try {
-          gIMAPInbox.msgDatabase.RemoveListener(gInboxListener);
+          IMAPPump.inbox.msgDatabase.RemoveListener(gInboxListener);
         }
         catch (e) {dump(" listener not found\n");}
       }

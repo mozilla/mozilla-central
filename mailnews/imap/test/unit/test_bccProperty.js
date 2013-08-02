@@ -31,22 +31,22 @@ function setup() {
   let msgfileuri =
     Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
-  gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec,
-                                          gIMAPMailbox.uidnext++, []));
+  IMAPPump.mailbox.addMessage(new imapMessage(msgfileuri.spec,
+                                          IMAPPump.mailbox.uidnext++, []));
 
   // ...and download for offline use.
-  gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+  IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
   yield false;
 }
 
 function downloadAllForOffline() {
-  gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+  IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
   yield false;
 }
 
 function checkBccs() {
   // locate the new message by enumerating through the database
-  let enumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  let enumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
   while(enumerator.hasMoreElements()) {
     let hdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
     do_check_true(hdr.bccList.contains("Another Person"));

@@ -64,9 +64,9 @@ function test_createTargetFolder()
 {
   gAutoSyncManager.addListener(gAutoSyncListener);
 
-  gIMAPIncomingServer.rootFolder.createSubfolder("targetFolder", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("targetFolder", null);
   yield false;
-  gTargetFolder = gIMAPIncomingServer.rootFolder.getChildNamed("targetFolder");
+  gTargetFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("targetFolder");
   do_check_true(gTargetFolder instanceof Ci.nsIMsgImapMailFolder);
   // set folder to be checked for new messages when inbox is checked.
   gTargetFolder.setFlag(Ci.nsMsgFolderFlags.CheckNew);
@@ -77,8 +77,8 @@ function test_checkForNewMessages()
   addMessageToFolder(gTargetFolder);
   // This will update the INBOX and STATUS targetFolder. We only care about
   // the latter.
-  gIMAPInbox.getNewMessages(null, null);
-  gIMAPServer.performTest("STATUS");
+  IMAPPump.inbox.getNewMessages(null, null);
+  IMAPPump.server.performTest("STATUS");
   // Now we'd like to make autosync update folders it knows about, to
   // get the initial autosync out of the way.
   yield true;
@@ -87,7 +87,7 @@ function test_checkForNewMessages()
 function test_triggerAutoSyncIdle()
 {
   // wait for both folders to get updated.
-  gAutoSyncListener._waitingForDiscoveryList.push(gIMAPInbox);
+  gAutoSyncListener._waitingForDiscoveryList.push(IMAPPump.inbox);
   gAutoSyncListener._waitingForDiscoveryList.push(gTargetFolder);
   gAutoSyncListener._waitingForDiscovery = true;
   let observer = gAutoSyncManager.QueryInterface(Ci.nsIObserver);
@@ -102,14 +102,14 @@ function test_moveMessageToTargetFolder()
 {
   let observer = gAutoSyncManager.QueryInterface(Ci.nsIObserver);
   observer.observe(null, "mail:appIdle", "back");
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_neq(msgHdr, null);
 
   // Now move this message to the target folder.
   let messages = Cc["@mozilla.org/array;1"]
                    .createInstance(Ci.nsIMutableArray);
   messages.appendElement(msgHdr, false);
-  MailServices.copy.CopyMessages(gIMAPInbox, messages, gTargetFolder, true,
+  MailServices.copy.CopyMessages(IMAPPump.inbox, messages, gTargetFolder, true,
                                  CopyListener, null, false);
   yield false;
 }
@@ -151,7 +151,7 @@ function run_test()
         nsIMFNService.msgsMoveCopyCompleted |
         nsIMFNService.msgAdded;
   MailServices.mfn.addListener(mfnListener, flags);
-  addMessageToFolder(gIMAPInbox);
+  addMessageToFolder(IMAPPump.inbox);
 
   async_run_tests(tests);
 }
@@ -288,7 +288,7 @@ function addMessageToFolder(folder)
     Services.io.newURI("data:text/plain;base64," +
                        btoa(messages[0].toMessageString()),
                        null, null);
-  let imapMailbox =  gIMAPDaemon.getMailbox(folder.name);
+  let imapMailbox =  IMAPPump.daemon.getMailbox(folder.name);
   // We add messages with \Seen flag set so that we won't accidentally
   // trigger the code that updates imap folders that have unread messages moved
   // into them.

@@ -74,30 +74,30 @@ function setup() {
 
   setupIMAPPump("GMail");
 
-  gIMAPMailbox.specialUseFlag = "\\Inbox";
-  gIMAPMailbox.subscribed = true;
+  IMAPPump.mailbox.specialUseFlag = "\\Inbox";
+  IMAPPump.mailbox.subscribed = true;
 
   // need all mail folder to identify this as gmail server.
-  gIMAPDaemon.createMailbox("[Gmail]", {flags : ["\\NoSelect"] });
-  gIMAPDaemon.createMailbox("[Gmail]/All Mail", {subscribed : true,
+  IMAPPump.daemon.createMailbox("[Gmail]", {flags : ["\\NoSelect"] });
+  IMAPPump.daemon.createMailbox("[Gmail]/All Mail", {subscribed : true,
                                                  specialUseFlag : "\\AllMail"});
 
   // Creating the mailbox "foo"
-  gIMAPDaemon.createMailbox("foo", {subscribed : true});
-  fooBox = gIMAPDaemon.getMailbox("foo");
+  IMAPPump.daemon.createMailbox("foo", {subscribed : true});
+  fooBox = IMAPPump.daemon.getMailbox("foo");
 
   // Add message1 to inbox.
   let message = new imapMessage(specForFileName(gMessage1),
-                            gIMAPMailbox.uidnext++, []);
+                            IMAPPump.mailbox.uidnext++, []);
   message.messageId = gMsgId1;
   message.xGmMsgid = gXGmMsgid1;
   message.xGmThrid = gXGmThrid1;
   message.xGmLabels = gXGmLabels11; // With labels excluding "//INBOX"
-  gIMAPMailbox.addMessage(message);
+  IMAPPump.mailbox.addMessage(message);
 }
 
 function updateFolder() {
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -105,27 +105,27 @@ function selectInboxMsg() {
   // Select mesasage1 from inbox which makes message1 available in offline store.
   let imapService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                         .getService(Ci.nsIMsgMessageService);
-  let db = gIMAPInbox.msgDatabase;
+  let db = IMAPPump.inbox.msgDatabase;
   let msg1 = db.getMsgHdrForMessageID(gMsgId1);
   let url = new Object;
-  imapService.DisplayMessage(gIMAPInbox.getUriForMsg(msg1), streamListener,
+  imapService.DisplayMessage(IMAPPump.inbox.getUriForMsg(msg1), streamListener,
                              null, asyncUrlListener, null, url);
   yield false;
 }
 
 function StreamMessageInbox() {
   // Stream message1 from inbox
-  let newMsgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
+  let newMsgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
   let msgURI = newMsgHdr.folder.getUriForMsg(newMsgHdr);
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
   let msgServ = messenger.messageServiceFromURI(msgURI);
   msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
-  gImapInboxOfflineStoreSizeInitial = gIMAPInbox.filePath.fileSize; // Initial Size of Inbox
+  gImapInboxOfflineStoreSizeInitial = IMAPPump.inbox.filePath.fileSize; // Initial Size of Inbox
   yield false;
 }
 
 function createAndUpdate() {
-  let rootFolder = gIMAPIncomingServer.rootFolder;
+  let rootFolder = IMAPPump.incomingServer.rootFolder;
   fooFolder =  rootFolder.getChildNamed("foo").QueryInterface(Ci.nsIMsgImapMailFolder); // We have created the mailbox earlier.
   fooFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
@@ -193,7 +193,7 @@ function crossStreaming() {
   // pass true for aLocalOnly since message should be in offline store of Inbox.
   msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", true);
   gFooOfflineStoreSizeFinal = fooFolder.filePath.fileSize;
-  gImapInboxOfflineStoreSizeFinal = gIMAPInbox.filePath.fileSize;
+  gImapInboxOfflineStoreSizeFinal = IMAPPump.inbox.filePath.fileSize;
   do_check_eq(gFooOfflineStoreSizeFinal, gFooOfflineStoreSizeInitial);
   do_check_eq(gImapInboxOfflineStoreSizeFinal,gImapInboxOfflineStoreSizeInitial);
   yield false;

@@ -35,9 +35,9 @@ let gDraftsFolder;
 
 function createDraftsFolder()
 {
-  gIMAPIncomingServer.rootFolder.createSubfolder("Drafts", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("Drafts", null);
   yield false;
-  gDraftsFolder = gIMAPIncomingServer.rootFolder.getChildNamed("Drafts");
+  gDraftsFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("Drafts");
   do_check_true(gDraftsFolder instanceof Ci.nsIMsgImapMailFolder);
   gDraftsFolder.updateFolderWithListener(null, asyncUrlListener);
   yield false;
@@ -47,7 +47,7 @@ function goOffline()
   // Don't prompt about offline download when going offline
   Services.prefs.setIntPref("offline.download.download_messages", 2);
 
-  gIMAPIncomingServer.closeCachedConnections();
+  IMAPPump.incomingServer.closeCachedConnections();
   let thread = gThreadManager.currentThread;
   while (thread.hasPendingEvents())
     thread.processNextEvent(true);
@@ -55,7 +55,7 @@ function goOffline()
   do_timeout(2000, async_driver);
   yield false;
 
-  gIMAPServer.stop();
+  IMAPPump.server.stop();
   Services.io.offline = true;
 }
 
@@ -81,17 +81,17 @@ function saveDraft()
                      progress);
   yield false;
   // verify that message is not on the server yet
-  do_check_eq(gIMAPDaemon.getMailbox("Drafts")._messages.length, 0);
+  do_check_eq(IMAPPump.daemon.getMailbox("Drafts")._messages.length, 0);
 }
 
 function goOnline()
 {
   let offlineManager = Cc["@mozilla.org/messenger/offline-manager;1"]
                        .getService(Ci.nsIMsgOfflineManager);
-  gIMAPDaemon.closing = false;
+  IMAPPump.daemon.closing = false;
   Services.io.offline = false;
 
-  gIMAPServer.start(IMAP_PORT);
+  IMAPPump.server.start(IMAP_PORT);
   offlineManager.inProgress = true;
   offlineManager.goOnline(false, true, null);
   let waitForNotInProgress = function () {
@@ -107,7 +107,7 @@ function goOnline()
 function checkResult()
 {
   // verify that message is now on the server
-  do_check_eq(gIMAPDaemon.getMailbox("Drafts")._messages.length, 1);
+  do_check_eq(IMAPPump.daemon.getMailbox("Drafts")._messages.length, 1);
   yield true;
 }
 
@@ -120,7 +120,7 @@ function endTest()
 function run_test()
 {
   Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
-  let server = gIMAPIncomingServer;
+  let server = IMAPPump.incomingServer;
 
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;

@@ -29,7 +29,7 @@ function setup() {
   let msgfileuri =
     Services.io.newFileURI(gMsgFile).QueryInterface(Ci.nsIFileURL);
 
-  gIMAPMailbox.addMessage(new imapMessage(msgfileuri.spec, gIMAPMailbox.uidnext++, []));
+  IMAPPump.mailbox.addMessage(new imapMessage(msgfileuri.spec, IMAPPump.mailbox.uidnext++, []));
 
   let messages = [];
   let gMessageGenerator = new MessageGenerator();
@@ -38,23 +38,23 @@ function setup() {
   let dataUri = Services.io.newURI("data:text/plain;base64," +
                                    btoa(messages[0].toMessageString()),
                                    null, null);
-  let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
+  let imapMsg = new imapMessage(dataUri.spec, IMAPPump.mailbox.uidnext++, []);
   imapMsg.setSize(5000);
-  gIMAPMailbox.addMessage(imapMsg);
+  IMAPPump.mailbox.addMessage(imapMsg);
   
   // ...and download for offline use.
-  gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+  IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
   yield false;
 }
 
 function downloadAllForOffline() {
-  gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+  IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
   yield false;
 }
 
 function verifyDownloaded() {
   // verify that the message headers have the offline flag set.
-  let msgEnumerator = gIMAPInbox.msgDatabase.EnumerateMessages();
+  let msgEnumerator = IMAPPump.inbox.msgDatabase.EnumerateMessages();
   let offset = {};
   let size = {};
   while (msgEnumerator.hasMoreElements()) {
@@ -62,7 +62,7 @@ function verifyDownloaded() {
     // Verify that each message has been downloaded and looks OK.
     if (header instanceof Components.interfaces.nsIMsgDBHdr &&
         (header.flags & Ci.nsMsgMessageFlags.Offline))
-      gIMAPInbox.getOfflineFileStream(header.messageKey, offset, size).close();
+      IMAPPump.inbox.getOfflineFileStream(header.messageKey, offset, size).close();
     else
       do_throw("Message not downloaded for offline use");
   }

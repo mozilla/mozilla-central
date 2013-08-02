@@ -18,28 +18,28 @@ var tests = [
 function setup() {
   setupIMAPPump();
 
-  gIMAPDaemon.createMailbox("folder1", {subscribed : true});
-  gIMAPDaemon.createMailbox("folder1/sub1", "", {subscribed : true});
-  gIMAPDaemon.createMailbox("folder1/sub1/sub2", "", {subscribed : true});
-  gIMAPDaemon.createMailbox("folder1/sub1/sub2/sub3", "", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder1", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder1/sub1", "", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder1/sub1/sub2", "", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder1/sub1/sub2/sub3", "", {subscribed : true});
 
-  gIMAPIncomingServer.usingSubscription = false;
+  IMAPPump.incomingServer.usingSubscription = false;
 
-  let rootFolder = gIMAPIncomingServer.rootFolder.QueryInterface(Ci.nsIMsgImapMailFolder);
+  let rootFolder = IMAPPump.incomingServer.rootFolder.QueryInterface(Ci.nsIMsgImapMailFolder);
   rootFolder.hierarchyDelimiter = '/';
-  gIMAPInbox.hierarchyDelimiter = '/';
+  IMAPPump.inbox.hierarchyDelimiter = '/';
   rootFolder.addSubfolder("folder1");
   rootFolder.addSubfolder("folder1/sub1");
   rootFolder.addSubfolder("folder1/sub1/sub2");
   gSub3 = rootFolder.addSubfolder("folder1/sub1/sub2/sub3");
-  gIMAPServer.performTest("LIST");
+  IMAPPump.server.performTest("LIST");
 
   do_timeout(1000, async_driver);
   yield false;
 }
 
 function updateInbox() {
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 

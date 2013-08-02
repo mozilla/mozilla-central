@@ -32,21 +32,21 @@ var tests = [
 // be one test case.
 function setupMailboxes()
 {
-  gIMAPMailbox.specialUseFlag = "\\Inbox";
-  gIMAPDaemon.createMailbox("[Gmail]", {flags : ["\\Noselect"]});
-  gIMAPDaemon.createMailbox("[Gmail]/All Mail", {specialUseFlag : "\\AllMail"});
-  gIMAPDaemon.createMailbox("[Gmail]/Drafts", {specialUseFlag : "\\Drafts"});
-  gIMAPDaemon.createMailbox("[Gmail]/Sent", {specialUseFlag : "\\Sent"});
-  gIMAPDaemon.createMailbox("[Gmail]/Spam", {specialUseFlag : "\\Spam"});
-  gIMAPDaemon.createMailbox("[Gmail]/Starred", {specialUseFlag : "\\Starred"});
-  gIMAPDaemon.createMailbox("[Gmail]/Trash", {specialUseFlag : "\\Trash"});
-  gIMAPDaemon.createMailbox("test", {});
+  IMAPPump.mailbox.specialUseFlag = "\\Inbox";
+  IMAPPump.daemon.createMailbox("[Gmail]", {flags : ["\\Noselect"]});
+  IMAPPump.daemon.createMailbox("[Gmail]/All Mail", {specialUseFlag : "\\AllMail"});
+  IMAPPump.daemon.createMailbox("[Gmail]/Drafts", {specialUseFlag : "\\Drafts"});
+  IMAPPump.daemon.createMailbox("[Gmail]/Sent", {specialUseFlag : "\\Sent"});
+  IMAPPump.daemon.createMailbox("[Gmail]/Spam", {specialUseFlag : "\\Spam"});
+  IMAPPump.daemon.createMailbox("[Gmail]/Starred", {specialUseFlag : "\\Starred"});
+  IMAPPump.daemon.createMailbox("[Gmail]/Trash", {specialUseFlag : "\\Trash"});
+  IMAPPump.daemon.createMailbox("test", {});
 
-  handler = gIMAPServer._handlerCreator(gIMAPDaemon);
+  handler = IMAPPump.server._handlerCreator(IMAPPump.daemon);
   let response = handler.onError('1', 'LOGIN user password');
   do_check_true(response.contains('OK'));
   // wait for imap pump to do its thing or else we get memory leaks
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
@@ -89,5 +89,5 @@ function recursiveDeleteMailboxes(aMailbox)
   for each (var child in aMailbox.allChildren) {
     recursiveDeleteMailboxes(child);
   }
-  gIMAPDaemon.deleteMailbox(aMailbox);
+  IMAPPump.daemon.deleteMailbox(aMailbox);
 }

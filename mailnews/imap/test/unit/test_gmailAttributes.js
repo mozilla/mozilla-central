@@ -32,12 +32,12 @@ const gXGmLabels = '(\\Inbox \\Sent Important "Muy Importante" foo)';
 
 setupIMAPPump("GMail");
 
-gIMAPMailbox.specialUseFlag = "\\Inbox";
-gIMAPMailbox.subscribed = true;
+IMAPPump.mailbox.specialUseFlag = "\\Inbox";
+IMAPPump.mailbox.subscribed = true;
 
 // need all mail folder to identify this as gmail server.
-gIMAPDaemon.createMailbox("[Gmail]", {flags : ["\\NoSelect"] });
-gIMAPDaemon.createMailbox("[Gmail]/All Mail", {subscribed : true,
+IMAPPump.daemon.createMailbox("[Gmail]", {flags : ["\\NoSelect"] });
+IMAPPump.daemon.createMailbox("[Gmail]/All Mail", {subscribed : true,
                                                specialUseFlag : "\\AllMail"});
 
 // Definition of tests
@@ -53,32 +53,32 @@ var tests = [
 function loadImapMessage()
 {
   let message = new imapMessage(specForFileName(gMessage),
-                                gIMAPMailbox.uidnext++, []);
+                                IMAPPump.mailbox.uidnext++, []);
   message.xGmMsgid = gXGmMsgid;
   message.xGmThrid = gXGmThrid;
   message.xGmLabels = gXGmLabels;
-  gIMAPMailbox.addMessage(message);
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(message);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
 function testFetchXGmMsgid()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   let val = msgHdr.getStringProperty("X-GM-MSGID");
   do_check_eq(val, gXGmMsgid);
 }
 
 function testFetchXGmThrid()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   let val = msgHdr.getStringProperty("X-GM-THRID");
   do_check_eq(val, gXGmThrid);
 }
 
 function testFetchXGmLabels()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   let val = msgHdr.getStringProperty("X-GM-LABELS");
    // We need to remove the starting "(" and ending ")" from gXGmLabels while comparing
   do_check_eq(val, gXGmLabels.substring(1 ,gXGmLabels.length - 1));

@@ -77,7 +77,7 @@ function run_test() {
   // Add a couple of messages to the INBOX
   // this is synchronous, afaik
   addMessagesToServer([{file: gMsgFile1, messageId: gMsgId1}],
-                        gIMAPDaemon.getMailbox("INBOX"));
+                        IMAPPump.daemon.getMailbox("INBOX"));
   Services.prefs.setBoolPref("mail.server.server1.autosync_offline_stores", false);
   async_run_tests(tests);
  }
@@ -90,18 +90,18 @@ var tests = [
 ]
 
 function test_updateFolder() {
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 
 function test_downloadForOffline() {
-  gIMAPInbox.downloadAllForOffline(asyncUrlListener, null);
+  IMAPPump.inbox.downloadAllForOffline(asyncUrlListener, null);
   yield false;
 }
 
 function test_streamHeaders()
 {
-  let newMsgHdr = gIMAPInbox.GetMessageHeader(1);
+  let newMsgHdr = IMAPPump.inbox.GetMessageHeader(1);
   let msgURI = newMsgHdr.folder.getUriForMsg(newMsgHdr);
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
   let msgServ = messenger.messageServiceFromURI(msgURI);

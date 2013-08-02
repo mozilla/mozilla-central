@@ -41,10 +41,10 @@ const quarantineTests = [
 
 function createSubfolder()
 {
-  gIMAPIncomingServer.rootFolder.createSubfolder("subfolder", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("subfolder", null);
   dl('wait for folderAdded notification');
   yield false;
-  gSubfolder = gIMAPIncomingServer.rootFolder.getChildNamed("subfolder");
+  gSubfolder = IMAPPump.incomingServer.rootFolder.getChildNamed("subfolder");
   do_check_true(gSubfolder instanceof Ci.nsIMsgImapMailFolder);
   gSubfolder.updateFolderWithListener(null, urlListener);
   dl('wait for OnStopRunningURL');

@@ -32,10 +32,10 @@ var tests = [
 let gDraftsFolder;
 function createDraftsFolder()
 {
-  gIMAPIncomingServer.rootFolder.createSubfolder("Drafts", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("Drafts", null);
   dl('wait for folderAdded');
   yield false;
-  gDraftsFolder = gIMAPIncomingServer.rootFolder.getChildNamed("Drafts");
+  gDraftsFolder = IMAPPump.incomingServer.rootFolder.getChildNamed("Drafts");
   do_check_true(gDraftsFolder instanceof Ci.nsIMsgImapMailFolder);
   gDraftsFolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
@@ -89,7 +89,7 @@ function endTest()
 function run_test()
 {
   Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
-  let server = gIMAPIncomingServer;
+  let server = IMAPPump.incomingServer;
 
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;

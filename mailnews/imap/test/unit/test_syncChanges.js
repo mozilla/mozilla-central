@@ -17,7 +17,7 @@ var gSynthMessage;
 var tests = [
   setup,
   function switchAwayFromInbox() {
-    let rootFolder = gIMAPIncomingServer.rootFolder;
+    let rootFolder = IMAPPump.incomingServer.rootFolder;
     gSecondFolder =  rootFolder.getChildNamed("secondFolder")
                            .QueryInterface(Ci.nsIMsgImapMailFolder);
 
@@ -32,14 +32,14 @@ var tests = [
   },
   function simulateMailboxEmptied() {
     gMessage.setFlag("\\Deleted");
-    gIMAPInbox.expunge(asyncUrlListener, null);
+    IMAPPump.inbox.expunge(asyncUrlListener, null);
     yield false;
-    gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+    IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
   function checkMailboxEmpty() {
-    let msgHdr = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
-    do_check_eq(gIMAPInbox.getTotalMessages(false), 0);
+    let msgHdr = IMAPPump.inbox.msgDatabase.getMsgHdrForMessageID(gSynthMessage.messageId);
+    do_check_eq(IMAPPump.inbox.getTotalMessages(false), 0);
   },
   teardown
 ];
@@ -50,7 +50,7 @@ function setup() {
    */
   setupIMAPPump();
 
-  gIMAPDaemon.createMailbox("secondFolder", {subscribed : true});
+  IMAPPump.daemon.createMailbox("secondFolder", {subscribed : true});
 
   let messages = [];
   let gMessageGenerator = new MessageGenerator();
@@ -61,11 +61,11 @@ function setup() {
     Services.io.newURI("data:text/plain;base64," +
                        btoa(gSynthMessage.toMessageString()),
                        null, null);
-  gMessage = new imapMessage(msgURI.spec, gIMAPMailbox.uidnext++, []);
-  gIMAPMailbox.addMessage(gMessage);
+  gMessage = new imapMessage(msgURI.spec, IMAPPump.mailbox.uidnext++, []);
+  IMAPPump.mailbox.addMessage(gMessage);
 
   // update folder to download header.
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 

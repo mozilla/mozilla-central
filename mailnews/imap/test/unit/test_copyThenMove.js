@@ -26,7 +26,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal1.QueryInterface(Ci.nsIMsgFolder));
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    gCopyService.CopyFolders(array, IMAPPump.inbox, false, CopyListener, null);
     yield false;
   },
   function copyFolder2() {
@@ -34,7 +34,7 @@ var tests = [
     let folders = new Array;
     folders.push(gEmptyLocal2);
     let array = toXPCOMArray(folders, Ci.nsIMutableArray);
-    gCopyService.CopyFolders(array, gIMAPInbox, false, CopyListener, null);
+    gCopyService.CopyFolders(array, IMAPPump.inbox, false, CopyListener, null);
     yield false;
   },
   function getLocalMessage1() {
@@ -56,31 +56,31 @@ var tests = [
   function copyMessages() {
     gMessages.appendElement(localAccountUtils.inboxFolder.GetMessageHeader(gLastKey),
                             false);
-    let folder1 = gIMAPInbox.getChildNamed("empty 1");
+    let folder1 = IMAPPump.inbox.getChildNamed("empty 1");
     gCopyService.CopyMessages(localAccountUtils.inboxFolder, gMessages, folder1, false,
                               CopyListener, null, false);
     yield false;
   },
   function moveMessages() {
-    let folder2 = gIMAPInbox.getChildNamed("empty 2");
+    let folder2 = IMAPPump.inbox.getChildNamed("empty 2");
       gCopyService.CopyMessages(localAccountUtils.inboxFolder, gMessages, folder2, true,
                                 CopyListener, null, false);
     yield false;
   },
   function update1() {
-    let folder1 = gIMAPInbox.getChildNamed("empty 1").QueryInterface(Ci.nsIMsgImapMailFolder);
+    let folder1 = IMAPPump.inbox.getChildNamed("empty 1").QueryInterface(Ci.nsIMsgImapMailFolder);
     folder1.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
   function update2() {
-    let folder2 = gIMAPInbox.getChildNamed("empty 2").QueryInterface(Ci.nsIMsgImapMailFolder);
+    let folder2 = IMAPPump.inbox.getChildNamed("empty 2").QueryInterface(Ci.nsIMsgImapMailFolder);
     folder2.updateFolderWithListener(null, asyncUrlListener);
     yield false;
   },
   function verifyFolders() {
-    let folder1 = gIMAPInbox.getChildNamed("empty 1");
+    let folder1 = IMAPPump.inbox.getChildNamed("empty 1");
     do_check_eq(folderCount(folder1), 2);
-    let folder2 = gIMAPInbox.getChildNamed("empty 2");
+    let folder2 = IMAPPump.inbox.getChildNamed("empty 2");
     do_check_neq(folder2, null);
     // folder 1 and 2 should each now have two messages in them.
     do_check_neq(folder1, null);
@@ -121,8 +121,8 @@ function setup() {
   // running initial folder discovery, and adding the folder bails
   // out before we set it as verified online, so we bail out, and
   // then remove the INBOX folder since it's not verified.
-  gIMAPInbox.hierarchyDelimiter = '/';
-  gIMAPInbox.verifiedAsOnlineFolder = true;
+  IMAPPump.inbox.hierarchyDelimiter = '/';
+  IMAPPump.inbox.verifiedAsOnlineFolder = true;
 }
 
 // nsIMsgCopyServiceListener implementation - runs next test when copy

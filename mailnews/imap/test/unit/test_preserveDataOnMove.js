@@ -31,10 +31,10 @@ var tests = [
 let gSubfolder;
 function createSubfolder()
 {
-  gIMAPIncomingServer.rootFolder.createSubfolder("Subfolder", null);
+  IMAPPump.incomingServer.rootFolder.createSubfolder("Subfolder", null);
   dl('wait for folderAdded notification');
   yield false; 
-  gSubfolder = gIMAPIncomingServer.rootFolder.getChildNamed("Subfolder");
+  gSubfolder = IMAPPump.incomingServer.rootFolder.getChildNamed("Subfolder");
   do_check_true(gSubfolder instanceof Ci.nsIMsgImapMailFolder);
   gSubfolder.updateFolderWithListener(null, asyncUrlListener);
   dl('wait for OnStopRunningURL');
@@ -44,13 +44,13 @@ function createSubfolder()
 // load and update a message in the imap fake server
 function loadImapMessage()
 {
-  gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
-                          gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolder(null);
+  IMAPPump.mailbox.addMessage(new imapMessage(specForFileName(gMessage),
+                          IMAPPump.mailbox.uidnext++, []));
+  IMAPPump.inbox.updateFolder(null);
   dl('wait for msgAdded notification');
   yield false;
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   // set an arbitrary property
@@ -61,7 +61,7 @@ function loadImapMessage()
 // move the message to a subfolder
 function moveMessageToSubfolder()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
 
   // Now move this message to the subfolder.
   var messages = Cc["@mozilla.org/array;1"]
@@ -77,7 +77,7 @@ function moveMessageToSubfolder()
                     in boolean allowUndo);
   */
 
-  MailServices.copy.CopyMessages(gIMAPInbox, messages, gSubfolder, true,
+  MailServices.copy.CopyMessages(IMAPPump.inbox, messages, gSubfolder, true,
                                  asyncCopyListener, null, false);
   dl('wait for OnStopCopy');
   yield false;

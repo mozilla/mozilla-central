@@ -41,7 +41,7 @@ function setup() {
   setupIMAPPump();
 
   // Create a test filter.
-  let filterList = gIMAPIncomingServer.getFilterList(null);
+  let filterList = IMAPPump.incomingServer.getFilterList(null);
   gFilter = filterList.createFilter("test offline");
   let searchTerm = gFilter.createTerm();
   searchTerm.matchAll = true;
@@ -58,7 +58,7 @@ function setup() {
 
 // basic preparation done for each test
 function runFilterAction(aFilter, aAction) {
-  let filterList = gIMAPIncomingServer.getFilterList(null);
+  let filterList = IMAPPump.incomingServer.getFilterList(null);
   while (filterList.filterCount)
     filterList.removeFilterAt(0);
   if (aFilter) {
@@ -68,9 +68,9 @@ function runFilterAction(aFilter, aAction) {
       filterList.insertFilterAt(0, aFilter);
     }
   }
-  gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
-                          gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(new imapMessage(specForFileName(gMessage),
+                          IMAPPump.mailbox.uidnext++, []));
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 }
 

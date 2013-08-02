@@ -34,20 +34,20 @@ var tests = [
 function setup() {
   setupIMAPPump("GMail");
 
-  gIMAPMailbox.subscribed = true;
-  gIMAPMailbox.specialUseFlag = "\\Inbox";
-  gIMAPDaemon.createMailbox("[Gmail]", {flags : ["\\Noselect"], subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/All Mail", {specialUseFlag : "\\AllMail", subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/Drafts", {specialUseFlag : "\\Drafts", subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/Sent", {specialUseFlag : "\\Sent", subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/Spam", {specialUseFlag : "\\Spam", subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/Starred", {specialUseFlag : "\\Starred", subscribed: true});
-  gIMAPDaemon.createMailbox("[Gmail]/Trash", {specialUseFlag : "\\Trash", subscribed: true});
-  gIMAPDaemon.createMailbox("folder1", {subscribed : true});
-  gIMAPDaemon.createMailbox("folder2", {subscribed : true});
+  IMAPPump.mailbox.subscribed = true;
+  IMAPPump.mailbox.specialUseFlag = "\\Inbox";
+  IMAPPump.daemon.createMailbox("[Gmail]", {flags : ["\\Noselect"], subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/All Mail", {specialUseFlag : "\\AllMail", subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/Drafts", {specialUseFlag : "\\Drafts", subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/Sent", {specialUseFlag : "\\Sent", subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/Spam", {specialUseFlag : "\\Spam", subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/Starred", {specialUseFlag : "\\Starred", subscribed: true});
+  IMAPPump.daemon.createMailbox("[Gmail]/Trash", {specialUseFlag : "\\Trash", subscribed: true});
+  IMAPPump.daemon.createMailbox("folder1", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder2", {subscribed : true});
 
   // select the inbox to force folder discovery, etc.
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
 
   yield false;
 }
@@ -56,9 +56,9 @@ function setup() {
  * Test that folders generally are marked for offline use by default.
  */
 function testGeneralFoldersOffline() {
-  do_check_true(gIMAPInbox.getFlag(Ci.nsMsgFolderFlags.Offline));
+  do_check_true(IMAPPump.inbox.getFlag(Ci.nsMsgFolderFlags.Offline));
 
-  let gmail = gIMAPIncomingServer.rootFolder.getChildNamed("[Gmail]");
+  let gmail = IMAPPump.incomingServer.rootFolder.getChildNamed("[Gmail]");
 
   let allmail = gmail.getFolderWithFlags(Ci.nsMsgFolderFlags.Archive);
   do_check_true(allmail.getFlag(Ci.nsMsgFolderFlags.Offline));
@@ -69,7 +69,7 @@ function testGeneralFoldersOffline() {
   let sent = gmail.getFolderWithFlags(Ci.nsMsgFolderFlags.SentMail);
   do_check_true(sent.getFlag(Ci.nsMsgFolderFlags.Offline));
 
-  let rootFolder = gIMAPIncomingServer.rootFolder;
+  let rootFolder = IMAPPump.incomingServer.rootFolder;
 
   let folder1 =  rootFolder.getChildNamed("folder1");
   do_check_true(folder1.getFlag(Ci.nsMsgFolderFlags.Offline));
@@ -84,7 +84,7 @@ function testGeneralFoldersOffline() {
  * Test that Trash isn't flagged for offline use by default.
  */
 function testTrashNotOffline() {
-  let gmail = gIMAPIncomingServer.rootFolder.getChildNamed("[Gmail]");
+  let gmail = IMAPPump.incomingServer.rootFolder.getChildNamed("[Gmail]");
   let trash = gmail.getFolderWithFlags(Ci.nsMsgFolderFlags.Trash);
   do_check_false(trash.getFlag(Ci.nsMsgFolderFlags.Offline));
   yield true;
@@ -94,7 +94,7 @@ function testTrashNotOffline() {
  * Test that Junk isn't flagged for offline use by default.
  */
 function testJunkNotOffline() {
-  let gmail = gIMAPIncomingServer.rootFolder.getChildNamed("[Gmail]");
+  let gmail = IMAPPump.incomingServer.rootFolder.getChildNamed("[Gmail]");
   let spam = gmail.getFolderWithFlags(Ci.nsMsgFolderFlags.Junk);
   do_check_false(spam.getFlag(Ci.nsMsgFolderFlags.Offline));
   yield true;

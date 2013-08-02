@@ -244,12 +244,12 @@ var searchTests =
 // load and update a message in the imap fake server
 function loadImapMessage()
 {
-  gIMAPMailbox.addMessage(new imapMessage(specForFileName(gMessage),
-                          gIMAPMailbox.uidnext++, []));
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(new imapMessage(specForFileName(gMessage),
+                          IMAPPump.mailbox.uidnext++, []));
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
 
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
   yield true;
 }
 
@@ -264,14 +264,14 @@ function testSearch()
     {
       //  test of a custom db header
       dump("testing dbHeader " + test.dbHeader + "\n");
-      let customValue = mailTestUtils.firstMsgHdr(gIMAPInbox)
+      let customValue = mailTestUtils.firstMsgHdr(IMAPPump.inbox)
                                      .getProperty(test.dbHeader);
       do_check_eq(customValue, test.testString);
     }
     else if (test)
     {
       dump("testing for string '" + test.testString + "'\n");
-      testObject = new TestSearch(gIMAPInbox,
+      testObject = new TestSearch(IMAPPump.inbox,
                            test.testString,
                            test.testAttribute,
                            test.op,
@@ -295,7 +295,7 @@ function endTest()
 function run_test()
 {
   // don't use offline store
-  gIMAPInbox.clearFlag(Ci.nsMsgFolderFlags.Offline);
+  IMAPPump.inbox.clearFlag(Ci.nsMsgFolderFlags.Offline);
 
   async_run_tests(tests);
 }

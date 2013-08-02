@@ -25,7 +25,7 @@ setupIMAPPump();
 // Dummy message window so we can say the inbox is open in a window.
 var dummyMsgWindow =
 {
-  openFolder : gIMAPInbox,
+  openFolder : IMAPPump.inbox,
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgWindow,
                                          Ci.nsISupportsWeakReference])
   
@@ -54,13 +54,13 @@ function loadImapMessage()
     Services.io.newURI("data:text/plain;base64," +
                        btoa(smsg.toMessageString()),
                        null, null);
-  let imapInbox = gIMAPDaemon.getMailbox("INBOX");
+  let imapInbox = IMAPPump.daemon.getMailbox("INBOX");
   let message = new imapMessage(msgURI.spec, imapInbox.uidnext++, []);
-  gIMAPMailbox.addMessage(message);
-  gIMAPInbox.updateFolderWithListener(null, asyncUrlListener);
+  IMAPPump.mailbox.addMessage(message);
+  IMAPPump.inbox.updateFolderWithListener(null, asyncUrlListener);
   yield false;
-  do_check_eq(1, gIMAPInbox.getTotalMessages(false));
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  do_check_eq(1, IMAPPump.inbox.getTotalMessages(false));
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   do_check_true(msgHdr instanceof Ci.nsIMsgDBHdr);
 
   yield true;
@@ -69,7 +69,7 @@ function loadImapMessage()
 // process the message through mime
 function startMime()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
 
   mimeMsg.MsgHdrToMimeMessage(msgHdr, gCallbackObject, gCallbackObject.callback,
                               true /* allowDownload */);
@@ -79,7 +79,7 @@ function startMime()
 // detach any found attachments
 function startDetach()
 {
-  let msgHdr = mailTestUtils.firstMsgHdr(gIMAPInbox);
+  let msgHdr = mailTestUtils.firstMsgHdr(IMAPPump.inbox);
   let msgURI = msgHdr.folder.generateMessageURI(msgHdr.messageKey);
 
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
@@ -108,7 +108,7 @@ function testDetach()
   //  and search for "AttachmentDetached" which is added on detachment.
 
   // Get the message header - detached copy has UID 2.
-  let msgHdr = gIMAPInbox.GetMessageHeader(2);
+  let msgHdr = IMAPPump.inbox.GetMessageHeader(2);
   do_check_neq(msgHdr, null);
   let messageContent = getContentFromMessage(msgHdr);
   do_check_true(messageContent.contains("AttachmentDetached"));

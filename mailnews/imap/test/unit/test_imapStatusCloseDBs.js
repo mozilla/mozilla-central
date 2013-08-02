@@ -18,20 +18,20 @@ function setup() {
 
   setupIMAPPump();
 
-  gIMAPDaemon.createMailbox("folder 1", {subscribed : true});
-  gIMAPDaemon.createMailbox("folder 2", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder 1", {subscribed : true});
+  IMAPPump.daemon.createMailbox("folder 2", {subscribed : true});
 
-  gIMAPServer.performTest("SUBSCRIBE");
+  IMAPPump.server.performTest("SUBSCRIBE");
 
-  let rootFolder = gIMAPIncomingServer.rootFolder;
+  let rootFolder = IMAPPump.incomingServer.rootFolder;
   gFolder1 = rootFolder.getChildNamed("folder 1");
   gFolder2 = rootFolder.getChildNamed("folder 2");
 
-  gIMAPInbox.getNewMessages(null, null);
-  gIMAPServer.performTest("STATUS");
+  IMAPPump.inbox.getNewMessages(null, null);
+  IMAPPump.server.performTest("STATUS");
   // don't know if this will work, but we'll try. Wait for
   // second status response
-  gIMAPServer.performTest("STATUS");
+  IMAPPump.server.performTest("STATUS");
   mailTestUtils.do_timeout_function(1000, async_driver);
   yield false;
 }
@@ -39,7 +39,7 @@ function setup() {
 function check() {
   const gDbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
                        .getService(Ci.nsIMsgDBService);
-  do_check_neq(gDbService.cachedDBForFolder(gIMAPInbox), null);
+  do_check_neq(gDbService.cachedDBForFolder(IMAPPump.inbox), null);
   do_check_eq(gDbService.cachedDBForFolder(gFolder1), null);
   do_check_eq(gDbService.cachedDBForFolder(gFolder2), null);
 }
