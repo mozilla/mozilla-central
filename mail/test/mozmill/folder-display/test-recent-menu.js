@@ -23,6 +23,14 @@ var setupModule = function(module) {
   fdh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+
+  // Ensure that there are no updated folders to ensure the recent folder
+  // is empty.
+  let allFolders = MailServices.accounts.allFolders;
+  for (let folder in fixIterator(allFolders, Ci.nsIMsgFolder)) {
+    folder.setStringProperty("MRMTime", "0");
+  }
+
   // Try to make these folders first in alphabetic order
   folder1 = create_folder("aaafolder1");
   folder2 = create_folder("aaafolder2");
