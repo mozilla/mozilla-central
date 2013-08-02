@@ -28,7 +28,7 @@ let gUrlListener = {
 };
 
 
-loadLocalMailAccount();
+localAccountUtils.loadLocalMailAccount();
 
 function run_test()
 {

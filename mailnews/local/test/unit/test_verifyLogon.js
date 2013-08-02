@@ -86,7 +86,7 @@ function run_test()
   // We would use createPop3ServerAndLocalFolders() however we want to have
   // a different username and NO password for this test (as we expect to load
   // it from signons.txt).
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
 
   incomingServer = MailServices.accounts

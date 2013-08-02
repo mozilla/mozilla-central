@@ -13,7 +13,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 const bugmail1 = do_get_file("../../../data/bugmail1");
 var gHdr; // header of test message in local folder
 
-loadLocalMailAccount();
+localAccountUtils.loadLocalMailAccount();
 // create a subfolder as a target for copies
 var gSubfolder = gLocalInboxFolder.createLocalSubfolder("subfolder");
 

@@ -32,7 +32,7 @@ function setup() {
   gIMAPIncomingServer.socketType = Ci.nsMsgSocketType.alwaysSTARTTLS;
 
   // we need a local account for the IMAP server to have its sent messages in
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
   let imapAccount = MailServices.accounts.createAccount();

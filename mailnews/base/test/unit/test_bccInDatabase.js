@@ -12,7 +12,7 @@ var hdr;
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var copyListener = 
   {

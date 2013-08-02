@@ -330,7 +330,7 @@ function run_test()
   gIMAPIncomingServer = createLocalIMAPServer();
 
   if (!gLocalInboxFolder)
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
   let localAccount = MailServices.accounts.createAccount();

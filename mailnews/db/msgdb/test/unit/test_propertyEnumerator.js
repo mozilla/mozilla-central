@@ -9,7 +9,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 var gHdr;
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   // Get a message into the local filestore.
   // Function continue_test() continues the testing after the copy.
   var bugmail1 = do_get_file("../../../../data/bugmail1");

@@ -32,7 +32,7 @@ function run_test() {
   gImapServer = createLocalIMAPServer();
   gImapServer.maximumConnectionsNumber = 1;
 
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
   let localAccount = MailServices.accounts.createAccount();

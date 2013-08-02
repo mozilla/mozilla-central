@@ -36,7 +36,7 @@ function setupServerDaemon(handler) {
 }
 
 function getBasicSmtpServer() {
-  let server = create_outgoing_server(SMTP_PORT, "user", "password");
+  let server = localAccountUtils.create_outgoing_server(SMTP_PORT, "user", "password");
 
   // Override the default greeting so we get something predicitable
   // in the ELHO message

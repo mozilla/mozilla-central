@@ -30,7 +30,7 @@ var tests = [
     });
  
     if (typeof gLocalInboxFolder == 'undefined')
-      loadLocalMailAccount();
+      localAccountUtils.loadLocalMailAccount();
     gLocalRootFolder.createSubfolder("target", null);
     gTargetFolder = gLocalRootFolder.getChildNamed("target");
 

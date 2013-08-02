@@ -178,7 +178,7 @@ function run_test()
                                      .replace("%s", kToInvalid);
 
   // Ensure we have at least one mail account
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   MailServices.accounts.setSpecialFolders();
   sentFolder = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("Sent");
 

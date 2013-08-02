@@ -89,11 +89,11 @@ POP3Pump.prototype._createPop3ServerAndLocalFolders =
   function _createPop3ServerAndLocalFolders()
 {
   if (typeof gLocalInboxFolder == 'undefined')
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
 
   if (!this.fakeServer)
-    this.fakeServer = create_incoming_server("pop3", this.kPOP3_PORT,
-                                             "fred", "wilma");
+    this.fakeServer = localAccountUtils.create_incoming_server("pop3", this.kPOP3_PORT,
+							       "fred", "wilma");
 
   return this.fakeServer;
 };

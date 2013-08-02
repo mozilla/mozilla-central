@@ -32,7 +32,7 @@ function addMessagesToServer(messages, mailbox)
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   /*
    * Set up an IMAP server.

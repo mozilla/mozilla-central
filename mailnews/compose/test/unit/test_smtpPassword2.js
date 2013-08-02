@@ -20,7 +20,7 @@ function run_test()
   signons.copyTo(gProfileDir, "signons.txt");
 
   // Set up the basic accounts and folders.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var smtpServer1 = getBasicSmtpServer();
   var smtpServer2 = getBasicSmtpServer();

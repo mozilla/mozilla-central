@@ -12,7 +12,7 @@ const kNumExpectedMatches = 10;
 
 function setupGlobals()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   // Create a message generator
   let messageGenerator = new MessageGenerator();
   let localInbox = gLocalInboxFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);

@@ -272,7 +272,7 @@ var tests =
 // main test
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   do_test_pending();
 
   // setup pro/anti arrays as junk/good

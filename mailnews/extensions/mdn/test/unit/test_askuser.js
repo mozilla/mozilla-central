@@ -1,7 +1,7 @@
 var gMessenger = Cc["@mozilla.org/messenger;1"].
                    createInstance(Ci.nsIMessenger);
 
-loadLocalMailAccount();
+localAccountUtils.loadLocalMailAccount();
 
 let localAccount = MailServices.accounts.FindAccountForServer(gLocalIncomingServer);
 let identity = MailServices.accounts.createIdentity();

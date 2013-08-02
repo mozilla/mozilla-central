@@ -23,7 +23,7 @@ var gMoveMailInbox;
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   
   let incoming = MailServices.accounts.createIncomingServer("", "", "movemail");
   let workingDir = Services.dirsvc.get("CurWorkD", Ci.nsIFile);

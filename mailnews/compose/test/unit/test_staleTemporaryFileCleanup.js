@@ -49,7 +49,7 @@ function run_test() {
   });
 
   // Ensure we have at least one mail account
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   let composeService = MailServices.compose;
   do_test_pending();
   check_files_not_exist(gExpectedFiles);

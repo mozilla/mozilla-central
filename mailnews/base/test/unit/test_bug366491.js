@@ -43,7 +43,7 @@ var emails =
 // main test
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   do_test_pending();
   doTestingListener.onMessageClassified(null, null, null);
   return true;

@@ -87,7 +87,7 @@ function run_test() {
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // Now load (and internally initialize) the send later service
   gMsgSendLater = Cc["@mozilla.org/messengercompose/sendlater;1"]

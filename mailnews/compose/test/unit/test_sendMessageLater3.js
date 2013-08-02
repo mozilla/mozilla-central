@@ -124,7 +124,7 @@ function run_test() {
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // Check that the send later service thinks we don't have messages to send.
   do_check_eq(msgSendLater.hasUnsentMessages(identity), false);

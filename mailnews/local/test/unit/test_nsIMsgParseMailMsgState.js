@@ -7,7 +7,7 @@ Components.utils.import("resource:///modules/IOUtils.js");
 const MSG_LINEBREAK = "\r\n";
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   test_parse_headers_without_crash("./data/mailformed_recipients.eml");
   test_parse_headers_without_crash("./data/mailformed_subject.eml");

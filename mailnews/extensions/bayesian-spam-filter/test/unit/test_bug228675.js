@@ -27,7 +27,7 @@ var trainingData;
 // main test
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   MailServices.junk.resetTrainingData();
 
   do_test_pending();

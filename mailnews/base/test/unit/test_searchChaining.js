@@ -20,7 +20,7 @@ function run_test()
   // Pull in the IMAP fake server code
   load("../../../imap/test/unit/head_server.js");
 
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   /*
    * Set up an IMAP server.

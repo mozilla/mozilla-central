@@ -206,7 +206,7 @@ function run_test()
 
   // Also make sure a local folders server is created, as that's what is used
   // for sent items
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
   let localAccount = MailServices.accounts.createAccount();

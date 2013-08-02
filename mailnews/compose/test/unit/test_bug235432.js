@@ -58,7 +58,7 @@ function copyFileMessageInLocalFolder(aMessageFile,
                                       aMessageWindow,
                                       aCallback) {
   // Set up local folders
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   gCopyListener.callbackFunction = aCallback;
   // Copy a message into the local folder

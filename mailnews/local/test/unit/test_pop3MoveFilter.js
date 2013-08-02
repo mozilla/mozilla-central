@@ -113,7 +113,7 @@ function run_test()
   // Make sure we're not quarantining messages
   Services.prefs.setBoolPref("mailnews.downloadToTempFile", false);
   if (!gLocalInboxFolder)
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
 
   gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");
 

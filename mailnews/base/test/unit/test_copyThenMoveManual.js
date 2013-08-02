@@ -106,7 +106,7 @@ function folderCount(folder)
 function run_test()
 {
   if (!gLocalInboxFolder)
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
 
   gCopyFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("CopyFolder");
   gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");

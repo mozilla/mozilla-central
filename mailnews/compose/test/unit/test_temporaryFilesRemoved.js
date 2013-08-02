@@ -75,7 +75,7 @@ function run_test() {
   });
 
   // Ensure we have at least one mail account
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   gMsgCompose = Cc["@mozilla.org/messengercompose/compose;1"]
                   .createInstance(Ci.nsIMsgCompose);

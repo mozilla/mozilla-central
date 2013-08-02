@@ -173,7 +173,7 @@ function run_test() {
 
   // Ensure we have a local mail account, an normal account and appropriate
   // servers and identities.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   MailServices.accounts.setSpecialFolders();
 

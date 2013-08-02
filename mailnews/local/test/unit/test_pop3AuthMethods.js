@@ -173,7 +173,7 @@ function run_test() {
   server.start(POP3_PORT);
 
   //incomingServer = createPop3ServerAndLocalFolders();
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   do_test_pending();
 

@@ -8,7 +8,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var rootFolder = gLocalIncomingServer.rootFolder;
 

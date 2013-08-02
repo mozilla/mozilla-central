@@ -86,7 +86,7 @@ function run_test() {
   var testFile = do_get_file("data/message1.eml");
 
   // Ensure we have at least one mail account
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);

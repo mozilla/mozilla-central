@@ -28,7 +28,7 @@ function test_enumerator_cleanup() {
  */
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   do_test_pending();
   MailServices.copy.CopyFileMessage(anyOldMessage, gLocalInboxFolder, null, false, 0,
                                     "", messageHeaderGetterListener, null);

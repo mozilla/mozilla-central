@@ -93,7 +93,7 @@ var tests =
 // main test
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // load in the aliases trait testing file
   MailServices.junk.QueryInterface(Ci.nsIMsgCorpus)

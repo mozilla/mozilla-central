@@ -50,8 +50,7 @@ function CopyNextMessage()
 
 function run_test()
 {
-
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   let messageGenerator = new MessageGenerator();
   let scenarioFactory = new MessageScenarioFactory(messageGenerator);
 

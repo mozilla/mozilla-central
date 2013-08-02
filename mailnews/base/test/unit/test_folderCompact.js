@@ -202,7 +202,7 @@ const gTestArray =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   // Load up some messages so that we can copy them in later.
   gMsgFile1 = do_get_file("../../../data/bugmail10");
   gMsgFile2 = do_get_file("../../../data/bugmail11");

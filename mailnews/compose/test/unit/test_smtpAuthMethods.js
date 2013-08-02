@@ -100,7 +100,7 @@ function run_test() {
     dump("AUTH PLAIN = " + AUTHPLAIN + "\n");
     server.start(SMTP_PORT);
 
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
     smtpServer = getBasicSmtpServer();
     smtpServer.socketType = Ci.nsMsgSocketType.plain;
     smtpServer.username = kUsername;

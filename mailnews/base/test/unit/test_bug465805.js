@@ -39,8 +39,7 @@ var Tests =
 function run_test()
 {
   // Setup local mail accounts.
-
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // Get a message into the local filestore. function testBodySearch() continues the testing after the copy.
   do_test_pending();

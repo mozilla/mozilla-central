@@ -131,6 +131,6 @@ var tests = [
 ]
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   async_run_tests(tests);
 }

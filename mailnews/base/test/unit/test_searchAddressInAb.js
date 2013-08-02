@@ -116,8 +116,7 @@ var messageKey, hdr;
 function run_test()
 {
   // Setup local mail accounts.
-
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
     
     // Test setup - copy the data file into place
   var testAB = do_get_file("../../../addrbook/test/unit/data/cardForEmail.mab");

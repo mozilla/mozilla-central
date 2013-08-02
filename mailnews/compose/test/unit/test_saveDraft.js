@@ -18,7 +18,7 @@ function actually_run_test() {
 }
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   do_test_pending();
 

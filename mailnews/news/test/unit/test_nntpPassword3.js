@@ -21,7 +21,7 @@ function run_test()
   signons.copyTo(gProfileDir, "signons.txt");
 
   // Set up the basic accounts and folders.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var incomingServer = MailServices.accounts.createIncomingServer(null, kHostname,
                                                                   kProtocol);

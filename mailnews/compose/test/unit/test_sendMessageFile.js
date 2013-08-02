@@ -112,7 +112,7 @@ function run_test() {
   originalData = IOUtils.loadFileToString(testFile);
 
   // Ensure we have at least one mail account
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   MailServices.accounts.setSpecialFolders();
 

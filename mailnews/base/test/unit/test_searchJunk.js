@@ -211,7 +211,7 @@ var Tests =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
     
   // test that validity table terms are valid
 

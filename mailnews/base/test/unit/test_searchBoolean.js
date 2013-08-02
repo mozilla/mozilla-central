@@ -110,7 +110,7 @@ var searchListener =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   /*
    * I want to create and test a search term that uses this expression:

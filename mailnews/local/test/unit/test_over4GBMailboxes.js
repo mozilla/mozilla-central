@@ -99,7 +99,7 @@ function growInbox(aWantedSize) {
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // "Master" do_test_pending(), paired with a do_test_finished() at the end of
   // all the operations.

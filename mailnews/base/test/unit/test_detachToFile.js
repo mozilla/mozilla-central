@@ -92,7 +92,7 @@ let gCallbackObject = new SaveAttachmentCallback();
 function run_test()
 {
   if (!gLocalInboxFolder)
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
   async_run_tests(tests);
 }
 

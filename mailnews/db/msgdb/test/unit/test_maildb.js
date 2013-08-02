@@ -86,7 +86,7 @@ function doTest(test)
 
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   do_test_pending();
   doTest(1);
 }

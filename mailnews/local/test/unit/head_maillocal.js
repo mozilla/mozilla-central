@@ -44,8 +44,9 @@ function setupServerDaemon(debugOption) {
 }
 
 function createPop3ServerAndLocalFolders() {
-  loadLocalMailAccount();
-  let server = create_incoming_server("pop3", POP3_PORT, "fred", "wilma");
+  localAccountUtils.loadLocalMailAccount();
+  let server = localAccountUtils.create_incoming_server("pop3", POP3_PORT,
+							"fred", "wilma");
   return server;
 }
 
@@ -92,7 +93,7 @@ function copyFileMessageInLocalFolder(aMessageFile,
                                       aMessageWindow,
                                       aCallback) {
   // Set up local folders
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   gCopyListener.callbackFunction = aCallback;
   // Copy a message into the local folder

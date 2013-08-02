@@ -18,7 +18,7 @@ function run_test()
   let vfdat = do_get_file("../../../data/test_virtualFolders.dat");
 
   vfdat.copyTo(gProfileDir, "virtualFolders.dat");
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   let localMailDir = gProfileDir.clone();
   localMailDir.append("Mail");
   localMailDir.append("Local Folders");

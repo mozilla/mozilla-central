@@ -59,7 +59,7 @@ var customTerm =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   MailServices.filters.addCustomTerm(customTerm);
 
   var copyListener = 

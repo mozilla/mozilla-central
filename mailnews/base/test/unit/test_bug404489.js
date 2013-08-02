@@ -58,7 +58,7 @@ var Tests =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // add the custom headers into the preferences file, ":" delimited
 

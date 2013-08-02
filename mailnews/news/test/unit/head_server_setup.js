@@ -113,7 +113,8 @@ function subscribeServer(incomingServer) {
 function setupLocalServer(port) {
   if (_server != null)
     return _server;
-  let server = create_incoming_server("nntp", port, null, null);
+  let server = localAccountUtils.create_incoming_server("nntp", port,
+							null, null);
   subscribeServer(server);
 
   _server = server;

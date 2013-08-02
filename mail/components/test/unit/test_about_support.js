@@ -71,21 +71,22 @@ let gSensitiveData = [];
  */
 function setup_accounts() {
   // First make sure the local folders account is set up.
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   // Now run through the details and set up accounts accordingly.
   for (let [, details] in Iterator(gAccountList)) {
-    let server = create_incoming_server(details.type, details.port,
-                                        details.user, details.password);
+    let server = localAccountUtils.create_incoming_server(details.type, details.port,
+							  details.user, details.password);
     server.socketType = details.socketType;
     server.authMethod = details.authMethod;
     gSensitiveData.push(details.password);
     for (let [, smtpDetails] in Iterator(details.smtpServers)) {
-      let outgoing = create_outgoing_server(smtpDetails.port, smtpDetails.user,
-                                            smtpDetails.password);
+      let outgoing = localAccountUtils.create_outgoing_server(smtpDetails.port,
+							      smtpDetails.user,
+							      smtpDetails.password);
       outgoing.socketType = smtpDetails.socketType;
       outgoing.authMethod = smtpDetails.authMethod;
-      associate_servers(server, outgoing, smtpDetails.isDefault);
+      localAccountUtils.associate_servers(server, outgoing, smtpDetails.isDefault);
       gSensitiveData.push(smtpDetails.password);
 
       // Add the SMTP server to our server name -> server map

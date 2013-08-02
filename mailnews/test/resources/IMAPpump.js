@@ -69,7 +69,8 @@ function setupIMAPPump(extensions)
   }
 
   function createLocalIMAPServer() {
-    let server = create_incoming_server("imap", IMAP_PORT, "user", "password");
+    let server = localAccountUtils.create_incoming_server("imap", IMAP_PORT,
+							  "user", "password");
     server.QueryInterface(Ci.nsIImapIncomingServer);
     return server;
   }
@@ -82,7 +83,7 @@ function setupIMAPPump(extensions)
   gIMAPIncomingServer = createLocalIMAPServer();
 
   if (!this.gLocalInboxFolder)
-    loadLocalMailAccount();
+    localAccountUtils.loadLocalMailAccount();
 
   // We need an identity so that updateFolder doesn't fail
   let localAccount = MailServices.accounts.createAccount();

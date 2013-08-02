@@ -8,7 +8,7 @@
 
 function run_test()
 { 
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
 
   // add subfolders to the inbox

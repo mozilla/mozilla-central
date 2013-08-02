@@ -23,8 +23,7 @@ var tag1 = "istag";
 
 function run_test()
 {
-
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
     
   // Get messageCount messages into the local filestore.
   do_test_pending();

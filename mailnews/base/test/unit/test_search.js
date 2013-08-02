@@ -232,7 +232,7 @@ var Tests =
 
 function run_test()
 {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
 
   var copyListener = 
   {
