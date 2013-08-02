@@ -735,6 +735,7 @@ SessionStoreService.prototype = {
       }
 
       // clear this window from the list
+      delete this._windows[aWindow.__SSi];
       delete this._internalWindows[aWindow.__SSi];
 
       // save the state without this window to disk
