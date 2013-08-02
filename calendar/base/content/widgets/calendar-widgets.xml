@@ -39,19 +39,83 @@
                       flex="1"/>
         <xul:listbox anonid="categories-listbox"
                    class="categories-listbox"
+                   onselect="document.getBindingParent(this).selectCategory()"
                    selType="multiple"
                    >
         <children/>
       </xul:listbox>
     </content>
     <implementation>
+      <field name="_maxCount">0</field>
       <property name="categories" readonly="true">
         <getter><![CDATA[
-          let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
-          let checkedNodes = categoryListbox.getElementsByAttribute("checked", "true");
-          return Array.slice(checkedNodes).map(function(x) x.getAttribute("value"));
+            let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
+            if (this.maxCount == 1) {
+                let selectedItem = categoryListbox.selectedItem;
+                return selectedItem ? [selectedItem.getAttribute("value")] : [];
+            } else {
+                let checkedNodes = categoryListbox.getElementsByAttribute("checked", "true");
+                let sliceEnd = this.maxCount > 0 ? this.maxCount : checkedNodes.length;
+                return Array.slice(checkedNodes, 0, sliceEnd)
+                            .map(function(x) x.getAttribute("value"));
+            }
         ]]></getter>
       </property>
+      <property name="maxCount">
+        <getter><![CDATA[
+            return this._maxCount;
+        ]]></getter>
+        <setter><![CDATA[
+            if (this._maxCount != val) {
+                this._maxCount = val;
+                this.setupSelection();
+            }
+        ]]></setter>
+      </property>
+      <method name="selectCategory">
+        <body><![CDATA[
+            this.setupSelection();
+            if (this.maxCount == 1) {
+                this.hidePopup();
+            }
+        ]]></body>
+      </method>
+      <method name="setupSelection">
+        <body><![CDATA[
+            let categoryListbox = document.getAnonymousElementByAttribute(this, "anonid", "categories-listbox");
+            categoryListbox.setAttribute("seltype", this.maxCount == 1 ? "single" : "multiple");
+
+            if (this.maxCount == 1) {
+                for (let node of categoryListbox.childNodes) {
+                    // Single selection doesn't have checkboxes
+                    node.removeAttribute("type");
+
+                    // Even though we have single select, these may be checked
+                    // in case the user switches between calendars that support
+                    // one vs multiple categories. Uncheck the other nodes to
+                    // make sure the UX is not weird.
+                    setBooleanAttribute(node, "checked", node == categoryListbox.selectedItem);
+                }
+            } else {
+                let categoryTextbox = document.getAnonymousElementByAttribute(this, "anonid", "category-textbox");
+                let maxCountReached = this.maxCount > 0 && this.categories.length == this.maxCount;
+                setBooleanAttribute(categoryTextbox, "disabled", maxCountReached);
+
+                for (let node of categoryListbox.childNodes) {
+                    // Multiselect has checkboxes
+                    node.setAttribute("type", "checkbox");
+
+                    if (maxCountReached && node.getAttribute("checked") != "true") {
+                        // If the maxcount is reached, disable all unchecked items
+                        node.setAttribute("disabled", "true");
+                    } else if (!maxCountReached) {
+                        // If its not reached, remove the disabled attribute
+                        node.removeAttribute("disabled");
+                    }
+                }
+            }
+        ]]></body>
+      </method>
       <method name="insertCategory">
         <parameter name="category" />
         <parameter name="categories" />
@@ -64,10 +128,14 @@
             if (!item || item.getAttribute("value") != category) {
                 // The item doesn't exist, insert it at the correct spot.
                 item = categoryListbox.insertItemAt(newIndex, category, category);
-                item.setAttribute("type", "checkbox");
+
+                if (this.maxCount != 1) {
+                    item.setAttribute("type", "checkbox");
+                }
             }
 
             item.setAttribute("checked", "true");
+            return item;
           ]]></body>
       </method>
       <method name="addNewCategory">
@@ -81,7 +149,7 @@
           }
 
           let localeCollator = cal.createLocaleCollator();
-          function compare(a, b) localeCollator.compareString(0, a, b);
+          let compare = localeCollator.compareString.bind(localeCollator, 0);
 
           let children = categoryListbox.childNodes;
           let categories = [];
@@ -89,8 +157,16 @@
             categories.push(children[i].label);
           }
 
-          this.insertCategory(category, categories, categoryListbox, compare);
+          let item = this.insertCategory(category, categories, categoryListbox, compare);
           categoryTextbox.value = "";
+
+          if (this.maxCount == 1) {
+            categoryListbox.selectedItem = item;
+          } else {
+            this.selectCategory();
+          }
+
+          categoryListbox.ensureElementIsVisible(item);
         ]]></body>
     </method>
       <method name="loadItem">
@@ -111,7 +187,7 @@
 
           if (aItem) {
               let localeCollator = cal.createLocaleCollator();
-              function compare(a, b) localeCollator.compareString(0, a, b);
+              let compare = localeCollator.compareString.bind(localeCollator, 0);
 
               // Ensure the item's categories are in the list and they are checked.
               for each (let cat in aItem.getCategories({})) {

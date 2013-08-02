@@ -473,9 +473,21 @@ function loadCategories(aItem) {
 function updateCategoryMenulist() {
     let categoryMenulist = document.getElementById("item-categories");
     let categoryPanel = document.getElementById("item-categories-panel");
-    let categoryList = categoryPanel.categories;
+
+    // Make sure the maximum number of categories is applied to the listbox
+    let calendar = getCurrentCalendar();
+    let maxCount = calendar.getProperty("capabilities.categories.maxCount");
+    categoryPanel.maxCount = (maxCount === null ? -1 : maxCount);
+
+    // Hide the categories listbox and label in case categories are not
+    // supported
+    setBooleanAttribute("item-categories", "hidden", (maxCount === 0));
+    setBooleanAttribute("item-categories-label", "hidden", (maxCount === 0));
+    setBooleanAttribute("item-calendar-label", "hidden", (maxCount === 0));
+    setBooleanAttribute("item-calendar-aux-label", "hidden", (maxCount !== 0));
 
     let label;
+    let categoryList = categoryPanel.categories;
     if (categoryList.length > 1) {
         label = cal.calGetString("calendar", "multipleCategories");
     } else if (categoryList.length == 1) {
@@ -3465,6 +3477,7 @@ function updateCapabilities() {
     updatePriority();
     updatePrivacy();
     updateReminderDetails();
+    updateCategoryMenulist();
 }
 
 /**

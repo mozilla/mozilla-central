@@ -157,16 +157,20 @@ interface calICalendar : nsISupports
    * The following calendar capabilities can be used to inform the UI or backend
    * that certain features are not supported. If not otherwise mentioned, not
    * specifying these capabilities assumes a default value of true
-   *   capabilities.attachments.supported  Supports attachments
-   *   capabilities.privacy.supported      Supports a privacy state
-   *   capabilities.priority.supported     Supports the priority field
-   *   capabilities.events.supported       Supports tasks
-   *   capabilities.tasks.supported        Supports events
-   *   capabilities.alarms.popup.supported Supports popup alarms
-   *   capabilities.alarms.oninviations.supported Supports alarms on inviations.
-   *   capabilities.timezones.floating.supported Supports local time
-   *   capabilities.timezones.UTC.supported      Supports UTC/GMT timezone
-   *   capabilities.autoschedule.supported       Supports caldav schedule properties in icalendar (SCHEDULE-AGENT, SCHEDULE-STATUS...)
+   *   capabilities.alarms.popup.supported              Supports popup alarms
+   *   capabilities.alarms.oninviations.supported       Supports alarms on inviations.
+   *   capabilities.alarms.maxCount                     Maximum number of alarms supported per event
+   *   capabilities.attachments.supported               Supports attachments
+   *   capabilities.categories.maxCount                 Maximum number of supported categories.
+   *                                                      -1 means infinite, 0 means disabled.
+   *   capabilities.privacy.supported                   Supports a privacy state
+   *   capabilities.priority.supported                  Supports the priority field
+   *   capabilities.events.supported                    Supports tasks
+   *   capabilities.tasks.supported                     Supports events
+   *   capabilities.timezones.floating.supported        Supports local time
+   *   capabilities.timezones.UTC.supported             Supports UTC/GMT timezone
+   *   capabilities.autoschedule.supported              Supports caldav schedule properties in
+   *                                                      icalendar (SCHEDULE-AGENT, SCHEDULE-STATUS...)
    *
    * The following capabilities are used to restrict the values for specific
    * fields. An array should be specified with the values, the default

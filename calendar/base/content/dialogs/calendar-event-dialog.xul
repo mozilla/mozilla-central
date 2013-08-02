@@ -677,10 +677,18 @@
             <!-- Category & Calendar -->
             <row id="event-grid-category-color-row"
                  align="center">
-                <label value="&event.categories.label;"
-                       accesskey="&event.categories.accesskey;"
-                       control="item-categories"
-                       disable-on-readonly="true"/>
+                <hbox id="event-grid-category-labels-box">
+                  <label value="&event.categories.label;"
+                         accesskey="&event.categories.accesskey;"
+                         control="item-categories"
+                         id="item-categories-label"
+                         disable-on-readonly="true"/>
+                  <label value="&event.calendar.label;"
+                         accesskey="&event.calendar.accesskey;"
+                         id="item-calendar-aux-label"
+                         control="item-calendar"
+                         disable-on-readonly="true"/>
+                </hbox>
                 <hbox id="event-grid-category-box" align="center">
                     <menulist id="item-categories"
                               type="panel-menulist"
@@ -693,6 +701,7 @@
                     <label value="&event.calendar.label;"
                            accesskey="&event.calendar.accesskey;"
                            control="item-calendar"
+                           id="item-calendar-label"
                            disable-on-readonly="true"/>
                     <menulist id="item-calendar"
                               disable-on-readonly="true"
