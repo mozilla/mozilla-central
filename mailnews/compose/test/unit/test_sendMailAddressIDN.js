@@ -180,8 +180,7 @@ function run_test()
   // Ensure we have at least one mail account
   localAccountUtils.loadLocalMailAccount();
   MailServices.accounts.setSpecialFolders();
-  sentFolder = localAccountUtils.incomingServer
-                                .rootMsgFolder.createLocalSubfolder("Sent");
+  sentFolder = localAccountUtils.rootFolder.createLocalSubfolder("Sent");
 
   // Test 1:
   // Plain ASCII recipient address.

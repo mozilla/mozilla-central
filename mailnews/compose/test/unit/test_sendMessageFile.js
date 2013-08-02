@@ -119,8 +119,7 @@ function run_test() {
   var smtpServer = getBasicSmtpServer();
   var identity = getSmtpIdentity(kSender, smtpServer);
 
-  sentFolder = localAccountUtils.incomingServer
-                                .rootMsgFolder.createLocalSubfolder("Sent");
+  sentFolder = localAccountUtils.rootFolder.createLocalSubfolder("Sent");
 
   do_check_eq(identity.doFcc, true);
 

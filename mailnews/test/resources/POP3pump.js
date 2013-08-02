@@ -16,6 +16,7 @@
  */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://testing-common/mailnews/localAccountUtils.js");
 
 // We can be executed from multiple depths
 // Provide understandable error message
@@ -26,9 +27,6 @@ if (typeof gDEPTH == "undefined")
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/auth.js");
 Components.utils.import("resource://testing-common/mailnews/pop3d.js");
-
-// Add localAccountUtils for create_incoming_server
-load(gDEPTH + "mailnews/resources/localAccountUtils.js");
 
 function POP3Pump()
 {

@@ -12,6 +12,7 @@
  */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://testing-common/mailnews/localAccountUtils.js");
 
 // Make sure we execute this file exactly once
 if (typeof gIMAPpump_js__ == "undefined") {
@@ -27,9 +28,6 @@ if (typeof gDEPTH == "undefined")
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/auth.js");
 Components.utils.import("resource://testing-common/mailnews/imapd.js");
-
-// Add localAccountUtils for create_incoming_server
-load(gDEPTH + "mailnews/resources/localAccountUtils.js");
 
 // define globals
 var gIMAPDaemon;         // the imap fake server daemon

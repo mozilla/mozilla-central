@@ -114,10 +114,8 @@ function setup() {
 
   setupIMAPPump();
 
-  gEmptyLocal1 = localAccountUtils.incomingServer.rootFolder
-                                  .createLocalSubfolder("empty 1");
-  gEmptyLocal2 = localAccountUtils.incomingServer
-                                  .rootFolder.createLocalSubfolder("empty 2");
+  gEmptyLocal1 = localAccountUtils.rootFolder.createLocalSubfolder("empty 1");
+  gEmptyLocal2 = localAccountUtils.rootFolder.createLocalSubfolder("empty 2");
 
   // these hacks are required because we've created the inbox before
   // running initial folder discovery, and adding the folder bails

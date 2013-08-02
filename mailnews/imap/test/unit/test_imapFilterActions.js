@@ -355,8 +355,7 @@ function run_test()
   Services.prefs.setBoolPref("mail.biff.show_tray_icon", false);
   Services.prefs.setBoolPref("mail.biff.animate_dock_icon", false);
 
-  gSubfolder = localAccountUtils.incomingServer
-                                .rootFolder.createLocalSubfolder("Subfolder");
+  gSubfolder = localAccountUtils.rootFolder.createLocalSubfolder("Subfolder");
   gIMAPIncomingServer.performExpand(null);
 
   gRootFolder = gIMAPIncomingServer.rootFolder;

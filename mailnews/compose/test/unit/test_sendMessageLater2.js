@@ -237,7 +237,7 @@ function run_test() {
   account.defaultIdentity = identity;
   account.incomingServer = incomingServer;
 
-  localAccountUtils.incomingServer.rootMsgFolder.createLocalSubfolder("Sent");
+  localAccountUtils.rootFolder.createLocalSubfolder("Sent");
 
   gSentFolder = msgSendLater.getUnsentMessagesFolder(identity);
 

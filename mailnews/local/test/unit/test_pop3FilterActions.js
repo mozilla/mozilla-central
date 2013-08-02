@@ -123,8 +123,7 @@ function run_test()
   if (!localAccountUtils.inboxFolder)
     localAccountUtils.loadLocalMailAccount();
 
-  gMoveFolder = localAccountUtils.incomingServer
-                                 .rootFolder.createLocalSubfolder("MoveFolder");
+  gMoveFolder = localAccountUtils.rootFolder.createLocalSubfolder("MoveFolder");
 
   MailServices.mailSession.AddFolderListener(FolderListener,
                                              Ci.nsIFolderListener.event |
