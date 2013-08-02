@@ -24,6 +24,7 @@ TESTING_JS_MODULE_DIR = mailnews
 TESTING_JS_MODULES += \
 	$(RESDIR)/mailDirService.js \
 	$(RESDIR)/mailTestUtils.js \
+	$(FAKESERVER)/auth.js \
 	$(FAKESERVER)/maild.js \
 	$(FAKESERVER)/nntpd.js \
 	$(NULL)

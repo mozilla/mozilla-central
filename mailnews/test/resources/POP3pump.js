@@ -24,8 +24,7 @@ if (typeof gDEPTH == "undefined")
 
 // Import the pop3 server scripts
 Components.utils.import("resource://testing-common/mailnews/maild.js");
-if (typeof AuthPLAIN == 'undefined')
-  load(gDEPTH + "mailnews/fakeserver/auth.js");
+Components.utils.import("resource://testing-common/mailnews/auth.js");
 if (typeof pop3Daemon == 'undefined')
   load(gDEPTH + "mailnews/fakeserver/pop3d.js");
 

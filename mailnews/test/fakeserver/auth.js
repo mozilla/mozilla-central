@@ -13,6 +13,15 @@
  * @author Ben Bucksch <ben.bucksch beonex.com>
  */
 
+var EXPORTED_SYMBOLS = [
+  "AuthPLAIN",
+  "AuthLOGIN",
+  "AuthCRAM"
+];
+
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
 /**
  * Implements AUTH PLAIN
  * @see RFC 4616

@@ -19,7 +19,7 @@ load("../../../resources/abSetup.js");
 
 // Import the smtp server scripts
 Components.utils.import("resource://testing-common/mailnews/maild.js");
-load("../../../fakeserver/auth.js");
+Components.utils.import("resource://testing-common/mailnews/auth.js");
 load("../../../fakeserver/smtpd.js");
 
 Components.utils.import("resource:///modules/mailServices.js");

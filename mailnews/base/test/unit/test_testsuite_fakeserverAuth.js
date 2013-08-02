@@ -7,7 +7,7 @@
  * just check roundtrips, against static values etc..
  */
 
-load("../../../fakeserver/auth.js")
+Components.utils.import("resource://testing-common/mailnews/auth.js");
 
 const kUsername = "fred1";
 const kPassword = "wilma2";

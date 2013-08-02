@@ -18,7 +18,7 @@ var gProfileDir = ProfileDir.initialize(do_get_profile());
 
 // Import fakeserver
 Components.utils.import("resource://testing-common/mailnews/maild.js");
-load(gDEPTH + "mailnews/fakeserver/auth.js");
+Components.utils.import("resource://testing-common/mailnews/auth.js");
 load(gDEPTH + "mailnews/fakeserver/imapd.js");
 
 // And mailnews scripts
