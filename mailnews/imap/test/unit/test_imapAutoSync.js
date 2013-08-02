@@ -31,6 +31,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 setupIMAPPump();
 
 const msgFlagOffline = Ci.nsMsgMessageFlags.Offline;
+const nsIAutoSyncMgrListener = Ci.nsIAutoSyncMgrListener;
 
 var gGotAlert;
 
@@ -157,11 +158,11 @@ function run_test()
 
 // listeners for various events to drive the tests.
 
-mfnListener =
+var mfnListener =
 {
   msgsMoveCopyCompleted: function (aMove, aSrcMsgs, aDestFolder, aDestMsgs)
   {
-    dl('msgsMoveCopyCompleted to folder ' + aDestFolder.name);
+    dump('msgsMoveCopyCompleted to folder ' + aDestFolder.name + '\n');
     async_driver();
   },
   folderAdded: function folderAdded(aFolder)
@@ -291,6 +292,6 @@ function addMessageToFolder(folder)
   // We add messages with \Seen flag set so that we won't accidentally
   // trigger the code that updates imap folders that have unread messages moved
   // into them.
-  gMessage = new imapMessage(msgURI.spec, imapMailbox.uidnext++, ["\\Seen"]);
-  imapMailbox.addMessage(gMessage);
+  let message = new imapMessage(msgURI.spec, imapMailbox.uidnext++, ["\\Seen"]);
+  imapMailbox.addMessage(message);
 }

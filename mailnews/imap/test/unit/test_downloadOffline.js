@@ -33,7 +33,6 @@ function setup() {
   let messages = [];
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
-  gSynthMessage = messages[0];
   let dataUri = Services.io.newURI("data:text/plain;base64," +
                                    btoa(messages[0].toMessageString()),
                                    null, null);

@@ -26,6 +26,7 @@ load("../../../resources/asyncTestUtils.js");
 setupIMAPPump();
 
 var gFinishedRunningURL = -1;
+var gSubfolder;
 
 // tests
 

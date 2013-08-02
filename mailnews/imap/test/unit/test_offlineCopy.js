@@ -150,7 +150,7 @@ var tests = [
 
     // test the db headers in folder1
     db = gFolder1.msgDatabase;
-    enumerator = db.EnumerateMessages();
+    let enumerator = db.EnumerateMessages();
     while (enumerator.hasMoreElements())
     {
       var message = enumerator.getNext();
@@ -165,7 +165,7 @@ var tests = [
   },
   function test_headers() {
     let msgIds = [gMsgId1, gMsg3Id, gMsg4Id];
-    for each (msgId in msgIds)
+    for (let msgId of msgIds)
     {
       let newMsgHdr= gFolder1.msgDatabase.getMsgHdrForMessageID(msgId);
       let msgURI = newMsgHdr.folder.getUriForMsg(newMsgHdr);

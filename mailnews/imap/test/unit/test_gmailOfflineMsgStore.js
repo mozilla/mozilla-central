@@ -249,6 +249,7 @@ let gStreamListener = {
   },
   onStopRequest : function (aRequest, aContext, aStatusCode) {
     async_driver();
+    this._stream = null;
   },
   onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
     if (this._stream == null) {

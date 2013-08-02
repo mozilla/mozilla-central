@@ -373,7 +373,8 @@ imapMessage.prototype = {
     this.size = size;
   },
   clearFlag : function (flag) {
-    if ((index = this.flags.indexOf(flag)) != -1)
+    let index = this.flags.indexOf(flag);
+    if (index != -1)
       this.flags.splice(index, 1);
   },
   getText : function (start, length) {
