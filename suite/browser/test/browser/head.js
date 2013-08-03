@@ -2,14 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function getTestPlugin() {
+function getTestPlugin(aName) {
+  var pluginName = aName || "Test Plug-in";
   var ph = Components.classes["@mozilla.org/plugin/host;1"]
                      .getService(Components.interfaces.nsIPluginHost);
   var tags = ph.getPluginTags();
 
   // Find the test plugin
   for (var i = 0; i < tags.length; i++) {
-    if (tags[i].name == "Test Plug-in")
+    if (tags[i].name == pluginName)
       return tags[i];
   }
 
@@ -42,4 +43,27 @@ function whenNewWindowLoaded(aOptions, aCallback) {
     win.removeEventListener("load", onLoad, false);
     aCallback(win);
   }, false);
+}
+
+function updateBlocklist(aCallback) {
+  var blocklistNotifier = Components.classes["@mozilla.org/extensions/blocklist;1"]
+                                    .getService(Components.interfaces.nsITimerCallback);
+  var observer = function() {
+    Services.obs.removeObserver(observer, "blocklist-updated");
+    SimpleTest.executeSoon(aCallback);
+  };
+  Services.obs.addObserver(observer, "blocklist-updated", false);
+  blocklistNotifier.notify(null);
+}
+
+var _originalTestBlocklistURL = null;
+function setAndUpdateBlocklist(aURL, aCallback) {
+  if (!_originalTestBlocklistURL)
+    _originalTestBlocklistURL = Services.prefs.getCharPref("extensions.blocklist.url");
+  Services.prefs.setCharPref("extensions.blocklist.url", aURL);
+  updateBlocklist(aCallback);
+}
+
+function resetBlocklist() {
+  Services.prefs.setCharPref("extensions.blocklist.url", _originalTestBlocklistURL);
 }

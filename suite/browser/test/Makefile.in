@@ -50,6 +50,10 @@ _BROWSER_FILES = \
                  browser_bug623155.js \
                  browser_fayt.js \
                  browser_page_style_menu.js \
+                 blockPluginVulnerableNoUpdate.xml \
+                 blockPluginVulnerableUpdatable.xml \
+                 blockNoPlugins.xml \
+                 blockPluginHard.xml \
                  browser_pluginCrashCommentAndURL.js \
                  page_style_sample.html \
                  browser_pageInfo.js \
@@ -61,6 +65,7 @@ _BROWSER_FILES = \
                  plugin_bug743421.html \
                  plugin_bug749455.html \
                  plugin_clickToPlayAllow.html \
+                 plugin_clickToPlayDeny.html \
                  plugin_hidden_to_visible.html \
                  plugin_unknown.html \
                  plugin_test.html \
