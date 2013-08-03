@@ -227,11 +227,7 @@ function test9a() {
   ok(!notificationBox._missingPlugins, "Test 9a, Should not be a missing plugin list");
   var notification = PopupNotifications.getNotification("click-to-play-plugins", gTestBrowser);
   ok(notification, "Test 9a, Should have a click-to-play notification");
-
-  // SeaMonkey does not support notification.options.centerActions yet, this is
-  // part of the multiple plugin doorhanger UI, Bug 798278 will port this code
-  // to SeaMonkey
-  // ok(notification.options.centerActions.length == 1, "Test 9a, Should have only one type of plugin in the notification");
+  ok(notification.options.centerActions.length == 1, "Test 9a, Should have only one type of plugin in the notification");
 
   var doc = gTestBrowser.contentDocument;
   var plugin1 = doc.getElementById("test1");
@@ -262,10 +258,7 @@ function test9b() {
   ok(!notificationBox._missingPlugins, "Test 9b, Should not be a missing plugin list");
   var notification = PopupNotifications.getNotification("click-to-play-plugins", gTestBrowser);
   ok(notification, "Test 9b, Click to play notification should not be removed now");
-  // SeaMonkey does not support notification.options.centerActions yet, this is
-  // part of the multiple plugin doorhanger UI, Bug 798278 will port this code
-  // to SeaMonkey
-  // ok(notification.options.centerActions.length == 1, "Test 9b, Should have only one type of plugin in the notification");
+  ok(notification.options.centerActions.length == 1, "Test 9b, Should have only one type of plugin in the notification");
 
   var doc = gTestBrowser.contentDocument;
   var plugin1 = doc.getElementById("test1");

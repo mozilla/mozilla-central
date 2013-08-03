@@ -621,6 +621,7 @@ modern.jar:
   skin/modern/mozapps/viewsource/viewsource.css                    (mozapps/viewsource/viewsource.css)
   skin/modern/mozapps/xpinstall/xpinstallConfirm.css               (mozapps/xpinstall/xpinstallConfirm.css)
   skin/modern/mozapps/xpinstall/xpinstallItemGeneric.png           (mozapps/extensions/extensionGeneric.png)
+  skin/modern/navigator/click-to-play-warning-stripes.png          (navigator/click-to-play-warning-stripes.png)
   skin/modern/navigator/linkToolbar.css                            (navigator/linkToolbar.css)
   skin/modern/navigator/navigator.css                              (navigator/navigator.css)
   skin/modern/navigator/pageInfo.css                               (navigator/pageInfo.css)

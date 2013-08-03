@@ -516,6 +516,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 
 .popup-notification-icon[popupid="click-to-play-plugins"] {
   list-style-image: url("chrome://mozapps/skin/plugins/pluginGeneric.png");
+  margin: 0px;
   width: 32px;
   height: 32px;
 }
@@ -574,6 +575,86 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
   list-style-image: url("chrome://mozapps/skin/plugins/pluginGeneric-16.png");
   width: 16px;
   height: 16px;
+}
+
+.click-to-play-plugins-notification-icon-box {
+  background-color: #DDE3EB;
+  -moz-border-end: 1px solid #E6ECF5;
+  padding: 24px;
+}
+
+.click-to-play-plugins-notification-separator {
+  -moz-border-start: 1px solid #B3BCC6;
+  border-top: 1px solid #B3BCC6;
+}
+
+.click-to-play-plugins-notification-description-box {
+  padding-top: 12px;
+  -moz-padding-end: 11px;
+   padding-bottom: 9px;
+  -moz-padding-start: 10px;
+}
+
+.click-to-play-plugins-notification-center-box {
+  background-color: #BDC7D6;
+}
+
+.click-to-play-plugins-notification-button-container {
+  padding: 12px;
+}
+
+.center-item-box {
+  padding: 8px 16px 0px 16px;
+}
+
+.center-item-box[padbottom="true"] {
+  padding-bottom: 8px;
+}
+
+.center-item-icon {
+  background-image: url("chrome://mozapps/skin/plugins/pluginGeneric-16.png");
+  background-repeat: no-repeat;
+  height: 16px;
+  width: 16px;
+  margin-bottom: 4px;
+}
+
+.center-item-box[warn="true"] {
+  background-image: url("chrome://navigator/skin/click-to-play-warning-stripes.png");
+  background-repeat: repeat-x;
+  padding: 8px 16px 6px 16px;
+}
+
+.center-item-box[padbottom="true"][warn="true"] {
+  padding-bottom: 4px;
+}
+
+.center-item-box[showseparator="true"] {
+  border-top: 1px solid #B1BBC5;
+}
+
+.center-item-box[warn="false"] > .center-item-warning {
+  display: none;
+}
+
+.center-item-warning > .text-link[href=""] {
+  display: none;
+}
+
+.center-item-warning-icon {
+  background-image: url("chrome://mozapps/skin/extensions/alerticon-info-negative.png");
+  background-repeat: no-repeat;
+  width: 16px;
+  height: 15px;
+  margin-bottom: 4px;
+}
+
+.center-item-warning-description {
+  color: #828282;
+}
+
+.center-item-button {
+  min-width: 0px;
 }
 
 /* ::::: page proxy icon ::::: */

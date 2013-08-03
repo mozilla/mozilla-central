@@ -95,6 +95,14 @@ searchbar {
   display: none;
 }
 
+#click-to-play-plugins-notification {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#click-to-play-plugins-notification");
+}
+
+popupnotification-centeritem {
+  -moz-binding: url("chrome://communicator/content/bindings/notification.xml#center-item");
+}
+
 #geolocation-notification {
   -moz-binding: url("chrome://communicator/content/bindings/notification.xml#geolocation-popup-notification");
 }

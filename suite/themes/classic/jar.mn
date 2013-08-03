@@ -423,6 +423,7 @@ classic.jar:
   skin/classic/navigator/icons/panel-plus-sign.png                      (mac/navigator/icons/panel-plus-sign.png)
   skin/classic/navigator/icons/restore.png                              (mac/navigator/icons/restore.png)
 #else
+  skin/classic/navigator/click-to-play-warning-stripes.png              (navigator/click-to-play-warning-stripes.png)
   skin/classic/navigator/navigator.css                                  (navigator/navigator.css)
   skin/classic/navigator/linkToolbar.css                                (navigator/linkToolbar.css)
   skin/classic/navigator/pageInfo.css                                   (navigator/pageInfo.css)
