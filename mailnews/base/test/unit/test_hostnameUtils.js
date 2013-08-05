@@ -9,9 +9,9 @@
 Components.utils.import("resource:///modules/hostnameUtils.jsm");
 
 /**
- * Checks if valid and invalid IPs and hostnames are properly allowed or rejected.
+ * Checks if valid and invalid IPs are properly allowed or rejected.
  */
-function test_hostnames() {
+function test_IPaddresses() {
   const kIPsToTest = [
     // isValid,	IP addr.		isIPv6,	isLocal,extend,	result
     // IPv4
@@ -21,6 +21,8 @@ function test_hostnames() {
     [ true,	"1.2.0.4",		false,	false,	false ],
     [ true,	"1.2.3.4",		false,	false,	false ],
     [ true,	"127.1.2.3",		false,	true,	false ],
+    [ true,	"10.1.2.3",		false,	true,	false ],
+    [ true,	"192.168.2.3",		false,	true,	false ],
 
     [ false,	"1.2.3.4.5",		false,	false,	false ],
     [ false,	"1.2.3",		false,	false,	false ],
@@ -63,7 +65,7 @@ function test_hostnames() {
     [ false,	"some::junk",					true,	false,	false ],
     [ false,	"some_junk",					true,	false,	false ],
 
-    // Extended formats of IPv4, hex, octal, DWORD
+    // Extended formats of IPv4, hex, octal, decimal up to DWORD
     [ true,	"0xff.0x12.0x45.0x78",	false,	false,	true,	"255.18.69.120" ],
     [ true,	"01.0123.056.077",	false,	false,	true,	"1.83.46.63" ],
     [ true,	"0xff.2.3.4",		false,	false,	true,	"255.2.3.4" ],
@@ -77,7 +79,19 @@ function test_hostnames() {
 
     [ true,	"1234566945",		false,	false,	true,	"73.149.255.33" ],
     [ false,	"12345",		false,	false,	true ],
-    [ false,	"123456789123456",	false,	false,	true ]
+    [ false,	"123456789123456",	false,	false,	true ],
+
+    [ true,	"127.1",		false,	true,	true,	"127.0.0.1" ],
+    [ true,	"0x7f.100",		false,	true,	true,	"127.0.0.100" ],
+    [ true,	"0x7f.100.1000",	false,	true,	true,	"127.100.3.232" ],
+    [ true,	"0xff.100.1024",	false,	false,	true,	"255.100.4.0" ],
+    [ true,	"0xC0.0xA8.0x2A48",	false,	true,	true,	"192.168.42.72" ],
+    [ true,	"0xC0.0xA82A48",	false,	true,	true,	"192.168.42.72" ],
+    [ true,	"0xC0A82A48",		false,	true,	true,	"192.168.42.72" ],
+    [ true,	"0324.062477106",	false,	false,	true,	"212.202.126.70" ],
+
+    [ false,	"0.0.1000",		false,	false,	true ],
+    [ false,	"0324.06247710677",	false,	false,	true ]
   ];
 
   for (let item of kIPsToTest) {
@@ -121,7 +135,11 @@ function test_hostnames() {
     if (isValid)
       do_check_eq(result, wantedResult);
   }
-
+}
+/**
+ * Checks if valid and invalid host names are properly allowed or rejected.
+ */
+function test_hostnames() {
   const kHostsToTest = [
     // isValid,	hostname
     [ true,	"localhost" ],
@@ -163,6 +181,7 @@ function test_hostnames() {
 }
 
 var gTests = [
+  test_IPaddresses,
   test_hostnames,
 ];
 

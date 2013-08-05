@@ -79,10 +79,11 @@ function isLegalHostName(aHostName)
 }
 
 /**
- * Check if aHostName is an IPv4 address.
+ * Check if aHostName is a valid IPv4 address.
  *
  * @param aHostName                The string to check for validity.
- * @param aAllowExtendedIPFormats  If false, only IPv4 addresses in decimal format
+ * @param aAllowExtendedIPFormats  If false, only IPv4 addresses in the common
+                                   decimal format (4 components, each up to 255)
  *                                 will be accepted, no hex/octal formats.
  * @return  Unobscured canonicalized address if aHostName is an IPv4 address.
  *          Returns null if it's not.
@@ -90,65 +91,66 @@ function isLegalHostName(aHostName)
 function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
 {
   // Scammers frequently obscure the IP address by encoding each component as
-  // octal, hex or in some cases a mix match of each. The IP address could
-  // also be represented as a DWORD.
+  // decimal, octal, hex or in some cases a mix match of each. There can even
+  // be less than 4 components where the last number covers the missing components.
+  // See the test at mailnews/base/test/unit/test_hostnameUtils.js for possible
+  // combinations.
 
   if (!aHostName)
     return null;
 
   // Break the IP address down into individual components.
   let ipComponents = aHostName.split(".");
-
-  if (ipComponents.length == 4)
-  {
-    for (let i = 0; i < ipComponents.length; i++)
-    {
-      // is the component decimal?
-      if (/^(0|([1-9][0-9]{0,2}))$/.test(ipComponents[i])) {
-        ipComponents[i] = parseInt(ipComponents[i], 10);
-      } else if (aAllowExtendedIPFormats) {
-        // is the component octal?
-        if (/^(0[0-7]{1,3})$/.test(ipComponents[i]))
-          ipComponents[i] = parseInt(ipComponents[i], 8);
-        // is the component hex?
-        else if (/^(0x[0-9a-f]{1,2})$/.test(ipComponents[i]))
-          ipComponents[i] = parseInt(ipComponents[i], 16);
-        else
-          return null;
-      } else {
-        return null;
-      }
-    }
-  }
-  else if (aAllowExtendedIPFormats)
-  {
-    // Check if it is a DWORD (32-bit unsigned integer).
-    if (!/^([0-9]*)$/.test(aHostName))
-      return null;
-
-    let value = parseInt(aHostName, 10);
-    if (value >= 4294967295) // MAX_UINT32
-      return null;
-
-    // Convert the DWORD into its component IP parts.
-    ipComponents = [];
-    ipComponents[0] = (value >> 24) & 255;
-    ipComponents[1] = (value >> 16) & 255;
-    ipComponents[2] = (value >>  8) & 255;
-    ipComponents[3] = (value & 255);
-  }
-  else {
+  let componentCount = ipComponents.length;
+  if (componentCount > 4 || (componentCount < 4 && !aAllowExtendedIPFormats))
     return null;
+
+  /**
+   * Checks validity of an IP address component.
+   *
+   * @param aValue  The component string.
+   * @param aWidth  How many components does this string cover.
+   * @return        The value of the component in decimal if it is valid.
+   *                Returns null if it's not.
+   */
+  const kPowersOf256 = [ 1, 256, 65536, 16777216, 4294967296 ];
+  function isLegalIPv4Component(aValue, aWidth) {
+    let component;
+    // Is the component decimal?
+    if (/^(0|([1-9][0-9]{0,9}))$/.test(aValue)) {
+      component = parseInt(aValue, 10);
+    } else if (aAllowExtendedIPFormats) {
+      // Is the component octal?
+      if (/^(0[0-7]{1,12})$/.test(aValue))
+        component = parseInt(aValue, 8);
+      // Is the component hex?
+      else if (/^(0x[0-9a-f]{1,8})$/i.test(aValue))
+        component = parseInt(aValue, 16);
+      else
+        return null;
+    } else {
+      return null;
+    }
+
+    // Make sure the component in not larger than the expected maximum.
+    if (component >= kPowersOf256[aWidth])
+      return null;
+
+    return component;
   }
 
-  // Make sure each part of the IP address is in fact a number, and that
-  // each part isn't larger than 255.
-  for (let component of ipComponents)
-  {
-    // If any part of the IP address is not a number between 0..255
-    // then we can safely return.
-    if (isNaN(component) || component > 255)
+  for (let i = 0; i < componentCount; i++) {
+    // If we are on the last supplied component but we do not have 4,
+    // the last one covers the remaining ones.
+    let componentWidth = (i == componentCount - 1 ? 4 - i : 1);
+    let componentValue = isLegalIPv4Component(ipComponents[i], componentWidth);
+    if (componentValue == null)
       return null;
+
+    // If we have a component spanning multiple ones, split it.
+    for (let j = 0; j < componentWidth; j++) {
+      ipComponents[i + j] = (componentValue >> ((componentWidth - 1 - j) * 8)) & 255;
+    }
   }
 
   // First component of zero is not valid.
@@ -159,7 +161,7 @@ function isLegalIPv4Address(aHostName, aAllowExtendedIPFormats)
 }
 
 /**
- * Check if aHostName is an IPv6 address.
+ * Check if aHostName is a valid IPv6 address.
  *
  * @param aHostName  The string to check for validity.
  * @return  Unobscured canonicalized address if aHostName is an IPv6 address.
@@ -249,7 +251,7 @@ function isLegalIPv6Address(aHostName)
 }
 
 /**
- * Check if aHostName is an IP address.
+ * Check if aHostName is a valid IP address (IPv4 or IPv6).
  *
  * @param aHostName                The string to check for validity.
  * @param aAllowExtendedIPFormats  Allow hex/octal formats in addition to decimal.
