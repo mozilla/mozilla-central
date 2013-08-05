@@ -577,7 +577,6 @@
 @BINPATH@/components/dom_offline.xpt
 @BINPATH@/components/dom_permissionsettings.xpt
 @BINPATH@/components/dom_power.xpt
-@BINPATH@/components/dom_push.xpt
 @BINPATH@/components/dom_quota.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_settings.xpt
