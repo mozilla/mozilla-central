@@ -288,7 +288,6 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   if (NS_FAILED(rv))
   {
     m_status = rv;
-    Release(); // let go of ourselves...
   }
   return rv;
 }
