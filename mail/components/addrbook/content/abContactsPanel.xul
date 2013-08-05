@@ -5,7 +5,6 @@
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
-
 <?xml-stylesheet href="chrome://messenger/skin/addressbook/abContactsPanel.css" type="text/css"?>
 
 <!DOCTYPE page [
@@ -25,17 +24,25 @@
     <stringbundle id="bundle_addressBook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
   </stringbundleset>
 
-  <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
+  <command id="cmd_delete" oncommand="goDoCommand('cmd_delete');"/>
+
+  <!-- These keys do not really run any command, but they are used to show
+       the hotkeys at the corresponding menuitems -->
+  <key id="key_delete" keycode="VK_DELETE"/>
+
   <menupopup id="cardProperties">
     <menuitem label="&deleteAddrBookCard.label;"
               accesskey="&deleteAddrBookCard.accesskey;"
-              oncommand="AbDelete();"/>
+              key="key_delete"
+              command="cmd_delete"/>
     <menuitem label="&addrBookCardProperties.label;"
               accesskey="&addrBookCardProperties.accesskey;"
               oncommand="AbEditSelectedCard();"/>
