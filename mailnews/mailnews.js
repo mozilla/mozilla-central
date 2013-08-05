@@ -56,6 +56,11 @@ pref("mailnews.default_sort_type", 18); //
 pref("mailnews.default_news_sort_order", 1); // for News (nsNewsDatabase)
 pref("mailnews.default_news_sort_type", 21); //
 
+// hidden pref for whether "sort by date" and "sort by received date" in
+// threaded mode should be based on the newest message in the thread, or on
+// the thread root
+pref("mailnews.sort_threads_by_root", false);
+
 // default view flags for new folders
 // both flags are int values reflecting nsMsgViewFlagsType values
 // as defined in nsIMsgDBView.idl (kNone = 0, kThreadedDisplay = 1 etc.)

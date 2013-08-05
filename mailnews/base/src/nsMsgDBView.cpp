@@ -127,6 +127,7 @@ nsMsgDBView::nsMsgDBView()
   m_deletingRows = false;
   mNumMessagesRemainingInBatch = 0;
   mShowSizeInLines = false;
+  mSortThreadsByRoot = false;
 
   /* mCommandsNeedDisablingBecauseOfSelection - A boolean that tell us if we needed to disable commands because of what's selected.
     If we're offline w/o a downloaded msg selected, or a dummy message was selected.
@@ -2252,16 +2253,13 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
 
     GetImapDeleteModel(nullptr);
 
-    if (mIsNews)
+    nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (prefs)
     {
-      nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
-      if (prefs)
-      {
-        bool temp;
-        rv = prefs->GetBoolPref("news.show_size_in_lines", &temp);
-        if (NS_SUCCEEDED(rv))
-          mShowSizeInLines = temp;
-      }
+      prefs->GetBoolPref("mailnews.sort_threads_by_root", &mSortThreadsByRoot);
+
+      if (mIsNews)
+        prefs->GetBoolPref("news.show_size_in_lines", &mShowSizeInLines);
     }
   }
   return NS_OK;
@@ -3973,10 +3971,11 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
         *result = !(bits & nsMsgMessageFlags::Attachment);
       break;
     case nsMsgViewSortType::byDate:
-      // when sorting threads by date, we want the date of the newest msg
+      // when sorting threads by date, we may want the date of the newest msg
       // in the thread
       if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay
-        && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+        && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+        && ! mSortThreadsByRoot)
       {
         nsCOMPtr <nsIMsgThread> thread;
         rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(thread));
@@ -3989,10 +3988,11 @@ nsresult nsMsgDBView::GetLongField(nsIMsgDBHdr *msgHdr, nsMsgViewSortTypeValue s
       rv = msgHdr->GetDateInSeconds(result);
       break;
     case nsMsgViewSortType::byReceived:
-      // when sorting threads by received date, we want the received date of the newest msg
-      // in the thread
+      // when sorting threads by received date, we may want the received date
+      // of the newest msg in the thread
       if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay
-        && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort))
+        && ! (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
+        && ! mSortThreadsByRoot)
       {
         nsCOMPtr <nsIMsgThread> thread;
         rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(thread));

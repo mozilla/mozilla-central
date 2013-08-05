@@ -388,6 +388,7 @@ protected:
   bool mIsXFVirtual;        // a virtual folder with multiple folders
 
   bool mShowSizeInLines;    // for news we show lines instead of size when true
+  bool mSortThreadsByRoot;  // as opposed to by the newest message
   bool m_sortValid;
   bool mSelectionSummarized;
   // we asked the front end to summarize the selection and it did not.
