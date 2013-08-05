@@ -1,6 +1,8 @@
 const NS_LOCALFILEOUTPUTSTREAM_CONTRACTID = "@mozilla.org/network/file-output-stream;1";
 const kRegistrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
 
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
+
 load("../../../resources/logHelper.js");
 load("../../../resources/asyncTestUtils.js");
 load("../../../resources/messageGenerator.js");
@@ -61,10 +63,10 @@ function setup_target_folder() {
   let messages = [];
   messages = messages.concat(scenarioFactory.directReply(10));
 
-  gTargetFolder = gLocalIncomingServer.rootMsgFolder.createLocalSubfolder("Target");
+  gTargetFolder = localAccountUtils.rootFolder.createLocalSubfolder("Target");
   addMessagesToFolder(messages, gTargetFolder);
 
-  updateFolderAndNotify(gTargetFolder, async_driver);
+  mailTestUtils.updateFolderAndNotify(gTargetFolder, async_driver);
   yield false;
 }
 
@@ -103,13 +105,13 @@ var tests = [
 ];
 
 function create_local_folders() {
-  let rootFolder = gLocalIncomingServer.rootMsgFolder;
+  let rootFolder = localAccountUtils.rootFolder;
   let localTrashFolder = rootFolder.getChildNamed("Trash");
   localTrashFolder.setFlag(Ci.nsMsgFolderFlags.Trash);
 }
 
 function run_test() {
-  loadLocalMailAccount();
+  localAccountUtils.loadLocalMailAccount();
   create_local_folders();
 
   async_run_tests(tests);
