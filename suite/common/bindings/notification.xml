@@ -2149,7 +2149,7 @@
                 installStatus.setAttribute("status", "ready");
                 var iconStatus = this.getPluginUI(plugin, "icon");
                 iconStatus.setAttribute("status", "ready");
-                var installLink = this.getPluginUI(plugin, "installPluginLink");
+                var installLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "installPluginLink");
                 this.addLinkClickCallback(installLink, installMissingPlugins);
               }
 
@@ -2165,7 +2165,7 @@
 
             case nsIObjectLoadingContent.PLUGIN_DISABLED:
               if ("toEM" in window) {
-                var manageLink = this.getPluginUI(plugin, "managePluginsLink");
+                var manageLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "managePluginsLink");
                 this.addLinkClickCallback(manageLink, window.toEM, "addons://list/plugin");
               }
               return;
@@ -2199,7 +2199,7 @@
               break;
 
             case nsIObjectLoadingContent.PLUGIN_VULNERABLE_UPDATABLE:
-              var updateLink = this.getPluginUI(plugin, "checkForUpdatesLink");
+              var updateLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "checkForUpdatesLink");
               this.addLinkClickCallback(updateLink, this.openURLPref, "plugins.update.url");
               // fall through
             case nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE:
