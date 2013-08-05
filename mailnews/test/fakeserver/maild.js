@@ -452,8 +452,21 @@ nsMailReader.prototype = {
 
       if (this.transaction)
         this.transaction.us.push(response);
-      this._output.write(response, response.length);
-      this._output.flush();
+
+      try {
+        this._output.write(response, response.length);
+        this._output.flush();
+      }
+      catch (ex) {
+        if (ex.result == Cr.NS_BASE_STREAM_CLOSED) {
+          dump("Stream closed whilst sending, this may be expected\n");
+          this._realCloseSocket();
+        }
+        else {
+          // Some other issue, let the test see it.
+          throw ex;
+        }
+      }
 
       if (this._signalStop) {
         this._realCloseSocket();
