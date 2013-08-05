@@ -59,6 +59,14 @@ ifdef MOZ_UPDATER
 DEFINES += -DMOZ_UPDATER=1
 endif
 
+ifdef MOZ_NATIVE_NSPR
+DEFINES += -DMOZ_NATIVE_NSPR=1
+endif
+
+ifdef MOZ_NATIVE_NSS
+DEFINES += -DMOZ_NATIVE_NSS=1
+endif
+
 DEFINES += -DMOZ_CHILD_PROCESS_NAME=$(MOZ_CHILD_PROCESS_NAME)
 
 # Set MSVC dlls version to package, if any.
