@@ -58,6 +58,9 @@ var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
                     .getService(Components.interfaces.nsIUUIDGenerator);  
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+var systemPrincipal = Services.scriptSecurityManager.getSystemPrincipal();
+
 var backstage = this;
 
 var registeredFunctions = {};
@@ -89,7 +92,7 @@ var loadFile = function(path, collector) {
   file.initWithPath(path);
   var uri = ios.newFileURI(file).spec;
 
-  var module = {};  
+  var module = new Components.utils.Sandbox(systemPrincipal); 
   module.registeredFunctions = registeredFunctions;
   module.collector = collector
   loadTestResources();
