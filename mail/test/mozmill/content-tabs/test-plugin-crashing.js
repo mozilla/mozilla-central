@@ -227,8 +227,9 @@ function test_crashed_plugin_notification_inline() {
     return submitDiv;
   }
 
-  mc.waitFor(function() gContentWindow.document.mozNoPluginCrashedNotification,
-             "Timed out waiting for plugin status div to appear");
+  mc.waitFor( function() !mc.tabmail.selectedTab.browser.parentNode.
+                           getNotificationWithValue("plugin-crashed"),
+              "Timed out: Notification existed and did not disappear.");
 
   let submitDiv = getStatusDiv();
 
