@@ -553,48 +553,22 @@
       <method name="_buildRecentMenu">
         <body><![CDATA[
           const Ci = Components.interfaces;
-          // Iterate through all folders in all accounts, and check MRM_Time,
-          // then take the most current 15 (_MAXRECENT).
 
-          let recentFolders = [];
-          let thisObj = this;
+          // Iterate through all folders in all accounts, and find 15 (_MAXRECENT)
+          // of most recently modified ones.
+          let allFolders = this.toArray(
+            this.fixIterator(this.MailServices.accounts.allFolders, Ci.nsIMsgFolder));
 
-          /**
-           * This function will add a folder to the recentFolders array if it
-           * is among the 15 (_MAXRECENT) most recent. If we exceed 15 folders,
-           * it will pop the oldest folder, ensuring that we end up with the
-           * right number.
-           *
-           * @param aFolder  the folder to check
-           */
-          let oldestTime = 0;
-          function addIfRecent(aFolder) {
-            if (!aFolder.canFileMessages)
-              return;
+          let allFolders = allFolders.filter(function (f) f.canFileMessages);
 
-            let time = 0;
-            try {
-              time = aFolder.getStringProperty("MRMTime");
-            } catch(ex) {}
-            if (!time || time <= oldestTime)
-              return;
+          let recentFolders = this.getMostRecentFolders(allFolders,
+                                                        this._MAXRECENT,
+                                                        "MRMTime");
 
-            if (recentFolders.length == thisObj._MAXRECENT) {
-              recentFolders.sort(function sort_folders_by_MRMTime(a, b) {
-                                 return a.MRMTime < b.MRMTime; });
-              recentFolders.pop();
-              oldestTime = recentFolders[recentFolders.length - 1].MRMTime;
-            }
-            recentFolders.push({ folder:  aFolder,
-                                 MRMTime: time,
-                                 name:    aFolder.prettyName });
-          }
-
-          // Check all folders if they are recent.
-          for (let folder in this.fixIterator(this.MailServices.accounts.allFolders,
-                                              Ci.nsIMsgFolder)) {
-            addIfRecent(folder);
-          }
+          // Cache the pretty names so that they do not need to be fetched
+          // _MAXRECENT^2 times later.
+          let recentFolders = recentFolders.map(
+            function (f) { return { folder: f, name: f.prettyName } });
 
           // Because we're scanning across multiple accounts, we can end up with
           // several folders with the same name. Find those dupes.

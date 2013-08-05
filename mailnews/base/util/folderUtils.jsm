@@ -7,7 +7,8 @@
  */
 
 const EXPORTED_SYMBOLS = ["getFolderProperties", "getSpecialFolderString",
-                          "getFolderFromUri", "allAccountsSorted"];
+                          "getFolderFromUri", "allAccountsSorted",
+                          "getMostRecentFolders"];
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
@@ -166,4 +167,49 @@ function allAccountsSorted(aExcludeIMAccounts) {
   }
 
   return accountList.sort(compareAccounts);
+}
+
+/**
+ * Returns the most recently used/modified folders from the passed in list.
+ *
+ * @param aFolderList       The array of nsIMsgFolders to search for recent folders.
+ * @param aMaxHits          How many folders to return.
+ * @param aTimeProperty     Which folder time property to use.
+ *                          Use "MRMTime" for most recently modified time.
+ *                          Use "MRUTime" for most recently used time.
+ */
+function getMostRecentFolders(aFolderList, aMaxHits, aTimeProperty) {
+  let recentFolders = [];
+
+  /**
+   * This sub-function will add a folder to the recentFolders array if it
+   * is among the aMaxHits most recent. If we exceed aMaxHits folders,
+   * it will pop the oldest folder, ensuring that we end up with the
+   * right number.
+   *
+   * @param aFolder  The folder to check for recency.
+   */
+  let oldestTime = 0;
+  function addIfRecent(aFolder) {
+    let time = 0;
+    try {
+      time = Number(aFolder.getStringProperty(aTimeProperty)) || 0;
+    } catch(e) {}
+    if (time <= oldestTime)
+      return;
+
+    if (recentFolders.length == aMaxHits) {
+      recentFolders.sort(function sort_folders_by_time(a, b) {
+                         return a.time < b.time; });
+      recentFolders.pop();
+      oldestTime = recentFolders[recentFolders.length - 1].time;
+    }
+    recentFolders.push({ folder: aFolder, time: time });
+  }
+
+  for (let folder of aFolderList) {
+    addIfRecent(folder);
+  }
+
+  return recentFolders.map(function (f) { return f.folder; });
 }

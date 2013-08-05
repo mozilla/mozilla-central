@@ -1289,42 +1289,11 @@ let gFolderTreeView = {
       generateMap: function ftv_recent_generateMap(ftv) {
         const MAXRECENT = 15;
 
-        /**
-         * Sorts our folders by their recent-times.
-         */
-        function sorter(a, b) {
-          return Number(a.getStringProperty("MRUTime")) <
-            Number(b.getStringProperty("MRUTime"));
-        }
-
-        /**
-         * This function will add a folder to the recentFolders array if it
-         * is among the 15 most recent.  If we exceed 15 folders, it will pop
-         * the oldest folder, ensuring that we end up with the right number
-         *
-         * @param aFolder the folder to check
-         */
-        let recentFolders = [];
-        let oldestTime = 0;
-        function addIfRecent(aFolder) {
-          let time;
-          try {
-            time = Number(aFolder.getStringProperty("MRUTime")) || 0;
-          } catch (ex) {return;}
-          if (time <= oldestTime)
-            return;
-
-          if (recentFolders.length == MAXRECENT) {
-            recentFolders.sort(sorter);
-            recentFolders.pop();
-            let oldestFolder = recentFolders[recentFolders.length - 1];
-            oldestTime = Number(oldestFolder.getStringProperty("MRUTime"));
-          }
-          recentFolders.push(aFolder);
-        }
-
-        for each (let folder in ftv._enumerateFolders)
-          addIfRecent(folder);
+        // Get 15 (MAXRECENT) most recently accessed folders.
+        let recentFolders = getMostRecentFolders(ftv._enumerateFolders,
+                                                 MAXRECENT,
+                                                 "MRUTime",
+                                                 null);
 
         // Sort the folder names alphabetically.
         recentFolders.sort(function rf_sort(a, b){
@@ -1334,15 +1303,15 @@ let gFolderTreeView = {
             aLabel = a.server.prettyName;
             bLabel = b.server.prettyName;
           }
-          return aLabel.toLocaleLowerCase() > bLabel.toLocaleLowerCase();
+          return aLabel.localeCompare(bLabel);
         });
 
-        let items = [new ftvItem(f) for each (f in recentFolders)];
+        let items = [new ftvItem(f) for (f of recentFolders)];
 
         // There are no children in this view!
         // And we want to display the account name to distinguish folders w/
         // the same name.
-        for each (let folder in items) {
+        for (let folder of items) {
           folder.__defineGetter__("children", function() []);
           folder.addServerName = true;
         }
@@ -2351,7 +2320,7 @@ function sortFolderItems (aFtvItems) {
     let sortKey = a._folder.compareSortKeys(b._folder);
     if (sortKey)
       return sortKey;
-    return a.text.toLowerCase() > b.text.toLowerCase();
+    return a.text.localeCompare(b.text);
   }
   aFtvItems.sort(sorter);
 }
