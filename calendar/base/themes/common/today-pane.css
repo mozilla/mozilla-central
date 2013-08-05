@@ -148,13 +148,14 @@ agenda-checkbox-richlist-item {
 agenda-richlist-item {
   -moz-binding: url("chrome://calendar/content/agenda-listbox.xml#agenda-richlist-item");
   -moz-user-focus: normal;
-  overflow: hidden;
 }
 
 agenda-allday-richlist-item {
   -moz-binding: url("chrome://calendar/content/agenda-listbox.xml#agenda-allday-richlist-item");
   -moz-user-focus: normal;
-  overflow: hidden;
+}
+.wrap {
+  overflow: visible;
 }
 
 .agenda-container-box {

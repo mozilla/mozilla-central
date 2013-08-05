@@ -150,7 +150,7 @@
         <body><![CDATA[
           var evl = this.eventNameLabel;
           var item = this.mOccurrence;
-          evl.value = (item.title ? item.title.replace(/\n/g, ' ') :
+          evl.textContent = (item.title ? item.title.replace(/\n/g, ' ') :
                                     calGetString("calendar", "eventUntitled"));
         ]]></body>
       </method>

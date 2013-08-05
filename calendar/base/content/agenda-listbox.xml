@@ -148,6 +148,11 @@
 
             let multiDayImage = document.getAnonymousElementByAttribute(this, "anonid", "agenda-multiDayEvent-image");
             multiDayImage.setAttribute("type", iconType);
+            // class wrap causes allday items to wrap its text in today-pane
+            let addWrap = document.getAnonymousElementByAttribute(this.mAllDayItem, "anonid", "eventbox");
+            addWrap.classList.add("wrap");
+            addWrap = document.getAnonymousElementByAttribute(this.mAllDayItem, "anonid", "event-detail-box");
+            addWrap.classList.add("wrap");
             allDayDateLabel.value = date;
         ]]></body>
       </method>
@@ -171,10 +176,10 @@
             <xul:spacer flex="1"/>
           </xul:vbox>
         </xul:hbox>
-        <xul:vbox anonid="agenda-description">
-          <xul:hbox align="center">
+        <xul:vbox anonid="agenda-description" flex="1">
+          <xul:hbox align="start">
             <xul:image anonid="agenda-multiDayEvent-image" class="agenda-multiDayEvent-image"/>
-            <xul:label anonid="agenda-event-start" class="agenda-event-start" crop="end" xbl:inherits="selected"/>
+            <xul:label anonid="agenda-event-start" class="agenda-event-start" crop="end" flex="1" xbl:inherits="selected"/>
           </xul:hbox>
           <xul:label anonid="agenda-event-title" class="agenda-event-title" crop="end" xbl:inherits="selected"/>
         </xul:vbox>
@@ -186,8 +191,6 @@
         <parameter name="aPeriod"/>
         <body><![CDATA[
             this.mOccurrence = aItem;
-            let titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
-            titlebox.value = aItem.title;
             this.setAttribute("status", aItem.status);
             let dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
@@ -241,7 +244,15 @@
             let multiDayImage = document.getAnonymousElementByAttribute(this, "anonid", "agenda-multiDayEvent-image");
             multiDayImage.setAttribute("type", iconType);
             let durationbox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-start");
-            durationbox.value = duration;
+            durationbox.textContent = duration;
+
+            // show items with time only (today & tomorrow) as one line.
+            if (longFormat) {
+                let titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
+                titlebox.textContent = aItem.title;
+            } else {
+                durationbox.textContent += " " + aItem.title;
+            }
             this.refreshColor();
         ]]></body>
       </method>
