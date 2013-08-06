@@ -23,8 +23,14 @@ var Cr = Components.results;
 var CC = Components.Constructor;
 
 let ProfileDir = {
+  _profileDir: undefined,
+
   // keep things out of global scope where possible.
   initialize: function initializeDirServer(aProfileDir) {
+    // Don't initialize again, if we're already initialized.
+    if (this._profileDir)
+      return;
+
     const NS_APP_USER_PROFILE_50_DIR = "ProfD";
 
     // Various functions common to the tests.
@@ -97,7 +103,7 @@ let ProfileDir = {
 
     // Always ensure the profile directory exists before we start the tests
     dir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt("0700", 8));
-
+    this._profileDir = dir;
     return dir;
   },
 
