@@ -18,14 +18,15 @@ Cu.import("resource:///modules/xmpp-xml.jsm");
 
 /* Handle PLAIN authorization mechanism */
 function PlainAuth(username, password, domain) {
-  this._username = username;
-  this._password = password;
+  let data = "\0"+ username + "\0" + password;
+  // btoa for Unicode, see https://developer.mozilla.org/en-US/docs/DOM/window.btoa
+  this._base64Data = btoa(unescape(encodeURIComponent(data)));
 }
 PlainAuth.prototype = {
   next: function(aStanza) ({
     done: true,
     send: Stanza.node("auth", Stanza.NS.sasl, {mechanism: "PLAIN"},
-                      btoa("\0"+ this._username + "\0" + this._password))
+                      this._base64Data)
   })
 };
 
