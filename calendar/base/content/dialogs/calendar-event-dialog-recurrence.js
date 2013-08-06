@@ -45,9 +45,7 @@ function onLoad() {
             // Deal with the rules
             if (rules.length > 0) {
                 // We only handle 1 rule currently
-                if (calInstanceOf(rules[0], Components.interfaces.calIRecurrenceRule)) {
-                    rule = rules[0];
-                }
+                rule = cal.wrapInstance(rules[0], Components.interfaces.calIRecurrenceRule);
             }
         } catch (ex) {
             Components.utils.reportError(ex);

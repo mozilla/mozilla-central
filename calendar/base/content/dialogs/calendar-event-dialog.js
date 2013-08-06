@@ -801,8 +801,8 @@ function loadRepeat(item) {
             }
         }
         if (rules.length == 1) {
-            var rule = rules[0];
-            if (calInstanceOf(rule, Components.interfaces.calIRecurrenceRule)) {
+            let rule = cal.wrapInstance(rules[0], Components.interfaces.calIRecurrenceRule);
+            if (rule) {
                 switch (rule.type) {
                     case 'DAILY':
                         if (!checkRecurrenceRule(rule, ['BYSECOND',

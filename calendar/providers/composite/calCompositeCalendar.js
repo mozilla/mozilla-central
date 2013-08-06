@@ -305,16 +305,18 @@ calCompositeCalendar.prototype = {
     mCompositeObservers: null,
     mObservers: null,
     addObserver: function (aObserver) {
-        if (cal.calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
-            this.mCompositeObservers.add(aObserver);
+        let wrappedCObserver = cal.wrapInstance(aObserver, Components.interfaces.calICompositeObserver);
+        if (wrappedCObserver) {
+            this.mCompositeObservers.add(wrappedCObserver);
         }
         this.mObservers.add(aObserver);
     },
 
     // void removeObserver( in calIObserver observer );
     removeObserver: function (aObserver) {
-        if (cal.calInstanceOf(aObserver, Components.interfaces.calICompositeObserver)) {
-            this.mCompositeObservers.remove(aObserver);
+        let wrappedCObserver = cal.wrapInstance(aObserver, Components.interfaces.calICompositeObserver);
+        if (wrappedCObserver) {
+            this.mCompositeObservers.remove(wrappedCObserver);
         }
         this.mObservers.remove(aObserver);
     },

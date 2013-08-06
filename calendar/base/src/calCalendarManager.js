@@ -637,10 +637,11 @@ calCalendarManager.prototype = {
         // providers (storage and memory). Otherwise we may nuke someone's
         // calendar stored on a server when all they really wanted to do was
         // unsubscribe.
-        if (cal.calInstanceOf(calendar, Components.interfaces.calICalendarProvider) &&
-            (calendar.type == "storage" || calendar.type == "memory")) {
+        let wrappedCalendar = cal.wrapInstance(calendar, Components.interfaces.calICalendarProvider);
+        if (wrappedCalendar &&
+            (wrappedCalendar.type == "storage" || wrappedCalendar.type == "memory")) {
             try {
-                calendar.deleteCalendar(calendar, null);
+                wrappedCalendar.deleteCalendar(calendar, null);
             } catch (e) {
                 Components.utils.reportError("error purging calendar: " + e);
             }

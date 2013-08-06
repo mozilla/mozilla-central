@@ -486,7 +486,8 @@ function updateLink() {
 
         // Only show if its either an internal protcol handler, or its external
         // and there is an external app for the scheme
-        hideOrShow(!calInstanceOf(handler, Components.interfaces.nsIExternalProtocolHandler) ||
+        handler = cal.wrapInstance(handler, Components.interfaces.nsIExternalProtocolHandler);
+        hideOrShow(!handler||
                    handler.externalAppExistsForScheme(uri.scheme));
 
         setTimeout(function() {

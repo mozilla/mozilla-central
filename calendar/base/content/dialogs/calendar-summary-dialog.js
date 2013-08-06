@@ -51,12 +51,13 @@ function onLoad() {
         setDialogId(document.documentElement, "calendar-task-summary-dialog");
     }
 
+    calendar = cal.wrapInstance(item.calendar, Components.interfaces.calISchedulingSupport);
     window.readOnly = !(isCalendarWritable(calendar)
                         && (userCanModifyItem(item)
-                            || (calInstanceOf(item.calendar, Components.interfaces.calISchedulingSupport)
+                            || (calendar
                                 && item.calendar.isInvitation(item)
                                 && userCanRespondToInvitation(item))));
-    if (!window.readOnly && calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
+    if (!window.readOnly && calendar) {
         var attendee = calendar.getInvitedAttendee(item);
         if (attendee) {
             // if this is an unresponded invitation, preset our default alarm values:

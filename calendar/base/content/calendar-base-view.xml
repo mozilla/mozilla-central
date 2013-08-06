@@ -410,9 +410,9 @@
 
       <method name="popRefreshQueue">
         <body><![CDATA[
-          let pendingRefresh = this.mRefreshPending;
-          if (pendingRefresh) {
-              if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
+          let pendingRefresh = cal.wrapInstance(this.mRefreshPending, Components.interfaces.calIOperation);
+          if (this.mRefreshPending) {
+              if (pendingRefresh) {
                   this.mRefreshPending = null;
                   pendingRefresh.cancel(null);
               } else {

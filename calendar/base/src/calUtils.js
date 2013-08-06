@@ -456,7 +456,7 @@ function calInstanceOf(aObject, aInterface) {
  * @returns        true if the object is a calIEvent, false otherwise
  */
 function isEvent(aObject) {
-    return calInstanceOf(aObject, Components.interfaces.calIEvent);
+    return (cal.wrapInstance(aObject, Components.interfaces.calIEvent) != null);
 }
 
 /**
@@ -466,7 +466,7 @@ function isEvent(aObject) {
  * @returns        true if the object is a calITodo, false otherwise
  */
 function isToDo(aObject) {
-    return calInstanceOf(aObject, Components.interfaces.calITodo);
+    return (cal.wrapInstance(aObject, Components.interfaces.calITodo) != null);
 }
 
 /**
@@ -1409,7 +1409,8 @@ function calGetProductVersion() {
  */
 function calSetProdidVersion(aIcalComponent) {
     // Throw for an invalid parameter
-    if (!calInstanceOf(aIcalComponent, Components.interfaces.calIIcalComponent)) {
+    aIcalComponent = cal.wrapInstance(aIcalComponent, Components.interfaces.calIIcalComponent);
+    if (!aIcalComponent) {
         throw Components.results.NS_ERROR_INVALID_ARG;
     }
     // Set the prodid and version

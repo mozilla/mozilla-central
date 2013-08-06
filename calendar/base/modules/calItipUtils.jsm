@@ -21,8 +21,9 @@ cal.itip = {
      getSequence: function cal_itip_getSequence(item) {
         let seq = null;
 
-        if (cal.calInstanceOf(item, Components.interfaces.calIAttendee)) {
-            seq = item.getProperty("RECEIVED-SEQUENCE");
+        let wrappedItem = cal.wrapInstance(item, Components.interfaces.calIAttendee);
+        if (wrappedItem) {
+            seq = wrappedItem.getProperty("RECEIVED-SEQUENCE");
         } else if (item) {
             // Unless the below is standardized, we store the last original
             // REQUEST/PUBLISH SEQUENCE in X-MOZ-RECEIVED-SEQUENCE to test against it
@@ -55,8 +56,9 @@ cal.itip = {
     getStamp: function cal_itip_getStamp(item) {
         let dtstamp = null;
 
-        if (cal.calInstanceOf(item, Components.interfaces.calIAttendee)) {
-            let st = item.getProperty("RECEIVED-DTSTAMP");
+        let wrappedItem = cal.wrapInstance(item, Components.interfaces.calIAttendee);
+        if (wrappedItem) {
+            let st = wrappedItem.getProperty("RECEIVED-DTSTAMP");
             if (st) {
                 dtstamp = cal.createDateTime(st);
             }
@@ -545,15 +547,18 @@ cal.itip = {
                 let clonedItem = aItem.clone();
                 let exdates = [];
                 for each (let ritem in clonedItem.recurrenceInfo.getRecurrenceItems({})) {
+
+                    let wrappedRItem = cal.wrapInstance(ritem, Components.interfaces.calIRecurrenceDate);
                     if (ritem.isNegative &&
-                        cal.calInstanceOf(ritem, Components.interfaces.calIRecurrenceDate) &&
+                        wrappedRItem &&
                         !aOriginalItem.recurrenceInfo.getRecurrenceItems({}).some(
                             function(r) {
+                                let wrappedR = cal.wrapInstance(r, Components.interfaces.calIRecurrenceDate);
                                 return (r.isNegative &&
-                                        cal.calInstanceOf(r, Components.interfaces.calIRecurrenceDate) &&
-                                        r.date.compare(ritem.date) == 0);
+                                        wrappedR &&
+                                        wrappedR.date.compare(wrappedRItem.date) == 0);
                             })) {
-                        exdates.push(ritem);
+                        exdates.push(wrappedRItem);
                     }
                 }
                 if (exdates.length > 0) {
@@ -759,14 +764,16 @@ cal.itip = {
  * @param itipItemItem received iTIP item
  */
 function setReceivedInfo(item, itipItemItem) {
-    item.setProperty(cal.calInstanceOf(item, Components.interfaces.calIAttendee) ? "RECEIVED-SEQUENCE"
-                                                                                 : "X-MOZ-RECEIVED-SEQUENCE",
-                     String(cal.itip.getSequence(itipItemItem)));
+
+    let wrappedItem = cal.wrapInstance(item, Components.interfaces.calIAttendee);
+    item.setProperty(wrappedItem ? "RECEIVED-SEQUENCE"
+                                 : "X-MOZ-RECEIVED-SEQUENCE",
+                                 String(cal.itip.getSequence(itipItemItem)));
     let dtstamp = cal.itip.getStamp(itipItemItem);
     if (dtstamp) {
-        item.setProperty(cal.calInstanceOf(item, Components.interfaces.calIAttendee) ? "RECEIVED-DTSTAMP"
-                                                                                     : "X-MOZ-RECEIVED-DTSTAMP",
-                         dtstamp.getInTimezone(cal.UTC()).icalString);
+        item.setProperty(wrappedItem ? "RECEIVED-DTSTAMP"
+                                     : "X-MOZ-RECEIVED-DTSTAMP",
+                                     dtstamp.getInTimezone(cal.UTC()).icalString);
     }
 }
 
@@ -897,18 +904,9 @@ function sendMessage(aItem, aMethod, aRecipientsList, autoResponse) {
     if (aRecipientsList.length == 0) {
         return;
     }
-    if (cal.calInstanceOf(aItem.calendar, Components.interfaces.calISchedulingSupport)) {
-        // HACK: Usage of QueryInterface kind of hackish, need to remove all
-        // calls of calInstanceOf since casting happens per-compartment.
-        //
-        // Works:
-        //   let foo = aItem.calendar;
-        //   (foo instanceof Ci.calISchedulingSupport);
-        //   cal.calInstanceOf(aItem.calendar, Ci.calISchedulingSupport) && aItem.calendar.canNotify();
-        // Fails:
-        //   let foo = aItem.calendar;
-        //   cal.calInstanceOf(aItem.calendar, Ci.calISchedulingSupport) && aItem.calendar.canNotify();
-        if (aItem.calendar.QueryInterface(Components.interfaces.calISchedulingSupport)
+    let calendar = cal.wrapInstance(aItem.calendar, Components.interfaces.calISchedulingSupport);
+    if (calendar) {
+        if (calendar.QueryInterface(Components.interfaces.calISchedulingSupport)
                           .canNotify(aMethod, aItem)) {
             return; //provider will handle that
         }

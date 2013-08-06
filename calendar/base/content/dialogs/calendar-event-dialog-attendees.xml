@@ -145,8 +145,8 @@
                              ? organizer.id
                              : calendar.getProperty("organizerId"));
 
-          this.mIsInvitation = (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport) &&
-                                calendar.isInvitation(args.item));
+          calendar = cal.wrapInstance(calendar, Components.interfaces.calISchedulingSupport);
+          this.mIsInvitation = (calendar && calendar.isInvitation(args.item));
 
           var listbox =
               document.getAnonymousElementByAttribute(

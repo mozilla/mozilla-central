@@ -189,8 +189,8 @@ let cal = {
      */
     isInvitation: function cal_isInvitation(aItem) {
         let isInvitation = false;
-        let calendar = aItem.calendar;
-        if (cal.calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
+        let calendar = cal.wrapInstance(aItem.calendar, Components.interfaces.calISchedulingSupport);
+        if (calendar) {
             isInvitation = calendar.isInvitation(aItem);
         }
         return isInvitation;
@@ -203,7 +203,8 @@ let cal = {
      * @param aItem either calIAttendee or calIItemBase 
      */
     isOpenInvitation: function cal_isOpenInvitation(aItem) {
-        if (!cal.calInstanceOf(aItem, Components.interfaces.calIAttendee)) {
+        let wrappedItem = cal.wrapInstance(aItem, Components.interfaces.calIAttendee);
+        if (!wrappedItem) {
             aItem = cal.getInvitedAttendee(aItem);
         }
         if (aItem) {
@@ -224,8 +225,9 @@ let cal = {
             aCalendar = aItem.calendar;
         }
         let invitedAttendee = null;
-        if (cal.calInstanceOf(aCalendar, Components.interfaces.calISchedulingSupport)) {
-            invitedAttendee = aCalendar.getInvitedAttendee(aItem);
+        let calendar = cal.wrapInstance(aCalendar, Components.interfaces.calISchedulingSupport);
+        if (calendar) {
+            invitedAttendee = calendar.getInvitedAttendee(aItem);
         }
         return invitedAttendee;
     },
@@ -620,6 +622,36 @@ let cal = {
             }
         };
         Services.obs.addObserver(observer, topic, false /* don't hold weakly */);
+    },
+
+    /**
+     * Wraps an instance. Replaces calInstanceOf from calUtils.js 
+     *
+     * @param aObj the object under consideration 
+     * @param aInterface the interface to be wrapped
+     *
+     * Use this function to QueryInterface the object to a particular interface. 
+     * You may only expect the return value to be wrapped, not the original passed object. 
+     * For example:
+     * // BAD USAGE:
+     * if (cal.wrapInstance(foo, Ci.nsIBar)) {
+     *   foo.barMethod();
+     * }
+     * // GOOD USAGE:
+     * foo = cal.wrapInstance(foo, Ci.nsIBar);
+     * if (foo) {
+     *   foo.barMethod();
+     *   }
+     *
+     */
+    wrapInstance: function wrapInstance(aObj, aInterface) {
+        if (!aObj)
+            return null;
+        try {
+            return aObj.QueryInterface(aInterface);
+        } catch (e) {
+            return null;
+        }
     },
 
     /**

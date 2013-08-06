@@ -600,9 +600,9 @@ function setupContextMenu(popup) {
  */
 agendaListbox.refreshCalendarQuery =
 function refreshCalendarQuery(aStart, aEnd, aCalendar) {
-    let pendingRefresh = this.pendingRefresh;
-    if (pendingRefresh) {
-        if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
+    let pendingRefresh = cal.wrapInstance(this.pendingRefresh, Components.interfaces.calIOperation);
+    if (this.pendingRefresh) {
+        if (pendingRefresh) {
             this.pendingRefresh = null;
             pendingRefresh.cancel(null);
         } else {
