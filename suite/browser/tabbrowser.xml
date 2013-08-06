@@ -1422,6 +1422,9 @@
               catch (ex) { }
             }
 
+            t.dispatchEvent(new Event("TabOpen",
+              { bubbles: true, cancelable: false }));
+
             // Check if we're opening a tab related to the current tab and
             // move it to after the current tab.
             // aReferrerURI is null or undefined if the tab is opened from
@@ -1446,9 +1449,6 @@
               this.mPreviousTab = null;
             }
             this.tabContainer._handleNewTab(t);
-
-            t.dispatchEvent(new Event("TabOpen",
-              { bubbles: true, cancelable: false }));
 
             return t;
           ]]>
@@ -1591,6 +1591,9 @@
             this.mTabListeners[position] = tabListener;
             this.mTabFilters[position] = filter;
 
+            t.dispatchEvent(new Event("TabOpen",
+              { bubbles: true, cancelable: false }));
+
             if (savedData.pos < position)
               this.moveTabTo(position, savedData.pos);
 
@@ -1601,9 +1604,6 @@
               this.mStrip.collapsed = false;
             }
             this.tabContainer._handleNewTab(t);
-
-            t.dispatchEvent(new Event("TabOpen",
-              { bubbles: true, cancelable: false }));
 
             return t;
           ]]>
