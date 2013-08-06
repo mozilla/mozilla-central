@@ -5,7 +5,6 @@
 
 #include "mozilla/ModuleUtils.h"
 #include "nsSuiteDirectoryProvider.h"
-#include "nsProfileMigrator.h"
 #include "nsThunderbirdProfileMigrator.h"
 #include "nsNetCID.h"
 #include "nsRDFCID.h"
@@ -19,6 +18,8 @@
 #include "nsGNOMEShellService.h"
 #endif
 
+#define NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "@mozilla.org/profile/migrator;1?app=suite&type="
+
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(XP_WIN)
@@ -29,7 +30,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsThunderbirdProfileMigrator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
@@ -41,7 +41,6 @@ NS_DEFINE_NAMED_CID(NS_SUITEMACINTEGRATION_CID);
 NS_DEFINE_NAMED_CID(NS_SUITEGNOMEINTEGRATION_CID);
 #endif
 NS_DEFINE_NAMED_CID(NS_SUITEDIRECTORYPROVIDER_CID);
-NS_DEFINE_NAMED_CID(NS_SUITEPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_THUNDERBIRDPROFILEMIGRATOR_CID);
 NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 
@@ -56,7 +55,6 @@ static const mozilla::Module::CIDEntry kSuiteCIDs[] = {
   { &kNS_SUITEGNOMEINTEGRATION_CID, false, NULL, nsGNOMEShellServiceConstructor },
 #endif
   { &kNS_SUITEDIRECTORYPROVIDER_CID, false, NULL, nsSuiteDirectoryProviderConstructor },
-  { &kNS_SUITEPROFILEMIGRATOR_CID, false, NULL, nsProfileMigratorConstructor },
   { &kNS_THUNDERBIRDPROFILEMIGRATOR_CID, false, NULL, nsThunderbirdProfileMigratorConstructor },
   { &kNS_FEEDSNIFFER_CID, false, NULL, nsFeedSnifferConstructor },
   { NULL }
@@ -71,7 +69,6 @@ static const mozilla::Module::ContractIDEntry kSuiteContracts[] = {
   { NS_SUITESHELLSERVICE_CONTRACTID, &kNS_SUITEGNOMEINTEGRATION_CID },
 #endif
   { NS_SUITEDIRECTORYPROVIDER_CONTRACTID, &kNS_SUITEDIRECTORYPROVIDER_CID },
-  { NS_PROFILEMIGRATOR_CONTRACTID, &kNS_SUITEPROFILEMIGRATOR_CID },
   { NS_SUITEPROFILEMIGRATOR_CONTRACTID_PREFIX "thunderbird", &kNS_THUNDERBIRDPROFILEMIGRATOR_CID },
   { NS_FEEDSNIFFER_CONTRACTID, &kNS_FEEDSNIFFER_CID },
   { NULL }

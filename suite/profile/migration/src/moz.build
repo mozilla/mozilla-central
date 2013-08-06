@@ -7,8 +7,14 @@ MODULE = 'suitemigration'
 
 CPP_SOURCES += [
     'nsNetscapeProfileMigratorBase.cpp',
-    'nsProfileMigrator.cpp',
     'nsSuiteProfileMigratorUtils.cpp',
     'nsThunderbirdProfileMigrator.cpp',
 ]
 
+EXTRA_COMPONENTS += [
+    'SuiteProfileMigrator.manifest',
+]
+
+EXTRA_PP_COMPONENTS += [
+    'SuiteProfileMigrator.js',
+]
