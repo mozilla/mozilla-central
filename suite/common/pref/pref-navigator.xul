@@ -129,10 +129,10 @@
     <!-- session restore background tabs -->
     <groupbox>
       <caption label="&restoreSessionIntro.label;"/>
-      <radiogroup align="start"
+      <radiogroup id="maxConcurrentTabsGroup" align="start"
                   preference="browser.sessionstore.max_concurrent_tabs"
-                  onsyncfrompreference="return document.getElementById('navigator_pane').ReadConcurrentTabs();"
-                  onsynctopreference="return document.getElementById('navigator_pane').WriteConcurrentTabs(this.value);">
+                  onsyncfrompreference="var val = document.getElementById(this.getAttribute('preference')).value; return val > 0 ? 3 : val;"
+                  onsynctopreference="return document.getElementById('navigator_pane').WriteConcurrentTabs();">
         <radio value="-1"
                label="&restoreImmediately.label;"
                accesskey="&restoreImmediately.accesskey;"/>
@@ -141,10 +141,15 @@
                  onclick="this.nextSibling.focus();"
                  label="&restoreTabs.label;"
                  accesskey="&restoreTabs.accesskey;"/>
-          <textbox id="maxConcurrentTabs" type="number" size="2" min="-1"
+          <textbox id="maxConcurrentTabs" type="number" size="2"
+                   min="1" value="3"
                    aria-labelledby="restoreTabs maxConcurrentTabs restoreTabsAtATime"
-                   preference="browser.sessionstore.max_concurrent_tabs"/>
-          <label id="restoreTabsAtATime" value="&restoreTabsAtATime.label;"/>
+                   preference="browser.sessionstore.max_concurrent_tabs"
+                   onsyncfrompreference="var pref = document.getElementById(this.getAttribute('preference')); var val = pref.value; var valid = val > 0; this.disabled = pref.locked || !valid; return valid ? val : this.value;"
+                   onsynctopreference="return document.getElementById('navigator_pane').WriteConcurrentTabs();"/>
+          <label id="restoreTabsAtATime" value="&restoreTabsAtATime.label;">
+            <observes element="maxConcurrentTabsGroup" attribute="disabled"/>
+          </label>
         </hbox>
         <radio value="0"
                label="&restoreDeferred.label;"
