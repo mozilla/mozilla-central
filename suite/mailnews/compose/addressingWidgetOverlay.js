@@ -529,14 +529,6 @@ function awAppendNewRow(setFocus)
     if ( input && input.length == 1 )
     {
       input[0].setAttribute("value", "");
-    
-      //this copies the autocomplete sessions list from recipient#1 
-      input[0].syncSessions(document.getElementById('addressCol2#1'));
-
-  	  // also clone the showCommentColumn setting
-  	  //
-  	  input[0].showCommentColumn = 
-	      document.getElementById("addressCol2#1").showCommentColumn;
 
       // We always clone the first row.  The problem is that the first row
       // could be focused.  When we clone that row, we end up with a cloned
