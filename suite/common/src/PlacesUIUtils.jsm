@@ -611,7 +611,8 @@ var PlacesUIUtils = {
   },
 
   _getTopBrowserWin: function PUIU__getTopBrowserWin() {
-    return Services.wm.getMostRecentWindow("navigator:browser");
+    return focusManager.activeWindow.gPrivate ||
+           Services.wm.getMostRecentWindow("navigator:browser");
   },
 
   _getCurrentActiveWin: function PUIU__getCurrentActiveWin() {
