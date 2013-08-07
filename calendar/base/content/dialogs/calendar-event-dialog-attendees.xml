@@ -57,12 +57,7 @@
       <field name="mContentHeight">0</field>
       <field name="mRowHeight">0</field>
       <field name="mNumColumns">0</field>
-      <field name="mIOService">null</field>
-      <field name="mDirectoryServerObserver">null</field>
-      <field name="mPrefs">null</field>
       <field name="mIsOffline">0</field>
-      <field name="mLDAPSession">null</field>
-      <field name="mSessionAdded">false</field>
       <field name="mIsReadOnly">false</field>
       <field name="mIsInvitation">false</field>
       <field name="mPopupOpen">false</field>
@@ -78,33 +73,6 @@
             self.onLoad();
         };
         window.addEventListener("load", load, true);
-        var unload = function attendeeListBinding_unloadHandler() {
-            self.onUnload();
-        };
-        window.addEventListener("unload", unload, true);
-
-        var observer = {
-            observe: function DSO_observe(subject,
-                              topic,
-                              value) {
-                // catch the exception and ignore it, so that if LDAP setup
-                // fails, the entire window doesn't get horked
-                try {
-                    self.setupAutocomplete();
-                }
-                catch (ex) {
-                }
-            }
-        }
-
-        this.mDirectoryServerObserver = observer;
-
-        // First get the preferences service
-        try {
-            this.mPrefs = Services.prefs.getBranch(null);
-        } catch (ex) {
-        }
-
       ]]></constructor>
 
       <method name="onLoad">
@@ -202,22 +170,7 @@
           // until this function returns we add at least a single copy of this template back again.
           listbox.removeChild(template);
 
-          this.addDirectoryServerObserver();
-
           this.setFocus(this.mMaxAttendees);
-        ]]></body>
-      </method>
-
-      <method name="onUnload">
-        <body><![CDATA[
-          this.removeDirectoryServerObserver();
-          this.releaseAutoCompleteState();
-          this.mIOService = null;
-
-          // We need to force the ldap session to be cleaned up as soon as
-          // possible to avoid hangs on shutdown.
-          this.mLDAPSession = null;
-          Components.utils.forceGC();
         ]]></body>
       </method>
 
@@ -421,11 +374,6 @@
               // is never copied when the node is cloned.
               if (input.getAttribute('focused') != '') {
                   input.removeAttribute('focused');
-              }
-
-              // this copies the autocomplete sessions list from first attendee
-              if (this.mLDAPSession && this.mSessionAdded) {
-                  input.syncSessions(document.getAnonymousElementByAttribute(this, "id", 'attendeeCol3#1'));
               }
 
               // focus on new input widget
@@ -696,10 +644,6 @@
             let input = document.getAnonymousElementByAttribute(listitem, "anonid", "input");
             input.removeAttribute("disabled");
             input.setAttribute("id", "attendeeCol3#" + rowNumber);
-
-            if (this.mLDAPSession && this.mSessionAdded) {
-                input.syncSessions(document.getElementById('attendeeCol3#1'));
-            }
 
             input.attendee = newAttendee;
             input.value = entry;
@@ -1189,309 +1133,6 @@
           this.mMaxAttendees--;
         ]]></body>
       </method>
-
-      <!-- ############################################################################# -->
-      <!-- LDAP support                                                                  -->
-      <!-- ############################################################################# -->
-
-      <method name="setupAutocomplete">
-        <body><![CDATA[
-          Components.utils.import("resource://gre/modules/Services.jsm");
-
-          var setupObserver = false;
-          var autocompleteLdap = false;
-          var autocompleteDirectory = null;
-          var prevAutocompleteDirectory = this.mCurrentAutocompleteDirectory;
-          var i;
-
-          try {
-              autocompleteLdap = this.mPrefs.getBoolPref("ldap_2.autoComplete.useDirectory");
-          } catch (ex) {
-              return;
-          }
-          if (autocompleteLdap) {
-              autocompleteDirectory = this.mPrefs.getCharPref(
-                  "ldap_2.autoComplete.directoryServer");
-          } else {
-              if (this.mLDAPSession && this.mSessionAdded) {
-                  for (var i = 1; i <= this.mMaxAttendees; i++)
-                      this.getInputElement(i).removeSession(this.mLDAPSession);
-                  this.mSessionAdded = false;
-              }
-              return;
-          }
-
-          // Use a temporary to do the setup so that we don't overwrite the
-          // global, then have some problem and throw an exception, and leave the
-          // global with a partially setup session.  We'll assign the temp
-          // into the global after we're done setting up the session.
-          var LDAPSession;
-          if (this.mLDAPSession) {
-              LDAPSession = this.mLDAPSession;
-          } else {
-              LDAPSession = Components.classes[
-                  "@mozilla.org/autocompleteSession;1?type=ldap"].createInstance()
-                  .QueryInterface(
-                      Components.interfaces.nsILDAPAutoCompleteSession);
-          }
-
-          if (LDAPSession && autocompleteDirectory && !Services.io.offline) {
-              // Add observer on the directory server we are autocompleting against
-              // only if current server is different from previous.
-              // Remove observer if current server is different from previous
-              this.mCurrentAutocompleteDirectory = autocompleteDirectory;
-              if (prevAutocompleteDirectory) {
-                  if (prevAutocompleteDirectory != this.mCurrentAutocompleteDirectory) {
-                      this.removeDirectorySettingsObserver(prevAutocompleteDirectory);
-                      this.addDirectorySettingsObserver();
-                      setupObserver = true;
-                  } else {
-                      setupObserver = false;
-                  }
-              } else {
-                  this.addDirectorySettingsObserver();
-                  setupObserver = true;
-              }
-
-              if (setupObserver) {
-                  let url = this.mPrefs.getComplexValue(autocompleteDirectory +".uri",
-                                                        Components.interfaces.nsISupportsString).data;
-
-                  LDAPSession.serverURL =
-                      cal.makeURL(url).QueryInterface(Components.interfaces.nsILDAPURL);
-
-                  // Get the login to authenticate as, if there is one
-                  try {
-                      LDAPSession.login = this.mPrefs.getComplexValue(
-                        autocompleteDirectory + ".auth.dn",
-                        Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      // If we don't have this pref, no big deal
-                  }
-
-                  // Set the LDAP protocol version correctly
-                  var protocolVersion;
-                  try {
-                      protocolVersion = this.mPrefs.getCharPref(
-                          autocompleteDirectory + ".protocolVersion");
-                  } catch (ex) {
-                      // If we don't have this pref, no big deal
-                  }
-                  if (protocolVersion == "2") {
-                      LDAPSession.version =
-                          Components.interfaces.nsILDAPConnection.VERSION2;
-                  }
-
-                  // Don't search on non-CJK strings shorter than this
-                  try {
-                      LDAPSession.minStringLength = this.mPrefs.getIntPref(
-                          autocompleteDirectory + ".autoComplete.minStringLength");
-                  } catch (ex) {
-                      // if this pref isn't there, no big deal.  Just let
-                      // nsLDAPAutoCompleteSession use its default.
-                  }
-
-                  // don't search on CJK strings shorter than this
-                  try {
-                      LDAPSession.cjkMinStringLength = this.mPrefs.getIntPref(
-                          autocompleteDirectory + ".autoComplete.cjkMinStringLength");
-                  } catch (ex) {
-                      // If this pref isn't there, no big deal.  Just let
-                      // nsLDAPAutoCompleteSession use its default.
-                  }
-
-                  // We don't try/catch here, because if this fails, we're outta luck
-                  var ldapFormatter = Components.classes[
-                      "@mozilla.org/ldap-autocomplete-formatter;1?type=addrbook"]
-                      .createInstance().QueryInterface(
-                          Components.interfaces.nsIAbLDAPAutoCompFormatter);
-
-                  // Override autocomplete name format?
-                  try {
-                      ldapFormatter.nameFormat =
-                          this.mPrefs.getComplexValue(autocompleteDirectory +
-                              ".autoComplete.nameFormat",
-                              Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      // If this pref isn't there, no big deal.  Just let
-                      // nsAbLDAPAutoCompFormatter use its default.
-                  }
-
-                  // override autocomplete mail address format?
-                  try {
-                      ldapFormatter.addressFormat =
-                          this.mPrefs.getComplexValue(autocompleteDirectory +
-                              ".autoComplete.addressFormat",
-                              Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      // If this pref isn't there, no big deal.  Just let
-                      // nsAbLDAPAutoCompFormatter use its default.
-                  }
-
-                  try {
-                      // Figure out what goes in the comment column, if anything
-                      //
-                      // 0 = none
-                      // 1 = name of addressbook this card came from
-                      // 2 = other per-addressbook format
-                      var showComments = 0;
-                      showComments = this.mPrefs.getIntPref(
-                          "mail.autoComplete.commentColumn");
-
-                      switch (showComments) {
-                        case 1:
-                            // Use the name of this directory
-                            ldapFormatter.commentFormat = this.mPrefs.getComplexValue(
-                                autocompleteDirectory + ".description",
-                                Components.interfaces.nsISupportsString).data;
-                            break;
-                        case 2:
-                            // Override ldap-specific autocomplete entry?
-                            try {
-                                ldapFormatter.commentFormat =
-                                    this.mPrefs.getComplexValue(autocompleteDirectory +
-                                        ".autoComplete.commentFormat",
-                                        Components.interfaces.nsISupportsString).data;
-                            } catch (innerException) {
-                                // If nothing has been specified, use the ldap
-                                // organization field
-                                ldapFormatter.commentFormat = "[o]";
-                            }
-                            break;
-                        case 0:
-                        default:
-                            // Do nothing
-                      }
-                  } catch (ex) {
-                      // If something went wrong while setting up comments, try and
-                      // proceed anyway
-                  }
-
-                  // Set the session's formatter, which also happens to
-                  // force a call to the formatter's getAttributes() method
-                  // -- which is why this needs to happen after we've set the
-                  // various formats
-                  LDAPSession.formatter = ldapFormatter;
-
-                  // Override autocomplete entry formatting?
-                  try {
-                      LDAPSession.outputFormat =
-                          this.mPrefs.getComplexValue(autocompleteDirectory +
-                              ".autoComplete.outputFormat",
-                              Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      // If this pref isn't there, no big deal.  Just let
-                      // nsLDAPAutoCompleteSession use its default.
-                  }
-
-                  // override default search filter template?
-                  try {
-                      LDAPSession.filterTemplate = this.mPrefs.getComplexValue(
-                          autocompleteDirectory + ".autoComplete.filterTemplate",
-                          Components.interfaces.nsISupportsString).data;
-                  } catch (ex) {
-                      // If this pref isn't there, no big deal.  Just let
-                      // nsLDAPAutoCompleteSession use its default
-                  }
-
-                  // Override default maxHits (currently 100)
-                  try {
-                      LDAPSession.maxHits =
-                          this.mPrefs.getIntPref(autocompleteDirectory +
-                                                 ".maxHits");
-                  } catch (ex) {
-                      // If this pref isn't there, or is out of range, no big deal.
-                      // Just let nsLDAPAutoCompleteSession use its default.
-                  }
-
-                  this.mLDAPSession = LDAPSession;
-              }
-
-              // Add as many autocomplete widgets as needed, but only if they
-              // haven't been added or if they have been removed.
-              if (!this.mSessionAdded) {
-                  // If we make it here, we know that session initialization has
-                  // succeeded; add the session for all recipients, and
-                  // remember that we've done so
-                  var autoCompleteWidget;
-                  for (i = 1; i <= this.mMaxAttendees; i++) {
-                      autoCompleteWidget = this.getInputElement(i);
-                      if (autoCompleteWidget) {
-                          autoCompleteWidget.addSession(LDAPSession);
-                          // Ldap searches don't insert a default entry with
-                          // the default domain appended to it so reduce the
-                          // minimum results for a popup to 2 in this case.
-                          autoCompleteWidget.minResultsForPopup = 2;
-                      }
-                   }
-                   this.mSessionAdded = true;
-              }
-          }
-        ]]></body>
-      </method>
-
-      <method name="addDirectoryServerObserver">
-        <body><![CDATA[
-          if (this.mPrefs) {
-              this.mPrefs.addObserver(
-                  "ldap_2.autoComplete.useDirectory",
-                  this.mDirectoryServerObserver,
-                  false);
-              this.mPrefs.addObserver(
-                  "ldap_2.autoComplete.directoryServer",
-                  this.mDirectoryServerObserver,
-                  false);
-          }
-        ]]></body>
-      </method>
-
-      <method name="removeDirectoryServerObserver">
-        <body><![CDATA[
-          if (this.mPrefs) {
-              this.mPrefs.removeObserver(
-                  "ldap_2.autoComplete.useDirectory",
-                  this.mDirectoryServerObserver);
-              this.mPrefs.removeObserver(
-                  "ldap_2.autoComplete.directoryServer",
-                  this.mDirectoryServerObserver);
-          }
-        ]]></body>
-      </method>
-
-      <method name="addDirectorySettingsObserver">
-        <body><![CDATA[
-          if (this.mPrefs) {
-              this.mPrefs.addObserver(
-                  this.mCurrentAutocompleteDirectory,
-                  this.mDirectoryServerObserver,
-                  false);
-          }
-        ]]></body>
-      </method>
-
-      <method name="removeDirectorySettingsObserver">
-        <parameter name="aPrefString"/>
-        <body><![CDATA[
-          if (this.mPrefs) {
-              this.mPrefs.removeObserver(
-                  aPrefString,
-                  this.mDirectoryServerObserver);
-          }
-        ]]></body>
-      </method>
-
-      <method name="releaseAutoCompleteState">
-        <body><![CDATA[
-          if (this.mLDAPSession && this.mSessionAdded) {
-              for (i = 1; i <= this.mMaxAttendees; i++) {
-                  this.getInputElement(i).removeSession(this.mLDAPSession);
-              }
-          }
-
-          this.mSessionAdded = false;
-          this.mLDAPSession = null;
-        ]]></body>
-      </method>
     </implementation>
 
     <handlers>
@@ -1604,10 +1245,6 @@
                     break;
             }
         }
-      ]]></handler>
-
-      <handler event="input"><![CDATA[
-        this.setupAutocomplete();
       ]]></handler>
     </handlers>
   </binding>
