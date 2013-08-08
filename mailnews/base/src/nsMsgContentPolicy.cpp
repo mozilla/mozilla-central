@@ -602,10 +602,14 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
       nsCOMPtr<nsIDOMHTMLImageElement> imageElement(do_QueryInterface(aRequestingContext));
       if (!insertingQuotedContent && imageElement)
       {
-        bool doNotSendAttrib;
-        if (NS_SUCCEEDED(imageElement->HasAttribute(NS_LITERAL_STRING("moz-do-not-send"), &doNotSendAttrib)) && 
-            !doNotSendAttrib)
-          *aDecision = nsIContentPolicy::ACCEPT;
+        nsCOMPtr<nsIDOMElement> element(do_QueryInterface(imageElement));
+        if (element)
+        {
+          bool doNotSendAttrib;
+          if (NS_SUCCEEDED(element->HasAttribute(NS_LITERAL_STRING("moz-do-not-send"), &doNotSendAttrib)) && 
+              !doNotSendAttrib)
+            *aDecision = nsIContentPolicy::ACCEPT;
+        }
       }
     }
   }
