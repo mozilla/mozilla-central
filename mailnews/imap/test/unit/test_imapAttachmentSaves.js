@@ -84,7 +84,7 @@ function startDetach()
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
   let attachment = gCallbackObject.attachments[0];
 
-  messenger.detachAttachmentsWOPrompts(gProfileDir, 1,
+  messenger.detachAttachmentsWOPrompts(do_get_profile(), 1,
                                        [attachment.contentType], [attachment.url],
                                        [attachment.name], [msgURI], null);
   // deletion of original message should kick async_driver.
@@ -99,7 +99,7 @@ function testDetach()
   yield false;
   // Check that the file attached to the message now exists in the profile 
   // directory.
-  let checkFile = gProfileDir.clone();
+  let checkFile = do_get_profile().clone();
   checkFile.append(kAttachFileName);
   do_check_true(checkFile.exists());
 

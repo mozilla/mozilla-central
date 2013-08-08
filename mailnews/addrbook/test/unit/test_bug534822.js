@@ -8,9 +8,10 @@ function run_test() {
   // Read in the prefs that will be default.
   let specialPrefs = do_get_file("data/bug534822prefs.js");
 
-  specialPrefs.copyTo(gProfileDir, "");
+  var profileDir = do_get_profile();
+  specialPrefs.copyTo(profileDir, "");
 
-  specialPrefs = gProfileDir;
+  specialPrefs = profileDir;
   specialPrefs.append("bug534822prefs.js");
 
   Services.prefs.readUserPrefs(specialPrefs);

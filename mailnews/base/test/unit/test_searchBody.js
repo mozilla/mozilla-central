@@ -81,7 +81,7 @@ function fixFile(file) {
 
   let targetFile = Cc["@mozilla.org/file/local;1"]
                      .createInstance(Ci.nsILocalFile);
-  targetFile.initWithFile(gProfileDir);
+  targetFile.initWithFile(do_get_profile());
   targetFile.append(file.leafName);
   let ostream = Cc["@mozilla.org/network/file-output-stream;1"]
                   .createInstance(Ci.nsIFileOutputStream);

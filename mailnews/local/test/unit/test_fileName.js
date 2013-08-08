@@ -11,10 +11,10 @@ function run_test() {
   // test file with ':' in the name (generated from Mozilla 1.8 branch).
   let bugmail = do_get_file("../../../data/bugmail-1");
   let bugmailmsf = do_get_file("../../../data/bugmail-1.msf");
-  let localMailDir = gProfileDir.clone();
+  let localMailDir = do_get_profile().clone();
   localMailDir.append("Mail");
   localMailDir.append("Local Folders");
-  let pop3dir = gProfileDir.clone();
+  let pop3dir = do_get_profile().clone();
   pop3dir.append("Mail");
   pop3dir.append("poptest");
   // Copy the file to the local mail directory

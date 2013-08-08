@@ -24,7 +24,7 @@ function run_test()
   // to.
   var testAB = do_get_file("data/collect.mab");
 
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // XXX Getting all directories ensures we create all ABs because the
   // address collecter can't currently create ABs itself (bug 314448).

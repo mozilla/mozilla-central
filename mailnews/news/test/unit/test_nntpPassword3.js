@@ -18,7 +18,7 @@ function run_test()
   var signons = do_get_file("../../../data/signons-mailnews1.8.txt");
 
   // Copy the file to the profile directory for a PAB
-  signons.copyTo(gProfileDir, "signons.txt");
+  signons.copyTo(do_get_profile(), "signons.txt");
 
   // Set up the basic accounts and folders.
   localAccountUtils.loadLocalMailAccount();

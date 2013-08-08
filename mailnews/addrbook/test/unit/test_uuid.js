@@ -104,7 +104,7 @@ function run_test() {
   var testAB = do_get_file("data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // Step 1: What is the ID of an empty card?
   var newCard = Cc["@mozilla.org/addressbook/cardproperty;1"]

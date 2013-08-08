@@ -14,7 +14,7 @@ function run_test() {
   var testAB = do_get_file("data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // Test - Get the directory
   let AB = MailServices.ab.getDirectory(kPABData.URI);

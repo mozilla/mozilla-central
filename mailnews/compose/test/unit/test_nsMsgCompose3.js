@@ -67,7 +67,7 @@ function run_test() {
   let testAB = do_get_file("../../../data/tb2hexpopularity.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // Check the popularity index on a couple of cards.
   let AB = MailServices.ab.getDirectory(kPABData.URI);

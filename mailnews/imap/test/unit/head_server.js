@@ -6,7 +6,6 @@ if (typeof gDEPTH == "undefined")
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource://testing-common/mailnews/mailDirService.js");
 Components.utils.import("resource://testing-common/mailnews/mailTestUtils.js");
 Components.utils.import("resource://testing-common/mailnews/localAccountUtils.js");
 Components.utils.import("resource://testing-common/mailnews/IMAPpump.js");
@@ -16,7 +15,8 @@ var Ci = Components.interfaces;
 var Cr = Components.results;
 var CC = Components.Constructor;
 
-var gProfileDir = ProfileDir.initialize(do_get_profile());
+// Ensure the profile directory is set up
+do_get_profile();
 
 // Import fakeserver
 Components.utils.import("resource://testing-common/mailnews/maild.js");

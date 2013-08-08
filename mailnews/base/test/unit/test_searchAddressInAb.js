@@ -122,7 +122,7 @@ function run_test()
   var testAB = do_get_file("../../../addrbook/test/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // test that validity table terms are valid
 

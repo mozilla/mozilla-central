@@ -57,7 +57,7 @@ function run_test() {
   var signons = do_get_file("../../../data/signons-mailnews1.8-alt.txt");
 
   // Copy the file to the profile directory
-  signons.copyTo(gProfileDir, "signons.txt");
+  signons.copyTo(do_get_profile(), "signons.txt");
 
   var server = makeServer(NNTP_RFC4643_extension, daemon);
   server.start(NNTP_PORT);

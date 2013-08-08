@@ -17,9 +17,9 @@ function run_test()
 {
   let vfdat = do_get_file("../../../data/test_virtualFolders.dat");
 
-  vfdat.copyTo(gProfileDir, "virtualFolders.dat");
+  vfdat.copyTo(do_get_profile(), "virtualFolders.dat");
   localAccountUtils.loadLocalMailAccount();
-  let localMailDir = gProfileDir.clone();
+  let localMailDir = do_get_profile().clone();
   localMailDir.append("Mail");
   localMailDir.append("Local Folders");
   localMailDir.append("unread-local");

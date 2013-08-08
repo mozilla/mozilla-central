@@ -14,8 +14,8 @@ function run_test() {
 
   items.forEach(function(item) {
     var dir = Services.dirsvc.get(item.key, Ci.nsIFile);
-    dump(gProfileDir.path + " " + dir.path + "\n");
-    do_check_true(gProfileDir.equals(dir.parent));
+    dump(do_get_profile().path + " " + dir.path + "\n");
+    do_check_true(do_get_profile().equals(dir.parent));
 
     do_check_eq(dir.leafName, item.value);
   });

@@ -93,11 +93,11 @@ function run_test() {
   // Copy the data files into place
   var testAB = do_get_file("data/autocomplete.mab");
 
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   testAB = do_get_file("data/autocomplete2.mab");
 
-  testAB.copyTo(gProfileDir, kCABData.fileName);
+  testAB.copyTo(do_get_profile(), kCABData.fileName);
 
   // Test - Create a new search component
 

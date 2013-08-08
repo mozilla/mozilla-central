@@ -46,7 +46,7 @@ function run_test() {
   // Copy the data files into place
   let testAB = do_get_file("../../../data/tb2hexpopularity.mab");
 
-  testAB.copyTo(gProfileDir, kPABData.fileName);
+  testAB.copyTo(do_get_profile(), kPABData.fileName);
 
   // Test - Create a new search component
 
