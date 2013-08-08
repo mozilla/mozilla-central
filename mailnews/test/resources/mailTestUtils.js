@@ -4,12 +4,10 @@
 
 const EXPORTED_SYMBOLS = ['mailTestUtils'];
 
-// JS ctypes, needed for a few native functions
 Components.utils.import("resource://gre/modules/ctypes.jsm");
-// Services
 Components.utils.import("resource://gre/modules/Services.jsm");
-// MailServices
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var Cc = Components.classes;
 var Ci = Components.interfaces;
@@ -456,5 +454,33 @@ var mailTestUtils = {
         return i;
     }
     return -1;
+  },
+
+  /**
+   * Registers a directory provider for UMimTyp for when its needed.
+   */
+  registerUMimTypProvider: function() {
+    if (this._providerSvc)
+      return;
+
+    // Register our own provider for the profile directory.
+    // It will simply return the current directory.
+    const provider = {
+      getFile : function(prop, persistent) {
+        if (prop == "UMimTyp") {
+          var mimeTypes = Services.dirsvc.get("ProfD", Ci.nsIFile);
+          mimeTypes.append("mimeTypes.rdf");
+          return mimeTypes;
+        }
+        throw Components.results.NS_ERROR_FAILURE;
+      },
+
+      QueryInterface:
+        XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
+    };
+
+    this._providerSvc = provider;
+    Services.dirsvc.QueryInterface(Ci.nsIDirectoryService)
+                   .registerProvider(provider);
   }
 };

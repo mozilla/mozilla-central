@@ -13,6 +13,9 @@ load("../../../resources/messageGenerator.js");
 load("../../../resources/messageModifier.js");
 load("../../../resources/messageInjection.js");
 
+// Register the mime types provider we need for this test.
+mailTestUtils.registerUMimTypProvider();
+
 let gMessenger = Cc["@mozilla.org/messenger;1"]
                    .createInstance(Ci.nsIMessenger);
 
