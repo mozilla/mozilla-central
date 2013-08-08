@@ -24,7 +24,6 @@ TESTING_JS_MODULE_DIR = mailnews
 TESTING_JS_MODULES += \
 	$(RESDIR)/IMAPpump.js \
 	$(RESDIR)/localAccountUtils.js \
-	$(RESDIR)/mailDirService.js \
 	$(RESDIR)/mailTestUtils.js \
 	$(FAKESERVER)/auth.js \
 	$(FAKESERVER)/imapd.js \
