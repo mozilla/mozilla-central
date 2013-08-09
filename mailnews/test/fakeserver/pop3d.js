@@ -27,8 +27,9 @@ var gUIDLCount = 1;
 /**
  * Read the contents of a file to the string.
  *
- * @param fileName A path relative to the data/ or to the current working
- *                 directory.
+ * @param fileName A path relative to the current working directory, or
+ *                 a filename underneath the "data" directory relative to
+ *                 the cwd.
  */
 function readFile(fileName) {
   let cwd = Services.dirsvc.get("CurWorkD", Ci.nsIFile);
@@ -36,10 +37,28 @@ function readFile(fileName) {
   // Try to find the file relative to either the data directory or to the
   // current working directory.
   let file = cwd.clone();
-  file.appendRelativePath("data/" + fileName);
-  if (!file.exists()) {
-    file = cwd.clone();
-    file.appendRelativePath(fileName);
+  if ("@mozilla.org/windows-registry-key;1" in Components.classes) {
+    // Windows doesn't allow '..' in appendRelativePath,
+    // so we'll have to do this the long way.
+    if (fileName.contains('/')) {
+      let parts = fileName.split('/');
+      for (let part of parts) {
+        if (part == "..")
+          file = file.parent;
+        else
+          file.append(part);
+      }
+    }
+    else {
+      file.append("data");
+      file.append(fileName);
+    }
+  } else {
+    file.appendRelativePath("data/" + fileName);
+    if (!file.exists()) {
+      file = cwd.clone();
+      file.appendRelativePath(fileName);
+    }
   }
 
   if (!file.exists())
