@@ -155,6 +155,8 @@ Feed.prototype =
     // Must set onProgress before calling open.
     this.request.onprogress = this.onProgress;
     this.request.open("GET", this.url, true);
+    this.request.channel.loadFlags |= Ci.nsIRequest.LOAD_BYPASS_CACHE |
+                                      Ci.nsIRequest.INHIBIT_CACHING;
 
     // Some servers, if sent If-Modified-Since, will send 304 if subsequently
     // not sent If-Modified-Since, as in the case of an unsubscribe and new

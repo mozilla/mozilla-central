@@ -379,7 +379,7 @@ var FeedUtils = {
  * @param  boolean      - true if removing the url.
  */
   updateFolderFeedUrl: function(aFolder, aFeedUrl, aRemoveUrl) {
-    if (!aFeedUrl)
+    if (!aFolder || !aFeedUrl)
       return;
 
     let curFeedUrls = this.splitFeedUrls(aFolder.getStringProperty("feedUrl"));
