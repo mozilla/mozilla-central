@@ -38,16 +38,6 @@ var gGotAlert;
 var gAutoSyncManager = Cc["@mozilla.org/imap/autosyncmgr;1"]
                        .getService(Ci.nsIAutoSyncManager);
 
-var CopyListener = {
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aMsgKey) {},
-  GetMessageId: function() {},
-  OnStopCopy: function(aStatus) {
-    async_driver();
-  }
-};
-
 // Definition of tests
 var tests = [
   test_createTargetFolder,
@@ -93,8 +83,6 @@ function test_triggerAutoSyncIdle()
   let observer = gAutoSyncManager.QueryInterface(Ci.nsIObserver);
   observer.observe(null, "mail-startup-done", "");
   observer.observe(null, "mail:appIdle", "idle");
-  // now we expect to hear that targetFolder was updated.
-  yield false;
 }
 
 // move the message to a diffent folder
@@ -110,7 +98,7 @@ function test_moveMessageToTargetFolder()
                    .createInstance(Ci.nsIMutableArray);
   messages.appendElement(msgHdr, false);
   MailServices.copy.CopyMessages(IMAPPump.inbox, messages, gTargetFolder, true,
-                                 CopyListener, null, false);
+                                 asyncCopyListener, null, false);
   yield false;
 }
 
@@ -122,6 +110,8 @@ function test_waitForTargetUpdate()
   gAutoSyncListener._waitingForUpdateList.push(gTargetFolder);
   gAutoSyncManager.QueryInterface(Ci.nsIObserver).observe(null, "mail:appIdle",
                                                           "idle");
+  // Need two yield here to get results of both onDownloadCompleted and onDiscoveryQProcessed
+  yield false;
   yield false;
 }
 
@@ -163,7 +153,6 @@ var mfnListener =
   msgsMoveCopyCompleted: function (aMove, aSrcMsgs, aDestFolder, aDestMsgs)
   {
     dump('msgsMoveCopyCompleted to folder ' + aDestFolder.name + '\n');
-    async_driver();
   },
   folderAdded: function folderAdded(aFolder)
   {
