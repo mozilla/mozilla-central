@@ -18,7 +18,7 @@ var tests = [
     yield false;
   },
   function checkIDHandling() {
-    do_check_eq(IMAPPump.daemon.clientID, "(\"name\" \"XPCShell\" \"version\" \"5\")");
+    do_check_eq(IMAPPump.daemon.clientID, "(\"name\" \"xpcshell\" \"version\" \"1\")");
     do_check_eq(IMAPPump.incomingServer.serverIDPref, kIDResponse);
   },
   teardown
