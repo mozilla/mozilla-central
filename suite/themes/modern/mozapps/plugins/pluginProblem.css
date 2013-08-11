@@ -13,6 +13,9 @@
   font: message-box;
   font-size: 12px;
   text-align: center;
+  display: table;
+  width: 100%;
+  height: 100%;
   background-image: repeating-linear-gradient(-45deg,
                                               rgba(65, 65, 65, 0.8),
                                               rgba(65, 65, 65, 0.8) 20px,
@@ -29,7 +32,12 @@
 }
 
 .hoverBox {
+  display: table-cell;
+  -moz-box-sizing: border-box;
   padding: 5px;
+  vertical-align: middle;
+  width: 100%;
+  height: 100%;
 }
 
 html|a {
@@ -37,13 +45,14 @@ html|a {
 }
 
 .icon {
-  display: inline-block;
   width: 48px;
   height: 48px;
   background-position: center;
   background-repeat: no-repeat;
   border-style: none;
   background-color: transparent;
+  -moz-user-focus: ignore;
+  margin-bottom: 6px;
 }
 
 :-moz-type-unsupported .icon,
@@ -81,10 +90,10 @@ html|a {
 
 .msg {
   cursor: default;
-  width: 100%;
 }
 
 :-moz-handler-clicktoplay .mainBox,
+:-moz-handler-clicktoplay .icon,
 :-moz-handler-clicktoplay .msgClickToPlay,
 :-moz-handler-vulnerable-updatable .msgClickToPlay,
 :-moz-handler-vulnerable-no-update .msgClickToPlay {
