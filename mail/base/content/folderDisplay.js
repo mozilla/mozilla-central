@@ -1949,7 +1949,7 @@ FolderDisplayWidget.prototype = {
    */
   get selectedMessageThreadIgnored() {
     let message = this.selectedMessage;
-    return Boolean(message &&
+    return Boolean(message && message.folder &&
                    message.folder.msgDatabase.IsIgnored(message.messageKey));
   },
 
@@ -1959,7 +1959,8 @@ FolderDisplayWidget.prototype = {
    */
   get selectedMessageSubthreadIgnored() {
     let message = this.selectedMessage;
-    return Boolean(message && (message.flags & nsMsgMessageFlags.Ignored));
+    return Boolean(message && message.folder &&
+                   (message.flags & nsMsgMessageFlags.Ignored));
   },
 
   /**
@@ -1968,7 +1969,7 @@ FolderDisplayWidget.prototype = {
    */
   get selectedMessageThreadWatched() {
     let message = this.selectedMessage;
-    return Boolean(message &&
+    return Boolean(message && message.folder &&
                    message.folder.msgDatabase.IsWatched(message.messageKey));
   },
 
