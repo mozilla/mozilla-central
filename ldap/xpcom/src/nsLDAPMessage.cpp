@@ -342,7 +342,7 @@ nsLDAPMessage::IterateAttributes(uint32_t *aAttrCount, char** *aAttributes,
     // if we're getting attributes, try and fill in the first field
     //
     if (getP) {
-        (*aAttributes)[0] = nsCRT::strdup(attr);
+        (*aAttributes)[0] = NS_strdup(attr);
         if (!(*aAttributes)[0]) {
             ldap_memfree(attr);
             nsMemory::Free(*aAttributes);
@@ -390,7 +390,7 @@ nsLDAPMessage::IterateAttributes(uint32_t *aAttrCount, char** *aAttributes,
             // if ldap_next_attribute did return successfully, and 
             // we're supposed to fill in a value, do so.
             //
-            (*aAttributes)[*aAttrCount] = nsCRT::strdup(attr);
+            (*aAttributes)[*aAttrCount] = NS_strdup(attr);
             if (!(*aAttributes)[*aAttrCount]) {
                 ldap_memfree(attr);
                 return IterateAttrErrHandler(LDAP_NO_MEMORY, aAttrCount, 
