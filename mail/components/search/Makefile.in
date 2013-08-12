@@ -9,18 +9,6 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-# Include SearchIntegration.js on all platforms
-EXTRA_PP_JS_MODULES = \
-  SearchIntegration.js \
-  $(NULL)
-
-# If on Mac, build Spotlight integration
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-EXTRA_PP_JS_MODULES += \
-  SpotlightIntegration.js \
-  $(NULL)
-endif
-
 # If on Windows, build Windows Search integration
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
 LIBRARY_NAME = winsearch_s
@@ -28,11 +16,6 @@ MODULE_NAME = nsMailWinSearchHelperModule
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
 endif
-
-# Windows Search component
-EXTRA_PP_JS_MODULES += \
-  WinSearchIntegration.js \
-  $(NULL)
 
 FORCE_STATIC_LIB = 1
 endif

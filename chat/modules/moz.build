@@ -15,3 +15,9 @@ EXTRA_JS_MODULES += [
     'jsProtoHelper.jsm',
     'socket.jsm',
 ]
+
+EXTRA_PP_JS_MODULES += [
+    'hiddenWindow.jsm',
+    'imTextboxUtils.jsm',
+]
+
