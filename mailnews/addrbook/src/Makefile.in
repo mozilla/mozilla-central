@@ -14,6 +14,8 @@ LIBRARY_NAME	= addrbook_s
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
+else
+FORCE_STATIC_LIB = 1
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -28,9 +30,6 @@ DEFINES += -DMOZ_LDAP_XPCOM
 # nsAbLDAPChangeLogQuery.cpp
 # nsAbLDAPChangeLogData.cpp
 endif
-
-# we don't want the shared lib, but we want to force the creation of a static lib.
-FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk
 

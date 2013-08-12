@@ -16,9 +16,9 @@ LIBRARY_NAME	= mime_s
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
-endif
-
+else
 FORCE_STATIC_LIB = 1
+endif
 
 include $(topsrcdir)/config/rules.mk
 

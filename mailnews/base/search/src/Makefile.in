@@ -14,6 +14,8 @@ LIBRARY_NAME	= msgsearch_s
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
+else
+FORCE_STATIC_LIB = 1
 endif
 EXPORT_DIR	= $(DIST)/bin/isp
 
@@ -25,9 +27,6 @@ EXPORT_RESOURCE_FILES	= \
 				  SpamAssassin.sfd \
 				  SpamPal.sfd \
 			        $(NULL)
-
-# we don't want the shared lib, but we want to force the creation of a static lib.
-FORCE_STATIC_LIB = 1
 
 include $(topsrcdir)/config/rules.mk
 
