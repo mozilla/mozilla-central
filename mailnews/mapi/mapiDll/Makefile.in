@@ -23,8 +23,6 @@ endif
 
 OS_LIBS		+= ole32.lib
 
-# Force use of PIC
-FORCE_USE_PIC	= 1 
 FORCE_SHARED_LIB = 1
 
 EMBED_MANIFEST_AT = 2

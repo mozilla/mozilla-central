@@ -98,8 +98,6 @@ ifndef LIBXUL_SDK
 INSTALL_SDK = 1
 endif
 
-GENERATE_CACHE=1
-
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/signing.mk
 include $(MOZILLA_SRCDIR)/toolkit/mozapps/installer/packager.mk
 

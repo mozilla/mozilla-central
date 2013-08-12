@@ -102,10 +102,6 @@ ifdef LIBXUL_SDK
 VPATH += $(LIBXUL_SDK)/lib
 endif
 
-ifdef EXTRA_DSO_LIBS
-EXTRA_DSO_LIBS	:= $(call EXPAND_MOZLIBNAME,$(EXTRA_DSO_LIBS))
-endif
-
 ################################################################################
 # Testing frameworks support
 ################################################################################
@@ -1897,9 +1893,6 @@ echo-dirs:
 echo-module:
 	@echo $(MODULE)
 
-echo-requires:
-	@echo $(REQUIRES)
-
 echo-depth-path:
 	@$(MOZILLA_SRCDIR)/build/unix/print-depth-path.sh
 
@@ -1922,7 +1915,6 @@ ifneq (,$(filter $(PROGRAM) $(HOST_PROGRAM) $(SIMPLE_PROGRAMS) $(HOST_LIBRARY) $
 	@echo "IMPORT_LIBRARY      = $(IMPORT_LIBRARY)"
 	@echo "STATIC_LIBS         = $(STATIC_LIBS)"
 	@echo "SHARED_LIBS         = $(SHARED_LIBS)"
-	@echo "EXTRA_DSO_LIBS      = $(EXTRA_DSO_LIBS)"
 	@echo "EXTRA_DSO_LDOPTS    = $(EXTRA_DSO_LDOPTS)"
 	@echo "DEPENDENT_LIBS      = $(DEPENDENT_LIBS)"
 	@echo --------------------------------------------------------------------------------
@@ -2005,7 +1997,6 @@ FREEZE_VARIABLES = \
   DIRS \
   LIBRARY \
   MODULE \
-  REQUIRES \
   SHORT_LIBNAME \
   TIERS \
   EXTRA_COMPONENTS \

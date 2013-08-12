@@ -16,26 +16,6 @@ MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
 
-REQUIRES	= xpcom \
-		  string \
-		  import \
-		  intl \
-		  necko \
-		  addrbook \
-		  mork \
-		  msgcompose \
-		  msgbase \
-		  editor \
-		  dom \
-		  uriloader \
-		  msgbaseutil \
-		  msgdb \
-		  msglocal \
-		  mimetype \
-		  unicharutil \
-		  pref \
-		  $(NULL)
-
 LOCAL_INCLUDES += -I$(srcdir)/../../src
 
 # we don't want the shared lib, but we want to force the creation of a static lib.
