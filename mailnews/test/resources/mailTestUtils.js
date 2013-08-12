@@ -14,6 +14,19 @@ var Ci = Components.interfaces;
 var Cr = Components.results;
 var CC = Components.Constructor;
 
+// See Bug 903946
+function avoidUncaughtExceptionInExternalProtocolService() {
+  try {
+    Services.prefs.setCharPref("helpers.private_mime_types_file",
+      Services.prefs.getCharPref("helpers.global_mime_types_file"));
+  } catch (ex) {}
+  try {
+    Services.prefs.setCharPref("helpers.private_mailcap_file",
+      Services.prefs.getCharPref("helpers.global_mailcap_file"));
+  } catch (ex) {}
+}
+avoidUncaughtExceptionInExternalProtocolService();
+
 var mailTestUtils = {
   // Loads a file to a string
   // If aCharset is specified, treats the file as being of that charset
