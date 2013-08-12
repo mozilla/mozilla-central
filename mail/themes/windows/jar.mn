@@ -70,7 +70,7 @@ classic.jar:
   skin/classic/messenger/messenger.css                        (mail/messenger.css)
   skin/classic/messenger/attachmentList.css                   (mail/attachmentList.css)
   skin/classic/messenger/imageFilters.svg                     (mail/imageFilters.svg)
-  skin/classic/messenger/mailWindow1.css                      (mail/mailWindow1.css)
+* skin/classic/messenger/mailWindow1.css                      (mail/mailWindow1.css)
   skin/classic/messenger/tagColors.css                        (mail/tagColors.css)
   skin/classic/messenger/messageWindow.css                    (mail/messageWindow.css)
   skin/classic/messenger/searchBox.css                        (mail/searchBox.css)

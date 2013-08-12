@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+%define WINDOWS_AERO
 %include mailWindow1.css
+%undef WINDOWS_AERO
 
 @media (-moz-windows-default-theme) {
   #messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
@@ -76,13 +78,6 @@
   }
 }
 
-/* give the toolbox a min-height of 41px for Australis theme */
-.mail-toolbox:not([mode="full"]) > toolbar:only-of-type,
-.mail-toolbox[mode="full"][labelalign="end"] > toolbar:only-of-type {
-  margin-top: 6px !important;
-  margin-bottom: 6px !important;
-}
-
 #subjectCol {
   -moz-padding-start: 20px;
 }
@@ -107,12 +102,6 @@
 
 treechildren::-moz-tree-image(news, threadCol, watch) {
   -moz-margin-start: -2px;
-}
-
-#mailContent[layout="wide"] #threadPaneBox,
-#mailContent[layout="wide"] #folderPaneBox {
-  margin-bottom: 0;
-  border-bottom: 0;
 }
 
 #folderpane_splitter,
@@ -221,7 +210,8 @@ treechildren::-moz-tree-image(junkStatusCol) {
   -moz-margin-start: -3px;
 }
 
-#viewPickerPopup menuitem, #viewPickerPopup menu {
+#viewPickerPopup menu,
+#viewPickerPopup menuitem {
   -moz-appearance: none;
 }
 
@@ -233,10 +223,6 @@ treechildren::-moz-tree-image(junkStatusCol) {
 #folderLocationPopup menuitem:first-child {
   padding-top: 3px;
   padding-bottom: 4px;
-}
-
-#threadTree treechildren::-moz-tree-row(odd) {
-  background-image: none;
 }
 
 @media (-moz-windows-default-theme) {

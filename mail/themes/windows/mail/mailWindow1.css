@@ -23,12 +23,14 @@
   margin-bottom: 6px;
 }
 
+%ifndef WINDOWS_AERO
 .mail-toolbox[iconsize="large"]:not([mode="full"]) > toolbar:only-of-type,
 .mail-toolbox[iconsize="large"][mode="full"][labelalign="end"] >
 toolbar:only-of-type {
   margin-top: 2px;
   margin-bottom: 2px;
 }
+%endif
 
 .mail-toolbox[mode="text"]:not([mode="full"]) > toolbar:only-of-type {
   margin-top: 4px;
@@ -224,6 +226,7 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 
 /* ..... subject column ..... */
 
+%ifndef WINDOWS_AERO
 #subjectCol {
   -moz-padding-start: 17px;
 }
@@ -231,6 +234,7 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 #subjectCol[primary="true"] {
   -moz-padding-start: 30px;
 }
+%endif
 
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
@@ -295,9 +299,11 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   -moz-padding-end: 8px;
 }
 
+%ifndef WINDOWS_AERO
 .folderview-cycler {
   -moz-padding-end: 0px;
 }
+%endif
 
 .folderview-cycler[dir="prev"],
 .folderview-cycler[dir="next"]:-moz-locale-dir(rtl) {
@@ -350,6 +356,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   border-top: 0;
 }
 
+%ifndef WINDOWS_AERO
 #mailContent[layout="wide"] #threadPaneBox,
 #mailContent[layout="wide"] #folderPaneBox {
   /* ... draw it here instead! (This removes the white highlight just below the
@@ -360,6 +367,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   border-bottom: 2px solid;
   -moz-border-bottom-colors: ThreeDHighlight ThreeDShadow;
 }
+%endif
 
 #mailContent[layout="wide"] #folderPaneBox:-moz-locale-dir(ltr),
 #mailContent[layout="wide"] #threadPaneBox:-moz-locale-dir(rtl) {
@@ -392,11 +400,13 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   text-align: center;
 }
 
+%ifndef WINDOWS_AERO
 #threadTree treechildren::-moz-tree-row(odd) {
   background-image: url("chrome://messenger/skin/icons/row.png");
   background-position: bottom;
   background-repeat: repeat-x;
 }
+%endif
 
 .tabmail-tab[type="message"] {
   list-style-image: url("chrome://messenger/skin/icons/server.png");
@@ -426,6 +436,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   }
 }
 
+%ifndef WINDOWS_AERO
 /* Luna silver needs special colors. Default doesn't look good */
 @media (-moz-windows-theme: luna-silver) {
   #messengerWindow[tabsintitlebar] {
@@ -458,6 +469,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
     background-color: #4B4B4B;
   }
 }
+%endif
 
 #messengerWindow[tabsintitlebar]:-moz-lwtheme {
   background-color: transparent;
@@ -551,6 +563,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
   }
 }
 
+%ifndef WINDOWS_AERO
 @media (-moz-windows-theme: luna-silver) {
   #messengerWindow[sizemode="normal"] > #titlebar > #titlebar-content {
     -moz-border-top-colors: rgba(0, 0, 0, .4) rgba(255, 255, 255, .3)
@@ -574,6 +587,7 @@ treechildren::-moz-tree-cell-text(subjectCol) {
     color: white;
   }
 }
+%endif
 
 #messengerWindow[tabsintitlebar][sizemode="maximized"] > #navigation-toolbox{
   margin-top: -12px;
