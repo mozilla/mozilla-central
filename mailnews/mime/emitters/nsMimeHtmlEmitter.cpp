@@ -418,7 +418,9 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
                                 getter_Copies(attachmentsHeader)); 
 
       UtilityWrite("<legend class=\"mimeAttachmentHeaderName\">");
-      UtilityWrite(NS_ConvertUTF16toUTF8(attachmentsHeader).get());
+      nsCString escapedName;
+      escapedName.Adopt(MsgEscapeHTML(NS_ConvertUTF16toUTF8(attachmentsHeader).get()));
+      UtilityWrite(escapedName.get());
       UtilityWrite("</legend>");
     }
     UtilityWrite("</fieldset>");

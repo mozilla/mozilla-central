@@ -1722,7 +1722,11 @@ MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
           opt->state->separator_suppressed_p = false;
           if (lstatus < 0) return lstatus;
 
-          lstatus = opt->output_fn(name.get(), name.Length(), closure);
+          nsCString escapedName;
+          escapedName.Adopt(MsgEscapeHTML(name.get()));
+
+          lstatus = opt->output_fn(escapedName.get(),
+                                   escapedName.Length(), closure);
           opt->state->separator_suppressed_p = false;
           if (lstatus < 0) return lstatus;
 
