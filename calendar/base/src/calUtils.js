@@ -11,6 +11,12 @@ Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
+/* HACK: Loading calUtils.jsm here is a hack and should be fixed asap. If you
+ * see this here after Lightning 2.6, please drop everything and make it go
+ * away. See bug 902916 for details.
+ */
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
+
 function _calIcalCreator(cid, iid) {
     return function(icalString) {
         let thing = Components.classes[cid].createInstance(iid);
