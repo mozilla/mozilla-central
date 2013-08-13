@@ -257,6 +257,8 @@ StandaloneMessageDisplayWidget.prototype = {
 
   onMessagesRemoved:
       function StandaloneMessageDisplayWidget_onMessagesRemoved() {
+    if (!this.folderDisplay.treeSelection)
+      return true;
     if (this.folderDisplay.treeSelection.count == 0 &&
         Services.prefs.getBoolPref("mail.close_message_window.on_delete")) {
       window.close();
