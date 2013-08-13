@@ -1,3 +1,5 @@
+. $topsrcdir/build/unix/mozconfig.linux
+
 ac_add_options --enable-application=mail
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
@@ -10,8 +12,6 @@ ac_add_options --enable-calendar
 # Temporary options until bug 794378 is fixed
 ac_add_options --enable-gnomevfs
 ac_add_options --disable-gio
-
-. $topsrcdir/build/unix/mozconfig.linux
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1

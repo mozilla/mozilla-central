@@ -1,10 +1,10 @@
+. $topsrcdir/build/unix/mozconfig.linux32
+
 ac_add_options --enable-application=mail
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-official-branding
 ac_add_options --enable-calendar
-
-. $topsrcdir/build/unix/mozconfig.linux32
 
 # Needed to enable breakpad in application.ini
 export MOZILLA_OFFICIAL=1
