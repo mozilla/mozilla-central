@@ -58,17 +58,17 @@
     -     argument is true, the closed tab can't be restored by calling
     -     undoCloseTab().
     -     Please note, some tabs cannot be closed. Trying to close such tab,
-    -     willd fail silently.
+    -     will fail silently.
     - * undoCloseTab():
     -     Restores the most recent tab closed by the user.
     - * switchToTab(aTabIndexInfoOrTabNode):
     -     Switch to the tab by providing a tab index, tab info object, or tab
-    -     node (tabmail-tab bound element.) You can also just poke at
-    -     tabmail.tabContainer and its selectedIndex and selectedItem
-    -     properties.
+    -     node (tabmail-tab bound element.) Instead of calling this method,
+    -     you can also just poke at tabmail.tabContainer and its selectedIndex
+    -     and selectedItem properties.
     - * setTabIcon(aTabNodeorInfo, aIcon): Sets the tab icon to the specified
     -     url or removes the icon if no url is specified. Note that this may
-    -     overrride css provided images.
+    -     override css-provided images.
     - * replaceTabWithWindow(aTab):
     -     Detaches a tab from this tabbar to new window. The argument "aTab" is
     -     required and can be a tab index, a tab info object or a tabs's
@@ -83,7 +83,7 @@
     - * persistTab(tab):
     -     serializes a tab into an object, by passing  a tab info object as
     -     argument. It is used for session restore and moving tabs between
-    -     windows. Returns null in case persist failes.
+    -     windows. Returns null in case persist fails.
     - * removeCurrentTab():
     -     Close the current tab.
     - * removeTabByNode(aTabElement):
@@ -125,15 +125,15 @@
     -  currently displays both its calendar and tasks in the same panel. A tab
     -  type can also create a new tabpanel for each tab as it is created. In
     -  that case, the tab type should probably only have a single mode unless
-    -  there are a number of similar modes that can gain from code sharing
+    -  there are a number of similar modes that can gain from code sharing.
     -
     - The tab type definition should include the following attributes:
     - * name: The name of the tab-type, mainly to aid in debugging.
     - * panelId or perTabPanel: If using a single tab panel, the id of the
     -     panel must be provided in panelId.  If using one tab panel per tab,
-    -     perTabPanel should be the XUL element name that should be created for
-    -     each tab.  If a reason arises, in the future we might support
-    -     this being a helper function to create and return the element.
+    -     perTabPanel should be either the XUL element name that should be
+    -     created for each tab, or a helper function to create and return the
+    -     element.
     - * modes: An object whose attributes are mode names (which are
     -     automatically propagated to a 'name' attribute for debugging) and
     -     values are objects with the following attributes...
