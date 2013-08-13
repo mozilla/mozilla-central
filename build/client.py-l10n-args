@@ -1,0 +1,1 @@
+--hg-options='--time' --skip-chatzilla --skip-comm --skip-inspector --skip-venkman --tinderbox-print --comm-rev=${COMM_REV} --mozilla-rev=${MOZILLA_REV}
