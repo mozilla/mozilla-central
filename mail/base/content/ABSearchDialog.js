@@ -19,9 +19,8 @@ var gSearchBundle;
 var gAddressBookBundle;
 
 var gSearchStopButton;
-var gPropertiesCmd;
-var gComposeCmd;
-var gDeleteCmd;
+var gPropertiesButton;
+var gComposeButton;
 var gSearchPhoneticName = "false";
 
 var gSearchAbViewListener = {
@@ -78,21 +77,12 @@ function searchOnUnload()
   CloseAbView();
 }
 
-function disableCommands()
-{
-  gPropertiesCmd.setAttribute("disabled", "true");
-  gComposeCmd.setAttribute("disabled", "true");
-  gDeleteCmd.setAttribute("disabled", "true");
-}
-
 function initializeSearchWindowWidgets()
 {
   gSearchStopButton = document.getElementById("search-button");
-  gPropertiesCmd = document.getElementById("cmd_properties");
-  gComposeCmd = document.getElementById("cmd_compose");
-  gDeleteCmd = document.getElementById("cmd_deleteCard");
+  gPropertiesButton = document.getElementById("propertiesButton");
+  gComposeButton = document.getElementById("composeButton");
   gStatusText = document.getElementById('statusText');
-  disableCommands();
   // matchAll doesn't make sense for address book search
   hideMatchAllItem();
 }
@@ -101,9 +91,11 @@ function onSearchStop()
 {
 }
 
-function onAbSearchReset(event)
+function onAbSearchReset(event) 
 {
-  disableCommands();
+  gPropertiesButton.setAttribute("disabled","true");
+  gComposeButton.setAttribute("disabled","true");
+
   CloseAbView();
 
   onReset(event);
@@ -161,7 +153,8 @@ function onEnterInSearchTerm()
 function onSearch()
 {
     gStatusText.setAttribute("label", "");
-    disableCommands();
+    gPropertiesButton.setAttribute("disabled","true");
+    gComposeButton.setAttribute("disabled","true");
 
     gSearchSession.clearScopes();
 
@@ -307,33 +300,18 @@ function GetAbViewListener()
 
 function onProperties()
 {
-  if (!gPropertiesCmd.hasAttribute("disabled"))
-    AbEditSelectedCard();
+  AbEditSelectedCard();
 }
 
 function onCompose()
 {
-  if (!gComposeCmd.hasAttribute("disabled"))
-    AbNewMessage();
-}
-
-function onDelete()
-{
-  if (!gDeleteCmd.hasAttribute("disabled"))
-    AbDelete();
+  AbNewMessage();
 }
 
 function AbResultsPaneKeyPress(event)
 {
-  switch (event.keyCode) {
-  case KeyEvent.DOM_VK_ENTER:
-  case KeyEvent.DOM_VK_RETURN:
-    onProperties();
-    break;
-  case KeyEvent.DOM_VK_DELETE:
-  case KeyEvent.DOM_VK_BACKSPACE:
-    onDelete();
-  }
+  if (event.keyCode == 13)
+    AbEditSelectedCard();
 }
 
 function AbResultsPaneDoubleClick(card)
@@ -343,14 +321,18 @@ function AbResultsPaneDoubleClick(card)
 
 function UpdateCardView()
 {
-  disableCommands();
-  let numSelected = GetNumSelectedCards();
+  var numSelected = GetNumSelectedCards();
 
-  if (!numSelected)
+  if (!numSelected) {
+    gPropertiesButton.setAttribute("disabled","true");
+    gComposeButton.setAttribute("disabled","true");
     return;
+  }
 
-  gComposeCmd.removeAttribute("disabled");
-  gDeleteCmd.removeAttribute("disabled");
-  if (numSelected == 1)
-    gPropertiesCmd.removeAttribute("disabled");
+  gComposeButton.removeAttribute("disabled");
+
+  if (numSelected == 1) 
+    gPropertiesButton.removeAttribute("disabled");
+  else
+    gPropertiesButton.setAttribute("disabled","true");
 }

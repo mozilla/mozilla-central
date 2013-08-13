@@ -49,14 +49,8 @@
     <key keycode="VK_ESCAPE" oncommand="onSearchStop(); closeWindow(true);"/>
   </keyset>
 
-  <commandset id="AbCommands">
-    <command id="cmd_properties" oncommand="onProperties();"/>
-    <command id="cmd_compose" oncommand="onCompose();"/>
-    <command id="cmd_deleteCard" oncommand="onDelete();"/>
-  </commandset>
-
   <dummy class="usesMailWidgets"/>
-
+    
     <vbox id="searchTerms" flex="3" persist="height">
       <vbox>
         <hbox align="center">
@@ -164,16 +158,10 @@
         </tree>
       </vbox>
       <hbox align="start">
-        <button label="&propertiesButton.label;"
-                accesskey="&propertiesButton.accesskey;"
-                command="cmd_properties"/>
-        <button label="&composeButton.label;"
-                accesskey="&composeButton.accesskey;"
-                command="cmd_compose"/>
-        <button label="&deleteCardButton.label;"
-                accesskey="&deleteCardButton.accesskey;"
-                command="cmd_deleteCard"/>
-      </hbox>
+        <button label="&propertiesButton.label;" id="propertiesButton" oncommand="onProperties()" accesskey="&propertiesButton.accesskey;" disabled="true"/>
+        <button label="&composeButton.label;" id="composeButton" oncommand="onCompose()" accesskey="&composeButton.accesskey;" disabled="true"/>
+        <spacer flex="1" />
+      </hbox>      
     </vbox>
 
   <statusbar class="chromeclass-status" id="status-bar">
