@@ -200,6 +200,24 @@ treechildren::-moz-tree-image(folderNameCol, isServer-true, serverType-rss) {
 
 /* ::::: All Servers ::::: */
 
+treechildren::-moz-tree-cell-text(folderNameCol, biffState-NewMail, isServer-true),
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true),
+treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true) {
+  color: -moz-hyperlinktext;
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, biffState-NewMail, isServer-true, selected),
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true, selected),
+treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true, selected) {
+  color: -moz-CellHighlightText;
+}
+
+treechildren::-moz-tree-cell-text(folderNameCol, biffState-NewMail, isServer-true, selected, focus),
+treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true, selected, focus),
+treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessages-true, selected, focus) {
+  color: HighlightText;
+}
+
 treechildren::-moz-tree-cell-text(closed, subfoldersHaveUnreadMessages-true) {
   font-weight: bold;
 }
