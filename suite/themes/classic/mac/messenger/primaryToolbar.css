@@ -442,27 +442,20 @@ toolbar[iconsize="small"] > #sync-button[status=active] {
   font-weight: bold;
 }
 
-#junkBarImage {
-  list-style-image: url("chrome://messenger/skin/icons/junkBar.png");
+.messageImage[value="remoteContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png");
 }
 
-#junkIcon {
-  -moz-margin-start: 0.5ex;
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+.messageImage[value="junkContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/junk.png");
 }
 
-#remoteContentImage {
-  list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png"); 
-  padding: 3px;
+.messageImage[value="phishingContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/phishing.png");
 }
 
-#mdnBarImage {
-  list-style-image: url("chrome://global/skin/icons/question-32.png");
-  padding: 3px;
-}
-
-#allowRemoteContentForAuthorDesc {
-  -moz-padding-start: 10px;
+.messageImage[value="mdnContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/info.png");
 }
 
 .inline-toolbar {

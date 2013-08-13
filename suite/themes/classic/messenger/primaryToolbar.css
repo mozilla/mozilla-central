@@ -528,29 +528,18 @@ toolbar[iconsize="small"] > #sync-button[status=active] {
   text-shadow: none;
 }
 
-.msgNotificationBarText {
-  font-weight: bold;
+.messageImage[value="remoteContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png");
 }
 
-#junkBarImage {
-  list-style-image: url("chrome://messenger/skin/icons/junkBar.png");
+.messageImage[value="junkContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/junk.png");
 }
 
-#junkIcon {
-  -moz-margin-start: 0.5ex;
-  list-style-image: url("chrome://messenger/skin/icons/folder-junk.png");
+.messageImage[value="phishingContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/phishing.png");
 }
 
-#remoteContentImage {
-  list-style-image: url("chrome://messenger/skin/icons/remote-blocked.png"); 
-  padding: 3px;
-}
-
-#mdnBarImage {
-  list-style-image: url("chrome://global/skin/icons/Question.png");
-  padding: 3px;
-}
-
-#allowRemoteContentForAuthorDesc {
-  -moz-padding-start: 10px;
+.messageImage[value="mdnContent"] {
+  list-style-image: url("chrome://messenger/skin/icons/info.png");
 }

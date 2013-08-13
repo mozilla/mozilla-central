@@ -118,8 +118,6 @@
                    ondragdrop="nsDragAndDrop.drop(event, messagepaneObserver);"
                    ondragexit="nsDragAndDrop.dragExit(event, messagepaneObserver);">
 
-    <deck id="msgNotificationBar"/>
-
     <hbox id="msgHeaderView"/>
 
     <!-- message view -->

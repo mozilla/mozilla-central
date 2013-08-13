@@ -28,11 +28,6 @@ const kAllowRemoteContent = 2;
 const kIsAPhishMessage = 0;
 const kNotAPhishMessage = 1;
 
-const kMsgNotificationPhishingBar = 1;
-const kMsgNotificationJunkBar = 2;
-const kMsgNotificationRemoteImages = 3;
-const kMsgNotificationMDN = 4;
-
 const kMsgForwardAsAttachment = 0;
 const kMsgForwardInline = 2;
 
@@ -2447,11 +2442,13 @@ function HandleJunkStatusChanged(folder)
   var msgHdr = null;
   if (GetNumSelectedMessages() == 1)
     msgHdr = messenger.msgHdrFromURI(loadedMessage);
-  var junkBarWasDisplayed = gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar);
+
+  var junkBarWasDisplayed = gMessageNotificationBar.mMsgNotificationBar.getNotificationWithValue("junkContent");
   gMessageNotificationBar.setJunkMsg(msgHdr);
+  var isJunk = gMessageNotificationBar.mMsgNotificationBar.getNotificationWithValue("junkContent");
 
   // Only reload message if junk bar display state has changed.
-  if (msgHdr && junkBarWasDisplayed != gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar))
+  if (msgHdr && junkBarWasDisplayed != isJunk)
   {
     // We may be forcing junk mail to be rendered with sanitized html.
     // In that scenario, we want to reload the message if the status has just
@@ -2461,8 +2458,6 @@ function HandleJunkStatusChanged(folder)
     // Only bother doing this if we are modifying the html for junk mail...
     if (sanitizeJunkMail)
     {
-      let isJunk = gMessageNotificationBar.isFlagSet(kMsgNotificationJunkBar);
-
       // If the current row isn't going to change, reload to show sanitized or
       // unsanitized. Otherwise we wouldn't see the reloaded version anyway.
 
@@ -2481,40 +2476,117 @@ function HandleJunkStatusChanged(folder)
 
 var gMessageNotificationBar = 
 {
-  mBarStatus: 0,
-  // flag bit values for mBarStatus, indexed by kMsgNotificationXXX
-  mBarFlagValues: [
-                    0, // for no msgNotificationBar
-                    1, // 1 << (kMsgNotificationPhishingBar - 1)
-                    2, // 1 << (kMsgNotificationJunkBar - 1)
-                    4, // 1 << (kMsgNotificationRemoteImages - 1)
-                    8  // 1 << (kMsgNotificationMDN - 1)
-                  ],
+  get mStringBundle()
+  {
+    delete this.mStringBundle;
+
+    return this.mStringBundle = document.getElementById('bundle_messenger');
+  },
+
+  get mBrandBundle()
+  {
+    delete this.mBrandBundle;
+
+    return this.mBrandBundle = document.getElementById('bundle_brand');
+  },
+
+  get mMsgNotificationBar()
+  {
+    delete this.mMsgNotificationBar;
+
+    return this.mMsgNotificationBar = document.getElementById('messagepanebox');
+  },
 
   setJunkMsg: function(aMsgHdr)
   {
-    var isJunk = false;
-  
-    if (aMsgHdr) 
+    let isJunk = false;
+    if (aMsgHdr)
     {
-      var junkScore = aMsgHdr.getStringProperty("junkscore"); 
+      let junkScore = aMsgHdr.getStringProperty("junkscore"); 
       isJunk = ((junkScore != "") && (junkScore != "0"));
     }
 
-    this.updateMsgNotificationBar(kMsgNotificationJunkBar, isJunk);
-
     goUpdateCommand('button_junk');
+
+    let oldNotif = this.mMsgNotificationBar.getNotificationWithValue("junkContent");
+    if (isJunk)
+    {
+      if (!oldNotif)
+      {
+        let brandName = this.mBrandBundle.getString("brandShortName");
+        let junkBarMsg = this.mStringBundle.getFormattedString('junkBarMessage',
+                                                            [brandName]);
+
+        let buttons = [{
+          label: this.mStringBundle.getString('junkBarInfoButton'),
+          accessKey: this.mStringBundle.getString('junkBarInfoButtonKey'),
+          popup: null,
+          callback: function()
+          {
+            MsgJunkMailInfo(false);
+            return true;
+          }
+        },
+        {
+          label: this.mStringBundle.getString('junkBarButton'),
+          accessKey: this.mStringBundle.getString('junkBarButtonKey'),
+          popup: null,
+          callback: function()
+          {
+            JunkSelectedMessages(false);
+            return true;
+          }
+        }];
+        this.mMsgNotificationBar.appendNotification(junkBarMsg, "junkContent",
+          null, this.mMsgNotificationBar.PRIORITY_WARNING_HIGH, buttons);
+        this.mMsgNotificationBar.collapsed = false;
+      }
+    }
   },
 
   setRemoteContentMsg: function(aMsgHdr)
   {  
-    // update the allow remote content for sender string
     var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
                                  .getService(Components.interfaces.nsIMsgHeaderParser);
     var emailAddress = headerParser.extractHeaderAddressMailboxes(aMsgHdr.author);
-    document.getElementById('allowRemoteContentForAuthorDesc').textContent =
-      gMessengerBundle.getFormattedString('alwaysLoadRemoteContentForSender', [emailAddress ? emailAddress : aMsgHdr.author]);
-    this.updateMsgNotificationBar(kMsgNotificationRemoteImages, true);
+
+    var oldNotif = this.mMsgNotificationBar.getNotificationWithValue("remoteContent");
+    if (!oldNotif)
+    {
+      let displayName = headerParser.extractHeaderAddressName(aMsgHdr.author);
+      let brandName = this.mBrandBundle.getString('brandShortName');
+      let remoteContentMsg = this.mStringBundle.getFormattedString('remoteContentBarMessage', 
+                                                                   [brandName]);
+      let buttons = [{
+        label: this.mStringBundle.getString('remoteContentBarButton'),
+        accessKey: this.mStringBundle.getString('remoteContentBarButtonKey'),
+        popup: null,
+        callback: function()
+        {
+          LoadMsgWithRemoteContent();
+        }
+      }];
+
+      let bar =
+        this.mMsgNotificationBar.appendNotification(remoteContentMsg, "remoteContent",
+          null, this.mMsgNotificationBar.PRIORITY_WARNING_MEDIUM, buttons);
+
+      if (emailAddress)
+      {
+        let XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+        let linkLabel = bar.ownerDocument.createElementNS(XULNS, "label");
+        let addedLink = this.mStringBundle.getFormattedString('alwaysLoadRemoteContentForSender', 
+                                                              [emailAddress]);
+
+        linkLabel.className = "text-link";
+        linkLabel.textContent = addedLink;
+        linkLabel.flex = 1;
+        linkLabel.onclick = function() { allowRemoteContentForSender(emailAddress, 
+                                                                     displayName); };
+
+        bar.insertBefore(linkLabel, bar.firstChild);
+      }
+    }
   },
 
   // aUrl is the nsIURI for the message currently loaded in the message pane
@@ -2523,10 +2595,33 @@ var gMessageNotificationBar =
     // if we've explicitly marked this message as not being an email scam, then don't
     // bother checking it with the phishing detector.
     var phishingMsg = false;
+
     if (!checkMsgHdrPropertyIsNot("notAPhishMessage", kIsAPhishMessage))
       phishingMsg = isMsgEmailScam(aUrl);
-    this.updateMsgNotificationBar(kMsgNotificationPhishingBar, phishingMsg);
-  },
+
+    var oldNotif = this.mMsgNotificationBar.getNotificationWithValue("phishingContent");
+    if (phishingMsg)
+    {
+      if (!oldNotif)
+      {
+        let brandName = this.mBrandBundle.getString("brandShortName");
+        let phishingMsgNote = this.mStringBundle.getFormattedString('phishingBarMessage',
+                                                                    [brandName]);
+
+        let buttons = [{
+          label: this.mStringBundle.getString('phishingBarIgnoreButton'),
+          accessKey: this.mStringBundle.getString('phishingBarIgnoreButtonKey'),
+          popup: null,
+          callback: function() {
+            MsgIsNotAScam();
+          }
+        }];
+
+        this.mMsgNotificationBar.appendNotification(phishingMsgNote, "phishingContent",
+           null, this.mMsgNotificationBar.PRIORITY_CRITICAL_MEDIUM, buttons);
+      }
+    }
+   },
 
   setMDNMsg: function(aMdnGenerator, aMsgHeader, aMimeHdr)
   {
@@ -2534,7 +2629,7 @@ var gMessageNotificationBar =
     // Return receipts can be RFC 3798 "Disposition-Notification-To",
     // or non-standard "Return-Receipt-To".
     var mdnHdr = aMimeHdr.extractHeader("Disposition-Notification-To", false) ||
-                 aMimeHdr.extractHeader("Return-Receipt-To", false);
+                 aMimeHdr.extractHeader("Return-Receipt-To", false); // not
     var fromHdr = aMimeHdr.extractHeader("From", false);
 
     var mdnAddr = MailServices.headerParser
@@ -2543,54 +2638,41 @@ var gMessageNotificationBar =
                                .extractHeaderAddressMailboxes(fromHdr);
 
     var authorName = MailServices.headerParser
-                                 .extractHeaderAddressName(aMsgHeader.mime2DecodedAuthor) ||
-                     aMsgHeader.author;
+                                 .extractHeaderAddressName(
+                       aMsgHeader.mime2DecodedAuthor) || aMsgHeader.author;
 
     var barMsg;
     // If the return receipt doesn't go to the sender address, note that in the
     // notification.
     if (mdnAddr != fromAddr)
-      barMsg = gMessengerBundle.getFormattedString("mdnBarMessageAddressDiffers",
-                                                   [authorName, mdnAddr]);
+      barMsg = mStringBundle.getFormattedString("mdnBarMessageAddressDiffers",
+                                         [authorName, mdnAddr]);
     else
-      barMsg = gMessengerBundle.getFormattedString("mdnBarMessageNormal",
-                                                   [authorName]);
-    document.getElementById("mdnBarMessage").textContent = barMsg;
+      barMsg = mStringBundle.getFormattedString("mdnBarMessageNormal", [authorName]);
 
-    this.updateMsgNotificationBar(kMsgNotificationMDN, true);
+    var oldNotif = this.mMsgNotificationBar.getNotificationWithValue("mdnContent");
+    if (!oldNotif)
+    {
+      let buttons = [{
+        label: this.mStringBundle.getString('mdnBarSendReqButton'),
+        accessKey: this.mStringBundle.getString('mdnBarSendReqButtonKey'),
+        popup: null,
+        callback: SendMDNResponse
+      },
+      {
+        label: this.mStringBundle.getString('mdnBarIgnoreButton'),
+        accessKey: this.mStringBundle.getString('mdnBarIgnoreButtonKey'),
+        popup: null,
+        callback: IgnoreMDNResponse
+      }];
+
+      this.mMsgNotificationBar.appendNotification(barMsg, "mdnContent",
+        null, this.mMsgNotificationBar.PRIORITY_INFO_MEDIUM, buttons);
+    }
   },
 
   clearMsgNotifications: function()
   {
-    this.mBarStatus = 0;
-    var msgNotificationBar = document.getElementById('msgNotificationBar');
-    msgNotificationBar.selectedIndex = 0;
-    msgNotificationBar.collapsed = true;
-  },
-
-  // private method used to set our message notification deck to the correct value...
-  updateMsgNotificationBar: function(aIndex, aSet)
-  {
-    var chunk = this.mBarFlagValues[aIndex];
-    var status = aSet ? this.mBarStatus | chunk : this.mBarStatus & ~chunk;
-    this.mBarStatus = status;
-
-    // the phishing message takes precedence over the junk message
-    // which takes precedence over the remote content message
-    var msgNotificationBar = document.getElementById('msgNotificationBar');
-    msgNotificationBar.selectedIndex = this.mBarFlagValues.indexOf(status & -status);
-
-    msgNotificationBar.collapsed = !status;
-  },
-
-  /**
-   * @param aFlag one of the |mBarFlagValues| values
-   * @return true if aFlag is currently set for the loaded message
-   */
-  isFlagSet: function(aFlag)
-  {
-    var chunk = this.mBarFlagValues[aFlag];
-    return this.mBarStatus & chunk;
   }
 };
 
@@ -2624,25 +2706,8 @@ function msgHdrForCurrentMessage()
  *  sender of the current loaded message. If we find a card, update the allow remote content field.
  *  If we can't find a card, prompt the user with a new AB card dialog, pre-selecting the remote content field.
  */
-function allowRemoteContentForSender()
+function allowRemoteContentForSender(aAuthorEmailAddress, aAuthorDisplayName)
 {
-  // get the sender of the msg hdr
-  var msgHdr = msgHdrForCurrentMessage();
-  if (!msgHdr)
-    return;
-
-  var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
-                               .getService(Components.interfaces.nsIMsgHeaderParser);
-  var names = {};
-  var addresses = {};
-  var fullNames = {};
-  var numAddresses;
-
-  numAddresses = headerParser.parseHeadersWithArray(msgHdr.author, addresses, names, fullNames);
-  var authorEmailAddress = addresses.value[0];
-  if (!authorEmailAddress)
-    return;
-
   // search through all of our local address books looking for a match.
   var enumerator = Components.classes["@mozilla.org/abmanager;1"]
                              .getService(Components.interfaces.nsIAbManager)
@@ -2673,8 +2738,8 @@ function allowRemoteContentForSender()
   }
   else
   {
-    var args = {primaryEmail:authorEmailAddress, displayName:names.value[0],
-                allowRemoteContent:true};
+    var args = {primaryEmail:aAuthorEmailAddress, displayName:aAuthorDisplayName,
+                 allowRemoteContent:true};
     // create a new card and set the property
     window.openDialog("chrome://messenger/content/addressbook/abNewCardDialog.xul",
                       "", "chrome,resizable=no,titlebar,modal,centerscreen", args);
@@ -2891,13 +2956,11 @@ function HandleMDNResponse(aUrl)
 function SendMDNResponse()
 {
   gMessageNotificationBar.mdnGenerator.userAgreed();
-  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
 }
 
 function IgnoreMDNResponse()
 {
   gMessageNotificationBar.mdnGenerator.userDeclined();
-  gMessageNotificationBar.updateMsgNotificationBar(kMsgNotificationMDN, false);
 }
 
 function MsgSearchMessages()

@@ -241,7 +241,6 @@
                                persist="height width"
                                class="browser-notificationbox window-focusborder"
                                focusring="false">
-                <deck id="msgNotificationBar"/>
                 <hbox id="msgHeaderView"/>
                 <!-- The messagepanewrapper hbox exists to allow extensions
                      to add sidebars to the message pane. -->
