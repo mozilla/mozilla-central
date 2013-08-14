@@ -2490,14 +2490,18 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     return NS_MSG_NOT_A_MAIL_FOLDER;
   }
 
-  nsCOMPtr <nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(destIFolder);
-  if (destLocalFolder)
-  {
-    bool destFolderTooBig;
-    destLocalFolder->WarnIfLocalFileTooBig(msgWindow, &destFolderTooBig);
-    if (destFolderTooBig)
+  uint32_t messageLength;
+  mailHdr->GetMessageSize(&messageLength);
+
+  nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(destIFolder);
+  if (localFolder) {
+    bool destFolderTooBig = true;
+    rv = localFolder->WarnIfLocalFileTooBig(msgWindow, messageLength,
+                                            &destFolderTooBig);
+    if (NS_FAILED(rv) || destFolderTooBig)
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
   }
+
   nsCOMPtr<nsISupports> myISupports =
     do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
 
@@ -2517,7 +2521,6 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     return NS_MSG_FOLDER_UNREADABLE;  // ### dmb
   }
 
-  nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(destIFolder);
   nsCOMPtr<nsIMsgDatabase> destMailDB;
 
   if (!localFolder)
@@ -2537,8 +2540,6 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     rv = NS_ERROR_UNEXPECTED;
   if (NS_SUCCEEDED(rv))
   {
-    uint32_t messageLength;
-    mailHdr->GetMessageSize(&messageLength);
     rv = AppendMsgFromStream(inputStream, newHdr, messageLength,
                              destIFolder);
   }

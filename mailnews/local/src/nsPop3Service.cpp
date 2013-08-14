@@ -93,8 +93,10 @@ nsresult nsPop3Service::GetMail(bool downloadNewMail,
   nsCOMPtr<nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(aInbox);
   if (destLocalFolder)
   {
+    // We don't know the needed size yet, so at least check
+    // if there is some free space (1MB) in the message store.
     bool destFolderTooBig;
-    destLocalFolder->WarnIfLocalFileTooBig(aMsgWindow, &destFolderTooBig);
+    destLocalFolder->WarnIfLocalFileTooBig(aMsgWindow, 0xFFFF, &destFolderTooBig);
     if (destFolderTooBig)
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
   }

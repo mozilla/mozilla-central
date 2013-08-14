@@ -24,7 +24,7 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(ebf7576c-e15f-4aba-b021-cc6e9266e90b)]
+[scriptable, uuid(ebf7576c-e15f-4aba-b021-cc6e9266e90c)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
    * Set the default flags on the subfolders of this folder, such as
@@ -103,7 +103,13 @@ interface nsIMsgLocalMailFolder : nsISupports {
   [noscript] void getFolderScanState(in nsLocalFolderScanState aState);
   [noscript] void getUidlFromFolder(in nsLocalFolderScanState aState, in nsIMsgDBHdr aMsgHdr);
 
-  boolean warnIfLocalFileTooBig(in nsIMsgWindow aWindow);
+
+  /**
+   * Shows warning if there is not enough space in the message store
+   * for a message of the given size.
+   */
+  boolean warnIfLocalFileTooBig(in nsIMsgWindow aWindow,
+                                [optional] in long long aSpaceRequested);
 
   /**
    * Update properties on a new header from an old header, for cases where
