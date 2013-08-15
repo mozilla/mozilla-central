@@ -17,10 +17,5 @@ XPIDL_SOURCES += [
     'nsIImportSettings.idl',
 ]
 
-XPIDL_FLAGS += [
-    '-I$(topsrcdir)/mailnews/base/public',
-    '-I$(topsrcdir)/mailnews/compose/public',
-]
-
 MODULE = 'import'
 

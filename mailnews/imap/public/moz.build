@@ -23,10 +23,6 @@ XPIDL_SOURCES += [
     'nsIMsgImapMailFolder.idl',
 ]
 
-XPIDL_FLAGS += [
-    '-I$(topsrcdir)/mailnews/base/public',
-]
-
 MODULE = 'msgimap'
 
 EXPORTS += [

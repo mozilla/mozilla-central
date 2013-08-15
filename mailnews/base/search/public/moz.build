@@ -26,10 +26,6 @@ XPIDL_SOURCES += [
 
 XPIDL_MODULE = 'msgsearch'
 
-XPIDL_FLAGS += [
-    '-I$(topsrcdir)/mailnews/base/public',
-]
-
 MODULE = 'msgbase'
 
 EXPORTS += [

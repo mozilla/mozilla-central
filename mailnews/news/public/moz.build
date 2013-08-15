@@ -16,10 +16,6 @@ XPIDL_SOURCES += [
     'nsINntpUrl.idl',
 ]
 
-XPIDL_FLAGS += [
-    '-I$(topsrcdir)/mailnews/base/public',
-]
-
 MODULE = 'msgnews'
 
 EXPORTS += [
