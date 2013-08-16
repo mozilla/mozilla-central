@@ -61,6 +61,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 
 !insertmacro AddDDEHandlerValues
 !insertmacro AddHandlerValues
+!insertmacro CleanUpdateDirectories
 !insertmacro CleanVirtualStore
 !insertmacro FindSMProgramsDir
 !insertmacro GetLongPath
@@ -78,7 +79,7 @@ VIAddVersionKey "OriginalFilename" "helper.exe"
 
 !insertmacro un.ChangeMUIHeaderImage
 !insertmacro un.CheckForFilesInUse
-!insertmacro un.CleanUpdatesDir
+!insertmacro un.CleanUpdateDirectories
 !insertmacro un.CleanVirtualStore
 !insertmacro un.DeleteShortcuts
 !insertmacro un.GetLongPath
@@ -198,6 +199,9 @@ Section "Uninstall"
   ${AndIf} "$AppUserModelID" != ""
     ApplicationID::UninstallJumpLists "$AppUserModelID"
   ${EndIf}
+
+  ; Remove the updates directory for Vista and above
+  ${un.CleanUpdateDirectories} "Mozilla\SeaMonkey" "Mozilla\updates"
 
   ; Remove any app model id's stored in the registry for this install path
   DeleteRegValue HKCU "Software\Mozilla\${AppName}\TaskBarIDs" "$INSTDIR"
@@ -337,9 +341,6 @@ Section "Uninstall"
   ${If} ${FileExists} "$INSTDIR\mozMapi32_InUse.dll"
     Delete /REBOOTOK "$INSTDIR\mozMapi32_InUse.dll"
   ${EndIf}
-
-  ; Remove the updates directory for Vista and above
-  ${un.CleanUpdatesDir} "Mozilla\SeaMonkey"
 
   ; Remove files that may be left behind by the application in the
   ; VirtualStore directory.

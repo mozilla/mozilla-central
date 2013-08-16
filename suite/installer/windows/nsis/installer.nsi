@@ -64,7 +64,7 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro AddHandlerValues
 !insertmacro ChangeMUIHeaderImage
 !insertmacro CheckForFilesInUse
-!insertmacro CleanUpdatesDir
+!insertmacro CleanUpdateDirectories
 !insertmacro CopyFilesFromDir
 !insertmacro CreateRegKey
 !insertmacro FindSMProgramsDir
@@ -253,8 +253,11 @@ Section "-InstallStartCleanup"
     ${EndIf}
   ${EndIf}
 
+  ; setup the application model id registration value
+  ${InitHashAppModelId} "$INSTDIR" "Software\Mozilla\${AppName}\TaskBarIDs"
+
   ; Remove the updates directory for Vista and above
-  ${CleanUpdatesDir} "Mozilla\SeaMonkey"
+  ${CleanUpdateDirectories} "Mozilla\SeaMonkey" "Mozilla\updates"
 
   ${InstallStartCleanupCommon}
 SectionEnd
@@ -329,9 +332,6 @@ Section "-Application" APP_IDX
   ${LogUninstall} "File: \updates.xml"
 
   ClearErrors
-
-  ; setup the application model id registration value
-  ${InitHashAppModelId} "$INSTDIR" "Software\Mozilla\${AppName}\TaskBarIDs"
 
   ; Default for creating Start Menu folder and shortcuts
   ; (1 = create, 0 = don't create)
