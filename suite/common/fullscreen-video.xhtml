@@ -52,7 +52,7 @@ function onFocus() {
 
   window.addEventListener("mousemove", onMouseMove, false);
 
-  video.mozLoadFrom(contentVideo);
+  video.src = contentVideo.currentSrc || contentVideo.src;
 }
 
 function onLoadedData() {
