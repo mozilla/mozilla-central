@@ -8732,9 +8732,6 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     nsCOMPtr<nsIMsgFolder> msgParent;
     msgFolder->GetParent(getter_AddRefs(msgParent));
     msgFolder->SetParent(nullptr);
-    if (msgParent)
-      msgParent->PropagateDelete(msgFolder, true, nullptr);
-
     // Reset online status now that the folder is renamed.
     nsCOMPtr <nsIMsgImapMailFolder> oldImapFolder = do_QueryInterface(msgFolder);
     if (oldImapFolder)
@@ -8742,6 +8739,12 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
       notifier->NotifyFolderRenamed(msgFolder, child);   
+
+    // Do not propagate the deletion until after we have (synchronously) notified
+    // all listeners about the rename.  This allows them to access properties on
+    // the source folder without experiencing failures.
+    if (msgParent)
+      msgParent->PropagateDelete(msgFolder, true, nullptr);
     NotifyItemAdded(child);
   }
   return rv;

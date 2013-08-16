@@ -2177,6 +2177,8 @@ var GlodaDatastore = {
    *     layer deal with it and remove this note.
    */
   renameFolder: function gloda_ds_renameFolder(aOldFolder, aNewURI) {
+    if (!(aOldFolder.URI in this._folderByURI))
+      return;
     let folder = this._mapFolder(aOldFolder); // ensure the folder is mapped
     let oldURI = folder.uri;
     this._folderByURI[aNewURI] = folder;
