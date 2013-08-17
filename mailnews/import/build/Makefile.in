@@ -71,4 +71,49 @@ LOCAL_INCLUDES	+= -I$(srcdir)/../outlook/src
 endif
 endif
 
+EXTRA_DSO_LDOPTS += ../../base/util/$(LIB_PREFIX)msgbsutl_s.$(LIB_SUFFIX)
+
+ifdef MOZILLA_INTERNAL_API
+EXTRA_DSO_LDOPTS += \
+	$(LIBS_DIR) \
+	$(EXTRA_DSO_LIBS) \
+	$(MOZ_UNICHARUTIL_LIBS) \
+	$(MOZ_COMPONENT_LIBS) \
+	$(NULL)
+else
+EXTRA_DSO_LDOPTS += \
+	$(LIBS_DIR) \
+	$(MOZ_JS_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
+	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
+	$(NSPR_LIBS) \
+	$(XPCOM_LIBS) \
+	$(NULL)
+ifneq (WINNT,$(OS_ARCH))
+EXTRA_DSO_LDOPTS += \
+	$(MOZ_ZLIB_LIBS) \
+	$(NULL)
+endif
+endif
+
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+EXTRA_DSO_LDOPTS += \
+	-framework Cocoa  \
+	$(TK_LIBS) \
+	$(NULL)
+endif
+
+ifeq ($(OS_ARCH),AIX)
+ifdef MOZILLA_INTERNAL_API
+EXTRA_DSO_LDOPTS += \
+	$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
+	$(NULL)
+else
+EXTRA_DSO_LDOPTS += \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
+	$(NULL)
+endif
+endif
+
 include $(topsrcdir)/config/rules.mk

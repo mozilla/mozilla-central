@@ -45,6 +45,7 @@ SHARED_LIBRARY_LIBS = \
 	        ../extensions/fts3/src/$(LIB_PREFIX)fts3tok_s.$(LIB_SUFFIX) \
 	        ../extensions/mailviews/src/$(LIB_PREFIX)mailview_s.$(LIB_SUFFIX) \
                 ../extensions/mdn/src/$(LIB_PREFIX)msgmdn_s.$(LIB_SUFFIX) \
+                ../extensions/smime/src/$(LIB_PREFIX)msgsmime_s.$(LIB_SUFFIX) \
                 ../mime/cthandlers/vcard/$(LIB_PREFIX)vcard_s.$(LIB_SUFFIX) \
                 ../mime/cthandlers/glue/$(LIB_PREFIX)mimecthglue_s.$(LIB_SUFFIX) \
                 ../mime/cthandlers/pgpmime/$(LIB_PREFIX)pgpmime_s.$(LIB_SUFFIX) \
@@ -97,6 +98,7 @@ LOCAL_INCLUDES = -I$(srcdir) \
                  -I$(srcdir)/../extensions/fts3/src \
                  -I$(srcdir)/../extensions/mailviews/src \
                  -I$(srcdir)/../extensions/mdn/src \
+                 -I$(srcdir)/../extensions/smime/src \
                  $(NULL)
 
 include $(topsrcdir)/config/rules.mk

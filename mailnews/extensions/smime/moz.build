@@ -8,7 +8,5 @@ PARALLEL_DIRS += [
     'src',
 ]
 
-DIRS += ['build']
-
 MODULE = 'msgsmime'
 
