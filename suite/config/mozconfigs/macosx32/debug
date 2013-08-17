@@ -1,3 +1,5 @@
+. "$topsrcdir/build/mozconfig.common"
+
 # Don't use the standard mozconfig. We don't want universal for a debug build. 
 #if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
 #. $topsrcdir/mozilla/build/macosx/universal/mozconfig

@@ -1,3 +1,5 @@
+. "$topsrcdir/build/mozconfig.common"
+
 ac_add_options --enable-application=suite
 ac_add_options --enable-optimize
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}

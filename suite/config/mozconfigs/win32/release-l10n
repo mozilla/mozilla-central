@@ -1,3 +1,5 @@
+. "$topsrcdir/build/mozconfig.common"
+
 if [ "$MOZ_UPDATE_CHANNEL" == "beta" ]; then
   ac_add_options --with-l10n-base=../../releases/l10n/mozilla-beta
 fi;
