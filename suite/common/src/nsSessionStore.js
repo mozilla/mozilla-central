@@ -746,8 +746,8 @@ SessionStoreService.prototype = {
       this.onTabRemove(aWindow, tabbrowser.tabs[i], true);
     }
 
-    // cache the window state until the window is completely gone
-    aWindow.__SS_dyingCache = winData;
+    // Cache the window state until it is completely gone.
+    DyingWindowCache.set(aWindow, winData);
 
     delete aWindow.__SSi;
   },
@@ -979,12 +979,16 @@ SessionStoreService.prototype = {
   },
 
   getWindowState: function sss_getWindowState(aWindow) {
-    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
-      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
+    if ("__SSi" in aWindow) {
+      return this._toJSONString(this._getWindowState(aWindow));
+    }
 
-    if (!aWindow.__SSi)
-      return this._toJSONString({ windows: [aWindow.__SS_dyingCache] });
-    return this._toJSONString(this._getWindowState(aWindow));
+    if (DyingWindowCache.has(aWindow)) {
+      let data = DyingWindowCache.get(aWindow);
+      return this._toJSONString({ windows: [data] });
+    }
+
+    throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
   },
 
   setWindowState: function sss_setWindowState(aWindow, aState, aOverwrite) {
@@ -1053,18 +1057,28 @@ SessionStoreService.prototype = {
   },
 
   getClosedTabCount: function sss_getClosedTabCount(aWindow) {
-    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
-      // XXXzeniko shouldn't we throw here?
-      return 0; // not a browser window, or not otherwise tracked by SS.
+    if ("__SSi" in aWindow) {
+      return this._windows[aWindow.__SSi]._closedTabs.length;
+    }
 
-    return this._getClosedTabs(aWindow).length;
+    if (DyingWindowCache.has(aWindow)) {
+      return DyingWindowCache.get(aWindow)._closedTabs.length;
+    }
+
+    throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
   },
 
   getClosedTabData: function sss_getClosedTabData(aWindow) {
-    if (!aWindow.__SSi && !aWindow.__SS_dyingCache)
-      throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
+    if ("__SSi" in aWindow) {
+      return this._toJSONString(this._windows[aWindow.__SSi]._closedTabs);
+    }
 
-    return this._toJSONString(this._getClosedTabs(aWindow));
+    if (DyingWindowCache.has(aWindow)) {
+      let data = DyingWindowCache.get(aWindow);
+      return this._toJSONString(data._closedTabs);
+    }
+
+    throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
   },
 
   undoCloseTab: function sss_undoCloseTab(aWindow, aIndex) {
@@ -1139,12 +1153,12 @@ SessionStoreService.prototype = {
   },
 
   getWindowValue: function sss_getWindowValue(aWindow, aKey) {
-    if (aWindow.__SSi) {
+    if ("__SSi" in aWindow) {
       var data = this._windows[aWindow.__SSi].extData || {};
       return data[aKey] || "";
     }
-    if (aWindow.__SS_dyingCache) {
-      data = aWindow.__SS_dyingCache.extData || {};
+    if (DyingWindowCache.has(aWindow)) {
+      let data = DyingWindowCache.get(aWindow).extData || {};
       return data[aKey] || "";
     }
     throw (Components.returnCode = Components.results.NS_ERROR_INVALID_ARG);
@@ -4018,6 +4032,29 @@ let XPathHelper = {
 
     delete this.restorableFormNodes;
     return (this.restorableFormNodes = formNodesXPath);
+  }
+};
+
+// A map storing a closed window's state data until it goes aways (is GC'ed).
+// This ensures that API clients can still read (but not write) states of
+// windows they still hold a reference to but we don't.
+let DyingWindowCache = {
+  _data: new WeakMap(),
+
+  has: function (window) {
+    return this._data.has(window);
+  },
+
+  get: function (window) {
+    return this._data.get(window);
+  },
+
+  set: function (window, data) {
+    this._data.set(window, data);
+  },
+
+  remove: function (window) {
+    this._data.delete(window);
   }
 };
 
