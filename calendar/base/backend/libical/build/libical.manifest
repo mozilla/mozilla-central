@@ -1,2 +1,2 @@
 #expand binary-component __SHARED_LIBRARY__
-#expand interfaces __XPIDL_MODULE__.xpt
+interfaces caldatetime_libical.xpt

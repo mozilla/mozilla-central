@@ -16,4 +16,4 @@ contract @mozilla.org/calendar/recurrence-rule;1 {df19281a-5389-4146-b941-798cb9
 component {6702eb17-a968-4b43-b562-0d0c5f8e9eb5} calICALJSComponents.js
 contract @mozilla.org/calendar/timezone;1 {6702eb17-a968-4b43-b562-0d0c5f8e9eb5}
 
-#expand interfaces __XPIDL_MODULE__.xpt
+interfaces caldatetime_icaljs.xpt
