@@ -56,7 +56,7 @@ nsActivityManagerUI.prototype = {
   //// nsActivityManagerUI
 
   get recentWindow() {
-    return Services.wm.getMostRecentWindow("ActivityManager");
+    return Services.wm.getMostRecentWindow("Activity:Manager");
   },
 
   //////////////////////////////////////////////////////////////////////////////
