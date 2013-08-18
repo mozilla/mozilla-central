@@ -320,20 +320,17 @@ SessionStoreService.prototype = {
     if (!this._initialized)
       this.initService();
 
-    // If init is being called with a null window, it's possible that we
-    // just want to tell sessionstore that a session is live (as is the case
-    // with starting Firefox with -private, for example; see bug 568816),
-    // so we should mark the load state as running to make sure that
-    // things like setBrowserState calls will succeed in restoring the session.
-    if (!aWindow) {
-      if (this._loadState == STATE_STOPPED)
-        this._loadState = STATE_RUNNING;
-      return;
+    if (aWindow) {
+      this.onLoad(aWindow);
+    } else if (this._loadState == STATE_STOPPED) {
+      // If init is being called with a null window, it's possible that we
+      // just want to tell sessionstore that a session is live (as is the case
+      // with starting Firefox with -private, for example; see bug 568816),
+      // so we should mark the load state as running to make sure that
+      // things like setBrowserState calls will succeed in restoring the session.
+      this._loadState = STATE_RUNNING;
     }
-
-    this.onLoad(aWindow);
   },
-
   /**
    * Called on application shutdown, after notifications:
    * quit-application-granted, quit-application
