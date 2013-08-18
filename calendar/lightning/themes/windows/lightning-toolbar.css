@@ -7,4 +7,5 @@
 #calendar-toolbar2,
 #task-toolbar2 {
   padding: 1px 0;
+  border-top-width: 0;
 }
