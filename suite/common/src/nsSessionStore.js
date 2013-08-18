@@ -153,9 +153,6 @@ SessionStoreService.prototype = {
   // states for all currently opened windows
   _windows: {},
   
-  // internal states for all open windows (data we need to associate, but not write to disk)
-  _internalWindows: {},
-
   // states for all recently closed windows
   _closedWindows: [],
 
@@ -414,7 +411,6 @@ SessionStoreService.prototype = {
           delete aTab.linkedBrowser.__SS_data;
           delete aTab.linkedBrowser.__SS_tabStillLoading;
           delete aTab.linkedBrowser.__SS_formDataSaved;
-          delete aTab.linkedBrowser.__SS_hostSchemeData;
           if (aTab.linkedBrowser.__SS_restoreState)
             this._resetTabRestoringState(aTab);
         });
@@ -427,7 +423,6 @@ SessionStoreService.prototype = {
         }
         else {
           delete this._windows[ix];
-          delete this._internalWindows[ix];
         }
       }
       // also clear all data about closed windows
@@ -550,9 +545,6 @@ SessionStoreService.prototype = {
 
     // and create its data object
     this._windows[aWindow.__SSi] = { tabs: [], selected: 0, _closedTabs: [] };
-
-    // and create its internal data object
-    this._internalWindows[aWindow.__SSi] = { hosts: {} }
 
     if (!this._isWindowLoaded(aWindow))
       this._windows[aWindow.__SSi]._restoring = true;
@@ -719,9 +711,7 @@ SessionStoreService.prototype = {
         winData.title = aWindow.content.document.title || tabbrowser.selectedTab.label;
         winData.title = this._replaceLoadingTitle(winData.title, tabbrowser,
                                                   tabbrowser.selectedTab);
-        let windows = {};
-        windows[aWindow.__SSi] = winData;
-        this._updateCookies(windows);
+        this._updateCookies([winData]);
       }
 
       // save the window if it has multiple tabs or a single saveable tab
@@ -733,7 +723,6 @@ SessionStoreService.prototype = {
 
       // clear this window from the list
       delete this._windows[aWindow.__SSi];
-      delete this._internalWindows[aWindow.__SSi];
 
       // save the state without this window to disk
       this.saveStateDelayed();
@@ -793,7 +782,6 @@ SessionStoreService.prototype = {
     delete browser.__SS_data;
     delete browser.__SS_tabStillLoading;
     delete browser.__SS_formDataSaved;
-    delete browser.__SS_hostSchemeData;
 
     // If this tab was in the middle of restoring or still needs to be restored,
     // we need to reset that state. If the tab was restoring, we will attempt to
@@ -1482,11 +1470,10 @@ SessionStoreService.prototype = {
       tabData.index = history.index + 1;
     }
     else if (history && history.count > 0) {
-      browser.__SS_hostSchemeData = [];
       try {
         for (var j = 0; j < history.count; j++) {
           let entry = this._serializeHistoryEntry(history.getEntryAtIndex(j, false),
-                                                  aFullData, aTab.pinned, browser.__SS_hostSchemeData);
+                                                  aFullData, aTab.pinned);
           tabData.entries.push(entry);
         }
         // If we make it through the for loop, then we're ok and we should clear
@@ -1569,20 +1556,11 @@ SessionStoreService.prototype = {
    *        always return privacy sensitive data (use with care)
    * @param aIsPinned
    *        the tab is pinned and should be treated differently for privacy
-   * @param aHostSchemeData
-   *        an array of objects with host & scheme keys
    * @returns object
    */
   _serializeHistoryEntry:
-    function sss_serializeHistoryEntry(aEntry, aFullData, aIsPinned, aHostSchemeData) {
+    function sss_serializeHistoryEntry(aEntry, aFullData, aIsPinned) {
     var entry = { url: aEntry.URI.spec };
-
-    try {
-      aHostSchemeData.push({ host: aEntry.URI.host, scheme: aEntry.URI.scheme });
-    }
-    catch (ex) {
-      // We just won't attempt to get cookies for this entry.
-    }
 
     if (aEntry.title && aEntry.title != entry.url) {
       entry.title = aEntry.title;
@@ -1680,7 +1658,7 @@ SessionStoreService.prototype = {
       for (var i = 0; i < aEntry.childCount; i++) {
         var child = aEntry.GetChildAt(i);
         if (child) {
-          entry.children.push(this._serializeHistoryEntry(child, aFullData, aIsPinned, aHostSchemeData));
+          entry.children.push(this._serializeHistoryEntry(child, aFullData, aIsPinned));
         }
         else { // to maintain the correct frame order, insert a dummy entry
           entry.children.push({ url: "about:blank" });
@@ -2028,28 +2006,6 @@ SessionStoreService.prototype = {
   },
 
   /**
-   * store all hosts for a URL
-   * @param aWindow
-   *        Window reference
-   */
-  _updateCookieHosts: function sss_updateCookieHosts(aWindow) {
-    var hosts = this._internalWindows[aWindow.__SSi].hosts = {};
-
-    // Since _updateCookiesHosts is only ever called for open windows during a
-    // session, we can call into _extractHostsForCookiesFromHostScheme directly
-    // using data that is attached to each browser.
-    for (let i = 0; i < aWindow.gBrowser.tabs.length; i++) {
-      let tab = aWindow.gBrowser.tabs[i];
-      let hostSchemeData = tab.linkedBrowser.__SS_hostSchemeData || [];
-      for (let j = 0; j < hostSchemeData.length; j++) {
-        this._extractHostsForCookiesFromHostScheme(hostSchemeData[j].host,
-                                                   hostSchemeData[j].scheme,
-                                                   hosts, true, tab.pinned);
-      }
-    }
-  },
-
-  /**
    * Serialize cookie data
    * @param aWindows
    *        JS object containing window data references
@@ -2061,12 +2017,18 @@ SessionStoreService.prototype = {
     // MAX_EXPIRY should be 2^63-1, but JavaScript can't handle that precision
     var MAX_EXPIRY = Math.pow(2, 62);
 
-    for (let [id, window] in Iterator(aWindows)) {
+    for (let window of aWindows) {
       window.cookies = [];
-      let internalWindow = this._internalWindows[id];
-      if (!internalWindow.hosts)
-        return;
-      for (var [host, isPinned] in Iterator(internalWindow.hosts)) {
+
+      // Collect all hosts for the current window.
+      let hosts = {};
+      window.tabs.forEach(function(tab) {
+        tab.entries.forEach(function(entry) {
+          this._extractHostsForCookiesFromEntry(entry, hosts, true, tab.pinned);
+        }, this);
+      }, this);
+
+      for (var [host, isPinned] in Iterator(hosts)) {
         try {
           var list = Services.cookies.getCookiesFromHost(host);
           while (list.hasMoreElements()) {
@@ -2164,7 +2126,7 @@ SessionStoreService.prototype = {
     }
 
     // collect the data for all windows
-    var total = [], windows = {}, ids = [];
+    var total = [], ids = [];
     var nonPopupCount = 0;
     var ix;
     for (ix in this._windows) {
@@ -2172,11 +2134,10 @@ SessionStoreService.prototype = {
         continue;
       total.push(this._windows[ix]);
       ids.push(ix);
-      windows[ix] = this._windows[ix];
       if (!this._windows[ix].isPopup)
         nonPopupCount++;
     }
-    this._updateCookies(windows);
+    this._updateCookies(total);
 
     // collect the data for all windows yet to be restored
     for (ix in this._statesToRestore) {
@@ -2243,12 +2204,10 @@ SessionStoreService.prototype = {
       this._collectWindowData(aWindow);
     }
 
-    var winData = this._windows[aWindow.__SSi];
-    let windows = {};
-    windows[aWindow.__SSi] = winData;
+    let windows = [this._windows[aWindow.__SSi]];
     this._updateCookies(windows);
 
-    return { windows: [winData] };
+    return { windows: windows };
   },
 
   _collectWindowData: function sss_collectWindowData(aWindow) {
@@ -2258,7 +2217,6 @@ SessionStoreService.prototype = {
     // update the internal state data for this window
     this._saveWindowHistory(aWindow);
     this._updateTextAndScrollData(aWindow);
-    this._updateCookieHosts(aWindow);
     this._updateWindowFeatures(aWindow);
 
     // Make sure we keep __SS_lastSessionWindowID around for cases like entering
