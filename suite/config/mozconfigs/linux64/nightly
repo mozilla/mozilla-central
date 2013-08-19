@@ -18,6 +18,7 @@ CXX=/tools/gcc-4.5/bin/g++
 export LDFLAGS="-DYUV_DISABLE_ASM=1"
 export CFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
 export CXXFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
+export LD_LIBRARY_PATH=/tools/gcc-4.5/lib
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1

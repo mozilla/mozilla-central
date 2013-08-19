@@ -17,6 +17,7 @@ CXX=/tools/gcc-4.5/bin/g++
 
 export CFLAGS="-gdwarf-2"
 export CXXFLAGS="-gdwarf-2"
+export LD_LIBRARY_PATH=/tools/gcc-4.5/lib
 
 # For NSS symbols
 export MOZ_DEBUG_SYMBOLS=1
