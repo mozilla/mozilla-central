@@ -328,7 +328,6 @@
 #endif
 @BINPATH@/components/windowds.xpt
 @BINPATH@/components/windowwatcher.xpt
-@BINPATH@/components/xpautocomplete.xpt
 @BINPATH@/components/xpcom_base.xpt
 @BINPATH@/components/xpcom_components.xpt
 @BINPATH@/components/xpcom_ds.xpt
