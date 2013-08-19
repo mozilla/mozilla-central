@@ -681,7 +681,6 @@
 ; core platform files
 @BINPATH@/components/FeedProcessor.js
 @BINPATH@/components/FeedProcessor.manifest
-@BINPATH@/components/xpautocomplete.xpt
 @BINPATH@/components/autocomplete.xpt
 @BINPATH@/components/alerts.xpt
 @BINPATH@/components/jsdebugger.xpt
