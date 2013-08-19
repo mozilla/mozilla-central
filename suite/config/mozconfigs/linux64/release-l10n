@@ -10,12 +10,11 @@ ac_add_options --enable-application=suite
 ac_add_options --enable-optimize
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
+ac_add_options --enable-stdcxx-compat
 
 CC=/tools/gcc-4.5/bin/gcc
 CXX=/tools/gcc-4.5/bin/g++
 
-export LDFLAGS="-static-libstdc++"
-export HOST_LDFLAGS="-static-libstdc++"
 export CFLAGS="-gdwarf-2"
 export CXXFLAGS="-gdwarf-2"
 

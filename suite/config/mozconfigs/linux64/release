@@ -6,6 +6,7 @@ ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --disable-debug
 ac_add_options --enable-tests
+ac_add_options --enable-stdcxx-compat
 
 # Temporary options until bug 794378 is fixed
 ac_add_options --enable-gnomevfs
@@ -14,8 +15,7 @@ ac_add_options --disable-gio
 CC=/tools/gcc-4.5/bin/gcc
 CXX=/tools/gcc-4.5/bin/g++
 
-export LDFLAGS="-static-libstdc++ -DYUV_DISABLE_ASM=1"
-export HOST_LDFLAGS="-static-libstdc++"
+export LDFLAGS="-DYUV_DISABLE_ASM=1"
 export CFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
 export CXXFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
 

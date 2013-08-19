@@ -15,8 +15,7 @@ ac_add_options --disable-gio
 CC=/tools/gcc-4.5/bin/gcc
 CXX=/tools/gcc-4.5/bin/g++
 
-export LDFLAGS="-static-libstdc++ -DYUV_DISABLE_ASM=1"
-export HOST_LDFLAGS="-static-libstdc++"
+export LDFLAGS="-DYUV_DISABLE_ASM=1"
 export CFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
 export CXXFLAGS="-gdwarf-2 -DYUV_DISABLE_ASM=1"
 
