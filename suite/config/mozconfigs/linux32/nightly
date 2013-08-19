@@ -6,7 +6,6 @@ ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --disable-debug
 ac_add_options --enable-tests
-ac_add_options --enable-codesighs
 ac_add_options --enable-stdcxx-compat
 
 # Temporary options until bug 794378 is fixed

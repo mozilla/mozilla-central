@@ -13,7 +13,6 @@ ac_add_options --enable-application=suite
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-tests
-ac_add_options --enable-codesighs
 ac_add_options --disable-install-strip
 
 export CFLAGS="-gdwarf-2"
