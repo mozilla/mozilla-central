@@ -2422,7 +2422,7 @@ function PrintEnginePrintInternal(doPrintPreview, msgType)
   window.openDialog("chrome://messenger/content/msgPrintEngine.xul", "",
                     "chrome,dialog=no,all,centerscreen",
                     messageList.length, messageList, statusFeedback,
-                    doPrintPreview, msgType, window);
+                    doPrintPreview, msgType);
 }
 
 function PrintEnginePrint()
