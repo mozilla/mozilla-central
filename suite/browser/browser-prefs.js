@@ -740,7 +740,7 @@ pref("plugins.update.notifyUser", false);
 pref("plugins.hide_infobar_for_outdated_plugin", false);
 pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
 pref("plugins.hide_infobar_for_missing_plugin", false);
-pref("plugins.click_to_play", false);
+pref("plugins.click_to_play", true);
 pref("plugin.disable", false);
 
 #ifndef XP_MACOSX

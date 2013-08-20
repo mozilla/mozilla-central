@@ -36,12 +36,12 @@
       <preference id="plugin.disable"
                   name="plugin.disable"
                   type="bool" inverted="true"/>
-      <preference id="plugins.click_to_play"
-                  name="plugins.click_to_play"
-                  type="bool" inverted="true"/>
       <preference id="plugins.hide_infobar_for_missing_plugin"
                   name="plugins.hide_infobar_for_missing_plugin"
                   type="bool" inverted="true"/>
+      <preference id="plugin.default.state"
+                  name="plugin.default.state"
+                  type="int"/>
     </preferences>
 
     <groupbox id="javascriptPreferences" flex="1">
@@ -95,7 +95,9 @@
       <checkbox id="activateAllPlugins"
                 label="&activateAllPlugins.label;"
                 accesskey="&activateAllPlugins.accesskey;"
-                preference="plugins.click_to_play"/>
+                preference="plugin.default.state"
+                onsyncfrompreference="return document.getElementById(this.getAttribute('preference')).value == 2;"
+                onsynctopreference="return this.checked ? 2 : 1;"/>
       <checkbox id="warnPluginsRequired"
                 label="&warnPluginsRequired.label;"
                 accesskey="&warnPluginsRequired.accesskey;"
