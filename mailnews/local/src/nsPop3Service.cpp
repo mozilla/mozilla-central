@@ -252,7 +252,7 @@ nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer *aServer, nsIURI *aUrlToR
   // *NOT* going to run the url
   bool serverBusy = false;
   rv = aServer->GetServerBusy(&serverBusy);
-
+  NS_ENSURE_SUCCESS(rv, rv);
   if (!serverBusy)
   {
     nsRefPtr<nsPop3Protocol> protocol = new nsPop3Protocol(aUrlToRun);
@@ -441,10 +441,10 @@ void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
   nsCOMPtr<nsIStringBundleService> bundleService =
     mozilla::services::GetStringBundleService();
   if (!bundleService)
-    return void(0);
+    return;
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
-  NS_ENSURE_SUCCESS(rv, void(0));
+  NS_ENSURE_SUCCESS_VOID(rv);
 
   nsCOMPtr<nsIMsgWindow> msgWindow;
   nsCOMPtr<nsIPrompt> dialog;
@@ -453,14 +453,26 @@ void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
     return;
 
   rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
-  NS_ENSURE_SUCCESS(rv, void(0));
+  NS_ENSURE_SUCCESS_VOID(rv);
 
+  nsString accountName;
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  rv = url->GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS_VOID(rv);
+  rv = server->GetPrettyName(accountName);
+  NS_ENSURE_SUCCESS_VOID(rv);
+
+  const PRUnichar *params[] = { accountName.get() };
   nsString alertString;
-  bundle->GetStringFromName(
-    NS_LITERAL_STRING("pop3MessageFolderBusy").get(),
-    getter_Copies(alertString));
+  nsString dialogTitle;
+  bundle->FormatStringFromName(
+    NS_LITERAL_STRING("pop3ServerBusy").get(),
+    params, 1, getter_Copies(alertString));
+  bundle->FormatStringFromName(
+    NS_LITERAL_STRING("pop3ErrorDialogTitle").get(),
+    params, 1, getter_Copies(dialogTitle));
   if (!alertString.IsEmpty())
-    dialog->Alert(nullptr, alertString.get());
+    dialog->Alert(dialogTitle.get(), alertString.get());
 }
 
 NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)

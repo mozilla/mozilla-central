@@ -2365,7 +2365,7 @@ nsPop3Protocol::GetStat()
       if (NS_FAILED(rv))
       {
         m_nsIPop3Sink->AbortMailDelivery(this);
-        return Error(rv == NS_MSG_FOLDER_BUSY ? "pop3MessageFolderBusy" :
+        return Error(rv == NS_MSG_FOLDER_BUSY ? "pop3ServerBusy" :
                                                 "pop3MessageWriteError");
       }
 
