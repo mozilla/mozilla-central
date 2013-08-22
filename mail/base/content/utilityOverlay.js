@@ -118,6 +118,9 @@ function GenerateValidFilename(filename, extension)
 function validateFileName(aFileName)
 {
   var re = /[\/]+/g;
+  if (Services.prefs.getBoolPref("mail.save_msg_filename_underscores_for_space"))
+    aFileName = aFileName.replace(/ /g, "_");
+
   if (navigator.appVersion.contains("Windows")) {
     re = /[\\\/\|]+/g;
     aFileName = aFileName.replace(/[\"]+/g, "'");
@@ -127,7 +130,7 @@ function validateFileName(aFileName)
   }
   else if (navigator.appVersion.contains("Macintosh"))
     re = /[\:\/]+/g;
-  
+
   return aFileName.replace(re, "_");
 }
 

@@ -831,3 +831,6 @@ pref("mail.pgpmime.addon_url", "https://addons.mozilla.org/thunderbird/addon/eni
 // If set to true, Thunderbird will collapse the main menu for new profiles
 // (or, more precisely, profiles that start with no accounts created).
 pref("mail.main_menu.collapse_by_default", true);
+// If set to true, when saving a message to a file, use underscore
+// instead of space in the file name.
+pref("mail.save_msg_filename_underscores_for_space", false);
