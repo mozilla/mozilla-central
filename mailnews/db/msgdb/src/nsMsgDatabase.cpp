@@ -3604,32 +3604,26 @@ NS_IMETHODIMP nsMsgDatabase::CopyHdrFromExistingHdr(nsMsgKey key, nsIMsgDBHdr *e
 
 nsresult nsMsgDatabase::RowCellColumnTonsString(nsIMdbRow *hdrRow, mdb_token columnToken, nsAString &resultStr)
 {
-  nsresult  err = NS_OK;
+  NS_ENSURE_ARG_POINTER(hdrRow);
 
-  if (hdrRow)  // ### probably should be an error if hdrRow is NULL...
-  {
-    struct mdbYarn yarn;
-    err = hdrRow->AliasCellYarn(GetEnv(), columnToken, &yarn);
-    if (NS_SUCCEEDED(err))
-      YarnTonsString(&yarn, resultStr);
-  }
-  return err;
+  struct mdbYarn yarn;
+  nsresult rv = hdrRow->AliasCellYarn(GetEnv(), columnToken, &yarn);
+  NS_ENSURE_SUCCESS(rv, rv);
+  YarnTonsString(&yarn, resultStr);
+  return NS_OK;
 }
 
 // as long as the row still exists, and isn't changed, the returned const char ** will be valid.
 // But be very careful using this data - the caller should never return it in turn to another caller.
 nsresult nsMsgDatabase::RowCellColumnToConstCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, const char **ptr)
 {
-  nsresult  err = NS_OK;
+  NS_ENSURE_ARG_POINTER(hdrRow);
 
-  if (hdrRow)  // ### probably should be an error if hdrRow is NULL...
-  {
-    struct mdbYarn yarn;
-    err = hdrRow->AliasCellYarn(GetEnv(), columnToken, &yarn);
-    if (NS_SUCCEEDED(err))
-      *ptr = (const char*)yarn.mYarn_Buf;
-  }
-  return err;
+  struct mdbYarn yarn;
+  nsresult rv = hdrRow->AliasCellYarn(GetEnv(), columnToken, &yarn);
+  NS_ENSURE_SUCCESS(rv, rv);
+  *ptr = (const char*)yarn.mYarn_Buf;
+  return NS_OK;
 }
 
 nsIMimeConverter *nsMsgDatabase::GetMimeConverter()
