@@ -359,7 +359,7 @@ function test_permissions_panel(aWin) {
            "Correct capability for: " + perm.host);
         perm.useDefault(true);
         is(perm.capability, 2,
-           "Set back to correct default " + perm.type);
+           "Set back to correct default");
         break;
       case "cookie":
         is(perm.getAttribute("label"), "Set Cookies",
@@ -368,7 +368,7 @@ function test_permissions_panel(aWin) {
            "Correct capability for: " + perm.host);
         perm.useDefault(true);
         is(perm.capability, 1,
-           "Set back to correct default" + perm.type);
+           "Set back to correct default");
         break;
       case "geo":
         is(perm.getAttribute("label"), "Share Location",
