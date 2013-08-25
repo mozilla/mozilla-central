@@ -319,6 +319,15 @@ modules/SpatialNavigation.js
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
 @DLL_PREFIX@mozutils@DLL_SUFFIX@
+#ifdef MOZ_FOLD_LIBS
+@DLL_PREFIX@nspr4@DLL_SUFFIX@
+@DLL_PREFIX@plds4@DLL_SUFFIX@
+@DLL_PREFIX@plc4@DLL_SUFFIX@
+@DLL_PREFIX@ssl3@DLL_SUFFIX@
+@DLL_PREFIX@smime3@DLL_SUFFIX@
+@DLL_PREFIX@nssutil3@DLL_SUFFIX@
+@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
 #ifdef XP_WIN
   mozcpp19.dll
   mozcrt19.dll
