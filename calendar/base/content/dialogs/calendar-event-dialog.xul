@@ -640,7 +640,7 @@
         <toolbarset id="custom-toolbars"/>
 
     </toolbox>
-
+    <notificationbox id="event-dialog-notifications"/>
     <grid id="event-grid"
           flex="1"
           style="padding-top: 8px; padding-bottom: 10px; -moz-padding-start: 8px; -moz-padding-end: 10px;">
@@ -678,16 +678,16 @@
             <row id="event-grid-category-color-row"
                  align="center">
                 <hbox id="event-grid-category-labels-box">
-                  <label value="&event.categories.label;"
-                         accesskey="&event.categories.accesskey;"
-                         control="item-categories"
-                         id="item-categories-label"
-                         disable-on-readonly="true"/>
-                  <label value="&event.calendar.label;"
-                         accesskey="&event.calendar.accesskey;"
-                         id="item-calendar-aux-label"
-                         control="item-calendar"
-                         disable-on-readonly="true"/>
+                    <label value="&event.categories.label;"
+                           accesskey="&event.categories.accesskey;"
+                           control="item-categories"
+                           id="item-categories-label"
+                           disable-on-readonly="true"/>
+                    <label value="&event.calendar.label;"
+                           accesskey="&event.calendar.accesskey;"
+                           id="item-calendar-aux-label"
+                           control="item-calendar"
+                           disable-on-readonly="true"/>
                 </hbox>
                 <hbox id="event-grid-category-box" align="center">
                     <menulist id="item-categories"
@@ -712,22 +712,22 @@
 
             <!-- Attendees -->
             <row id="event-grid-attendee-row" align="center">
-              <label value="&event.attendees.label;"
-                     accesskey="&event.attendees.accesskey;"
-                     control="attendee-list"
-                     disable-on-readonly="true"/>
-              <label id="attendee-list"
-                     class="text-link"
-                     crop="right"
-                     tooltiptext=""
-                     onclick="showAttendeePopup(event)"/>
+                <label value="&event.attendees.label;"
+                       accesskey="&event.attendees.accesskey;"
+                       control="attendee-list"
+                       disable-on-readonly="true"/>
+                <label id="attendee-list"
+                       class="text-link"
+                       crop="right"
+                       tooltiptext=""
+                       onclick="showAttendeePopup(event)"/>
             </row>
             <row id="event-grid-attendee-row-2" align="center">
-              <spacer/>
-              <checkbox id="notify-attendees-checkbox"
-                        class="lightning-only"
-                        label="&newevent.attendees.notify.label;"
-                        pack="start"/>
+                <spacer/>
+                <checkbox id="notify-attendees-checkbox"
+                          class="lightning-only"
+                          label="&newevent.attendees.notify.label;"
+                          pack="start"/>
             </row>
 
             <separator class="groove" id="event-grid-basic-separator"/>
@@ -1053,25 +1053,25 @@
                         </menupopup>
                     </menulist>
                     <hbox id="reminder-details">
-                      <hbox id="reminder-icon-box"
-                            class="alarm-icons-box"
-                            align="center"/>
-                      <!-- TODO oncommand? onkeypress? -->
-                      <label id="reminder-multiple-alarms-label"
-                             hidden="true"
-                             value="&event.reminder.multiple.label;"
-                             class="text-link"
-                             disable-on-readonly="true"
-                             flex="1"
-                             hyperlink="true"
-                             onclick="updateReminder()"/>
-                      <label id="reminder-single-alarms-label"
-                             hidden="true"
-                             class="text-link"
-                             disable-on-readonly="true"
-                             flex="1"
-                             hyperlink="true"
-                             onclick="updateReminder()"/>
+                        <hbox id="reminder-icon-box"
+                              class="alarm-icons-box"
+                              align="center"/>
+                        <!-- TODO oncommand? onkeypress? -->
+                        <label id="reminder-multiple-alarms-label"
+                               hidden="true"
+                               value="&event.reminder.multiple.label;"
+                               class="text-link"
+                               disable-on-readonly="true"
+                               flex="1"
+                               hyperlink="true"
+                               onclick="updateReminder()"/>
+                        <label id="reminder-single-alarms-label"
+                               hidden="true"
+                               class="text-link"
+                               disable-on-readonly="true"
+                               flex="1"
+                               hyperlink="true"
+                               onclick="updateReminder()"/>
                     </hbox>
                </hbox>
             </row>
@@ -1107,7 +1107,6 @@
                           rows="3"
                           onkeypress="attachmentLinkKeyPress(event)"
                           onclick="attachmentLinkClicked(event);"/>
-
             </row>
 
             <separator id="event-grid-link-separator"
@@ -1116,13 +1115,13 @@
             <row id="event-grid-link-row"
                  align="center"
                  hidden="true">
-              <label value="&event.url.label;"
-                     control="url-link"/>
-              <label id="url-link"
-                     onclick="launchBrowser(this.getAttribute('href'), event)"
-                     oncommand="launchBrowser(this.getAttribute('href'), event)"
-                     class="text-link"
-                     crop="end"/>
+                <label value="&event.url.label;"
+                       control="url-link"/>
+                <label id="url-link"
+                       onclick="launchBrowser(this.getAttribute('href'), event)"
+                       oncommand="launchBrowser(this.getAttribute('href'), event)"
+                       class="text-link"
+                       crop="end"/>
             </row>
         </rows>
     </grid>

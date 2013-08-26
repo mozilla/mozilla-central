@@ -2140,6 +2140,47 @@ function attachmentLinkClicked(event) {
 }
 
 /**
+ * Helper function to show a notification in the event-dialog's notificationBox
+ *
+ * @param aMessage     the message text to show
+ * @param aValue       string identifying the notification
+ * @param aPriority    (optional) the priority of the warning (info, critical), default is 'warn'
+ * @param aImage       (optional) URL of image to appear on the notification
+ * @param aButtonset   (optional) array of button descriptions to appear on the notification
+ * @param aCallback    (optional) a function to handle events from the notificationBox
+ */
+function notifyUser(aMessage, aValue, aPriority, aImage, aButtonset, aCallback) {
+    let notificationBox = document.getElementById("event-dialog-notifications");
+    // only append, if the notification does not already exist
+    if (notificationBox.getNotificationWithValue(aValue) == null) {
+        const prioMap = {
+            "info": notificationBox.PRIORITY_INFO_MEDIUM,
+            "critical": notificationBox.PRIORITY_CRITICAL_MEDIUM
+        };
+        let priority = prioMap[aPriority] || notificationBox.PRIORITY_WARNING_MEDIUM;
+        notificationBox.appendNotification(aMessage,
+                                           aValue,
+                                           aImage,
+                                           priority,
+                                           aButtonset,
+                                           aCallback);
+    }
+}
+
+/**
+ * Remove a notification from the notifiactionBox
+ *
+ * @param aValue      string identifying the notification to remove
+ */
+function removeNotification(aValue) {
+    let notificationBox = document.getElementById("event-dialog-notifications");
+    let notification = notificationBox.getNotificationWithValue(aValue);
+    if (notification != null) {
+        notificationBox.removeNotification(notification);
+    }
+}
+
+/**
  * Update the dialog controls related related to the item's calendar.
  */
 function updateCalendar() {
