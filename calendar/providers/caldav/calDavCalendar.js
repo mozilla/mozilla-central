@@ -325,7 +325,7 @@ calDavCalendar.prototype = {
 
         // Google does its CalDAV v2 authentication via OAuth. Since there is
         // no builtin OAuth support, we have to inject the tokens here.
-        if (aUri.host == "apidata.googleusercontent.com" &&
+        if (aUri && aUri.host == "apidata.googleusercontent.com" &&
             this.oauth && this.oauth.accessToken) {
             let hdr = "Bearer " + this.oauth.accessToken;
             channel.setRequestHeader("Authorization", hdr, false);
