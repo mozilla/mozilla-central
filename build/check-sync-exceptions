@@ -3,6 +3,7 @@ merge-installrdf.py
 pymake
 png2ico.py
 client.py-args
+client.py-l10n-args
 
 # Ignore detritus left lying around by editing tools.
 *~
