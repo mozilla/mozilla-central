@@ -44,10 +44,10 @@ This is someimage.jpg
 ------Part1.n--
 
 ------Part0+
-Content-Type: application/octet-stream;
-	name="somename.pdf"
+Content-Type: application/zip;
+	name="somename.zip"
 
-This is somename.pdf
+This is somename.zip
 
 ------Part0+
 Content-Type: text/html;
