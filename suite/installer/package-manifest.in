@@ -752,6 +752,7 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/nsAbAutoCompleteMyDomain.js
 @BINPATH@/components/nsAbAutoCompleteSearch.js
 @BINPATH@/components/nsAbLDAPAttributeMap.js
+@BINPATH@/components/nsAbLDAPAutoCompleteSearch.js
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 @BINPATH@/components/nsMsgTraitService.js
 @BINPATH@/components/nsMsgTraitService.manifest

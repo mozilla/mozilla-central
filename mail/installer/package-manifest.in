@@ -331,6 +331,7 @@
 ; LDAP components
 @BINPATH@/components/mozldap.xpt
 @BINPATH@/components/nsAbLDAPAttributeMap.js
+@BINPATH@/components/nsAbLDAPAutoCompleteSearch.js
 @BINPATH@/components/nsLDAPProtocolHandler.js
 @BINPATH@/components/ldapComponents.manifest
 #ifdef XP_WIN32
