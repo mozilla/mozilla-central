@@ -616,15 +616,7 @@ nsMsgPrintEngine::PrintMsgWindow()
       else 
       {
         mPrintSettings->SetPrintSilent(mCurrentlyPrintingURI != 0);
-        nsCOMPtr<nsIContentViewerFile> contentViewerFile(do_QueryInterface(mWebBrowserPrint));
-        if (contentViewerFile && mParentWindow) 
-        {
-          rv = contentViewerFile->PrintWithParent(mParentWindow, mPrintSettings, (nsIWebProgressListener *)this);
-        } 
-        else 
-        {
-          rv = mWebBrowserPrint->Print(mPrintSettings, (nsIWebProgressListener *)this);
-        }
+        rv = mWebBrowserPrint->Print(mPrintSettings, (nsIWebProgressListener *)this);
       }
 
       if (NS_FAILED(rv))
