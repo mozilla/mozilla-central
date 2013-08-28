@@ -1334,16 +1334,9 @@ PREF_PPFLAGS = --line-endings=crlf
 endif
 
 ifndef NO_DIST_INSTALL
-$(FINAL_TARGET)/$(PREF_DIR):
-	$(NSINSTALL) -D $@
-
-libs:: $(FINAL_TARGET)/$(PREF_DIR) $(PREF_JS_EXPORTS)
-	$(EXIT_ON_ERROR)  \
-	for i in $(PREF_JS_EXPORTS); do \
-	  dest=$(FINAL_TARGET)/$(PREF_DIR)/`basename $$i`; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
-	done
+PREF_JS_EXPORTS_PATH := $(FINAL_TARGET)/$(PREF_DIR)
+PREF_JS_EXPORTS_FLAGS := $(PREF_PPFLAGS)
+PP_TARGETS += PREF_JS_EXPORTS
 endif
 endif
 
@@ -1421,22 +1414,15 @@ endif
 endif
 
 ifdef EXTRA_PP_COMPONENTS
-libs:: $(EXTRA_PP_COMPONENTS)
 ifndef NO_DIST_INSTALL
-	$(EXIT_ON_ERROR) \
-	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
-	for i in $^; do \
-	  fname=`basename $$i`; \
-	  dest=$(FINAL_TARGET)/components/$${fname}; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
-	done
+EXTRA_PP_COMPONENTS_PATH := $(FINAL_TARGET)/components
+PP_TARGETS += EXTRA_PP_COMPONENTS
 endif
 endif
 
 EXTRA_MANIFESTS = $(filter %.manifest,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS))
 ifneq (,$(EXTRA_MANIFESTS))
-libs::
+libs:: $(call mkdir_deps,$(FINAL_TARGET))
 	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest $(patsubst %,"manifest components/%",$(notdir $(EXTRA_MANIFESTS)))
 endif
 
@@ -1456,17 +1442,10 @@ endif
 endif
 
 ifdef EXTRA_PP_JS_MODULES
-libs:: $(EXTRA_PP_JS_MODULES)
 ifndef NO_DIST_INSTALL
-	$(EXIT_ON_ERROR) \
-	$(NSINSTALL) -D $(JS_MODULES_PATH); \
-	for i in $^; do \
-	  dest=$(FINAL_JS_MODULES_PATH)/`basename $$i`; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $$i > $$dest; \
-	done
+EXTRA_PP_JS_MODULES_PATH := $(JS_MODULES_PATH)
+PP_TARGETS += EXTRA_PP_JS_MODULES
 endif
-
 endif
 
 ################################################################################
@@ -1519,30 +1498,15 @@ endif
 endif
 
 ifneq ($(DIST_FILES),)
-$(DIST)/bin:
-	$(NSINSTALL) -D $@
-
-libs:: $(DIST_FILES) $(DIST)/bin
-	@$(EXIT_ON_ERROR) \
-	for f in $(DIST_FILES); do \
-	  dest=$(FINAL_TARGET)/`basename $$f`; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py \
-	    $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) \
-	    $(srcdir)/$$f > $$dest; \
-	done
+DIST_FILES_PATH := $(FINAL_TARGET)
+DIST_FILES_FLAGS := $(XULAPP_DEFINES)
+PP_TARGETS += DIST_FILES
 endif
 
 ifneq ($(DIST_CHROME_FILES),)
-libs:: $(DIST_CHROME_FILES)
-	@$(EXIT_ON_ERROR) \
-	for f in $(DIST_CHROME_FILES); do \
-	  dest=$(FINAL_TARGET)/chrome/`basename $$f`; \
-	  $(RM) -f $$dest; \
-	  $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py \
-	    $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) \
-	    $(srcdir)/$$f > $$dest; \
-	done
+DIST_CHROME_FILES_PATH := $(FINAL_TARGET)/chrome
+DIST_CHROME_FILES_FLAGS := $(XULAPP_DEFINES)
+PP_TARGETS += DIST_CHROME_FILES
 endif
 
 ifneq ($(XPI_PKGNAME),)
