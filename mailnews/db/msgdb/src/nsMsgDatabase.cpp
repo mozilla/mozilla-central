@@ -3745,10 +3745,12 @@ nsresult nsMsgDatabase::GetCollationKeyGenerator()
 
 nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token columnToken, uint8_t **result, uint32_t *len)
 {
-  const char *nakedString = "";
+  const char *nakedString = nullptr;
   nsresult err;
 
   err = RowCellColumnToConstCharPtr(row, columnToken, &nakedString);
+  if (!nakedString)
+    nakedString = "";
   if (NS_SUCCEEDED(err))
   {
     GetMimeConverter();
