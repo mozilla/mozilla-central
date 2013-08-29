@@ -336,12 +336,12 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
   if (!aRequestingLocation)
     return false;
 
-  // if aRequestingLocation is chrome, resource about or file, allow
-  // aContentLocation to load
+  // If aRequestingLocation is one of chrome, resource, file or view-source,
+  // allow aContentLocation to load.
   bool isChrome;
   bool isRes;
-  bool isAbout;
   bool isFile;
+  bool isViewSource;
 
   nsresult rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
   NS_ENSURE_SUCCESS(rv, false);
@@ -349,18 +349,20 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
   NS_ENSURE_SUCCESS(rv, false);
   rv = aRequestingLocation->SchemeIs("file", &isFile);
   NS_ENSURE_SUCCESS(rv, false);
+  rv = aRequestingLocation->SchemeIs("view-source", &isViewSource);
+  NS_ENSURE_SUCCESS(rv, false);
 
-  if (isChrome || isRes || isFile)
+  if (isChrome || isRes || isFile || isViewSource)
     return true;
 
   // Only allow about: to load anything if the requesting location is not the
   // special about:blank one.
+  bool isAbout;
   rv = aRequestingLocation->SchemeIs("about", &isAbout);
   NS_ENSURE_SUCCESS(rv, false);
 
   if (!isAbout)
     return false;
-
 
   nsCString fullSpec;
   rv = aRequestingLocation->GetSpec(fullSpec);
