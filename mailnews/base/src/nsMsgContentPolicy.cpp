@@ -123,6 +123,14 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
     directory = do_QueryInterface(supports);
     if (directory)
     {
+      bool readOnly;
+      rv = directory->GetReadOnly(&readOnly);
+      NS_ENSURE_SUCCESS(rv, false);
+      // Read-only ABs, don't support the remote content property, so skip
+      // this one.
+      if (readOnly)
+        continue;
+
       rv = directory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
       if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
         return false;
