@@ -75,6 +75,10 @@ mailattachcount {
 }
 
 /* ::::: attached images ::::: */
+.moz-attached-image {
+  image-orientation: from-image;
+}
+
 .moz-attached-image[overflowing="true"] { 
   cursor: -moz-zoom-out;
 }
