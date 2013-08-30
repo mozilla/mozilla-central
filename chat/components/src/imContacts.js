@@ -143,10 +143,10 @@ TagsService.prototype = {
     try {
       if (!statement.executeStep())
         return null;
+      return this.getTagById(statement.row.id);
     } finally {
       statement.finalize();
     }
-    return this.getTagById(statement.row.id);
   },
   // Get an array of all existing tags.
   getTags: function(aTagCount) {
@@ -1316,10 +1316,10 @@ ContactsService.prototype = {
     try {
       if (!statement.executeStep())
         return null;
+      return BuddiesById[statement.row.id];
     } finally {
       statement.finalize();
     }
-    return BuddiesById[statement.row.id];
   },
 
   accountBuddyAdded: function(aAccountBuddy) {
@@ -1338,11 +1338,11 @@ ContactsService.prototype = {
         statement.params.name = name;
         statement.params.srvAlias = srvAlias;
         statement.execute();
+        buddy =
+          new Buddy(DBConn.lastInsertRowID, normalizedName, name, srvAlias, 0);
       } finally {
         statement.finalize();
       }
-      buddy =
-        new Buddy(DBConn.lastInsertRowID, normalizedName, name, srvAlias, 0);
     }
 
     // Initialize the 'buddy' field of the imIAccountBuddy instance.
