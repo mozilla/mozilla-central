@@ -5,6 +5,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/appIdleManager.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
@@ -402,7 +403,7 @@ nsMsgWindowCommands.prototype =
 
   selectFolder: function(folderUri)
   {
-    gFolderTreeView.selectFolder(GetMsgFolderFromUri(folderUri));
+    gFolderTreeView.selectFolder(MailUtils.getFolderForURI(folderUri));
   },
 
   selectMessage: function(messageUri)

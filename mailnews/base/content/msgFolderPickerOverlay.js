@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/MailUtils.js");
+
 var gMessengerBundle;
 
 // call this from dialog onload() to set the menu item to the correct value
@@ -22,7 +24,7 @@ function MsgFolderPickerOnLoad(pickerID)
 		// verify that the value we are attempting to
 		// pre-flight the menu with is valid for this
 		// picker type
-		var msgfolder = GetMsgFolderFromUri(uri, true);
+		var msgfolder = MailUtils.getFolderForURI(uri, true);
         	if (!msgfolder) return; 
 		
 		var verifyFunction = null;
@@ -53,7 +55,7 @@ function PickedMsgFolder(selection,pickerID)
 
 function SetFolderPickerElement(uri, picker)
 {
-  var msgfolder = GetMsgFolderFromUri(uri, true);
+  var msgfolder = MailUtils.getFolderForURI(uri, true);
 
   if (!msgfolder) 
     return;

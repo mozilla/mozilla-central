@@ -12,7 +12,7 @@
       -gCustomActions from FilterEditor.js
       -gFilterType from FilterEditor.js
       -checkActionsReorder from FilterEditor.js
-      -GetMsgFolderFromUri, SetFolderPickerElement from msgFolderPickerOverlay.js
+      -SetFolderPickerElement from msgFolderPickerOverlay.js
 -->
 
 <!DOCTYPE dialog [
@@ -438,6 +438,7 @@
           <![CDATA[
             // returns true if this row represents a valid filter action and false otherwise.
             // This routine also prompts the user.
+            Components.utils.import("resource:///modules/MailUtils.js", this);
             var filterActionString = this.getAttribute('value');
             var actionTarget = document.getAnonymousNodes(this)[1];
             var errorString, customError;
@@ -447,7 +448,7 @@
               case "movemessage":
               case "copymessage":
                 let msgFolder = document.getAnonymousNodes(actionTarget)[0].value ?
-                  GetMsgFolderFromUri(document.getAnonymousNodes(actionTarget)[0].value) : null;
+                  this.MailUtils.getFolderForURI(document.getAnonymousNodes(actionTarget)[0].value) : null;
                 if (!msgFolder || !msgFolder.canFileMessages)
                   errorString = "mustSelectFolder";
                 break;

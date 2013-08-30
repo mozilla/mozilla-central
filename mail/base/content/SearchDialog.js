@@ -572,8 +572,8 @@ function MoveMessageInSearch(destFolder)
   if (destUri.length == 0)
     destUri = destFolder.getAttribute('file-uri');
 
-  let destMsgFolder = GetMsgFolderFromUri(destUri).QueryInterface(
-                        Components.interfaces.nsIMsgFolder);
+  let destMsgFolder = MailUtils.getFolderForURI(destUri)
+    .QueryInterface(Components.interfaces.nsIMsgFolder);
 
   gFolderDisplay.hintAboutToDeleteMessages();
   gFolderDisplay.doCommandWithFolder(nsMsgViewCommandType.moveMessages,

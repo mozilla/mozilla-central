@@ -15,6 +15,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/virtualFolderWrapper.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 function onLoad()
 {
@@ -98,7 +99,7 @@ function updateOnlineSearchState()
   var srchFolderUriArray = gSearchFolderURIs.split('|');
   if (srchFolderUriArray[0])
   {
-    var realFolder = GetMsgFolderFromUri(srchFolderUriArray[0]);
+    var realFolder = MailUtils.getFolderForURI(srchFolderUriArray[0]);
     enableCheckbox =  realFolder.server.offlineSupportLevel; // anything greater than 0 is an online server like IMAP or news
   }
 
@@ -177,7 +178,7 @@ function onOK()
   if (name && uri) // create a new virtual folder
   {
     // check to see if we already have a folder with the same name and alert the user if so...
-    var parentFolder = GetMsgFolderFromUri(uri);
+    var parentFolder = MailUtils.getFolderForURI(uri);
 
     // sanity check the name based on the logic used by nsMsgBaseUtils.cpp. It can't start with a '.', it can't end with a '.', '~' or ' '.
     // it can't contain a ';' or '#'.

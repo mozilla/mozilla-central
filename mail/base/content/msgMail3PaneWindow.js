@@ -15,6 +15,7 @@ Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/msgDBCacheManager.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 /* This is where functions related to the 3 pane window are kept */
@@ -756,7 +757,7 @@ function loadStartFolder(initialUri)
     {
 
         if(initialUri)
-            startFolder = GetMsgFolderFromUri(initialUri);
+            startFolder = MailUtils.getFolderForURI(initialUri);
         else
         {
             try {
@@ -1168,7 +1169,7 @@ function GetSelectedMsgFolders()
 
 function SelectFolder(folderUri)
 {
-  gFolderTreeView.selectFolder(GetMsgFolderFromUri(folderUri));
+  gFolderTreeView.selectFolder(MailUtils.getFolderForURI(folderUri));
 }
 
 function ReloadMessage()

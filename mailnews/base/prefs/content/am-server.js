@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gServer;
@@ -295,12 +296,12 @@ function setupImapDeleteUI(aServerId)
   // set folderPicker menulist
   var trashPopup = document.getElementById("msgTrashFolderPopup");
   trashPopup._teardown();
-  trashPopup._parentFolder = GetMsgFolderFromUri(aServerId);
+  trashPopup._parentFolder = MailUtils.getFolderForURI(aServerId);
   trashPopup._ensureInitialized();
 
   // TODO: There is something wrong here, selectFolder() fails even if the
   // folder does exist. Try to fix in bug 802609.
-  let trashFolder = GetMsgFolderFromUri(aServerId + "/" + trashFolderName, false);
+  let trashFolder = MailUtils.getFolderForURI(aServerId + "/" + trashFolderName, false);
   try {
     trashPopup.selectFolder(trashFolder);
   } catch(ex) {

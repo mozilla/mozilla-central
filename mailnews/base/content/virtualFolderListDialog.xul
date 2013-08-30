@@ -21,7 +21,6 @@
         ondialogcancel="return onCancel();">   
 
 <script type="application/javascript" src="chrome://messenger/content/virtualFolderListDialog.js"/>
-<script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 
   <label control="folderPickerTree">&virtualFolderDesc.label;</label>
 

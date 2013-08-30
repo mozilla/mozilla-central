@@ -5,6 +5,7 @@
 
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 function BrowseForLocalFolders()
 {
@@ -68,8 +69,8 @@ function checkJunkTargetFolder(aTargetURI, aIsServer)
 {
   try {
     // Does the target account exist?
-    let targetServer = GetMsgFolderFromUri(aTargetURI + (aIsServer ? "/Junk" : ""),
-                                           !aIsServer).server;
+    let targetServer = MailUtils.getFolderForURI(aTargetURI + (aIsServer ? "/Junk" : ""),
+                                                 !aIsServer).server;
 
     // If the target server has deferred storage, Junk can't be stored into it.
     if (targetServer.rootFolder != targetServer.rootMsgFolder)
@@ -95,7 +96,7 @@ function chooseJunkTargetFolder(aTargetURI, aIsServer)
   let server = null;
 
   if (aTargetURI) {
-    server = GetMsgFolderFromUri(aTargetURI, false).server;
+    server = MailUtils.getFolderForURI(aTargetURI, false).server;
     if (!server.canCreateFoldersOnServer || !server.canSearchMessages ||
         (server.rootFolder != server.rootMsgFolder))
       server = null;

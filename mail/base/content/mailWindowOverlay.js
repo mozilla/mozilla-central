@@ -5,6 +5,7 @@
 
 Components.utils.import("resource:///modules/gloda/dbview.js");
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
@@ -545,7 +546,7 @@ function initMoveToFolderAgainMenu(aMenuItem)
   var isMove = Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move");
   if (lastFolderURI)
   {
-    var destMsgFolder = GetMsgFolderFromUri(lastFolderURI);
+    var destMsgFolder = MailUtils.getFolderForURI(lastFolderURI);
     var bundle = document.getElementById("bundle_messenger");
     var stringName = isMove ? "moveToFolderAgain" : "copyToFolderAgain";
     aMenuItem.label = bundle.getFormattedString(stringName,
@@ -1015,7 +1016,7 @@ function populateHistoryMenu(menuPopup, isBackMenu)
   {
     navDebug("history[" + i + "] = " + historyArray[i] + "\n");
     navDebug("history[" + i + "] = " + historyArray[i + 1] + "\n");
-    folder = GetMsgFolderFromUri(historyArray[i + 1]);
+    folder = MailUtils.getFolderForURI(historyArray[i + 1]);
     navDebug("folder URI = " + folder.URI + "pretty name " + folder.prettyName + "\n");
     var menuText = "";
 
@@ -1597,7 +1598,7 @@ BatchMessageMover.prototype = {
         archiveGranularity = identity.archiveGranularity;
         archiveKeepFolderStructure = identity.archiveKeepFolderStructure;
       }
-      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let archiveFolder = MailUtils.getFolderForURI(archiveFolderUri, false);
 
       let copyBatchKey = msgHdr.folder.URI + '\0' + monthFolderName;
       if (archiveGranularity >= Components.interfaces.nsIMsgIdentity
@@ -1635,7 +1636,7 @@ BatchMessageMover.prototype = {
       let [srcFolder, archiveFolderUri, granularity, keepFolderStructure, msgYear, msgMonth] = batch;
       let msgs = batch.slice(6);
 
-      let archiveFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+      let archiveFolder = MailUtils.getFolderForURI(archiveFolderUri, false);
       let dstFolder = archiveFolder;
       // For folders on some servers (e.g. IMAP), we need to create the
       // sub-folders asynchronously, so we chain the urls using the listener
@@ -1661,7 +1662,7 @@ BatchMessageMover.prototype = {
       if (granularity >= Components.interfaces.nsIMsgIdentity.perYearArchiveFolders)
       {
         archiveFolderUri += "/" + msgYear;
-        dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+        dstFolder = MailUtils.getFolderForURI(archiveFolderUri, false);
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);
@@ -1672,7 +1673,7 @@ BatchMessageMover.prototype = {
       if (granularity >= Components.interfaces.nsIMsgIdentity.perMonthArchiveFolders)
       {
         archiveFolderUri += "/" + msgMonth;
-        dstFolder = GetMsgFolderFromUri(archiveFolderUri, false);
+        dstFolder = MailUtils.getFolderForURI(archiveFolderUri, false);
         if (!dstFolder.parent)
         {
           dstFolder.createStorageIfMissing(this);

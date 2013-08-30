@@ -44,7 +44,6 @@
 <script type="application/javascript" src="chrome://messenger/content/jsTreeView.js"/>
 <script type="application/javascript" src="chrome://messenger/content/addressbook/abTrees.js"/>
 <script type="application/javascript" src="chrome://messenger/content/accountUtils.js"/>
-<script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mailCore.js"/>
 <script type="application/javascript" src="chrome://messenger/content/addressbook/addressbook.js"/>
 <script type="application/javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>

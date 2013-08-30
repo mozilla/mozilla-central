@@ -26,6 +26,7 @@
   */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 /*
@@ -68,7 +69,7 @@ function determineActionsForJunkMsgs(aFolder)
       dump('determineActionsForJunkMsgs: no spam folder found, not moving.');
     }
     else
-      actions.junkTargetFolder = GetMsgFolderFromUri(spamFolderURI);
+      actions.junkTargetFolder = MailUtils.getFolderForURI(spamFolderURI);
   }
 
   return actions;

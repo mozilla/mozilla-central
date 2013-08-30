@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/MailUtils.js");
+
 var gFccRadioElemChoice, gDraftsRadioElemChoice, gArchivesRadioElemChoice, gTmplRadioElemChoice;
 var gFccRadioElemChoiceLocked, gDraftsRadioElemChoiceLocked, gArchivesRadioElemChoiceLocked, gTmplRadioElemChoiceLocked;
 var gDefaultPickerMode = "1";
@@ -116,7 +118,7 @@ function SetFolderDisplay(pickerMode, disableMode,
     // that there is no need to check for the existence of special folders as
     // these folders are created on demand at runtime in case of imap accounts.
     // For POP3 accounts, special folders are created at the account creation time.
-    var msgFolder = GetMsgFolderFromUri(uri, false);
+    var msgFolder = MailUtils.getFolderForURI(uri, false);
     InitFolderDisplay(msgFolder.server.rootFolder, accountPicker);
     InitFolderDisplay(msgFolder, folderPicker);
 

@@ -4,6 +4,7 @@
 
 Components.utils.import("resource:///modules/dbViewWrapper.js");
 Components.utils.import("resource:///modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gFolderDisplay = null;
@@ -681,7 +682,7 @@ FolderDisplayWidget.prototype = {
    */
   //@{
   showFolderUri: function FolderDisplayWidget_showFolderUri(aFolderURI) {
-    return this.show(GetMsgFolderFromUri(aFolderURI));
+    return this.show(MailUtils.getFolderForURI(aFolderURI));
   },
 
   /**

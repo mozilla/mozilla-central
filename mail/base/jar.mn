@@ -39,7 +39,6 @@ messenger.jar:
     content/messenger/customizeToolbarOverlay.xul   (content/customizeToolbarOverlay.xul)
     content/messenger/mailTabs.js                   (content/mailTabs.js)
     content/messenger/commandglue.js                (content/commandglue.js)
-    content/messenger/widgetglue.js                 (content/widgetglue.js)
 *   content/messenger/SearchDialog.xul              (content/SearchDialog.xul)
     content/messenger/SearchDialog.js               (content/SearchDialog.js)
     content/messenger/ABSearchDialog.xul            (content/ABSearchDialog.xul)

@@ -5,6 +5,7 @@
  */
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 let gDeferredToAccount = "";
 
@@ -37,25 +38,25 @@ function onInit(aPageId, aServerId)
                         spamActionTargetFolder,
                         deferredToURI || aServerId,
                         document.getElementById("server.moveTargetMode").value,
-                        GetMsgFolderFromUri(aServerId, false).server.spamSettings,
+                        MailUtils.getFolderForURI(aServerId, false).server.spamSettings,
                         moveOnSpamValue);
 
   spamActionTargetAccountElement.value = spamActionTargetAccount;
   spamActionTargetFolderElement.value = spamActionTargetFolder;
   moveOnSpamCheckbox.checked = moveOnSpamValue;
 
-  let server = GetMsgFolderFromUri(spamActionTargetAccount, false);
+  let server = MailUtils.getFolderForURI(spamActionTargetAccount, false);
   document.getElementById("actionTargetAccount")
           .setAttribute("label", prettyFolderName(server));
   document.getElementById("actionAccountPopup").selectFolder(server);
 
   let folder = null;
   try {
-    folder = GetMsgFolderFromUri(spamActionTargetFolder, true);
+    folder = MailUtils.getFolderForURI(spamActionTargetFolder, true);
     document.getElementById("actionFolderPopup").selectFolder(folder);
   } catch (e) { } // OK for the folder to not exist.
   if (!folder)
-    folder = GetMsgFolderFromUri(spamActionTargetFolder, false);
+    folder = MailUtils.getFolderForURI(spamActionTargetFolder, false);
 
   document.getElementById("actionTargetFolder")
           .setAttribute("label", prettyFolderName(folder));

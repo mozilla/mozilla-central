@@ -6,6 +6,7 @@
 /* This is where functions related to the standalone message window are kept */
 
 Components.utils.import("resource:///modules/jsTreeSelection.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/MsgHdrSyntheticView.js");
@@ -1092,11 +1093,12 @@ var MessageWindowController =
         MsgEditMessageAsNew();
         break;
       case "cmd_moveToFolderAgain":
-        var folderId = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
+        var folder = MailUtils.getFolderForURI(
+                       Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri"));
         if (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move"))
-          MsgMoveMessage(GetMsgFolderFromUri(folderId));
+          MsgMoveMessage(folder);
         else
-          MsgCopyMessage(GetMsgFolderFromUri(folderId));
+          MsgCopyMessage(folder);
         break;
       case "cmd_createFilterFromPopup":
         break;// This does nothing because the createfilter is invoked from the popupnode oncommand.

@@ -33,7 +33,6 @@
   <script type="application/javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
   <script type="application/javascript" src="chrome://messenger/content/mailCommands.js"/>
   <script type="application/javascript" src="chrome://messenger/content/FilterEditor.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
   <script type="application/javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
 
   <commandset>

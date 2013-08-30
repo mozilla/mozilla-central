@@ -4086,7 +4086,7 @@ function DisplaySaveFolderDlg(folderURI)
   }
 
   if (showDialog){
-    let msgfolder = GetMsgFolderFromUri(folderURI, true);
+    let msgfolder = MailUtils.getFolderForURI(folderURI, true);
     if (!msgfolder)
       return;
     let checkbox = {value:0};

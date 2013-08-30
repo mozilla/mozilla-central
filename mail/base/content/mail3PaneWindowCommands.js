@@ -8,6 +8,7 @@
  */
 
 Components.utils.import("resource:///modules/mailServices.js");
+Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
 
@@ -919,11 +920,12 @@ var DefaultController =
           MailOfflineMgr.openOfflineAccountSettings();
           break;
       case "cmd_moveToFolderAgain":
-          var folderId = Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri");
+          var folder = MailUtils.getFolderForURI(
+            Services.prefs.getCharPref("mail.last_msg_movecopy_target_uri"));
           if (Services.prefs.getBoolPref("mail.last_msg_movecopy_was_move"))
-            MsgMoveMessage(GetMsgFolderFromUri(folderId));
+            MsgMoveMessage(folder);
           else
-            MsgCopyMessage(GetMsgFolderFromUri(folderId));
+            MsgCopyMessage(folder);
           break;
       case "cmd_selectAll":
         // XXX If the message pane is selected but the tab focused, this ends

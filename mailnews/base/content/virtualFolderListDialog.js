@@ -5,6 +5,7 @@
 
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
+Components.utils.import("resource:///modules/MailUtils.js");
 
 var gFolderPickerTree = null;
 
@@ -19,7 +20,7 @@ function onLoad()
     // get the folder for each search URI and set the searchThisFolder flag on it
     for (var i in srchFolderUriArray) 
     {
-      var realFolder = GetMsgFolderFromUri(srchFolderUriArray[i]);
+      var realFolder = MailUtils.getFolderForURI(srchFolderUriArray[i]);
       if (realFolder)
         realFolder.setInVFEditSearchScope(true, false);
     }

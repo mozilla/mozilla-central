@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource:///modules/MailUtils.js");
+
 var gSubscribeTree = null;
 var gSearchTree;
 var okCallback = null;
@@ -37,7 +39,7 @@ function SetServerTypeSpecificTextValues()
 {
     if (!gServerURI) return;
 
-    var serverType = GetMsgFolderFromUri(gServerURI, true).server.type;
+    var serverType = MailUtils.getFolderForURI(gServerURI, true).server.type;
 
     // set the server specific ui elements
     var subscribeLabelString = gSubscribeBundle.getString("subscribeLabel-" + serverType);
@@ -96,7 +98,7 @@ function SetUpTree(forceToServer, getOnlyNew)
   if (!gServerURI)
     return;
 
-  var server = GetMsgFolderFromUri(gServerURI, true).server;
+  var server = MailUtils.getFolderForURI(gServerURI, true).server;
   try
   {
     CleanUpSearchView();
