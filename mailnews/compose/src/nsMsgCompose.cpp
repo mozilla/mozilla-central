@@ -4913,10 +4913,10 @@ nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
   nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefBranch)
   {
-    NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.plaintext_domains", EmptyString(),
-                                                plaintextDomains);
-    NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.html_domains", EmptyString(),
-                                                htmlDomains);
+    NS_GetUnicharPreferenceWithDefault(prefBranch, "mailnews.plaintext_domains",
+                                       EmptyString(), plaintextDomains);
+    NS_GetUnicharPreferenceWithDefault(prefBranch, "mailnews.html_domains",
+                                       EmptyString(), htmlDomains);
   }
 
   bool atLeastOneRecipientPrefersUnknown = false;
