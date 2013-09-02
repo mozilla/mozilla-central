@@ -8652,11 +8652,9 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   oldImapFolder->GetBoxFlags(&boxflags);
 
   nsAutoString newLeafName;
-  nsAutoString newNameString;
-  rv = CopyMUTF7toUTF16(PromiseFlatCString(newName), newNameString);
+  NS_ConvertASCIItoUTF16 newNameString(newName);
   NS_ENSURE_SUCCESS(rv, rv);
   newLeafName = newNameString;
-  nsAutoString parentName;
   nsAutoString folderNameStr;
   int32_t folderStart = newLeafName.RFindChar('/');  //internal use of hierarchyDelimiter is always '/'
   if (folderStart > 0)
@@ -8680,7 +8678,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   nsCOMPtr <nsIFile> dbFile;
 
   // warning, path will be changed
-  rv = CreateFileForDB(newLeafName, pathFile, getter_AddRefs(dbFile));
+  rv = CreateFileForDB(folderNameStr, pathFile, getter_AddRefs(dbFile));
   NS_ENSURE_SUCCESS(rv,rv);
 
   // Use openMailDBFromFile() and not OpenFolderDB() here, since we don't use the DB.
@@ -8696,17 +8694,18 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     rv = AddSubfolderWithPath(folderNameStr, dbFile, getter_AddRefs(child));
     if (!child || NS_FAILED(rv)) 
       return rv;
-    child->SetName(newLeafName);
+    nsAutoString unicodeName;
+    rv = CopyMUTF7toUTF16(NS_LossyConvertUTF16toASCII(folderNameStr), unicodeName);
+    if (NS_SUCCEEDED(rv))
+      child->SetPrettyName(unicodeName);
     imapFolder = do_QueryInterface(child);
     if (imapFolder)
     {
       nsAutoCString onlineName(m_onlineFolderName);
-      nsAutoCString utf7LeafName;
 
       if (!onlineName.IsEmpty())
         onlineName.Append(hierarchyDelimiter);
-      CopyUTF16toMUTF7(folderNameStr, utf7LeafName);
-      onlineName.Append(utf7LeafName);
+      onlineName.Append(NS_LossyConvertUTF16toASCII(folderNameStr));
       imapFolder->SetVerifiedAsOnlineFolder(true);
       imapFolder->SetOnlineName(onlineName);
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
