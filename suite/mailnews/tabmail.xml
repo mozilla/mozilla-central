@@ -70,9 +70,9 @@
     - * name: The name of the tab-type, mainly to aid in debugging.
     - * panelId or perTabPanel: If using a single tab panel, the id of the
     -     panel must be provided in panelId.  If using one tab panel per tab,
-    -     perTabPanel should be the XUL element name that should be created for
-    -     each tab.  If a reason arises, in the future we might support
-    -     this being a helper function to create and return the element.
+    -     perTabPanel should be either the XUL element name that should be
+    -     created for each tab, or a helper function to create and return the
+    -     element.
     - * modes: An object whose attributes are mode names (which are
     -     automatically propagated to a 'name' attribute for debugging) and
     -     values are objects with the following attributes...
