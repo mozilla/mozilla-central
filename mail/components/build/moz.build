@@ -12,3 +12,5 @@ CPP_SOURCES += [
 LIBXUL_LIBRARY = True
 EXPORT_LIBRARY = True
 
+LIBRARY_NAME = 'mailcomps'
+

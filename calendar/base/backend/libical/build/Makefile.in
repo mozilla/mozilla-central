@@ -10,7 +10,6 @@ VPATH   = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME = calbasecomps
 SHORT_LIBNAME = calbscmp
 MODULE_NAME = calBaseModule
 USE_STATIC_LIBS = 1

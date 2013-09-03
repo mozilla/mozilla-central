@@ -17,3 +17,5 @@ else:
 
 EXPORT_LIBRARY = True
 
+LIBRARY_NAME = 'mail'
+

@@ -10,7 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= msgsearch_s
 EXPORT_DIR	= $(DIST)/bin/isp
 
 

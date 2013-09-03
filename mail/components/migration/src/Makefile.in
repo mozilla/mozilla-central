@@ -9,7 +9,6 @@ VPATH=@srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME = profilemigration_s
 MODULE_NAME = nsMailProfileMigratorModule
 MOZILLA_INTERNAL_API = 1
 

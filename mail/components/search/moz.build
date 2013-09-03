@@ -11,6 +11,7 @@ elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
     CPP_SOURCES += ['nsMailWinSearchHelper.cpp']
     EXTRA_PP_JS_MODULES += ['WinSearchIntegration.js']
     FORCE_STATIC_LIB = True
+    LIBRARY_NAME = 'winsearch_s'
 
 MODULE = 'mailwinsearch'
 

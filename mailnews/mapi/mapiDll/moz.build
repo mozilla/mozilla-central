@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 MODULE = 'mozMapi32'
+LIBRARY_NAME = 'mozMapi32'
 
 CPP_SOURCES += [
     'MapiDll.cpp',

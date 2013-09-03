@@ -28,3 +28,5 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
 
 FORCE_STATIC_LIB = True
 
+LIBRARY_NAME = 'profilemigration_s'
+

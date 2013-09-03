@@ -11,3 +11,6 @@ CPP_SOURCES += [
 
 FORCE_SHARED_LIB = True
 IS_COMPONENT = True
+
+LIBRARY_NAME = 'suite'
+

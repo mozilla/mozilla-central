@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= suitemigration_s
-
 USE_STATIC_LIBS = 1
 
 include $(topsrcdir)/config/rules.mk

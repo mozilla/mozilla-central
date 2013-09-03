@@ -11,7 +11,6 @@ include $(DEPTH)/config/autoconf.mk
 
 # If on Windows, build Windows Search integration
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-LIBRARY_NAME = winsearch_s
 MODULE_NAME = nsMailWinSearchHelperModule
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1

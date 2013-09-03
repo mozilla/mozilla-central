@@ -27,3 +27,5 @@ CPP_SOURCES += [
 
 FORCE_STATIC_LIB = True
 
+LIBRARY_NAME = 'calbase_s'
+

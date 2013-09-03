@@ -14,7 +14,6 @@ include $(DEPTH)/config/autoconf.mk
 # and not find it when we're loaded into explorer.exe or similar
 USE_STATIC_LIBS = 1
 
-LIBRARY_NAME	= $(MODULE)
 DEFFILE		= $(win_srcdir)/Mapi32.def
 ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MOZILLA_INTERNAL_API = 1

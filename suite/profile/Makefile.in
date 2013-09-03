@@ -9,8 +9,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= suiteprofile_s
-
 EXTRA_DSO_LDOPTS = $(MOZ_COMPONENT_LIBS)
 
 USE_STATIC_LIBS = 1

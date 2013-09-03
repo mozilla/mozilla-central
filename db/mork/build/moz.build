@@ -22,3 +22,5 @@ else:
 
 EXPORT_LIBRARY = True
 
+LIBRARY_NAME = 'mork'
+

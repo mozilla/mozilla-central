@@ -9,7 +9,6 @@ VPATH     = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME   = pgpmime_s
 ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MODULE_NAME    = nsPgpMimeModule
 endif

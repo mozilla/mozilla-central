@@ -13,3 +13,6 @@ CPP_SOURCES += [
 # We don't want an EXPORT_LIBRARY
 FORCE_SHARED_LIB = True
 IS_COMPONENT = True
+
+LIBRARY_NAME = 'calbasecomps'
+

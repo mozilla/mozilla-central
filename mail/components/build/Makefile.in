@@ -12,7 +12,6 @@ include $(DEPTH)/config/autoconf.mk
 # NOTE: if we switch away from LIBXUL_LIBRARY at any stage
 # we need to clear the EMBED_MANIFEST_AT flag. (See Bug 714495)
 
-LIBRARY_NAME	= mailcomps
 SHORT_LIBNAME	= mailcmp
 
 ifeq ($(OS_ARCH),WINNT)

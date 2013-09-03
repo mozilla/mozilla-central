@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 MODULE = 'msgMapi'
+LIBRARY_NAME = 'msgMapi'
 
 CPP_SOURCES += [
     'Registry.cpp',
@@ -19,3 +20,4 @@ if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
 else:
     LIBXUL_LIBRARY = True
     EXPORT_LIBRARY = True
+

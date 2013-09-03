@@ -49,3 +49,5 @@ if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
 else:
     LIBXUL_LIBRARY = True
 
+LIBRARY_NAME = 'msgcompose_s'
+

@@ -58,3 +58,5 @@ if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
 else:
     LIBXUL_LIBRARY = True
 
+LIBRARY_NAME = 'msgmork_s'
+

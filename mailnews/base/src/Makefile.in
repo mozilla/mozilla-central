@@ -10,8 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= msgbase_s
-
 ifdef MOZ_LDAP_XPCOM
 DEFINES         += -DMOZ_LDAP_XPCOM
 endif

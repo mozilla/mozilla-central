@@ -10,8 +10,6 @@ srcdir		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= mork
-
 ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MODULE_NAME	= nsMorkModule
 endif

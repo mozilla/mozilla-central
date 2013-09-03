@@ -20,3 +20,5 @@ else:
 
 EXPORT_LIBRARY = True
 
+LIBRARY_NAME = 'pgpmime_s'
+

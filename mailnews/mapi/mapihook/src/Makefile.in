@@ -10,7 +10,6 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-LIBRARY_NAME	= $(MODULE)
 ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
 MODULE_NAME	= msgMapiModule
 endif

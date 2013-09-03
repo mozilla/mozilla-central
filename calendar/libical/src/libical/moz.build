@@ -40,3 +40,5 @@ CSRCS += [
 
 FORCE_STATIC_LIB = True
 
+LIBRARY_NAME = 'mozical'
+
