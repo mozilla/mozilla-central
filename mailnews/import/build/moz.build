@@ -9,3 +9,10 @@ CPP_SOURCES += [
     'nsImportModule.cpp',
 ]
 
+if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
+    IS_COMPONENT = True
+    FORCE_SHARED_LIB = True
+else:
+    LIBXUL_LIBRARY = True
+    EXPORT_LIBRARY = True
+

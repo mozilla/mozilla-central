@@ -10,3 +10,6 @@ CPP_SOURCES += [
     'calBaseModule.cpp',
 ]
 
+# We don't want an EXPORT_LIBRARY
+FORCE_SHARED_LIB = True
+IS_COMPONENT = True

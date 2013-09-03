@@ -23,8 +23,6 @@ endif
 
 OS_LIBS		+= ole32.lib
 
-FORCE_SHARED_LIB = 1
-
 EMBED_MANIFEST_AT = 2
 
 include $(topsrcdir)/config/rules.mk

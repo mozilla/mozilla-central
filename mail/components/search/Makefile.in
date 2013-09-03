@@ -16,8 +16,6 @@ MODULE_NAME = nsMailWinSearchHelperModule
 ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
 MOZILLA_INTERNAL_API = 1
 endif
-
-FORCE_STATIC_LIB = 1
 endif
 
 include $(topsrcdir)/config/rules.mk

@@ -18,3 +18,6 @@ EXTRA_COMPONENTS += [
 EXTRA_PP_COMPONENTS += [
     'SuiteProfileMigrator.js',
 ]
+
+FORCE_STATIC_LIB = True
+

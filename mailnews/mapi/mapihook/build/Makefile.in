@@ -26,8 +26,6 @@ GARBAGE	+= $(MIDL_GENERATED_FILES) done_gen $(CSRCS) $(SRCDIR_CSRCS)
 
 LOCAL_INCLUDES	= -I.
 
-FORCE_SHARED_LIB = 1
-
 EMBED_MANIFEST_AT = 2
 
 include $(topsrcdir)/config/rules.mk

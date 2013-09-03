@@ -25,3 +25,5 @@ EXTRA_COMPONENTS += [
     'shell.manifest',
 ]
 
+FORCE_STATIC_LIB = True
+

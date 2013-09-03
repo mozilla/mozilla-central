@@ -12,10 +12,7 @@ include $(DEPTH)/config/autoconf.mk
 
 LIBRARY_NAME = calbasecomps
 SHORT_LIBNAME = calbscmp
-IS_COMPONENT = 1
 MODULE_NAME = calBaseModule
-# We don't want an EXPORT_LIBRARY
-FORCE_SHARED_LIB = 1
 USE_STATIC_LIBS = 1
 NO_COMPONENTS_MANIFEST = 1
 

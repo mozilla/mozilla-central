@@ -9,3 +9,5 @@ CPP_SOURCES += [
     'MapiDll.cpp',
 ]
 
+FORCE_SHARED_LIB = True
+

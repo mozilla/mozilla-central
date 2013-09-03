@@ -45,7 +45,6 @@ include $(DEPTH)/config/autoconf.mk
 
 LIBRARY_NAME     = mozical
 MODULE_NAME      = mozIcalModule
-FORCE_STATIC_LIB = 1
 USE_STATIC_LIBS  = 1
 
 DEFINES += -DHAVE_CONFIG_H

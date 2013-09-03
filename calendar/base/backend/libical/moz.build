@@ -25,3 +25,5 @@ CPP_SOURCES += [
     'calUtils.cpp',
 ]
 
+FORCE_STATIC_LIB = True
+

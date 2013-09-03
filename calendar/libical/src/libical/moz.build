@@ -38,3 +38,5 @@ CSRCS += [
     'vsnprintf.c',
 ]
 
+FORCE_STATIC_LIB = True
+

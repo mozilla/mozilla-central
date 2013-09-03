@@ -9,3 +9,6 @@ CPP_SOURCES += [
     'nsMailComps.cpp',
 ]
 
+LIBXUL_LIBRARY = True
+EXPORT_LIBRARY = True
+

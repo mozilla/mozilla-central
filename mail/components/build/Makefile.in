@@ -14,9 +14,6 @@ include $(DEPTH)/config/autoconf.mk
 
 LIBRARY_NAME	= mailcomps
 SHORT_LIBNAME	= mailcmp
-EXPORT_LIBRARY	= 1
-LIBXUL_LIBRARY = 1
-MOZILLA_INTERNAL_API = 1
 
 ifeq ($(OS_ARCH),WINNT)
 OS_LIBS += $(call EXPAND_LIBNAME,ole32 shell32)

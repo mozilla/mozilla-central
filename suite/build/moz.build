@@ -9,3 +9,5 @@ CPP_SOURCES += [
     'nsSuiteModule.cpp',
 ]
 
+FORCE_SHARED_LIB = True
+IS_COMPONENT = True

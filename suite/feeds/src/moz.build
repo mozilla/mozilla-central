@@ -16,3 +16,5 @@ EXTRA_COMPONENTS += [
     'WebContentConverter.js',
 ]
 
+FORCE_STATIC_LIB = True
+

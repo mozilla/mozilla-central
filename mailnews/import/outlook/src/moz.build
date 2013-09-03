@@ -18,3 +18,8 @@ CPP_SOURCES += [
     'rtfMailDecoder.cpp',
 ]
 
+if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
+    FORCE_STATIC_LIB = True
+else:
+    LIBXUL_LIBRARY = True
+
