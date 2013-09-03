@@ -2365,8 +2365,17 @@ nsPop3Protocol::GetStat()
       if (NS_FAILED(rv))
       {
         m_nsIPop3Sink->AbortMailDelivery(this);
-        return Error(rv == NS_MSG_FOLDER_BUSY ? "pop3ServerBusy" :
-                                                "pop3MessageWriteError");
+        if (rv == NS_MSG_FOLDER_BUSY) {
+          nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_pop3Server);
+          nsString accountName;
+          rv = server->GetPrettyName(accountName);
+          NS_ENSURE_SUCCESS(rv, -1);
+
+          const PRUnichar *params[] = { accountName.get() };
+          return Error("pop3ServerBusy", params, 1);
+        }
+
+        return Error("pop3MessageWriteError");
       }
 
       if(!m_pop3ConData->msg_del_started)
