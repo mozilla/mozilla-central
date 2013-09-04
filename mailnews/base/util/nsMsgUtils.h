@@ -184,6 +184,9 @@ NS_MSG_BASE nsresult MsgReopenFileStream(nsIFile *file, nsIInputStream *fileStre
 // Automatically creates an output stream with a 4K buffer
 NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, int32_t aIOFlags = -1, int32_t aPerm = -1);
 
+// Automatically creates an output stream with a 4K buffer, but write to a temporary file first, then rename to aFile
+NS_MSG_BASE nsresult MsgNewSafeBufferedFileOutputStream(nsIOutputStream **aResult, nsIFile *aFile, int32_t aIOFlags = -1, int32_t aPerm = -1);
+
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present
 NS_MSG_BASE bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, int32_t *aStartOfKeyword, int32_t *aLength);

@@ -1428,6 +1428,18 @@ nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult,
   return rv;
 }
 
+nsresult MsgNewSafeBufferedFileOutputStream(nsIOutputStream **aResult,
+                                        nsIFile* aFile,
+                                        int32_t aIOFlags,
+                                        int32_t aPerm)
+{
+  nsCOMPtr<nsIOutputStream> stream;
+  nsresult rv = NS_NewSafeLocalFileOutputStream(getter_AddRefs(stream), aFile, aIOFlags, aPerm);
+  if (NS_SUCCEEDED(rv))
+    rv = NS_NewBufferedOutputStream(aResult, stream, FOUR_K);
+  return rv;
+}
+
 bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, int32_t *aStartOfKeyword, int32_t *aLength)
 {
 #ifdef MOZILLA_INTERNAL_API
