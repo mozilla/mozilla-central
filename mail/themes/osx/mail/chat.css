@@ -49,6 +49,7 @@
   background-color: #DEE4EA !important;
   background-image: url("chrome://messenger/skin/grain.png");
 }
+
 #listPaneBox:-moz-window-inactive {
   background-color: #E8E8E8 !important;
 }
@@ -231,24 +232,19 @@ richlistitem[state="disconnected"] .accountStateIcon {
 }
 
 :-moz-any(imconv, imcontact, imgroup)[selected] {
-  background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
+  background: linear-gradient(#5ea3df 6%, #73b8ea 6%, #6cafe5 7%,
+                              #3984d2 95%, #3577c2 100%);
   color: HighlightText;
 }
 
-#contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected] {
-  background-position: 0 -18px;
-}
-
 :-moz-any(imconv, imcontact, imgroup)[selected]:-moz-system-metric(mac-graphite-theme) {
-  background-position: 0 -36px;
-}
-
-#contactlistbox:focus > :-moz-any(imconv, imcontact, imgroup)[selected]:-moz-system-metric(mac-graphite-theme) {
-  background-position: 0 -54px;
+  background: linear-gradient(#7b8b9e 6%, #93a3b4 6%, #8fa0b1 7%,
+                              #587088 95%, #536b84 100%);
 }
 
 :-moz-any(imconv, imcontact, imgroup)[selected]:-moz-window-inactive {
-  background-position: 0 -72px;
+  background: linear-gradient(#bbc5d7 6%, #c3cbe0 6%, #bdc6dd 7%,
+                              #9ca9c6 95%, #939fba 100%);
 }
 
 #displayNameAndstatusMessageStack #statusMessage {

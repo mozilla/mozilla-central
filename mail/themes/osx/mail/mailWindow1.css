@@ -74,30 +74,27 @@ treechildren::-moz-tree-twisty {
 
 #folderTree treechildren::-moz-tree-row {
   -moz-padding-start: 2px !important;
+  padding-bottom: 2px;
   background: transparent;
 }
 
 #folderTree treechildren::-moz-tree-row(selected) {
-  background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
-}
-
-#folderTree treechildren::-moz-tree-row(selected, focus) {
-  background-position: 0 -18px;
+  background: linear-gradient(#5ea3df 6%, #73b8ea 6%, #6cafe5 7%,
+                              #3984d2 95%, #3577c2 100%);
 }
 
 #folderTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected) {
-  background-position: 0 -36px;
-}
-
-#folderTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected, focus) {
-  background-position: 0 -54px;
+  background: linear-gradient(#7b8b9e 6%, #93a3b4 6%, #8fa0b1 7%,
+                              #587088 95%, #536b84 100%);
 }
 
 #folderTree treechildren:-moz-window-inactive::-moz-tree-row(selected) {
-  background-position: 0 -72px;
+  background: linear-gradient(#bbc5d7 6%, #c3cbe0 6%, #bdc6dd 7%,
+                              #9ca9c6 95%, #939fba 100%);
 }
 
-#folderTree treechildren::-moz-tree-cell-text(selected, focus), #folderTree treechildren::-moz-tree-cell-text(selected) {
+#folderTree treechildren::-moz-tree-cell-text(selected, focus),
+#folderTree treechildren::-moz-tree-cell-text(selected) {
   color: HighlightText;
 }
 

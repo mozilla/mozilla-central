@@ -343,30 +343,27 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 }
 
 #dirTree treechildren::-moz-tree-row {
+  padding-bottom: 1px;
   background-color: transparent;
 }
 
 #dirTree treechildren::-moz-tree-row(selected) {
-  background: url("chrome://messenger/skin/icons/sidebar-item.png") 0 0 repeat-x #90A0C0;
+  background: linear-gradient(#bbc5d7 6%, #c3cbe0 6%, #bdc6dd 7%,
+                              #9ca9c6 95%, #939fba 100%);
 }
 
 #dirTree treechildren::-moz-tree-row(selected, focus) {
-  background-position: 0 -18px;
-}
-
-#dirTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected) {
-  background-position: 0 -36px;
+  background: linear-gradient(#5ea3df 6%, #73b8ea 6%, #6cafe5 7%,
+                              #3984d2 95%, #3577c2 100%);
 }
 
 #dirTree:-moz-system-metric(mac-graphite-theme) treechildren::-moz-tree-row(selected, focus) {
-  background-position: 0 -54px;
+  background: -moz-linear-gradient(#7b8b9e 6%, #93a3b4 6%, #8fa0b1 7%,
+                                   #587088 95%, #536b84 100%);
 }
 
-#dirTree treechildren:-moz-window-inactive::-moz-tree-row(selected) {
-  background-position: 0 -72px;
-}
-
-#dirTree treechildren::-moz-tree-cell-text(selected, focus), #dirTree treechildren::-moz-tree-cell-text(selected) {
+#dirTree treechildren::-moz-tree-cell-text(selected),
+#dirTree treechildren::-moz-tree-cell-text(selected, focus) {
   color: #FFFFFF;
 }
 
