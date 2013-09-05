@@ -6,10 +6,6 @@
 MODULE = 'MapiProxy'
 LIBRARY_NAME = 'MapiProxy'
 
-EXPORTS += [
-    'msgMapi.h',
-]
-
 CSRCS += [
     'dlldata.c',
     'msgMapi_i.c',

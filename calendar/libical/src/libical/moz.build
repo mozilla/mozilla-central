@@ -5,10 +5,6 @@
 
 MODULE = 'ical'
 
-EXPORTS += [
-    'ical.h',
-]
-
 CSRCS += [
     'caldate.c',
     'icalarray.c',

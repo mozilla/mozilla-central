@@ -19,6 +19,11 @@ OS_LIBS		+= rpcrt4.lib
 
 MIDL_GENERATED_FILES = msgMapi.h msgMapi_p.c msgMapi_i.c dlldata.c
 
+INSTALL_TARGETS += msgmapi
+msgmapi_FILES := msgMapi.h
+msgmapi_DEST = $(DIST)/include
+msgmapi_TARGET := export
+
 SRCDIR_CSRCS	= $(addprefix $(srcdir)/,$(CSRCS))
 
 GARBAGE	+= $(MIDL_GENERATED_FILES) done_gen $(CSRCS) $(SRCDIR_CSRCS)

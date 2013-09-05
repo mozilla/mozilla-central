@@ -1,2 +1,5 @@
+ifndef INCLUDED_AUTOCONF_MK
+INCLUDED_AUTOCONF_MK = 1
 @ALLSUBSTS@
 include $(topsrcdir)/config/baseconfig.mk
+endif
