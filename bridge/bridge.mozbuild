@@ -9,7 +9,7 @@ mailnews_static_dirs = []
 mailnews_dirs += ['../mozilla/xpfe/components/autocomplete']
 
 if CONFIG['MOZ_LDAP_XPCOM']:
-    mailnews_static_dirs += ['../ldap/sdks/c-sdk']
+    mailnews_dirs += ['../ldap']
     mailnews_dirs += ['../ldap/xpcom']
 
 if CONFIG['MOZ_MORK']:

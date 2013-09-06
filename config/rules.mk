@@ -634,16 +634,9 @@ SUBMAKEFILES += $(addsuffix /Makefile, $(DIRS) $(TOOL_DIRS) $(PARALLEL_DIRS))
 # of something else. Makefiles which use this var *must* provide a sensible
 # default rule before including rules.mk
 ifndef SUPPRESS_DEFAULT_RULES
-ifdef TIERS
-default all alldep::
-	$(foreach tier,$(TIERS),$(call SUBMAKE,tier_$(tier)))
-else
-
 default all::
-ifneq (,$(strip $(STATIC_DIRS)))
-	$(foreach dir,$(STATIC_DIRS),$(call SUBMAKE,,$(dir)))
-endif
 	$(MAKE) export
+	$(MAKE) compile
 	$(MAKE) libs
 	$(MAKE) tools
 
@@ -654,7 +647,6 @@ alldep::
 	$(MAKE) libs
 	$(MAKE) tools
 
-endif # TIERS
 endif # SUPPRESS_DEFAULT_RULES
 
 ifeq ($(filter s,$(MAKEFLAGS)),)
@@ -730,12 +722,7 @@ GLOBAL_DEPS += Makefile.in
 endif
 
 ##############################################
-ifdef PARALLEL_DIRS
-libs:: $(PARALLEL_DIRS_libs)
-
-$(PARALLEL_DIRS_libs): %_libs: %/Makefile
-	+@$(call SUBMAKE,libs,$*)
-endif
+compile:: $(MAKE_DIRS) $(OBJS) $(HOST_OBJS)
 
 ifdef EXPORT_LIBRARY
 ifeq ($(EXPORT_LIBRARY),1)
@@ -799,7 +786,6 @@ ifdef HOST_LIBRARY
 	$(call install_cmd,$(IFLAGS1) $(HOST_LIBRARY) $(DIST)/host/lib)
 endif
 endif # !NO_DIST_INSTALL
-	$(LOOP_OVER_DIRS)
 
 ##############################################
 
