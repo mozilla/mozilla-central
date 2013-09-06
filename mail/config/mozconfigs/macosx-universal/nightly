@@ -27,10 +27,6 @@ export MOZILLA_OFFICIAL=1
 # Make sure Lightning is also unified
 mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/lightning/build/universal.mk
 
-# Enable parallel compiling
-CONCURRENCY=$(( `sysctl hw.logicalcpu | awk {'print $2'}`  + 2 ))
-mk_add_options MOZ_MAKE_FLAGS="-j$CONCURRENCY"
-
 ac_add_options --with-ccache
 
 # Run client.py
