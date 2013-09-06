@@ -705,30 +705,6 @@ ifneq (,$(DIRS)$(TOOL_DIRS)$(PARALLEL_DIRS))
 	$(LOOP_OVER_TOOL_DIRS)
 endif
 
-ifdef PARALLEL_DIRS
-export:: $(PARALLEL_DIRS_export)
-
-$(PARALLEL_DIRS_export): %_export: %/Makefile
-	+@$(call SUBMAKE,export,$*)
-endif
-
-export:: $(SUBMAKEFILES) $(MAKE_DIRS)
-	$(LOOP_OVER_DIRS)
-	$(LOOP_OVER_TOOL_DIRS)
-
-ifdef PARALLEL_DIRS
-tools:: $(PARALLEL_DIRS_tools)
-
-$(PARALLEL_DIRS_tools): %_tools: %/Makefile
-	+@$(call SUBMAKE,tools,$*)
-endif
-
-tools:: $(SUBMAKEFILES) $(MAKE_DIRS)
-	$(LOOP_OVER_DIRS)
-ifneq (,$(strip $(TOOL_DIRS)))
-	$(foreach dir,$(TOOL_DIRS),$(call SUBMAKE,libs,$(dir)))
-endif
-
 #
 # Rule to create list of libraries for final link
 #
