@@ -82,7 +82,6 @@ nsOEAddressIterator::nsOEAddressIterator(CWAB *pWab, nsIAddrDatabase *database)
 {
   m_pWab = pWab;
   m_database = database;
-  m_listRows.Init();
 }
 
 nsOEAddressIterator::~nsOEAddressIterator()

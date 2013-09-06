@@ -1205,8 +1205,8 @@ imap_shell_cache_strcmp (const void *a, const void *b)
 #endif
 
 nsIMAPBodyShellCache::nsIMAPBodyShellCache()
+: m_shellHash(20)
 {
-  m_shellHash.Init(20);
   m_shellList = new nsVoidArray();
 }
 

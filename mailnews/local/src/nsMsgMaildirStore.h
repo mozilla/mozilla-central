@@ -12,7 +12,6 @@
 
 #include "nsMsgLocalStoreUtils.h"
 #include "nsIFile.h"
-#include "nsInterfaceHashtable.h"
 #include "nsMsgMessageFlags.h"
 
 class nsMsgMaildirStore MOZ_FINAL : public nsMsgLocalStoreUtils, nsIMsgPluggableStore

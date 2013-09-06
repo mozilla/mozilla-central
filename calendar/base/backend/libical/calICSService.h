@@ -107,12 +107,10 @@ public:
                      calITimezoneProvider *tzProvider = nullptr)
         : mComponent(ical), mTimezone(nullptr), mTzProvider(tzProvider), mParent(parent)
     {
-        mReferencedTimezones.Init();
     }
 
     // VTIMEZONE ctor
     calIcalComponent(icaltimezone * icaltz, icalcomponent * ical) : mComponent(ical), mTimezone(icaltz) {
-        mReferencedTimezones.Init();
     }
 
     NS_DECL_THREADSAFE_ISUPPORTS

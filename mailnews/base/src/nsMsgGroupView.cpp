@@ -23,7 +23,6 @@ nsMsgGroupView::nsMsgGroupView()
 {
   m_dayChanged = false;
   m_lastCurExplodedTime.tm_mday = 0;
-  m_groupsTable.Init();
 }
 
 nsMsgGroupView::~nsMsgGroupView()

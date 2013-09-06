@@ -103,7 +103,6 @@ nsMessengerUnixIntegration::nsMessengerUnixIntegration()
   mBiffStateAtom = MsgGetAtom("BiffState");
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
   mAlertInProgress = false;
-  mLastMRUTimes.Init();
   mFoldersWithNewMail = do_CreateInstance(NS_ARRAY_CONTRACTID);
 }
 

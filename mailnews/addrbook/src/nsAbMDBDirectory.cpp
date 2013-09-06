@@ -33,7 +33,6 @@ nsAbMDBDirectory::nsAbMDBDirectory(void):
      nsAbMDBDirProperty(),
      mPerformingQuery(false)
 {
-  mSearchCache.Init();
 }
 
 nsAbMDBDirectory::~nsAbMDBDirectory(void)

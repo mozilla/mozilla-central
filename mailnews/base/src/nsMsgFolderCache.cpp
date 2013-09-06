@@ -233,8 +233,6 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
-  m_cacheElements.Init();
-
   bool exists;
   aFile->Exists(&exists);
 

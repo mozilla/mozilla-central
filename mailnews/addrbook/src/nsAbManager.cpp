@@ -122,7 +122,6 @@ const ExportAttributesTableStruct EXPORT_ATTRIBUTES_TABLE[] = {
 //
 nsAbManager::nsAbManager()
 {
-  mAbStore.Init();
 }
 
 nsAbManager::~nsAbManager()

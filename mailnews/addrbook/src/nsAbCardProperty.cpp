@@ -107,8 +107,6 @@ static const AppendItem CHAT_ATTRS_ARRAY[] = {
 nsAbCardProperty::nsAbCardProperty()
   : m_IsMailList(false)
 {
-  m_properties.Init();
-
   // Initialize some default properties
   SetPropertyAsUint32(kPreferMailFormatProperty, nsIAbPreferMailFormat::unknown);
   SetPropertyAsUint32(kPopularityIndexProperty, 0);

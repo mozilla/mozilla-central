@@ -32,8 +32,6 @@ nsMsgSearchDBView::nsMsgSearchDBView()
 {
   // don't try to display messages for the search pane.
   mSuppressMsgDisplay = true;
-  m_threadsTable.Init();
-  m_hdrsTable.Init();
   m_totalMessagesInView = 0;
   m_nextThreadId = 1;
 }

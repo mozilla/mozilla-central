@@ -159,7 +159,6 @@ nsresult nsMsgComposeService::Init()
   if (pbi)
     rv = pbi->AddObserver(PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS, this, true);
 
-  mOpenComposeWindows.Init();
   Reset();
 
   AddGlobalHtmlDomains();

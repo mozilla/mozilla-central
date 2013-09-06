@@ -24,6 +24,7 @@
 #include "nsCOMArray.h"
 #include "nsIObserver.h"
 #include "nsAutoPtr.h"
+#include "mozilla/Mutex.h"
 
 // 0d871e30-1dd2-11b2-8ea9-831778c78e93
 //
@@ -40,6 +41,7 @@ class nsLDAPConnection : public nsILDAPConnection,
     friend class nsLDAPOperation;
     friend class nsLDAPMessage;
     friend class nsLDAPConnectionRunnable;
+    typedef mozilla::Mutex Mutex;
 
   public:
     NS_DECL_THREADSAFE_ISUPPORTS
@@ -90,7 +92,8 @@ class nsLDAPConnection : public nsILDAPConnection,
     nsCString mBindName;                // who to bind as
     nsCOMPtr<nsIThread> mThread;        // thread which marshals results
 
-    nsInterfaceHashtableMT<nsUint32HashKey, nsILDAPOperation> mPendingOperations;
+    Mutex mPendingOperationsMutex;
+    nsInterfaceHashtable<nsUint32HashKey, nsILDAPOperation> mPendingOperations;
 
     int32_t mPort;                      // The LDAP port we're binding to
     bool mSSL;                        // the options

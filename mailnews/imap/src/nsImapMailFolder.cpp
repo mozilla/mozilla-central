@@ -3122,8 +3122,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
     nsCString newMessageId;
     nsMsgKey pseudoKey = nsMsgKey_None;
     newMsgHdr->GetMessageId(getter_Copies(newMessageId));
-    if (m_pseudoHdrs.IsInitialized())
-      m_pseudoHdrs.Get(newMessageId, &pseudoKey);
+    m_pseudoHdrs.Get(newMessageId, &pseudoKey);
     if (notifier && pseudoKey != nsMsgKey_None)
     {
       notifier->NotifyMsgKeyChanged(pseudoKey, newMsgHdr);
@@ -3874,8 +3873,6 @@ NS_IMETHODIMP nsImapMailFolder::AddMoveResultPseudoKey(nsMsgKey aMsgKey)
   // err on the side of caution and ignore messages w/o messageid.
   if (messageId.IsEmpty())
     return NS_OK;
-  if (!m_pseudoHdrs.IsInitialized())
-    m_pseudoHdrs.Init(10);
   m_pseudoHdrs.Put(messageId, aMsgKey);
   return NS_OK;
 }
@@ -6155,10 +6152,10 @@ NS_IMETHODIMP nsImapMailFolder::GetCanOpenFolder(bool *aBool)
 #define IMAP_ACL_ANYONE_STRING "anyone"
 
 nsMsgIMAPFolderACL::nsMsgIMAPFolderACL(nsImapMailFolder *folder)
+: m_rightsHash(24)
 {
   NS_ASSERTION(folder, "need folder");
   m_folder = folder;
-  m_rightsHash.Init(24);
   m_aclCount = 0;
   BuildInitialACLFromCache();
 }

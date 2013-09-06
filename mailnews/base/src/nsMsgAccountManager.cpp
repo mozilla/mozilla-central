@@ -157,9 +157,6 @@ nsresult nsMsgAccountManager::Init()
   m_prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  m_identities.Init();
-  m_incomingServers.Init();
-
   nsCOMPtr<nsIObserverService> observerService =
            mozilla::services::GetObserverService();
   if (observerService)

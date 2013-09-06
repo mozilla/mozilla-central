@@ -185,13 +185,10 @@ nsLDAPService::~nsLDAPService()
 {
 }
 
-// Initializer, create some internal hash tables etc.
+// Initializer
 //
 nsresult nsLDAPService::Init()
 {
-    mServers.Init();
-    mConnections.Init();
-
     return NS_OK;
 }
 

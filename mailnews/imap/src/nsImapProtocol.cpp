@@ -461,8 +461,6 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nullptr),
   // through proxied xpcom methods, just AddRef them here.
   m_hdrDownloadCache = new nsMsgImapHdrXferInfo();
   m_downloadLineCache = new nsMsgImapLineDownloadCache();
-  m_standardListMailboxes.Init(0);
-  m_specialXListMailboxes.Init(0);
 
   // subscription
   m_autoSubscribe = true;

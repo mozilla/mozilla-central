@@ -79,13 +79,13 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(bool *aPartialUIDFetch)
 nsImapFlagAndUidState::nsImapFlagAndUidState(int32_t numberOfMessages)
   : fUids(numberOfMessages),
     fFlags(numberOfMessages),
+    m_customFlagsHash(10),
+    m_customAttributesHash(10),
     mLock("nsImapFlagAndUidState.mLock")
 {
   fSupportedUserFlags = 0;
   fNumberDeleted = 0;
   fPartialUIDFetch = true;
-  m_customFlagsHash.Init(10);
-  m_customAttributesHash.Init(10);  
 }
 
 /* static */PLDHashOperator nsImapFlagAndUidState::FreeCustomFlags(const uint32_t &aKey, char *aData,
@@ -97,8 +97,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(int32_t numberOfMessages)
 
 nsImapFlagAndUidState::~nsImapFlagAndUidState()
 {
-  if (m_customFlagsHash.IsInitialized())
-    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
+  m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
 }
 
 NS_IMETHODIMP
@@ -123,8 +122,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset()
 {
   PR_CEnterMonitor(this);
   fNumberDeleted = 0;
-  if (m_customFlagsHash.IsInitialized())
-    m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
+  m_customFlagsHash.EnumerateRead(FreeCustomFlags, nullptr);
   m_customFlagsHash.Clear();
   fUids.Clear();
   fFlags.Clear();
@@ -245,8 +243,6 @@ imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(uint32_t uid,
 NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(uint32_t uid, const char *customFlag)
 {
   MutexAutoLock mon(mLock);
-  if (!m_customFlagsHash.IsInitialized())
-    return NS_ERROR_OUT_OF_MEMORY;
   char *ourCustomFlags;
   char *oldValue = nullptr;
   m_customFlagsHash.Get(uid, &oldValue);
@@ -285,15 +281,12 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidCustomFlagPair(uint32_t uid, const ch
 NS_IMETHODIMP nsImapFlagAndUidState::GetCustomFlags(uint32_t uid, char **customFlags)
 {
   MutexAutoLock mon(mLock);
-  if (m_customFlagsHash.IsInitialized())
+  char *value = nullptr;
+  m_customFlagsHash.Get(uid, &value);
+  if (value)
   {
-    char *value = nullptr;
-    m_customFlagsHash.Get(uid, &value);
-    if (value)
-    {
-      *customFlags = NS_strdup(value);
-      return (*customFlags) ? NS_OK : NS_ERROR_FAILURE;
-    }
+    *customFlags = NS_strdup(value);
+    return (*customFlags) ? NS_OK : NS_ERROR_FAILURE;
   }
   *customFlags = nullptr;
   return NS_OK;
@@ -310,8 +303,6 @@ NS_IMETHODIMP nsImapFlagAndUidState::SetCustomAttribute(uint32_t aUid,
                                                         const nsACString &aCustomAttributeName,
                                                         const nsACString &aCustomAttributeValue)
 {
-  if (!m_customAttributesHash.IsInitialized())
-    return NS_ERROR_OUT_OF_MEMORY;
   nsCString key;
   key.AppendInt((int64_t)aUid);
   key.Append(aCustomAttributeName);
@@ -325,14 +316,11 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetCustomAttribute(uint32_t aUid,
                                                         const nsACString &aCustomAttributeName,
                                                         nsACString &aCustomAttributeValue)
 {
-  if (m_customAttributesHash.IsInitialized())
-  {
-    nsCString key;
-    key.AppendInt((int64_t)aUid);
-    key.Append(aCustomAttributeName);
-    nsCString val;
-    m_customAttributesHash.Get(key, &val);
-    aCustomAttributeValue.Assign(val);
-  }
+  nsCString key;
+  key.AppendInt((int64_t)aUid);
+  key.Append(aCustomAttributeName);
+  nsCString val;
+  m_customAttributesHash.Get(key, &val);
+  aCustomAttributeValue.Assign(val);
   return NS_OK;
 }

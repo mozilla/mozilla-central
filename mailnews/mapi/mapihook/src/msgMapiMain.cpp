@@ -27,8 +27,6 @@ nsMAPIConfiguration::nsMAPIConfiguration()
 : m_nMaxSessions(MAX_SESSIONS)
 {
   m_Lock = PR_NewLock();
-  m_SessionMap.Init();
-  m_ProfileMap.Init();
 }
 
 nsMAPIConfiguration::~nsMAPIConfiguration()

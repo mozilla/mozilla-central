@@ -36,7 +36,6 @@ nsMsgTxn::~nsMsgTxn()
 
 nsresult nsMsgTxn::Init()
 {
-  mPropertyHash.Init();
   return NS_OK;
 }
 

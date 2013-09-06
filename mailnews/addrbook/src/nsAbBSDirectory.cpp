@@ -21,8 +21,8 @@
 
 nsAbBSDirectory::nsAbBSDirectory()
 : mInitialized(false)
+, mServers(13)
 {
-  mServers.Init(13);
 }
 
 nsAbBSDirectory::~nsAbBSDirectory()

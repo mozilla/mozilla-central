@@ -44,7 +44,6 @@ nsAbLDAPDirectory::nsAbLDAPDirectory() :
   mContext(0),
   mLock("nsAbLDAPDirectory.mLock")
 {
-  mCache.Init();
 }
 
 nsAbLDAPDirectory::~nsAbLDAPDirectory()

@@ -40,7 +40,6 @@
 
 nsMsgBrkMBoxStore::nsMsgBrkMBoxStore()
 {
-  m_outputStreams.Init();
 }
 
 nsMsgBrkMBoxStore::~nsMsgBrkMBoxStore()
