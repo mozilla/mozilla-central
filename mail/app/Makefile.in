@@ -222,7 +222,7 @@ else
 APPFILES = MacOS
 endif
 
-libs repackage:: $(PROGRAM)
+tools repackage:: $(PROGRAM)
 	$(MKDIR) -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
 	rsync -a --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(MOZ_MACBUNDLE_NAME) --exclude English.lproj
 	$(MKDIR) -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
