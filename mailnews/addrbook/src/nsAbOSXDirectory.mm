@@ -26,11 +26,6 @@
 #define kABUpdatedRecords (kABUpdatedRecords ? kABUpdatedRecords : @"ABUpdatedRecords")
 #define kABInsertedRecords (kABInsertedRecords ? kABInsertedRecords : @"ABInsertedRecords")
 
-/* Each nsAbOSXDirectory contains a lookup table for their respective
- * nsAbOSXCard's.  We set the initial size of that lookup table here.
- */
-#define OSX_CARD_STORE_INIT 100
-
 static nsresult
 GetOrCreateGroup(NSString *aUid, nsIAbDirectory **aResult)
 {
@@ -444,7 +439,6 @@ static ABChangedMonitor *sObserver = nullptr;
 
 nsAbOSXDirectory::nsAbOSXDirectory()
 {
-  mCardStore.Init(OSX_CARD_STORE_INIT);
 }
 
 nsAbOSXDirectory::~nsAbOSXDirectory()
