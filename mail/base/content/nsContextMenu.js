@@ -254,6 +254,8 @@ nsContextMenu.prototype = {
         "mailContext-multiForwardAsAttachment",
         "mailContext-copyMessageUrl", "mailContext-moveMenu",
         "mailContext-copyMenu", "mailContext-moveToFolderAgain",
+        "mailContext-ignoreThread", "mailContext-ignoreSubthread",
+        "mailContext-watchThread",
         "mailContext-tags", "mailContext-mark", "mailContext-saveAs",
         "mailContext-printpreview", "mailContext-print", "mailContext-delete",
         "downloadSelected", "mailContext-reportPhishingURL"
