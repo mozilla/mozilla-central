@@ -49,3 +49,6 @@ MOZ_APP_ID={3550f703-e582-4d05-9a08-453d09bdfdc6}
 ACCEPTED_MAR_CHANNEL_IDS=thunderbird-comm-central
 # The MAR_CHANNEL_ID must not contain the following 3 characters: ",\t "
 MAR_CHANNEL_ID=thunderbird-comm-central
+if test "$OS_TARGET" = "WINNT" -o "$OS_TARGET" = "Darwin"; then
+  MOZ_FOLD_LIBS=1
+fi
