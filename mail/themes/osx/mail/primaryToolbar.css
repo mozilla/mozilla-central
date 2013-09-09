@@ -974,8 +974,9 @@ toolbar[mode="text"] .button-appmenu .toolbarbutton-icon {
 }
 
 .splitmenu-menuitem > .menu-iconic-left,
-#appmenu-popup menuitem:not([type="radio"]) > .menu-iconic-left {
-  display:none;
+#appmenu-popup menuitem:not([type="radio"]):not(.folderMenuItem) >
+  .menu-iconic-left {
+  display: none;
 }
 
 .appmenu-edit-button {

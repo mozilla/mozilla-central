@@ -17,87 +17,177 @@
 
 /* News folders */
 .folderMenuItem[ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 80px 16px 64px);
+  -moz-image-region: rect(0 160px 16px 144px);
 }
 
 /* Feed folders */
 .folderMenuItem[ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 224px 16px 208px);
 }
 
 /* ..... special folders ..... */
 
 .folderMenuItem[SpecialFolder="Inbox"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 48px 16px 32px);
 }
 
 .folderMenuItem[SpecialFolder="Sent"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 64px 16px 48px);
 }
 
+.folderMenuItem[SpecialFolder="Outbox"] {
+  -moz-image-region: rect(0 80px 16px 64px);
+}
+
 .folderMenuItem[SpecialFolder="Drafts"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
     -moz-image-region: rect(0 96px 16px 80px);
 }
 
 .folderMenuItem[SpecialFolder="Templates"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 112px 16px 96px);
 }
 
 .folderMenuItem[SpecialFolder="Junk"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 128px 16px 112px);
 }
 
 .folderMenuItem[SpecialFolder="Trash"] {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
   -moz-image-region: rect(0 144px 16px 128px);
 }
 
-/* ..... servers ..... */
+.folderMenuItem[SpecialFolder="Virtual"] {
+  -moz-image-region: rect(0 176px 16px 160px);
+}
 
-.folderMenuItem[IsServer="true"],
-.folderMenuItem[IsServer="true"][open="true"] {
+.folderMenuItem[SpecialFolder="Archive"] {
+  -moz-image-region: rect(0 208px 16px 192px);
+}
+
+/* ..... servers ..... */
+.folderMenuItem[IsServer="true"] {
   list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 16px 16px 0);
 }
 
 /* IMAP servers */
 .folderMenuItem[IsServer="true"][ServerType="imap"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
   -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* POP3 servers */
 .folderMenuItem[IsServer="true"][ServerType="pop3"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
   -moz-image-region: rect(0 32px 16px 16px);
 }
 
 /* Local Servers */
 .folderMenuItem[IsServer="true"][ServerType="none"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  -moz-image-region: rect(0 48px 16px 32px);
 }
 
 /* News servers */
 .folderMenuItem[IsServer="true"][ServerType="nntp"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
   -moz-image-region: rect(0 64px 16px 48px);
 }
 
 .folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 32px 16px 16px);
+  -moz-image-region: rect(0 80px 16px 64px);
 }
 
 /* Feed servers */
 .folderMenuItem[IsServer="true"][ServerType="rss"] {
-  list-style-image: url("chrome://messenger/skin/icons/server.png");
-  -moz-image-region: rect(0 16px 16px 0);
+  -moz-image-region: rect(0 96px 16px 80px);
+}
+
+@media (min-resolution: 2dppx) {
+  .folderMenuItem > .menu-iconic-left > .menu-iconic,
+  .folderMenuItem > .menulist-label-box > .menulist-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .folderMenuItem {
+    list-style-image: url("chrome://messenger/skin/icons/folder-pane@2x.png");
+    -moz-image-region: rect(0 32px 32px 0);
+  }
+
+  /* News folders */
+  .folderMenuItem[ServerType="nntp"] {
+    -moz-image-region: rect(0 320px 32px 288px);
+  }
+
+  /* Feed folders */
+  .folderMenuItem[ServerType="rss"] {
+    -moz-image-region: rect(0 448px 32px 416px);
+  }
+
+  /* ..... special folders ..... */
+
+  .folderMenuItem[SpecialFolder="Inbox"] {
+    -moz-image-region: rect(0 96px 32px 64px);
+  }
+
+  .folderMenuItem[SpecialFolder="Sent"] {
+    -moz-image-region: rect(0 128px 32px 96px);
+  }
+
+  .folderMenuItem[SpecialFolder="Outbox"] {
+    -moz-image-region: rect(0 160px 32px 128px);
+  }
+
+  .folderMenuItem[SpecialFolder="Drafts"] {
+    -moz-image-region: rect(0 192px 32px 160px);
+  }
+
+  .folderMenuItem[SpecialFolder="Templates"] {
+    -moz-image-region: rect(0 224px 32px 192px);
+  }
+
+  .folderMenuItem[SpecialFolder="Junk"] {
+    -moz-image-region: rect(0 256px 32px 224px);
+  }
+
+  .folderMenuItem[SpecialFolder="Trash"] {
+    -moz-image-region: rect(0 288px 32px 256px);
+  }
+
+  .folderMenuItem[SpecialFolder="Virtual"] {
+    -moz-image-region: rect(0 352px 32px 320px);
+  }
+
+  .folderMenuItem[SpecialFolder="Archive"] {
+    -moz-image-region: rect(0 416px 32px 384px);
+  }
+
+  /* ..... servers ..... */
+  .folderMenuItem[IsServer="true"] {
+    list-style-image: url("chrome://messenger/skin/icons/server@2x.png");
+  }
+
+  /* IMAP servers */
+  .folderMenuItem[IsServer="true"][ServerType="imap"][IsSecure="true"] {
+    -moz-image-region: rect(0 64px 32px 32px);
+  }
+
+  /* POP3 servers */
+  .folderMenuItem[IsServer="true"][ServerType="pop3"][IsSecure="true"] {
+    -moz-image-region: rect(0 64px 32px 32px);
+  }
+
+  /* Local Servers */
+  .folderMenuItem[IsServer="true"][ServerType="none"] {
+    -moz-image-region: rect(0 96px 32px 64px);
+  }
+
+  /* News servers */
+  .folderMenuItem[IsServer="true"][ServerType="nntp"] {
+    -moz-image-region: rect(0 128px 32px 96px);
+  }
+
+  .folderMenuItem[IsServer="true"][ServerType="nntp"][IsSecure="true"] {
+    -moz-image-region: rect(0 160px 32px 128px);
+  }
+
+  /* Feed servers */
+  .folderMenuItem[IsServer="true"][ServerType="rss"] {
+    -moz-image-region: rect(0 192px 32px 160px);
+  }
 }
