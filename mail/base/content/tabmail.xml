@@ -2002,6 +2002,8 @@
     </implementation>
     <handlers>
       <handler event="select"><![CDATA[
+          this._handleTabSelect();
+
           if (!('updateCurrentTab' in this.tabmail) ||
               event.target.localName != 'tabs')
             return;
