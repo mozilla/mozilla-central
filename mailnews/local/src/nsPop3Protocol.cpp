@@ -352,7 +352,8 @@ net_pop3_write_state(Pop3UidlHost* host, nsIFile *mailDirectory)
       PL_HashTableEnumerateEntries(host->hash, net_pop3_write_mapper, (void *)fileOutputStream);
     }
   }
-  fileOutputStream->Close();
+  nsCOMPtr<nsISafeOutputStream> safeStream = do_QueryInterface(fileOutputStream);
+  safeStream->Finish();
 }
 
 static void
