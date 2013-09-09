@@ -166,6 +166,15 @@ defaults/wallet/DistinguishedSchema.tbl
 defaults/wallet/SchemaStrings.tbl
 defaults/wallet/PositionalSchema.tbl
 defaults/wallet/StateSchema.tbl
+#ifdef MOZ_FOLD_LIBS
+@DLL_PREFIX@nspr4@DLL_SUFFIX@
+@DLL_PREFIX@plds4@DLL_SUFFIX@
+@DLL_PREFIX@plc4@DLL_SUFFIX@
+@DLL_PREFIX@ssl3@DLL_SUFFIX@
+@DLL_PREFIX@smime3@DLL_SUFFIX@
+@DLL_PREFIX@nssutil3@DLL_SUFFIX@
+@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
+#endif
 
 # Remove obsolete bundled thunderbird test pilot.
 # In the average case, this directory is only used by Test Pilot, and will get
