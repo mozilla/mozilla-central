@@ -763,6 +763,10 @@ pref("plugins.update.url", "https://www.mozilla.org/%LOCALE%/plugincheck/");
 pref("plugins.update.notifyUser", false);
 pref("plugins.crash.supportUrl", "https://live.mozillamessaging.com/%APP%/plugin-crashed?locale=%LOCALE%&version=%VERSION%&os=%OS%&buildid=%APPBUILDID%");
 
+// let all plugins except Flash default to click-to-play
+pref("plugin.default.state", 1);
+pref("plugin.state.flash", 2);
+
 // Windows taskbar support
 #ifdef XP_WIN
 pref("mail.taskbar.lists.enabled", true);
