@@ -3670,6 +3670,12 @@ nsMsgComposeAndSend::Fail(nsresult aFailureCode, const PRUnichar *aErrorMsg,
 
     if (mSendReport)
     {
+      int32_t process;
+      if (NS_SUCCEEDED(mSendReport->GetCurrentProcess(&process)) && process == nsIMsgSendReport::process_Current)
+      {
+        // currentProcess isn't set yet, so we need another value.
+        mSendReport->SetCurrentProcess(nsIMsgSendReport::process_BuildMessage);
+      }
       mSendReport->SetError(nsIMsgSendReport::process_Current, aFailureCode, false);
       mSendReport->SetMessage(nsIMsgSendReport::process_Current, aErrorMsg, false);
       mSendReport->DisplayReport(prompt, true, true, aResult);

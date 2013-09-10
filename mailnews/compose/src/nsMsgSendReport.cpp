@@ -163,7 +163,13 @@ NS_IMETHODIMP nsMsgSendReport::SetError(int32_t process, nsresult newError, bool
     return NS_ERROR_ILLEGAL_VALUE;
 
   if (process == process_Current)
+  {
+    if (mCurrentProcess == process_Current)
+      // We don't know what we're currently trying to do
+      return NS_ERROR_ILLEGAL_VALUE;
+
     process = mCurrentProcess;
+  }
 
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
@@ -183,7 +189,13 @@ NS_IMETHODIMP nsMsgSendReport::SetMessage(int32_t process, const PRUnichar *mess
     return NS_ERROR_ILLEGAL_VALUE;
 
   if (process == process_Current)
+  {
+    if (mCurrentProcess == process_Current)
+      // We don't know what we're currently trying to do
+      return NS_ERROR_ILLEGAL_VALUE;
+
     process = mCurrentProcess;
+  }
 
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
@@ -204,7 +216,13 @@ NS_IMETHODIMP nsMsgSendReport::GetProcessReport(int32_t process, nsIMsgProcessRe
     return NS_ERROR_ILLEGAL_VALUE;
 
   if (process == process_Current)
+  {
+    if (mCurrentProcess == process_Current)
+      // We don't know what we're currently trying to do
+      return NS_ERROR_ILLEGAL_VALUE;
+
     process = mCurrentProcess;
+  }
 
   NS_IF_ADDREF(*_retval = mProcessReport[process]);
   return NS_OK;
@@ -214,6 +232,9 @@ NS_IMETHODIMP nsMsgSendReport::GetProcessReport(int32_t process, nsIMsgProcessRe
 NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOnly, bool dontShowReportTwice, nsresult *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
+
+  NS_ENSURE_TRUE(mCurrentProcess >= 0 && mCurrentProcess <= SEND_LAST_PROCESS,
+                 NS_ERROR_NOT_INITIALIZED);
 
   nsresult currError = NS_OK;
   mProcessReport[mCurrentProcess]->GetError(&currError);
