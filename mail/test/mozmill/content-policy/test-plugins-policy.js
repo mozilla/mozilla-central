@@ -51,13 +51,8 @@ var setupModule = function (module) {
   folder = create_folder("pluginPolicy");
 
   // Ensure the test plugin is enabled
-  var ph = Components.classes["@mozilla.org/plugin/host;1"]
-                     .getService(Components.interfaces.nsIPluginHost);
-  var tags = ph.getPluginTags();
-  for (var tag of tags) {
-    if (tag.name == "Test Plug-in")
-      tag.enabledState = Components.interfaces.nsIPluginTag.STATE_ENABLED;
-  }
+  let plugin = get_test_plugin();
+  plugin.enabledState = Components.interfaces.nsIPluginTag.STATE_ENABLED;
 };
 
 function addToFolder(aSubject, aBody, aFolder) {
