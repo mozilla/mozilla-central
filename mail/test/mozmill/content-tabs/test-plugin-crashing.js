@@ -227,16 +227,22 @@ function test_crashed_plugin_notification_inline() {
     return submitDiv;
   }
 
-  mc.waitFor( function() !mc.tabmail.selectedTab.browser.parentNode.
-                           getNotificationWithValue("plugin-crashed"),
-              "Timed out: Notification existed and did not disappear.");
-
   let submitDiv = getStatusDiv();
+  let statusString = submitDiv.getAttribute("status");
+  if (!statusString) {
+    let submitStatusChanged = false;
+    let observer = new gContentWindow.MutationObserver(function handleMutations(mutations) {
+      submitStatusChanged = true;
+    });
+    observer.observe(submitDiv, { attributes: true });
+
+    mc.waitFor(function() submitStatusChanged,
+               "Timed out: Notification existed and did not disappear.");
+    observer.disconnect();
+  }
 
   // Depending on the environment we're running this test on,
   // the status attribute might be "noReport" or "please".
-  let statusString = submitDiv.getAttribute("status");
-
   assert_true(statusString == "noReport" || statusString == "please",
               "Expected the status to be \"noReport\" or \"please\". " +
               "Instead, it was " + statusString);
