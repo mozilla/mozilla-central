@@ -18,6 +18,8 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 var folder;
 var gCDHelper ;
+var originalPaneLayout;
+const kPaneLayout = "mail.pane_config.dynamic";
 
 function setupModule(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -54,6 +56,18 @@ function setupModule(module) {
   add_message_to_folder(folder, msg);
 }
 
+function setWideView() {
+  originalPaneLayout = Services.prefs.getIntPref(kPaneLayout);
+  Services.prefs.setIntPref(kPaneLayout, 1);
+}
+
+function restoreOriginalPaneLayout() {
+  Services.prefs.setIntPref(kPaneLayout, originalPaneLayout);
+}
+
+function teardownModule(module) {
+  restoreOriginalPaneLayout();
+}
 
 /**
  *  Make sure that opening the header toolbar customization dialog
@@ -133,6 +147,9 @@ function test_customize_header_toolbar_check_default()
  */
 function test_customize_header_toolbar_reorder_buttons()
 {
+  // To avoid undrawn buttons on the toolbar, change pane layout to wide view.
+  setWideView();
+
   let curMessage = select_message_in_folder(0);
 
   // Restore the default buttons to get defined starting conditions.
@@ -171,6 +188,8 @@ function test_customize_header_toolbar_reorder_buttons()
   assert_equals(hdrToolbar.currentSet, hdrBarDefaultSet);
   assert_equals(hdrToolbar.getAttribute("currentset"), hdrBarDefaultSet);
   close_window(msgc);
+
+  restoreOriginalPaneLayout();
 
   // Leave the toolbar in the default state.
   gCDHelper.restoreDefaultButtons(mc);
