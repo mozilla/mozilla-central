@@ -74,6 +74,8 @@ function setupModule(module) {
       func.__force_skip__ = true;
     });
   }
+  let plugin = get_test_plugin();
+  plugin.enabledState = plugin.STATE_ENABLED;
 };
 
 function teardownModule(module) {
