@@ -2,6 +2,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-libs export clean distclean::
+# The LDAP C SDK tries to build everything when calling make export. Since NSPR
+# isn't yet built during export, we can't let that happen, so we are going to
+# reach in and just install the headers that we need.
+
+export::
+	$(MAKE) -C $(DEPTH)/ldap/sdks/c-sdk/config export
+	$(MAKE) -C $(DEPTH)/ldap/sdks/c-sdk/ldap/include export
+
+libs clean distclean::
 	$(MAKE) -C $(DEPTH)/ldap/sdks/c-sdk $@
 
