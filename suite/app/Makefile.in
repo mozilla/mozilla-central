@@ -193,7 +193,7 @@ pack-ext: $(STAGEDIST)
 	$(foreach dir,$(APP_EXTENSIONS),$(_PACKAGE_APP_EXTENSIONS))
 	$(foreach dir,$(PROFILE_EXTENSIONS),$(_PACKAGE_PROFILE_EXTENSIONS))
 
-libs::
+tools::
 	@$(MAKE) pack-ext STAGEDIST="$(DIST)/bin"
 
 endif
