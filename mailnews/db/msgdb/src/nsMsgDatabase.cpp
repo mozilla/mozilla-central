@@ -1054,13 +1054,26 @@ public:
   MsgDBReporter(nsMsgDatabase *db) : mDatabase(db) {}
 
   NS_DECL_ISUPPORTS
-  NS_IMETHOD GetProcess(nsACString &process)
+  NS_IMETHOD GetName(nsACString &aName)
   {
-    process.Truncate();
+    aName.AssignLiteral("msg-database-objects");
     return NS_OK;
   }
 
-  NS_IMETHOD GetPath(nsACString &memoryPath)
+  NS_IMETHOD CollectReports(nsIMemoryReporterCallback*aCb,
+                            nsISupports* aClosure)
+  {
+    nsCString path;
+    GetPath(path);
+    return aCb->Callback(EmptyCString(), path,
+                         nsIMemoryReporter::KIND_HEAP,
+                         nsIMemoryReporter::UNITS_BYTES,
+                         mDatabase->SizeOfIncludingThis(GetMallocSize),           
+                         NS_LITERAL_CSTRING("Memory used for the folder database."),
+                         aClosure);
+  }
+
+  void GetPath(nsACString &memoryPath)
   {
     memoryPath.AssignLiteral("explicit/maildb/database(");
     nsCOMPtr<nsIMsgFolder> folder;
@@ -1075,31 +1088,6 @@ public:
       memoryPath.AppendLiteral("UNKNOWN-FOLDER");
     }
     memoryPath.Append(')');
-    return NS_OK;
-  }
-
-  NS_IMETHOD GetKind(int *kind)
-  {
-    *kind = nsIMemoryReporter::KIND_HEAP;
-    return NS_OK;
-  }
-
-  NS_IMETHOD GetUnits(int *units)
-  {
-    *units = nsIMemoryReporter::UNITS_BYTES;
-    return NS_OK;
-  }
-
-  NS_IMETHOD GetAmount(int64_t *amount)
-  {
-    *amount = mDatabase->SizeOfIncludingThis(GetMallocSize);
-    return NS_OK;
-  }
-
-  NS_IMETHOD GetDescription(nsACString &desc)
-  {
-    desc.AssignLiteral("Memory used for the folder database.");
-    return NS_OK;
   }
 };
 
