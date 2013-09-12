@@ -31,8 +31,8 @@
       <caption label="&messageDisplay.caption;"/>
       <hbox align="center">
         <label control="viewDefaultCharsetList"
-               value="&viewDefaultCharset.label;"
-               accesskey="&viewDefaultCharset.accesskey;"/>
+               value="&viewFallbackCharset.label;"
+               accesskey="&viewFallbackCharset.accesskey;"/>
         <menulist id="viewDefaultCharsetList"
                   ref=""
                   datasources="rdf:charset-menu"
@@ -46,6 +46,7 @@
           </template>
         </menulist>
       </hbox>
+      <description>&viewFallbackCharset.desc;</description>
     </groupbox>
 
     <!-- Composing Mail -->

@@ -4,8 +4,9 @@
 
 <!ENTITY pref.character.encoding.title   "Character Encoding">
 <!ENTITY messageDisplay.caption          "Message Display">
-<!ENTITY viewDefaultCharset.label        "Default Character Encoding:">
-<!ENTITY viewDefaultCharset.accesskey    "D">
+<!ENTITY viewFallbackCharset.label       "Fallback Character Encoding:">
+<!ENTITY viewFallbackCharset.accesskey   "E">
+<!ENTITY viewFallbackCharset.desc        "(Used for legacy content that does not declare its encoding.)">
 
 <!ENTITY composingMessages.caption       "Composing Messages">
 <!ENTITY useMIME.label                   "For messages that contain 8-bit characters, use 'quoted printable' MIME encoding. Leave unchecked to send the messages as is.">

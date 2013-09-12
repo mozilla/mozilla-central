@@ -669,34 +669,39 @@
 </ol>
 
 <ul>
-  <li><strong>Default Character Encoding</strong>: Click this drop-down list to
-    select the character encoding you want Mail &amp; Newsgroups to use as the
-    default for incoming mail and newsgroup messages. This is recommended if
-    it&apos;s likely you might receive messages in which the character encoding
-    (MIME charset) is not indicated, such as when reading messages in
-    international newsgroups.</li>
-  <li><strong>Always use this default character encoding when messages are
-    displayed</strong>: Select this to apply the default character encoding to
-    all messages.
+  <li><strong>Fallback Character Encoding</strong>: Click this drop-down list
+    to select the character encoding you want Mail &amp; Newsgroups to use as
+    the fallback for incoming mail and newsgroup messages. Senders are supposed
+    to declare the character encoding in which they are to be displayed, but
+    legacy content (e.g., from mailing lists or in international newsgroups)
+    may not do so. This encoding is used for such messages you&apos;ve received
+    in which the character encoding (MIME charset) is not specified.
+
+    <p><strong>Note</strong>: Individual folders may override this setting in
+      the General Information tab of the Folder Properties. This dialog can be
+      accessed from the Edit menu of a Mail &amp; Newsgroup window when a
+      folder is selected.</p>
 
     <p><strong>Tip</strong>: You can later view or change the character
-      encoding for a specific folder. In the Mail window, select a folder from
-      the list of Mail folders. Open the View menu, and choose Character
-      Encoding.</p>
+      encoding for a specific message. Select a folder, then the message to
+      display. Open the View menu, and choose Character Encoding.</p>
   </li>
   <li><strong>For messages that contain 8-bit characters, use &apos;quoted
     printable&apos; MIME encoding</strong>: Choose to have Mail &amp;
     Newsgroups use <q>quoted printable</q> MIME encoding when sending regular
     messages that use an 8-bit character encoding (for example, Latin
-    ISO-8859-3).</li>
+    ISO-8859-3). This is usually only necessary when communicating via a legacy
+    server that doesn&apos;t process 8-bit encoding correctly.</li>
   <li><strong>Default Character Encoding</strong>: Select the character
     encoding you want Mail &amp; Newsgroups to use as the default for outgoing
-    mail and newsgroup messages. Note that this character encoding is
+    mail and newsgroup messages.</li>
+  <li><strong>When possible, use this default character encoding in
+    replies.</strong>: By default, the selected character encoding is
     <strong>not</strong> used when replying to a message. Instead, the
-    character encoding of the message being replied to is used by default.
-    Choose <strong>Always use this default character encoding in
-    replies</strong> to use the default character encoding for outgoing
-    messages even when replying.</li>
+    character encoding of the message being replied to is used. Choose this
+    option to use the default character encoding for outgoing messages even
+    when replying, as long as the quoted characters can be represented in the
+    selected encoding.</li>
 </ul>
 
 <p>[<a href="#mail_and_newsgroup_preferences">Return to beginning of
