@@ -5,6 +5,6 @@ ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 
 # Run client.py
-mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
+mk_add_options CLIENT_PY_ARGS="$([ -f $topsrcdir/build/client.py-args ] && cat $topsrcdir/build/client.py-args)"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
 

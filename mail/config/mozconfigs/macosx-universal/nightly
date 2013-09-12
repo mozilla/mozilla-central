@@ -30,5 +30,5 @@ mk_add_options MOZ_POSTFLIGHT_ALL+=calendar/lightning/build/universal.mk
 ac_add_options --with-ccache
 
 # Run client.py
-mk_add_options CLIENT_PY_ARGS="$(cat $topsrcdir/build/client.py-args)"
+mk_add_options CLIENT_PY_ARGS="$([ -f $topsrcdir/build/client.py-args ] && cat $topsrcdir/build/client.py-args)"
 mk_add_options ALWAYS_RUN_CLIENT_PY=1
