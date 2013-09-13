@@ -356,6 +356,10 @@ nsMsgSearchTerm::nsMsgSearchTerm()
     mBeginsGrouping = false;
     mEndsGrouping = false;
     m_matchAll = false;
+
+    // valgrind warning during GC/java data check suggests
+    // m_booleanp needs to be initialized too.
+    m_booleanOp = nsMsgSearchBooleanOp::BooleanAND;
 }
 
 nsMsgSearchTerm::nsMsgSearchTerm (
