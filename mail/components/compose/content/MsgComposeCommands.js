@@ -193,7 +193,6 @@ var gComposeRecyclingListener = {
 
     SetContentAndBodyAsUnmodified();
     updateEditableFields(true);
-    ReleaseGlobalVariables();
 
     // Clear the focus
     awGetInputElement(1).removeAttribute('focused');
@@ -234,6 +233,7 @@ var gComposeRecyclingListener = {
     document.getElementById("msgcomposeWindow").dispatchEvent(event);
     if (gAutoSaveTimeout)
       clearTimeout(gAutoSaveTimeout);
+    ReleaseGlobalVariables(); 	// This line must be the last in onClose();
   },
 
   onReopen: function(params) {
