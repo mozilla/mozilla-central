@@ -1311,12 +1311,33 @@ toolbarbutton.formatting-button > .toolbarbutton-menubutton-dropmarker {
 .ab-closebutton {
   list-style-image: url("chrome://global/skin/icons/close.png") !important;
   -moz-image-region: rect(0, 16px, 16px, 0);
+  height: 20px;
+  width: 20px;
+  padding: 0px;
 }
+
+.ab-closebutton:hover {
+  list-style-image: url("chrome://messenger/skin/icons/close-inverted.png") !important;
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+
+.ab-closebutton:hover:active {
+  -moz-image-region: rect(0px, 48px, 16px, 32px);
+ }
 
 @media (min-resolution: 2dppx) {
   .ab-closebutton {
     list-style-image: url("chrome://global/skin/icons/close@2x.png") !important;
     -moz-image-region: rect(0, 32px, 32px, 0);
+  }
+
+  .ab-closebutton:hover {
+    list-style-image: url("chrome://messenger/skin/icons/close-inverted@2x.png") !important;
+    -moz-image-region: rect(0px, 64px, 32px, 32px);
+  }
+
+  .ab-closebutton:hover:active {
+    -moz-image-region: rect(0px, 96px, 32px, 64px);
   }
 
   .ab-closebutton > .toolbarbutton-icon {
