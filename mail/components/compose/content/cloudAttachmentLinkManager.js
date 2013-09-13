@@ -82,17 +82,15 @@ var gCloudAttachmentLinkManager = {
     }
     else if (event.type == "attachments-removed" ||
              event.type == "attachments-converted") {
-
-      let list, items;
-      list = mailDoc.getElementById("cloudAttachmentList");
-
+      let items = [];
+      let list = mailDoc.getElementById("cloudAttachmentList");
       if (list)
         items = list.getElementsByClassName("cloudAttachmentItem");
 
       for (let attachment in fixIterator(
            event.detail, Components.interfaces.nsIMsgAttachment)) {
         // Remove the attachment from the message body.
-        if (list && items)
+        if (list)
           for (let i = 0; i < items.length; i++)
             if (items[i].contentLocation == attachment.contentLocation)
               list.removeChild(items[i]);
@@ -106,7 +104,8 @@ var gCloudAttachmentLinkManager = {
       this._updateAttachmentCount(mailDoc);
 
       if (items.length == 0) {
-        list.parentNode.removeChild(list);
+        if (list)
+          list.parentNode.removeChild(list);
         this._removeRoot(mailDoc);
       }
     }
