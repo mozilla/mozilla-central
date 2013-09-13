@@ -708,6 +708,64 @@ function test_xfvf_threading() {
   gTestFolder = save_gTestFolder;
 }
 
+/*
+ * Tests the sorting order of collapsed threads, not of messages within
+ * threads. Currently limited to testing the sort-threads-by-date case,
+ * sorting both by thread root and by newest message.
+*/
+function test_thread_sorting() {
+  let save_gTestFolder = gTestFolder;
+  gTestFolder = make_empty_folder();
+  let messages = [];
+  // build a hierarchy like this (the UID order corresponds to the date order)
+  //  1
+  //   4
+  //  2
+  //   5
+  //  3
+  let msg1 = gMessageGenerator.makeMessage({age: {days: 1, hours: 10}});
+  let msg2 = gMessageGenerator.makeMessage({age: {days: 1, hours: 9}});
+  let msg3 = gMessageGenerator.makeMessage({age: {days: 1, hours: 8}});
+  let msg4 = gMessageGenerator.makeMessage({age: {days: 1, hours: 7}, inReplyTo: msg1});
+  let msg5 = gMessageGenerator.makeMessage({age: {days: 1, hours: 6}, inReplyTo: msg2});
+  messages = messages.concat([msg1, msg2, msg3, msg4, msg5]);
+
+  let msgSet = new SyntheticMessageSet(messages);
+
+  add_sets_to_folders(gTestFolder, [msgSet]);
+
+  // test the non-default pref state first, so the pref gets left with its
+  // default value at the end
+  Services.prefs.setBoolPref("mailnews.sort_threads_by_root", true);
+  gDBView.open(gTestFolder, SortType.byDate, SortOrder.ascending, ViewFlags.kThreadedDisplay, {});
+
+  assert_view_row_count(3);
+  assert_view_message_at_indices(msg1, 0);
+  assert_view_message_at_indices(msg2, 1);
+  assert_view_message_at_indices(msg3, 2);
+
+  gDBView.sort(SortType.byDate, SortOrder.descending);
+  assert_view_message_at_indices(msg3, 0);
+  assert_view_message_at_indices(msg2, 1);
+  assert_view_message_at_indices(msg1, 2);
+
+  Services.prefs.clearUserPref("mailnews.sort_threads_by_root");
+  gDBView.open(gTestFolder, SortType.byDate, SortOrder.ascending, ViewFlags.kThreadedDisplay, {});
+
+  assert_view_row_count(3);
+  assert_view_message_at_indices(msg3, 0);
+  assert_view_message_at_indices(msg1, 1);
+  assert_view_message_at_indices(msg2, 2);
+
+  gDBView.sort(SortType.byDate, SortOrder.descending);
+  assert_view_message_at_indices(msg2, 0);
+  assert_view_message_at_indices(msg1, 1);
+  assert_view_message_at_indices(msg3, 2);
+
+  gDBView.close();
+  gTestFolder = save_gTestFolder;
+}
+
 var view_types = [
   ["threaded", ViewFlags.kThreadedDisplay],
   ["quicksearch", ViewFlags.kThreadedDisplay],
@@ -729,7 +787,8 @@ var tests_for_specific_views = {
     test_group_dummies_under_mutation_by_date
   ],
   threaded: [
-    test_expand_collapse
+    test_expand_collapse,
+    test_thread_sorting
   ],
   search: [
     test_msg_added_to_search_view
