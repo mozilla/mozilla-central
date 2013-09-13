@@ -80,11 +80,11 @@ mailattachcount {
 }
 
 .moz-attached-image[overflowing="true"] { 
-  cursor: -moz-zoom-out;
+  cursor: zoom-out;
 }
 
 .moz-attached-image[isshrunk="true"] { 
-  cursor: -moz-zoom-in;
+  cursor: zoom-in;
   max-width: 100%;
 }
 
