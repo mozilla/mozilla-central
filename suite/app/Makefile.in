@@ -221,7 +221,7 @@ else
 APPFILES = MacOS
 endif
 
-libs:: $(PROGRAM)
+tools:: $(PROGRAM)
 	mkdir -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
 	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(MOZ_MACBUNDLE_NAME) --exclude English.lproj
 	mkdir -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
