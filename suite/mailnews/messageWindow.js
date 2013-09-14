@@ -419,12 +419,8 @@ function OnUnloadMessageWindow()
 
 function GetSelectedMsgFolders()
 {
-	var folderArray = new Array(1);
-	var msgFolder = GetLoadedMsgFolder();
-	if (msgFolder)
-		folderArray[0] = msgFolder;	
-
-	return folderArray;
+  var msgFolder = GetLoadedMsgFolder();
+  return msgFolder ? [msgFolder] : [];
 }
 
 function GetNumSelectedMessages()
