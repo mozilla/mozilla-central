@@ -15,7 +15,7 @@
     <menuitem id="validatePage"
               label="&validatePage.label;"
               accesskey="&validatePage.accesskey;"
-              oncommand="gWebDeveloper.validateThisPage(event);"/>
+              oncommand="gWebDeveloper.validateThisPage(); event.stopPropagation();"/>
   </menupopup>
 
 </overlay>

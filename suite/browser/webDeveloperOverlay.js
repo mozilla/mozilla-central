@@ -4,13 +4,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var gWebDeveloper = {
-  validateThisPage: function validateThisPage(aEvent) {
+  validateThisPage: function validateThisPage() {
     var service = GetLocalizedStringPref("browser.validate.html.service");
     var uri = getBrowser().currentURI;
     var checkURL = service + encodeURIComponent(uri.spec);
-
-    if (!openNewTabOrWindow(aEvent, checkURL, getBrowser().contentDocument))
-      getBrowser().addTab(checkURL, { referrerURI: uri, focusNewTab: true });
+    var opentab = Services.prefs.getBoolPref("browser.tabs.opentabfor.middleclick");
+    openUILinkIn(checkURL, opentab ? "tabfocused" : "window",
+                 { referrerURI: uri, relatedToCurrent: true });
   },
 
   initMenuItem: function initMenuItem() {
