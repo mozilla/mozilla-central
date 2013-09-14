@@ -75,6 +75,9 @@ ifndef INCLUDED_VERSION_MK
 include $(topsrcdir)/config/version.mk
 endif
 
+USE_AUTOTARGETS_MK = 1
+include $(topsrcdir)/config/makefiles/makeutils.mk
+
 ifdef SDK_HEADERS
 EXPORTS += $(SDK_HEADERS)
 endif
