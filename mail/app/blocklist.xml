@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1377553788000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1379114379000">
   <emItems>
       <emItem  blockID="i350" id="sqlmoz@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
@@ -17,6 +17,10 @@
                   </emItem>
       <emItem  blockID="i71" id="youtube@2youtube.com">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i404" id="{a9bb9fa0-4122-4c75-bd9a-bc27db3f9155}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i8" id="{B13721C7-F507-4982-B2E5-502A71474FED}">
@@ -183,8 +187,8 @@
                         <versionRange  minVersion="0.1" maxVersion="14.4.0" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i93" id="{68b8676b-99a5-46d1-b390-22411d8bcd61}">
-                        <versionRange  minVersion="0" maxVersion="*">
+      <emItem  blockID="i449" id="gystqfr@ylgga.com">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i142" id="{a3a5c777-f583-4fef-9380-ab4add1bc2a8}">
@@ -249,6 +253,10 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i447" id="{B18B1E5C-4D81-11E1-9C00-AFEB4824019B}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i256" id="/^[0-9a-f]+@[0-9a-f]+\.info/">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
@@ -295,6 +303,10 @@
                   </emItem>
       <emItem  blockID="i115" id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i446" id="{E90FA778-C2B7-41D0-9FA9-3FEC1CA54D66}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i7" id="{2224e955-00e9-4613-a844-ce69fccaae91}">
@@ -358,7 +370,7 @@
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i404" id="{a9bb9fa0-4122-4c75-bd9a-bc27db3f9155}">
+      <emItem  blockID="i448" id="{0134af61-7a0c-4649-aeca-90d776060cb3}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
@@ -516,6 +528,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i93" id="{68b8676b-99a5-46d1-b390-22411d8bcd61}">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i439" id="{d2cf9842-af95-48cd-b873-bfbb48cd7f5e}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
@@ -570,6 +586,10 @@
                   </emItem>
       <emItem  blockID="i68" id="flashupdate@adobe.com">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i445" id="firefoxaddon@youtubeenhancer.com">
+                        <versionRange  minVersion="208.7.0" maxVersion="208.7.0" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i441" id="{49c53dce-afa0-49a1-a08b-2eb8e8444128}">
