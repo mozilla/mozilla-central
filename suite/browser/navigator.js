@@ -20,7 +20,7 @@ XPCOMUtils.defineLazyModuleGetter(this, "SafeBrowsing",
   "resource://gre/modules/SafeBrowsing.jsm");
 
 const REMOTESERVICE_CONTRACTID = "@mozilla.org/toolkit/remote-service;1";
-const XUL_NAMESPACE = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 var gURLBar = null;
 var gProxyButton = null;
 var gProxyFavIcon = null;
@@ -279,7 +279,7 @@ function updateHomeButtonTooltip()
     tooltip.removeChild(tooltip.firstChild);
 
   for (var i in homePage) {
-    var label = document.createElementNS(XUL_NAMESPACE, "label");
+    var label = document.createElementNS(XUL_NS, "label");
     label.setAttribute("value", homePage[i]);
     tooltip.appendChild(label);
   }
@@ -992,7 +992,7 @@ function SetGroupHistory(popupMenu, direction)
   while (popupMenu.firstChild)
     popupMenu.removeChild(popupMenu.firstChild);
 
-  var menuItem = document.createElementNS(XUL_NAMESPACE, "menuitem");
+  var menuItem = document.createElementNS(XUL_NS, "menuitem");
   var label = gNavigatorBundle.getString("tabs.historyItem");
   menuItem.setAttribute("label", label);
   menuItem.setAttribute("index", direction);
