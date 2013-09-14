@@ -346,7 +346,7 @@ var gDomains = {
       gDataman.debugMsg("Domain list built: " + Date.now()/1000);
       gDomains.listLoadCompleted = true;
       gDomains.loadView();
-      yield;
+      yield undefined;
     }
     loaderInstance = loader();
     setTimeout(nextStep, 0);
@@ -443,7 +443,7 @@ var gDomains = {
 
       // Send a notification that we have finished.
       Services.obs.notifyObservers(window, "dataman-loaded", null);
-      yield;
+      yield undefined;
     }
     loaderInstance = loader();
     setTimeout(nextStep, 0);
