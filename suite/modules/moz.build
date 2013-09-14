@@ -6,7 +6,6 @@
 TEST_DIRS += ['test']
 
 EXTRA_JS_MODULES += [
-    'DownloadTaskbarIntegration.jsm',
     'Sanitizer.jsm',
     'WindowsPreviewPerTab.jsm',
 ]

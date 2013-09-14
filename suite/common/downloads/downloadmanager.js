@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 Components.utils.import("resource://gre/modules/PluralForm.jsm");
-Components.utils.import("resource:///modules/DownloadTaskbarIntegration.jsm");
+Components.utils.import("resource://gre/modules/DownloadTaskbarProgress.jsm");
 
 const nsIDownloadManager = Components.interfaces.nsIDownloadManager;
 
@@ -51,7 +51,7 @@ function dmStartup()
   if (gDownloadTree.view.rowCount > 0)
     gDownloadTree.view.selection.select(0);
 
-  DownloadTaskbarIntegration.onDownloadWindowLoad(window);
+  DownloadTaskbarProgress.onDownloadWindowLoad(window);
 }
 
 function dmShutdown()
