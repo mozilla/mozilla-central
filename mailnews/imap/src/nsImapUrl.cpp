@@ -14,7 +14,7 @@
 #include "prmem.h"
 #include "plstr.h"
 #include "prprf.h"
-#include "nsCRT.h"
+#include "nsMemory.h"
 #include "nsCOMPtr.h"
 #include "nsIImapIncomingServer.h"
 #include "nsMsgBaseCID.h"

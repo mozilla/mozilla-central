@@ -8,7 +8,7 @@
 #include "nsLDAPMessage.h"
 #include "nspr.h"
 #include "nsDebug.h"
-#include "nsCRT.h"
+#include "nsMemory.h"
 #include "nsLDAPConnection.h"
 #include "nsISupportsUtils.h"
 #include "nsLDAPBERValue.h"

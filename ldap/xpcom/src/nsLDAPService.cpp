@@ -11,7 +11,7 @@
 #include "nsIServiceManager.h"
 #include "nsIConsoleService.h"
 #include "nsILDAPURL.h"
-#include "nsCRT.h"
+#include "nsMemory.h"
 #include "nsILDAPErrors.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"

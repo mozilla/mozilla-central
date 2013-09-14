@@ -23,7 +23,7 @@
 #include "nsILDAPURL.h"
 #include "nsIObserverService.h"
 #include "mozilla/Services.h"
-#include "nsCRT.h"
+#include "nsMemory.h"
 #include "nsLDAPUtils.h"
 
 using namespace mozilla;
@@ -223,7 +223,7 @@ NS_IMETHODIMP
 nsLDAPConnection::Observe(nsISupports *aSubject, const char *aTopic,
                           const PRUnichar *aData)
 {
-  if (!nsCRT::strcmp(aTopic, "profile-change-net-teardown")) {
+  if (!strcmp(aTopic, "profile-change-net-teardown")) {
     // Abort all ldap requests.
     /* We cannot use enumerate function to abort operations because
      * nsILDAPOperation::AbandonExt() is modifying list of operations
