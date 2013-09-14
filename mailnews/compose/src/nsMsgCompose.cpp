@@ -1651,7 +1651,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
                                      nsIMsgCompFields * compFields)
 {
   nsresult rv = NS_OK;
-
   mType = type;
   mDraftDisposition = nsIMsgFolder::nsMsgDispositionState_None;
 
@@ -1761,16 +1760,15 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   if (mType == nsIMsgCompType::Draft)
   {
     nsCString curDraftIdURL;
-
     rv = m_compFields->GetDraftId(getter_Copies(curDraftIdURL));
-    NS_ASSERTION(NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty(), "RemoveCurrentDraftMessage can't get draft id");
+    NS_ASSERTION(NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty(), "CreateMessage can't get draft id");
 
     // Skip if no draft id (probably a new draft msg).
     if (NS_SUCCEEDED(rv) && !curDraftIdURL.IsEmpty())
     {
       nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
       rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(msgDBHdr));
-      NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header DB interface pointer.");
+      NS_ASSERTION(NS_SUCCEEDED(rv), "CreateMessage can't get msg header DB interface pointer.");
       if (msgDBHdr)
       {
         nsCString queuedDisposition;
@@ -3264,8 +3262,8 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
 {
   // need to find the msg hdr in the saved folder and then set a property on
   // the header that we then look at when we actually send the message.
-
-  const char *dispositionSetting = nullptr;
+  nsresult rv;
+  nsAutoCString dispositionSetting;
 
   if (mType == nsIMsgCompType::Reply ||
       mType == nsIMsgCompType::ReplyAll ||
@@ -3273,10 +3271,26 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
       mType == nsIMsgCompType::ReplyToGroup ||
       mType == nsIMsgCompType::ReplyToSender ||
       mType == nsIMsgCompType::ReplyToSenderAndGroup)
-    dispositionSetting = "replied";
+  {
+    dispositionSetting.AssignLiteral("replied");
+  }
   else if (mType == nsIMsgCompType::ForwardAsAttachment ||
            mType == nsIMsgCompType::ForwardInline)
-    dispositionSetting = "forwarded";
+  {
+    dispositionSetting.AssignLiteral("forwarded");
+  }
+  else if (mType == nsIMsgCompType::Draft)
+  {
+    nsAutoCString curDraftIdURL;
+    rv = m_compFields->GetDraftId(getter_Copies(curDraftIdURL));
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (!curDraftIdURL.IsEmpty()) {
+      nsCOMPtr <nsIMsgDBHdr> draftHdr;
+      rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(draftHdr));
+      NS_ENSURE_SUCCESS(rv, rv);
+      draftHdr->GetStringProperty(QUEUED_DISPOSITION_PROPERTY, getter_Copies(dispositionSetting));
+    }
+  }
 
   nsMsgKey msgKey;
   if (mMsgSend)
@@ -3292,54 +3306,40 @@ NS_IMETHODIMP nsMsgCompose::RememberQueuedDisposition()
     msgUri.Append('#');
     msgUri.AppendInt(msgKey);
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
-    nsresult rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
+    rv = GetMsgDBHdrFromURI(msgUri.get(), getter_AddRefs(msgHdr));
     NS_ENSURE_SUCCESS(rv, rv);
-    // If we did't find the msg hdr, and it's an IMAP message,
-    // we must not have downloaded the header. So we're going to set some
-    // pending attributes on the header for the queued disposition, so that
-    // we can associate them with the header, once we've downloaded it from
-    // the imap server.
-    if (!msgHdr && insertIndex == 4)
+    uint32_t pseudoHdrProp = 0;
+    msgHdr->GetUint32Property("pseudoHdr", &pseudoHdrProp);
+    if (pseudoHdrProp)
     {
-      nsCOMPtr<nsIRDFService> rdfService (do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
+      // Use SetAttributeOnPendingHdr for IMAP pseudo headers, as those
+      // will get deleted (and properties set using SetStringProperty lost.)
+      nsCOMPtr<nsIMsgFolder> folder;
+      rv = msgHdr->GetFolder(getter_AddRefs(folder));
+      NS_ENSURE_SUCCESS(rv,rv);
+      nsCOMPtr<nsIMsgDatabase> msgDB;
+      rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
+      NS_ENSURE_SUCCESS(rv,rv);
 
-      nsCOMPtr <nsIRDFResource> resource;
-      rv = rdfService->GetResource(m_folderName, getter_AddRefs(resource));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      nsCOMPtr <nsIMsgFolder> msgFolder(do_QueryInterface(resource));
-      if (msgFolder)
+      nsCString messageId;
+      mMsgSend->GetMessageId(messageId);
+      msgHdr->SetMessageId(messageId.get());
+      if (!mOriginalMsgURI.IsEmpty())
       {
-        nsCOMPtr <nsIMsgDatabase> msgDB;
-        msgFolder->GetMsgDatabase(getter_AddRefs(msgDB));
-        if (msgDB)
-        {
-          msgDB->CreateNewHdr(msgKey, getter_AddRefs(msgHdr));
-          if (msgHdr)
-          {
-            nsCString messageId;
-            mMsgSend->GetMessageId(messageId);
-            msgHdr->SetMessageId(messageId.get());
-            if (!mOriginalMsgURI.IsEmpty())
-            {
-              msgDB->SetAttributeOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get());
-              if (dispositionSetting)
-                msgDB->SetAttributeOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
-            }
-            msgDB->SetAttributeOnPendingHdr(msgHdr, HEADER_X_MOZILLA_IDENTITY_KEY, identityKey.get());
-            msgDB->RemoveHeaderMdbRow(msgHdr);
-          }
-        }
+        msgDB->SetAttributeOnPendingHdr(msgHdr, ORIG_URI_PROPERTY, mOriginalMsgURI.get());
+        if (!dispositionSetting.IsEmpty())
+          msgDB->SetAttributeOnPendingHdr(msgHdr, QUEUED_DISPOSITION_PROPERTY,
+                                          dispositionSetting.get());
       }
+      msgDB->SetAttributeOnPendingHdr(msgHdr, HEADER_X_MOZILLA_IDENTITY_KEY, identityKey.get());
     }
     else if (msgHdr)
     {
       if (!mOriginalMsgURI.IsEmpty())
       {
         msgHdr->SetStringProperty(ORIG_URI_PROPERTY, mOriginalMsgURI.get());
-        if (dispositionSetting)
-          msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting);
+        if (!dispositionSetting.IsEmpty())
+          msgHdr->SetStringProperty(QUEUED_DISPOSITION_PROPERTY, dispositionSetting.get());
       }
       msgHdr->SetStringProperty(HEADER_X_MOZILLA_IDENTITY_KEY, identityKey.get());
     }
@@ -3379,7 +3379,7 @@ nsresult nsMsgCompose::ProcessReplyFlags()
           msgHdr->GetFolder(getter_AddRefs(msgFolder));
           if (msgFolder)
           {
-            // assume reply. If a draft with disposition, use that, otherwise,
+            // If it's a draft with disposition, default to replied, otherwise,
             // check if it's a forward.
             nsMsgDispositionState dispositionSetting = nsIMsgFolder::nsMsgDispositionState_Replied;
             if (mDraftDisposition != nsIMsgFolder::nsMsgDispositionState_None)
@@ -3820,9 +3820,9 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool
     else
     {
       // If we get here we have the case where the draft folder
-                  // is on the server and
+      // is on the server and
       // it's not currently open (in thread pane), so draft
-                  // msgs are saved to the server
+      // msgs are saved to the server
       // but they're not in our local DB. In this case,
       // GetMsgDBHdrFromURI() will never
       // find the msg. If the draft folder is a local one
