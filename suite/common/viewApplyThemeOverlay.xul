@@ -22,11 +22,11 @@
     <menupopup id="menu_viewApplyTheme_Popup"
                onpopupshowing="checkTheme(this);"
                oncommand="applyTheme(event.target);">
-      <menuitem label="&getNewThemesCmd.label;"
-                accesskey="&getNewThemesCmd.accesskey;"
+      <menuitem label="&getMoreThemesCmd.label;"
+                accesskey="&getMoreThemesCmd.accesskey;"
                 oncommand="getNewThemes();"/>
-      <menuitem label="&getPersonasCmd.label;"
-                accesskey="&getPersonasCmd.accesskey;"
+      <menuitem label="&getBackgroundsCmd.label;"
+                accesskey="&getBackgroundsCmd.accesskey;"
                 oncommand="getPersonas();"/>
       <menuseparator/>
     </menupopup>
