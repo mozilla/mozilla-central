@@ -12,6 +12,7 @@ Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 
 var onContentLoaded = LoginManagerContent.onContentLoaded.bind(LoginManagerContent);
+var onFormPassword = LoginManagerContent.onFormPassword.bind(LoginManagerContent);
 var onUsernameInput = LoginManagerContent.onUsernameInput.bind(LoginManagerContent);
 
 XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
@@ -271,6 +272,7 @@ SuiteGlue.prototype = {
 
   onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
     aWebProgress.DOMWindow.addEventListener("DOMContentLoaded", onContentLoaded, true);
+    aWebProgress.DOMWindow.addEventListener("DOMFormHasPassword", onFormPassword, true);
     aWebProgress.DOMWindow.addEventListener("DOMAutoComplete", onUsernameInput, true);
     aWebProgress.DOMWindow.addEventListener("change", onUsernameInput, true);
   },
