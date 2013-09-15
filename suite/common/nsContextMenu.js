@@ -468,7 +468,8 @@ nsContextMenu.prototype = {
                            .chromeEventHandler;
       var editingSession = webNav.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                                  .getInterface(Components.interfaces.nsIEditingSession);
-      if (editingSession.windowIsEditable(win) && this.isTargetEditable()) {
+      if (editingSession.windowIsEditable(win) &&
+          this.isTargetEditable() && this.target.spellcheck) {
         this.onTextInput           = true;
         this.possibleSpellChecking = true;
         InlineSpellCheckerUI.init(editingSession.getEditorForWindow(win));
@@ -522,7 +523,7 @@ nsContextMenu.prototype = {
         this.onTextInput = this.isTargetATextBox(this.target);
         // allow spellchecking UI on all writable text boxes except passwords
         if (this.onTextInput && !this.target.readOnly &&
-            this.target.mozIsTextField(true)) {
+            this.target.mozIsTextField(true) && this.target.spellcheck) {
           this.possibleSpellChecking = true;
           InlineSpellCheckerUI.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
           InlineSpellCheckerUI.initFromEvent(aRangeParent, aRangeOffset);
@@ -531,7 +532,7 @@ nsContextMenu.prototype = {
       }
       else if (this.target instanceof HTMLTextAreaElement) {
         this.onTextInput = this.isTextBoxEnabled(this.target);
-        if (this.onTextInput && !this.target.readOnly) {
+        if (this.onTextInput && !this.target.readOnly && this.target.spellcheck) {
           this.possibleSpellChecking = true;
           InlineSpellCheckerUI.init(this.target.QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor);
           InlineSpellCheckerUI.initFromEvent(aRangeParent, aRangeOffset);
