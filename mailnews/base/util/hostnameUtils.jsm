@@ -72,9 +72,22 @@ function isLegalHostName(aHostName)
 
    Host software MUST handle host names of up to 63 characters and
    SHOULD handle host names of up to 255 characters.
+
+   RFC 1034:
+   Relative names are either taken relative to a well known origin, or to a
+   list of domains used as a search list.  Relative names appear mostly at
+   the user interface, where their interpretation varies from
+   implementation to implementation, and in master files, where they are
+   relative to a single origin domain name.  The most common interpretation
+   uses the root "." as either the single origin or as one of the members
+   of the search list, so a multi-label relative name is often one where
+   the trailing dot has been omitted to save typing.
+
+   Since a complete domain name ends with the root label, this leads to
+   a printed form which ends in a dot.
   */
 
-  const hostPattern = /^(([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])$/i;
+  const hostPattern = /^(([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]{0,61}[a-z0-9])\.?$/i;
   return ((aHostName.length <= 255) && hostPattern.test(aHostName)) ? aHostName : null;
 }
 

@@ -151,6 +151,8 @@ function test_hostnames() {
     [ true,	"1.2.3.4.5" ],
     [ true,	"very.log.sub.domain.name.invalid" ],
     [ true,	"1234567890" ],
+    [ true,	"1234567890." ], // FQDN
+    [ true,	"server.company.invalid." ], // FQDN
 
     [ false,	"" ],
     [ false,	"server.badcompany!.invalid" ],
@@ -159,7 +161,7 @@ function test_hostnames() {
     [ false,	"server.badcompany-.invalid" ],
     [ false,	"server.bad company.invalid" ],
     [ false,	"server.b…dcompany.invalid" ],
-    [ false,	"server.badcompany.invalid." ],
+    [ false,	".server.badcompany.invalid" ],
     [ false,	"make-this-a-long-host-name-component-that-is-over-63-characters-long.invalid" ],
     [ false,	"append-strings-to-make-this-a-too-long-host-name.that-is-really-over-255-characters-long.invalid." +
                 "append-strings-to-make-this-a-too-long-host-name.that-is-really-over-255-characters-long.invalid." +
