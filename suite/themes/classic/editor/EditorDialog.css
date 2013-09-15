@@ -12,10 +12,6 @@
   min-width: 10em;
 }
 
-.MinWidth15em {
-  min-width: 15em;
-}
-
 .MinWidth20em {
   min-width: 20em;
 }
@@ -245,7 +241,7 @@
 }
 
 /* styles for an attribute tree-table */
-tree.AttributesTree {
+.AttributesTree {
   min-width : 200px;
   min-height: 200px;
 }

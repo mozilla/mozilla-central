@@ -59,10 +59,12 @@ richlistitem[type="client"] {
   background-color: transparent;
   -moz-user-focus: ignore !important;
 }
-richlistitem.mobile[type="client"] {
+
+.mobile[type="client"] {
   list-style-image: url("chrome://communicator/skin/sync/sync-mobileIcon.png");
 }
-richlistitem.desktop[type="client"] {
+
+.desktop[type="client"] {
   list-style-image: url("chrome://communicator/skin/sync/sync-desktopIcon.png");
 }
 

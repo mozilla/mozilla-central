@@ -10,28 +10,5 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: button-like menus ::::: */
- 
-menu.push {
-  border: 1px outset ThreeDFace;
-  padding: 2px;
-  margin: 2px;
-  background-color: inherit;
-  background-image: inherit;
-}
-
-menu.push:hover:active,
-menu.push[open="true"] {
-  border-style: inset;
-  padding-top: 3px;
-  padding-bottom: 1px;
-  -moz-padding-start: 3px;
-  -moz-padding-end: 1px;
-}
-
-menu.push[disabled="true"],
-menu.push[disabled="true"]:hover,
-menu.push[disabled="true"]:hover:active {
-  color: GrayText;
-}
+/* ::::: styles for messenger dialogs ::::: */
 

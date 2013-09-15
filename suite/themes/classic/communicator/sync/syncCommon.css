@@ -32,12 +32,8 @@
   font-weight: bold;
 }
 
-dialog#change-dialog {
+#change-dialog {
   width: 40em;
-}
-
-image#syncIcon {
-  list-style-image: url("chrome://communicator/skin/sync/sync-32.png");
 }
 
 #introText {

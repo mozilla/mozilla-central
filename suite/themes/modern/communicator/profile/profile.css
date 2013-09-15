@@ -29,10 +29,6 @@ treechildren::-moz-tree-image(rowMigrate-no) {
   min-width: 8em;
 }
 
-box.selection {
-  margin-top: 4px;
-}
-
 #finishtext {
   margin-top: -20px;
 }

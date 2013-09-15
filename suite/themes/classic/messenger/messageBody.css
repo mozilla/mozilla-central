@@ -21,7 +21,7 @@
   background-color: #DEDEDE;
 }
 
-div.headerdisplayname {
+.headerdisplayname {
   display: inline;
   font-weight: bold;
   white-space: pre;
@@ -68,11 +68,11 @@ div.headerdisplayname {
   display: none;
 }
 
-span.moz-txt-underscore {
+.moz-txt-underscore {
   text-decoration: underline;
 }
 
-span.moz-txt-formfeed {
+.moz-txt-formfeed {
   display: block;
   height: 100%;
 }

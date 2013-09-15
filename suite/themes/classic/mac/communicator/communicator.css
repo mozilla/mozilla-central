@@ -57,6 +57,12 @@ grippy {
   font-weight: bold;
 }
 
+/* ::::: error messages ::::: */
+
+description.error {
+  color: #FF0000;
+}
+
 /* ::::: directional button icons ::::: */
 
 .up {

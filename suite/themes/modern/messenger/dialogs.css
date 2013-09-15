@@ -10,43 +10,11 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* ::::: button-like menus ::::: */
-
-menu.push {
-  margin: 2px;
-  border: 1px outset #B4C3D4;
-  padding: 2px;
-  background: transparent;
-}
-
-menu.push:hover:active,
-menu.push[open] {
-  border-style: inset;
-  padding-top: 3px;
-  padding-bottom: 1px;
-  -moz-padding-start: 3px;
-  -moz-padding-end: 1px;
-}
-
-menu.push[disabled="true"],
-menu.push[disabled="true"]:hover,
-menu.push[disabled="true"]:hover:active {
-  border: 1px solid #85959E;
-  color: #85959E;
-}
-
 /* ::::: fieldMapImport.xul ::::: */
 
-treecell.importsampledata {
+.importsampledata {
   border-left: 3px solid #C2D0D0;
   -moz-padding-start: 10px;
-}
-
-#fieldList-box {
-  margin: 1.5em 3em;
-  border: 1px inset white;
-  width: 32em;
-  height: 300px;
 }
 
 /* ::::: importDialog.xul ::::: */

@@ -9,7 +9,7 @@
    Style rules specific to the Preview dialog.
 */
 
-iframe#previewframe {
+#previewframe {
  min-width: 10px;
  min-height: 10px;
  width: 162px;

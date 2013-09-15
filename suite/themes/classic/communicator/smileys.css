@@ -11,124 +11,122 @@
 
 /* ::::: we also represent smilies inside of spans ::::: */
 
-span.moz-smiley-s1,
-span.moz-smiley-s2,
-span.moz-smiley-s3,
-span.moz-smiley-s4,
-span.moz-smiley-s5,
-span.moz-smiley-s6,
-span.moz-smiley-s7,
-span.moz-smiley-s8,
-span.moz-smiley-s9,
-span.moz-smiley-s10,
-span.moz-smiley-s11,
-span.moz-smiley-s12,
-span.moz-smiley-s13,
-span.moz-smiley-s14,
-span.moz-smiley-s15,
-span.moz-smiley-s16
-{
+.moz-smiley-s1,
+.moz-smiley-s2,
+.moz-smiley-s3,
+.moz-smiley-s4,
+.moz-smiley-s5,
+.moz-smiley-s6,
+.moz-smiley-s7,
+.moz-smiley-s8,
+.moz-smiley-s9,
+.moz-smiley-s10,
+.moz-smiley-s11,
+.moz-smiley-s12,
+.moz-smiley-s13,
+.moz-smiley-s14,
+.moz-smiley-s15,
+.moz-smiley-s16 {
   display: inline-block;
   vertical-align: middle;
   -moz-user-select: all;
 }
 
-span.moz-smiley-s1 > span,
-span.moz-smiley-s2 > span,
-span.moz-smiley-s3 > span,
-span.moz-smiley-s4 > span,
-span.moz-smiley-s5 > span,
-span.moz-smiley-s6 > span,
-span.moz-smiley-s7 > span,
-span.moz-smiley-s8 > span,
-span.moz-smiley-s9 > span,
-span.moz-smiley-s10 > span,
-span.moz-smiley-s11 > span,
-span.moz-smiley-s12 > span,
-span.moz-smiley-s13 > span,
-span.moz-smiley-s14 > span,
-span.moz-smiley-s15 > span,
-span.moz-smiley-s16 > span
-{
-    display: none;
+.moz-smiley-s1 > span,
+.moz-smiley-s2 > span,
+.moz-smiley-s3 > span,
+.moz-smiley-s4 > span,
+.moz-smiley-s5 > span,
+.moz-smiley-s6 > span,
+.moz-smiley-s7 > span,
+.moz-smiley-s8 > span,
+.moz-smiley-s9 > span,
+.moz-smiley-s10 > span,
+.moz-smiley-s11 > span,
+.moz-smiley-s12 > span,
+.moz-smiley-s13 > span,
+.moz-smiley-s14 > span,
+.moz-smiley-s15 > span,
+.moz-smiley-s16 > span {
+  display: none;
 }
 
 /* smile */
-span.moz-smiley-s1:before {
+.moz-smiley-s1:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-smile.png");
 }
 
 /* frown */
-span.moz-smiley-s2:before {
+.moz-smiley-s2:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-frown.png");
 }
 
 /* wink */
-span.moz-smiley-s3:before {
+.moz-smiley-s3:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-wink.png");
 }
 
 /* tongue */
-span.moz-smiley-s4:before {
+.moz-smiley-s4:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-tongue.png");
 }
 
 /* laughing */
-span.moz-smiley-s5:before {
+.moz-smiley-s5:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-laughing.png");
 }
 
 /* embarrassed */
-span.moz-smiley-s6:before {
+.moz-smiley-s6:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-embarrassed.png");
 }
 
 /* undecided */
-span.moz-smiley-s7:before {
+.moz-smiley-s7:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-undecided.png");
 }
 
 /* surprise */
-span.moz-smiley-s8:before {
+.moz-smiley-s8:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-surprise.png");
 }
 
 /* kiss */
-span.moz-smiley-s9:before {
+.moz-smiley-s9:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-kiss.png");
 }
 
 /* yell */
-span.moz-smiley-s10:before {
+.moz-smiley-s10:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-yell.png");
 }
 
 /* cool */
-span.moz-smiley-s11:before {
+.moz-smiley-s11:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-cool.png");
 }
 
 /* money */
-span.moz-smiley-s12:before {
+.moz-smiley-s12:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-money.png");
 }
 
 /* foot */
-span.moz-smiley-s13:before {
+.moz-smiley-s13:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-foot.png");
 }
 
 /* innocent */
-span.moz-smiley-s14:before {
+.moz-smiley-s14:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-innocent.png");
 }
 
 /* cry */
-span.moz-smiley-s15:before {
+.moz-smiley-s15:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-cry.png");
 }
 
 /* sealed */
-span.moz-smiley-s16:before {
+.moz-smiley-s16:before {
   content: url("chrome://communicator/skin/icons/smileys/smiley-sealed.png");
 }
