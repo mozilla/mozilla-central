@@ -18,7 +18,7 @@ EXTRA_SCRIPTS = \
                 calWcapCalendar.js \
                 $(NULL)
 
-tools:: $(EXTRA_SCRIPTS)
+libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
 	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
 

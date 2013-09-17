@@ -41,7 +41,7 @@ EXTRA_SCRIPTS = \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.
-tools:: $(EXTRA_SCRIPTS)
+libs:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
 	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
 

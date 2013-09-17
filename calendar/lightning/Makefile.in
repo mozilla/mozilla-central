@@ -116,7 +116,7 @@ GRE_BUILDID = $(shell $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
-tools::
+libs::
 	$(NSINSTALL) -m 0644 $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
 
 include $(topsrcdir)/config/rules.mk
@@ -131,7 +131,7 @@ lightning-extrafiles:
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # If the macbundle dist dir was already created, sync lightning here to avoid
 # the need to make -C objdir/mail/app each time
-tools::
+libs::
 	[ -d $(DIST)/$(MOZ_MACBUNDLE_NAME) ] && rsync -aL $(FINAL_TARGET)/ $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS/extensions/$(XPI_EM_ID) || true
 endif
 
