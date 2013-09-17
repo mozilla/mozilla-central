@@ -327,24 +327,6 @@ let autosyncModule =
                     folder.server.prettyName + " has been updated.\n");
   },
 
-  getFolderListString : function() {
-    let folderList = [];
-    for (let folder of this._inQFolderList)
-      folderList.push(folder.prettiestName);
-
-    return folderList.join(", ");
-  },
-
-  getAccountListString : function() {
-    let accountList = [];
-    for (let folder of this._inQFolderList) {
-      // do not include already existing account names
-      if (accountList.indexOf(folder.server.prettyName) == -1)
-        accountList.push(folder.server.prettyName);
-    }
-    return accountList.join(", ");
-  },
-
   init: function() {
     // XXX when do we need to remove ourselves?
     this.log.info('initing');
