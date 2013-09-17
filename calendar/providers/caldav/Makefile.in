@@ -11,7 +11,7 @@ include $(DEPTH)/config/autoconf.mk
 
 EXTRA_SCRIPTS = calDavRequestHandlers.js
 
-libs:: $(EXTRA_SCRIPTS)
+tools:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
 	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
 

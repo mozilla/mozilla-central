@@ -46,7 +46,7 @@ ICON_SUFFIX = .png
 endif
 
 # Copy the window icons into the correct directory
-libs:: $(addprefix themes/windows/icons/, $(addsuffix $(ICON_SUFFIX), $(WINDOW_ICONS)))
+tools:: $(addprefix themes/windows/icons/, $(addsuffix $(ICON_SUFFIX), $(WINDOW_ICONS)))
 	$(INSTALL) $^ $(FINAL_TARGET)/chrome/icons/default
 
 endif

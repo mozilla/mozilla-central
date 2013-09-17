@@ -55,13 +55,13 @@ DEFINES += -DAB_CD=$(AB_CD) \
 TIMEZONES_SQLITE =  $(srcdir)/timezones.sqlite
 
 ifneq ($(strip $(update)),)
-libs::
+tools::
 	echo 'SELECT * FROM tz_data ORDER BY tzid;' | sqlite3 $(TIMEZONES_SQLITE) > $(srcdir)/timezones_before_update.dump
 	$(DIST)/bin/run-mozilla.sh $(LIBXUL_DIST)/bin/xpcshell -s -w $(srcdir)/update.js $(update) $(srcdir)/$(DEPTH) $(TIMEZONES_VERSION)
 	echo 'SELECT * FROM tz_data ORDER BY tzid;' | sqlite3 $(TIMEZONES_SQLITE) > $(srcdir)/timezones.dump
 endif
 
-libs::
+tools::
 	$(NSINSTALL) -m 0644 $(TIMEZONES_SQLITE) $(FINAL_TARGET)
 
 libs-%:

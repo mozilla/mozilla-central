@@ -25,11 +25,11 @@ EXTRA_SCRIPTS = \
 	$(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.
-libs:: $(EXTRA_SCRIPTS)
+tools:: $(EXTRA_SCRIPTS)
 	if test ! -d $(FINAL_TARGET)/calendar-js; then $(NSINSTALL) -D $(FINAL_TARGET)/calendar-js; fi
 	$(INSTALL) $^ $(FINAL_TARGET)/calendar-js
 
-libs:: $(BACKEND_MANIFESTS)
+tools:: $(BACKEND_MANIFESTS)
 	$(EXIT_ON_ERROR) \
 	$(NSINSTALL) -D $(FINAL_TARGET)/components; \
 	for i in $^; do \
