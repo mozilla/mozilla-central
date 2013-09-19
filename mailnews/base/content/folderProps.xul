@@ -70,8 +70,9 @@
                 accesskey="&folderCheckForNewMessages2.accesskey;"/>
       <vbox>
         <hbox align="center" valign="middle">
-          <label value="&folderCharsetTab.label;" control="folderCharsetList"
-                 accesskey="&folderCharsetTab.accesskey;"/>
+          <label value="&folderCharsetFallback.label;"
+                 accesskey="&folderCharsetFallback.accesskey;"
+                 control="folderCharsetList"/>
           <menulist id="folderCharsetList" ref="NC:DecodersRoot" datasources="rdf:charset-menu"> 
             <template>
               <menupopup>
@@ -81,8 +82,8 @@
           </menulist>
         </hbox> 
         <checkbox class="indent" id="folderCharsetOverride"
-                  label="&folderCharsetOverride.label;"
-                  accesskey="&folderCharsetOverride.accesskey;"/>
+                  label="&folderCharsetEnforce.label;"
+                  accesskey="&folderCharsetEnforce.accesskey;"/>
       </vbox>
       <groupbox id="folderRebuildSummaryGroupBox" align="baseline">
         <grid>
