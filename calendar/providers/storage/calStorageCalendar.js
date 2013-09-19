@@ -191,6 +191,7 @@ calStorageCalendar.prototype = {
             }
             // open the database
             this.mDB = Services.storage.openDatabase(fileURL.file);
+            this.mDB.executeSimpleSQL("PRAGMA journal_mode=WAL");
             upgradeDB(this.mDB);
 
         } else if (this.uri.schemeIs("moz-profile-calendar")) {
