@@ -2,9 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-/*
- * Test that we can add a tag to a message without messing up the header.
+/**
+ * Test functionality in the message header, e.g. tagging, contact editing,
+ * the more button ...
  */
+
+// make SOLO_TEST=message-header/test-message-header.js mozmill-one
+
 var MODULE_NAME = 'test-message-header';
 
 var RELATIVE_ROOT = '../shared-modules';
@@ -201,7 +205,9 @@ function test_clicking_star_opens_inline_contact_editor()
   // Click on the star, and ensure that the inline contact
   // editing panel opens
   mc.click(mc.aid(lastAddr, {class: 'emailStar'}));
-  assert_equals(contactPanel.state, "open");
+  mc.waitFor(function() contactPanel.state == "open",
+             "Timeout waiting for contactPanel to open; state=" +
+             contactPanel.state);
   contactPanel.hidePopup();
 }
 
