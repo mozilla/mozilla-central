@@ -1125,6 +1125,10 @@ var filePhotoHandler = {
     if (!file)
       return false;
 
+    // If the local file has been removed/renamed, keep the current photo as is
+    if (!file.exists() || !file.isFile())
+      return true;
+
     var photoURI = Services.io.newFileURI(file).spec;
 
     var file = storePhoto(photoURI);
