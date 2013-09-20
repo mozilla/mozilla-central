@@ -127,7 +127,7 @@ toolbar[iconsize="small"] #button-send {
   -moz-image-region: rect(144px 16px 160px 0px);
 }
 
-toolbar[iconsize="small"] #button-send[disabled] {
+toolbar[iconsize="small"] #button-send[disabled="true"] {
   -moz-image-region: rect(128px 16px 144px 0px) !important;
 }
 
@@ -136,7 +136,7 @@ toolbar[iconsize="small"] #button-contacts {
   -moz-image-region: rect(16px 16px 32px 0px) !important;
 }
 
-toolbar[iconsize="small"] #button-contacts[disabled] {
+toolbar[iconsize="small"] #button-contacts[disabled="true"] {
   -moz-image-region: rect(0px 16px 16px 0px) !important;
 }
 
@@ -153,7 +153,7 @@ toolbar[iconsize="small"] #button-attach {
   -moz-image-region: rect(48px 16px 64px 0px);
 }
 
-toolbar[iconsize="small"] #button-attach[disabled] {
+toolbar[iconsize="small"] #button-attach[disabled="true"] {
   -moz-image-region: rect(32px 16px 48px 0px) !important;
 }
 
@@ -161,7 +161,7 @@ toolbar[iconsize="small"] #button-save {
   list-style-image: url("moz-icon://stock/gtk-save?size=menu");
 }
 
-toolbar[iconsize="small"] #button-save[disabled] {
+toolbar[iconsize="small"] #button-save[disabled="true"] {
   list-style-image: url("moz-icon://stock/gtk-save?size=menu&state=disabled");
 }
 
