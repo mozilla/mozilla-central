@@ -417,7 +417,7 @@ toolbar[mode="icons"] .toolbarbutton-1 > menupopup {
 /* ::::: special toolbar colors ::::: */
 
 #headers-box {
-  -moz-appearance: dialog;
+  background-color: -moz-dialog;
 }
 
 #MsgHeadersToolbar {
@@ -1356,7 +1356,7 @@ sidebarheader {
 }
 
 #sidebar-box {
-  -moz-appearance: dialog;
+  background-color: -moz-dialog;
 }
 
 #sidebar-splitter {

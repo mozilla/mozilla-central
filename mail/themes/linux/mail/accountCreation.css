@@ -179,7 +179,7 @@ input[disabled="true"],
 menulist[disabled="true"] {
   -moz-appearance: none;
   border: 0;
-  background-color: dialog;
+  background-color: -moz-dialog;
   color: -moz-DialogText;
 }
 
