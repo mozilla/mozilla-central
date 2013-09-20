@@ -2020,7 +2020,7 @@ function PrintEnginePrintInternal(aDoPrintPreview, aMsgType)
   window.openDialog("chrome://messenger/content/msgPrintEngine.xul", "",
                     "chrome,dialog=no,all,centerscreen",
                     messageList.length, messageList, statusFeedback,
-                    aDoPrintPreview, aMsgType, window);
+                    aDoPrintPreview, aMsgType);
   return true;
 
 }
