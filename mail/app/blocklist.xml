@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1379114379000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1379696114000">
   <emItems>
-      <emItem  blockID="i350" id="sqlmoz@facebook.com">
+      <emItem  blockID="i454" id="sqlmoz@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                                <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
@@ -157,6 +159,10 @@
                   </emItem>
       <emItem  blockID="i438" id="{02edb56b-9b33-435b-b7df-b2843273a694}">
                         <versionRange  minVersion="0" maxVersion="*" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i450" id="{dff137ae-1ffd-11e3-8277-b8ac6f996f26}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i111" os="WINNT" id="{C3949AC2-4B17-43ee-B4F1-D26B9D42404D}">
@@ -344,6 +350,10 @@
                           </targetApplication>
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i453" id="/^brasilescape.*\@facebook\.com$/">
+                        <versionRange  minVersion="0" maxVersion="*" severity="3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i109" id="{392e123b-b691-4a5e-b52f-c4c1027e749c}">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -410,6 +420,10 @@
                   </emItem>
       <emItem  blockID="i56" id="flash@adobe.com">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i451" id="{e44a1809-4d10-4ab8-b343-3326b64c7cdd}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i216" id="fdm_ffext@freedownloadmanager.org">
@@ -598,6 +612,10 @@
                   </emItem>
       <emItem  blockID="i282" id="{33e0daa6-3af3-d8b5-6752-10e949c61516}">
                         <versionRange  minVersion="0" maxVersion="1.1.999" severity="1">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i452" id="{77beece6-3997-403a-92fa-0055bfcf88e5}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i82" id="{8f42fb8b-b6f6-45de-81c0-d6d39f54f971}">
