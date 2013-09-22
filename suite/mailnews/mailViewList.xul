@@ -6,6 +6,7 @@
 
 <?xul-overlay href="chrome://communicator/content/platformCommunicatorOverlay.xul"?>
 
+<?xml-stylesheet href="chrome://messenger/skin/" type="text/css"?>
 <!-- Mac needs dialog.css to correctly style the moved Help button -->
 <?xml-stylesheet href="chrome://global/skin/dialog.css" type="text/css"?>
 
