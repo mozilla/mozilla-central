@@ -156,9 +156,6 @@ SessionStoreService.prototype = {
   // states for all recently closed windows
   _closedWindows: [],
 
-  // not-"dirty" windows usually don't need to have their data updated
-  _dirtyWindows: {},
-
   // collection of session states yet to be restored
   _statesToRestore: {},
 
@@ -366,7 +363,7 @@ SessionStoreService.prototype = {
       this._forEachBrowserWindow(function(aWindow) {
         this._collectWindowData(aWindow);
       });
-      this._dirtyWindows = [];
+      DirtyWindows.clear();
       break;
     case "quit-application-granted":
       // freeze the data at what we've got (ignoring closing windows)
@@ -2115,14 +2112,14 @@ SessionStoreService.prototype = {
       this._forEachBrowserWindow(function(aWindow) {
         if (!this._isWindowLoaded(aWindow)) // window data is still in _statesToRestore
           return;
-        if (aUpdateAll || this._dirtyWindows[aWindow.__SSi] || aWindow == activeWindow) {
+        if (aUpdateAll || DirtyWindows.has(aWindow) || aWindow == activeWindow) {
           this._collectWindowData(aWindow);
         }
         else { // always update the window features (whose change alone never triggers a save operation)
           this._updateWindowFeatures(aWindow);
         }
       });
-      this._dirtyWindows = [];
+      DirtyWindows.clear();
     }
 
     // collect the data for all windows
@@ -2225,7 +2222,7 @@ SessionStoreService.prototype = {
       this._windows[aWindow.__SSi].__lastSessionWindowID =
         aWindow.__SS_lastSessionWindowID;
 
-    this._dirtyWindows[aWindow.__SSi] = false;
+    DirtyWindows.remove(aWindow);
   },
 
 /* ........ Restoring Functionality .............. */
@@ -3186,7 +3183,7 @@ SessionStoreService.prototype = {
    */
   saveStateDelayed: function sss_saveStateDelayed(aWindow, aDelay) {
     if (aWindow) {
-      this._dirtyWindows[aWindow.__SSi] = true;
+      DirtyWindows.add(aWindow);
     }
 
     if (!this._saveTimer && this._resume_from_crash) {
@@ -4010,6 +4007,28 @@ let DyingWindowCache = {
 
   remove: function (window) {
     this._data.delete(window);
+  }
+};
+
+// A weak set of dirty windows. We use it to determine which windows we need to
+// recollect data for when getCurrentState() is called.
+let DirtyWindows = {
+  _data: new WeakMap(),
+
+  has: function (window) {
+    return this._data.has(window);
+  },
+
+  add: function (window) {
+    return this._data.set(window, true);
+  },
+
+  remove: function (window) {
+    this._data.delete(window);
+  },
+
+  clear: function (window) {
+    this._data.clear();
   }
 };
 
