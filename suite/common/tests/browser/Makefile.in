@@ -73,6 +73,8 @@ _BROWSER_FILES = \
 	browser_615394-SSWindowState_events.js \
 	browser_625257.js \
 	browser_636279.js \
+	browser_637020.js \
+	browser_637020_slow.sjs \
 	browser_665702-state_session.js \
 	browser_687710.js \
 	browser_687710_2.js \
