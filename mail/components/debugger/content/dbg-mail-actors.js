@@ -84,7 +84,7 @@ MailTabList.prototype = {
 
     if (this._listeningToMediator !== shouldListenToMediator) {
       let op = shouldListenToMediator ? "addListener" : "removeListener";
-      windowMediator[op](this);
+      Services.wm[op](this);
       this._listeningToMediator = shouldListenToMediator;
     }
   },
@@ -97,7 +97,7 @@ MailTabList.prototype = {
   },
 
   _getTopWindow: function() {
-    let winIter = windowMediator.getZOrderDOMWindowEnumerator(null, true);
+    let winIter = Services.wm.getZOrderDOMWindowEnumerator(null, true);
     for (let win in fixIterator(winIter)) {
       if (this._checkedWindows.has(appShellDOMWindowType(win))) {
         // This is one of our windows, return it
@@ -112,7 +112,7 @@ MailTabList.prototype = {
 
     // Look for all browser elements in all the windows we care about
     for (let winName of this._checkedWindows) {
-      for (let win in fixIterator(windowMediator.getEnumerator(winName))) {
+      for (let win in fixIterator(Services.wm.getEnumerator(winName))) {
         let foundSelected = false;
         // Check for browser elements and create a tab actor for each.
         // This will catch content tabs, the message reader and the
