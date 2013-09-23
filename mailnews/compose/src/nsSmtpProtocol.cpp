@@ -45,6 +45,7 @@
 #include "MailNewsTypes2.h" // for nsMsgSocketType and nsMsgAuthMethod
 #include "nsIIDNService.h"
 #include "mozilla/Services.h"
+#include "nsINetAddr.h"
 
 #ifndef XP_UNIX
 #include <stdarg.h>

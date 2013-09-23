@@ -31,6 +31,7 @@
 #include "nsCRTGlue.h"
 #include <ctype.h>
 #include "mozilla/Services.h"
+#include "nsIMIMEInfo.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgCompUtils, nsIMsgCompUtils)
 

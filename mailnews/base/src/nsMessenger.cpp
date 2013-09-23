@@ -32,6 +32,7 @@
 #include "nsIStreamConverterService.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
+#include "nsIMIMEInfo.h"
 
 // rdf
 #include "nsIRDFResource.h"

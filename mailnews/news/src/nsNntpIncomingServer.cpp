@@ -32,6 +32,7 @@
 #include "nsISimpleEnumerator.h"
 #include "nsMsgUtils.h"
 #include "mozilla/Services.h"
+#include "nsITreeBoxObject.h"
 
 #define INVALID_VERSION         0
 #define VALID_VERSION           2

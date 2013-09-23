@@ -78,6 +78,7 @@
 #include "nsIAbManager.h"
 #include "nsCRT.h"
 #include "mozilla/Services.h"
+#include "nsISelection.h"
 
 static void GetReplyHeaderInfo(int32_t* reply_header_type,
                                nsString& reply_header_locale,
