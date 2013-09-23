@@ -83,7 +83,7 @@
 
     <groupbox align="start">
       <caption label="&SSLWarnings.caption;"/>
-      <description>&warn.description;</description>
+      <description>&warn.description2;</description>
       <checkbox id="warnEnteringSecure"
                 label="&warn.enteringsecure;"
                 accesskey="&warn.enteringsecure.accesskey;"

@@ -19,7 +19,7 @@
 <!ENTITY limit.tls12.label                  "TLS 1.2">
 <!ENTITY limit.tls12.accesskey              "2">
 
-<!ENTITY warn.description                   "&brandShortName; can alert you to the security status of the web page you are viewing. Set &brandShortName; to show a warning and ask permission before:">
+<!ENTITY warn.description2                  "&brandShortName; can alert you to the security status of the web page you are viewing. Set &brandShortName; to show a warning when:">
 <!ENTITY warn.enteringsecure                "Loading a page that supports encryption">
 <!ENTITY warn.enteringsecure.accesskey      "L">
 <!ENTITY warn.insecurepost                  "Sending form data from an unencrypted page to an unencrypted page">
