@@ -34,10 +34,11 @@ function installInto(module) {
  *
  * @param aController The window controller to input keypresses into
  * @param aStr        The string to input into the control element
+ * @param aElement    (optional) Element on which to perform the input
  */
-function input_value(aController, aStr) {
+function input_value(aController, aStr, aElement) {
   for (let i = 0; i < aStr.length; i++)
-    aController.keypress(null, aStr.charAt(i), {});
+    aController.keypress(aElement || null, aStr.charAt(i), {});
 }
 
 /**
@@ -52,3 +53,13 @@ function delete_existing(aController, aElement, aNumber) {
     aController.keypress(aElement, 'VK_BACK_SPACE', {});
 }
 
+/**
+ * Emulates deleting the entire string by pressing Ctrl-A and DEL
+ *
+ * @param aController The window controller to input keypresses into
+ * @param aElement    The element in which to delete characters
+ */
+function delete_all_existing(aController, aElement) {
+  aController.keypress(aElement, 'a', {accelKey: true});
+  aController.keypress(aElement, 'VK_DELETE', {});
+}

@@ -16,6 +16,7 @@
         persist="width height screenX screenY"
         onload="SubscribeOnLoad()"
         onunload="SubscribeOnUnload()"
+        windowtype="mailnews:subscribe"
         ondialogaccept="return subscribeOK();"
         ondialogcancel="return subscribeCancel();">   
      
