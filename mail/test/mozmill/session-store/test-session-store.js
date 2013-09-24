@@ -425,7 +425,7 @@ function test_clean_shutdown_session_persistence_simple() {
     if (!enumerator.hasMoreElements())
       lastWindowState = window.getWindowStateForSessionPersistence();
 
-    window.close();
+    close_window(new mozmill.controller.MozMillController(window));
   }
 
   // load the saved state from disk
