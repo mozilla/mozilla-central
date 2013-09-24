@@ -114,6 +114,9 @@ function setupLocalServer(port) {
   var account = MailServices.accounts.createAccount();
   account.incomingServer = server;
   server.valid = true;
+  // hack to cause an account loaded notification now the server is valid
+  // (see also Bug 903804)
+  account.incomingServer = account.incomingServer;
 
   subscribeServer(server);
 
