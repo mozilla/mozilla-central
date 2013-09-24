@@ -108,7 +108,6 @@ private:
     nsCOMPtr<nsIAtom> mSubscribedAtom;
     nsCOMPtr<nsIAtom> mNntpAtom;
 
-    nsString mSearchValue;
     nsCOMPtr<nsITreeBoxObject> mTree;
     nsCOMPtr<nsITreeSelection> mTreeSelection;
 

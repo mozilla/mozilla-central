@@ -1651,20 +1651,37 @@ nsNntpIncomingServer::GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServe
 }
 
 NS_IMETHODIMP
-nsNntpIncomingServer::SetSearchValue(const nsAString &searchValue)
+nsNntpIncomingServer::SetSearchValue(const nsAString &aSearchValue)
 {
-  mSearchValue = searchValue;
+  nsCString searchValue = NS_ConvertUTF16toUTF8(aSearchValue);
+  searchValue.CompressWhitespace(true, true);
 
   if (mTree) {
     mTree->BeginUpdateBatch();
     mTree->RowCountChanged(0, -mSubscribeSearchResult.Length());
   }
 
+  nsTArray<nsCString> searchStringParts;
+  if (!searchValue.IsEmpty())
+    ParseString(searchValue, ' ', searchStringParts);
+
   mSubscribeSearchResult.Clear();
   uint32_t length = mGroupsOnServer.Length();
   for (uint32_t i = 0; i < length; i++)
   {
-    if (CaseInsensitiveFindInReadable(mSearchValue, NS_ConvertUTF8toUTF16(mGroupsOnServer[i])))
+    // check that all parts of the search string occur
+    bool found = true;
+    for (uint32_t j = 0; j < searchStringParts.Length(); ++j) {
+      nsCString::const_iterator start, end;
+      mGroupsOnServer[i].BeginReading(start);
+      mGroupsOnServer[i].EndReading(end);
+      if (!CaseInsensitiveFindInReadable(searchStringParts[j], start, end)){
+        found = false;
+        break;
+      }
+    }
+
+    if (found)
       mSubscribeSearchResult.AppendElement(mGroupsOnServer[i]);
   }
 
