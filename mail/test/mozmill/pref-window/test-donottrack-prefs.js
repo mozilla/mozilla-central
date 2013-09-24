@@ -17,6 +17,7 @@ const MODULE_REQUIRES = ['folder-display-helpers',
 function setupModule(module) {
   collector.getModule('folder-display-helpers').installInto(module);
   collector.getModule('pref-window-helpers').installInto(module);
+  collector.getModule('window-helpers').installInto(module);
 }
 
 /**
@@ -36,6 +37,7 @@ function test_donottrack_checkbox() {
 
     // close the window to accept the changes
     w.e("MailPreferences").acceptDialog();
+    close_window(w);
   });
 
   open_pref_window("paneSecurity", function(w) {
@@ -54,6 +56,7 @@ function test_donottrack_checkbox() {
 
     // close the window to accept the changes
     w.e("MailPreferences").acceptDialog();
+    close_window(w);
   });
 
   open_pref_window("paneSecurity", function(w) {
@@ -64,5 +67,6 @@ function test_donottrack_checkbox() {
                  "The DNT pref should be cleared.");
 
     w.e("MailPreferences").acceptDialog();
+    close_window(w);
   });
 }
