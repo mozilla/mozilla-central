@@ -55,6 +55,7 @@ function setupModule() {
     do_check_neq: function() {},
   };
   folderDisplayHelper.load_via_src_path("nntpd.js", testHelperModule);
+  folderDisplayHelper.load_via_src_path("maild.js", testHelperModule);
 }
 
 function installInto(module) {
@@ -64,6 +65,8 @@ function installInto(module) {
   module.setupNNTPDaemon = setupNNTPDaemon;
   module.NNTP_PORT = NNTP_PORT;
   module.setupLocalServer = setupLocalServer;
+  module.startupNNTPServer = startupNNTPServer;
+  module.shutdownNNTPServer = shutdownNNTPServer;
 }
 
 
@@ -79,6 +82,24 @@ function setupNNTPDaemon() {
   daemon.addArticleToGroup(article, "test.subscribe.simple", 1);
 
   return daemon;
+}
+
+// Startup server
+function startupNNTPServer(daemon, port) {
+  var handler = testHelperModule.NNTP_RFC977_handler;
+
+  function createHandler(daemon) {
+    return new handler(daemon);
+  }
+
+  var server = new testHelperModule.nsMailServer(createHandler, daemon);
+  server.start(port);
+  return server;
+}
+
+// Shutdown server
+function shutdownNNTPServer(server) {
+  server.stop();
 }
 
 // Enable strict threading
