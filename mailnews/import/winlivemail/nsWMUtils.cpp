@@ -15,6 +15,7 @@
 #include "nsIFile.h"
 #include "nsISimpleEnumerator.h"
 #include "WMDebugLog.h"
+#include "prio.h"
 
 nsresult
 nsWMUtils::FindWMKey(nsIWindowsRegKey **aKey)

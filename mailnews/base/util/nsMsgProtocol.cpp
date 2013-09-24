@@ -32,6 +32,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 #include "nsILineInputStream.h"
+#include "nsIAsyncInputStream.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsMimeTypes.h"
 #include "nsAlgorithm.h"

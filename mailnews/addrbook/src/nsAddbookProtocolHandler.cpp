@@ -23,6 +23,8 @@
 #include "nsIStringBundle.h"
 #include "nsIServiceManager.h"
 #include "mozilla/Services.h"
+#include "nsIAsyncInputStream.h"
+#include "nsIAsyncOutputStream.h"
 
 nsAddbookProtocolHandler::nsAddbookProtocolHandler()
 {
