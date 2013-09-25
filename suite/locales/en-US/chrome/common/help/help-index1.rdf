@@ -2036,6 +2036,16 @@
        <rdf:Description ID="SSL:protocols"
          nc:name="SSL protocols"
          nc:link="ssl_help.xhtml#ssl_protocol_versions"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="SSL:warnings"
+         nc:name="SSL warnings"
+         nc:link="ssl_help.xhtml#ssl_warnings"/>
+     </rdf:li>
+     <rdf:li>
+       <rdf:Description ID="SSL:mixed_content"
+         nc:name="mixed content"
+         nc:link="ssl_help.xhtml#mixed_content"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
