@@ -120,81 +120,9 @@ endif
 # Testing frameworks support
 ################################################################################
 
-testxpcobjdir = $(MOZDEPTH)/_tests/xpcshell
-
 ifdef ENABLE_TESTS
 
 DIRS += $(TEST_DIRS)
-
-ifdef XPCSHELL_TESTS
-ifndef relativesrcdir
-$(error Must define relativesrcdir when defining XPCSHELL_TESTS.)
-endif
-
-define _INSTALL_TESTS
-$(DIR_INSTALL) $(wildcard $(srcdir)/$(dir)/*) $(testxpcobjdir)/$(relativesrcdir)/$(dir)
-
-endef # do not remove the blank line!
-
-SOLO_FILE ?= $(error Specify a test filename in SOLO_FILE when using check-interactive or check-one)
-
-libs::
-	$(foreach dir,$(XPCSHELL_TESTS),$(_INSTALL_TESTS))
-	$(call py_action,xpccheck,$(topsrcdir) $(addprefix $(topsrcdir)/$(relativesrcdir)/,$(XPCSHELL_TESTS)))
-
-testxpcsrcdir = $(MOZILLA_SRCDIR)/testing/xpcshell
-
-# Execute all tests in the $(XPCSHELL_TESTS) directories.
-# See also $(MOZILLA_DIR)/testing/testsuite-targets.mk 'xpcshell-tests' target for global execution.
-xpcshell-tests:
-	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZDEPTH)/build \
-	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
-	  $(testxpcsrcdir)/runxpcshelltests.py \
-	  --symbols-path=$(DIST)/crashreporter-symbols \
-	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
-	  --tests-root-dir=$(testxpcobjdir) \
-	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
-	  --xunit-file=$(testxpcobjdir)/$(relativesrcdir)/results.xml \
-	  --xunit-suite-name=xpcshell \
-	  $(EXTRA_TEST_ARGS) \
-	  $(LIBXUL_DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
-
-# Execute a single test, specified in $(SOLO_FILE), but don't automatically
-# start the test. Instead, present the xpcshell prompt so the user can
-# attach a debugger and then start the test.
-check-interactive:
-	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZDEPTH)/build \
-	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
-	  $(testxpcsrcdir)/runxpcshelltests.py \
-	  --symbols-path=$(DIST)/crashreporter-symbols \
-	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
-	  --test-path=$(SOLO_FILE) \
-	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
-	  --profile-name=$(MOZ_APP_NAME) \
-	  --interactive \
-	  $(LIBXUL_DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
-
-# Execute a single test, specified in $(SOLO_FILE)
-check-one:
-	$(PYTHON) -u $(MOZILLA_DIR)/config/pythonpath.py \
-	  -I$(MOZDEPTH)/build \
-	  -I$(MOZILLA_DIR)/build -I$(MOZDEPTH)/_tests/mozbase/mozinfo \
-	  $(testxpcsrcdir)/runxpcshelltests.py \
-	  --symbols-path=$(DIST)/crashreporter-symbols \
-	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
-	  --test-path=$(SOLO_FILE) \
-	  --testing-modules-dir=$(MOZDEPTH)/_tests/modules \
-	  --profile-name=$(MOZ_APP_NAME) \
-	  --verbose \
-	  $(EXTRA_TEST_ARGS) \
-	  $(LIBXUL_DIST)/bin/xpcshell \
-	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
-
-endif # XPCSHELL_TESTS
 
 ifdef CPP_UNIT_TESTS
 
