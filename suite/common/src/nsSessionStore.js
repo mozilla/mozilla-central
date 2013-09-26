@@ -1701,7 +1701,7 @@ SessionStoreService.prototype = {
         continue;
       }
       // sessionStorage is saved per origin (cf. nsDocShell::GetSessionStorageForURI)
-      let origin = principal.extendedOrigin;
+      let origin = principal.jarPrefix + principal.origin;
       if (storageData[origin])
         continue;
 
