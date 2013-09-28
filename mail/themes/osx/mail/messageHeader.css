@@ -559,14 +559,10 @@ toolbarpaletteitem #hdrDummyReplyButton {
   overflow: hidden;
 }
 
-.headerValueUrl {
-  cursor: pointer;
-  color: #0000FF;
-  text-decoration: underline;
-}
-
 .headerValueUrl:hover {
-  color: red;
+  cursor: pointer;
+  text-decoration: underline;
+  color: -moz-activehyperlinktext !important;
 }
 
 .headerField {
@@ -609,7 +605,7 @@ toolbarpaletteitem #hdrDummyReplyButton {
 .messageIdDisplayButton:hover {
   cursor: pointer;
   text-decoration: underline;
-  color: blue;
+  color: -moz-hyperlinktext;
   background: url("chrome://messenger/skin/icons/arrow-dn-black.png") no-repeat center right;
 }
 
