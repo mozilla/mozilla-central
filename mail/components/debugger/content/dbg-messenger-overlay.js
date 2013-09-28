@@ -6,8 +6,6 @@ Components.utils.import("resource://gre/modules/devtools/dbg-server.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, "console", "resource://gre/modules/devtools/Console.jsm");
-
 /**
  * Start the devtools debugger server and open a listener to contact it.
  */
@@ -20,13 +18,12 @@ function startDebugger() {
              DebuggerServer._defaultAllowConnection();
     });
 
-    // Load the toolkit actor first
-    DebuggerServer.addActors("resource://gre/modules/devtools/server/actors/webbrowser.js");
+    // Load the toolkit actors first
+    DebuggerServer.addBrowserActors();
 
-    // Add the mail root actor and the chrome debugger global actor
+    // Set up the window type and add the mail root actor
+    DebuggerServer.chromeWindowType = "mail:3pane";
     DebuggerServer.addActors("chrome://messenger/content/debugger/dbg-mail-actors.js");
-    DebuggerServer.addActors("resource://gre/modules/devtools/server/actors/script.js");
-    DebuggerServer.addGlobalActor(DebuggerServer.ChromeDebuggerActor, "chromeDebugger");
   }
 
   // Start the debugger listener unconditionally, it will check itself if it

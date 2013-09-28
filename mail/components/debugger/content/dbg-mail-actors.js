@@ -5,6 +5,8 @@
 Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
+let promise = Cu.import("resource://gre/modules/commonjs/sdk/core/promise.js", {}).Promise;
+
 /**
  * Create the root actor for Thunderbird's debugger implementation.
  *
@@ -14,6 +16,7 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 function createRootActor(aConnection) {
   let parameters = {
     tabList: new MailTabList(aConnection),
+    addonList: new BrowserAddonList(aConnection),
     globalActorFactories: DebuggerServer.globalActorFactories,
     onShutdown: sendShutdownEvent,
   };
@@ -107,7 +110,7 @@ MailTabList.prototype = {
     return null;
   },
 
-  iterator: function() {
+  getList: function() {
     let topWindow = this._getTopWindow();
 
     // Look for all browser elements in all the windows we care about
@@ -145,9 +148,7 @@ MailTabList.prototype = {
     this._mustNotify = true;
     this._checkListening();
 
-    for (let [browser, actor] of this._actorByBrowser) {
-      yield actor;
-    }
+    return promise.resolve([actor for ([_, actor] of this._actorByBrowser)]);
   },
 
   onOpenWindow: makeInfallible(function(aWindow) {
