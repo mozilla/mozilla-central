@@ -1,0 +1,17 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+USE_EXTENSION_MANIFEST = 1
+XPI_NAME = dbgserver
+XPI_PKGNAME = dbgserver-$(MOZILLA_VERSION).$(AB_CD)
+DIST_FILES = install.rdf bootstrap.js
+relativesrcdir = mail/locales
+
+include $(DEPTH)/config/autoconf.mk
+
+DEFINES += -DAB_CD=$(AB_CD) \
+           -DLOCALE_SRCDIR=$(LOCALE_SRCDIR) \
+           $(NULL)
+
+include $(topsrcdir)/config/rules.mk

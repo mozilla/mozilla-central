@@ -8,7 +8,7 @@
 DIRS += [
     'compose',
     'cloudfile',
-    'debugger',
+    'devtools',
     'preferences',
     'addrbook',
     'migration',

@@ -2,28 +2,41 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource://gre/modules/iteratorUtils.jsm");
-Components.utils.import("resource://gre/modules/Services.jsm");
+/**
+ * Actors for the remote debugger server.
+ *
+ * NOTE: This file is used from both Thundebird and the Debugger Server
+ * extension. Please don't introduce any Thunderbird-specific code
+ */
 
-let promise = Cu.import("resource://gre/modules/commonjs/sdk/core/promise.js", {}).Promise;
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/devtools/DevToolsUtils.jsm");
+
+let promise = Components.utils.import("resource://gre/modules/commonjs/sdk/core/promise.js", {}).Promise;
 
 /**
- * Create the root actor for Thunderbird's debugger implementation.
+ * Create the root actor for this XUL application.
  *
  * @param aConnection       The debugger connection to create the actor for.
  * @return                  The mail actor for the connection.
  */
 function createRootActor(aConnection) {
   let parameters = {
-    tabList: new MailTabList(aConnection),
+    tabList: new XulTabList(aConnection),
     addonList: new BrowserAddonList(aConnection),
     globalActorFactories: DebuggerServer.globalActorFactories,
     onShutdown: sendShutdownEvent,
   };
 
-  let mailActor = new RootActor(aConnection, parameters);
-  mailActor.applicationType = "mail";
-  return mailActor;
+  // Create the root actor and set the application type
+  let rootActor = new DebuggerServer.RootActor(aConnection, parameters);
+  if (DebuggerServer.chromeWindowType) {
+    rootActor.applicationType = DebuggerServer.chromeWindowType.split(":")[0];
+  } else {
+    rootActor.applicationType = "xulrunner";
+  }
+
+  return rootActor;
 }
 
 /**
@@ -35,33 +48,38 @@ function appShellDOMWindowType(aWindow) {
 }
 
 /**
- * Send a debugger shutdown event to all mail windows.
+ * Send a debugger shutdown event to all main windows.
  */
 function sendShutdownEvent() {
-  for (let win in fixIterator(Services.wm.getEnumerator("mail:3pane"))) {
-    let evt = win.document.createEvent("Event");
-    evt.initEvent("Debugger:Shutdown", true, false);
-    win.document.documentElement.dispatchEvent(evt);
+  let windowTypes = RemoteDebuggerServer.chromeWindowTypes;
+  for (let type of windowTypes) {
+    let enumerator = Services.wm.getEnumerator(type);
+    while (enumerator.hasMoreElements()) {
+      let win = enumerator.getNext();
+      let evt = win.document.createEvent("Event");
+      evt.initEvent("Debugger:Shutdown", true, false);
+      win.document.documentElement.dispatchEvent(evt);
+    }
   }
 }
 
 /**
- * The live list of tabs for Thunderbird. The term tab is taken from Firefox
- * tabs, where each browser tab shows up as a tab in the debugger. As in
- * Thunderbird all tabs are chrome tabs, we will be iterating the content
- * windows and presenting them as tabs instead.
+ * The live list of tabs for a XUL Application. The term tab is taken from
+ * Firefox tabs, where each browser tab shows up as a tab in the debugger.
+ * Not all apps have the concept where each tab is a content tab, so we will
+ * be iterating the content windows and presenting them as tabs instead.
  *
  * @param aConnection       The connection to create the tab list for.
  */
-function MailTabList(aConnection) {
+function XulTabList(aConnection) {
   this._connection = aConnection;
   this._actorByBrowser = new Map();
 
   // These windows should be checked for browser elements
-  this._checkedWindows = new Set(["mail:3pane", "mail:messageWindow"]);
+  this._checkedWindows = new Set(RemoteDebuggerServer.chromeWindowTypes);
 }
 
-MailTabList.prototype = {
+XulTabList.prototype = {
   _onListChanged: null,
   _actorByBrowser: null,
   _checkedWindows: null,
@@ -101,7 +119,8 @@ MailTabList.prototype = {
 
   _getTopWindow: function() {
     let winIter = Services.wm.getZOrderDOMWindowEnumerator(null, true);
-    for (let win in fixIterator(winIter)) {
+    while (winIter.hasMoreElements()) {
+      let win = winIter.getNext();
       if (this._checkedWindows.has(appShellDOMWindowType(win))) {
         // This is one of our windows, return it
         return win;
@@ -115,7 +134,9 @@ MailTabList.prototype = {
 
     // Look for all browser elements in all the windows we care about
     for (let winName of this._checkedWindows) {
-      for (let win in fixIterator(Services.wm.getEnumerator(winName))) {
+      let winIter = Services.wm.getEnumerator(winName);
+      while (winIter.hasMoreElements()) {
+        let win = winIter.getNext();
         let foundSelected = false;
         // Check for browser elements and create a tab actor for each.
         // This will catch content tabs, the message reader and the
@@ -151,8 +172,8 @@ MailTabList.prototype = {
     return promise.resolve([actor for ([_, actor] of this._actorByBrowser)]);
   },
 
-  onOpenWindow: makeInfallible(function(aWindow) {
-    let handleLoad = makeInfallible(() => {
+  onOpenWindow: DevToolsUtils.makeInfallible(function(aWindow) {
+    let handleLoad = DevToolsUtils.makeInfallible(() => {
       aWindow.removeEventListener("load", handleLoad, false);
 
       if (this._checkedWindows.has(appShellDOMWindowType(aWindow))) {
@@ -170,9 +191,9 @@ MailTabList.prototype = {
     aWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                      .getInterface(Ci.nsIDOMWindow);
     aWindow.addEventListener("load", handleLoad, false);
-  }, "MailTabList.prototype.onOpenWindow"),
+  }, "XulTabList.prototype.onOpenWindow"),
 
-  onCloseWindow: makeInfallible(function(aWindow) {
+  onCloseWindow: DevToolsUtils.makeInfallible(function(aWindow) {
     aWindow = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
                      .getInterface(Ci.nsIDOMWindow);
 
@@ -184,7 +205,7 @@ MailTabList.prototype = {
     // nsIWindowMediator deadlocks if you call its GetEnumerator method from
     // a nsIWindowMediatorListener's onCloseWindow hook (bug 873589), so
     // handle the close in a different tick.
-    Services.tm.currentThread.dispatch(makeInfallible(() => {
+    Services.tm.currentThread.dispatch(DevToolsUtils.makeInfallible(() => {
       let shouldNotify = false;
 
       // Scan the whole map for browsers that were in this window.
@@ -201,8 +222,8 @@ MailTabList.prototype = {
         this._notifyListChanged();
       }
       this._checkListening();
-    }, "MailTabList.prototype.onCloseWindow's delayed body"), 0);
-  }, "MailTabList.prototype.onCloseWindow"),
+    }, "XulTabList.prototype.onCloseWindow's delayed body"), 0);
+  }, "XulTabList.prototype.onCloseWindow"),
 
   onWindowTitleChange: function() {}
 };

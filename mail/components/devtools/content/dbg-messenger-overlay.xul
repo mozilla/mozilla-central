@@ -5,9 +5,9 @@
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger/locale/messenger.dtd">
 
-<overlay id="debugger-overlay"
+<overlay id="devtools-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script type="application/javascript" src="chrome://messenger/content/debugger/dbg-messenger-overlay.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/devtools/dbg-messenger-overlay.js"/>
 
   <menupopup id="taskPopup">
     <menuitem id="devtoolsDebugger"

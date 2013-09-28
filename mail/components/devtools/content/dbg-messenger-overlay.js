@@ -2,50 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-Components.utils.import("resource://gre/modules/devtools/dbg-server.jsm");
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
-
-/**
- * Start the devtools debugger server and open a listener to contact it.
- */
-function startDebugger() {
-  if (!DebuggerServer.initialized) {
-    // Initialize the debugger, if non-local connections are permitted then
-    // have the default prompt kick in.
-    DebuggerServer.init(() => {
-      return Services.prefs.getBoolPref("devtools.debugger.force-local") ||
-             DebuggerServer._defaultAllowConnection();
-    });
-
-    // Load the toolkit actors first
-    DebuggerServer.addBrowserActors();
-
-    // Set up the window type and add the mail root actor
-    DebuggerServer.chromeWindowType = "mail:3pane";
-    DebuggerServer.addActors("chrome://messenger/content/debugger/dbg-mail-actors.js");
-  }
-
-  // Start the debugger listener unconditionally, it will check itself if it
-  // really needs to be started.
-  let port = Services.prefs.getIntPref('devtools.debugger.remote-port') || 6000;
-  try {
-    DebuggerServer.openListener(port);
-  } catch (e) {
-    console.exception("Unable to start debugger server", e);
-  }
-}
-
-/**
- * Quit the devtools debugger server, forcing to disconnect all connections.
- */
-function stopDebugger() {
-  try {
-    DebuggerServer.closeListener(true);
-  } catch (e) {
-    console.exception("Unable to stop debugger server", e);
-  }
-}
+Components.utils.import("resource://gre/modules/RemoteDebuggerServer.jsm");
 
 /**
  * Handler to call when the checked state of the menuitem is toggled. Sets the
@@ -55,11 +13,10 @@ function toggleDebugger() {
   let shouldEnable = document.getElementById("devtoolsDebugger").getAttribute("checked") == "true";
   Services.prefs.setBoolPref("devtools.debugger.remote-enabled", shouldEnable);
 
-  if (shouldEnable) {
-    startDebugger();
-  } else {
-    stopDebugger();
-  }
+  RemoteDebuggerServer.extraInit = function(DebuggerServer) {
+    DebuggerServer.addActors("resource://gre/modules/XULRootActor.js");
+  };
+  RemoteDebuggerServer.startstop(shouldEnable);
 }
 
 /**
