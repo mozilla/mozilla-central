@@ -50,9 +50,9 @@
 
     <!-- instructions -->
     <deck id="prattle">
-      <description id="intro" style="width: 17em;" start="&introStart.label;">&introSwitch.label;</description>
+      <description id="intro" start="&introStart.label;">&introSwitch.label;</description>
       <vbox>
-        <description style="width: 17em;" class="label">&profileManagerText.label;</description>
+        <description id="label">&profileManagerText.label;</description>
         <separator/>
         <hbox>
           <vbox flex="1" id="managebuttons">
@@ -71,7 +71,7 @@
       <tooltip id="treetip"
                onpopupshowing="HandleToolTipEvent(event);">
       </tooltip>
-      <tree id="profiles" flex="1" style="height: 0px;" seltype="single"
+      <tree id="profiles" flex="1" seltype="single"
             hidecolumnpicker="true"
             onselect="DoEnabling();"
             onkeypress="HandleKeyEvent(event);">
