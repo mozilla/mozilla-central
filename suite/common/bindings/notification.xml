@@ -570,7 +570,7 @@
             this.missingPlugins.set(pluginInfo.mimetype, pluginInfo);
 
             // Hide the in-content UI if it's too big. The crashed plugin handler already does this.
-            var overlay = this.getPluginUI(aPlugin, "mainBox");
+            var overlay = this.getPluginUI(aPlugin, "main");
             if (this.isTooSmall(aPlugin, overlay))
               overlay.style.visibility = "hidden";
 
@@ -808,10 +808,10 @@
 
       <method name="getPluginUI">
         <parameter name="aPlugin"/>
-        <parameter name="aClassName"/>
+        <parameter name="aAnonId"/>
         <body>
           <![CDATA[
-            return aPlugin.ownerDocument.getAnonymousElementByAttribute(aPlugin, "class", aClassName);
+            return aPlugin.ownerDocument.getAnonymousElementByAttribute(aPlugin, "anonid", aAnonId);
           ]]>
         </body>
       </method>
@@ -1373,7 +1373,7 @@
         <parameter name="pluginElement"/>
         <body>
           <![CDATA[
-            var overlay = this.getPluginUI(pluginElement, "mainBox");
+            var overlay = this.getPluginUI(pluginElement, "main");
             if (overlay) // no overlay if plugin has been activated
               overlay.style.visibility = "hidden";
           ]]>
@@ -1400,7 +1400,7 @@
         <parameter name="aTriggeredByNewPlugin"/>
         <body>
           <![CDATA[
-            var overlay = this.getPluginUI(pluginElement, "mainBox");
+            var overlay = this.getPluginUI(pluginElement, "main");
 
             if (!this.canActivatePlugin(pluginElement)) {
               overlay.style.visibility = "hidden";
@@ -1421,7 +1421,7 @@
 
             var pluginName = this.getPluginInfo(pluginElement).pluginName;
             var messageString = this._stringBundle.formatStringFromName("PluginClickToActivate", [pluginName], 1);
-            var overlayText = this.getPluginUI(pluginElement, "msg msgClickToPlay");
+            var overlayText = this.getPluginUI(pluginElement, "clickToPlay");
             overlayText.textContent = messageString;
             this.addLinkClickCallback(overlay, this.activateSinglePlugin, pluginElement);
 
@@ -2136,7 +2136,6 @@
             return;
 
           var notification, message, buttons, pref;
-          var doc = plugin.ownerDocument;
           switch (plugin.pluginFallbackType) {
             case nsIObjectLoadingContent.PLUGIN_UNSUPPORTED:
               // For broken non-object plugin tags, register a click handler so
@@ -2149,7 +2148,7 @@
                 installStatus.setAttribute("status", "ready");
                 var iconStatus = this.getPluginUI(plugin, "icon");
                 iconStatus.setAttribute("status", "ready");
-                var installLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "installPluginLink");
+                var installLink = this.getPluginUI(plugin, "installPluginLink");
                 this.addLinkClickCallback(installLink, installMissingPlugins);
               }
 
@@ -2165,7 +2164,7 @@
 
             case nsIObjectLoadingContent.PLUGIN_DISABLED:
               if ("toEM" in window) {
-                var manageLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "managePluginsLink");
+                var manageLink = this.getPluginUI(plugin, "managePluginsLink");
                 this.addLinkClickCallback(manageLink, window.toEM, "addons://list/plugin");
               }
               return;
@@ -2199,14 +2198,14 @@
               break;
 
             case nsIObjectLoadingContent.PLUGIN_VULNERABLE_UPDATABLE:
-              var updateLink = doc.getAnonymousElementByAttribute(plugin, "anonid", "checkForUpdatesLink");
+              var updateLink = this.getPluginUI(plugin, "checkForUpdatesLink");
               this.addLinkClickCallback(updateLink, this.openURLPref, "plugins.update.url");
               // fall through
             case nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE:
               var eventType = this.getBindingType(plugin);
               // When we got here, we deal with a vulnerable plugin object, so setup UI elements for this case
               var vulnerabilityString = this._stringBundle.GetStringFromName(eventType);
-              var vulnerabilityText = doc.getAnonymousElementByAttribute(plugin, "anonid", "vulnerabilityStatus");
+              var vulnerabilityText = this.getPluginUI(plugin, "vulnerabilityStatus");
               vulnerabilityText.textContent = vulnerabilityString;
               // fall through
             case nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY:
@@ -2243,7 +2242,7 @@
           plugin.clientTop;
 
           // Configure the crashed-plugin placeholder.
-          var overlay = this.getPluginUI(plugin, "mainBox");
+          var overlay = this.getPluginUI(plugin, "main");
 
           var status;
           var statusDiv = this.getPluginUI(plugin, "submitStatus");
@@ -2316,7 +2315,7 @@
           this.addLinkClickCallback(helpIcon, this.openHelpPage);
 
           var messageString = this._stringBundle.formatStringFromName("crashedpluginsMessage.title", [pluginName], 1);
-          var crashText = this.getPluginUI(plugin, "msgCrashedText");
+          var crashText = this.getPluginUI(plugin, "crashedText");
           crashText.textContent = messageString;
 
           var link = this.getPluginUI(plugin, "reloadLink");

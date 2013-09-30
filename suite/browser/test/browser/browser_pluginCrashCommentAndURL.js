@@ -87,9 +87,9 @@ function doNextRun() {
 function onCrash() {
   try {
     let plugin = getBrowser().contentDocument.getElementById("plugin");
-    let elt = plugin.ownerDocument.getAnonymousElementByAttribute.bind(plugin.ownerDocument, plugin, "class");
+    let elt = plugin.ownerDocument.getAnonymousElementByAttribute.bind(plugin.ownerDocument, plugin, "anonid");
     let style =
-      gBrowser.contentWindow.getComputedStyle(elt("msg msgPleaseSubmit"));
+      gBrowser.contentWindow.getComputedStyle(elt("pleaseSubmit"));
     is(style.display,
        currentRun.shouldSubmissionUIBeVisible ? "block" : "none",
        "Submission UI visibility should be correct");
