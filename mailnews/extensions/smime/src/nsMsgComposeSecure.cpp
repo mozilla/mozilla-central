@@ -21,6 +21,7 @@
 #include "nsAlgorithm.h"
 #include "mozilla/Services.h"
 #include "mozilla/mailnews/MimeEncoder.h"
+#include "nsIMimeConverter.h"
 #include <algorithm>
 
 using mozilla::mailnews::MimeEncoder;
@@ -468,6 +469,15 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
                                  getter_Copies(mime_smime_enc_content_desc));
   NS_ConvertUTF16toUTF8 enc_content_desc_utf8(mime_smime_enc_content_desc);
 
+  nsCOMPtr<nsIMimeConverter> mimeConverter =
+     do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString encodedContentDescription;
+  mimeConverter->EncodeMimePartIIStr_UTF8(enc_content_desc_utf8, false, "UTF-8",
+      sizeof("Content-Description: "),
+      nsIMimeConverter::MIME_ENCODED_WORD_SIZE,
+      getter_Copies(encodedContentDescription));
+
   /* First, construct and write out the opaque-crypto-blob MIME header data.
    */
 
@@ -479,7 +489,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
           "; filename=\"smime.p7m\"" CRLF
         "Content-Description: %s" CRLF
         CRLF,
-        enc_content_desc_utf8.get());
+        encodedContentDescription.get());
 
   uint32_t L;
   if (!s) return NS_ERROR_OUT_OF_MEMORY;
@@ -576,6 +586,15 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
 
   NS_ConvertUTF16toUTF8 sig_content_desc_utf8(mime_smime_sig_content_desc);
 
+  nsCOMPtr<nsIMimeConverter> mimeConverter =
+     do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString encodedContentDescription;
+  mimeConverter->EncodeMimePartIIStr_UTF8(sig_content_desc_utf8, false, "UTF-8",
+      sizeof("Content-Description: "),
+      nsIMimeConverter::MIME_ENCODED_WORD_SIZE,
+      getter_Copies(encodedContentDescription));
+
   /* Compute the hash...
    */
 
@@ -601,8 +620,8 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
           "Content-Description: %s" CRLF
           CRLF,
           mMultipartSignedBoundary,
-          sig_content_desc_utf8.get());
-          
+          encodedContentDescription.get());
+
   if (!header) {
     rv = NS_ERROR_OUT_OF_MEMORY;
     goto FAIL;
