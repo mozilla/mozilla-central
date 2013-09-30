@@ -4,19 +4,16 @@
 
 /* Test that the subscribe window for news servers has working autocomplete. */
 
-var MODULE_NAME = 'test-subscribe-news-autocomplete';
+const MODULE_NAME = "test-subscribe-news-filter";
 
-var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['folder-display-helpers', 'nntp-helpers',
-                       'subscribe-window-helpers'];
+const RELATIVE_ROOT = "../shared-modules";
+const MODULE_REQUIRES = ["folder-display-helpers", "nntp-helpers",
+                         "subscribe-window-helpers"];
 
 function setupModule(module) {
-  let fdh = collector.getModule('folder-display-helpers');
-  fdh.installInto(module);
-  let nh = collector.getModule('nntp-helpers');
-  nh.installInto(module);
-  let swh = collector.getModule('subscribe-window-helpers');
-  swh.installInto(module);
+  collector.getModule("folder-display-helpers").installInto(module);
+  collector.getModule("nntp-helpers").installInto(module);
+  collector.getModule("subscribe-window-helpers").installInto(module);
 }
 
 /**

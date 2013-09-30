@@ -1654,7 +1654,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::SetSearchValue(const nsAString &aSearchValue)
 {
   nsCString searchValue = NS_ConvertUTF16toUTF8(aSearchValue);
-  searchValue.CompressWhitespace(true, true);
+  MsgCompressWhitespace(searchValue);
 
   if (mTree) {
     mTree->BeginUpdateBatch();
@@ -1672,10 +1672,7 @@ nsNntpIncomingServer::SetSearchValue(const nsAString &aSearchValue)
     // check that all parts of the search string occur
     bool found = true;
     for (uint32_t j = 0; j < searchStringParts.Length(); ++j) {
-      nsCString::const_iterator start, end;
-      mGroupsOnServer[i].BeginReading(start);
-      mGroupsOnServer[i].EndReading(end);
-      if (!CaseInsensitiveFindInReadable(searchStringParts[j], start, end)){
+      if (mGroupsOnServer[i].Find(searchStringParts[j], CaseInsensitiveCompare)) {
         found = false;
         break;
       }
