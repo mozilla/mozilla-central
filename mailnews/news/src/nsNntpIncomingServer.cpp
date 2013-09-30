@@ -1672,7 +1672,7 @@ nsNntpIncomingServer::SetSearchValue(const nsAString &aSearchValue)
     // check that all parts of the search string occur
     bool found = true;
     for (uint32_t j = 0; j < searchStringParts.Length(); ++j) {
-      if (mGroupsOnServer[i].Find(searchStringParts[j], CaseInsensitiveCompare)) {
+      if (MsgFind(mGroupsOnServer[i], searchStringParts[j], true, 0) == kNotFound) {
         found = false;
         break;
       }
