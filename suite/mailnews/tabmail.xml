@@ -202,8 +202,8 @@
                      flex="100"
                      class="tabbrowser-tab tabmail-tab icon-holder"
                      crop="end"/>
-            <children/>
           </xul:tabs>
+          <children/>
         </xul:hbox>
         <!-- Remember, user of this binding, you need to provide tabpanels!  -->
         <children includes="tabpanels"/>
