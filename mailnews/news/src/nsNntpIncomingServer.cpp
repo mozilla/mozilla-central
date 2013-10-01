@@ -74,7 +74,7 @@ public:
 
   bool LessThan(const nsCString &a, const nsCString &b) const
   {
-    return Compare(a, b, nsCaseInsensitiveCStringComparator());
+    return Compare(a, b, nsCaseInsensitiveCStringComparator()) < 0;
   }
 };
 
