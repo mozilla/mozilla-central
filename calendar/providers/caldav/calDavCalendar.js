@@ -4,6 +4,7 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/Timer.jsm");
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calXMLUtils.jsm");
@@ -1550,6 +1551,26 @@ calDavCalendar.prototype = {
             self.setProperty("auto-enabled", "true");
             self.completeCheckServerInfo(aChangeLogListener, Components.results.NS_ERROR_FAILURE);
         }
+        function connect() {
+            // Use the async prompter to avoid multiple master password prompts
+            let promptlistener = {
+                onPromptStart: function() {
+                    // Usually this function should be synchronous. The OAuth
+                    // connection itself is asynchronous, but if a master
+                    // password is prompted it will block on that.
+                    this.onPromptAuthAvailable();
+                    return true;
+                },
+
+                onPromptAuthAvailable: function() {
+                    self.oauth.connect(authSuccess, authFailed, true);
+                },
+                onPromptCanceled: authFailed
+            };
+            let asyncprompter = Components.classes["@mozilla.org/messenger/msgAsyncPrompter;1"]
+                                          .getService(Components.interfaces.nsIMsgAsyncPrompter);
+            asyncprompter.queueAsyncAuthPrompt(self.uri.spec, false, promptlistener);
+        }
         if (this.mUri.host == "apidata.googleusercontent.com") {
             if (!this.oauth) {
                 this.oauth = new OAuth2(OAUTH_BASE_URI, OAUTH_SCOPE,
@@ -1561,16 +1582,24 @@ calDavCalendar.prototype = {
                     get: function getRefreshToken() {
                         if (!this.mRefreshToken) {
                             var pass = { value: null };
-                            cal.auth.passwordManagerGet(sessionId, pass, sessionId, pwMgrId);
+                            try {
+                                cal.auth.passwordManagerGet(sessionId, pass, sessionId, pwMgrId);
+                            } catch (e if e.result == Components.results.NS_ERROR_ABORT) {
+                                // User might have cancelled the master password prompt, thats ok
+                            }
                             this.mRefreshToken = pass.value;
                         }
                         return this.mRefreshToken;
                     },
                     set: function setRefreshToken(val) {
-                        if (!val) {
-                            cal.auth.passwordManagerRemove(sessionId, sessionId, pwMgrId);
-                        } else {
-                            cal.auth.passwordManagerSave(sessionId, val, sessionId, pwMgrId);
+                        try {
+                            if (!val) {
+                                cal.auth.passwordManagerRemove(sessionId, sessionId, pwMgrId);
+                            } else {
+                                cal.auth.passwordManagerSave(sessionId, val, sessionId, pwMgrId);
+                            }
+                        } catch (e if e.result == Components.results.NS_ERROR_ABORT) {
+                            // User might have cancelled the master password prompt, thats ok
                         }
                         return (this.mRefreshToken = val);
                     },
@@ -1581,7 +1610,20 @@ calDavCalendar.prototype = {
             if (this.oauth.accessToken) {
                 authSuccess();
             } else {
-                this.oauth.connect(authSuccess, authFailed, true);
+                // bug 901329: If the calendar window isn't loaded yet the
+                // master password prompt will show just the buttons and
+                // possibly hang. If we postpone until the window is loaded,
+                // all is well.
+                function postpone() {
+                    let win = cal.getCalendarWindow();
+                    if (!win || win.document.readyState != "complete") {
+                        setTimeout(postpone, 0);
+                    } else {
+                        connect();
+                    }
+                }
+
+                setTimeout(postpone, 0);
             }
         } else {
             authSuccess();

@@ -88,8 +88,12 @@ OAuth2.prototype = {
             _active: true,
             iconURI: "",
             cancelled: function() {
-                if (!this._active)
+                if (!this._active) {
                     return;
+                }
+
+                this.account.finishAuthorizationRequest();
+                this.account.onAuthorizationFailed();
             },
 
             loaded: function (aWindow, aWebProgress) {
@@ -150,10 +154,16 @@ OAuth2.prototype = {
         this._browserRequest._listener._cleanUp();
       delete this._browserRequest;
     },
+
     onAuthorizationReceived: function(aData) {
       this.log.info("authorization received" + aData);
       let results = parseURLData(aData);
       this.requestAccessToken(results.code, OAuth2.CODE_AUTHORIZATION);
+    },
+
+    onAuthorizationFailed: function() {
+        this.connecting = false;
+        this.connectFailureCallback();
     },
 
     requestAccessToken: function requestAccessToken(aCode, aType) {

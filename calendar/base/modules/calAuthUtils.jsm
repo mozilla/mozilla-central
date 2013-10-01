@@ -95,7 +95,9 @@ cal.auth = {
                 Services.logins.addLogin(newLoginInfo);
             }
         } catch (exc) {
-            cal.ASSERT(false, exc);
+            // Only show the message if its not an abort, which can happen if
+            // the user canceled the master password dialog
+            cal.ASSERT(exc.result == Components.results.NS_ERROR_ABORT, exc);
         }
     },
 
