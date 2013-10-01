@@ -14,9 +14,11 @@
 
 /* ::::: signature ::::: */
 
-.moz-txt-sig,
-.moz-signature {
-  opacity: 0.6;
+@media not print {
+  .moz-txt-sig,
+  .moz-signature {
+    opacity: 0.6;
+  }
 }
 
 /* ::::: Turn on borders and padding for quotes. ::::: */

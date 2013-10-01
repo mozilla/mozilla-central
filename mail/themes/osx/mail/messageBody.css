@@ -76,9 +76,11 @@ mailattachcount {
 
 /* ::::: signature ::::: */
 
-.moz-txt-sig,
-.moz-signature {
-  opacity: 0.6;
+@media not print {
+  .moz-txt-sig,
+  .moz-signature {
+    opacity: 0.6;
+  }
 }
 
 /* ::::: attached images ::::: */
