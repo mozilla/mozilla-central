@@ -241,7 +241,7 @@ public:
   void AlertUserEventFromServer(const char * aServerEvent);
 
   void ProgressEventFunctionUsingName(const char* aMsgId);
-  void ProgressEventFunctionUsingNameWithString(const char* aMsgId, const char *
+  void ProgressEventFunctionUsingNameWithString(const char* aMsgName, const char *
     aExtraInfo);
   void PercentProgressUpdateEvent(PRUnichar *message, int64_t currentProgress, int64_t maxProgress);
   void ShowProgress();

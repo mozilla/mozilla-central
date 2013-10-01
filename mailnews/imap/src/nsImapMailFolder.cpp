@@ -1607,8 +1607,21 @@ NS_IMETHODIMP nsImapMailFolder::Rename (const nsAString& newName, nsIMsgWindow *
           NS_LITERAL_STRING("imapSpecialChar").get(),
           formatStrings, 1, getter_Copies(alertString));
         nsCOMPtr<nsIPrompt> dialog(do_GetInterface(docShell));
+        // setting up the dialog title
+        nsCOMPtr<nsIMsgIncomingServer> server;
+        rv = GetServer(getter_AddRefs(server));
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsString dialogTitle;
+        nsString accountName;
+        rv = server->GetPrettyName(accountName);
+        NS_ENSURE_SUCCESS(rv, rv);
+        const PRUnichar *titleParams[] = { accountName.get() };
+        rv = bundle->FormatStringFromName(
+          NS_LITERAL_STRING("imapAlertDialogTitle").get(),
+          titleParams, 1, getter_Copies(dialogTitle));
+
         if (dialog && !alertString.IsEmpty())
-          dialog->Alert(nullptr, alertString.get());
+          dialog->Alert(dialogTitle.get(), alertString.get());
       }
     }
     return NS_ERROR_FAILURE;
@@ -6651,7 +6664,7 @@ nsresult nsImapMailFolder::DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAStrin
 
 NS_IMETHODIMP
 nsImapMailFolder::ProgressStatusString(nsIImapProtocol* aProtocol,
-                                       const char* aMsgName, 
+                                       const char* aMsgName,
                                        const PRUnichar * extraInfo)
 {
   nsString progressMsg;
@@ -6679,7 +6692,22 @@ nsImapMailFolder::ProgressStatusString(nsIImapProtocol* aProtocol,
         if (printfString)
           progressMsg.Adopt(printfString);
       }
-      DisplayStatusMsg(imapUrl, progressMsg);
+
+      nsString accountName;
+      nsString progressString;
+      server->GetPrettyName(accountName);
+
+      nsCOMPtr<nsIStringBundle> bundle;
+      rv = IMAPGetStringBundle(getter_AddRefs(bundle));
+      NS_ENSURE_SUCCESS(rv, rv);
+      const PRUnichar* params[] = { accountName.get(),
+                                    progressMsg.get() };
+      rv = bundle->FormatStringFromName(
+        NS_LITERAL_STRING("imapStatusMessage").get(),
+        params, 2, getter_Copies(progressString));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      DisplayStatusMsg(imapUrl, progressString);
     }
   }
   return NS_OK;
