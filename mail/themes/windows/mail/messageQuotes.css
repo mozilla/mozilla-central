@@ -16,7 +16,7 @@
 
 @media not print {
   .moz-txt-sig,
-  .moz-signature {
+  pre.moz-signature {
     opacity: 0.6;
   }
 }
