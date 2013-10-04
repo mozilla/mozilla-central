@@ -454,16 +454,13 @@ function DirPaneSelectionChange()
   goUpdateCommand('cmd_newlist');
 }
 
-function ChangeDirectoryByURI(uri)
+function ChangeDirectoryByURI(uri = kPersonalAddressbookURI)
 {
-  if (!uri)
-    uri = kPersonalAddressbookURI;
-
   SetAbView(uri);
 
-  // only select the first card if there is a first card
+  // Actively de-selecting if there are any pre-existing selections.
   if (gAbView && gAbView.getCardFromRow(0))
-    SelectFirstCard();
+    gAbView.selection.clearSelection();
   else
     // the selection changes if we were switching directories.
     ResultsPaneSelectionChanged()
