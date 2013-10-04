@@ -59,6 +59,13 @@ ical_FILES := ical.h
 ical_DEST = $(DIST)/include
 ical_TARGET := export
 
+CSRCS += \
+	icalderivedparameter.c \
+	icalderivedproperty.c \
+	icalderivedvalue.c \
+	icalrestriction.c \
+	$(NULL)
+
 include $(topsrcdir)/config/rules.mk
 
 ######################################################################
@@ -196,4 +203,3 @@ icalderivedvalue.h: $(VALUEDEPS)
 icalderivedvalue.c: $(VALUEDEPS) $(BUILT_COMBINEDHEADERS)
 	$(PERL)  -I$(ICALSCRIPTS) $(ICALSCRIPTS)/mkderivedvalues.pl \
 		-i $(srcdir)/icalderivedvalue.c.in -c $(DESIGNDATA)/value-types.csv > icalderivedvalue.c
-
