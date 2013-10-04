@@ -95,6 +95,7 @@ function setupWindowAndTest(hotkeyToHit, hotkeyModifiers) {
   plan_for_new_window("mail:messageWindow");
   mc.click(mc.eid("attachmentName"));
   let msgWin = wait_for_new_window("mail:messageWindow");
+  wait_for_message_display_completion(msgWin, false);
 
   plan_for_new_window("msgcompose");
   msgWin.keypress(null, hotkeyToHit, hotkeyModifiers);
