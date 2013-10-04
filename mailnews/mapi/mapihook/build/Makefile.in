@@ -32,6 +32,12 @@ LOCAL_INCLUDES	= -I.
 
 EMBED_MANIFEST_AT = 2
 
+CSRCS += \
+  dlldata.c \
+  msgMapi_i.c \
+  msgMapi_p.c \
+  $(NULL)
+
 include $(topsrcdir)/config/rules.mk
 
 DEFINES += -DREGISTER_PROXY_DLL -DUNICODE -D_UNICODE -D_WIN32_WINNT=0x400

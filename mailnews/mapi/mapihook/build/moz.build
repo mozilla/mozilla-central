@@ -6,11 +6,5 @@
 MODULE = 'MapiProxy'
 LIBRARY_NAME = 'MapiProxy'
 
-CSRCS += [
-    'dlldata.c',
-    'msgMapi_i.c',
-    'msgMapi_p.c',
-]
-
 FORCE_SHARED_LIB = True
 
