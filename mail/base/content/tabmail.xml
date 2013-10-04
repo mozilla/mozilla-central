@@ -2557,52 +2557,54 @@
            extends="chrome://global/content/bindings/toolbarbutton.xml#toolbarbutton-image">
     <handlers>
       <handler event="click" button="0"><![CDATA[
-        var bindingParent = document.getBindingParent(this);
-        if (bindingParent) {
-          var tabbedBrowser = document.getElementById('tabmail');
-          if (bindingParent.localName == "tab") {
-            /* The only sequence in which a second click event (i.e. dblclik)
-             * can be dispatched on an in-tab close button is when it is shown
-             * after the first click (i.e. the first click event was dispatched
-             * on the tab). This happens when we show the close button only on
-             * the active tab. (bug 352021)
-             * The only sequence in which a third click event can be dispatched
-             * on an in-tab close button is when the tab was opened with a
-             * double click on the tabbar. (bug 378344)
-             * In both cases, it is most likely that the close button area has
-             * been accidentally clicked, therefore we do not close the tab.
-             */
-            if (event.detail > 1)
+        let bindingParent = document.getBindingParent(this);
+        if (!bindingParent)
+          return;
+
+        let tabbedBrowser = document.getElementById("tabmail");
+        if (bindingParent.localName == "tab") {
+          /* The only sequence in which a second click event (i.e. dblclik)
+           * can be dispatched on an in-tab close button is when it is shown
+           * after the first click (i.e. the first click event was dispatched
+           * on the tab). This happens when we show the close button only on
+           * the active tab. (bug 352021)
+           * The only sequence in which a third click event can be dispatched
+           * on an in-tab close button is when the tab was opened with a
+           * double click on the tabbar. (bug 378344)
+           * In both cases, it is most likely that the close button area has
+           * been accidentally clicked, therefore we do not close the tab.
+           */
+          if (event.detail > 1)
+            return;
+
+          tabbedBrowser.removeTabByNode(bindingParent);
+          tabbedBrowser._blockDblClick = true;
+          let tabContainer = tabbedBrowser.tabContainer;
+
+          /* XXXmano hack (see bug 343628):
+           * Since we're removing the event target, if the user
+           * double-clicks this button, the dblclick event will be dispatched
+           * with the tabbar as its event target (and explicit/originalTarget),
+           * which treats that as a mouse gesture for opening a new tab.
+           * In this context, we're manually blocking the dblclick event
+           * (see onTabBarDblClick).
+           */
+          let clickedOnce = false;
+          let enableDblClick = function enableDblClick(event) {
+            let target = event.originalTarget;
+            if (target.className == "tab-close-button")
+              target._ignoredClick = true;
+            if (!clickedOnce) {
+              clickedOnce = true;
               return;
-
-            tabbedBrowser.removeTabByNode(bindingParent);
-            tabbedBrowser._blockDblClick = true;
-
-            /* XXXmano hack (see bug 343628):
-             * Since we're removing the event target, if the user
-             * double-clicks this button, the dblclick event will be dispatched
-             * with the tabbar as its event target (and explicit/originalTarget),
-             * which treats that as a mouse gesture for opening a new tab.
-             * In this context, we're manually blocking the dblclick event
-             * (see onTabBarDblClick).
-             */
-            var clickedOnce = false;
-            function enableDblClick(event) {
-              var target = event.originalTarget;
-              if (target.className == "tab-close-button")
-                target._ignoredClick = true;
-              if (!clickedOnce) {
-                clickedOnce = true;
-                return;
-              }
-              tabContainer._blockDblClick = false;
-              tabContainer.removeEventListener("click", enableDblClick, true);
             }
-            tabContainer.addEventListener("click", enableDblClick, true);
+            tabContainer._blockDblClick = false;
+            tabContainer.removeEventListener("click", enableDblClick, true);
           }
-          else // "tabs"
-            tabbedBrowser.removeCurrentTab();
+          tabContainer.addEventListener("click", enableDblClick, true);
         }
+        else // "tabs"
+          tabbedBrowser.removeCurrentTab();
       ]]></handler>
       <handler event="dblclick" button="0" phase="capturing">
         // for the one-close-button case
