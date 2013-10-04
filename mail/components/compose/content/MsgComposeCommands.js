@@ -3763,10 +3763,14 @@ function DetermineConvertibility()
  */
 function hideIrrelevantAddressingOptions(aAccountKey)
 {
-  let hideNews = MailServices.accounts.getAccount(aAccountKey)
-                                      .incomingServer.type != "nntp";
-  // If we are not posting from a News (NNTP) account
-  // hide the Newsgroup recipient type in all the menulists.
+  let hideNews = true;
+  for (let account in fixIterator(MailServices.accounts.accounts,
+                                  Components.interfaces.nsIMsgAccount)) {
+    if (account.incomingServer.type == "nntp")
+      hideNews = false;
+  }
+  // If there is no News (NNTP) account existing then
+  // hide the Newsgroup and Followup-To recipient type in all the menulists.
   let addrWidget = document.getElementById("addressingWidget");
   // Only really touch the News related items we know about.
   let newsTypes = addrWidget
