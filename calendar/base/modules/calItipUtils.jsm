@@ -1206,7 +1206,15 @@ ItipItemFinder.prototype = {
                                             let firstFoundItem = this.mFoundItems.length && this.mFoundItems[0];
                                             let foundAttendee = firstFoundItem.getAttendeeById(att.id);
 
-                                            if (foundAttendee.participationStatus == "NEEDS-ACTION") {
+                                            // If the the user hasn't responded to the invitation yet and we
+                                            // are viewing the current representation of the item, show the
+                                            // accept/decline buttons. This means newer events will show the
+                                            // "Update" button and older events will show the "already
+                                            // processed" text.
+                                            if (foundAttendee.participationStatus == "NEEDS-ACTION" &&
+                                                (item.calendar.getProperty("itip.disableRevisionChecks") ||
+                                                 cal.itip.compare(itipItemItem, item) == 0)) {
+
                                                 actionMethod = "REQUEST:NEEDS-ACTION";
                                                 operations.push(function(opListener, partStat) {
                                                     let changedItem = firstFoundItem.clone();
