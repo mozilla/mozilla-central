@@ -351,14 +351,17 @@ webDavSyncHandler.prototype = {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
         cal.LOG("CalDAV: webdav-sync Token: " + this.calendar.mWebdavSyncToken);
-        let httpchannel = this.calendar.prepHttpChannel(requestUri,
-                                                        queryXml,
-                                                        "text/xml; charset=utf-8",
-                                                        this.calendar);
-        httpchannel.setRequestHeader("Depth", "1", false);
-        httpchannel.requestMethod = "REPORT";
-        // Submit the request
-        httpchannel.asyncOpen(this, httpchannel);
+        this.calendar.sendHttpRequest(requestUri, queryXml, MIME_TEXT_XML, null, (channel) => {
+            channel.setRequestHeader("Depth", "1", false);
+            channel.requestMethod = "REPORT";
+            return this;
+        }, () => {
+            // Something went wrong with the OAuth token, notify failure
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_ERROR_NOT_AVAILABLE },
+                                                Components.results.NS_ERROR_NOT_AVAILABLE);
+            }
+        }, false);
     },
 
     /**
@@ -690,14 +693,17 @@ multigetSyncHandler.prototype = {
         if (this.calendar.verboseLogging()) {
             cal.LOG("CalDAV: send(" + requestUri.spec + "): " + queryXml);
         }
-        let httpchannel = this.calendar.prepHttpChannel(requestUri,
-                                                        queryXml,
-                                                        "text/xml; charset=utf-8",
-                                                        this.calendar);
-        httpchannel.setRequestHeader("Depth", "1", false);
-        httpchannel.requestMethod = "REPORT";
-        // Submit the request
-        httpchannel.asyncOpen(this, httpchannel);
+        this.calendar.sendHttpRequest(requestUri, queryXml, MIME_TEXT_XML, null, (channel) => {
+            channel.requestMethod = "REPORT";
+            channel.setRequestHeader("Depth", "1", false);
+            return this;
+        }, () => {
+            // Something went wrong with the OAuth token, notify failure
+            if (this.calendar.isCached && this.changeLogListener) {
+                this.changeLogListener.onResult({ status: Components.results.NS_ERROR_NOT_AVAILABLE },
+                                                Components.results.NS_ERROR_NOT_AVAILABLE);
+            }
+        }, false);
     },
 
     /**
