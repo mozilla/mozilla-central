@@ -1703,7 +1703,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   if (m_identity)
   {
-    /* Setup reply-to field */
+    // Setup reply-to field.
     nsCString replyTo;
     m_identity->GetReplyTo(replyTo);
     if (!replyTo.IsEmpty())
@@ -1719,7 +1719,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       m_compFields->SetReplyTo(replyTo.get());
     }
 
-    /* Setup cc field */
+    // Setup auto-Cc field.
     bool doCc;
     m_identity->GetDoCc(&doCc);
     if (doCc)
@@ -1738,7 +1738,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       m_compFields->SetCc(ccList.get());
     }
 
-    /* Setup bcc field */
+    // Setup auto-Bcc field.
     bool doBcc;
     m_identity->GetDoBcc(&doBcc);
     if (doBcc)
@@ -2589,13 +2589,17 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           if (curIdentityEmail.Equals(fromEmailAddress))
           {
             isReplyToSelf = true;
-            // For a true reply-to-self, none of your identities are in To or CC.
+            // For a true reply-to-self, none of your OTHER identities are
+            // in To or CC.
             for (uint32_t j = 0; j < count; j++)
             {
               nsCOMPtr<nsIMsgIdentity> lookupIdentity2;
               rv = identities->QueryElementAt(j, NS_GET_IID(nsIMsgIdentity),
                                               getter_AddRefs(lookupIdentity2));
               if (NS_FAILED(rv))
+                continue;
+
+              if (lookupIdentity == lookupIdentity2)
                 continue;
 
               nsCString curIdentityEmail2;
@@ -2640,7 +2644,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         if (isReplyToSelf)
         {
           compFields->SetTo(to);
-         compFields->SetCc(cc);
+          compFields->SetCc(cc);
         }
         else if (mailFollowupTo.IsEmpty()) {
           // default behaviour for messages without Mail-Followup-To
@@ -2672,10 +2676,11 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         }
         else
         {
-          // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
-
+          // Handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
           compFields->SetTo(mailFollowupTo);
-          compFields->SetCc(EmptyString());
+          needToRemoveDup = true; // To remove possible self from To.
+
+          // If Cc is set a this point it's auto-Ccs, so we'll just keep those.
         }
 
         // Preserve BCC for the reply-to-self case (can be known if replying
@@ -2767,39 +2772,28 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
       references += messageId;
       compFields->SetReferences(NS_LossyConvertUTF16toASCII(references).get());
 
-      // Remove my address from Reply fields.
       nsAutoCString resultStr;
 
       // Cast interface to concrete class that has direct field getters etc.
       nsMsgCompFields* _compFields = static_cast<nsMsgCompFields*>(compFields.get());
-      if (mIdentity)
-      {
-        nsCString email;
-        mIdentity->GetEmail(email);
-        // We need to remove dups for the Reply fields.
 
-        // If it's a reply to self, self should not be removed.
-        if (NS_ConvertUTF16toUTF8(from).Find(email) == kNotFound) {
-          parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                           email, resultStr);
-          _compFields->SetTo(resultStr.get());
-        }
-
-        parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
-                                         email, resultStr);
-        _compFields->SetCc(resultStr.get());
-      }
-
-      // Remove duplicate addresses between TO && CC
+      // Remove duplicate addresses between To && Cc.
       if (needToRemoveDup)
       {
-        nsCString addressToBeRemoved(_compFields->GetTo());
-        // Remove my own address if using Mail-Followup-To (see bug 325429)
+        nsCString addressesToRemoveFromCc;
         if (mIdentity)
         {
           bool removeMyEmailInCc = true;
           nsCString myEmail;
           mIdentity->GetEmail(myEmail);
+
+          // Remove my own address from To, unless it's a reply to self.
+          if (!isReplyToSelf) {
+            parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
+                                             myEmail, resultStr);
+            _compFields->SetTo(resultStr.get());
+          }
+          addressesToRemoveFromCc.Assign(_compFields->GetTo());
 
           // Remove own address from CC unless we want it in there
           // through the automatic-CC-to-self (see bug 584962). There are
@@ -2813,31 +2807,25 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           mIdentity->GetDoCc(&automaticCc);
           if (automaticCc)
           {
-            nsCString ccList, ccEmailAddresses;
-            mIdentity->GetDoCcList(ccList);
-            rv = parser->ExtractHeaderAddressMailboxes(ccList,
-                                                       ccEmailAddresses);
+            nsCString autoCcList, autoCcEmailAddresses;
+            mIdentity->GetDoCcList(autoCcList); 
+            rv = parser->ExtractHeaderAddressMailboxes(autoCcList,
+                                                       autoCcEmailAddresses);
             if (NS_SUCCEEDED(rv) &&
-                ccEmailAddresses.Find(myEmail) != kNotFound)
+                autoCcEmailAddresses.Find(myEmail) != kNotFound)
+            {
               removeMyEmailInCc = false;
+            }
           }
 
           if (removeMyEmailInCc)
           {
-            addressToBeRemoved.AppendLiteral(", ");
-            addressToBeRemoved.Append(myEmail);
-          }
-
-          rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                                myEmail, resultStr);
-          if (NS_SUCCEEDED(rv))
-          {
-            if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
-              _compFields->SetTo(resultStr.get());
+            addressesToRemoveFromCc.AppendLiteral(", ");
+            addressesToRemoveFromCc.Append(myEmail);
           }
         }
         rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetCc()),
-                                              addressToBeRemoved, resultStr);
+                                              addressesToRemoveFromCc, resultStr);
         if (NS_SUCCEEDED(rv))
           _compFields->SetCc(resultStr.get());
       }

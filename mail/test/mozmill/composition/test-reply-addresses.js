@@ -19,8 +19,10 @@ const MODULE_REQUIRES = ["folder-display-helpers",
 var folder;
 var i = 0;
 
-const myEmail1 = "me@example.com";
+const myEmail = "me@example.com";
 const myEmail2 = "otherme@example.com";
+
+var identity;
 
 Cu.import("resource:///modules/mailServices.js");
 
@@ -39,9 +41,9 @@ function setupModule(module) {
                   .QueryInterface(Ci.nsIMsgLocalMailFolder)
                   .createLocalSubfolder("Msgs4Reply");
 
-  let identity1 = acctMgr.createIdentity();
-  identity1.email = myEmail1;
-  account.addIdentity(identity1);
+  identity = acctMgr.createIdentity();
+  identity.email = myEmail;
+  account.addIdentity(identity);
 
   let identity2 = acctMgr.createIdentity();
   identity2.email = myEmail2;
@@ -51,6 +53,21 @@ function setupModule(module) {
   // out of context what the expected results should be.
 }
 
+/**
+ * Helper to open a reply, check the fields are as expected, and close the
+ * reply window.
+ * @param aReplyFunction which reply function to call
+ * @param aExpectedFields the fields expected
+ */
+function checkReply(aReplyFunction, aExpectedFields) {
+  let rwc = aReplyFunction();
+  checkToAddresses(rwc, aExpectedFields);
+  close_compose_window(rwc);
+}
+
+/**
+ * Helper to check that the reply window has the expected address fields.
+ */
 function checkToAddresses(replyWinController, expectedFields) {
   let addressingWidgetItems = replyWinController.window.document
     .querySelectorAll("#addressingWidget .addressingWidgetItem");
@@ -101,13 +118,36 @@ function checkToAddresses(replyWinController, expectedFields) {
 }
 
 /**
+ * Helper to set an auto-Cc list for an identity.
+ */
+function useAutoCc(aIdentity, aCcList) {
+  aIdentity.doCc = true;
+  aIdentity.doCcList = aCcList;
+}
+
+/**
+ * Helper to stop using auto-Cc for an identity.
+ */
+function stopUsingAutoCc(aIdentity) {
+  aIdentity.doCc = false;
+  aIdentity.doCcList = "";
+}
+
+/**
+ * Helper to ensure autoCc is turned off.
+ */
+function ensureNoAutoCc(aIdentity) {
+  aIdentity.doCc = false;
+}
+
+/**
  * Tests that addresses get set properly when doing a normal reply.
  */
 function testToCcReply() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "Mr Burns <mrburns@example.com>, workers@example.com, " +
-        myEmail1,
+        myEmail,
     cc: "Lisa <lisa@example.com>",
     subject: "testToCcReply - normal mail with to and cc (me in To)"
   });
@@ -117,11 +157,24 @@ function testToCcReply() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply,
+      // To: From
+    {"addr_to": ["Homer <homer@example.com>"]}
+  );
 
-  // To: From
-  checkToAddresses(rwc, {"addr_to": ["Homer <homer@example.com>"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply,
+    // To: From
+    // Cc: identity Cc list, including self.
+    {
+      "addr_to": ["Homer <homer@example.com>"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -131,7 +184,7 @@ function testToCcReplyAll() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "Mr Burns <mrburns@example.com>, workers@example.com, " +
-        myEmail1,
+        myEmail,
     cc: "Lisa <lisa@example.com>",
     subject: "testToCcReplyAll - normal mail with to and cc (me in To)"
   });
@@ -141,19 +194,34 @@ function testToCcReplyAll() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
     // To: From + Tos without me.
     // Cc: original Ccs
     {
-    "addr_to": ["Homer <homer@example.com>",
-                "Mr Burns <mrburns@example.com>",
-                "workers@example.com"],
-    "addr_cc": ["Lisa <lisa@example.com>"]
+      "addr_to": ["Homer <homer@example.com>",
+                  "Mr Burns <mrburns@example.com>",
+                  "workers@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + Tos without me.
+    // Cc: original Ccs + auto-Ccs
+    {
+      "addr_to": ["Homer <homer@example.com>",
+                  "Mr Burns <mrburns@example.com>",
+                  "workers@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>",
+                  myEmail,
+                  "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -164,7 +232,7 @@ function testToCcReplyAllInternational() {
   let msg0 = create_message({
     from: "Hideaki / =?iso-2022-jp?B?GyRCNUhGIzFRTEAbKEI=?= <hideaki@example.com>",
     to: "Mr Burns <mrburns@example.com>, =?UTF-8?B?w4VrZQ==?= <ake@example.com>, " +
-        "=?KOI8-R?Q?=E9=D7=C1=CE?= <ivan@example.com>, " + myEmail1,
+        "=?KOI8-R?Q?=E9=D7=C1=CE?= <ivan@example.com>, " + myEmail,
     cc: "=?Big5?B?pP2oca1e?= <xiuying@example.com>",
     subject: "testToCcReplyAllInternational - non-ascii people mail with to and cc (me in To)",
     clobberHeaders: { 'Content-Transfer-Encoding': 'quoted-printable' },
@@ -179,20 +247,34 @@ function testToCcReplyAllInternational() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
     // To: From + Tos without me.
     // Cc: original Ccs
     {
-    "addr_to": ["Hideaki / 吉藤英明 <hideaki@example.com>",
-                "Mr Burns <mrburns@example.com>",
-                "Åke <ake@example.com>",
-                "Иван <ivan@example.com>"],
-    "addr_cc": ["王秀英 <xiuying@example.com>"]
+      "addr_to": ["Hideaki / 吉藤英明 <hideaki@example.com>",
+                  "Mr Burns <mrburns@example.com>",
+                  "Åke <ake@example.com>",
+                  "Иван <ivan@example.com>"],
+      "addr_cc": ["王秀英 <xiuying@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, "Åsa <asa@example.com>");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + Tos without me.
+    // Cc: original Ccs + auto-Ccs
+    {
+      "addr_to": ["Hideaki / 吉藤英明 <hideaki@example.com>",
+                  "Mr Burns <mrburns@example.com>",
+                  "Åke <ake@example.com>",
+                  "Иван <ivan@example.com>"],
+      "addr_cc": ["王秀英 <xiuying@example.com>", "Åsa <asa@example.com>"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -203,7 +285,7 @@ function testToCcReplyWhenReplyToSet() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "workers@example.com",
-    cc: "Lisa <lisa@example.com>, " + myEmail1,
+    cc: "Lisa <lisa@example.com>, " + myEmail,
     subject: "testToCcReplyWhenReplyToSet - to/cc mail with reply-to set (me in Cc)",
     clobberHeaders: {
       "Reply-To": "marge@example.com"
@@ -215,11 +297,24 @@ function testToCcReplyWhenReplyToSet() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply,
+    // To: reply-to
+    {"addr_to": ["marge@example.com"]}
+  );
 
-  // To: reply-to
-  checkToAddresses(rwc, {"addr_to": ["marge@example.com"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply,
+    // To: reply-to
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["marge@example.com"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -230,7 +325,7 @@ function testToCcReplyAllWhenReplyToSet() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "workers@example.com",
-    cc: "Lisa <lisa@example.com>, " + myEmail1,
+    cc: "Lisa <lisa@example.com>, " + myEmail,
     subject: "testToCcReplyAllWhenReplyToSet - to/cc mail with reply-to set (me in Cc)",
     clobberHeaders: {
       "Reply-To": "marge@example.com"
@@ -242,18 +337,30 @@ function testToCcReplyAllWhenReplyToSet() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
     // To: Reply-To + Tos
     // Cc: original Ccs without me.
     {
-    "addr_to": ["marge@example.com",
-                "workers@example.com"],
-    "addr_cc": ["Lisa <lisa@example.com>"]
+      "addr_to": ["marge@example.com",
+                  "workers@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: Reply-To + Tos
+    // Cc: original Ccs + auto-Ccs (which includes me!)
+    {
+      "addr_to": ["marge@example.com",
+                  "workers@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>", myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -263,7 +370,7 @@ function testReplyToList() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "workers-list@example.com",
-    cc: "Lisa <lisa@example.com>, " + myEmail1,
+    cc: "Lisa <lisa@example.com>, " + myEmail,
     subject: "testReplyToList - mailing list message (me in Cc)",
     clobberHeaders: {
       "List-Post": "<mailto:workers-list@example.com>"
@@ -275,10 +382,24 @@ function testReplyToList() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_list();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_list,
+    // To: the list
+    {"addr_to": ["workers-list@example.com"]}
+  );
 
-  checkToAddresses(rwc, {"addr_to": ["workers-list@example.com"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_list,
+    // To: the list
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["workers-list@example.com"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -289,7 +410,7 @@ function testReplySenderForListPost() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "workers-list@example.com",
-    cc: "Lisa <lisa@example.com>, " + myEmail1,
+    cc: "Lisa <lisa@example.com>, " + myEmail,
     subject: "testReplySenderForListPost - mailing list message (me in Cc)",
     clobberHeaders: {
       "List-Post": "<mailto:workers-list@example.com>"
@@ -301,11 +422,24 @@ function testReplySenderForListPost() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply,
+    // To: From
+    {"addr_to": ["Homer <homer@example.com>"]}
+  );
 
-  // To: From
-  checkToAddresses(rwc, {"addr_to": ["Homer <homer@example.com>"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply,
+    // To: From
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["Homer <homer@example.com>"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -315,7 +449,7 @@ function testReplyToAllForListPost() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
     to: "workers-list@example.com",
-    cc: "Lisa <lisa@example.com>, " + myEmail1,
+    cc: "Lisa <lisa@example.com>, " + myEmail,
     subject: "testReplyToAllForListPost - mailing list message (me in Cc)",
     clobberHeaders: {
       "List-Post": "<mailto:workers-list@example.com>"
@@ -327,17 +461,28 @@ function testReplyToAllForListPost() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  // To: From + original To
-  // Cc: original CC without me
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + original To
+    // Cc: original CC without me
     {
-    "addr_to": ["Homer <homer@example.com>", "workers-list@example.com"],
-    "addr_cc": ["Lisa <lisa@example.com>"]
+      "addr_to": ["Homer <homer@example.com>", "workers-list@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + original To
+    // Cc: original CC + auto-Ccs (including me!)
+    {
+    "addr_to": ["Homer <homer@example.com>", "workers-list@example.com"],
+    "addr_cc": ["Lisa <lisa@example.com>", myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -347,7 +492,7 @@ function testReplyToAllForListPost() {
 function testReplyToListWhenReplyToSet() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
-    to: "workers-list@example.com, " + myEmail1,
+    to: "workers-list@example.com, " + myEmail,
     cc: "Lisa <lisa@example.com>",
     subject: "testReplyToListWhenReplyToSet - mailing list message w/ cc, reply-to (me in To)",
     clobberHeaders: {
@@ -361,17 +506,28 @@ function testReplyToListWhenReplyToSet() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  // To: Reply-To, oringinal Tos
-  // Cc: original Cc
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: Reply-To, original Tos
+    // Cc: original Cc
     {
-    "addr_to": ["marge@example.com", "workers-list@example.com"],
-    "addr_cc": ["Lisa <lisa@example.com>"]
+      "addr_to": ["marge@example.com", "workers-list@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: Reply-To, original Tos
+    // Cc: original Cc + auto-Ccs
+    {
+      "addr_to": ["marge@example.com", "workers-list@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>", myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -396,22 +552,35 @@ function testMailReplyTo() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply,
+    // To: Mail-Reply-To
+    {"addr_to": ["Homer S. <homer@example.com>"]}
+  );
 
-  // To: Mail-Reply-To
-  checkToAddresses(rwc, {"addr_to": ["Homer S. <homer@example.com>"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply,
+    // To: Mail-Reply-To
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["Homer S. <homer@example.com>"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
  * Test that addresses get set properly Mail-Followup-To. Mail-Followup-To
- * should be the default recipent list for reply-all, if present.
+ * should be the default recipient list for reply-all, if present.
  * @see http://cr.yp.to/proto/replyto.html
  */
 function testMailFollowupTo() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
-    to: "workers-list@example.com, " + myEmail1,
+    to: "workers-list@example.com, " + myEmail,
     cc: "Lisa <lisa@example.com>",
     subject: "testMailFollowupTo - mail with Mail-Followup-To header",
     clobberHeaders: {
@@ -426,11 +595,24 @@ function testMailFollowupTo() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
+     // To: Mail-Followup-To
+    {"addr_to": ["workers-list@example.com"]}
+  );
 
-  // To: Mail-Followup-To
-  checkToAddresses(rwc, {"addr_to": ["workers-list@example.com"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: Mail-Followup-To
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["workers-list@example.com"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -438,7 +620,7 @@ function testMailFollowupTo() {
  */
 function testReplyToSelfReply() {
   let msg0 = create_message({
-    from: myEmail1,
+    from: myEmail,
     to: "Bart <bart@example.com>, Maggie <maggie@example.com>",
     cc: "Lisa <lisa@example.com>",
     subject: "testReplyToSelfReply - reply to self",
@@ -452,12 +634,26 @@ function testReplyToSelfReply() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply();
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply,
+    // To: original To
+    {
+      "addr_to": ["Bart <bart@example.com>", "Maggie <maggie@example.com>"]
+    }
+  );
 
-  // To: original To
-  checkToAddresses(rwc, {"addr_to": ["Bart <bart@example.com>",
-                                     "Maggie <maggie@example.com>"]});
-  close_compose_window(rwc);
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply,
+    // To: original To
+    // Cc: auto-Ccs
+    {
+      "addr_to": ["Bart <bart@example.com>", "Maggie <maggie@example.com>"],
+      "addr_cc": [myEmail, "smithers@example.com"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -466,7 +662,7 @@ function testReplyToSelfReply() {
  */
 function testReplyToSelfReplyAll() {
   let msg0 = create_message({
-    from: myEmail1,
+    from: myEmail,
     to: "Bart <bart@example.com>, Maggie <maggie@example.com>",
     cc: "Lisa <lisa@example.com>",
     subject: "testReplyToSelfReplyAll - reply to self",
@@ -480,20 +676,64 @@ function testReplyToSelfReplyAll() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+     open_compose_with_reply_to_all,
     // To: original To
     // Cc: original Cc
     // Bcc: original Bcc
     {
-    "addr_to": ["Bart <bart@example.com>",
-                "Maggie <maggie@example.com>"],
-    "addr_cc": ["Lisa <lisa@example.com>"],
-    "addr_bcc": ["Moe <moe@example.com>"]
+      "addr_to": ["Bart <bart@example.com>",
+                  "Maggie <maggie@example.com>"],
+      "addr_cc": ["Lisa <lisa@example.com>"],
+      "addr_bcc": ["Moe <moe@example.com>"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: original To
+    // Cc: original Cc (auto-Ccs would have been included here already)
+    // Bcc: original Bcc
+    {
+      "addr_to": ["Bart <bart@example.com>",
+                  "Maggie <maggie@example.com>"],
+      "addr_cc": ["Lisa <lisa@example.com>"],
+      "addr_bcc": ["Moe <moe@example.com>"]
+    }
+  );
+  stopUsingAutoCc(identity);
+}
+
+/**
+ * Tests that a reply to an other identity isn't treated as a reply to self
+ * followup.
+ */
+function testReplyToOtherIdentity() {
+  let msg0 = create_message({
+    from: myEmail,
+    to: myEmail2 + ", barney@example.com",
+    cc: "Lisa <lisa@example.com>",
+    subject: "testReplyToOtherIdentity - reply to other identity"
+  });
+  add_message_to_folder(folder, msg0);
+
+  be_in_folder(folder);
+  let msg = select_click_row(i++);
+  assert_selected_and_displayed(mc, msg);
+
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: from + to (except me)
+    // Cc: original Cc
+    // 
+    {
+      "addr_to": [myEmail, "barney@example.com"],
+      "addr_cc": ["Lisa <lisa@example.com>"]
+    }
+  );
 }
 
 /**
@@ -514,17 +754,29 @@ function testNewsgroupsReplyAll() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+     open_compose_with_reply_to_all,
     // To: From, original To
     // Newsgroups: original Ccs
     {
-    "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
-    "addr_newsgroups": ["example.test1", "example.test2"]
+      "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
+      "addr_newsgroups": ["example.test1", "example.test2"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+     open_compose_with_reply_to_all,
+    // To: From, original To
+    // Newsgroups: original Ccs
+    {
+      "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
+      "addr_cc": [myEmail, "smithers@example.com"],
+      "addr_newsgroups": ["example.test1", "example.test2"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
 /**
@@ -534,7 +786,7 @@ function testNewsgroupsReplyAll() {
 function testNewsgroupsReplyAllFollowupTo() {
   let msg0 = create_message({
     from: "Homer <homer@example.com>",
-    to: "test1-list@example.org",
+    to: "test1-list@example.org, " + myEmail,
     subject: "testNewsgroupsReplyAllFollowupTo - Followup-To set",
     clobberHeaders: {
       "Newsgroups": "example.test1, example.test2",
@@ -547,15 +799,29 @@ function testNewsgroupsReplyAllFollowupTo() {
   let msg = select_click_row(i++);
   assert_selected_and_displayed(mc, msg);
 
-  let rwc = open_compose_with_reply_to_all();
-
-  checkToAddresses(rwc,
+  ensureNoAutoCc(identity);
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + original To (except me)
     // Newsgroups: <Followup-To>
     {
-    "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
-    "addr_newsgroups": ["example.test2"]
+      "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
+      "addr_newsgroups": ["example.test2"]
     }
   );
-  close_compose_window(rwc);
+
+  useAutoCc(identity, myEmail + ", smithers@example.com");
+  checkReply(
+    open_compose_with_reply_to_all,
+    // To: From + original To (except me)
+    // Cc: auto-Ccs
+    // Newsgroups: <Followup-To>
+    {
+      "addr_to": ["Homer <homer@example.com>", "test1-list@example.org"],
+      "addr_cc": [myEmail, "smithers@example.com"],
+      "addr_newsgroups": ["example.test2"]
+    }
+  );
+  stopUsingAutoCc(identity);
 }
 
