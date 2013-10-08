@@ -69,15 +69,15 @@
 }
 
 .tabmail-tab:hover > .tab-stack > .tab-background:not([selected=true]) {
-  background-image: url(icons/tabBackgroundStart.png),
-                    url(icons/tabBackgroundMiddle.png),
-                    url(icons/tabBackgroundEnd.png);
+  background-image: url(tabs/tabBackgroundStart.png),
+                    url(tabs/tabBackgroundMiddle.png),
+                    url(tabs/tabBackgroundEnd.png);
 }
 
 .tab-background[selected=true] {
-  background-image: url(icons/tabActiveStart.svg),
-                    url(icons/tabActiveMiddle.svg),
-                    url(icons/tabActiveEnd.svg);
+  background-image: url(tabs/tabActiveStart.svg),
+                    url(tabs/tabActiveMiddle.svg),
+                    url(tabs/tabActiveEnd.svg);
 }
 
 .tab-background[selected=true]:-moz-lwtheme {
@@ -207,7 +207,7 @@ tabpanels {
 
 /* Tab DnD indicator */
 .tab-drop-indicator {
-  list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
+  list-style-image: url(chrome://messenger/skin/tabs/tabDragIndicator.png);
   margin-bottom: -11px;
 }
 
@@ -288,7 +288,7 @@ tabpanels {
   height: 23px;
   -moz-margin-start: 0px;
   -moz-margin-end: 2px;
-  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left.png);
+  list-style-image: url(chrome://messenger/skin/tabs/tab-arrow-left.png);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {
@@ -310,7 +310,7 @@ tabpanels {
   width: 18px;
   margin: 0px;
   padding: 0 0 3px;
-  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left.png);
+  list-style-image: url(chrome://messenger/skin/tabs/tab-arrow-left.png);
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down > .toolbarbutton-icon {
@@ -322,7 +322,7 @@ tabpanels {
 
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
 .tabmail-arrowscrollbox > stack > .scrollbutton-down:-moz-lwtheme-brighttext {
-  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left-inverted.png);
+  list-style-image: url(chrome://messenger/skin/tabs/tab-arrow-left-inverted.png);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up[disabled],
