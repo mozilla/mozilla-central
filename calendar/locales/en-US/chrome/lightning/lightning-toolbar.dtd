@@ -37,4 +37,8 @@
 <!-- LOCALIZATION NOTE: the same as appmenuButton.label and appmenuButton1.tooltip
      from messenger.dtd -->
 <!ENTITY lightning.toolbar.appmenuButton.label       "AppMenu">
-<!ENTITY lightning.toolbar.appmenuButton1.tooltip     "Display the &brandShortName; Menu">
+<!ENTITY lightning.toolbar.appmenuButton1.tooltip    "Display the &brandShortName; Menu">
+<!ENTITY lightning.toolbar.calendarmenu.label        "Calendar Pane">
+<!ENTITY lightning.toolbar.calendarmenu.accesskey    "P">
+<!ENTITY lightning.toolbar.calendarpane.label        "Show Calendar Pane">
+<!ENTITY lightning.toolbar.calendarpane.accesskey    "P">

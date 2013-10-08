@@ -462,3 +462,16 @@ function onToolbarsPopupShowingWithMode(aEvent, aInsertPoint) {
     }
     onViewToolbarsPopupShowing(aEvent, toolbox, aInsertPoint);
 }
+
+// Initialize the Calendar sidebar menu state
+function InitViewCalendarPaneMenu() {
+    let calSidebar = document.getElementById("ltnSidebar");
+
+    setBooleanAttribute("ltnViewCalendarPane", "checked",
+                        !calSidebar.getAttribute("collapsed"));
+
+    if (document.getElementById("appmenu_ltnViewCalendarPane")) {
+        setBooleanAttribute("appmenu_ltnViewCalendarPane", "checked",
+                            !calSidebar.getAttribute("collapsed"));
+    }
+}

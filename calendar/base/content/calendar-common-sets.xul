@@ -84,6 +84,7 @@
     <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="goDoCommand('calendar_toggle_workdays_only_command')"/>
     <command id="calendar_toggle_tasks_in_view_command" persist="checked" oncommand="toggleTasksInView()"/>
     <command id="calendar_toggle_show_completed_in_view_command" persist="checked" oncommand="toggleShowCompletedInView()"/>
+    <command id="calendar_toggle_calendarsidebar_command" oncommand="togglePaneSplitter('calsidebar_splitter')"/>
     <command id="calendar_toggle_minimonthpane_command" oncommand="document.getElementById('minimonth-pane').togglePane(event)"/>
     <command id="calendar_toggle_calendarlist_command" oncommand="document.getElementById('calendar-list-pane').togglePane(event)"/>
     <command id="calendar_task_filter_command" oncommand="taskViewUpdate(event.explicitOriginalTarget.getAttribute('value'))"/>
