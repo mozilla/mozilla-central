@@ -339,6 +339,7 @@ webDavSyncHandler.prototype = {
           xmlHeader +
           '<sync-collection xmlns="DAV:">' +
             syncTokenString +
+            '<sync-level>1</sync-level>' +
             '<prop>' +
               '<getcontenttype/>' +
               '<getetag/>' +
@@ -352,7 +353,12 @@ webDavSyncHandler.prototype = {
         }
         cal.LOG("CalDAV: webdav-sync Token: " + this.calendar.mWebdavSyncToken);
         this.calendar.sendHttpRequest(requestUri, queryXml, MIME_TEXT_XML, null, (channel) => {
+            // The depth header adheres to an older version of the webdav-sync
+            // spec and has been replaced by the <sync-level> tag above.
+            // Unfortunately some servers still depend on the depth header,
+            // therefore we send both (yuck).
             channel.setRequestHeader("Depth", "1", false);
+
             channel.requestMethod = "REPORT";
             return this;
         }, () => {
