@@ -26,6 +26,7 @@ FeedItem.prototype =
   // TO DO: this needs to be localized.
   title: "(no subject)",
   author: "anonymous",
+  inReplyTo: "",
   mURL: null,
   characterSet: "",
 
@@ -85,13 +86,18 @@ FeedItem.prototype =
     FeedUtils.log.trace("FeedItem.messageID: mURL - " + this.mURL);
     FeedUtils.log.trace("FeedItem.messageID: title - " + this.title);
 
+    return messageID;
+  },
+
+  normalizeMessageID: function(messageID)
+  {
     // Escape occurrences of message ID meta characters <, >, and @.
     messageID.replace(/</g, "%3C");
     messageID.replace(/>/g, "%3E");
     messageID.replace(/@/g, "%40");
-    messageID = messageID + "@" + "localhost.localdomain";
+    messageID = "<" + messageID.trim() + "@" + "localhost.localdomain" + ">";
 
-    FeedUtils.log.trace("FeedItem.messageID: messageID - " + messageID);
+    FeedUtils.log.trace("FeedItem.normalizeMessageID: messageID - " + messageID);
     return messageID;
   },
 
@@ -325,6 +331,11 @@ FeedItem.prototype =
     if (this.mDate.search(/^\d\d\d\d/) != -1)
       this.mDate = new Date(this.mDate).toUTCString();
 
+    // If there is an inreplyto value, create the headers.
+    let inreplytoHdrsStr = this.inReplyTo ?
+      ("References: " + this.inReplyTo + "\n" +
+       "In-Reply-To: " + this.inReplyTo + "\n") : "";
+
     // Escape occurrences of "From " at the beginning of lines of
     // content per the mbox standard, since "From " denotes a new
     // message, and add a line break so we know the last line has one.
@@ -343,12 +354,13 @@ FeedItem.prototype =
       openingLine +
       'X-Mozilla-Status: 0000\n' +
       'X-Mozilla-Status2: 00000000\n' +
-      'X-Mozilla-Keys:                                                                                \n' +
+      'X-Mozilla-Keys: ' + (new Array(80)).join(" ") + '\n' +
       'Date: ' + this.mDate + '\n' +
-      'Message-Id: <' + this.messageID + '>\n' +
+      'Message-Id: ' + this.normalizeMessageID(this.messageID) + '\n' +
       'From: ' + this.author + '\n' +
       'MIME-Version: 1.0\n' +
       'Subject: ' + this.title + '\n' +
+      inreplytoHdrsStr +
       'Content-Transfer-Encoding: 8bit\n' +
       'Content-Base: ' + this.mURL + '\n';
 

@@ -18,6 +18,14 @@ var FeedSubscriptions = {
   kCopyMode      : 4,
   kImportingOPML : 5,
 
+  get FOLDER_ACTIONS()
+  {
+    return Ci.nsIMsgFolderNotificationService.folderAdded |
+           Ci.nsIMsgFolderNotificationService.folderDeleted |
+           Ci.nsIMsgFolderNotificationService.folderRenamed |
+           Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted;
+  },
+
   onLoad: function ()
   {
     // Extract the folder argument.
@@ -37,10 +45,7 @@ var FeedSubscriptions = {
     {
       win.FeedFolderNotificationService = MailServices.mfn;
       win.FeedFolderNotificationService.addListener(this.FolderListener,
-        Ci.nsIMsgFolderNotificationService.folderAdded |
-        Ci.nsIMsgFolderNotificationService.folderDeleted |
-        Ci.nsIMsgFolderNotificationService.folderRenamed |
-        Ci.nsIMsgFolderNotificationService.folderMoveCopyCompleted);
+                                                    this.FOLDER_ACTIONS);
     }
   },
 
@@ -67,7 +72,11 @@ var FeedSubscriptions = {
       FeedUtils.CANCEL_REQUESTED = true;
       let win = Services.wm.getMostRecentWindow("mail:3pane");
       if (win)
-        delete win.FeedFolderNotificationService;
+        {
+          win.FeedFolderNotificationService.removeListener(this.FolderListener,
+                                                           this.FOLDER_ACTIONS);
+          delete win.FeedFolderNotificationService;
+        }
     }
 
     return dismissDialog;

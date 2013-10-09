@@ -204,9 +204,8 @@ FeedParser.prototype =
       tags = this.childrenByTagNameNS(itemNode, nsURI, "enclosure");
       let encUrls = [];
       if (tags)
-        for (let j = 0; j < tags.length; j++)
+        for (let tag of tags)
         {
-          let tag = tags[j];
           let url = tag.getAttribute("url");
           if (url)
           {
@@ -219,9 +218,8 @@ FeedParser.prototype =
 
       tags = itemNode.getElementsByTagNameNS(FeedUtils.MRSS_NS, "content");
       if (tags)
-        for (let j = 0; j < tags.length; j++)
+        for (let tag of tags)
         {
-          let tag = tags[j];
           let url = tag.getAttribute("url");
           if (url && encUrls.indexOf(url) == -1)
             item.enclosures.push(new FeedEnclosure(url,
@@ -540,15 +538,29 @@ FeedParser.prototype =
       // Handle <link rel="enclosure"> (if present).
       tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_IETF_NS, "link");
       if (tags)
-        for (let j = 0; j < tags.length; j++)
+        for (let tag of tags)
         {
-          let tag = tags[j];
           if (tag.getAttribute("rel") == "enclosure" && tag.getAttribute("href"))
             item.enclosures.push(new FeedEnclosure(tag.getAttribute("href"),
                                                    tag.getAttribute("type"),
                                                    tag.getAttribute("length"),
                                                    tag.getAttribute("title")));
         }
+
+      // Handle atom threading extension, RFC4685.  There may be 1 or more tags,
+      // and each must contain a ref attribute with 1 Message-Id equivalent
+      // value.  This is the only attr of interest in the spec for presentation.
+      tags = this.childrenByTagNameNS(itemNode, FeedUtils.ATOM_THREAD_NS, "in-reply-to");
+      if (tags)
+      {
+        for (let tag of tags)
+        {
+          let ref = tag.getAttribute("ref");
+          if (ref)
+            item.inReplyTo += item.normalizeMessageID(ref) + " ";
+        }
+        item.inReplyTo = item.inReplyTo.trimRight();
+      }
 
       parsedItems.push(item);
     }
@@ -639,10 +651,10 @@ FeedParser.prototype =
       return null;
     let matches = aElement.getElementsByTagNameNS(aNamespace, aTagName);
     let matchingChildren = new Array();
-    for (let i = 0; i < matches.length; i++)
+    for (let match of matches)
     {
-      if (matches[i].parentNode == aElement)
-        matchingChildren.push(matches[i])
+      if (match.parentNode == aElement)
+        matchingChildren.push(match)
     }
 
     return matchingChildren.length ? matchingChildren : null;
@@ -654,8 +666,7 @@ FeedParser.prototype =
       return null;
 
     // XXX Need to check for MIME type and hreflang.
-    for (let j = 0; j < linkElements.length; j++) {
-      let alink = linkElements[j];
+    for (let alink of linkElements) {
       if (alink &&
           // If there's a link rel.
           ((alink.getAttribute("rel") && alink.getAttribute("rel") == linkRel) ||

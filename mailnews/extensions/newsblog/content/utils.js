@@ -66,6 +66,7 @@ var FeedUtils = {
   // Atom constants
   ATOM_03_NS: "http://purl.org/atom/ns#",
   ATOM_IETF_NS: "http://www.w3.org/2005/Atom",
+  ATOM_THREAD_NS: "http://purl.org/syndication/thread/1.0",
 
   // The approximate amount of time, specified in milliseconds, to leave an
   // item in the RDF cache after the item has dissappeared from feeds.
