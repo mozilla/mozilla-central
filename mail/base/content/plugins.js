@@ -634,6 +634,7 @@ var gPluginHandler = {
     }
 
     if (isShowing) {
+      overlay.style.visibility = "visible";
       // If a previous plugin on the page was too small and resulted in adding a
       // notification bar, then remove it because this plugin instance is big
       // enough to serve as in-content notification.
