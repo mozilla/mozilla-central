@@ -354,7 +354,6 @@
 @BINPATH@/components/nsLoginManager.js
 @BINPATH@/components/nsLoginManagerPrompter.js
 @BINPATH@/components/passwordmgr.manifest
-@BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
 @BINPATH@/components/crypto-SDR.js
 
