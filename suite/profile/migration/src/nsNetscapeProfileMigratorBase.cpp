@@ -19,7 +19,6 @@
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
 #include "prtime.h"
-#include "nsILoginManagerStorage.h"
 #include "nsINIParser.h"
 #include "nsArrayUtils.h"
 
@@ -643,27 +642,6 @@ nsNetscapeProfileMigratorBase::CopyCookies(bool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyPasswords(bool aReplace)
-{
-  nsCString signonsFileName;
-  GetSignonFileName(aReplace, getter_Copies(signonsFileName));
-
-  if (signonsFileName.IsEmpty())
-    return NS_ERROR_FILE_NOT_FOUND;
-
-  if (aReplace)
-    return CopyFile(signonsFileName.get(), signonsFileName.get());
-
-  nsCOMPtr<nsIFile> seamonkeyPasswordsFile;
-  mSourceProfile->Clone(getter_AddRefs(seamonkeyPasswordsFile));
-  seamonkeyPasswordsFile->AppendNative(signonsFileName);
-
-  nsCOMPtr<nsILoginManagerStorage>
-      lms(do_GetService("@mozilla.org/login-manager/storage/mozStorage;1"));
-  return lms->InitWithFile(seamonkeyPasswordsFile, nullptr);
-}
-
-nsresult
 nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 {
   nsCOMPtr<nsIFile> sourceUserContent;
@@ -689,64 +667,6 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 
   return sourceUserContent->CopyToNative(targetChromeDir,
                                          nsDependentCString(aFileName));
-}
-
-nsresult
-nsNetscapeProfileMigratorBase::GetSignonFileName(bool aReplace,
-                                                 char** aFileName)
-{
-  if (aReplace) {
-    // Find out what the signons file was called, this is stored in a pref
-    // in Seamonkey.
-    nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
-
-    if (psvc) {
-      nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
-
-      if (NS_SUCCEEDED(branch->GetCharPref("signon.SignonFileName",
-                                           aFileName)))
-        return NS_OK;
-    }
-  }
-
-  nsCOMPtr<nsISimpleEnumerator> entries;
-  nsresult rv = mSourceProfile->GetDirectoryEntries(getter_AddRefs(entries));
-  if (NS_FAILED(rv))
-    return rv;
-
-  nsAutoCString fileName;
-  while (1) {
-    bool hasMore = false;
-    rv = entries->HasMoreElements(&hasMore);
-    if (NS_FAILED(rv) || !hasMore)
-      break;
-
-    nsCOMPtr<nsISupports> supp;
-    rv = entries->GetNext(getter_AddRefs(supp));
-    if (NS_FAILED(rv))
-      break;
-
-    nsCOMPtr<nsIFile> currFile(do_QueryInterface(supp));
-
-    nsCOMPtr<nsIURI> uri;
-    rv = NS_NewFileURI(getter_AddRefs(uri), currFile);
-    if (NS_FAILED(rv))
-      break;
-
-    nsCOMPtr<nsIURL> url(do_QueryInterface(uri));
-
-    nsAutoCString extn;
-    url->GetFileExtension(extn);
-
-    if (extn.Equals("s", CaseInsensitiveCompare)) {
-      url->GetFileName(fileName);
-      break;
-    }
-  };
-
-  *aFileName = ToNewCString(fileName);
-
-  return NS_OK;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

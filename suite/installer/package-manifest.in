@@ -456,7 +456,6 @@
 @BINPATH@/components/SiteSpecificUserAgent.manifest
 @BINPATH@/components/smileApplication.js
 @BINPATH@/components/smileApplication.manifest
-@BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
 #ifdef MOZ_SERVICES_SYNC
 @BINPATH@/components/SyncComponents.manifest

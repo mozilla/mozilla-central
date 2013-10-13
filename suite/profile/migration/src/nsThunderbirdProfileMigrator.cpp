@@ -26,6 +26,7 @@
 #define FILE_NAME_KEY3DB          "key3.db"
 #define FILE_NAME_SECMODDB        "secmod.db"
 #define FILE_NAME_HISTORY         "history.dat"
+#define FILE_NAME_SIGNONS         "signons.sqlite"
 #define FILE_NAME_MIMETYPES       "mimeTypes.rdf"
 #define FILE_NAME_USER_PREFS      "user.js"
 #define FILE_NAME_PERSONALDICTIONARY "persdict.dat"
@@ -140,6 +141,9 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                            { FILE_NAME_HISTORY,
                              nsISuiteProfileMigrator::HISTORY,
                              true },
+                           { FILE_NAME_SIGNONS,
+                             nsISuiteProfileMigrator::PASSWORDS,
+                             true },
                            { FILE_NAME_DOWNLOADS,
                              nsISuiteProfileMigrator::OTHERDATA,
                              true },
@@ -152,23 +156,6 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
                                                                   
   GetMigrateDataFromArray(data, sizeof(data)/sizeof(MigrationData),
                           aReplace, mSourceProfile, aResult);
-
-  // Now locate passwords
-  nsCString signonsFileName;
-  GetSignonFileName(aReplace, getter_Copies(signonsFileName));
-
-  if (!signonsFileName.IsEmpty()) {
-    nsAutoString fileName;
-    fileName.Assign(NS_ConvertUTF8toUTF16(signonsFileName));
-    nsCOMPtr<nsIFile> sourcePasswordsFile;
-    mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
-    sourcePasswordsFile->Append(fileName);
-    
-    bool exists;
-    sourcePasswordsFile->Exists(&exists);
-    if (exists)
-      *aResult |= nsISuiteProfileMigrator::PASSWORDS;
-  }
 
   return NS_OK;
 }
@@ -464,7 +451,6 @@ nsThunderbirdProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("security.warn_submit_insecure",           Bool),
   MAKESAMETYPEPREFTRANSFORM("security.warn_viewing_mixed",             Bool),
 
-  MAKESAMETYPEPREFTRANSFORM("signon.SignonFileName",                   String),
   MAKESAMETYPEPREFTRANSFORM("signon.rememberSignons",                  Bool),
 
   MAKESAMETYPEPREFTRANSFORM("slider.snapMultiplier",                   Int),
@@ -612,4 +598,10 @@ nsresult
 nsThunderbirdProfileMigrator::CopyHistory(bool aReplace)
 {
   return aReplace ? CopyFile(FILE_NAME_HISTORY, FILE_NAME_HISTORY) : NS_OK;
+}
+
+nsresult
+nsThunderbirdProfileMigrator::CopyPasswords(bool aReplace)
+{
+  return aReplace ? CopyFile(FILE_NAME_SIGNONS, FILE_NAME_SIGNONS) : NS_OK;
 }

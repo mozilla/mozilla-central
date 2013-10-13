@@ -118,9 +118,7 @@ protected:
 
   // Generic Import Functions
   nsresult CopyCookies(bool aReplace);
-  nsresult CopyPasswords(bool aReplace);
   nsresult CopyUserSheet(const char* aFileName);
-  nsresult GetSignonFileName(bool aReplace, char** aFileName);
 
   // Browser Import Functions
   nsresult CopyBookmarks(bool aReplace);

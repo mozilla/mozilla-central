@@ -42,7 +42,7 @@ protected:
   nsresult TransformPreferences(const char* aSourcePrefFileName,
                                 const char* aTargetPrefFileName);
   nsresult CopyHistory(bool aReplace);
-  nsresult LocateSignonsFile(char** aResult);
+  nsresult CopyPasswords(bool aReplace);
 };
  
 #endif
