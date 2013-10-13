@@ -294,8 +294,6 @@ DEFINES += -DZLIB_INTERNAL
 endif
 endif
 
-# Flags passed to JarMaker.py
-
 MAKE_JARS_FLAGS = \
 	-t $(topsrcdir) \
 	-f $(MOZ_CHROME_FILE_FORMAT) \

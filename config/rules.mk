@@ -635,7 +635,7 @@ export::
 ifdef LIBRARY_NAME
 ifdef EXPORT_LIBRARY
 ifndef IS_COMPONENT
-	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_LINK_LIBS) $(STATIC_LIBRARY_NAME)
+	$(call py_action,buildlist,$(FINAL_LINK_LIBS) $(STATIC_LIBRARY_NAME))
 endif # !IS_COMPONENT
 endif # EXPORT_LIBRARY
 endif # LIBRARY_NAME
@@ -687,8 +687,8 @@ ifdef IS_COMPONENT
 	$(call install_cmd,$(IFLAGS2) $(SHARED_LIBRARY) $(FINAL_TARGET)/components)
 	$(ELF_DYNSTR_GC) $(FINAL_TARGET)/components/$(SHARED_LIBRARY)
 ifndef NO_COMPONENTS_MANIFEST
-	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/components.manifest"
-	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/components.manifest "binary-component $(SHARED_LIBRARY)"
+	$(call py_action,buildlist,$(FINAL_TARGET)/chrome.manifest "manifest components/components.manifest")
+	$(call py_action,buildlist,$(FINAL_TARGET)/components/components.manifest "binary-component $(SHARED_LIBRARY)")
 endif
 else # ! IS_COMPONENT
 ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
@@ -1287,8 +1287,8 @@ INSTALL_TARGETS += _XPT_NAME
 
 ifndef NO_INTERFACES_MANIFEST
 libs:: $(call mkdir_deps,$(FINAL_TARGET)/components)
-	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/components/interfaces.manifest "interfaces $(XPT_NAME)"
-	@$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest "manifest components/interfaces.manifest"
+	$(call py_action,buildlist,$(FINAL_TARGET)/components/interfaces.manifest "interfaces $(XPT_NAME)")
+	$(call py_action,buildlist,$(FINAL_TARGET)/chrome.manifest "manifest components/interfaces.manifest")
 endif
 endif
 
@@ -1322,7 +1322,7 @@ endif
 EXTRA_MANIFESTS = $(filter %.manifest,$(EXTRA_COMPONENTS) $(EXTRA_PP_COMPONENTS))
 ifneq (,$(EXTRA_MANIFESTS))
 libs:: $(call mkdir_deps,$(FINAL_TARGET))
-	$(PYTHON) $(MOZILLA_DIR)/config/buildlist.py $(FINAL_TARGET)/chrome.manifest $(patsubst %,"manifest components/%",$(notdir $(EXTRA_MANIFESTS)))
+	$(call py_action,buildlist,$(FINAL_TARGET)/chrome.manifest $(patsubst %,"manifest components/%",$(notdir $(EXTRA_MANIFESTS))))
 endif
 
 ################################################################################
@@ -1389,10 +1389,10 @@ $(FINAL_TARGET)/chrome:
 libs realchrome:: $(CHROME_DEPS) $(FINAL_TARGET)/chrome
 ifneq (,$(wildcard $(JAR_MANIFEST)))
 ifndef NO_DIST_INSTALL
-	$(PYTHON) $(MOZILLA_DIR)/config/JarMaker.py \
+	$(call py_action,jar_maker,\
 	  $(QUIET) -j $(FINAL_TARGET)/chrome \
 	  $(MAKE_JARS_FLAGS) $(XULPPFLAGS) $(DEFINES) $(ACDEFINES) \
-	  $(JAR_MANIFEST)
+	  $(JAR_MANIFEST))
 endif
 endif
 
