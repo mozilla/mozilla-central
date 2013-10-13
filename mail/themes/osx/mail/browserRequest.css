@@ -19,9 +19,16 @@
 }
 
 #security-button[loading="true"] {
-  background-image: url("chrome://global/skin/icons/loading_16.png");
+  background-image: url("chrome://messenger/skin/icons/loading.png");
   background-position: 4px 3px;
 }
+
+@media (min-resolution: 2ddpx) {
+  #security-button[loading="true"] {
+    background-image: url("chrome://messenger/skin/icons/loading@2x.png");
+  }
+}
+
 /*
 #header {
   overflow: hidden;

@@ -79,7 +79,7 @@ menulist > menupopup > menu > .menu-iconic-left {
 }
 
 #throbber-box[busy="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+  list-style-image: url("chrome://messenger/skin/icons/loading.png");
 }
 
 #throbber-box,

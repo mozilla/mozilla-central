@@ -146,7 +146,7 @@
 
 .tabmail-tab[busy],
 .tabmail-tab[thinking] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  list-style-image: url("chrome://messenger/skin/icons/loading.png") !important;
   -moz-image-region: auto !important;
 }
 
@@ -390,7 +390,7 @@ tabpanels {
 }
 
 .alltabs-item[busy] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  list-style-image: url("chrome://messenger/skin/icons/loading.png") !important;
 }
 
 /* Content Tabs */

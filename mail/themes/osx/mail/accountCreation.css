@@ -204,11 +204,16 @@ menulist[disabled="true"] {
 }
 
 #status_area[status=loading] #status_img_after {
-  background: url("chrome://global/skin/icons/loading_16.png") no-repeat;
+  background: url("chrome://messenger/skin/icons/loading.png") no-repeat;
   width: 16px;
   height: 16px;
 }
 
+@media (min-resolution: 2dppx) {
+  #status_area[status=loading] #status_img_after {
+    background: url("chrome://messenger/skin/icons/loading@2x.png") no-repeat;
+  }
+}
 
 /* Missing:
  * .menulist-dropmarker[disabled="true"]

@@ -57,11 +57,17 @@ toolbar[printpreview="true"] {
 }
 
 #throbber-box[busy="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+  list-style-image: url("chrome://messenger/skin/icons/loading.png");
 }
 
 #wrapper-throbber-box > #throbber-box {
   list-style-image: url("chrome://global/skin/icons/notloading_16.png");
+}
+
+@media (min-resolution: 2dppx) {
+  #wrapper-throbber-box > #throbber-box {
+    list-style-image: url("chrome://messenger/skin/icons/loading@2x.png");
+  }
 }
 
 /* ::::: online/offline icons ::::: */

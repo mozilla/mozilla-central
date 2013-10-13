@@ -75,7 +75,7 @@ richlistbox:focus .shortDetails.selected {
  */
 .cloudfileAccount[state="connecting"],
 .cloudfileAccount[state="waiting-to-connect"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  list-style-image: url("chrome://messenger/skin/icons/loading.png") !important;
 }
 
 .cloudfileAccount[state="auth-error"],
@@ -108,5 +108,13 @@ richlistbox:focus .shortDetails.selected {
 #cloudFileLoadingSpinner {
   width: 16px;
   height: 16px;
-  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+  list-style-image: url("chrome://messenger/skin/icons/loading.png");
+}
+
+@media (min-resolution: 2dppx) {
+  .cloudfileAccount[state="connecting"],
+  .cloudfileAccount[state="waiting-to-connect"],
+  #cloudFileLoadingSpinner  {
+    list-style-image: url("chrome://messenger/skin/icons/loading@2x.png") !important;
+  }
 }
