@@ -14,6 +14,27 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+/* ::::: autocomplete ::::: */
+
+.autocomplete-history-popup {
+  max-height: 25em;
+}
+
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue) {
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+}
+
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue, directory) {
+  /*list-style-image: url("chrome://global/skin/filepicker/dir-closed.gif");*/
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-closed.gif");
+}
+
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue, file) {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.gif");
+}
+
 /* ::::: online/offline icons ::::: */
 
 #offline-status[offline="true"] {

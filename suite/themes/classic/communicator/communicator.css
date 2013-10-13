@@ -26,6 +26,20 @@
   max-height: 25em;
 }
 
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue) {
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+}
+
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue, directory) {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-folder-closed.png");
+}
+
+textbox[autocompletesearch="history file"] .autocomplete-treebody::-moz-tree-image(treecolAutoCompleteValue, file) {
+  list-style-image: url("chrome://communicator/skin/bookmarks/bookmark-item.png");
+}
+
 /* ::::: online/offline icons ::::: */
 
 #offline-status[offline="true"] {
