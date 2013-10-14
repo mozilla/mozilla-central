@@ -667,7 +667,7 @@ toolbar[mode="icons"] #search-button > .button-box > .button-text {
 }
 
 #page-proxy-deck {
-  cursor: -moz-grab;
+  cursor: grab;
   -moz-margin-end: 4px;
 }
 
