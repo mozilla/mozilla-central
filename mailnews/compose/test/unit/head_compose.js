@@ -13,6 +13,8 @@ var CC = Components.Constructor;
 // Ensure the profile directory is set up
 do_get_profile();
 
+var gDEPTH = "../../../../";
+
 // Import the required setup scripts.
 load("../../../resources/abSetup.js");
 

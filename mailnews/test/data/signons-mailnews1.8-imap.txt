@@ -1,8 +1,0 @@
-#2c
-.
-imap://user@localhost
-\=username=\
-~
-*\=password=\
-~aW1hcHRlc3Q=
-.

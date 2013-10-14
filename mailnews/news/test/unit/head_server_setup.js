@@ -11,6 +11,8 @@ var CC = Components.Constructor;
 // Ensure the profile directory is set up
 do_get_profile();
 
+var gDEPTH = "../../../../";
+
 // Import the servers
 Components.utils.import("resource://testing-common/mailnews/maild.js");
 Components.utils.import("resource://testing-common/mailnews/nntpd.js");

@@ -1,8 +1,0 @@
-#2c
-.
-smtp://test.smtp%40fakeserver@localhost
-\=username=\
-~
-*\=password=\
-~c210cHRlc3Q=
-.
