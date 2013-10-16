@@ -1254,7 +1254,8 @@
                       type="checkbox"
                       label="&showTaskbarCmd.label;"
                       oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
-                      checked="true"/>
+                      checked="true"
+                      observes="menu_showTaskbar"/>
             <menuseparator id="appmenu_toggleToolbarsSeparator"/>
             <menuitem id="appmenu_toolbarLayout"
                       label="&appmenuToolbarLayout.label;"
