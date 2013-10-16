@@ -115,7 +115,6 @@ function EditorStartup(aUrl, aCharset)
   // the editingSession when the URL has finished loading.
   try {
     var contentViewer = GetCurrentEditorElement().markupDocumentViewer;
-    contentViewer.defaultCharacterSet = aCharset;
     contentViewer.forceCharacterSet = aCharset;
   } catch (e) {}
   EditorLoadUrl(aUrl);

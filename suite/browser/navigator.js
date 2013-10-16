@@ -521,17 +521,6 @@ function Startup()
       setTimeout(pageShowEventHandlers, 0, aEvent);
   }, true);
 
-  // set default character set if provided
-  if ("arguments" in window && window.arguments.length > 1 && window.arguments[1]) {
-    if (window.arguments[1].indexOf("charset=") != -1) {
-      var arrayArgComponents = window.arguments[1].split("=");
-      if (arrayArgComponents) {
-        //we should "inherit" the charset menu setting in a new window
-        getMarkupDocumentViewer().defaultCharacterSet = arrayArgComponents[1];
-      }
-    }
-  }
-
   // Set a sane starting width/height for all resolutions on new profiles.
   if (!document.documentElement.hasAttribute("width")) {
     var defaultHeight = screen.availHeight;
@@ -1926,7 +1915,10 @@ function checkForDirectoryListing()
 {
   if ( "HTTPIndex" in content &&
        content.HTTPIndex instanceof Components.interfaces.nsIHTTPIndex ) {
-    content.defaultCharacterset = getMarkupDocumentViewer().defaultCharacterSet;
+    var forced = getBrowser().docShell.forcedCharset;
+    if (forced) {
+      content.defaultCharacterset = forced;
+    }
   }
 }
 

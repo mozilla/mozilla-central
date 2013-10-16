@@ -1559,7 +1559,6 @@ NS_IMETHODIMP nsMsgCompose::InitEditor(nsIEditor* aEditor, nsIDOMWindow* aConten
   {
     nsCOMPtr<nsIMarkupDocumentViewer> markupCV = do_QueryInterface(childCV);
     if (markupCV) {
-      NS_ENSURE_SUCCESS(markupCV->SetDefaultCharacterSet(msgCharSet), NS_ERROR_FAILURE);
       NS_ENSURE_SUCCESS(markupCV->SetForceCharacterSet(msgCharSet), NS_ERROR_FAILURE);
     }
   }
