@@ -16,10 +16,6 @@
 #include "nsISupportsObsolete.h"
 #include "nsQuickSort.h"
 #include "nsAutoPtr.h"
-#if defined(XP_MACOSX) && !defined(__LP64__)
-#include "nsIAppleFileDecoder.h"
-#include "nsILocalFileMac.h"
-#endif
 #include "nsNativeCharsetUtils.h"
 #include "nsIMutableArray.h"
 #include "mozilla/Services.h"
@@ -1730,21 +1726,6 @@ nsresult nsSaveMsgListener::InitializeDownload(nsIRequest * aRequest, uint32_t a
         mTransfer = tr;
       }
     }
-    
-#if defined(XP_MACOSX) && !defined(__LP64__)
-    /* if we are saving an appledouble or applesingle attachment, we need to use an Apple File Decoder */
-    if (MsgLowerCaseEqualsLiteral(m_contentType, APPLICATION_APPLEFILE) ||
-        MsgLowerCaseEqualsLiteral(m_contentType, MULTIPART_APPLEDOUBLE))
-    {
-      nsCOMPtr<nsIAppleFileDecoder> appleFileDecoder = do_CreateInstance(NS_IAPPLEFILEDECODER_CONTRACTID, &rv);
-      if (NS_SUCCEEDED(rv) && appleFileDecoder)
-      {
-        rv = appleFileDecoder->Initialize(m_outputStream, m_file);
-        if (NS_SUCCEEDED(rv))
-          m_outputStream = do_QueryInterface(appleFileDecoder, &rv);
-      }
-    }
-#endif // XP_MACOSX
   }
   return rv;
 }
