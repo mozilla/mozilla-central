@@ -476,6 +476,7 @@
 ; profile
 @BINPATH@/components/profile.xpt
 @BINPATH@/components/toolkitprofile.xpt
+@BINPATH@/components/toolkit_finalizationwitness.xpt
 
 ; toolkit
 @BINPATH@/components/AppProtocolHandler.js
