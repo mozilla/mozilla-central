@@ -451,7 +451,7 @@ dialog[systemcolors] .addressingWidgetCell {
 }
 
 .selection-bar-spacer {
-    cursor: -moz-grab;
+    cursor: grab;
 }
 
 .checkbox-no-label > .checkbox-label-box {

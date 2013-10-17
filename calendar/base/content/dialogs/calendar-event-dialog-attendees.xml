@@ -1584,7 +1584,7 @@
                 } else {
                     // Move the startdate and the enddate
                     this.mDragState = 1;
-                    window.setCursor("-moz-grab");
+                    window.setCursor("grab");
                 }
             }
         }
