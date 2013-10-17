@@ -400,25 +400,14 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   res = ccm->GetCharsetAlias(charset, charsetName);
   NS_ENSURE_SUCCESS(res, res);
 
-  // charset converter plus entity, NCR generation
   nsCOMPtr <nsISaveAsCharset> conv = do_CreateInstance(NS_SAVEASCHARSET_CONTRACTID, &res);
   NS_ENSURE_SUCCESS(res, res);
 
-  // attribute: 
-  // html text - charset conv then fallback to entity or NCR
-  // plain text - charset conv then fallback to '?'
-  if (bTEXT_HTML)
-    // For ISO-8859-1 only, convert to entity first (always generate entites like &nbsp;).
-    res = conv->Init(charsetName.get(),
-                     charsetName.EqualsLiteral("ISO-8859-1") ?
-                     nsISaveAsCharset::attr_htmlTextDefault :
-                     nsISaveAsCharset::attr_EntityAfterCharsetConv + nsISaveAsCharset::attr_FallbackDecimalNCR, 
-                     nsIEntityConverter::html32);
-  else
-    // fallback for text/plain: first try transliterate then '?'
-    res = conv->Init(charsetName.get(), 
-                     nsISaveAsCharset::attr_FallbackQuestionMark + nsISaveAsCharset::attr_EntityAfterCharsetConv, 
-                     nsIEntityConverter::transliterate);
+  // First try to transliterate, if that fails use '?' for "bad" chars.
+  res = conv->Init(charsetName.get(),
+                   nsISaveAsCharset::attr_FallbackQuestionMark +
+                     nsISaveAsCharset::attr_EntityNone,
+                   nsIEntityConverter::transliterate);
   NS_ENSURE_SUCCESS(res, res);
 
   const PRUnichar *input = inString;
@@ -457,9 +446,8 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
     if (NS_FAILED(conv->GetCharset(fallbackCharset)))
       *fallbackCharset = nullptr;
   }
-  // In case of HTML, non ASCII may be encoded as CER, NCR.
   // Exclude stateful charset which is 7 bit but not ASCII only.
-  else if (isAsciiOnly && bTEXT_HTML && *outString &&
+  else if (isAsciiOnly && *outString &&
            !nsMsgI18Nstateful_charset(charsetName.get()))
     *isAsciiOnly = NS_IsAscii(*outString);
 

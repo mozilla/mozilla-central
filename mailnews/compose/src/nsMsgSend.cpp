@@ -1523,8 +1523,6 @@ nsMsgComposeAndSend::GetBodyFromEditor()
   //
   // Query the editor, get the body of HTML!
   //
-  nsString  format;
-  format.AssignLiteral(TEXT_HTML);
   uint32_t  flags = nsIDocumentEncoder::OutputFormatted  | nsIDocumentEncoder::OutputNoFormattingInPre;
   nsAutoString bodyStr;
   PRUnichar* bodyText = nullptr;
@@ -1534,13 +1532,11 @@ nsMsgComposeAndSend::GetBodyFromEditor()
   // Ok, get the body...the DOM should have been whacked with
   // Content ID's already
   if (mEditor)
-    mEditor->OutputToString(format, flags, bodyStr);
+    mEditor->OutputToString(NS_LITERAL_STRING(TEXT_HTML), flags, bodyStr);
   else
     bodyStr = NS_ConvertASCIItoUTF16(m_attachment1_body);
 
- //
   // If we really didn't get a body, just return NS_OK
-  //
   if (bodyStr.IsEmpty())
     return NS_OK;
   bodyText = ToNewUnicode(bodyStr);
@@ -1583,8 +1579,6 @@ nsMsgComposeAndSend::GetBodyFromEditor()
   }
 
   nsCString attachment1_body;
-  // we'd better be "text/html" at this point
-  const char  *attachment1_type = TEXT_HTML;
 
   // Convert body to mail charset
   nsCString    outCString;
@@ -1592,10 +1586,8 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 
   if (aCharset && *aCharset)
   {
-    // Convert to entities.
-    // If later Editor generates entities then we can remove this.
     bool isAsciiOnly;
-    rv = nsMsgI18NSaveAsCharset(mCompFields->GetForcePlainText() ? TEXT_PLAIN : attachment1_type,
+    rv = nsMsgI18NSaveAsCharset(mCompFields->GetForcePlainText() ? TEXT_PLAIN : TEXT_HTML,
                                 aCharset, bodyText, getter_Copies(outCString), nullptr, &isAsciiOnly);
 
     if (mCompFields->GetForceMsgEncoding())
@@ -1603,9 +1595,9 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 
     mCompFields->SetBodyIsAsciiOnly(isAsciiOnly);
 
-    // body contains characters outside the current mail charset,
-    // ask whether to convert to UTF-8 (bug 233361). do this only for text/plain
-    if ((NS_ERROR_UENC_NOMAPPING == rv) && mCompFields->GetForcePlainText()) {
+    // If the body contains characters outside the current mail charset,
+    // convert to UTF-8.
+    if (NS_ERROR_UENC_NOMAPPING == rv) {
       // if nbsp then replace it by sp and try again
       PRUnichar *bodyTextPtr = bodyText;
       while (*bodyTextPtr) {
@@ -1615,9 +1607,9 @@ nsMsgComposeAndSend::GetBodyFromEditor()
       }
 
       nsCString fallbackCharset;
-      rv = nsMsgI18NSaveAsCharset(TEXT_PLAIN, aCharset, bodyText,
-           getter_Copies(outCString), getter_Copies(fallbackCharset));
-
+      rv = nsMsgI18NSaveAsCharset(mCompFields->GetForcePlainText() ? TEXT_PLAIN : TEXT_HTML,
+                                 aCharset, bodyText, getter_Copies(outCString),
+                                 getter_Copies(fallbackCharset));
       if (NS_ERROR_UENC_NOMAPPING == rv)
       {
         bool needToCheckCharset;
@@ -1657,7 +1649,7 @@ nsMsgComposeAndSend::GetBodyFromEditor()
     if (origHTMLBody)
     {
       char      *newBody = nullptr;
-      rv = nsMsgI18NSaveAsCharset(mCompFields->GetUseMultipartAlternative() ? TEXT_PLAIN : attachment1_type,
+      rv = nsMsgI18NSaveAsCharset(mCompFields->GetUseMultipartAlternative() ? TEXT_PLAIN : TEXT_HTML,
                                   aCharset, origHTMLBody, &newBody);
       if (NS_SUCCEEDED(rv))
       {
@@ -1673,13 +1665,13 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 
   // If our holder for the original body text is STILL null, then just
   // just copy what we have as the original body text.
-  //
+
   if (!origHTMLBody)
     mOriginalHTMLBody = ToNewCString(attachment1_body);
   else
     mOriginalHTMLBody = (char *)origHTMLBody; // Whoa, origHTMLBody is declared as a PRUnichar *, what's going on here?
 
-  rv = SnarfAndCopyBody(attachment1_body, attachment1_type);
+  rv = SnarfAndCopyBody(attachment1_body, TEXT_HTML);
 
   return rv;
 }

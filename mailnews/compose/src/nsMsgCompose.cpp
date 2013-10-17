@@ -1026,7 +1026,7 @@ NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendL
 }
 
 nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity,
-                                const char *accountKey, bool entityConversionDone)
+                                const char *accountKey)
 {
   nsresult rv = NS_OK;
 
@@ -1061,31 +1061,6 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
     if (mMsgSend)
     {
       nsCString bodyString(m_compFields->GetBody());
-      const char  attachment1_type[] = TEXT_HTML;  // we better be "text/html" at this point
-
-      if (!entityConversionDone)
-      {
-        // Convert body to mail charset
-        nsAutoCString outCString;
-
-        if (!bodyString.IsEmpty())
-        {
-          // Apply entity conversion then convert to a mail charset.
-          bool isAsciiOnly;
-          rv = nsMsgI18NSaveAsCharset(attachment1_type, m_compFields->GetCharacterSet(),
-                                      NS_ConvertUTF8toUTF16(bodyString).get(),
-                                      getter_Copies(outCString),
-                                      nullptr, &isAsciiOnly);
-          if (NS_SUCCEEDED(rv))
-          {
-            if (m_compFields->GetForceMsgEncoding())
-              isAsciiOnly = false;
-
-            m_compFields->SetBodyIsAsciiOnly(isAsciiOnly);
-            bodyString = outCString;
-          }
-        }
-      }
 
       // Create the listener for the send operation...
       nsCOMPtr<nsIMsgComposeSendListener> composeSendListener = do_CreateInstance(NS_MSGCOMPOSESENDLISTENER_CONTRACTID);
@@ -1148,87 +1123,93 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
 
 NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, nsIMsgWindow *aMsgWindow, nsIMsgProgress *progress)
 {
+
+  NS_ENSURE_TRUE(m_compFields, NS_ERROR_NOT_INITIALIZED);
   nsresult rv = NS_OK;
-  bool entityConversionDone = false;
   nsCOMPtr<nsIPrompt> prompt;
 
   // i'm assuming the compose window is still up at this point...
   if (!prompt && m_window)
      m_window->GetPrompter(getter_AddRefs(prompt));
 
-  if (m_compFields && !m_composeHTML)
+  // Set content type based on which type of compose window we had.
+  nsString contentType = (m_composeHTML) ? NS_LITERAL_STRING("text/html"):
+                                           NS_LITERAL_STRING("text/plain");
+  nsString msgBody;
+  if (m_editor)
   {
-    // The plain text compose window was used
-    const char contentType[] = "text/plain";
-    nsString msgBody;
-    uint32_t flags = nsIDocumentEncoder::OutputFormatted | nsIDocumentEncoder::OutputCRLineBreak |
-      nsIDocumentEncoder::OutputLFLineBreak;
-    if (m_editor)
+    // Reset message body previously stored in the compose fields
+    // There is 2 nsIMsgCompFields::SetBody() functions using a pointer as argument,
+    // therefore a casting is required.
+    m_compFields->SetBody((const char *)nullptr);
+
+    const char *charset = m_compFields->GetCharacterSet();
+    uint32_t flags = nsIDocumentEncoder::OutputFormatted |
+                     nsIDocumentEncoder::OutputCRLineBreak |
+                     nsIDocumentEncoder::OutputLFLineBreak;
+    if (UseFormatFlowed(charset))
+        flags |= nsIDocumentEncoder::OutputFormatFlowed;
+    rv = m_editor->OutputToString(contentType, flags, msgBody);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+  else
+  {
+    m_compFields->GetBody(msgBody);
+  }
+  if (!msgBody.IsEmpty())
+  {
+    // Convert body to mail charset
+    nsCString outCString;
+    nsCString fallbackCharset;
+    bool isAsciiOnly;
+    // Check if the body text is covered by the current charset.
+    rv = nsMsgI18NSaveAsCharset(NS_ConvertUTF16toUTF8(contentType).get(),
+                                m_compFields->GetCharacterSet(),
+                                msgBody.get(), getter_Copies(outCString),
+                                getter_Copies(fallbackCharset), &isAsciiOnly);
+    if (m_compFields->GetForceMsgEncoding())
+      isAsciiOnly = false;
+    if (NS_SUCCEEDED(rv) && !outCString.IsEmpty())
     {
-      // Reset message body previously stored in the compose fields
-      // There is 2 nsIMsgCompFields::SetBody() functions using a pointer as argument,
-      // therefore a casting is required.
-      m_compFields->SetBody((const char *)nullptr);
-
-      const char *charset = m_compFields->GetCharacterSet();
-      if(UseFormatFlowed(charset))
-          flags |= nsIDocumentEncoder::OutputFormatFlowed;
-
-      rv = m_editor->OutputToString(NS_LITERAL_STRING("text/plain"), flags, msgBody);
+      // If the body contains characters outside the repertoire of the current
+      // charset, just convert to UTF-8 and be done with it
+      // unless disable_fallback_to_utf8 is set for this charset.
+      if (NS_ERROR_UENC_NOMAPPING == rv && m_editor)
+      {
+        bool needToCheckCharset;
+        m_compFields->GetNeedToCheckCharset(&needToCheckCharset);
+        if (needToCheckCharset)
+        {
+          bool disableFallback = false;
+          nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+          if (prefBranch)
+          {
+            nsCString prefName("mailnews.disable_fallback_to_utf8.");
+            prefName.Append(m_compFields->GetCharacterSet());
+            prefBranch->GetBoolPref(prefName.get(), &disableFallback);
+          }
+          if (!disableFallback)
+          {
+            CopyUTF16toUTF8(msgBody, outCString);
+            m_compFields->SetCharacterSet("UTF-8");
+            SetDocumentCharset("UTF-8");
+          }
+        }
+      }
+      else if (!fallbackCharset.IsEmpty())
+      {
+        // re-label to the fallback charset
+        m_compFields->SetCharacterSet(fallbackCharset.get());
+        SetDocumentCharset(fallbackCharset.get());
+      }
+      m_compFields->SetBodyIsAsciiOnly(isAsciiOnly);
+      m_compFields->SetBody(outCString.get());
     }
     else
     {
-      m_compFields->GetBody(msgBody);
-    }
-    if (NS_SUCCEEDED(rv) && !msgBody.IsEmpty())
-    {
-      // Convert body to mail charset
-      nsCString outCString;
-      nsCString fallbackCharset;
-      bool isAsciiOnly;
-      // check if the body text is covered by the current charset.
-      rv = nsMsgI18NSaveAsCharset(contentType, m_compFields->GetCharacterSet(),
-                                  msgBody.get(), getter_Copies(outCString),
-                                  getter_Copies(fallbackCharset), &isAsciiOnly);
-      if (m_compFields->GetForceMsgEncoding())
-        isAsciiOnly = false;
-      if (NS_SUCCEEDED(rv) && !outCString.IsEmpty())
-      {
-        // If the body contains characters outside the repertoire of the current
-        // charset, just convert to UTF-8 and be done with it
-        // unless disable_fallback_to_utf8 is set for this charset.
-        if (NS_ERROR_UENC_NOMAPPING == rv && m_editor)
-        {
-          bool needToCheckCharset;
-          m_compFields->GetNeedToCheckCharset(&needToCheckCharset);
-          if (needToCheckCharset)
-          {
-            bool disableFallback = false;
-            nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-            if (prefBranch)
-            {
-              nsCString prefName("mailnews.disable_fallback_to_utf8.");
-              prefName.Append(m_compFields->GetCharacterSet());
-              prefBranch->GetBoolPref(prefName.get(), &disableFallback);
-            }
-            if (!disableFallback)
-            {
-              CopyUTF16toUTF8(msgBody, outCString);
-              m_compFields->SetCharacterSet("UTF-8");
-            }
-          }
-        }
-        else if (!fallbackCharset.IsEmpty())
-        {
-          // re-label to the fallback charset
-          m_compFields->SetCharacterSet(fallbackCharset.get());
-        }
-        m_compFields->SetBodyIsAsciiOnly(isAsciiOnly);
-        m_compFields->SetBody(outCString.get());
-        entityConversionDone = true;
-      }
-      else
-        m_compFields->SetBody(NS_LossyConvertUTF16toASCII(msgBody).get());
+      m_compFields->SetBody(NS_LossyConvertUTF16toASCII(msgBody).get());
+      m_compFields->SetCharacterSet("US-ASCII");
+      SetDocumentCharset("US-ASCII");
     }
   }
 
@@ -1267,8 +1248,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
   }
 
   bool attachVCard = false;
-  if (m_compFields)
-      m_compFields->GetAttachVCard(&attachVCard);
+  m_compFields->GetAttachVCard(&attachVCard);
 
   if (attachVCard && identity &&
       (deliverMode == nsIMsgCompDeliverMode::Now ||
@@ -1322,7 +1302,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
   // Save the identity being sent for later use.
   m_identity = identity;
 
-  rv = _SendMsg(deliverMode, identity, accountKey, entityConversionDone);
+  rv = _SendMsg(deliverMode, identity, accountKey);
   if (NS_FAILED(rv))
   {
     nsCOMPtr<nsIMsgSendReport> sendReport;
