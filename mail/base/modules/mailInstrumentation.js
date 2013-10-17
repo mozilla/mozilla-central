@@ -17,6 +17,7 @@ const Cu = Components.utils;
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
 
 Cu.import("resource:///modules/IOUtils.js");
+Cu.import("resource:///modules/errUtils.js");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource:///modules/mailServices.js");
 
@@ -56,8 +57,9 @@ var mailInstrumentationManager =
     // check if there are at least two accounts - one is local folders account
     if (Services.prefs.getCharPref("mail.accountmanager.accounts").contains(',', 1)) {
       mailInstrumentationManager.addEvent("accountAdded", true);
-      this._removeObserver("mail.accountmanager.accounts",
-                           this._accountsChanged);
+      mailInstrumentationManager._removeObserver(
+        "mail.accountmanager.accounts",
+        mailInstrumentationManager._accountsChanged);
 
     }
   },
@@ -92,15 +94,15 @@ var mailInstrumentationManager =
    * Writes the state object to disk.
    */
   _postStateObject: function minst_postStateObject() {
-    // This will throw an exception if no account is set up, so we
-    // wrap the whole thing.
+    // Getting defaultAccount will throw an exception if no account is set up,
+    // so we wrap the whole thing.
     try {
-      if (!this._currentState.userEmailHash.length) {
-        let email = MailServices.accounts.defaultAccount.defaultIdentity.email;
-        this._currentState.userEmailHash = this._hashEmailAddress(email);
+      if (!this._currentState.userEmailHash) {
+        let identity = MailServices.accounts.defaultAccount.defaultIdentity;
+        if (identity) // When we have only a feed account, there is no identity.
+          this._currentState.userEmailHash = this._hashEmailAddress(identity.email);
       }
       let data = JSON.stringify(this._currentState);
-      dump("data to post = " + data + "\n");
       // post data only if state changed since last write.
       if (data == this._lastStateString)
         return;
