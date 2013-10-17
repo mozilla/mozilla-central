@@ -686,9 +686,6 @@
             let [iTab, tab, tabNode] =
               this._getTabContextForTabbyThing(aOptTabIndexNodeOrInfo, true);
 
-
-            Services.console.logStringMessage("Bug 900653 - tab index = " + tab.mode.tabs.indexOf(tab));
-
             if (!tab.canClose)
               return;
 
