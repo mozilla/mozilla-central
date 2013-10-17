@@ -28,11 +28,20 @@ function setupModule(module) {
   be_in_folder(folder);
   make_display_threaded();
   expand_all_threads();
+}
 
-  if (mc.mozmillModule.isMac) {
-    test_view_threads_ignored_threads.__force_skip__ = true;
-    test_watch_thread.__force_skip__ = true;
-  }
+/**
+ * Click one of the menu items in the appmenu View | Messages menu.
+ * @param aMenuId the id of the menu item to click.
+ */
+function clickViewMessagesItem(aMenuId) {
+  mc.click_menus_in_sequence(mc.e("appmenu-popup"),
+    [
+      {id: "appmenu_View"},
+      {id: "appmenu_viewMessagesMenu"},
+      {id: aMenuId}
+    ]
+  );
 }
 
 /**
@@ -71,14 +80,12 @@ function test_view_threads_ignored_threads() {
 
   // Check "Ignored Threads" - the ignored messages should appear =>
   // the first row is the first message of the first thread.
-  mc.click_menus_in_sequence(mc.e("menu_View_Popup"),
-    [{id: "viewMessagesMenu"}, {id: "viewIgnoredThreadsMenuItem"}]);
+  clickViewMessagesItem("appmenu_viewIgnoredThreadsMenuItem");
   select_click_row(0);
   assert_selected_and_displayed(t1root);
 
   // Uncheck "Ignored Threads" - the ignored messages should get hidden.
-  mc.click_menus_in_sequence(mc.e("menu_View_Popup"),
-    [{id: "viewMessagesMenu"}, {id: "viewIgnoredThreadsMenuItem"}]);
+  clickViewMessagesItem("appmenu_viewIgnoredThreadsMenuItem");
   select_click_row(0);
   assert_selected_and_displayed(t2root);
   assert_not_shown(thread1.msgHdrList);
@@ -96,17 +103,15 @@ function test_watch_thread() {
   // Watch this thread.
   mc.keypress(null, "W", {shiftKey: false, accelKey: false});
 
-  // Choose "Watched Threads with Unread"
-  mc.click_menus_in_sequence(mc.e("menu_View_Popup"),
-    [{id: "viewMessagesMenu"}, {id: "viewWatchedThreadsWithUnreadMenuItem"}]);
+  // Choose "Watched Threads with Unread".
+  clickViewMessagesItem("appmenu_viewWatchedThreadsWithUnreadMenuItem");
   select_click_row(1);
   assert_selected_and_displayed(t2second);
   assert_not_shown(thread1.msgHdrList);
   assert_not_shown(thread3.msgHdrList);
 
   // Choose "All Messages" again.
-  mc.click_menus_in_sequence(mc.e("menu_View_Popup"),
-    [{id: "viewMessagesMenu"}, {id: "viewAllMessagesMenuItem"}]);
+  clickViewMessagesItem("appmenu_viewAllMessagesMenuItem");
   assert_not_shown(thread1.msgHdrList); // still ignored (and now shown)
   select_click_row(thread2.msgHdrList.length);
   assert_selected_and_displayed(t3root);

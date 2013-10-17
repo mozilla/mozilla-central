@@ -967,29 +967,46 @@ var AugmentEverybodyWith = {
 
       let curPopup = aRootPopup;
       for each (let [iAction, actionObj] in Iterator(aActions)) {
-        let matchingNode = null;
+        /**
+         * Check if aNode attributes match all those given in actionObj.
+         * Nodes that are obvious containers are skipped, and their children
+         * will be used to recursively find a match instead.
+         */
+        let findMatch = function(aNode) {
+          // Ignore some elements and just use their children instead.
+          if (aNode.localName == "hbox" || aNode.localName == "vbox" ||
+              aNode.localName == "splitmenu") {
+            for (let i = 0; i < aNode.children.length; i++) {
+              let childMatch = findMatch(aNode.children[i]);
+              if (childMatch)
+                return childMatch;
+            }
+            return null;
+          }
 
-        let kids = curPopup.children;
-        for (let iKid=0; iKid < kids.length; iKid++) {
-          let node = kids[iKid];
           let matchedAll = true;
           for each (let [name, value] in Iterator(actionObj)) {
-            if (!node.hasAttribute(name) ||
-                node.getAttribute(name) != value) {
+            if (!aNode.hasAttribute(name) ||
+                aNode.getAttribute(name) != value) {
               matchedAll = false;
               break;
             }
           }
+          return (matchedAll) ? aNode : null;
+        };
 
-          if (matchedAll) {
-            matchingNode = node;
+        let matchingNode = null;
+        let kids = curPopup.children;
+        for (let iKid = 0; iKid < kids.length; iKid++) {
+          let node = kids[iKid];
+          matchingNode = findMatch(node);
+          if (matchingNode)
             break;
-          }
         }
 
         if (!matchingNode)
           throw new Error("Did not find matching menu item for action index " +
-                          iAction);
+                          iAction + ": " + JSON.stringify(actionObj));
 
         this.click(new elib.Elem(matchingNode));
         matchingNode.focus(); // This is a hack that can be removed once the focus issues on Linux are solved.
