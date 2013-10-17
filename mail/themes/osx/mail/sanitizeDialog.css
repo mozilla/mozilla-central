@@ -65,19 +65,19 @@
 }
 
 .expander-up {
-  list-style-image: url("chrome://messenger/skin/places/expander-open.png");
+  list-style-image: url("chrome://messenger/skin/icons/expander-open.png");
 }
 
 .expander-up:hover:active {
-  list-style-image: url("chrome://messenger/skin/places/expander-open-active.png");
+  list-style-image: url("chrome://messenger/skin/icons/expander-open-active.png");
 }
 
 .expander-down {
-  list-style-image: url("chrome://messenger/skin/places/expander-closed.png");
+  list-style-image: url("chrome://messenger/skin/icons/expander-closed.png");
 }
 
 .expander-down:hover:active {
-  list-style-image: url("chrome://messenger/skin/places/expander-closed-active.png");
+  list-style-image: url("chrome://messenger/skin/icons/expander-closed-active.png");
 }
 
 
