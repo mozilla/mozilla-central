@@ -311,7 +311,7 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, bool aNegate,
       [ABPerson searchElementForProperty:nsAbOSXUtils::kPropertyMap[i].mOSXProperty
                                    label:nsAbOSXUtils::kPropertyMap[i].mOSXLabel
                                      key:nsAbOSXUtils::kPropertyMap[i].mOSXKey
-                                   value:[NSString stringWithCharacters:value.get() length:length]
+                                   value:[NSString stringWithCharacters:reinterpret_cast<const unichar*>(value.get()) length:length]
                               comparison:comparison];
       
       return NS_OK;
@@ -323,19 +323,19 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, bool aNegate,
     [ABPerson searchElementForProperty:kABFirstNameProperty
                                  label:nil
                                    key:nil
-                                 value:[NSString stringWithCharacters:value.get() length:length]
+                                 value:[NSString stringWithCharacters:reinterpret_cast<const unichar*>(value.get()) length:length]
                             comparison:comparison];
     ABSearchElement *second =
       [ABPerson searchElementForProperty:kABLastNameProperty
                                    label:nil
                                      key:nil
-                                   value:[NSString stringWithCharacters:value.get() length:length]
+                                   value:[NSString stringWithCharacters:reinterpret_cast<const unichar*>(value.get()) length:length]
                               comparison:comparison];
     ABSearchElement *third =
       [ABGroup searchElementForProperty:kABGroupNameProperty
                                   label:nil
                                     key:nil
-                                  value:[NSString stringWithCharacters:value.get() length:length]
+                                  value:[NSString stringWithCharacters:reinterpret_cast<const unichar*>(value.get()) length:length]
                              comparison:comparison];
     
     *aResult = [ABSearchElement searchElementForConjunction:kABSearchOr children:[NSArray arrayWithObjects:first, second, third, nil]];
