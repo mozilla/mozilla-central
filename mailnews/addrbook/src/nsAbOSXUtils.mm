@@ -16,7 +16,7 @@ using namespace mozilla;
 NSString*
 WrapString(const nsString &aString)
 {
-    PRUnichar* chars = const_cast<PRUnichar*>(aString.get());
+    unichar* chars = reinterpret_cast<unichar*>(const_cast<PRUnichar*>(aString.get()));
 
     return [NSString stringWithCharacters:chars
                                    length:aString.Length()];
