@@ -262,14 +262,8 @@ FeedParser.prototype =
 
     aFeed.invalidateItems();
 
-    let items = ds.GetTarget(channel, FeedUtils.RSS_ITEMS, true);
-    if (items)
-      items = FeedUtils.rdfContainerUtils.MakeSeq(ds, items).GetElements();
- 
-    // If the channel doesn't list any items, look for resources of type "item"
-    // (a hacky workaround for some buggy feeds).
-    if (!items || !items.hasMoreElements())
-      items = ds.GetSources(FeedUtils.RDF_TYPE, FeedUtils.RSS_ITEM, true);
+    // Ignore the <items> list and just get the <item>s.
+    let items = ds.GetSources(FeedUtils.RDF_TYPE, FeedUtils.RSS_ITEM, true);
 
     let index = 0;
     while (items.hasMoreElements())
@@ -283,11 +277,6 @@ FeedParser.prototype =
       // a relative URN.
       let uri = itemResource.Value;
       let link = this.getRDFTargetValue(ds, itemResource, FeedUtils.RSS_LINK);
-
-      // XXX Check for bug258465 - entities appear escaped  in the value
-      // returned by getRDFTargetValue when they shouldn't.
-      //debug("link comparison\n" + " uri: " + uri + "\nlink: " + link);
-
       item.url = link || uri;
       item.id = item.url;
       item.description = this.getRDFTargetValue(ds, itemResource,
