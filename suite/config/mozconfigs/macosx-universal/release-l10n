@@ -1,20 +1,4 @@
-# Big Hack that unsets CC / CXX so that mozconfig.common doesn't get
-# mixed up with host/target CPUs when trying to work out how to do the
-# universal build. When we redo the build system (bug 648979) this will
-# go away.
-if test -e "$topsrcdir/suite/config/version.txt"; then
-  unset CC
-  unset CXX
-fi
-
-. $topsrcdir/build/macosx/universal/mozconfig
-
-if [ "$MOZ_UPDATE_CHANNEL" == "beta" ]; then
-  ac_add_options --with-l10n-base=../../releases/l10n/mozilla-beta
-fi;
-if [ "$MOZ_UPDATE_CHANNEL" == "release" ]; then
-  ac_add_options --with-l10n-base=../../releases/l10n/mozilla-release
-fi;
+ac_add_options --with-l10n-base=../../l10n
 ac_add_options --enable-application=suite
 ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
