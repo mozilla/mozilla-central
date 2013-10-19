@@ -176,7 +176,6 @@
 @BINPATH@/components/dom_base.xpt
 @BINPATH@/components/dom_camera.xpt
 @BINPATH@/components/dom_canvas.xpt
-@BINPATH@/components/dom_contacts.xpt
 @BINPATH@/components/dom_core.xpt
 @BINPATH@/components/dom_css.xpt
 @BINPATH@/components/dom_devicestorage.xpt
@@ -304,6 +303,7 @@
 @BINPATH@/components/SuiteFeeds.manifest
 @BINPATH@/components/suitemigration.xpt
 @BINPATH@/components/telemetry.xpt
+@BINPATH@/components/toolkit_finalizationwitness.xpt
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitprofile.xpt
 #ifdef UNIX_BUT_NOT_MAC
