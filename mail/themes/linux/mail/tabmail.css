@@ -84,15 +84,15 @@ tabpanels {
 }
 
 .tabmail-tab:hover > .tab-stack > .tab-background:not([selected=true]) {
-  background-image: url(tabs/tabBackgroundStart.png),
-                    url(tabs/tabBackgroundMiddle.png),
-                    url(tabs/tabBackgroundEnd.png);
+  background-image: url(tabs/backgroundStart.png),
+                    url(tabs/backgroundMiddle.png),
+                    url(tabs/backgroundEnd.png);
 }
 
 .tab-background[selected=true] {
-  background-image: url(tabs/tabActiveStart.svg),
-                    url(tabs/tabActiveMiddle.svg),
-                    url(tabs/tabActiveEnd.svg);
+  background-image: url(tabs/activeStart.svg),
+                    url(tabs/activeMiddle.svg),
+                    url(tabs/activeEnd.svg);
 }
 
 .tab-background[selected=true]:-moz-lwtheme {
@@ -201,7 +201,7 @@ tabpanels {
 
 /* Tab drag and drop */
 .tab-drop-indicator {
-  list-style-image: url(chrome://messenger/skin/tabs/tabDragIndicator.png);
+  list-style-image: url(tabs/dragIndicator.png);
   margin-bottom: -11px;
 }
 
