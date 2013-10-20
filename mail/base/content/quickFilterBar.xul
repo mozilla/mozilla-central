@@ -33,11 +33,25 @@
     <!-- gets disabled but stays visible when not legal -->
     <menuitem id="view_toolbars_popup_quickFilterBar"
               type="checkbox"
-              insertbefore="viewMenuBeforeCustomizeMailToolbarsSeparator"
+              insertbefore="menu_showTaskbar"
               label="&quickFilterBar.toggleBarVisibility.menu.label;"
               accesskey="&quickFilterBar.toggleBarVisibility.menu.accesskey;"
               command="cmd_toggleQuickFilterBar"
               />
+  </menupopup>
+
+  <menupopup id="appmenu_customizeMenu">
+    <!-- gets disabled but stays visible when not legal -->
+    <menuitem id="appmenu_quickFilterBar"
+              type="checkbox"
+              insertbefore="appmenu_showStatusbar"
+              label="&quickFilterBar.toggleBarVisibility.appmenu.label;"
+              command="cmd_toggleQuickFilterBar"
+              >
+      <observes element="view_toolbars_popup_quickFilterBar"
+                attribute="checked"
+                />
+    </menuitem>
   </menupopup>
 
   <toolbarpalette id="MailToolbarPalette">
@@ -50,7 +64,8 @@
                    tooltiptext="&quickFilterBar.toggleBarVisibility.button.tooltip;"
                    >
       <observes element="view_toolbars_popup_quickFilterBar"
-                attribute="checked"/>
+                attribute="checked"
+                />
     </toolbarbutton>
   </toolbarpalette>
 

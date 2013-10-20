@@ -1250,12 +1250,6 @@
                       label="&accountManagerCmd.label;"
                       oncommand="MsgAccountManager(null);"/>
             <menuseparator/>
-            <menuitem id="appmenu_quickFilterBar"
-                      type="checkbox"
-                      label="&appmenuQFBMenu.label;"
-                      command="cmd_toggleQuickFilterBar">
-              <observes element="qfb-show-filter-bar" attribute="checked"/>
-            </menuitem>
             <menuitem id="appmenu_showStatusbar"
                       type="checkbox"
                       label="&showTaskbarCmd.label;"
