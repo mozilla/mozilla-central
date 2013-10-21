@@ -24,7 +24,7 @@
 !define BrandFullName         "${BrandFullNameInternal}${PreReleaseSuffix}"
 
 !define CERTIFICATE_NAME      "Mozilla Corporation"
-!define CERTIFICATE_ISSUER    "Thawte Code Signing CA - G2"
+!define CERTIFICATE_ISSUER    "DigiCert Assured ID Code Signing CA-1"
 
 # NO_INSTDIR_FROM_REG is defined for pre-releases which have a PreReleaseSuffix
 # (e.g. Alpha X, Beta X, etc.) to prevent finding a non-default installation
