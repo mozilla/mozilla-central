@@ -8,7 +8,7 @@ topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
-DISTROEXT = $(call core_abspath,$(DIST))/bin/distribution/extensions
+DISTROEXT = $(abspath $(DIST))/bin/distribution/extensions
 
 include $(DEPTH)/config/autoconf.mk
 
@@ -34,7 +34,7 @@ $(NSINSTALL) -D $(dir) && \
   $(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $(ACDEFINES) $(srcdir)/$(dir)/install.rdf.in > $(dir)/install.rdf && \
   cd $(dir) && \
   $(ZIP) -r9XD $(DISTROEXT)/$(dir).xpi install.rdf && \
-  cd $(call core_abspath,$(srcdir)/$(dir)) && \
+  cd $(abspath $(srcdir)/$(dir)) && \
   $(ZIP) -r9XD $(DISTROEXT)/$(dir).xpi * -x install.rdf.in $(EXTRA_ARGS)
 
 endef # do not remove the blank line!

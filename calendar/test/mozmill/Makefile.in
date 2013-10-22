@@ -15,7 +15,7 @@ VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/Scripts
 else
 VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/bin
 endif
-MOZMILLPYTHON = $(call core_abspath,$(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
+MOZMILLPYTHON = $(abspath $(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # Mac options
@@ -52,18 +52,18 @@ mozmill: mozmill-stage
 	unset PYTHONHOME && cd $(MOZMILLDIR) && unset MACOSX_DEPLOYMENT_TARGET && \
 	$(MOZMILLPYTHON) runtestlist.py --list=$(srcdir)/mozmilltests.list \
 	--binary=$(MOZMILLPROGRAM) \
-	--dir=$(call core_abspath,$(MOZMILLDIR))/stage \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
+	--dir=$(abspath $(MOZMILLDIR))/stage \
+	--symbols-path=$(abspath $(DIST)/crashreporter-symbols) \
+	--plugins-path=$(abspath $(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 mozmill-one: solo-test = $(find-solo-test)
 mozmill-one: mozmill-stage
 	unset PYTHONHOME && cd $(MOZMILLDIR) && unset MACOSX_DEPLOYMENT_TARGET && \
 	$(MOZMILLPYTHON) runtest.py \
-	--test=$(call core_abspath,$(MOZMILLDIR))/stage/$(solo-test) \
+	--test=$(abspath $(MOZMILLDIR))/stage/$(solo-test) \
 	--binary=$(MOZMILLPROGRAM) \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
+	--symbols-path=$(abspath $(DIST)/crashreporter-symbols) \
+	--plugins-path=$(abspath $(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 

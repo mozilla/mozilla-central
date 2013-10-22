@@ -17,7 +17,7 @@ DEFINES += -DMOZ_APP_MAXVERSION=$(MOZ_APP_MAXVERSION)
 vpath %.xml @srcdir@/en-US/searchplugins
 vpath %.xml $(LOCALE_SRCDIR)/searchplugins
 
-_ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
+_ABS_SRCDIR := $(abspath $(topsrcdir))
 
 SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \

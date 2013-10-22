@@ -165,7 +165,7 @@ PROFILE_EXTENSIONS += \
   $(NULL)
 endif
 
-ABS_DIST = $(call core_abspath,$(STAGEDIST))
+ABS_DIST = $(abspath $(STAGEDIST))
 
 define _PACKAGE_APP_EXTENSIONS
 @echo "Packaging $(dir).xpi..."

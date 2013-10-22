@@ -16,7 +16,7 @@ export MOZ_CHROME_FILE_FORMAT=jar
 include $(topsrcdir)/config/config.mk
 
 run_for_effects := $(shell if test ! -d $(DIST); then $(NSINSTALL) -D $(DIST); fi; if test ! -d $(DIST)/branding; then $(NSINSTALL) -D $(DIST)/branding; fi)
-_ABS_DIST := $(call core_abspath,$(DIST))
+_ABS_DIST := $(abspath $(DIST))
 
 SUBMAKEFILES += $(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile
 
