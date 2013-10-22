@@ -8,7 +8,7 @@ VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/Scripts
 else
 VIRTUALENV_BIN = $(MOZMILLDIR)/../mozmill-virtualenv/bin
 endif
-MOZMILLPYTHON = $(call core_abspath,$(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
+MOZMILLPYTHON = $(abspath $(VIRTUALENV_BIN)/python$(BIN_SUFFIX))
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 # Mac options
@@ -31,19 +31,19 @@ mozmill:
 	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
 	$(MOZMILLPYTHON) runtestlist.py --list=mozmilltests.list \
 	--binary=$(PROGRAM) \
-	--dir=$(call core_abspath,$(topsrcdir))/mail/test/mozmill \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
+	--dir=$(abspath $(topsrcdir))/mail/test/mozmill \
+	--symbols-path=$(abspath $(DIST)/crashreporter-symbols) \
+	--plugins-path=$(abspath $(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 mozmill-one: solo-test = $(find-solo-test)
 mozmill-one:
 	unset PYTHONHOME && cd $(MOZMILLDIR) && MACOSX_DEPLOYMENT_TARGET= \
 	$(MOZMILLPYTHON) runtest.py \
-	--test=$(call core_abspath,$(topsrcdir))/mail/test/mozmill/$(solo-test) \
+	--test=$(abspath $(topsrcdir))/mail/test/mozmill/$(solo-test) \
 	--binary=$(PROGRAM) \
-	--symbols-path=$(call core_abspath,$(DIST)/crashreporter-symbols) \
-	--plugins-path=$(call core_abspath,$(DIST)/plugins) \
+	--symbols-path=$(abspath $(DIST)/crashreporter-symbols) \
+	--plugins-path=$(abspath $(DIST)/plugins) \
 	$(MOZMILL_EXTRA)
 
 # XXX The mozilla/testing/testsuite-targets.mk doesn't really allow for hooks
@@ -66,7 +66,7 @@ else
 	$(MAKE) -C $(DEPTH)/mozilla/testing/mochitest stage-chromejar PKG_STAGE=$(DIST)/universal
 endif
 	cd $(PKG_STAGE) && \
-	  zip -r9D "$(call core_abspath,$(DIST)/$(PKG_PATH)$(TEST_PACKAGE))" \
+	  zip -r9D "$(abspath $(DIST)/$(PKG_PATH)$(TEST_PACKAGE))" \
 	  * -x \*/.mkdir.done
 
 make-stage-dir:

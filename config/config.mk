@@ -565,7 +565,7 @@ endif
 PWD := $(CURDIR)
 endif
 
-NSINSTALL_PY := $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/nsinstall.py)
+NSINSTALL_PY := $(PYTHON) $(abspath $(MOZILLA_SRCDIR)/config/nsinstall.py)
 # For Pymake, whereever we use nsinstall.py we're also going to try to make it
 # a native command where possible. Since native commands can't be used outside
 # of single-line commands, we continue to provide INSTALL for general use.
@@ -674,7 +674,7 @@ RUN_TEST_PROGRAM = $(DIST)/bin/run-mozilla.sh
 endif # ! WINNT
 endif # ! OS2
 
-CREATE_PRECOMPLETE_CMD = $(PYTHON) $(call core_abspath,$(MOZILLA_SRCDIR)/config/createprecomplete.py)
+CREATE_PRECOMPLETE_CMD = $(PYTHON) $(abspath $(MOZILLA_SRCDIR)/config/createprecomplete.py)
 
 # MDDEPDIR is the subdirectory where dependency files are stored
 MDDEPDIR := .deps

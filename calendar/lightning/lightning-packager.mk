@@ -26,7 +26,7 @@ else
 UNIVERSAL_PATH=
 endif
 
-_ABS_DIST := $(call core_abspath,$(DIST))
+_ABS_DIST := $(abspath $(DIST))
 
 # This variable is to allow the wget-en-US target to know which ftp server to download from
 ifndef EN_US_BINARY_URL
@@ -122,7 +122,7 @@ repackage-zip-%:
 repack-stage: repack-stage-all
 	grep -v 'locale \w\+ en-US' $(L10N_TARGET)/chrome.manifest > $(L10N_TARGET)/chrome.manifest~ && \
 	  mv $(L10N_TARGET)/chrome.manifest~ $(L10N_TARGET)/chrome.manifest
-	find $(call core_abspath,$(L10N_TARGET)) -name '*en-US*' -print0 | xargs -0 rm -rf
+	find $(abspath $(L10N_TARGET)) -name '*en-US*' -print0 | xargs -0 rm -rf
 
 repack-stage-all: $(XPI_STAGE_PATH)/$(XPI_NAME)
 	@echo "Repackaging $(XPI_PKGNAME) locale for Language $(AB_CD)"
