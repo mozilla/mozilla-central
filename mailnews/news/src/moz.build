@@ -6,16 +6,16 @@
 MODULE = 'msgnews'
 
 CPP_SOURCES += [
-    'nsNNTPArticleList.cpp',
-    'nsNNTPNewsgroupList.cpp',
-    'nsNNTPNewsgroupPost.cpp',
-    'nsNNTPProtocol.cpp',
     'nsNewsDownloadDialogArgs.cpp',
     'nsNewsDownloader.cpp',
     'nsNewsFolder.cpp',
     'nsNewsUtils.cpp',
+    'nsNNTPArticleList.cpp',
     'nsNntpIncomingServer.cpp',
     'nsNntpMockChannel.cpp',
+    'nsNNTPNewsgroupList.cpp',
+    'nsNNTPNewsgroupPost.cpp',
+    'nsNNTPProtocol.cpp',
     'nsNntpService.cpp',
     'nsNntpUrl.cpp',
 ]

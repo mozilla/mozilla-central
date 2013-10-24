@@ -6,12 +6,12 @@
 MODULE = 'suitecommon'
 
 EXTRA_COMPONENTS += [
-    'SuiteCommon.manifest',
     'nsAbout.js',
     'nsSessionStartup.js',
     'nsSidebar.js',
     'nsSuiteDownloadManagerUI.js',
     'nsSuiteGlue.js',
+    'SuiteCommon.manifest',
 ]
 
 EXTRA_PP_COMPONENTS += [

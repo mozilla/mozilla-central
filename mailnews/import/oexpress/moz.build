@@ -6,7 +6,6 @@
 MODULE = 'importOE'
 
 CPP_SOURCES += [
-    'WabObject.cpp',
     'nsOE5File.cpp',
     'nsOEAddressIterator.cpp',
     'nsOEImport.cpp',
@@ -15,6 +14,7 @@ CPP_SOURCES += [
     'nsOEScanBoxes.cpp',
     'nsOESettings.cpp',
     'nsOEStringBundle.cpp',
+    'WabObject.cpp',
 ]
 
 if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:

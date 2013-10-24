@@ -11,20 +11,20 @@ EXPORTS += [
 
 CPP_SOURCES += [
     'nsAbAddressCollector.cpp',
-    'nsAbBSDirectory.cpp',
     'nsAbBooleanExpression.cpp',
+    'nsAbBSDirectory.cpp',
     'nsAbCardProperty.cpp',
     'nsAbContentHandler.cpp',
-    'nsAbDirFactoryService.cpp',
-    'nsAbDirProperty.cpp',
     'nsAbDirectoryQuery.cpp',
     'nsAbDirectoryQueryProxy.cpp',
+    'nsAbDirFactoryService.cpp',
+    'nsAbDirProperty.cpp',
     'nsAbLDIFService.cpp',
+    'nsAbManager.cpp',
     'nsAbMDBCard.cpp',
+    'nsAbMDBDirectory.cpp',
     'nsAbMDBDirFactory.cpp',
     'nsAbMDBDirProperty.cpp',
-    'nsAbMDBDirectory.cpp',
-    'nsAbManager.cpp',
     'nsAbQueryStringToExpression.cpp',
     'nsAbView.cpp',
     'nsAddbookProtocolHandler.cpp',
@@ -38,8 +38,8 @@ CPP_SOURCES += [
 
 if CONFIG['OS_ARCH'] == 'WINNT' and CONFIG['MOZ_MAPI_SUPPORT']:
     CPP_SOURCES += [
-        'nsAbOutlookDirFactory.cpp',
         'nsAbOutlookDirectory.cpp',
+        'nsAbOutlookDirFactory.cpp',
         'nsAbWinHelper.cpp',
         'nsMapiAddressBook.cpp',
         'nsWabAddressBook.cpp',
@@ -60,10 +60,10 @@ if CONFIG['MOZ_LDAP_XPCOM']:
     CPP_SOURCES += [
         'nsAbBoolExprToLDAPFilter.cpp',
         'nsAbLDAPCard.cpp',
-        'nsAbLDAPDirFactory.cpp',
         'nsAbLDAPDirectory.cpp',
-        'nsAbLDAPDirectoryQuery.cpp',
         'nsAbLDAPDirectoryModify.cpp',
+        'nsAbLDAPDirectoryQuery.cpp',
+        'nsAbLDAPDirFactory.cpp',
         'nsAbLDAPListenerBase.cpp',
         'nsAbLDAPReplicationData.cpp',
         'nsAbLDAPReplicationQuery.cpp',

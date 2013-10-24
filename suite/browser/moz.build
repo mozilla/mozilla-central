@@ -6,8 +6,8 @@
 TEST_DIRS += ['test']
 
 EXTRA_COMPONENTS += [
-    'SuiteBrowser.manifest',
     'nsBrowserContentHandler.js',
     'nsTypeAheadFind.js',
+    'SuiteBrowser.manifest',
 ]
 

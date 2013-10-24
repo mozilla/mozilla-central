@@ -6,12 +6,12 @@
 XPIDL_SOURCES += [
     'nsIMsgAttachment.idl',
     'nsIMsgCompFields.idl',
-    'nsIMsgCompUtils.idl',
     'nsIMsgCompose.idl',
     'nsIMsgComposeParams.idl',
     'nsIMsgComposeProgressParams.idl',
     'nsIMsgComposeSecure.idl',
     'nsIMsgComposeService.idl',
+    'nsIMsgCompUtils.idl',
     'nsIMsgQuote.idl',
     'nsIMsgQuotingOutputStreamListener.idl',
     'nsIMsgSend.idl',

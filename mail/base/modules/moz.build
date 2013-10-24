@@ -4,16 +4,16 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 EXTRA_JS_MODULES += [
-    'MailConsts.js',
-    'MailUtils.js',
-    'MsgHdrSyntheticView.js',
     'attachmentChecker.js',
     'dbViewWrapper.js',
     'distribution.js',
     'glodaWebSearch.js',
+    'MailConsts.js',
     'mailInstrumentation.js',
     'mailMigrator.js',
+    'MailUtils.js',
     'mailViewManager.js',
+    'MsgHdrSyntheticView.js',
     'oauth.jsm',
     'quickFilterManager.js',
     'searchSpec.js',

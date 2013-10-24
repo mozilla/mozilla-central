@@ -7,12 +7,12 @@ MODULE = 'msgMapi'
 LIBRARY_NAME = 'msgMapi'
 
 CPP_SOURCES += [
-    'Registry.cpp',
     'msgMapiFactory.cpp',
     'msgMapiHook.cpp',
     'msgMapiImp.cpp',
     'msgMapiMain.cpp',
     'msgMapiSupport.cpp',
+    'Registry.cpp',
 ]
 
 if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:

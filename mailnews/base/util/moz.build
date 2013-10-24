@@ -30,7 +30,6 @@ EXPORTS.mozilla.mailnews += [
 ]
 
 CPP_SOURCES += [
-    'Services.cpp',
     'nsImapMoveCoalescer.cpp',
     'nsMsgCompressIStream.cpp',
     'nsMsgCompressOStream.cpp',
@@ -48,20 +47,21 @@ CPP_SOURCES += [
     'nsMsgTxn.cpp',
     'nsMsgUtils.cpp',
     'nsStopwatch.cpp',
+    'Services.cpp',
 ]
 
 EXTRA_JS_MODULES += [
-    'IOUtils.js',
-    'JXON.js',
-    'StringBundle.js',
     'errUtils.js',
     'folderUtils.jsm',
     'hostnameUtils.jsm',
+    'IOUtils.js',
     'iteratorUtils.jsm',
     'jsTreeSelection.js',
-    'mailServices.js',
+    'JXON.js',
     'mailnewsMigrator.js',
+    'mailServices.js',
     'msgDBCacheManager.js',
+    'StringBundle.js',
     'templateUtils.js',
     'traceHelper.js',
 ]

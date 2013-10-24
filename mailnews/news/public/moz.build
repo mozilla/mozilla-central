@@ -6,12 +6,12 @@
 XPIDL_SOURCES += [
     'nsIMsgNewsFolder.idl',
     'nsIMsgOfflineNewsState.idl',
+    'nsINewsDownloadDialogArgs.idl',
     'nsINNTPArticleList.idl',
+    'nsINntpIncomingServer.idl',
     'nsINNTPNewsgroupList.idl',
     'nsINNTPNewsgroupPost.idl',
     'nsINNTPProtocol.idl',
-    'nsINewsDownloadDialogArgs.idl',
-    'nsINntpIncomingServer.idl',
     'nsINntpService.idl',
     'nsINntpUrl.idl',
 ]

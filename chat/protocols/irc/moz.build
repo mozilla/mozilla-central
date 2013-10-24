@@ -13,8 +13,8 @@ EXTRA_COMPONENTS += [
 EXTRA_JS_MODULES += [
     'ircBase.jsm',
     'ircCAP.jsm',
-    'ircCTCP.jsm',
     'ircCommands.jsm',
+    'ircCTCP.jsm',
     'ircDCC.jsm',
     'ircHandlers.jsm',
     'ircISUPPORT.jsm',
