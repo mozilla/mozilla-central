@@ -479,8 +479,6 @@
 @BINPATH@/components/toolkit_finalizationwitness.xpt
 
 ; toolkit
-@BINPATH@/components/AppProtocolHandler.js
-@BINPATH@/components/AppProtocolHandler.manifest
 @BINPATH@/components/AppsService.js
 @BINPATH@/components/AppsService.manifest
 @BINPATH@/components/BrowserElementParent.js
