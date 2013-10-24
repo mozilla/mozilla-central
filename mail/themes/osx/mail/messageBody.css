@@ -77,7 +77,8 @@ mailattachcount {
 /* ::::: signature ::::: */
 
 @media not print {
-  .moz-txt-sig,
+  div.moz-text-flowed > div.moz-txt-sig,
+  div.moz-text-plain > pre > div.moz-txt-sig,
   pre.moz-signature {
     opacity: 0.6;
   }
