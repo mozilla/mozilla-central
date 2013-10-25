@@ -1981,7 +1981,7 @@ var FeedSubscriptions = {
   generateOutlineList: function(baseFolder, parent, indentLevel)
   {
     // Pretty printing.
-    let indentString = (new Array(indentLevel - 1)).join(" ");
+    let indentString = " ".repeat(indentLevel - 2);
 
     let feedOutline;
     let folderEnumerator = baseFolder.subFolders;
@@ -2022,7 +2022,7 @@ var FeedSubscriptions = {
   generateOutlineStruct: function(baseFolder, parent, indentLevel)
   {
     // Pretty printing.
-    function indentString(len) { return (new Array(len - 1)).join(" ") };
+    function indentString(len) { return " ".repeat(len - 2); };
 
     let folderOutline, feedOutline;
     let folderEnumerator = baseFolder.subFolders;

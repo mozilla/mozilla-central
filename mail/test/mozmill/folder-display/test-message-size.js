@@ -22,10 +22,10 @@ function setupModule(module) {
   // Create messages with sizes in the byte, KB, and MB ranges.
   bytemsg = create_message({body: {body: " "}});
 
-  kbstring = new Array(1024/2+1).join("x ");
+  kbstring = "x ".repeat(1024/2);
   kbmsg = create_message({body: {body: kbstring}});
 
-  mbstring = new Array(1024+1).join(kbstring);
+  mbstring = kbstring.repeat(1024);
   mbmsg = create_message({body: {body: mbstring}});
 
   add_message_to_folder(folder, bytemsg);

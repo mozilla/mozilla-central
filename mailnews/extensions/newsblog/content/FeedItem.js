@@ -354,7 +354,7 @@ FeedItem.prototype =
       openingLine +
       'X-Mozilla-Status: 0000\n' +
       'X-Mozilla-Status2: 00000000\n' +
-      'X-Mozilla-Keys: ' + (new Array(80)).join(" ") + '\n' +
+      'X-Mozilla-Keys: ' + " ".repeat(80) + '\n' +
       'Date: ' + this.mDate + '\n' +
       'Message-Id: ' + this.normalizeMessageID(this.messageID) + '\n' +
       'From: ' + this.author + '\n' +
