@@ -64,12 +64,11 @@ check-variable = $(if $(filter-out 0 1,$(words $($(x))z)),$(error Spaces are not
 
 $(foreach x,$(CHECK_VARS),$(check-variable))
 
-core_abspath = $(error core_abspath is unsupported, use $$(abspath) instead)
-core_realpath = $(error core_realpath is unsupported)
-
 RM = rm -f
 
-core_winabspath = $(error core_winabspath is unsupported)
+ifndef INCLUDED_FUNCTIONS_MK
+include $(MOZILLA_SRCDIR)/config/makefiles/functions.mk
+endif
 
 # FINAL_TARGET specifies the location into which we copy end-user-shipped
 # build products (typelibs, components, chrome).
@@ -123,8 +122,8 @@ MOZ_UNICHARUTIL_LIBS = $(LIBXUL_DIST)/lib/$(LIB_PREFIX)unicharutil_s.$(LIB_SUFFI
 MOZ_WIDGET_SUPPORT_LIBS    = $(DIST)/lib/$(LIB_PREFIX)widgetsupport_s.$(LIB_SUFFIX)
 
 ifdef _MSC_VER
-CC_WRAPPER ?= $(PYTHON) -O $(topsrcdir)/mozilla/build/cl.py
-CXX_WRAPPER ?= $(PYTHON) -O $(topsrcdir)/mozilla/build/cl.py
+CC_WRAPPER ?= $(call py_action,cl)
+CXX_WRAPPER ?= $(call py_action,cl)
 endif # _MSC_VER
 
 CC := $(CC_WRAPPER) $(CC)
