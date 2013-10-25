@@ -104,7 +104,9 @@ Sync(NSString *aUid)
     nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
       do_QueryInterface(directory);
     
-    osxDirectory->Update();
+    if (osxDirectory) {
+      osxDirectory->Update();
+    }
   }
   else {
     nsCOMPtr<nsIAbCard> abCard;
