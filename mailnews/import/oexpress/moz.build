@@ -5,7 +5,7 @@
 
 MODULE = 'importOE'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsOE5File.cpp',
     'nsOEAddressIterator.cpp',
     'nsOEImport.cpp',

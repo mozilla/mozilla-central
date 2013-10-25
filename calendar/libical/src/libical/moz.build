@@ -5,7 +5,7 @@
 
 MODULE = 'ical'
 
-CSRCS += [
+SOURCES += [
     'caldate.c',
     'icalarray.c',
     'icalattach.c',

@@ -5,7 +5,7 @@
 
 MODULE = 'msgsmime'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsEncryptedSMIMEURIsService.cpp',
     'nsMsgComposeSecure.cpp',
     'nsSMimeJSHelper.cpp',

@@ -5,7 +5,7 @@
 
 MODULE = 'impEudra'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsEudoraAddress.cpp',
     'nsEudoraCompose.cpp',
     'nsEudoraEditor.cpp',
@@ -17,10 +17,10 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['OS_ARCH'] == 'WINNT':
-    CPP_SOURCES += ['nsEudoraWin32.cpp']
+    SOURCES += ['nsEudoraWin32.cpp']
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-    CPP_SOURCES += ['nsEudoraMac.cpp']
+    SOURCES += ['nsEudoraMac.cpp']
 
 if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
     FORCE_STATIC_LIB = True

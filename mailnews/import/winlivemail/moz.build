@@ -5,7 +5,7 @@
 
 MODULE = 'importWM'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsWMImport.cpp',
     'nsWMSettings.cpp',
     'nsWMStringBundle.cpp',

@@ -5,7 +5,7 @@
 
 MODULE = 'import'
 
-CPP_SOURCES += [
+SOURCES += [
     'ImportCharSet.cpp',
     'ImportOutFile.cpp',
     'ImportTranslate.cpp',

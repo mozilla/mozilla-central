@@ -5,12 +5,12 @@
 
 MODULE = 'fts3tok'
 
-CSRCS += [
+SOURCES += [
     'fts3_porter.c',
     'Normalize.c',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsFts3Tokenizer.cpp',
     'nsGlodaRankerFunction.cpp',
 ]

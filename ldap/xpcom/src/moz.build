@@ -5,7 +5,7 @@
 
 MODULE = 'mozldap'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsLDAPBERElement.cpp',
     'nsLDAPBERValue.cpp',
     'nsLDAPConnection.cpp',
@@ -21,7 +21,7 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['MOZ_PREF_EXTENSIONS']:
-    CPP_SOURCES += ['nsLDAPSyncQuery.cpp']
+    SOURCES += ['nsLDAPSyncQuery.cpp']
 
 EXTRA_COMPONENTS += [
     'ldapComponents.manifest',

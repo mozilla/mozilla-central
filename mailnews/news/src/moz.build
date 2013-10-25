@@ -5,7 +5,7 @@
 
 MODULE = 'msgnews'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsNewsDownloadDialogArgs.cpp',
     'nsNewsDownloader.cpp',
     'nsNewsFolder.cpp',

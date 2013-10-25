@@ -6,7 +6,7 @@
 MODULE = 'msgMapi'
 LIBRARY_NAME = 'msgMapi'
 
-CPP_SOURCES += [
+SOURCES += [
     'msgMapiFactory.cpp',
     'msgMapiHook.cpp',
     'msgMapiImp.cpp',

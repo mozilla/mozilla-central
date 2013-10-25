@@ -29,7 +29,7 @@ EXPORTS.mozilla.mailnews += [
     'Services.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsImapMoveCoalescer.cpp',
     'nsMsgCompressIStream.cpp',
     'nsMsgCompressOStream.cpp',

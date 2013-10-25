@@ -15,7 +15,7 @@ XPIDL_SOURCES += [
 
 XPIDL_MODULE = 'caldatetime_libical'
 
-CPP_SOURCES += [
+SOURCES += [
     'calDateTime.cpp',
     'calDuration.cpp',
     'calICSService.cpp',

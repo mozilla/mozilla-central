@@ -9,7 +9,7 @@ EXPORTS += [
     'nsImapCore.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsAutoSyncManager.cpp',
     'nsAutoSyncState.cpp',
     'nsIMAPBodyShell.cpp',

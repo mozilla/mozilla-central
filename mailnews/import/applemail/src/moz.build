@@ -5,11 +5,11 @@
 
 MODULE = 'impapplemail'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsAppleMailImport.cpp',
 ]
 
-CMMSRCS += [
+SOURCES += [
     'nsEmlxHelperUtils.mm',
 ]
 

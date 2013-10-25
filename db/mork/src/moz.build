@@ -5,7 +5,7 @@
 
 MODULE = 'mork'
 
-CPP_SOURCES += [
+SOURCES += [
     'morkArray.cpp',
     'morkAtom.cpp',
     'morkAtomMap.cpp',
@@ -51,7 +51,7 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['OS_ARCH'] == 'WINNT':
-    CPP_SOURCES += ['morkSearchRowCursor.cpp']
+    SOURCES += ['morkSearchRowCursor.cpp']
 
 if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
     FORCE_STATIC_LIB = True

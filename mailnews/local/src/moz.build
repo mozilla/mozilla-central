@@ -5,7 +5,7 @@
 
 MODULE = 'msglocal'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsLocalMailFolder.cpp',
     'nsLocalUndoTxn.cpp',
     'nsLocalUtils.cpp',
@@ -29,7 +29,7 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['MOZ_MOVEMAIL']:
-    CPP_SOURCES += [
+    SOURCES += [
         'nsMovemailIncomingServer.cpp',
         'nsMovemailService.cpp',
     ]

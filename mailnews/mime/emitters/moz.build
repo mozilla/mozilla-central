@@ -9,7 +9,7 @@ EXPORTS += [
     'nsMimeEmitterCID.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsEmitterUtils.cpp',
     'nsMimeBaseEmitter.cpp',
     'nsMimeHtmlEmitter.cpp',

@@ -8,7 +8,7 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     EXTRA_PP_JS_MODULES += ['SpotlightIntegration.js']
 elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
     DIRS += ['wsenable']
-    CPP_SOURCES += ['nsMailWinSearchHelper.cpp']
+    SOURCES += ['nsMailWinSearchHelper.cpp']
     EXTRA_PP_JS_MODULES += ['WinSearchIntegration.js']
     FORCE_STATIC_LIB = True
     LIBRARY_NAME = 'winsearch_s'

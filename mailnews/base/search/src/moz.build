@@ -7,7 +7,7 @@ XPIDL_MODULE = 'msgsearch'
 
 MODULE = 'msgbase'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsMsgBodyHandler.cpp',
     'nsMsgFilter.cpp',
     'nsMsgFilterList.cpp',

@@ -7,18 +7,18 @@ DIRS += ['public']
 
 MODULE = 'shellservice'
 
-CPP_SOURCES += [
+SOURCES += [
     'DirectoryProvider.cpp',
 ]
 
 if CONFIG['OS_ARCH'] == 'WINNT':
-    CPP_SOURCES += ['nsMailWinIntegration.cpp']
+    SOURCES += ['nsMailWinIntegration.cpp']
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk2':
-    CPP_SOURCES += ['nsMailGNOMEIntegration.cpp']
+    SOURCES += ['nsMailGNOMEIntegration.cpp']
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-    CPP_SOURCES += ['nsMailMacIntegration.cpp']
+    SOURCES += ['nsMailMacIntegration.cpp']
 
 EXTRA_COMPONENTS += [
     'nsSetDefaultMail.js',

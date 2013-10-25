@@ -9,7 +9,7 @@ EXPORTS += [
     'nsVCardObj.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsAbAddressCollector.cpp',
     'nsAbBooleanExpression.cpp',
     'nsAbBSDirectory.cpp',
@@ -37,7 +37,7 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['OS_ARCH'] == 'WINNT' and CONFIG['MOZ_MAPI_SUPPORT']:
-    CPP_SOURCES += [
+    SOURCES += [
         'nsAbOutlookDirectory.cpp',
         'nsAbOutlookDirFactory.cpp',
         'nsAbWinHelper.cpp',
@@ -46,18 +46,18 @@ if CONFIG['OS_ARCH'] == 'WINNT' and CONFIG['MOZ_MAPI_SUPPORT']:
     ]
 
 if CONFIG['OS_ARCH'] == 'Darwin':
-    CPP_SOURCES += [
+    SOURCES += [
         'nsAbOSXDirFactory.cpp',
     ]
 
-    CMMSRCS += [
+    SOURCES += [
         'nsAbOSXCard.mm',
         'nsAbOSXDirectory.mm',
         'nsAbOSXUtils.mm',
     ]
 
 if CONFIG['MOZ_LDAP_XPCOM']:
-    CPP_SOURCES += [
+    SOURCES += [
         'nsAbBoolExprToLDAPFilter.cpp',
         'nsAbLDAPCard.cpp',
         'nsAbLDAPDirectory.cpp',

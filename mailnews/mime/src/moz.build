@@ -25,7 +25,7 @@ EXPORTS += [
     'nsStreamConverter.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'comi18n.cpp',
     'mimebuf.cpp',
     'mimecms.cpp',

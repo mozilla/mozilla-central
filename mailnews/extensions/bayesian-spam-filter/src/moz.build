@@ -5,7 +5,7 @@
 
 MODULE = 'bayesflt'
 
-CPP_SOURCES += [
+SOURCES += [
     'nsBayesianFilter.cpp',
 ]
 

@@ -5,7 +5,7 @@
 
 MODULE = 'impOutlk'
 
-CPP_SOURCES += [
+SOURCES += [
     'MapiApi.cpp',
     'MapiMessage.cpp',
     'MapiMimeTypes.cpp',

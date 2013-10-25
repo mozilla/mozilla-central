@@ -6,7 +6,7 @@
 MODULE = 'mozMapi32'
 LIBRARY_NAME = 'mozMapi32'
 
-CPP_SOURCES += [
+SOURCES += [
     'MapiDll.cpp',
 ]
 

@@ -9,7 +9,7 @@ EXPORTS += [
     'nsPgpMimeProxy.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsPgpMimeProxy.cpp',
 ]
 

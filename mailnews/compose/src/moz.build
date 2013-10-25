@@ -9,7 +9,7 @@ EXPORTS += [
     'nsComposeStrings.h',
 ]
 
-CPP_SOURCES += [
+SOURCES += [
     'nsMsgAttachment.cpp',
     'nsMsgAttachmentHandler.cpp',
     'nsMsgCompFields.cpp',
@@ -34,7 +34,7 @@ CPP_SOURCES += [
 ]
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-    CPP_SOURCES += [
+    SOURCES += [
         'nsMsgAppleDoubleEncode.cpp',
         'nsMsgAppleEncode.cpp',
     ]
