@@ -17,6 +17,7 @@ calendar.jar:
     content/calendar/calendar-daypicker.xml                (content/calendar-daypicker.xml)
     content/calendar/calendar-views.xml                    (content/calendar-views.xml)
 *   content/calendar/calendar-dnd-listener.js              (content/calendar-dnd-listener.js)
+    content/calendar/calendar-extract.js                   (content/calendar-extract.js)
     content/calendar/calendar-invitations-manager.js       (content/calendar-invitations-manager.js)
     content/calendar/calendar-item-editing.js              (content/calendar-item-editing.js)
     content/calendar/calendar-item-bindings.xml            (content/calendar-item-bindings.xml)

@@ -1,0 +1,49 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#hdrExtractEventButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-small.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+#hdrExtractTaskButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-small.png");
+  -moz-image-region: rect(0px, 256px, 16px, 240px);
+}
+
+#extractEventButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-large.png");
+  -moz-image-region: rect(0px, 24px, 24px, 0px);
+}
+
+#extractTaskButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-large.png");
+  -moz-image-region: rect(0px, 384px, 24px, 360px);
+}
+
+#extractEventButton[disabled] {
+  -moz-image-region: rect(48px, 24px, 72px, 0px);
+}
+
+#extractTaskButton[disabled] {
+  -moz-image-region: rect(48px, 384px, 72px, 360px);
+}
+
+toolbar[iconsize="small"] #extractEventButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-small.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+toolbar[iconsize="small"] #extractTaskButton {
+  list-style-image: url("chrome://calendar/skin/toolbar-small.png");
+  -moz-image-region: rect(0px, 256px, 16px, 240px);
+}
+
+toolbar[iconsize="small"] #extractEventButton[disabled] {
+  -moz-image-region: rect(32px, 16px, 48px, 0px);
+}
+
+toolbar[iconsize="small"] #extractTaskButton[disabled] {
+  -moz-image-region: rect(32px, 256px, 48px, 240px);
+}

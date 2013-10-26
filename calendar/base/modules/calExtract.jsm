@@ -16,15 +16,11 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 * @param dayStart        ambiguous hours earlier than this are considered to
 *                            be in the afternoon, when null then by default
 *                            set to 6
+* @param fixedLang       whether to use only fallbackLocale for extraction
 */
-function Extractor(baseUrl, fallbackLocale, dayStart) {
+function Extractor(baseUrl, fallbackLocale, dayStart, fixedLang) {
     this.bundleUrl = baseUrl;
     this.fallbackLocale = fallbackLocale;
-
-    if (dayStart != null) {
-        this.dayStart = dayStart;
-    }
-
     this.email = "";
     this.marker = "--MARK--";
     this.collected = [];
@@ -37,6 +33,15 @@ function Extractor(baseUrl, fallbackLocale, dayStart) {
     this.now = new Date();
     this.bundle = "";
     this.overrides = {};
+    this.fixedLang = true;
+
+    if (dayStart != null) {
+        this.dayStart = dayStart;
+    }
+
+    if (fixedLang != null) {
+        this.fixedLang = fixedLang;
+    }
 }
 
 Extractor.prototype = {
@@ -81,14 +86,154 @@ Extractor.prototype = {
         }
     },
 
-    setLanguage: function setLanguage() {
-        if (this.checkBundle(this.fallbackLocale)) {
-            ;
-        } else {
-            this.fallbackLocale = "en-US";
+    avgNonAsciiCharCode: function avgNonAsciiCharCode() {
+        let sum = 0;
+        let cnt = 0;
+
+        for (let i = 0; i < this.email.length; i++) {
+            let ch = this.email.charCodeAt(i);
+            if (ch > 128) {
+                sum += ch;
+                cnt++;
+            }
         }
 
-        let path = this.bundleUrl.replace("LOCALE", this.fallbackLocale, "g");
+        let nonAscii = sum/cnt || 0;
+        cal.LOG("[calExtract] Average non-ascii charcode: " + nonAscii);
+        return nonAscii;
+    },
+
+    setLanguage: function setLanguage() {
+        let path;
+
+        if (this.fixedLang == true) {
+            if (this.checkBundle(this.fallbackLocale)) {
+                cal.LOG("[calExtract] Fixed locale was used to choose " +
+                        this.fallbackLocale + " patterns.");
+            } else {
+                this.fallbackLocale = "en-US";
+                cal.LOG("[calExtract] " + this.fallbackLocale +
+                        " patterns were not found. Using en-US instead");
+            }
+
+            path = this.bundleUrl.replace("LOCALE", this.fallbackLocale, "g");
+
+            let pref = "calendar.patterns.last.used.languages";
+            let lastUsedLangs = cal.getPrefSafe(pref, "");
+            if (lastUsedLangs == "") {
+                cal.setPref(pref, this.fallbackLocale);
+            } else {
+                let langs = lastUsedLangs.split(",");
+                let idx = langs.indexOf(this.fallbackLocale);
+                if (idx == -1) {
+                    cal.setPref(pref, this.fallbackLocale + "," + lastUsedLangs);
+                } else {
+                    langs.splice(idx, 1);
+                    cal.setPref(pref, this.fallbackLocale + "," + langs.join(","));
+                }
+            }
+        } else {
+            let spellclass = "@mozilla.org/spellchecker/engine;1";
+            let mozISpellCheckingEngine = Components.interfaces.mozISpellCheckingEngine;
+            let sp = Components.classes[spellclass]
+                               .getService(mozISpellCheckingEngine);
+
+            let arr = {};
+            let cnt = {};
+            sp.getDictionaryList(arr, cnt);
+            let dicts = arr["value"];
+
+            if (dicts.length == 0) {
+                cal.LOG("[calExtract] There are no dictionaries installed and " +
+                        "enabled. You might want to add some if date and time " +
+                        "extraction from emails seems inaccurate.");
+            }
+
+            let patterns;
+            let words = this.email.split(/\s+/);
+            let most = 0;
+            let mostLocale;
+            for (let dict in dicts) {
+                // dictionary locale and patterns locale match
+                if (this.checkBundle(dicts[dict])) {
+                    let t1 = (new Date()).getTime();
+                    sp.dictionary = dicts[dict];
+                    let dur = (new Date()).getTime() - t1;
+                    cal.LOG("[calExtract] Loading " + dicts[dict] +
+                            " dictionary took " + dur + "ms");
+                    patterns = dicts[dict];
+                // beginning of dictionary locale matches patterns locale
+                } else if (this.checkBundle(dicts[dict].substring(0, 2))) {
+                    let t1 = (new Date()).getTime();
+                    sp.dictionary = dicts[dict];
+                    let dur = (new Date()).getTime() - t1;
+                    cal.LOG("[calExtract] Loading " + dicts[dict] +
+                            " dictionary took " + dur + "ms");
+                    patterns = dicts[dict].substring(0, 2);
+                // dictionary for which patterns aren't present
+                } else {
+                    cal.LOG("[calExtract] Dictionary present, rules missing: " + dicts[dict]);
+                    continue;
+                }
+
+                let correct = 0;
+                let total = 0;
+                for (let word in words) {
+                    words[word] = words[word].replace(/[()\d,;:?!#\.]/g, "");
+                    if (words[word].length >= 2) {
+                        total++;
+                        if (sp.check(words[word])) {
+                            correct++;
+                        }
+                    }
+                }
+
+                let percentage = correct/total * 100.0;
+                cal.LOG("[calExtract] " + dicts[dict] + " dictionary matches " +
+                        percentage + "% of words");
+
+                if (percentage > 50.0 && percentage > most) {
+                    mostLocale = patterns;
+                    most = percentage;
+                }
+            }
+
+            let avgCharCode = this.avgNonAsciiCharCode();
+
+            // using dictionaries for language recognition with non-latin letters doesn't work
+            // very well, possibly because of bug 471799
+            if (avgCharCode > 48000 && avgCharCode < 50000) {
+                cal.LOG("[calExtract] Using ko patterns based on charcodes");
+                path = this.bundleUrl.replace("LOCALE", "ko", "g");
+            // is it possible to differentiate zh-TW and zh-CN?
+            } else if (avgCharCode > 24000 && avgCharCode < 32000) {
+                cal.LOG("[calExtract] Using zh-TW patterns based on charcodes");
+                path = this.bundleUrl.replace("LOCALE", "zh-TW", "g");
+            } else if (avgCharCode > 14000 && avgCharCode < 24000) {
+                cal.LOG("[calExtract] Using ja patterns based on charcodes");
+                path = this.bundleUrl.replace("LOCALE", "ja", "g");
+            // Bulgarian also looks like that
+            } else if (avgCharCode > 1000 && avgCharCode < 1200) {
+                cal.LOG("[calExtract] Using ru patterns based on charcodes");
+                path = this.bundleUrl.replace("LOCALE", "ru", "g");
+            // dictionary based
+            } else if (most > 0) {
+                cal.LOG("[calExtract] Using " + mostLocale + " patterns based on dictionary");
+                path = this.bundleUrl.replace("LOCALE", mostLocale, "g");
+            // fallbackLocale matches patterns exactly
+            } else if (this.checkBundle(this.fallbackLocale)) {
+                cal.LOG("[calExtract] Falling back to " + this.fallbackLocale);
+                path = this.bundleUrl.replace("LOCALE", this.fallbackLocale, "g");
+            // beginning of fallbackLocale matches patterns
+            } else if (this.checkBundle(this.fallbackLocale.substring(0, 2))) {
+                this.fallbackLocale = this.fallbackLocale.substring(0, 2);
+                cal.LOG("[calExtract] Falling back to " + this.fallbackLocale);
+                path = this.bundleUrl.replace("LOCALE", this.fallbackLocale, "g");
+            } else {
+                cal.LOG("[calExtract] Using en-US");
+                path = this.bundleUrl.replace("LOCALE", "en-US", "g");
+            }
+        }
         this.bundle = Services.strings.createBundle(path);
     },
 

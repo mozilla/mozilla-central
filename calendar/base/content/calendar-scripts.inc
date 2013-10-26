@@ -27,3 +27,5 @@
 
   <!-- NEEDED FOR TASK VIEW/LIST SUPPORT -->
   <script type="application/javascript" src="chrome://calendar/content/calendar-task-editing.js"/>
+
+  <script type="application/javascript" src="chrome://calendar/content/calendar-extract.js"/>

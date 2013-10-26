@@ -62,6 +62,7 @@ lightning.jar:
     skin/lightning/lightning-widgets.css                   (themes/@THEME@/lightning-widgets.css)
     skin/lightning/common/imip.css                         (themes/common/imip.css)
     skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
+    skin/lightning/common/lightning-toolbar.css            (themes/common/lightning-toolbar.css)
     skin/lightning/mode-switch-icons.png                   (themes/common/images/mode-switch-icons.png)
 #ifdef XP_WIN
     skin/lightning/mode-switch-icons-aero.png              (themes/windows/images/mode-switch-icons-aero.png)
