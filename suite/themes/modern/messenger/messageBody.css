@@ -84,6 +84,11 @@
   .moz-signature {
     opacity: 0.5;
   }
+
+  .moz-txt-sig .moz-txt-sig,
+  .moz-signature .moz-signature {
+    opacity: 1.0;
+  }
 }
 
 /* ::::: vcard ::::: */
