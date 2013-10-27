@@ -246,6 +246,110 @@ var gComposeRecyclingListener = {
   }
 };
 
+var PrintPreviewListener = {
+  getPrintPreviewBrowser: function() {
+    var browser = document.getElementById("cppBrowser");
+    if (!browser) {
+      browser = document.createElement("browser");
+      browser.setAttribute("id", "cppBrowser");
+      browser.setAttribute("flex", "1");
+      browser.setAttribute("disablehistory", "true");
+      browser.setAttribute("type", "content");
+      document.getElementById("headers-parent").
+        insertBefore(browser, document.getElementById("appcontent"));
+    }
+    return browser;
+  },
+  getSourceBrowser: function() {
+    return GetCurrentEditorElement();
+  },
+  getNavToolbox: function() {
+    return document.getElementById("compose-toolbox");
+  },
+  onEnter: function() {
+    toggleAffectedChrome(true);
+  },
+  onExit: function() {
+    document.getElementById("cppBrowser").collapsed = true;
+    toggleAffectedChrome(false);
+  }
+}
+
+function sidebar_is_hidden() {
+  var sidebar_title = document.getElementById('sidebar-title-box');
+  var sidebar_box = document.getElementById('sidebar-box');
+  return sidebar_box.getAttribute('hidden') == 'true' ||
+    sidebar_title.getAttribute('hidden') == 'true';
+}
+
+function sidebar_is_collapsed() {
+  var sidebar_splitter = document.getElementById('sidebar-splitter');
+  return (sidebar_splitter &&
+          sidebar_splitter.getAttribute('state') == 'collapsed');
+}
+
+function SidebarSetState(aState) {
+  document.getElementById("sidebar-box").hidden = aState != "visible";
+  document.getElementById("sidebar-splitter").hidden = aState == "hidden";
+}
+
+function SidebarGetState() {
+  if (sidebar_is_hidden())
+    return "hidden";
+  if (sidebar_is_collapsed())
+    return "collapsed";
+  return "visible";
+}
+
+function toggleAffectedChrome(aHide)
+{
+  // chrome to toggle includes:
+  //   (*) menubar
+  //   (*) toolbox
+  //   (*) sidebar
+  //   (*) statusbar
+  if (!gChromeState)
+    gChromeState = new Object;
+
+  var statusbar = document.getElementById("status-bar");
+
+  // sidebar states map as follows:
+  //   hidden    => hide/show nothing
+  //   collapsed => hide/show only the splitter
+  //   shown     => hide/show the splitter and the box
+  if (aHide)
+  {
+    // going into print preview mode
+    document.getElementById("headers-box").hidden = true;
+    gChromeState.sidebar = SidebarGetState();
+    let subject = document.getElementById("msgSubject").value;
+    if (subject)
+      document.title = subject;
+    SidebarSetState("hidden");
+
+    // deal with the Status Bar
+    gChromeState.statusbarWasHidden = statusbar.hidden;
+    statusbar.hidden = true;
+  }
+  else
+  {
+    // restoring normal mode (i.e., leaving print preview mode)
+    SetComposeWindowTitle();
+    SidebarSetState(gChromeState.sidebar);
+    document.getElementById("headers-box").hidden = false;
+
+    // restore the Status Bar
+    statusbar.hidden = gChromeState.statusbarWasHidden;
+  }
+
+  // if we are unhiding and sidebar used to be there rebuild it
+  if (!aHide && gChromeState.sidebar == "visible")
+    SidebarRebuild();
+
+  document.getElementById("compose-toolbox").hidden = aHide;
+  document.getElementById("appcontent").collapsed = aHide;
+}
+
 var stateListener = {
   NotifyComposeFieldsReady: function() {
     ComposeFieldsReady();
@@ -514,6 +618,15 @@ var defaultController = {
       },
       doCommand: function() {
         DoCommandPrint();
+      }
+    },
+
+    cmd_printPreview: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        DoCommandPrintPreview();
       }
     },
 
@@ -1528,6 +1641,13 @@ function DoCommandPrint()
   try {
     PrintUtils.print();
   } catch(ex) {dump("#PRINT ERROR: " + ex + "\n");}
+}
+
+function DoCommandPrintPreview()
+{
+  try {
+    PrintUtils.printPreview(PrintPreviewListener);
+    } catch(ex) { Components.utils.reportError(ex); }
 }
 
 /**

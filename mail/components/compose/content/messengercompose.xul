@@ -116,6 +116,7 @@
   <command id="cmd_sendWithCheck" oncommand="goDoCommand('cmd_sendWithCheck')"/>
   <command id="cmd_sendLater" oncommand="goDoCommand('cmd_sendLater')"/>
   <command id="cmd_printSetup" oncommand="goDoCommand('cmd_printSetup')"/>
+  <command id="cmd_printPreview" oncommand="goDoCommand('cmd_printPreview')"/>
   <command id="cmd_print" oncommand="goDoCommand('cmd_print')"/>
 
   <!-- Edit Menu -->
@@ -472,6 +473,9 @@
           <menuitem label="&sendLaterCmd.label;" accesskey="&sendLaterCmd.accesskey;" key="key_sendLater" command="cmd_sendLater"/>
           <menuseparator/>
           <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" command="cmd_printSetup"/>
+#ifndef XP_MACOSX
+          <menuitem id="printPreviewMenuItem" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="cmd_printPreview"/>
+#endif
           <menuitem id="printMenuItem" label="&printCmd.label;" accesskey="&printCmd.accesskey;" key="key_print" command="cmd_print"/>
           <menuseparator id="menu_FileCloseSeparator"/>
           <menuitem id="menu_close"
@@ -810,7 +814,7 @@
 
     <splitter id="sidebar-splitter" hidden="true"/>
 
-    <vbox flex="1">
+    <vbox id="headers-parent" flex="1">
     <toolbox id="headers-box" class="toolbox-top" mode="icons">
     <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
              customizable="true" nowindowdrag="true"
