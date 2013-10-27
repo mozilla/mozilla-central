@@ -384,10 +384,15 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
                                                 const char *url)
 {
   mSkipAttachment = false;
+  bool p7mExternal = false;
+
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefs)
+    prefs->GetBoolPref("mailnews.p7m_external", &p7mExternal);
 
   if ( (contentType) &&
-       ((!strcmp(contentType, APPLICATION_XPKCS7_MIME)) ||
-        (!strcmp(contentType, APPLICATION_PKCS7_MIME)) ||
+       ((!p7mExternal && !strcmp(contentType, APPLICATION_XPKCS7_MIME)) ||
+        (!p7mExternal && !strcmp(contentType, APPLICATION_PKCS7_MIME)) ||
         (!strcmp(contentType, APPLICATION_XPKCS7_SIGNATURE)) ||
         (!strcmp(contentType, APPLICATION_PKCS7_SIGNATURE)) ||
         (!strcmp(contentType, TEXT_VCARD)))
