@@ -474,9 +474,10 @@ treechildren::-moz-tree-image(subscribed-news) {
 
 #addressingWidget > .addressingWidgetItem,
 #addressingWidget > .dummy-row {
-  border: none !important;
-  background: none !important;
-  color: inherit !important;
+  border: none;
+  background: none;
+  color: inherit;
+  box-shadow: none;
 }
 
 .addressingWidgetCell {
