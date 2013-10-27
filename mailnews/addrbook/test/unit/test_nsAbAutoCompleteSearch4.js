@@ -47,7 +47,15 @@ const expectedResults = [ [ "primary@test.invalid" ],
                             "thename@test.invalid" ],
                           [ "sortbasic <foo_b@test.invalid>",
                             "sortbasic <foo_a@test.invalid>" ],
-                          [ "testsort <c@test.invalid>",
+                          [ "3testsort <j@test.invalid>",
+                            "3testsort <h@test.invalid>",
+                            "3testsort <g@test.invalid>",
+                            "3testsort <f@test.invalid>",
+                            "2testsort <c@test.invalid>",
+                            "2testsort <a@test.invalid>",
+                            "2testsort <d@test.invalid>",
+                            "2testsort <e@test.invalid>",
+                            "testsort <c@test.invalid>",
                             "testsort <a@test.invalid>",
                             "testsort <d@test.invalid>",
                             "testsort <e@test.invalid>" ],
@@ -66,7 +74,9 @@ const reductionSearches = [ "b", "bo", "boo2" ];
 const reductionExpectedResults = [ [ "bar1@test.invalid",
                                      "bar2@test.invalid",
                                      "boo1@test.invalid",
-                                     "boo2@test.invalid" ],
+                                     "boo2@test.invalid",
+                                     "sortbasic <foo_b@test.invalid>",
+                                     "sortbasic <foo_a@test.invalid>" ],
                                    [ "boo1@test.invalid",
                                      "boo2@test.invalid" ],
                                    [ "boo2@test.invalid" ] ];
@@ -100,7 +110,8 @@ function run_test()
     card.primaryEmail = element.email;
     card.setProperty("SecondEmail", element.secondEmail);
     card.displayName = element.displayName;
-    card.setProperty("PopularityIndex", element.popularityIndex);
+    if ("popularityIndex" in element)
+      card.setProperty("PopularityIndex", element.popularityIndex);
     card.firstName = element.firstName;
 
     ab.addCard(card);
@@ -116,6 +127,7 @@ function run_test()
   print("Checking Initial Searches");
 
   function checkSearch(element, index, array) {
+    print("Checking " + element);
     acs.startSearch(element, JSON.stringify({ type: "addr_to"  }), null, obs);
 
     do_check_eq(obs._search, acs);
