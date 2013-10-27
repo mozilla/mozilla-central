@@ -7,11 +7,16 @@
 <!DOCTYPE overlay SYSTEM "chrome://debugQA/locale/pref-debug1.dtd" >
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <prefpane id="debugqa_prefs_debug1" label="&lHeader;">
+  <prefpane id="debugqa_prefs_debug1"
+            label="&lHeader;"
+            script="chrome://debugQA/content/pref-debug1.js">
 
     <preferences id="debugqa_preferences1">
       <preference id="nglayout.debug.paint_flashing"
-                  name="nglayout.debug.paint_flashing" type="bool"/>
+                  name="nglayout.debug.paint_flashing" type="bool"
+                  onchange="enableChrome(this.value);"/>
+      <preference id="nglayout.debug.paint_flashing_chrome"
+                  name="nglayout.debug.paint_flashing_chrome" type="bool"/>
       <preference id="nglayout.debug.paint_dumping"
                   name="nglayout.debug.paint_dumping" type="bool"/>
       <preference id="nglayout.debug.invalidate_dumping"
@@ -39,6 +44,9 @@
       <vbox align="start">
         <checkbox id="nglayoutDebugPaintFlashing" label="&debugPaintFlashing.label;"
                   preference="nglayout.debug.paint_flashing"/>
+        <checkbox id="nglayoutDebugPaintFlashingChrome"
+                  label="&debugPaintFlashingChrome.label;"
+                  preference="nglayout.debug.paint_flashing_chrome"/>
         <checkbox id="nglayoutDebugPaintDumping" label="&debugPaintDumping.label;"
                   preference="nglayout.debug.paint_dumping"/>
         <checkbox id="nglayoutDebugInvalidateDumping"

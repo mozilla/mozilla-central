@@ -18,5 +18,6 @@ debugqa.jar:
   content/debugqa/EditorInitPage.html                     (content/EditorInitPage.html)
   content/debugqa/EditorInitPagePlain.html                (content/EditorInitPagePlain.html)
   content/debugqa/pref-debug.xul                          (content/pref-debug.xul)
+  content/debugqa/pref-debug1.js                          (content/pref-debug1.js)
   content/debugqa/pref-debug1.xul                         (content/pref-debug1.xul)
   content/debugqa/pref-debug2.xul                         (content/pref-debug2.xul)

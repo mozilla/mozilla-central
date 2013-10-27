@@ -12,6 +12,7 @@
 <!-- Event Debugging -->
 <!ENTITY debugEventDebugging.label "Event Debugging">
 <!ENTITY debugPaintFlashing.label "Paint Flashing (Caps-Lock toggles)">
+<!ENTITY debugPaintFlashingChrome.label "Paint Flashing Chrome">
 <!ENTITY debugPaintDumping.label "Paint Dumping">
 <!ENTITY debugInvalidateDumping.label "Invalidate Dumping">
 <!ENTITY debugEventDumping.label "Event Dumping">
