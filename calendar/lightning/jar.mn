@@ -46,7 +46,7 @@ lightning.jar:
     content/lightning/messenger-overlay-accountCentral.xul (content/messenger-overlay-accountCentral.xul)
     content/lightning/messenger-overlay-messageWindow.xul  (content/messenger-overlay-messageWindow.xul)
     content/lightning/messenger-overlay-sidebar.js         (content/messenger-overlay-sidebar.js)
-*   content/lightning/messenger-overlay-sidebar.xul        (content/messenger-overlay-sidebar.xul)
+    content/lightning/messenger-overlay-sidebar.xul        (content/messenger-overlay-sidebar.xul)
     content/lightning/messenger-overlay-preferences.js     (content/messenger-overlay-preferences.js)
     content/lightning/messenger-overlay-preferences.xul    (content/messenger-overlay-preferences.xul)
     content/lightning/suite-overlay-preferences.xul        (content/suite-overlay-preferences.xul)

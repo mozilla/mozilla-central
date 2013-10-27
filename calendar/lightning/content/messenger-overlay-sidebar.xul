@@ -32,11 +32,38 @@
 
 <overlay id="ltnSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-<!-- All JS files that messenger-overlay-sidebar.xul wishes to include *must* go into the
-     calendar-scripts.inc file (all scripts shared with Sunbird) or lightning-scripts.inc
-     file (scripts relevant for Lightning-only). -->
-#include ../../base/content/calendar-scripts.inc
-#include lightning-scripts.inc
+
+  <!-- NEEDED FOR MULTIPLE CALENDAR SUPPORT -->
+  <script type="application/javascript" src="chrome://calendar/content/calendar-management.js"/>
+
+  <!-- NEEDED FOR CLIPBOARD SUPPORT -->
+  <script type="application/javascript" src="chrome://calendar/content/calendar-clipboard.js"/>
+
+  <!-- NEEDED FOR IMPORT / EXPORT SUPPORT -->
+  <script type="application/javascript" src="chrome://calendar/content/import-export.js"/>
+
+  <!-- NEEDED FOR PUBLICATION SUPPORT -->
+  <script type="application/javascript" src="chrome://calendar/content/publish.js"/>
+
+  <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-chrome-startup.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-views.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-creation.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
+  <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+
+  <!-- NEEDED FOR TASK VIEW/LIST SUPPORT -->
+  <script type="application/javascript" src="chrome://calendar/content/calendar-task-editing.js"/>
+
+  <script type="application/javascript" src="chrome://calendar/content/calendar-extract.js"/>
+
+  <script type="application/javascript" src="chrome://lightning/content/lightning-utils.js"/>
+  <script type="application/javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
+  <script type="application/javascript" src="chrome://calendar/content/calendar-invitations-manager.js"/>
 
   <window id="messengerWindow">
     <!-- Be sure to keep these sets, since they will be overlayed by
