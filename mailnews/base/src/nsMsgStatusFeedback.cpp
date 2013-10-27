@@ -22,6 +22,7 @@
 #include "nsIMsgFolder.h"
 #include "nsServiceManagerUtils.h"
 #include "mozilla/Services.h"
+#include "nsMsgUtils.h"
 
 #define MSGFEEDBACK_TIMER_INTERVAL 500
 
@@ -257,11 +258,46 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnStatus(nsIRequest *request, nsISupports* ct
                                             nsresult aStatus, const PRUnichar* aStatusArg)
 {
   nsresult rv;
+  nsCOMPtr<nsIURI> uri;
+  nsString accountName;
+  // fetching account name from nsIRequest
+  nsCOMPtr<nsIChannel> aChannel = do_QueryInterface(request);
+  rv = aChannel->GetURI(getter_AddRefs(uri));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(uri));
+  if (url)
+  {
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    url->GetServer(getter_AddRefs(server));
+    if (server)
+      server->GetPrettyName(accountName);
+  }
+
+  // forming the status message
   nsCOMPtr<nsIStringBundleService> sbs =
     mozilla::services::GetStringBundleService();
   NS_ENSURE_TRUE(sbs, NS_ERROR_UNEXPECTED);
   nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
   NS_ENSURE_SUCCESS(rv, rv);
-  return ShowStatusString(str);
+
+  // prefixing the account name to the status message if status message isn't blank
+  // and doesn't already contain the account name.
+  nsString statusMessage;
+  if (!str.IsEmpty() && str.Find(accountName) == kNotFound)
+  {
+    nsCOMPtr<nsIStringBundle> bundle;
+    rv = sbs->CreateBundle(MSGS_URL, getter_AddRefs(bundle));
+    const PRUnichar *params[] = { accountName.get(),
+                                  str.get() };
+    rv = bundle->FormatStringFromName(
+      NS_LITERAL_STRING("statusMessage").get(),
+      params, 2, getter_Copies(statusMessage));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+  else
+  {
+    statusMessage.Assign(str);
+  }
+  return ShowStatusString(statusMessage);
 }

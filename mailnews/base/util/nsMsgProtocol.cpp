@@ -1531,8 +1531,6 @@ nsresult nsMsgAsyncWriteProtocol::SendData(const char * dataBuffer, bool aSuppre
   return mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
 }
 
-#define MSGS_URL    "chrome://messenger/locale/messenger.properties"
-
 PRUnichar *FormatStringWithHostNameByID(int32_t stringID, nsIMsgMailNewsUrl *msgUri)
 {
   if (!msgUri)

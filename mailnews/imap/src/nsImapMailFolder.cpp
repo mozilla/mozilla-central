@@ -6693,21 +6693,7 @@ nsImapMailFolder::ProgressStatusString(nsIImapProtocol* aProtocol,
           progressMsg.Adopt(printfString);
       }
 
-      nsString accountName;
-      nsString progressString;
-      server->GetPrettyName(accountName);
-
-      nsCOMPtr<nsIStringBundle> bundle;
-      rv = IMAPGetStringBundle(getter_AddRefs(bundle));
-      NS_ENSURE_SUCCESS(rv, rv);
-      const PRUnichar* params[] = { accountName.get(),
-                                    progressMsg.get() };
-      rv = bundle->FormatStringFromName(
-        NS_LITERAL_STRING("imapStatusMessage").get(),
-        params, 2, getter_Copies(progressString));
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      DisplayStatusMsg(imapUrl, progressString);
+      DisplayStatusMsg(imapUrl, progressMsg);
     }
   }
   return NS_OK;

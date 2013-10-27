@@ -35,6 +35,8 @@ class nsIMsgWindow;
 class nsISupportsArray;
 class nsIStreamListener;
 
+#define MSGS_URL    "chrome://messenger/locale/messenger.properties"
+
 //These are utility functions that can used throughout the mailnews code
 
 NS_MSG_BASE nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractID);
