@@ -436,13 +436,6 @@ treechildren::-moz-tree-image(remote-err) {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook-error.png");
 }
 
-treechildren::-moz-tree-image(subscribed-news) {
-  -moz-margin-start: 2px;
-  -moz-margin-end: 5px;
-  list-style-image: url("chrome://messenger/skin/icons/folder.png");
-  -moz-image-region: rect(0 160px 16px 144px);
-}
-
 /* ::::: addressing widget ::::: */
 
 .autocomplete-treebody::-moz-tree-cell-text(comment) {

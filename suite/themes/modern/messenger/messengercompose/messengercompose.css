@@ -200,8 +200,3 @@ treechildren::-moz-tree-image(remote-err) {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/directory-down.gif");
 }
 
-treechildren::-moz-tree-image(subscribed-news) {
-  -moz-margin-start: 3px;
-  -moz-margin-end: -4px;
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.gif");
-}

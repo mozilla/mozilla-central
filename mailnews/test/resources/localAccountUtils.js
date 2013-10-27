@@ -59,23 +59,6 @@ var localAccountUtils = {
    * @return The newly-created nsIMsgIncomingServer.
    */
   create_incoming_server: function(aType, aPort, aUsername, aPassword) {
-    let serverAndAccount = localAccountUtils.
-      create_incoming_server_and_account(aType, aPort, aUsername, aPassword);
-    return serverAndAccount.server;
-  },
-
-  /**
-   * Create an nsIMsgIncomingServer and an nsIMsgAccount to go with it.
-   *
-   * @param aType The type of the server (pop3, imap etc).
-   * @param aPort The port the server is on.
-   * @param aUsername The username for the server.
-   * @param aPassword The password for the server.
-   * @return An object with the newly-created nsIMsgIncomingServer as the
-             "server" property and the newly-created nsIMsgAccount as the
-             "account" property.
-   */
-  create_incoming_server_and_account: function (aType, aPort, aUsername, aPassword) {
     let server = MailServices.accounts.createIncomingServer(aUsername, "localhost",
                                                             aType);
     server.port = aPort;
@@ -97,7 +80,7 @@ var localAccountUtils = {
     }
     server.valid = true;
 
-    return {server: server, account: account};
+    return server;
   },
 
   /**

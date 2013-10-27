@@ -215,12 +215,6 @@ treechildren::-moz-tree-image(remote-err) {
   list-style-image: url("chrome://messenger/skin/addressbook/icons/remote-addrbook-error.gif");
 }
 
-treechildren::-moz-tree-image(subscribed-news) {
-  -moz-margin-start: 2px;
-  -moz-margin-end: -3px;
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.png");
-}
-
 /* ::::: lightweight themes ::::: */
 
 #MsgHeadersToolbar:-moz-lwtheme,

@@ -527,15 +527,6 @@ treechildren::-moz-tree-image(remote-err) {
   }
 }
 
-treechildren::-moz-tree-image(subscribed-news) {
-  margin-top: 2px;
-  margin-bottom: 2px;
-  -moz-margin-start: 2px;
-  -moz-margin-end: -3px;
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
-  -moz-image-region: rect(0 160px 16px 144px);
-}
-
 /* ::::: addressing widget ::::: */
 
 #addressingWidget {

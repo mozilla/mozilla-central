@@ -80,7 +80,6 @@ nsAbAutoCompleteSearch.prototype = {
   _commentColumn: 0,
   _parser: MailServices.headerParser,
   _abManager: MailServices.ab,
-  applicableHeaders: Set(["addr_to", "addr_cc", "addr_bcc", "addr_reply"]),
 
   // Private methods
 
@@ -346,13 +345,7 @@ nsAbAutoCompleteSearch.prototype = {
    */
   startSearch: function startSearch(aSearchString, aSearchParam,
                                     aPreviousResult, aListener) {
-    let params = JSON.parse(aSearchParam);
     var result = new nsAbAutoCompleteResult(aSearchString);
-    if (!this.applicableHeaders.has(params.type)) {
-      result.searchResult = ACR.RESULT_IGNORED;
-      aListener.onSearchResult(this, result);
-      return;
-    }
 
     // If the search string isn't value, or contains a comma, or the user
     // hasn't enabled autocomplete, then just return no matches / or the
@@ -436,7 +429,7 @@ nsAbAutoCompleteSearch.prototype = {
         var dir = allABs.getNext();
 
         if (dir instanceof Components.interfaces.nsIAbDirectory &&
-            dir.useForAutocomplete(params.idKey)) {
+            dir.useForAutocomplete(aSearchParam)) {
           this._searchCards(searchQuery, dir, result);
           this._searchWithinEmails(emailSearchQuery, fullString, dir, result);
         }

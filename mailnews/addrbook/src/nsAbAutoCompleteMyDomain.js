@@ -12,20 +12,16 @@ nsAbAutoCompleteMyDomain.prototype = {
   QueryInterface: XPCOMUtils.generateQI([
       Components.interfaces.nsIAutoCompleteSearch]),
 
-  cachedIdKey: "",
+  cachedParam: "",
   cachedIdentity: null,
 
-  applicableHeaders: Set(["addr_to", "addr_cc", "addr_bcc", "addr_reply"]),
-
-  startSearch: function(aString, aSearchParam, aResult, aListener) {
-    let params = JSON.parse(aSearchParam);
-    let applicable = this.applicableHeaders.has(params.type);
+  startSearch: function(aString, aParam, aResult, aListener) {
     const ACR = Components.interfaces.nsIAutoCompleteResult;
     var address = null;
-    if (applicable && aString && !aString.contains(",")) {
-      if (params.idKey != this.cachedIdKey) {
-        this.cachedIdentity = MailServices.accounts.getIdentity(params.idKey);
-        this.cachedIdKey = params.idKey;
+    if (aString && !aString.contains(",")) {
+      if (aParam != this.cachedParam) {
+        this.cachedIdentity = MailServices.accounts.getIdentity(aParam);
+        this.cachedParam = aParam;
       }
       if (this.cachedIdentity.autocompleteToMyDomain)
         address = aString.contains("@") ? aString :

@@ -99,8 +99,6 @@ nsAbLDAPAutoCompleteSearch.prototype = {
 
   _parser: MailServices.headerParser,
 
-  applicableHeaders: Set(["addr_to", "addr_cc", "addr_bcc", "addr_reply"]),
-
   // Private methods
 
   _checkDuplicate: function _checkDuplicate(card, emailAddress) {
@@ -161,10 +159,6 @@ nsAbLDAPAutoCompleteSearch.prototype = {
 
   startSearch: function startSearch(aSearchString, aParam,
                                     aPreviousResult, aListener) {
-    let params = JSON.parse(aParam);
-    let applicable = this.applicableHeaders.has(params.type);
-    let idKey = params.idKey;
-
     this._result = new nsAbLDAPAutoCompleteResult(aSearchString);
     aSearchString = aSearchString.toLocaleLowerCase();
 
@@ -173,7 +167,7 @@ nsAbLDAPAutoCompleteSearch.prototype = {
     // result ignored.
     // The comma check is so that we don't autocomplete against the user
     // entering multiple addresses.
-    if (!applicable || !aSearchString || aSearchString.contains(",")) {
+    if (!aSearchString || aSearchString.contains(",")) {
       this._result.searchResult = ACR.RESULT_IGNORED;
       aListener.onSearchResult(this, this._result);
       return;
@@ -184,9 +178,9 @@ nsAbLDAPAutoCompleteSearch.prototype = {
     var acDirURI = null;
     var identity;
 
-    if (idKey) {
+    if (aParam) {
       try {
-        identity = MailServices.accounts.getIdentity(idKey);
+        identity = MailServices.accounts.getIdentity(aParam);
       }
       catch(ex) {
         Components.utils.reportError("Couldn't get specified identity, falling " +

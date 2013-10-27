@@ -200,8 +200,6 @@
 @BINPATH@/components/nsBox.js
 @BINPATH@/components/nsAddrbook.manifest
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
-@BINPATH@/components/nsNewsAutoCompleteSearch.js
-@BINPATH@/components/nsNewsAutoCompleteSearch.manifest
 @BINPATH@/components/services-crypto-component.xpt
 #ifndef XP_OS2
 @BINPATH@/components/shellservice.xpt

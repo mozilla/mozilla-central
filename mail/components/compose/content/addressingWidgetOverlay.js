@@ -774,9 +774,9 @@ function DropRecipient(target, recipient)
 
 function _awSetAutoComplete(selectElem, inputElem)
 {
-  let params = JSON.parse(inputElem.getAttribute('autocompletesearchparam'));
-  params.type = selectElem.value;
-  inputElem.setAttribute('autocompletesearchparam', JSON.stringify(params));
+  inputElem.disableAutoComplete = selectElem.value == 'addr_newsgroups' ||
+                                  selectElem.value == 'addr_followup' ||
+                                  selectElem.value == 'addr_other';
 }
 
 function awSetAutoComplete(rowNumber)

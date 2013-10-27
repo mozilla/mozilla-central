@@ -758,8 +758,6 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/components/nsMailNewsCommandLineHandler.js
 @BINPATH@/components/nsMsgTraitService.js
 @BINPATH@/components/nsMsgTraitService.manifest
-@BINPATH@/components/nsNewsAutoCompleteSearch.js
-@BINPATH@/components/nsNewsAutoCompleteSearch.manifest
 @BINPATH@/components/nsSMTPProtocolHandler.js
 @BINPATH@/components/nsSMTPProtocolHandler.manifest
 @BINPATH@/components/offlineStartup.js

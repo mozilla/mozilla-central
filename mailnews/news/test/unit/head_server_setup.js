@@ -95,7 +95,6 @@ Services.prefs.setBoolPref("mail.strict_threading", true);
 const NNTP_PORT = 1024+119;
 
 var _server = null;
-let _account = null;
 
 function subscribeServer(incomingServer) {
   // Subscribe to newsgroups
@@ -112,13 +111,11 @@ function subscribeServer(incomingServer) {
 function setupLocalServer(port) {
   if (_server != null)
     return _server;
-  let serverAndAccount =
-    localAccountUtils.create_incoming_server_and_account("nntp", port, null, null);
-  let server = serverAndAccount.server;
+  let server = localAccountUtils.create_incoming_server("nntp", port,
+							null, null);
   subscribeServer(server);
 
   _server = server;
-  _account = serverAndAccount.account;
 
   return server;
 }

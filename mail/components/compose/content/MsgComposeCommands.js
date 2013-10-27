@@ -3791,22 +3791,16 @@ function LoadIdentity(startup)
         var idKey = identityElement.value;
         gCurrentIdentity = MailServices.accounts.getIdentity(idKey);
 
-        let accountKey = null;
         // Set the account key value on the menu list.
         if (identityElement.selectedItem) {
-          accountKey = identityElement.selectedItem.getAttribute("accountkey");
+          let accountKey = identityElement.selectedItem.getAttribute("accountkey");
           identityElement.setAttribute("accountkey", accountKey);
           hideIrrelevantAddressingOptions(accountKey);
         }
 
         let maxRecipients = awGetMaxRecipients();
         for (let i = 1; i <= maxRecipients; i++)
-        {
-          let params = JSON.parse(awGetInputElement(i).searchParam);
-          params.idKey = idKey;
-          params.accountKey = accountKey;
-          awGetInputElement(i).searchParam = JSON.stringify(params);
-        }
+          awGetInputElement(i).setAttribute("autocompletesearchparam", idKey);
 
         if (!startup && prevIdentity && idKey != prevIdentity.key)
         {
@@ -3914,6 +3908,10 @@ function LoadIdentity(startup)
 function setupAutocomplete()
 {
   var autoCompleteWidget = document.getElementById("addressCol2#1");
+  // When autocompleteToMyDomain is off there is no default entry with the domain
+  // appended so reduce the minimum results for a popup to 2 in this case.
+  if (!gCurrentIdentity.autocompleteToMyDomain)
+    autoCompleteWidget.minResultsForPopup = 2;
 
   // if the pref is set to turn on the comment column, honor it here.
   // this element then gets cloned for subsequent rows, so they should
