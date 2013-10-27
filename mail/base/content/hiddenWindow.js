@@ -6,7 +6,7 @@
 function hiddenWindowStartup()
 {
   // Disable menus which are not appropriate
-  var disabledItems = [
+  let disabledItems = [
       'menu_newFolder', 'newMailAccountMenuItem', 'newAccountMenuItem',
       'menu_close', 'menu_saveAs', 'menu_saveAsFile', 'menu_newVirtualFolder',
       'menu_find', 'menu_findCmd', 'menu_findAgainCmd', 'menu_sendunsentmsgs',
@@ -52,15 +52,17 @@ function hiddenWindowStartup()
       'appmenu_openMessageWindowMenuitem', 'appmenu_openConversationMenuitem',
       'appmenu_moveMenu', 'appmenu_copyMenu', 'appmenu_createFilter',
       'appmenu_killThread', 'appmenu_killSubthread'];
-  var id;
-  var element;
-  for (id in disabledItems)
+
+  let element;
+  for (let id of disabledItems)
   {
-    element = document.getElementById(disabledItems[id]);
+    element = document.getElementById(id);
     if (element)
       element.setAttribute("disabled", "true");
   }
 
-  // also hide the window-list separator
-  document.getElementById("sep-window-list").setAttribute("hidden", "true");
+  // Also hide the window-list separator if it exists.
+  element = document.getElementById("sep-window-list");
+  if (element)
+    element.setAttribute("hidden", "true");
 }
