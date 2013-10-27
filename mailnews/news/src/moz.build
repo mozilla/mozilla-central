@@ -20,6 +20,11 @@ SOURCES += [
     'nsNntpUrl.cpp',
 ]
 
+EXTRA_COMPONENTS += [
+    'nsNewsAutoCompleteSearch.js',
+    'nsNewsAutoCompleteSearch.manifest',
+]
+
 if CONFIG['MOZ_INCOMPLETE_EXTERNAL_LINKAGE']:
     FORCE_STATIC_LIB = True
 else:

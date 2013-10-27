@@ -105,12 +105,18 @@ function run_test() {
     .getService(Components.interfaces.nsIAutoCompleteSearch);
 
   var obs = new acObserver();
+  let obsNews = new acObserver();
+  let obsFollowup = new acObserver();
 
   // Test - Check disabling of autocomplete
 
   Services.prefs.setBoolPref("mail.enable_autocomplete", false);
 
-  acs.startSearch("abc", null, null, obs);
+  let param = JSON.stringify({ type: "addr_to"  });
+  let paramNews = JSON.stringify({ type: "addr_newsgroups"  });
+  let paramFollowup = JSON.stringify({ type: "addr_followup"  });
+
+  acs.startSearch("abc", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "abc");
@@ -122,7 +128,7 @@ function run_test() {
 
   Services.prefs.setBoolPref("mail.enable_autocomplete", true);
 
-  acs.startSearch(null, null, null, obs);
+  acs.startSearch(null, param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, null);
@@ -133,7 +139,7 @@ function run_test() {
 
   // Test - Check ignoring result with comma
 
-  acs.startSearch("a,b", null, null, obs);
+  acs.startSearch("a,b", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "a,b");
@@ -144,7 +150,7 @@ function run_test() {
 
   // Test - No matches
 
-  acs.startSearch("asjdkljdgfjglkfg", null, null, obs);
+  acs.startSearch("asjdkljdgfjglkfg", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "asjdkljdgfjglkfg");
@@ -156,7 +162,7 @@ function run_test() {
   // Test - Matches
 
   // Basic quick-check
-  acs.startSearch("email", null, null, obs);
+  acs.startSearch("email", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "email");
@@ -171,10 +177,18 @@ function run_test() {
   do_check_eq(obs._result.getStyleAt(0), "local-abook");
   do_check_eq(obs._result.getImageAt(0), "");
 
+  // quick-check that nothing is found for addr_newsgroups
+  acs.startSearch("email", paramNews, null, obsNews);
+  do_check_true(obsNews._result == null || obsNews._result.matchCount == 0);
+
+  // quick-check that nothing is found for  addr_followup
+  acs.startSearch("a@b", paramFollowup, null, obsFollowup);
+  do_check_true(obsFollowup._result == null || obsFollowup._result.matchCount == 0);
+
   // Now quick-check with the address book name in the comment column.
   Services.prefs.setIntPref("mail.autoComplete.commentColumn", 1);
 
-  acs.startSearch("email", null, null, obs);
+  acs.startSearch("email", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "email");
@@ -190,7 +204,7 @@ function run_test() {
   do_check_eq(obs._result.getImageAt(0), "");
 
   // Check input with different case
-  acs.startSearch("EMAIL", null, null, obs);
+  acs.startSearch("EMAIL", param, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "EMAIL");
@@ -209,7 +223,7 @@ function run_test() {
   // Now check multiple matches
   function checkInputItem(element, index, array) {
     print("Checking " + element.search);
-    acs.startSearch(element.search, null, null, obs);
+    acs.startSearch(element.search, param, null, obs);
 
     do_check_eq(obs._search, acs);
     do_check_eq(obs._result.searchString, element.search);

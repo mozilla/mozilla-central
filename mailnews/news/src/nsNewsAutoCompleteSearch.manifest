@@ -1,0 +1,2 @@
+component {e9bb3330-ac7e-11de-8a39-0800200c9a66} nsNewsAutoCompleteSearch.js
+contract @mozilla.org/autocomplete/search;1?name=news {e9bb3330-ac7e-11de-8a39-0800200c9a66}

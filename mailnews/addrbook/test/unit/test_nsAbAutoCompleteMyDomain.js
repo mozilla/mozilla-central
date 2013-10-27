@@ -24,6 +24,8 @@ function run_test() {
     .getService(Components.interfaces.nsIAutoCompleteSearch);
 
   var obs = new acObserver();
+  let obsNews = new acObserver();
+  let obsFollowup = new acObserver();
 
   // Set up an identity in the account manager with the default settings
   let identity = MailServices.accounts.createIdentity();
@@ -32,8 +34,13 @@ function run_test() {
   identity.autocompleteToMyDomain = false;
   identity.email = "myemail@foo.invalid";
 
+  // Set up autocomplete parameters
+  let params = JSON.stringify({ idKey: identity.key, type: "addr_to" });
+  let paramsNews = JSON.stringify({ idKey: identity.key, type: "addr_newsgroups" });
+  let paramsFollowup = JSON.stringify({ idKey: identity.key, type: "addr_followup" });
+
   // Test - Valid search - this should return no results (autocomplete disabled)
-  acs.startSearch("test", identity.key, null, obs);
+  acs.startSearch("test", params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "test");
@@ -46,7 +53,7 @@ function run_test() {
 
   // Test - Search with empty string
 
-  acs.startSearch(null, identity.key, null, obs);
+  acs.startSearch(null, params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, null);
@@ -54,7 +61,7 @@ function run_test() {
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 0);
 
-  acs.startSearch("", identity.key, null, obs);
+  acs.startSearch("", params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "");
@@ -64,7 +71,7 @@ function run_test() {
 
   // Test - Check ignoring result with comma
 
-  acs.startSearch("a,b", identity.key, null, obs);
+  acs.startSearch("a,b", params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "a,b");
@@ -74,7 +81,7 @@ function run_test() {
 
   // Test - Check returning search string with @ sign
 
-  acs.startSearch("a@b", identity.key, null, obs);
+  acs.startSearch("a@b", params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "a@b");
@@ -88,9 +95,18 @@ function run_test() {
   do_check_eq(obs._result.getStyleAt(0), "default-match");
   do_check_eq(obs._result.getImageAt(0), null);
 
+  // No autocomplete for addr_newsgroups!
+  acs.startSearch("a@b", paramsNews, null, obsNews);
+  do_check_true(obsNews._result == null || obsNews._result.matchCount == 0);
+
+  // No autocomplete for addr_followup!
+  acs.startSearch("a@b", paramsFollowup, null, obsFollowup);
+  do_check_true(obsFollowup._result == null || obsFollowup._result.matchCount == 0);
+
+
   // Test - Add default domain
 
-  acs.startSearch("test1", identity.key, null, obs);
+  acs.startSearch("test1", params, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "test1");

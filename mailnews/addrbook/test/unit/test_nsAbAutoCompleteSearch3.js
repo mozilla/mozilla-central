@@ -73,7 +73,7 @@ function run_test()
 
   function checkInputItem(element, index, array) {
     print("Checking " + element.search);
-    acs.startSearch(element.search, null, null, obs);
+    acs.startSearch(element.search, JSON.stringify({ type: "addr_to"  }), null, obs);
 
     do_check_eq(obs._search, acs);
     do_check_eq(obs._result.searchString, element.search);
