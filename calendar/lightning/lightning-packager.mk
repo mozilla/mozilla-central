@@ -145,6 +145,8 @@ libs-%: FINAL_XPI_PKGNAME=$(if $(L10N_XPI_PKGNAME),$(L10N_XPI_PKGNAME),$(XPI_PKG
 libs-%:
 	$(MAKE) -C locales libs AB_CD=$* FINAL_TARGET=$(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) \
 	  XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_PKGNAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C locales tools AB_CD=$* FINAL_TARGET=$(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) \
+	  XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_PKGNAME) USE_EXTENSION_MANIFEST=1
 
 # For localized xpis, the install.rdf need to be reprocessed with some defines
 # from the locale.
