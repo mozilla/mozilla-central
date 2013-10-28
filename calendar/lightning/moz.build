@@ -16,4 +16,5 @@ DIRS += [
 TEST_DIRS += ['../test']
 
 MODULE = 'lightning'
-
+XPI_NAME = 'lightning'
+export('XPI_NAME')

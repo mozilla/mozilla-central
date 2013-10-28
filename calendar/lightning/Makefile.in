@@ -12,7 +12,6 @@ include $(DEPTH)/config/autoconf.mk
 # Calendar builders currently use STRIP_XPI to reduce the binary component in
 # Lightning.
 
-export XPI_NAME = lightning
 export USE_EXTENSION_MANIFEST = 1
 XPI_PKGNAME = lightning-$(LIGHTNING_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
 XPI_VERSION = $(LIGHTNING_VERSION)

@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 USE_EXTENSION_MANIFEST = 1
-XPI_NAME = dbgserver
 XPI_PKGNAME = dbgserver-$(MOZILLA_VERSION).$(AB_CD)
 DIST_FILES = install.rdf bootstrap.js
 relativesrcdir = mail/locales

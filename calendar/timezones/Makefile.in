@@ -29,7 +29,6 @@ VPATH = @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 export USE_EXTENSION_MANIFEST = 1
-export XPI_NAME = calendar-timezones
 DIST_FILES = install.rdf
 XPI_PKGNAME = calendar-timezones
 

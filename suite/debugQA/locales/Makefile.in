@@ -10,7 +10,6 @@ srcdir=@srcdir@
 VPATH=@srcdir@
 relativesrcdir=@relativesrcdir@
 
-XPI_NAME               = debugQA
 USE_EXTENSION_MANIFEST = 1
 
 # include config.mk before we override the AB_CD var it sets

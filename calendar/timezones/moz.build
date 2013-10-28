@@ -7,3 +7,5 @@ DIRS += ['locales']
 
 MODULE = 'timezones'
 
+XPI_NAME = 'calendar-timezones'
+export('XPI_NAME')

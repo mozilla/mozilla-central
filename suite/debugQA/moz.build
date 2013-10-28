@@ -6,4 +6,4 @@
 DIRS += ['locales']
 
 MODULE = 'debugQA'
-
+XPI_NAME = 'debugQA'

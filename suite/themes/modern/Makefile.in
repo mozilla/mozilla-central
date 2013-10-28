@@ -12,8 +12,6 @@ USE_EXTENSION_MANIFEST = 1
 
 include $(topsrcdir)/config/config.mk
 
-FINAL_TARGET = $(DIST)/bin/extensions/modern@themes.mozilla.org
-
 DEFINES += -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION)
 
 DIST_FILES = \

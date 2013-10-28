@@ -11,7 +11,6 @@ VPATH=@srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-XPI_NAME               = debugQA
 USE_EXTENSION_MANIFEST = 1
 INSTALL_EXTENSION_ID   = debugQA@mozilla.org
 XPI_PKGNAME            = debugQA-$(MOZ_APP_VERSION)
