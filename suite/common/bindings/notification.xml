@@ -458,6 +458,10 @@
                   if (missingNotification)
                     this.removeNotification(missingNotification);
 
+                  var disabledNotification = this.getNotificationWithValue("disabled-plugins");
+                  if (disabledNotification)
+                    this.removeNotification(disabledNotification);
+
                   var blockedNotification = this.getNotificationWithValue("blocked-plugins");
                   if (blockedNotification)
                     this.removeNotification(blockedNotification);
@@ -569,10 +573,12 @@
             var pluginInfo = this.getPluginInfo(aPlugin);
             this.missingPlugins.set(pluginInfo.mimetype, pluginInfo);
 
-            // Hide the in-content UI if it's too big. The crashed plugin handler already does this.
+            // Show the in-content UI if it's not too big. The crashed plugin handler already does this.
             var overlay = this.getPluginUI(aPlugin, "main");
-            if (this.isTooSmall(aPlugin, overlay))
-              overlay.style.visibility = "hidden";
+            aPlugin.addEventListener("overflow", this);
+            aPlugin.addEventListener("underflow", this);
+            overlay.style.visibility =
+              this.isTooSmall(aPlugin, overlay) ? "hidden" : "visible";
 
             if (this._prefs.getBoolPref(aPref || "plugins.hide_infobar_for_missing_plugin"))
               return;
@@ -580,6 +586,7 @@
             var notification;
             var notifications = [
               "blocked-plugins",
+              "disabled-plugins",
               "missing-plugins",
               "carbon-failure-plugins",
               "outdated-plugins",
@@ -609,6 +616,7 @@
 
       <method name="canActivatePlugin">
         <parameter name="aPlugin"/>
+        <parameter name="aSkipFallbackType"/>
         <body>
           <![CDATA[
             const nsIObjectLoadingContent = Components.interfaces.nsIObjectLoadingContent;
@@ -616,8 +624,9 @@
             var actualType = objLoadingContent.actualType;
             if (objLoadingContent.getContentTypeForMIMEType(actualType) != nsIObjectLoadingContent.TYPE_PLUGIN ||
                 objLoadingContent.activated ||
-                objLoadingContent.pluginFallbackType < nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY ||
-                objLoadingContent.pluginFallbackType > nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE)
+                (!aSkipFallbackType &&
+                 (objLoadingContent.pluginFallbackType < nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY ||
+                  objLoadingContent.pluginFallbackType > nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE)))
               return false;
 
             var ph = Components.classes["@mozilla.org/plugin/host;1"]
@@ -956,23 +965,33 @@
         <parameter name="aEvent"/>
         <body>
           <![CDATA[
-          if (!aEvent.isTrusted)
-            return;
+            if (!aEvent.isTrusted)
+              return;
 
-          if (aEvent.type != "MozPlayPlugin")
-            return;
+            switch (aEvent.type) {
+              case "overflow":
+              case "underflow":
+                var plugin = aEvent.target;
+                var overlay = this.getPluginUI(plugin, "main");
+                if (overlay)
+                  overlay.style.visibility =
+                    this.isTooSmall(plugin, overlay) ? "hidden" : "visible";
+                break;
 
-          var previewContent = aEvent.currentTarget;
-          previewContent.removeEventListener("MozPlayPlugin", this, true);
+              case "MozPlayPlugin":
+                var previewContent = aEvent.currentTarget;
+                previewContent.removeEventListener("MozPlayPlugin", this, true);
 
-          var pluginElement = previewContent.ownerDocument.getBindingParent(previewContent);
-          var playPlugin = !aEvent.detail;
-          this.stopPlayPreview(pluginElement, playPlugin);
+                var pluginElement = previewContent.ownerDocument.getBindingParent(previewContent);
+                var playPlugin = !aEvent.detail;
+                this.stopPlayPreview(pluginElement, playPlugin);
 
-          // cleaning up: removes overlay iframe from the DOM
-          var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
-          if (iframe)
-            previewContent.removeChild(iframe);
+                // cleaning up: removes overlay iframe from the DOM
+                var iframe = previewContent.getElementsByClassName("previewPluginContentFrame")[0];
+                if (iframe)
+                  previewContent.removeChild(iframe);
+                break;
+            }
           ]]>
         </body>
       </method>
@@ -1414,10 +1433,11 @@
 
             this.showPluginClickToPlayPrompt(aTriggeredByNewPlugin);
 
-            if (this.isTooSmall(pluginElement, overlay)) {
-              overlay.style.visibility = "hidden";
-              return;
-            }
+            // Show the in-content UI if it's not too big. The crashed plugin handler already does this.
+            pluginElement.addEventListener("overflow", this);
+            pluginElement.addEventListener("underflow", this);
+            overlay.style.visibility =
+              this.isTooSmall(pluginElement, overlay) ? "hidden" : "visible";
 
             var pluginName = this.getPluginInfo(pluginElement).pluginName;
             var messageString = this._stringBundle.formatStringFromName("PluginClickToActivate", [pluginName], 1);
@@ -2163,11 +2183,25 @@
               break;
 
             case nsIObjectLoadingContent.PLUGIN_DISABLED:
+              if (!this.canActivatePlugin(plugin, true))
+                return;
+
+              notification = "disabled-plugins";
+              message = this._stringBundle.GetStringFromName("missingpluginsMessage.title");
               if ("toEM" in window) {
+                buttons = [{
+                  label: this._stringBundle.GetStringFromName("addonInstallManageButton"),
+                  accessKey: this._stringBundle.GetStringFromName("addonInstallManageButton.accesskey"),
+                  popup: null,
+                  callback: function() {
+                    window.toEM("addons://list/plugin");
+                  }
+                }];
+
                 var manageLink = this.getPluginUI(plugin, "managePluginsLink");
                 this.addLinkClickCallback(manageLink, window.toEM, "addons://list/plugin");
               }
-              return;
+              break;
 
             case nsIObjectLoadingContent.PLUGIN_BLOCKLISTED:
               notification = "blocked-plugins";
@@ -2325,18 +2359,15 @@
 
           // Is the <object>'s size too small to hold what we want to show?
           if (this.isTooSmall(plugin, overlay)) {
-            // First try hiding the comment box and related report submission UI.
+            // Try hiding the comment box and related report submission UI.
             statusDiv.removeAttribute("status");
 
-            if (this.isTooSmall(plugin, overlay)) {
-              // Hide the overlay's contents. Use visibility style, so that it doesn't
-              // collapse down to 0x0.
-              overlay.style.visibility = "hidden";
+            if (this.isTooSmall(plugin, overlay))
               isShowing = false;
-            }
           }
 
           if (isShowing) {
+            overlay.style.visibility = "visible";
             // If a previous plugin on the page was too small and resulted in
             // adding a notification bar, then remove it because this plugin
             // instance it big enough to serve as in-content notification.
@@ -2345,6 +2376,7 @@
               this.removeNotification(notification, true);
             this.crashNotified = true;
           } else {
+            overlay.style.visibility = "hidden";
             // If another plugin on the page was large enough to show our UI, we don't
             // want to show a notification bar.
             if (!this.crashNotified)
