@@ -15,48 +15,9 @@ $(error Do not include rules.mk twice!)
 endif
 INCLUDED_RULES_MK = 1
 
-# Integrate with mozbuild-generated make files. We first verify that no
-# variables provided by the automatically generated .mk files are
-# present. If they are, this is a violation of the separation of
-# responsibility between Makefile.in and mozbuild files.
-_MOZBUILD_EXTERNAL_VARIABLES := \
-  DIRS \
-  PARALLEL_DIRS \
-  TEST_DIRS \
-  TIERS \
-  TOOL_DIRS \
-  XPIDL_MODULE \
-  $(NULL)
-
-_DEPRECATED_VARIABLES := \
-  XPIDL_FLAGS \
-  $(NULL)
-
-ifndef EXTERNALLY_MANAGED_MAKE_FILE
-# Using $(firstword) may not be perfect. But it should be good enough for most
-# scenarios.
-_current_makefile = $(CURDIR)/$(firstword $(MAKEFILE_LIST))
-
-$(foreach var,$(_MOZBUILD_EXTERNAL_VARIABLES),$(if $($(var)),\
-    $(error Variable $(var) is defined in $(_current_makefile). It should only be defined in moz.build files),\
-    ))
-
-$(foreach var,$(_DEPRECATED_VARIABLES),$(if $($(var)),\
-    $(error Variable $(var) is defined in $(_current_makefile). This variable has been deprecated. It does nothing. It must be removed in order to build)\
-    ))
-
-ifneq (,$(XPIDLSRCS)$(SDK_XPIDLSRCS))
-    $(error XPIDLSRCS and SDK_XPIDLSRCS have been merged and moved to moz.build files as the XPIDL_SOURCES variable. You must move these variables out of $(_current_makefile))
-endif
-
-# Import the automatically generated backend file. If this file doesn't exist,
-# the backend hasn't been properly configured. We want this to be a fatal
-# error, hence not using "-include".
-ifndef STANDALONE_MAKEFILE
-GLOBAL_DEPS += backend.mk
-include backend.mk
-endif
-endif
+# Make sure that anything that needs to be defined in moz.build wasn't
+# overwritten.
+_eval_for_side_effects := $(CHECK_MOZBUILD_VARIABLES)
 
 ifdef TIERS
 DIRS += $(foreach tier,$(TIERS),$(tier_$(tier)_dirs))

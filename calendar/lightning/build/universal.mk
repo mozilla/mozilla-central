@@ -20,6 +20,7 @@ include $(topsrcdir)/mozilla/toolkit/mozapps/installer/package-name.mk
 LIGHTNING_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
 XPI_PKGNAME = lightning-$(LIGHTNING_VERSION).$(AB_CD).$(MOZ_PKG_PLATFORM)
 
+STANDALONE_MAKEFILE := 1
 include $(TOPSRCDIR)/config/config.mk
 
 postflight_all:
