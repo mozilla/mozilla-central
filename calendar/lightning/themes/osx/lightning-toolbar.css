@@ -2,8 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-@import url(chrome://lightning/skin/common/lightning-toolbar.css);
-
 /* Lightning "Calendar" Toolbarbutton */
 #lightning-button-calendar {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
@@ -107,4 +105,26 @@
 
 #calendar-unifinder-button[checked="true"] {
   -moz-image-region: rect(36px 144px 54px 126px);
+}
+
+#extractEventButton,
+#hdrExtractEventButton {
+  list-style-image: url(chrome://calendar/skin/toolbar.png);
+  -moz-image-region: rect(0px 36px 18px 18px);
+}
+
+#extractEventButton:not([disabled]):active,
+#hdrExtractEventButton:not([disabled]):active {
+  -moz-image-region: rect(18px 36px 36px 18px);
+}
+
+#extractTaskButton,
+#hdrExtractTaskButton {
+  list-style-image: url(chrome://calendar/skin/toolbar.png);
+  -moz-image-region: rect(0px 72px 18px 54px);
+}
+
+#extractTaskButton:not([disabled]):active,
+#hdrExtractTaskButton:not([disabled]):active {
+  -moz-image-region: rect(18px 72px 36px 54px);
 }

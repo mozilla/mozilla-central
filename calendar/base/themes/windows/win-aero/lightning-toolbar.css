@@ -2,8 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-@import url(chrome://lightning/skin/common/lightning-toolbar.css);
-
 /* Lightning "Calendar" Toolbarbutton */
 #lightning-button-calendar {
   list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
@@ -64,6 +62,23 @@
   -moz-image-region: rect(1px 143px 17px 127px);
 }
 
+#extractEventButton,
+#hdrExtractEventButton {
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
+  -moz-image-region: rect(1px 35px 17px 19px);
+}
+
+#extractTaskButton,
+#hdrExtractTaskButton {
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
+  -moz-image-region: rect(1px 71px 17px 55px);
+}
+
+#extractTaskButton:-moz-lwtheme-brighttext,
+#extractEventButton:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://calendar/skin/toolbar-aero-inverted.png) !important;
+}
+
 .button-appmenu:-moz-lwtheme-brighttext {
   list-style-image: url(chrome://messenger/skin/icons/mail-toolbar-inverted.png);
 }
@@ -76,6 +91,11 @@
   #tabbar-toolbar:not(:-moz-lwtheme-darktext) #lightning-button-calendar,
   #tabbar-toolbar:not(:-moz-lwtheme-darktext) #lightning-button-tasks {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
+  }
+
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) > #extractTaskButton,
+  #tabbar-toolbar:not(:-moz-lwtheme-darktext) > #extractEventButton {
+    list-style-image: url(chrome://calendar/skin/toolbar-aero-inverted.png);
   }
 }
 
