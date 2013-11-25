@@ -14,8 +14,8 @@ namespace storage {
 
 Error::Error(int aResult,
              const char *aMessage)
-: mResult(aResult)
-, mMessage(aMessage)
+: mResult(aResult),
+  mMessage(aMessage)
 {
 }
 
