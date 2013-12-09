@@ -1377,6 +1377,17 @@ function JSTermHelpers(aOwner)
   {
     return aOwner.window.document.querySelectorAll(aSelector);
   };
+  
+  /**
+   * Returns the result of the last console input evaluation
+   *
+   * @return object|undefined
+   * Returns last console evaluation or undefined
+   */
+  aOwner.sandbox.$_ = function JSTH_$_()
+  {
+    return aOwner.getLastConsoleInputEvaluation();
+  };
 
   /**
    * Runs an xPath query and returns all matched nodes.

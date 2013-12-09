@@ -126,3 +126,17 @@
 <!ENTITY options.showPlatformData.label    "Show Gecko platform data">
 <!ENTITY options.showPlatformData.tooltip  "If you enable this option the JavaScript Profiler reports will include
 Gecko platform symbols">
+
+<!-- LOCALIZATION NOTE (options.geolocation.label): This is the label for the
+  -  heading of the group of Geolocation preferences in the options
+  -  panel. -->
+<!ENTITY options.geolocation.label            "Geolocation">
+
+<!-- LOCALIZATION NOTE (options.overrideGeolocationPosition.label): This is the
+  -  label for the checkbox that toggles the overriding of the geolocation position,
+  -  i.e. devtools.geolocation.override-geolocation-position a boolean preference
+  -  in about:config, in the options panel. -->
+<!ENTITY options.overrideGeolocationPosition.label    "Override geolocation position">
+<!ENTITY options.overrideGeolocationPosition.tooltip  "If you enable this option the JavaScript geolocation functions will return your given position">
+<!ENTITY options.overrideGeolocationLatitude.label    "Latitude:">
+<!ENTITY options.overrideGeolocationLongitude.label   "Longitude:">

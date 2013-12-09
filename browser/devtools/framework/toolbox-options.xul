@@ -67,6 +67,37 @@
                     tooltiptext="&options.showPlatformData.tooltip;"
                     data-pref="devtools.profiler.ui.show-platform-data"/>
         </vbox>
+        <label value="&options.geolocation.label;"/>
+        <vbox id="geolocation-options" class="options-groupbox">
+          <checkbox id="devtools-geolocation-override-position"
+                    label="&options.overrideGeolocationPosition.label;"
+                    tooltiptext="&options.overrideGeolocationPosition.tooltip;"
+                    data-pref="devtools.geolocation.override-position"/>
+          <box orient="horizontal">
+            <vbox>
+              <label control="devtools-geolocation-override-latitude"
+                     value="&options.overrideGeolocationLatitude.label;"/>
+              <textbox id="devtools-geolocation-override-latitude"
+                       type="number"
+                       decimalplaces="6"
+                       hidespinbuttons="true"
+                       max="90"
+                       min="-90"
+                       data-pref="devtools.geolocation.override-latitude"/>
+            </vbox>
+            <vbox>
+              <label control="devtools-geolocation-override-longitude"
+                     value="&options.overrideGeolocationLongitude.label;"/>
+              <textbox id="devtools-geolocation-override-longitude"
+                       type="number"
+                       decimalplaces="6"
+                       hidespinbuttons="true"
+                       max="180"
+                       min="-180"
+                       data-pref="devtools.geolocation.override-longitude"/>
+            </vbox>
+          </box>
+        </vbox>
         <label value="&options.context.advancedSettings;"/>
         <vbox id="context-options" class="options-groupbox">
           <hbox>

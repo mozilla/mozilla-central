@@ -8,6 +8,7 @@ const {Cu, Cc, Ci} = require("chrome");
 
 let promise = require("sdk/core/promise");
 let EventEmitter = require("devtools/shared/event-emitter");
+let GeolocaterPrefs = require("devtools/framework/geolocation-override");
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import("resource://gre/modules/Services.jsm");
@@ -54,6 +55,8 @@ OptionsPanel.prototype = {
 
     this.setupToolsList();
     this.populatePreferences();
+    
+    this.handleGeolocationOverrideCheckbox();
 
     this._disableJSClicked = this._disableJSClicked.bind(this);
 
@@ -155,6 +158,19 @@ OptionsPanel.prototype = {
         gDevTools.emit("pref-changed", data);
       }.bind(checkbox));
     }
+    let prefTextboxes = this.panelDoc.querySelectorAll("textbox[data-pref]");
+    for (let textbox of prefTextboxes) {
+      textbox.value = Services.prefs.getCharPref(textbox.getAttribute("data-pref"));
+      textbox.addEventListener("input", function() {
+        let data = {
+          pref: this.getAttribute("data-pref"),
+          newValue: this.getAttribute("value")
+        };
+        data.oldValue = Services.prefs.getCharPref(data.pref);
+        Services.prefs.setCharPref(data.pref, data.newValue);
+        gDevTools.emit("pref-changed", data);
+      }.bind(textbox));
+    }
     let prefRadiogroups = this.panelDoc.querySelectorAll("radiogroup[data-pref]");
     for (let radiogroup of prefRadiogroups) {
       let selectedValue = Services.prefs.getCharPref(radiogroup.getAttribute("data-pref"));
@@ -197,6 +213,23 @@ OptionsPanel.prototype = {
       }.bind(menulist));
     }
   },
+  
+  handleGeolocationOverrideCheckbox: function() {
+    let checkboxOverride = this.panelDoc.getElementById("devtools-geolocation-override-position");
+    let textboxOverridePositions = this.panelDoc.querySelectorAll("#devtools-geolocation-override-latitude, #devtools-geolocation-override-longitude");
+    
+    if (!checkboxOverride.checked) {
+      for (let textboxOverridePosition of textboxOverridePositions) {
+        textboxOverridePosition.disabled = true;
+      }
+    }
+    
+    checkboxOverride.addEventListener("change", function() {
+      for (let textboxOverridePosition of textboxOverridePositions) {
+        textboxOverridePosition.disabled = !checkboxOverride.checked;
+      }
+    }, false);
+  }
 
   /**
    * Disables JavaScript for the currently loaded tab. We force a page refresh
